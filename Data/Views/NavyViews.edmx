@@ -1,0 +1,512 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<edmx:Edmx Version="3.0" xmlns:edmx="http://schemas.microsoft.com/ado/2009/11/edmx">
+  <!-- EF Runtime content -->
+  <edmx:Runtime>
+    <!-- SSDL content -->
+    <edmx:StorageModels>
+    <Schema Namespace="ceNavyViewModel.Store" Provider="System.Data.SqlClient" ProviderManifestToken="2012" Alias="Self" xmlns:store="http://schemas.microsoft.com/ado/2007/12/edm/EntityStoreSchemaGenerator" xmlns:customannotation="http://schemas.microsoft.com/ado/2013/11/edm/customannotation" xmlns="http://schemas.microsoft.com/ado/2009/11/edm/ssdl">
+        <!--Errors Found During Generation:
+warning 6002: The table/view 'ceNavy.dbo.Account_Summary' does not have a primary key defined. The key has been inferred and the definition was created as a read-only table/view.-->
+        <EntityType Name="Account_Summary">
+          <Key>
+            <PropertyRef Name="Id" />
+            <PropertyRef Name="UserName" />
+            <PropertyRef Name="FirstName" />
+            <PropertyRef Name="LastName" />
+            <PropertyRef Name="FullName" />
+            <PropertyRef Name="SortName" />
+            <PropertyRef Name="Email" />
+            <PropertyRef Name="RowId" />
+            <PropertyRef Name="OrgMbrs" />
+          </Key>
+          <Property Name="Id" Type="int" Nullable="false" />
+          <Property Name="UserName" Type="varchar" MaxLength="50" Nullable="false" />
+          <Property Name="FirstName" Type="varchar" MaxLength="50" Nullable="false" />
+          <Property Name="LastName" Type="varchar" MaxLength="50" Nullable="false" />
+          <Property Name="FullName" Type="varchar" MaxLength="101" Nullable="false" />
+          <Property Name="SortName" Type="varchar" MaxLength="102" Nullable="false" />
+          <Property Name="Email" Type="varchar" MaxLength="100" Nullable="false" />
+          <Property Name="IsActive" Type="bit" />
+          <Property Name="Created" Type="datetime" />
+          <Property Name="LastUpdated" Type="datetime" />
+          <Property Name="LastUpdatedById" Type="int" />
+          <Property Name="CEAccountIdentifier" Type="varchar" MaxLength="50" />
+          <Property Name="RowId" Type="uniqueidentifier" Nullable="false" />
+          <Property Name="AspNetId" Type="nvarchar" MaxLength="128" />
+          <Property Name="Roles" Type="nvarchar(max)" />
+          <Property Name="OrgMbrs" Type="varchar" MaxLength="1" Nullable="false" />
+          <Property Name="lastLogon" Type="datetime" />
+        </EntityType>
+        <!--Errors Found During Generation:
+warning 6002: The table/view 'ceNavy.dbo.Activity_Summary' does not have a primary key defined. The key has been inferred and the definition was created as a read-only table/view.-->
+        <EntityType Name="Activity_Summary">
+          <Key>
+            <PropertyRef Name="Id" />
+            <PropertyRef Name="CreatedDate" />
+            <PropertyRef Name="ActivityType" />
+            <PropertyRef Name="Activity" />
+            <PropertyRef Name="Event" />
+          </Key>
+          <Property Name="Id" Type="int" Nullable="false" />
+          <Property Name="CreatedDate" Type="datetime" Nullable="false" />
+          <Property Name="ActivityType" Type="varchar" MaxLength="100" Nullable="false" />
+          <Property Name="EntityTypeId" Type="int" />
+          <Property Name="Activity" Type="varchar" MaxLength="100" Nullable="false" />
+          <Property Name="Event" Type="varchar" MaxLength="100" Nullable="false" />
+          <Property Name="Comment" Type="varchar" MaxLength="1000" />
+          <Property Name="TargetUserId" Type="int" />
+          <Property Name="ActionByUserId" Type="int" />
+          <Property Name="ActionByUser" Type="varchar" MaxLength="101" />
+          <Property Name="ActivityObjectId" Type="int" />
+          <Property Name="ObjectRelatedId" Type="int" />
+          <Property Name="RelatedTargetUrl" Type="varchar" MaxLength="600" />
+          <Property Name="TargetObjectId" Type="int" />
+          <Property Name="SessionId" Type="varchar" MaxLength="50" />
+          <Property Name="IPAddress" Type="varchar" MaxLength="50" />
+          <Property Name="Referrer" Type="varchar(max)" />
+        </EntityType>
+        <!--Errors Found During Generation:
+warning 6002: The table/view 'ceNavy.dbo.Entity_Reference_Summary' does not have a primary key defined. The key has been inferred and the definition was created as a read-only table/view.-->
+        <EntityType Name="Entity_Reference_Summary">
+          <Key>
+            <PropertyRef Name="PK" />
+            <PropertyRef Name="EntityId" />
+            <PropertyRef Name="EntityTypeId" />
+            <PropertyRef Name="EntityUid" />
+            <PropertyRef Name="EntityReferenceId" />
+            <PropertyRef Name="CategoryId" />
+          </Key>
+          <Property Name="PK" Type="int" Nullable="false" />
+          <Property Name="EntityId" Type="int" Nullable="false" />
+          <Property Name="EntityTypeId" Type="int" Nullable="false" />
+          <Property Name="EntityType" Type="varchar" MaxLength="200" />
+          <Property Name="EntityUid" Type="uniqueidentifier" Nullable="false" />
+          <Property Name="EntityName" Type="nvarchar" MaxLength="300" />
+          <Property Name="EntityBaseId" Type="int" />
+          <Property Name="EntityReferenceId" Type="int" Nullable="false" />
+          <Property Name="CategoryId" Type="int" Nullable="false" />
+          <Property Name="PropertyValueId" Type="int" />
+          <Property Name="Title" Type="nvarchar" MaxLength="600" />
+          <Property Name="TextValue" Type="nvarchar" MaxLength="600" />
+          <Property Name="PropertyValue" Type="varchar" MaxLength="200" />
+          <Property Name="Created" Type="datetime" />
+          <Property Name="CreatedById" Type="int" />
+          <Property Name="LastUpdated" Type="datetime" />
+          <Property Name="LastUpdatedById" Type="int" />
+        </EntityType>
+        <!--Errors Found During Generation:
+warning 6002: The table/view 'ceNavy.dbo.EntityProperty_Summary' does not have a primary key defined. The key has been inferred and the definition was created as a read-only table/view.-->
+        <EntityType Name="EntityProperty_Summary">
+          <Key>
+            <PropertyRef Name="EntityId" />
+            <PropertyRef Name="EntityUid" />
+            <PropertyRef Name="EntityTypeId" />
+            <PropertyRef Name="PropertyValueId" />
+            <PropertyRef Name="EntityPropertyId" />
+            <PropertyRef Name="Property" />
+            <PropertyRef Name="CategoryId" />
+            <PropertyRef Name="Category" />
+          </Key>
+          <Property Name="EntityId" Type="int" Nullable="false" />
+          <Property Name="EntityUid" Type="uniqueidentifier" Nullable="false" />
+          <Property Name="EntityTypeId" Type="int" Nullable="false" />
+          <Property Name="EntityBaseId" Type="int" />
+          <Property Name="EntityBaseName" Type="nvarchar" MaxLength="300" />
+          <Property Name="Title" Type="varchar" MaxLength="100" />
+          <Property Name="PropertyValueId" Type="int" Nullable="false" />
+          <Property Name="EntityPropertyId" Type="int" Nullable="false" />
+          <Property Name="Property" Type="varchar" MaxLength="200" Nullable="false" />
+          <Property Name="PropertySchemaName" Type="varchar" MaxLength="100" />
+          <Property Name="ParentSchemaName" Type="varchar" MaxLength="100" />
+          <Property Name="CategoryId" Type="int" Nullable="false" />
+          <Property Name="SortOrder" Type="int" />
+          <Property Name="Category" Type="varchar" MaxLength="50" Nullable="false" />
+          <Property Name="Created" Type="datetime" />
+          <Property Name="CreatedById" Type="int" />
+          <Property Name="Description" Type="varchar" MaxLength="500" />
+          <Property Name="IsActive" Type="bit" />
+          <Property Name="IsSubType1" Type="bit" />
+        </EntityType>
+        <!--Errors Found During Generation:
+warning 6002: The table/view 'ceNavy.dbo.SubscriptionEntities' does not have a primary key defined. The key has been inferred and the definition was created as a read-only table/view.-->
+        <EntityType Name="SubscriptionEntities">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="int" Nullable="false" />
+          <Property Name="Title" Type="varchar" MaxLength="100" />
+          <Property Name="Description" Type="varchar" MaxLength="500" />
+          <Property Name="IsActive" Type="bit" />
+          <Property Name="SchemaUrl" Type="varchar" MaxLength="200" />
+          <Property Name="Created" Type="datetime" />
+        </EntityType>
+        <EntityContainer Name="ceNavyViewModelStoreContainer">
+          <EntitySet Name="Account_Summary" EntityType="Self.Account_Summary" store:Type="Views" store:Schema="dbo">
+            <DefiningQuery>SELECT 
+    [Account_Summary].[Id] AS [Id], 
+    [Account_Summary].[UserName] AS [UserName], 
+    [Account_Summary].[FirstName] AS [FirstName], 
+    [Account_Summary].[LastName] AS [LastName], 
+    [Account_Summary].[FullName] AS [FullName], 
+    [Account_Summary].[SortName] AS [SortName], 
+    [Account_Summary].[Email] AS [Email], 
+    [Account_Summary].[IsActive] AS [IsActive], 
+    [Account_Summary].[Created] AS [Created], 
+    [Account_Summary].[LastUpdated] AS [LastUpdated], 
+    [Account_Summary].[LastUpdatedById] AS [LastUpdatedById], 
+    [Account_Summary].[CEAccountIdentifier] AS [CEAccountIdentifier], 
+    [Account_Summary].[RowId] AS [RowId], 
+    [Account_Summary].[AspNetId] AS [AspNetId], 
+    [Account_Summary].[Roles] AS [Roles], 
+    [Account_Summary].[OrgMbrs] AS [OrgMbrs], 
+    [Account_Summary].[lastLogon] AS [lastLogon]
+    FROM [dbo].[Account_Summary] AS [Account_Summary]</DefiningQuery>
+          </EntitySet>
+          <EntitySet Name="Activity_Summary" EntityType="Self.Activity_Summary" store:Type="Views" store:Schema="dbo">
+            <DefiningQuery>SELECT 
+    [Activity_Summary].[Id] AS [Id], 
+    [Activity_Summary].[CreatedDate] AS [CreatedDate], 
+    [Activity_Summary].[ActivityType] AS [ActivityType], 
+    [Activity_Summary].[EntityTypeId] AS [EntityTypeId], 
+    [Activity_Summary].[Activity] AS [Activity], 
+    [Activity_Summary].[Event] AS [Event], 
+    [Activity_Summary].[Comment] AS [Comment], 
+    [Activity_Summary].[TargetUserId] AS [TargetUserId], 
+    [Activity_Summary].[ActionByUserId] AS [ActionByUserId], 
+    [Activity_Summary].[ActionByUser] AS [ActionByUser], 
+    [Activity_Summary].[ActivityObjectId] AS [ActivityObjectId], 
+    [Activity_Summary].[ObjectRelatedId] AS [ObjectRelatedId], 
+    [Activity_Summary].[RelatedTargetUrl] AS [RelatedTargetUrl], 
+    [Activity_Summary].[TargetObjectId] AS [TargetObjectId], 
+    [Activity_Summary].[SessionId] AS [SessionId], 
+    [Activity_Summary].[IPAddress] AS [IPAddress], 
+    [Activity_Summary].[Referrer] AS [Referrer]
+    FROM [dbo].[Activity_Summary] AS [Activity_Summary]</DefiningQuery>
+          </EntitySet>
+          <EntitySet Name="Entity_Reference_Summary" EntityType="Self.Entity_Reference_Summary" store:Type="Views" store:Schema="dbo">
+            <DefiningQuery>SELECT 
+    [Entity_Reference_Summary].[PK] AS [PK], 
+    [Entity_Reference_Summary].[EntityId] AS [EntityId], 
+    [Entity_Reference_Summary].[EntityTypeId] AS [EntityTypeId], 
+    [Entity_Reference_Summary].[EntityType] AS [EntityType], 
+    [Entity_Reference_Summary].[EntityUid] AS [EntityUid], 
+    [Entity_Reference_Summary].[EntityName] AS [EntityName], 
+    [Entity_Reference_Summary].[EntityBaseId] AS [EntityBaseId], 
+    [Entity_Reference_Summary].[EntityReferenceId] AS [EntityReferenceId], 
+    [Entity_Reference_Summary].[CategoryId] AS [CategoryId], 
+    [Entity_Reference_Summary].[PropertyValueId] AS [PropertyValueId], 
+    [Entity_Reference_Summary].[Title] AS [Title], 
+    [Entity_Reference_Summary].[TextValue] AS [TextValue], 
+    [Entity_Reference_Summary].[PropertyValue] AS [PropertyValue], 
+    [Entity_Reference_Summary].[Created] AS [Created], 
+    [Entity_Reference_Summary].[CreatedById] AS [CreatedById], 
+    [Entity_Reference_Summary].[LastUpdated] AS [LastUpdated], 
+    [Entity_Reference_Summary].[LastUpdatedById] AS [LastUpdatedById]
+    FROM [dbo].[Entity_Reference_Summary] AS [Entity_Reference_Summary]</DefiningQuery>
+          </EntitySet>
+          <EntitySet Name="EntityProperty_Summary" EntityType="Self.EntityProperty_Summary" store:Type="Views" store:Schema="dbo">
+            <DefiningQuery>SELECT 
+    [EntityProperty_Summary].[EntityId] AS [EntityId], 
+    [EntityProperty_Summary].[EntityUid] AS [EntityUid], 
+    [EntityProperty_Summary].[EntityTypeId] AS [EntityTypeId], 
+    [EntityProperty_Summary].[EntityBaseId] AS [EntityBaseId], 
+    [EntityProperty_Summary].[EntityBaseName] AS [EntityBaseName], 
+    [EntityProperty_Summary].[Title] AS [Title], 
+    [EntityProperty_Summary].[PropertyValueId] AS [PropertyValueId], 
+    [EntityProperty_Summary].[EntityPropertyId] AS [EntityPropertyId], 
+    [EntityProperty_Summary].[Property] AS [Property], 
+    [EntityProperty_Summary].[PropertySchemaName] AS [PropertySchemaName], 
+    [EntityProperty_Summary].[ParentSchemaName] AS [ParentSchemaName], 
+    [EntityProperty_Summary].[CategoryId] AS [CategoryId], 
+    [EntityProperty_Summary].[SortOrder] AS [SortOrder], 
+    [EntityProperty_Summary].[Category] AS [Category], 
+    [EntityProperty_Summary].[Created] AS [Created], 
+    [EntityProperty_Summary].[CreatedById] AS [CreatedById], 
+    [EntityProperty_Summary].[Description] AS [Description], 
+    [EntityProperty_Summary].[IsActive] AS [IsActive], 
+    [EntityProperty_Summary].[IsSubType1] AS [IsSubType1]
+    FROM [dbo].[EntityProperty_Summary] AS [EntityProperty_Summary]</DefiningQuery>
+          </EntitySet>
+          <EntitySet Name="SubscriptionEntities" EntityType="Self.SubscriptionEntities" store:Type="Views" store:Schema="dbo">
+            <DefiningQuery>SELECT 
+    [SubscriptionEntities].[Id] AS [Id], 
+    [SubscriptionEntities].[Title] AS [Title], 
+    [SubscriptionEntities].[Description] AS [Description], 
+    [SubscriptionEntities].[IsActive] AS [IsActive], 
+    [SubscriptionEntities].[SchemaUrl] AS [SchemaUrl], 
+    [SubscriptionEntities].[Created] AS [Created]
+    FROM [dbo].[SubscriptionEntities] AS [SubscriptionEntities]</DefiningQuery>
+          </EntitySet>
+        </EntityContainer>
+      </Schema></edmx:StorageModels>
+    <!-- CSDL content -->
+    <edmx:ConceptualModels>
+      <Schema Namespace="ceNavyViewModel" Alias="Self" annotation:UseStrongSpatialTypes="false" xmlns:annotation="http://schemas.microsoft.com/ado/2009/02/edm/annotation" xmlns:customannotation="http://schemas.microsoft.com/ado/2013/11/edm/customannotation" xmlns="http://schemas.microsoft.com/ado/2009/11/edm">
+        <EntityType Name="EntityProperty_Summary">
+          <Key>
+            <PropertyRef Name="EntityId" />
+            <PropertyRef Name="EntityUid" />
+            <PropertyRef Name="EntityTypeId" />
+            <PropertyRef Name="PropertyValueId" />
+            <PropertyRef Name="EntityPropertyId" />
+            <PropertyRef Name="Property" />
+            <PropertyRef Name="CategoryId" />
+            <PropertyRef Name="Category" />
+          </Key>
+          <Property Name="EntityId" Type="Int32" Nullable="false" />
+          <Property Name="EntityUid" Type="Guid" Nullable="false" />
+          <Property Name="EntityTypeId" Type="Int32" Nullable="false" />
+          <Property Name="EntityBaseId" Type="Int32" />
+          <Property Name="EntityBaseName" Type="String" MaxLength="300" FixedLength="false" Unicode="true" />
+          <Property Name="Title" Type="String" MaxLength="100" FixedLength="false" Unicode="false" />
+          <Property Name="PropertyValueId" Type="Int32" Nullable="false" />
+          <Property Name="EntityPropertyId" Type="Int32" Nullable="false" />
+          <Property Name="Property" Type="String" MaxLength="200" FixedLength="false" Unicode="false" Nullable="false" />
+          <Property Name="PropertySchemaName" Type="String" MaxLength="100" FixedLength="false" Unicode="false" />
+          <Property Name="ParentSchemaName" Type="String" MaxLength="100" FixedLength="false" Unicode="false" />
+          <Property Name="CategoryId" Type="Int32" Nullable="false" />
+          <Property Name="SortOrder" Type="Int32" />
+          <Property Name="Category" Type="String" MaxLength="50" FixedLength="false" Unicode="false" Nullable="false" />
+          <Property Name="Created" Type="DateTime" Precision="3" />
+          <Property Name="CreatedById" Type="Int32" />
+          <Property Name="Description" Type="String" MaxLength="500" FixedLength="false" Unicode="false" />
+          <Property Name="IsActive" Type="Boolean" />
+          <Property Name="IsSubType1" Type="Boolean" />
+        </EntityType>
+        <EntityContainer Name="ceNavyViewEntities" annotation:LazyLoadingEnabled="true">
+          <EntitySet Name="EntityProperty_Summary" EntityType="Self.EntityProperty_Summary" />
+          <EntitySet Name="Entity_Reference_Summary" EntityType="ceNavyViewModel.Entity_Reference_Summary" />
+          <EntitySet Name="Activity_Summary" EntityType="ceNavyViewModel.Activity_Summary" />
+          <EntitySet Name="Account_Summary" EntityType="ceNavyViewModel.Account_Summary" />
+          <EntitySet Name="SubscriptionEntities" EntityType="ceNavyViewModel.SubscriptionEntities" />
+        </EntityContainer>
+        <EntityType Name="Entity_Reference_Summary">
+          <Key>
+            <PropertyRef Name="PK" />
+            <PropertyRef Name="EntityId" />
+            <PropertyRef Name="EntityTypeId" />
+            <PropertyRef Name="EntityUid" />
+            <PropertyRef Name="EntityReferenceId" />
+            <PropertyRef Name="CategoryId" />
+          </Key>
+          <Property Name="PK" Type="Int32" Nullable="false" />
+          <Property Name="EntityId" Type="Int32" Nullable="false" />
+          <Property Name="EntityTypeId" Type="Int32" Nullable="false" />
+          <Property Name="EntityType" Type="String" MaxLength="200" FixedLength="false" Unicode="false" />
+          <Property Name="EntityUid" Type="Guid" Nullable="false" />
+          <Property Name="EntityName" Type="String" MaxLength="300" FixedLength="false" Unicode="true" />
+          <Property Name="EntityBaseId" Type="Int32" />
+          <Property Name="EntityReferenceId" Type="Int32" Nullable="false" />
+          <Property Name="CategoryId" Type="Int32" Nullable="false" />
+          <Property Name="PropertyValueId" Type="Int32" />
+          <Property Name="Title" Type="String" MaxLength="600" FixedLength="false" Unicode="true" />
+          <Property Name="TextValue" Type="String" MaxLength="600" FixedLength="false" Unicode="true" />
+          <Property Name="PropertyValue" Type="String" MaxLength="200" FixedLength="false" Unicode="false" />
+          <Property Name="Created" Type="DateTime" Precision="3" />
+          <Property Name="CreatedById" Type="Int32" />
+          <Property Name="LastUpdated" Type="DateTime" Precision="3" />
+          <Property Name="LastUpdatedById" Type="Int32" />
+        </EntityType>
+        <EntityType Name="Activity_Summary">
+          <Key>
+            <PropertyRef Name="Id" />
+            <PropertyRef Name="CreatedDate" />
+            <PropertyRef Name="ActivityType" />
+            <PropertyRef Name="Activity" />
+            <PropertyRef Name="Event" />
+          </Key>
+          <Property Name="Id" Type="Int32" Nullable="false" />
+          <Property Name="CreatedDate" Type="DateTime" Nullable="false" Precision="3" />
+          <Property Name="ActivityType" Type="String" Nullable="false" MaxLength="100" FixedLength="false" Unicode="false" />
+          <Property Name="EntityTypeId" Type="Int32" />
+          <Property Name="Activity" Type="String" Nullable="false" MaxLength="100" FixedLength="false" Unicode="false" />
+          <Property Name="Event" Type="String" Nullable="false" MaxLength="100" FixedLength="false" Unicode="false" />
+          <Property Name="Comment" Type="String" MaxLength="1000" FixedLength="false" Unicode="false" />
+          <Property Name="TargetUserId" Type="Int32" />
+          <Property Name="ActionByUserId" Type="Int32" />
+          <Property Name="ActionByUser" Type="String" MaxLength="101" FixedLength="false" Unicode="false" />
+          <Property Name="ActivityObjectId" Type="Int32" />
+          <Property Name="ObjectRelatedId" Type="Int32" />
+          <Property Name="TargetObjectId" Type="Int32" />
+          <Property Name="SessionId" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+          <Property Name="IPAddress" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+          <Property Name="Referrer" Type="String" MaxLength="Max" FixedLength="false" Unicode="false" />
+          <Property Name="RelatedTargetUrl" Type="String" MaxLength="600" FixedLength="false" Unicode="false" />
+        </EntityType>
+        <EntityType Name="Account_Summary">
+          <Key>
+            <PropertyRef Name="Id" />
+            <PropertyRef Name="UserName" />
+            <PropertyRef Name="FirstName" />
+            <PropertyRef Name="LastName" />
+            <PropertyRef Name="FullName" />
+            <PropertyRef Name="SortName" />
+            <PropertyRef Name="Email" />
+            <PropertyRef Name="RowId" />
+            <PropertyRef Name="OrgMbrs" />
+          </Key>
+          <Property Name="Id" Type="Int32" Nullable="false" />
+          <Property Name="UserName" Type="String" Nullable="false" MaxLength="50" FixedLength="false" Unicode="false" />
+          <Property Name="FirstName" Type="String" Nullable="false" MaxLength="50" FixedLength="false" Unicode="false" />
+          <Property Name="LastName" Type="String" Nullable="false" MaxLength="50" FixedLength="false" Unicode="false" />
+          <Property Name="FullName" Type="String" Nullable="false" MaxLength="101" FixedLength="false" Unicode="false" />
+          <Property Name="SortName" Type="String" Nullable="false" MaxLength="102" FixedLength="false" Unicode="false" />
+          <Property Name="Email" Type="String" Nullable="false" MaxLength="100" FixedLength="false" Unicode="false" />
+          <Property Name="IsActive" Type="Boolean" />
+          <Property Name="Created" Type="DateTime" Precision="3" />
+          <Property Name="LastUpdated" Type="DateTime" Precision="3" />
+          <Property Name="LastUpdatedById" Type="Int32" />
+          <Property Name="CEAccountIdentifier" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+          <Property Name="RowId" Type="Guid" Nullable="false" />
+          <Property Name="AspNetId" Type="String" MaxLength="128" FixedLength="false" Unicode="true" />
+          <Property Name="Roles" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
+          <Property Name="OrgMbrs" Type="String" Nullable="false" MaxLength="1" FixedLength="false" Unicode="false" />
+          <Property Name="lastLogon" Type="DateTime" Precision="3" />
+        </EntityType>
+        <EntityType Name="SubscriptionEntities">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="Int32" Nullable="false" />
+          <Property Name="Title" Type="String" MaxLength="100" FixedLength="false" Unicode="false" />
+          <Property Name="Description" Type="String" MaxLength="500" FixedLength="false" Unicode="false" />
+          <Property Name="IsActive" Type="Boolean" />
+          <Property Name="SchemaUrl" Type="String" MaxLength="200" FixedLength="false" Unicode="false" />
+          <Property Name="Created" Type="DateTime" Precision="3" />
+        </EntityType>
+      </Schema>
+    </edmx:ConceptualModels>
+    <!-- C-S mapping content -->
+    <edmx:Mappings>
+      <Mapping Space="C-S" xmlns="http://schemas.microsoft.com/ado/2009/11/mapping/cs">
+        <EntityContainerMapping StorageEntityContainer="ceNavyViewModelStoreContainer" CdmEntityContainer="ceNavyViewEntities">
+          <EntitySetMapping Name="EntityProperty_Summary">
+            <EntityTypeMapping TypeName="ceNavyViewModel.EntityProperty_Summary">
+              <MappingFragment StoreEntitySet="EntityProperty_Summary">
+                <ScalarProperty Name="EntityId" ColumnName="EntityId" />
+                <ScalarProperty Name="EntityUid" ColumnName="EntityUid" />
+                <ScalarProperty Name="EntityTypeId" ColumnName="EntityTypeId" />
+                <ScalarProperty Name="EntityBaseId" ColumnName="EntityBaseId" />
+                <ScalarProperty Name="EntityBaseName" ColumnName="EntityBaseName" />
+                <ScalarProperty Name="Title" ColumnName="Title" />
+                <ScalarProperty Name="PropertyValueId" ColumnName="PropertyValueId" />
+                <ScalarProperty Name="EntityPropertyId" ColumnName="EntityPropertyId" />
+                <ScalarProperty Name="Property" ColumnName="Property" />
+                <ScalarProperty Name="PropertySchemaName" ColumnName="PropertySchemaName" />
+                <ScalarProperty Name="ParentSchemaName" ColumnName="ParentSchemaName" />
+                <ScalarProperty Name="CategoryId" ColumnName="CategoryId" />
+                <ScalarProperty Name="SortOrder" ColumnName="SortOrder" />
+                <ScalarProperty Name="Category" ColumnName="Category" />
+                <ScalarProperty Name="Created" ColumnName="Created" />
+                <ScalarProperty Name="CreatedById" ColumnName="CreatedById" />
+                <ScalarProperty Name="Description" ColumnName="Description" />
+                <ScalarProperty Name="IsActive" ColumnName="IsActive" />
+                <ScalarProperty Name="IsSubType1" ColumnName="IsSubType1" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="Entity_Reference_Summary">
+            <EntityTypeMapping TypeName="ceNavyViewModel.Entity_Reference_Summary">
+              <MappingFragment StoreEntitySet="Entity_Reference_Summary">
+                <ScalarProperty Name="LastUpdatedById" ColumnName="LastUpdatedById" />
+                <ScalarProperty Name="LastUpdated" ColumnName="LastUpdated" />
+                <ScalarProperty Name="CreatedById" ColumnName="CreatedById" />
+                <ScalarProperty Name="Created" ColumnName="Created" />
+                <ScalarProperty Name="PropertyValue" ColumnName="PropertyValue" />
+                <ScalarProperty Name="TextValue" ColumnName="TextValue" />
+                <ScalarProperty Name="Title" ColumnName="Title" />
+                <ScalarProperty Name="PropertyValueId" ColumnName="PropertyValueId" />
+                <ScalarProperty Name="CategoryId" ColumnName="CategoryId" />
+                <ScalarProperty Name="EntityReferenceId" ColumnName="EntityReferenceId" />
+                <ScalarProperty Name="EntityBaseId" ColumnName="EntityBaseId" />
+                <ScalarProperty Name="EntityName" ColumnName="EntityName" />
+                <ScalarProperty Name="EntityUid" ColumnName="EntityUid" />
+                <ScalarProperty Name="EntityType" ColumnName="EntityType" />
+                <ScalarProperty Name="EntityTypeId" ColumnName="EntityTypeId" />
+                <ScalarProperty Name="EntityId" ColumnName="EntityId" />
+                <ScalarProperty Name="PK" ColumnName="PK" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="Activity_Summary">
+            <EntityTypeMapping TypeName="ceNavyViewModel.Activity_Summary">
+              <MappingFragment StoreEntitySet="Activity_Summary">
+                <ScalarProperty Name="RelatedTargetUrl" ColumnName="RelatedTargetUrl" />
+                <ScalarProperty Name="Referrer" ColumnName="Referrer" />
+                <ScalarProperty Name="IPAddress" ColumnName="IPAddress" />
+                <ScalarProperty Name="SessionId" ColumnName="SessionId" />
+                <ScalarProperty Name="TargetObjectId" ColumnName="TargetObjectId" />
+                <ScalarProperty Name="ObjectRelatedId" ColumnName="ObjectRelatedId" />
+                <ScalarProperty Name="ActivityObjectId" ColumnName="ActivityObjectId" />
+                <ScalarProperty Name="ActionByUser" ColumnName="ActionByUser" />
+                <ScalarProperty Name="ActionByUserId" ColumnName="ActionByUserId" />
+                <ScalarProperty Name="TargetUserId" ColumnName="TargetUserId" />
+                <ScalarProperty Name="Comment" ColumnName="Comment" />
+                <ScalarProperty Name="Event" ColumnName="Event" />
+                <ScalarProperty Name="Activity" ColumnName="Activity" />
+                <ScalarProperty Name="EntityTypeId" ColumnName="EntityTypeId" />
+                <ScalarProperty Name="ActivityType" ColumnName="ActivityType" />
+                <ScalarProperty Name="CreatedDate" ColumnName="CreatedDate" />
+                <ScalarProperty Name="Id" ColumnName="Id" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="Account_Summary">
+            <EntityTypeMapping TypeName="ceNavyViewModel.Account_Summary">
+              <MappingFragment StoreEntitySet="Account_Summary">
+                <ScalarProperty Name="lastLogon" ColumnName="lastLogon" />
+                <ScalarProperty Name="OrgMbrs" ColumnName="OrgMbrs" />
+                <ScalarProperty Name="Roles" ColumnName="Roles" />
+                <ScalarProperty Name="AspNetId" ColumnName="AspNetId" />
+                <ScalarProperty Name="RowId" ColumnName="RowId" />
+                <ScalarProperty Name="CEAccountIdentifier" ColumnName="CEAccountIdentifier" />
+                <ScalarProperty Name="LastUpdatedById" ColumnName="LastUpdatedById" />
+                <ScalarProperty Name="LastUpdated" ColumnName="LastUpdated" />
+                <ScalarProperty Name="Created" ColumnName="Created" />
+                <ScalarProperty Name="IsActive" ColumnName="IsActive" />
+                <ScalarProperty Name="Email" ColumnName="Email" />
+                <ScalarProperty Name="SortName" ColumnName="SortName" />
+                <ScalarProperty Name="FullName" ColumnName="FullName" />
+                <ScalarProperty Name="LastName" ColumnName="LastName" />
+                <ScalarProperty Name="FirstName" ColumnName="FirstName" />
+                <ScalarProperty Name="UserName" ColumnName="UserName" />
+                <ScalarProperty Name="Id" ColumnName="Id" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="SubscriptionEntities">
+            <EntityTypeMapping TypeName="ceNavyViewModel.SubscriptionEntities">
+              <MappingFragment StoreEntitySet="SubscriptionEntities">
+                <ScalarProperty Name="Created" ColumnName="Created" />
+                <ScalarProperty Name="SchemaUrl" ColumnName="SchemaUrl" />
+                <ScalarProperty Name="IsActive" ColumnName="IsActive" />
+                <ScalarProperty Name="Description" ColumnName="Description" />
+                <ScalarProperty Name="Title" ColumnName="Title" />
+                <ScalarProperty Name="Id" ColumnName="Id" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+        </EntityContainerMapping>
+      </Mapping>
+    </edmx:Mappings>
+  </edmx:Runtime>
+  <!-- EF Designer content (DO NOT EDIT MANUALLY BELOW HERE) -->
+  <Designer xmlns="http://schemas.microsoft.com/ado/2009/11/edmx">
+    <Connection>
+      <DesignerInfoPropertySet>
+        <DesignerProperty Name="MetadataArtifactProcessing" Value="EmbedInOutputAssembly" />
+      </DesignerInfoPropertySet>
+    </Connection>
+    <Options>
+      <DesignerInfoPropertySet>
+        <DesignerProperty Name="ValidateOnBuild" Value="true" />
+        <DesignerProperty Name="EnablePluralization" Value="false" />
+        <DesignerProperty Name="IncludeForeignKeysInModel" Value="true" />
+        <DesignerProperty Name="UseLegacyProvider" Value="false" />
+        <DesignerProperty Name="CodeGenerationStrategy" Value="None" />
+      </DesignerInfoPropertySet>
+    </Options>
+    <!-- Diagram content (shape and connector positions) -->
+    <Diagrams></Diagrams>
+  </Designer>
+</edmx:Edmx>

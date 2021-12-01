@@ -1,0 +1,33 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.31911.196
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NavyRRL", "NavyRRL\NavyRRL.csproj", "{D2BD2487-BA44-4F51-AEFF-9BDAEE739B25}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "API", "API", "{D70211CA-445D-49CB-BE9B-8271CC450C2C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Data", "Data\Data.csproj", "{AFBF8DFA-05F5-4827-9F8E-458254A86C54}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{D2BD2487-BA44-4F51-AEFF-9BDAEE739B25}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D2BD2487-BA44-4F51-AEFF-9BDAEE739B25}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D2BD2487-BA44-4F51-AEFF-9BDAEE739B25}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D2BD2487-BA44-4F51-AEFF-9BDAEE739B25}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AFBF8DFA-05F5-4827-9F8E-458254A86C54}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AFBF8DFA-05F5-4827-9F8E-458254A86C54}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AFBF8DFA-05F5-4827-9F8E-458254A86C54}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AFBF8DFA-05F5-4827-9F8E-458254A86C54}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {F64899F8-591B-4094-936A-36A3B4C6EA13}
+	EndGlobalSection
+EndGlobal

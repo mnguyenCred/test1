@@ -1,0 +1,34 @@
+﻿[*.cs]
+
+# CA1707: Remove the underscores from member name NavyARTT.Models.SpreadsheetV1.NTCModels.ceasn_Competency.
+dotnet_diagnostic.CA1707.severity = silent
+
+# CS0168: Variable is declared but never used
+dotnet_diagnostic.CS0168.severity = silent
+
+# CS0219: Variable is assigned but its value is never used
+dotnet_diagnostic.CS0219.severity = silent
+
+# CA1305: Specify IFormatProvider
+dotnet_diagnostic.CA1305.severity = silent
+
+# CA1054: Uri parameters should not be strings
+dotnet_diagnostic.CA1054.severity = silent
+
+# CA1303: Do not pass literals as localized parameters
+dotnet_diagnostic.CA1303.severity = silent
+
+# CA1031: Do not catch general exception types
+dotnet_diagnostic.CA1031.severity = silent
+
+# CA1307: Specify StringComparison
+dotnet_diagnostic.CA1307.severity = silent
+
+# CA1304: Specify CultureInfo
+dotnet_diagnostic.CA1304.severity = silent
+
+# CA2234: Pass system uri objects instead of strings
+dotnet_diagnostic.CA2234.severity = none
+
+# IDE0044: Add readonly modifier
+dotnet_style_readonly_field = true:silent
