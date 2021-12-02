@@ -4,7 +4,7 @@
   <edmx:Designer xmlns="http://schemas.microsoft.com/ado/2009/11/edmx">
     <!-- Diagram content (shape and connector positions) -->
     <edmx:Diagrams>
-      <Diagram DiagramId="8a33e850aafc4f4396f1d9ba410eef21" Name="Diagram1" ZoomLevel="128">
+      <Diagram DiagramId="8a33e850aafc4f4396f1d9ba410eef21" Name="Diagram1" ZoomLevel="70">
         <EntityTypeShape EntityType="ceNavyModel.Codes_PropertyCategory" Width="2.125" PointX="11.125" PointY="1.125" IsExpanded="true" FillColor="192, 192, 255" />
         <EntityTypeShape EntityType="ceNavyModel.Codes_PropertyValue" Width="2.25" PointX="14.375" PointY="1" IsExpanded="true" FillColor="192, 192, 255" />
         <EntityTypeShape EntityType="ceNavyModel.ConceptScheme_Concept" Width="2.75" PointX="1.625" PointY="7.5" IsExpanded="true" FillColor="192, 192, 255" />

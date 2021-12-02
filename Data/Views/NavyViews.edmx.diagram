@@ -5,11 +5,11 @@
     <!-- Diagram content (shape and connector positions) -->
     <edmx:Diagrams>
       <Diagram DiagramId="f0c058a3e8214195a80077f365b68286" Name="Diagram1">
-        <EntityTypeShape EntityType="ceNavyViewModel.EntityProperty_Summary" Width="1.5" PointX="0.75" PointY="0.75" IsExpanded="true" />
-        <EntityTypeShape EntityType="ceNavyViewModel.Entity_Reference_Summary" Width="1.5" PointX="3.375" PointY="0.75" />
-        <EntityTypeShape EntityType="ceNavyViewModel.Activity_Summary" Width="1.5" PointX="5.375" PointY="0.75" />
-        <EntityTypeShape EntityType="ceNavyViewModel.Account_Summary" Width="1.5" PointX="5.375" PointY="5.75" />
-        <EntityTypeShape EntityType="ceNavyViewModel.SubscriptionEntities" Width="1.5" PointX="0.75" PointY="6.75" />
+        <EntityTypeShape EntityType="ceNavyViewModel.EntityProperty_Summary" Width="2.5" PointX="0.5" PointY="0.5" IsExpanded="true" />
+        <EntityTypeShape EntityType="ceNavyViewModel.Entity_Reference_Summary" Width="2.625" PointX="3.5" PointY="0.5" />
+        <EntityTypeShape EntityType="ceNavyViewModel.Activity_Summary" Width="2.75" PointX="7.75" PointY="0.625" />
+        <EntityTypeShape EntityType="ceNavyViewModel.Account_Summary" Width="2.375" PointX="5.375" PointY="5.75" />
+        <EntityTypeShape EntityType="ceNavyViewModel.SubscriptionEntities" Width="2.25" PointX="0.75" PointY="6.75" />
       </Diagram>
     </edmx:Diagrams>
   </edmx:Designer>
