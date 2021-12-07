@@ -185,6 +185,9 @@
     <Compile Include="Views\Activity_Summary.cs">
       <DependentUpon>NavyViews.tt</DependentUpon>
     </Compile>
+    <Compile Include="Views\AspNetUserRoles_Summary.cs">
+      <DependentUpon>NavyViews.tt</DependentUpon>
+    </Compile>
     <Compile Include="Views\EntityProperty_Summary.cs">
       <DependentUpon>NavyViews.tt</DependentUpon>
     </Compile>

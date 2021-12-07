@@ -20,7 +20,7 @@
           <Property Name="LastUpdatedById" Type="int" />
           <Property Name="RowId" Type="uniqueidentifier" Nullable="false" />
           <Property Name="AspNetId" Type="nvarchar" MaxLength="128" />
-          <Property Name="CEAccountIdentifier" Type="varchar" MaxLength="50" />
+          <Property Name="ExternalAccountIdentifier" Type="varchar" MaxLength="50" />
         </EntityType>
         <EntityType Name="ActivityLog">
           <Key>
@@ -531,6 +531,60 @@
           <Property Name="LastPublished" Type="datetime" />
           <Property Name="RowId" Type="uniqueidentifier" Nullable="false" />
         </EntityType>
+        <Association Name="FK_Account_AspNetUsers">
+          <End Role="AspNetUsers" Type="Self.AspNetUsers" Multiplicity="0..1">
+            <OnDelete Action="Cascade" />
+          </End>
+          <End Role="Account" Type="Self.Account" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="AspNetUsers">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="Account">
+              <PropertyRef Name="AspNetId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_AspNetUserRoles_AspNetRoles">
+          <End Role="AspNetRoles" Type="Self.AspNetRoles" Multiplicity="1">
+            <OnDelete Action="Cascade" />
+          </End>
+          <End Role="AspNetUserRoles" Type="Self.AspNetUserRoles" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="AspNetRoles">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="AspNetUserRoles">
+              <PropertyRef Name="RoleId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_AspNetUserRoles_AspNetUsers">
+          <End Role="AspNetUsers" Type="Self.AspNetUsers" Multiplicity="1">
+            <OnDelete Action="Cascade" />
+          </End>
+          <End Role="AspNetUserRoles" Type="Self.AspNetUserRoles" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="AspNetUsers">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="AspNetUserRoles">
+              <PropertyRef Name="UserId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_AspNetUsers_AspNetUsers">
+          <End Role="AspNetUsers" Type="Self.AspNetUsers" Multiplicity="1" />
+          <End Role="AspNetUsers1" Type="Self.AspNetUsers" Multiplicity="0..1" />
+          <ReferentialConstraint>
+            <Principal Role="AspNetUsers">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="AspNetUsers1">
+              <PropertyRef Name="Id" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
         <Association Name="FK_Codes_TagValue_Codes_TagCategory">
           <End Role="Codes_PropertyCategory" Type="Self.Codes_PropertyCategory" Multiplicity="1">
             <OnDelete Action="Cascade" />
@@ -857,6 +911,22 @@
           <EntitySet Name="Subscription_EntityType" EntityType="Self.Subscription_EntityType" Schema="dbo" Table="Subscription.EntityType" store:Type="Tables" />
           <EntitySet Name="System_ProxyCodes" EntityType="Self.System_ProxyCodes" Schema="dbo" Table="System.ProxyCodes" store:Type="Tables" />
           <EntitySet Name="WorkRole" EntityType="Self.WorkRole" Schema="dbo" store:Type="Tables" />
+          <AssociationSet Name="FK_Account_AspNetUsers" Association="Self.FK_Account_AspNetUsers">
+            <End Role="AspNetUsers" EntitySet="AspNetUsers" />
+            <End Role="Account" EntitySet="Account" />
+          </AssociationSet>
+          <AssociationSet Name="FK_AspNetUserRoles_AspNetRoles" Association="Self.FK_AspNetUserRoles_AspNetRoles">
+            <End Role="AspNetRoles" EntitySet="AspNetRoles" />
+            <End Role="AspNetUserRoles" EntitySet="AspNetUserRoles" />
+          </AssociationSet>
+          <AssociationSet Name="FK_AspNetUserRoles_AspNetUsers" Association="Self.FK_AspNetUserRoles_AspNetUsers">
+            <End Role="AspNetUsers" EntitySet="AspNetUsers" />
+            <End Role="AspNetUserRoles" EntitySet="AspNetUserRoles" />
+          </AssociationSet>
+          <AssociationSet Name="FK_AspNetUsers_AspNetUsers" Association="Self.FK_AspNetUsers_AspNetUsers">
+            <End Role="AspNetUsers" EntitySet="AspNetUsers" />
+            <End Role="AspNetUsers1" EntitySet="AspNetUsers" />
+          </AssociationSet>
           <AssociationSet Name="FK_Codes_TagValue_Codes_TagCategory" Association="Self.FK_Codes_TagValue_Codes_TagCategory">
             <End Role="Codes_PropertyCategory" EntitySet="Codes_PropertyCategory" />
             <End Role="Codes_PropertyValue" EntitySet="Codes_PropertyValue" />
@@ -1141,6 +1211,22 @@
           <AssociationSet Name="FK_Course_Task_Course" Association="ceNavyModel.FK_Course_Task_Course">
             <End Role="Course" EntitySet="Course" />
             <End Role="Course_Task" EntitySet="Course_Task" />
+          </AssociationSet>
+          <AssociationSet Name="FK_Account_AspNetUsers" Association="ceNavyModel.FK_Account_AspNetUsers">
+            <End Role="AspNetUsers" EntitySet="AspNetUsers" />
+            <End Role="Account" EntitySet="Account" />
+          </AssociationSet>
+          <AssociationSet Name="FK_AspNetUsers_AspNetUsers" Association="ceNavyModel.FK_AspNetUsers_AspNetUsers">
+            <End Role="AspNetUsers" EntitySet="AspNetUsers" />
+            <End Role="AspNetUsers1" EntitySet="AspNetUsers" />
+          </AssociationSet>
+          <AssociationSet Name="FK_AspNetUserRoles_AspNetRoles" Association="ceNavyModel.FK_AspNetUserRoles_AspNetRoles">
+            <End Role="AspNetRoles" EntitySet="AspNetRoles" />
+            <End Role="AspNetUserRoles" EntitySet="AspNetUserRoles" />
+          </AssociationSet>
+          <AssociationSet Name="FK_AspNetUserRoles_AspNetUsers" Association="ceNavyModel.FK_AspNetUserRoles_AspNetUsers">
+            <End Role="AspNetUsers" EntitySet="AspNetUsers" />
+            <End Role="AspNetUserRoles" EntitySet="AspNetUserRoles" />
           </AssociationSet>
         </EntityContainer>
         <EntityType Name="ConceptScheme">
@@ -1559,11 +1645,12 @@
           <Property Name="LastUpdatedById" Type="Int32" />
           <Property Name="RowId" Type="Guid" Nullable="false" />
           <Property Name="AspNetId" Type="String" MaxLength="128" FixedLength="false" Unicode="true" />
-          <Property Name="CEAccountIdentifier" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
           <NavigationProperty Name="ConceptScheme" Relationship="ceNavyModel.FK_ConceptScheme__AccountCreatedBy" FromRole="Account" ToRole="ConceptScheme" />
           <NavigationProperty Name="ConceptScheme1" Relationship="ceNavyModel.FK_ConceptScheme_AccountApprovedBy" FromRole="Account" ToRole="ConceptScheme" />
           <NavigationProperty Name="ConceptScheme2" Relationship="ceNavyModel.FK_ConceptScheme_AccountLastUpdatedBy" FromRole="Account" ToRole="ConceptScheme" />
           <NavigationProperty Name="ConceptScheme3" Relationship="ceNavyModel.FK_ConceptScheme_AccountPublishedBy" FromRole="Account" ToRole="ConceptScheme" />
+          <Property Name="ExternalAccountIdentifier" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+          <NavigationProperty Name="AspNetUsers" Relationship="ceNavyModel.FK_Account_AspNetUsers" FromRole="Account" ToRole="AspNetUsers" />
         </EntityType>
         <EntityType Name="ActivityLog">
           <Key>
@@ -1698,6 +1785,7 @@
           <Property Name="Id" Type="String" Nullable="false" MaxLength="128" FixedLength="false" Unicode="true" />
           <Property Name="Name" Type="String" Nullable="false" MaxLength="256" FixedLength="false" Unicode="true" />
           <Property Name="IsActive" Type="Boolean" />
+          <NavigationProperty Name="AspNetUserRoles" Relationship="ceNavyModel.FK_AspNetUserRoles_AspNetRoles" FromRole="AspNetRoles" ToRole="AspNetUserRoles" />
         </EntityType>
         <EntityType Name="AspNetUserRoles">
           <Key>
@@ -1707,6 +1795,8 @@
           <Property Name="UserId" Type="String" Nullable="false" MaxLength="128" FixedLength="false" Unicode="true" />
           <Property Name="RoleId" Type="String" Nullable="false" MaxLength="128" FixedLength="false" Unicode="true" />
           <Property Name="Created" Type="DateTime" Precision="3" />
+          <NavigationProperty Name="AspNetRoles" Relationship="ceNavyModel.FK_AspNetUserRoles_AspNetRoles" FromRole="AspNetUserRoles" ToRole="AspNetRoles" />
+          <NavigationProperty Name="AspNetUsers" Relationship="ceNavyModel.FK_AspNetUserRoles_AspNetUsers" FromRole="AspNetUserRoles" ToRole="AspNetUsers" />
         </EntityType>
         <EntityType Name="RegistryHistory">
           <Key>
@@ -1771,6 +1861,10 @@
           <Property Name="UserId" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
           <NavigationProperty Name="AspNetUserClaims" Relationship="ceNavyModel.FK_dbo_AspNetUserClaims_dbo_AspNetUsers_UserId" FromRole="AspNetUsers" ToRole="AspNetUserClaims" />
           <NavigationProperty Name="AspNetUserLogins" Relationship="ceNavyModel.FK_dbo_AspNetUserLogins_dbo_AspNetUsers_UserId" FromRole="AspNetUsers" ToRole="AspNetUserLogins" />
+          <NavigationProperty Name="Account" Relationship="ceNavyModel.FK_Account_AspNetUsers" FromRole="AspNetUsers" ToRole="Account" />
+          <NavigationProperty Name="AspNetUsers1" Relationship="ceNavyModel.FK_AspNetUsers_AspNetUsers" FromRole="AspNetUsers" ToRole="AspNetUsers1" />
+          <NavigationProperty Name="AspNetUsers2" Relationship="ceNavyModel.FK_AspNetUsers_AspNetUsers" FromRole="AspNetUsers1" ToRole="AspNetUsers" />
+          <NavigationProperty Name="AspNetUserRoles" Relationship="ceNavyModel.FK_AspNetUserRoles_AspNetUsers" FromRole="AspNetUsers" ToRole="AspNetUserRoles" />
         </EntityType>
         <Association Name="FK_dbo_AspNetUserClaims_dbo_AspNetUsers_UserId">
           <End Type="ceNavyModel.AspNetUsers" Role="AspNetUsers" Multiplicity="1">
@@ -1932,6 +2026,60 @@
             </Principal>
             <Dependent Role="Course_Task">
               <PropertyRef Name="CourseId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_Account_AspNetUsers">
+          <End Type="ceNavyModel.AspNetUsers" Role="AspNetUsers" Multiplicity="0..1">
+            <OnDelete Action="Cascade" />
+          </End>
+          <End Type="ceNavyModel.Account" Role="Account" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="AspNetUsers">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="Account">
+              <PropertyRef Name="AspNetId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_AspNetUsers_AspNetUsers">
+          <End Type="ceNavyModel.AspNetUsers" Role="AspNetUsers" Multiplicity="1" />
+          <End Type="ceNavyModel.AspNetUsers" Role="AspNetUsers1" Multiplicity="0..1" />
+          <ReferentialConstraint>
+            <Principal Role="AspNetUsers">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="AspNetUsers1">
+              <PropertyRef Name="Id" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_AspNetUserRoles_AspNetRoles">
+          <End Type="ceNavyModel.AspNetRoles" Role="AspNetRoles" Multiplicity="1">
+            <OnDelete Action="Cascade" />
+          </End>
+          <End Type="ceNavyModel.AspNetUserRoles" Role="AspNetUserRoles" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="AspNetRoles">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="AspNetUserRoles">
+              <PropertyRef Name="RoleId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_AspNetUserRoles_AspNetUsers">
+          <End Type="ceNavyModel.AspNetUsers" Role="AspNetUsers" Multiplicity="1">
+            <OnDelete Action="Cascade" />
+          </End>
+          <End Type="ceNavyModel.AspNetUserRoles" Role="AspNetUserRoles" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="AspNetUsers">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="AspNetUserRoles">
+              <PropertyRef Name="UserId" />
             </Dependent>
           </ReferentialConstraint>
         </Association>
@@ -2242,7 +2390,7 @@
           <EntitySetMapping Name="Account">
             <EntityTypeMapping TypeName="ceNavyModel.Account">
               <MappingFragment StoreEntitySet="Account">
-                <ScalarProperty Name="CEAccountIdentifier" ColumnName="CEAccountIdentifier" />
+                <ScalarProperty Name="ExternalAccountIdentifier" ColumnName="ExternalAccountIdentifier" />
                 <ScalarProperty Name="AspNetId" ColumnName="AspNetId" />
                 <ScalarProperty Name="RowId" ColumnName="RowId" />
                 <ScalarProperty Name="LastUpdatedById" ColumnName="LastUpdatedById" />

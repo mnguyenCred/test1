@@ -34,7 +34,7 @@ namespace Data.Tables
         public Nullable<int> LastUpdatedById { get; set; }
         public System.Guid RowId { get; set; }
         public string AspNetId { get; set; }
-        public string CEAccountIdentifier { get; set; }
+        public string ExternalAccountIdentifier { get; set; }
     
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<ConceptScheme> ConceptScheme { get; set; }
@@ -44,5 +44,6 @@ namespace Data.Tables
         public virtual ICollection<ConceptScheme> ConceptScheme2 { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<ConceptScheme> ConceptScheme3 { get; set; }
+        public virtual AspNetUsers AspNetUsers { get; set; }
     }
 }

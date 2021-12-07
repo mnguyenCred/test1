@@ -25,11 +25,10 @@ namespace Data.Views
         public Nullable<System.DateTime> Created { get; set; }
         public Nullable<System.DateTime> LastUpdated { get; set; }
         public Nullable<int> LastUpdatedById { get; set; }
-        public string CEAccountIdentifier { get; set; }
         public System.Guid RowId { get; set; }
         public string AspNetId { get; set; }
         public string Roles { get; set; }
-        public string OrgMbrs { get; set; }
         public Nullable<System.DateTime> lastLogon { get; set; }
+        public string ExternalAccountIdentifier { get; set; }
     }
 }

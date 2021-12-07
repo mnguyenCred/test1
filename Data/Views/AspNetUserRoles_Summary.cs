@@ -7,18 +7,19 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace Data.Tables
+namespace Data.Views
 {
     using System;
     using System.Collections.Generic;
     
-    public partial class AspNetUserRoles
+    public partial class AspNetUserRoles_Summary
     {
-        public string UserId { get; set; }
+        public int Id { get; set; }
+        public string Email { get; set; }
+        public string SortName { get; set; }
+        public string RoleName { get; set; }
         public string RoleId { get; set; }
         public Nullable<System.DateTime> Created { get; set; }
-    
-        public virtual AspNetRoles AspNetRoles { get; set; }
-        public virtual AspNetUsers AspNetUsers { get; set; }
+        public string AspNetId { get; set; }
     }
 }
