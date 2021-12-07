@@ -154,7 +154,7 @@
 
 			var workRole = getOrNew("WorkRole", {
 				Name: row["Functional Area"],
-				HasRatingTask: []
+				//HasRatingTask: []
 			});
 
 			var taskSource = getOrNew("ReferenceResource", {
@@ -167,13 +167,10 @@
 				Name: row["Work Element Type"]
 			});
 
-			var courseSource = getOrNew("ReferenceResource", {
-				Name: row["Life-Cycle Control Document"]
-			});
-
 			var ratingTask = getOrNew("RatingTask", {
 				Description: row["Work Element (Task)"],
 				Note: row["Notes"],
+				HasWorkRole: [],
 				TrainingGapType: [],
 				ApplicabilityType: [],
 				PayGradeType: [],
@@ -198,14 +195,18 @@
 				CodedNotation: row["Task Applicability"]
 			});
 
+			var courseSource = getOrNew("ReferenceResource", {
+				Name: row["Life-Cycle Control Document"]
+			}, true);
+
 			var trainingTask = getOrNew("TrainingTask", {
 				Description: row["CTTL/PPP/TCCD Statement"],
 				AssessmentMethodType: []
-			});
+			}, true);
 
 			var assessmentMethodType = getOrNew("Concept", {
 				Name: row["Current Assessment Approach"]
-			});
+			}, true);
 
 			var course = getOrNew("Course", {
 				Name: row["Course Name"],
@@ -214,31 +215,32 @@
 				CourseType: [],
 				HasReferenceResource: [],
 				HasTrainingTask: []
-			});
+			}, true);
 
 			var cca = getOrNew("Organization", {
 				Name: row["Curriculum Control Authority (CCA)"]
-			});
+			}, true);
 
 			var courseType = getOrNew("Concept", {
 				Name: row["Course Type (A/C/G/F/T)"]
-			});
+			}, true);
 
 			//Attach the objects to each other
-			appendReference(billetTitle.HasRatingTask, ratingTask);
-			appendReference(workRole.HasRatingTask, ratingTask);
-			appendReference(ratingTask.TrainingGapType, trainingGapType);
-			appendReference(ratingTask.ApplicabilityType, applicabilityType);
-			appendReference(ratingTask.PayGradeType, payGradeType);
-			appendReference(ratingTask.HasTrainingTask, trainingTask);
-			appendReference(ratingTask.HasReferenceResource, taskSource);
-			appendReference(ratingTask.HasRating, rating);
-			appendReference(trainingTask.AssessmentMethodType, assessmentMethodType);
-			appendReference(course.CourseType, courseType);
-			appendReference(course.HasReferenceResource, courseSource);
-			appendReference(course.HasTrainingTask, trainingTask);
-			appendReference(course.CurriculumControlAuthority, cca);
-			appendReference(taskSource.ReferenceType, taskSourceType);
+			appendReference(billetTitle?.HasRatingTask, ratingTask);
+			//appendReference(workRole?.HasRatingTask, ratingTask);
+			appendReference(ratingTask?.HasWorkRole, workRole);
+			appendReference(ratingTask?.TrainingGapType, trainingGapType);
+			appendReference(ratingTask?.ApplicabilityType, applicabilityType);
+			appendReference(ratingTask?.PayGradeType, payGradeType);
+			appendReference(ratingTask?.HasTrainingTask, trainingTask);
+			appendReference(ratingTask?.HasReferenceResource, taskSource);
+			appendReference(ratingTask?.HasRating, rating);
+			appendReference(trainingTask?.AssessmentMethodType, assessmentMethodType);
+			appendReference(course?.CourseType, courseType);
+			appendReference(course?.HasReferenceResource, courseSource);
+			appendReference(course?.HasTrainingTask, trainingTask);
+			appendReference(course?.CurriculumControlAuthority, cca);
+			appendReference(taskSource?.ReferenceType, taskSourceType);
 		});
 
 		//Cleanup
@@ -251,14 +253,33 @@
 	}
 	//
 
-	function getOrNew(type, data) {
+	function getOrNew(type, data, rejectEmptyValues) {
+		//Filter by Type
 		var matches = Data.Graph.filter(m => m.Type == type);
+
+		//Filter by other properties
+		var hasEmptyValue = false;
 		Object.keys(data).forEach(function (key) {
-			if (data[key] && typeof (data[key]) == "string") {
-				matches = matches.filter(m => m[key] == data[key]);
+			if (typeof (data[key]) == "string") {
+				//Flag anything that has a blank string or "N/A" string value
+				if (data[key]?.toLowerCase() == "n/a" || data[key]?.length == 0) {
+					hasEmptyValue = true;
+				}
+				else {
+					matches = matches.filter(m => m[key]?.toLowerCase() == data[key]?.toLowerCase());
+				}
 			}
 		});
+
+		//If desired, reject empty value
+		if (rejectEmptyValues && hasEmptyValue) {
+			return null;
+		}
+
 		if (matches[0]) {
+			if (matches.length > 1) {
+				console.log("Warning: Found more than one match for item", { type: type, item: data, matches: matches });
+			}
 			return matches[0];
 		}
 		else {
@@ -274,7 +295,7 @@
 	//
 
 	function appendReference(container, data) {
-		if (container.indexOf(data.CTID) == -1) {
+		if (container && data && container.indexOf(data.CTID) == -1) {
 			container.push(data.CTID);
 		}
 	}
