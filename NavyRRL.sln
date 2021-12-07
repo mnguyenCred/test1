@@ -13,7 +13,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NavyRRL.API", "API\NavyRRL.
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NavyRRL.API.Tests", "API\NavyRRL.API.Tests\NavyRRL.API.Tests.csproj", "{40957F65-5629-488F-865E-6C78E78479CC}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Models", "Models\Models.csproj", "{7C6CDCB7-9C31-4310-B34D-028BF8BB816F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Models", "Models\Models.csproj", "{7C6CDCB7-9C31-4310-B34D-028BF8BB816F}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Navy.Utilities", "Navy.Utilities\Navy.Utilities.csproj", "{ED884A2D-55AB-4A96-ABAD-0D3F8CF35301}"
 EndProject
@@ -43,6 +43,10 @@ Global
 		{7C6CDCB7-9C31-4310-B34D-028BF8BB816F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7C6CDCB7-9C31-4310-B34D-028BF8BB816F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{7C6CDCB7-9C31-4310-B34D-028BF8BB816F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{ED884A2D-55AB-4A96-ABAD-0D3F8CF35301}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{ED884A2D-55AB-4A96-ABAD-0D3F8CF35301}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{ED884A2D-55AB-4A96-ABAD-0D3F8CF35301}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{ED884A2D-55AB-4A96-ABAD-0D3F8CF35301}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
