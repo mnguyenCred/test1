@@ -11,5 +11,6 @@ namespace Models.Schema
 		public Reference<Organization> CurriculumControlAuthority { get; set; }
 		public List<Reference<TrainingTask>> Teaches { get; set; }
 		public Reference<ReferenceResource> HasReferenceResource { get; set; }
+		//course type
 	}
 }
