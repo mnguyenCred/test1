@@ -8,8 +8,8 @@ namespace Models.Schema
 	{
 		public string Name { get; set; }
 		public string CodedNotation { get; set; }
-		public Reference<Organization> CurriculumControlAuthority { get; set; }
-		public List<Reference<TrainingTask>> Teaches { get; set; }
+		public List<Reference<Organization>> CurriculumControlAuthority { get; set; }
+		public List<Reference<TrainingTask>> HasTrainingTask { get; set; }
 		public Reference<ReferenceResource> HasReferenceResource { get; set; }
 		//course type
 	}
