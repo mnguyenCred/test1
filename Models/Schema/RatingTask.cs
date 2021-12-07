@@ -7,6 +7,7 @@ namespace Models.Schema
 	class RatingTask : BaseObject
 	{
 		public string Description { get; set; }
+		public string Note { get; set; }
 		public Reference<TrainingTask> HasTrainingTask { get; set; }
 		public Reference<ReferenceResource> HasReferenceResource { get; set; }
 		public Reference<Concept> PayGradeType { get; set; }

@@ -1,0 +1,383 @@
+﻿
+@{
+    ViewBag.Title = "Upload RMTL Source Data";
+}
+
+<script type="text/javascript">
+	//Globals
+	var UI = {
+		Upload: {
+			File: {},
+			ProcessButton: {},
+			Status: {}
+		},
+		TableView: {
+			Table: {}
+		},
+		ObjectsView: {
+			List: {},
+			Details: {}
+		},
+		RawJSONView: {
+			Display: {}
+		},
+		TabSets: []
+	};
+	var Data = {
+		RawCSV: "",
+		Graph: []
+	};
+	//
+
+	//Setup
+	$(document).ready(function () {
+		setupUI();
+		setupTabs();
+	});
+	//
+
+	//Could be optimized; just get it working for now
+	function setupUI() {
+		UI.Upload.File = $(".sourceFileBox");
+		UI.Upload.ProcessButton = $("[data-action='processCSV']");
+		UI.Upload.Status = $(".statusBox");
+		UI.TableView.Table = $(".tableView");
+		UI.ObjectsView.List = $(".objectListBox");
+		UI.ObjectsView.Details = $(".objectDetailsBox");
+		UI.RawJSONView.Display = $(".rawJSONBox");
+
+		UI.Upload.ProcessButton.on("click", function () {
+			processFile();
+		});
+
+	}
+	//
+
+	function setStatus(text) {
+		UI.Upload.Status.html(text);
+	}
+	//
+
+	function processFile() {
+		var file = UI.Upload.File[0].files[0];
+		if (!file) {
+			setStatus("Please select a file.");
+		}
+		else {
+			setStatus("Reading File...");
+			var reader = new FileReader();
+			reader.onload = function () {
+				setStatus("Processing File...");
+				parseCSV(reader.result);
+
+				setStatus("Converting raw data to objects...");
+				convertDataToObjects();
+
+				setStatus("Displaying data...");
+				displayData();
+
+				setStatus("Finished");
+			};
+			reader.onerror = function () {
+				setStatus("Error reading file: " + reader.error);
+			}
+			reader.readAsText(file);
+		}
+	}
+	//
+
+	function parseCSV(rawText) {
+		//Normalize the text
+		Data.RawCSV = rawText.replace(/\r\n/g, "\n").replace(/""/g, "<INSERTQUOTE>");
+		var rows = [];
+		var currentRow = [];
+		var currentCell = [];
+		var isInQuotes = false;
+
+		//Process each character
+		Data.RawCSV.split("").forEach(function (character) {
+			if (character == '"') {
+				isInQuotes = !isInQuotes;
+			}
+			else if (isInQuotes) {
+				currentCell.push(character);
+			}
+			else if (character == ",") {
+				currentRow.push(currentCell.join("").replace(/<INSERTQUOTE>/g, '"').trim());
+				currentCell = [];
+			}
+			else if (character == "\n") {
+				currentRow.push(currentCell.join("").replace(/<INSERTQUOTE>/g, '"').trim());
+				currentCell = [];
+				rows.push(currentRow);
+				currentRow = [];
+			}
+			else {
+				currentCell.push(character);
+			}
+		});
+
+		//Don't forget stragglers at the end
+		currentRow.push(currentCell.join("").replace(/<INSERTQUOTE>/g, '"').trim());
+		rows.push(currentRow);
+
+		//Set data
+		rows.shift(); //Discard first row, since it is not a true header row
+		Data.CSVColumns = rows.shift();
+		Data.CSVRows = rows;
+
+		//Create flat JSON
+		Data.CSVJSON = [];
+		Data.CSVRows.forEach(function (row) {
+			var temp = {};
+			Data.CSVColumns.forEach(function (column, index) {
+				temp[column] = row[index];
+			});
+			Data.CSVJSON.push(temp);
+		});
+
+		console.log("CSV Processed", Data);
+	}
+	//
+
+	function convertDataToObjects() {
+		//Processing
+		//TODO: Seed this with known constants, such as concept schemes
+		Data.Graph = [];
+
+		//Divide the data up into objects
+		Data.CSVJSON.forEach(function (row) {
+			var billetTitle = getOrNew("BilletTitle", {
+				Name: row["Billet Title"],
+				HasRatingTask: []
+			});
+
+			var workRole = getOrNew("WorkRole", {
+				Name: row["Functional Area"],
+				HasRatingTask: []
+			});
+
+			var taskSource = getOrNew("ReferenceResource", {
+				Name: row["Source"],
+				PublicationDate: row["Date of Source"],
+				ReferenceType: []
+			});
+
+			var taskSourceType = getOrNew("Concept", {
+				Name: row["Work Element Type"]
+			});
+
+			var courseSource = getOrNew("ReferenceResource", {
+				Name: row["Life-Cycle Control Document"]
+			});
+
+			var ratingTask = getOrNew("RatingTask", {
+				Description: row["Work Element (Task)"],
+				Note: row["Notes"],
+				TrainingGapType: [],
+				ApplicabilityType: [],
+				PayGradeType: [],
+				HasTrainingTask: [],
+				HasReferenceResource: [],
+				HasRating: []
+			});
+
+			var rating = getOrNew("Rating", {
+				CodedNotation: row["Rating"]
+			});
+
+			var payGradeType = getOrNew("Concept", {
+				CodedNotation: row["Rank"]
+			});
+
+			var trainingGapType = getOrNew("Concept", {
+				CodedNotation: row["Formal Training Gap"]
+			});
+
+			var applicabilityType = getOrNew("Concept", {
+				CodedNotation: row["Task Applicability"]
+			});
+
+			var trainingTask = getOrNew("TrainingTask", {
+				Description: row["CTTL/PPP/TCCD Statement"],
+				AssessmentMethodType: []
+			});
+
+			var assessmentMethodType = getOrNew("Concept", {
+				Name: row["Current Assessment Approach"]
+			});
+
+			var course = getOrNew("Course", {
+				Name: row["Course Name"],
+				CodedNotation: row["CIN"],
+				CurriculumControlAuthority: [],
+				CourseType: [],
+				HasReferenceResource: [],
+				HasTrainingTask: []
+			});
+
+			var cca = getOrNew("Organization", {
+				Name: row["Curriculum Control Authority (CCA)"]
+			});
+
+			var courseType = getOrNew("Concept", {
+				Name: row["Course Type (A/C/G/F/T)"]
+			});
+
+			//Attach the objects to each other
+			appendReference(billetTitle.HasRatingTask, ratingTask);
+			appendReference(workRole.HasRatingTask, ratingTask);
+			appendReference(ratingTask.TrainingGapType, trainingGapType);
+			appendReference(ratingTask.ApplicabilityType, applicabilityType);
+			appendReference(ratingTask.PayGradeType, payGradeType);
+			appendReference(ratingTask.HasTrainingTask, trainingTask);
+			appendReference(ratingTask.HasReferenceResource, taskSource);
+			appendReference(ratingTask.HasRating, rating);
+			appendReference(trainingTask.AssessmentMethodType, assessmentMethodType);
+			appendReference(course.CourseType, courseType);
+			appendReference(course.HasReferenceResource, courseSource);
+			appendReference(course.HasTrainingTask, trainingTask);
+			appendReference(course.CurriculumControlAuthority, cca);
+			appendReference(taskSource.ReferenceType, taskSourceType);
+		});
+
+		//Cleanup
+		Data.Graph.sort(function (a, b) { return a.Type > b.Type ? 1 : -1; });
+		Data.Graph.filter(m => m.Type == "RatingTask").forEach(function (ratingTask) {
+			if (ratingTask.Note == "N/A") {
+				delete ratingTask.Note;
+			}
+		});
+	}
+	//
+
+	function getOrNew(type, data) {
+		var matches = Data.Graph.filter(m => m.Type == type);
+		Object.keys(data).forEach(function (key) {
+			if (data[key] && typeof (data[key]) == "string") {
+				matches = matches.filter(m => m[key] == data[key]);
+			}
+		});
+		if (matches[0]) {
+			return matches[0];
+		}
+		else {
+			var newItem = {
+				Type: type,
+				CTID: "ce-" + crypto.randomUUID(),
+				...data
+			};
+			Data.Graph.push(newItem);
+			return newItem;
+		}
+	}
+	//
+
+	function appendReference(container, data) {
+		if (container.indexOf(data.CTID) == -1) {
+			container.push(data.CTID);
+		}
+	}
+	//
+
+	function displayData() {
+		console.log("Displaying data", Data.Graph);
+
+		//Table
+
+		//Objects
+
+		//Raw JSON
+		UI.RawJSONView.Display.html(JSON.stringify(Data.Graph, null, "\t"));
+	}
+	//
+</script>
+<script type="text/javascript">
+	//Could be moved to an external file(?)
+	function setupTabs() {
+		$(".tabBox").each(function () {
+			var box = $(this);
+			var TabSet = {
+				Box: box,
+				ButtonsBox: box.find("> .tabButtons"),
+				Tabs: []
+			};
+			UI?.TabSets?.push(TabSet);
+			TabSet.Box.find("> .tabs .tab").each(function () {
+				var box = $(this);
+				var Tab = {
+					Box: box,
+					Button: $("<button class=\"tabButton\">" + box.attr("data-tab") + "</button>").appendTo(TabSet.ButtonsBox)
+				};
+				TabSet.Tabs.push(Tab);
+				Tab.Button.on("click", function () {
+					TabSet.Tabs.forEach(function (OtherTab) {
+						OtherTab.Button.removeClass("active");
+						OtherTab.Box.removeClass("active");
+					});
+					Tab.Button.addClass("active");
+					Tab.Box.addClass("active");
+				});
+			});
+			TabSet.Tabs[0]?.Button.trigger("click");
+		});
+	}
+	//
+</script>
+<style type="text/css">
+	/* Also potentially moveable to a separate file */
+	.tabBox { }
+	.tabBox .tabButtons { }
+	.tabBox .tabButtons button { }
+	.tabBox .tabButtons button.active { }
+	.tabBox .tabs .tab:not(.active) { display: none; }
+	/**/
+
+	/* Upload */
+	.uploadWrapper { margin-bottom: 10px; }
+	.uploadWrapper .uploadForm { display: inline-flex; align-items: center; background-color: #EEE; }
+	.uploadWrapper .uploadForm input { flex: 300px 0 0; margin-right: 10px; }
+	.uploadWrapper .uploadForm button {  }
+
+	/* Display */
+
+	/* Raw JSON View */
+	.rawJSONBox { font-family: Consolas, 'Courier New', monospace; font-size: 12px; padding: 10px; background-color: #EEE; tab-size: 25px; white-space: pre-wrap; }
+</style>
+
+<h2>Upload RMTL Source Data</h2>
+
+<div class="uploadWrapper">
+	<p>Select the RMTL Spreadsheet CSV File and click "Process":</p>
+	<div class="uploadForm">
+		<input data-property="sourceFile" class="sourceFileBox" type="file" accept="text/csv" />
+		<button data-action="processCSV">Process</button>
+	</div>
+	<div class="statusBox">Ready</div>
+</div>
+<div class="display tabBox">
+	<div class="tabButtons"></div>
+	<div class="tabs">
+
+		<div class="tab" data-tab="Table View">
+			<h3>Table View</h3>
+			<table data-property="tableView">
+				<tbody></tbody>
+			</table>
+		</div>
+
+		<div class="tab" data-tab="Object View">
+			<h3>Object View</h3>
+			<div class="objectViewBox">
+				<div class="objectListBox"></div>
+				<div class="objectDetailsBox"></div>
+			</div>
+		</div>
+
+		<div class="tab" data-tab="JSON View">
+			<h3>JSON View</h3>
+			<div class="rawJSONBox"></div>
+		</div>
+
+	</div>
+</div>
