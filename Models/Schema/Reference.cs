@@ -4,7 +4,7 @@ using System.Text;
 
 namespace Models.Schema
 {
-	class Reference<T> where T : BaseObject
+	public class Reference<T> where T : BaseObject
 	{
 		public int Id { get; set; }
 		public Guid Guid { get; set; }

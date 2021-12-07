@@ -4,7 +4,7 @@ using System.Text;
 
 namespace Models.Schema
 {
-	class ReferenceResource : BaseObject
+	public class ReferenceResource : BaseObject
 	{
 		public string Name { get; set; }
 		public string Description { get; set; }

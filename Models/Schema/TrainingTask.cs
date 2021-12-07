@@ -4,7 +4,7 @@ using System.Text;
 
 namespace Models.Schema
 {
-	class TrainingTask : BaseObject
+	public class TrainingTask : BaseObject
 	{
 		public string Description { get; set; }
 		public Reference<Concept> AssessmentMethodType { get; set; }

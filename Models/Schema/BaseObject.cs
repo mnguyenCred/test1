@@ -4,7 +4,7 @@ using System.Text;
 
 namespace Models.Schema
 {
-	class BaseObject
+	public class BaseObject
 	{
 		public int Id { get; set; }
 		public Guid Guid { get; set; }

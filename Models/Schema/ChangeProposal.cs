@@ -4,7 +4,7 @@ using System.Text;
 
 namespace Models.Schema
 {
-	class ChangeProposal : BaseObject
+	public class ChangeProposal : BaseObject
 	{
 		public Reference<BaseObject> ProposalFor { get; set; }
 		public Reference<BaseObject> ProposedChange { get; set; }

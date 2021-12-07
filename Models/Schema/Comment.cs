@@ -4,7 +4,7 @@ using System.Text;
 
 namespace Models.Schema
 {
-	class Comment : BaseObject
+	public class Comment : BaseObject
 	{
 		public string Description { get; set; }
 		public Reference<User> OwnedBy { get; set; }

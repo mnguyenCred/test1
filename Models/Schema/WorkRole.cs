@@ -4,7 +4,7 @@ using System.Text;
 
 namespace Models.Schema
 {
-	class WorkRole : BaseObject
+	public class WorkRole : BaseObject
 	{
 		public string Name { get; set; }
 		public string Description { get; set; }

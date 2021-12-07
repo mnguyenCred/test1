@@ -4,7 +4,7 @@ using System.Text;
 
 namespace Models.Schema
 {
-	class Concept : BaseObject
+	public class Concept : BaseObject
 	{
 		public string Label { get; set; }
 		public string Description { get; set; }
