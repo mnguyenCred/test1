@@ -7,6 +7,5 @@ namespace Models.Schema
 	public class TrainingTask : BaseObject
 	{
 		public string Description { get; set; }
-		public Reference<Concept> AssessmentMethodType { get; set; }
 	}
 }
