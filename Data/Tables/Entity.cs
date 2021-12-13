@@ -17,12 +17,7 @@ namespace Data.Tables
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2214:DoNotCallOverridableMethodsInConstructors")]
         public Entity()
         {
-            this.Entity_Property = new HashSet<Entity_Property>();
-            this.Entity_Reference = new HashSet<Entity_Reference>();
             this.Entity_Comment = new HashSet<Entity_Comment>();
-            this.Entity_Competency = new HashSet<Entity_Competency>();
-            this.Entity_Concept = new HashSet<Entity_Concept>();
-            this.Entity_HasRating = new HashSet<Entity_HasRating>();
         }
     
         public int Id { get; set; }
@@ -33,18 +28,8 @@ namespace Data.Tables
         public string EntityBaseName { get; set; }
         public Nullable<System.DateTime> LastUpdated { get; set; }
     
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<Entity_Property> Entity_Property { get; set; }
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<Entity_Reference> Entity_Reference { get; set; }
         public virtual Codes_EntityType Codes_EntityType { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<Entity_Comment> Entity_Comment { get; set; }
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<Entity_Competency> Entity_Competency { get; set; }
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<Entity_Concept> Entity_Concept { get; set; }
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<Entity_HasRating> Entity_HasRating { get; set; }
     }
 }

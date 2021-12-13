@@ -12,16 +12,11 @@ namespace Data.Tables
     using System;
     using System.Collections.Generic;
     
-    public partial class Entity_HasRating
+    public partial class CurriculumControlAuthority
     {
         public int Id { get; set; }
-        public int EntityId { get; set; }
-        public int RatingId { get; set; }
-        public Nullable<int> CreatedById { get; set; }
-        public string Uri { get; set; }
-        public Nullable<System.DateTime> Created { get; set; }
+        public string Name { get; set; }
+        public string Abbreviation { get; set; }
         public string CTID { get; set; }
-    
-        public virtual Entity Entity { get; set; }
     }
 }

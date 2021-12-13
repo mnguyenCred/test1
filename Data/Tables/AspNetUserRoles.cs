@@ -17,5 +17,8 @@ namespace Data.Tables
         public string UserId { get; set; }
         public string RoleId { get; set; }
         public Nullable<System.DateTime> Created { get; set; }
+    
+        public virtual AspNetRoles AspNetRoles { get; set; }
+        public virtual AspNetUsers AspNetUsers { get; set; }
     }
 }

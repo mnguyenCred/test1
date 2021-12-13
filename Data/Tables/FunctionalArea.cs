@@ -12,15 +12,13 @@ namespace Data.Tables
     using System;
     using System.Collections.Generic;
     
-    public partial class Entity_Property
+    public partial class FunctionalArea
     {
         public int Id { get; set; }
-        public int EntityId { get; set; }
-        public int PropertyValueId { get; set; }
-        public Nullable<System.DateTime> Created { get; set; }
-        public Nullable<int> CreatedById { get; set; }
-    
-        public virtual Codes_PropertyValue Codes_PropertyValue { get; set; }
-        public virtual Entity Entity { get; set; }
+        public string Name { get; set; }
+        public string Description { get; set; }
+        public Nullable<System.DateTime> DateCreated { get; set; }
+        public Nullable<System.DateTime> DateModified { get; set; }
+        public string CTID { get; set; }
     }
 }

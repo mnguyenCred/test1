@@ -32,22 +32,14 @@ namespace Data.Tables
         public virtual DbSet<Organization> Organization { get; set; }
         public virtual DbSet<Codes_EntityType> Codes_EntityType { get; set; }
         public virtual DbSet<Entity> Entity { get; set; }
-        public virtual DbSet<Entity_Property> Entity_Property { get; set; }
-        public virtual DbSet<Entity_Reference> Entity_Reference { get; set; }
         public virtual DbSet<Job> Job { get; set; }
         public virtual DbSet<Rating> Rating { get; set; }
         public virtual DbSet<WorkRole> WorkRole { get; set; }
         public virtual DbSet<EnlistedClassification> EnlistedClassification { get; set; }
         public virtual DbSet<Entity_Comment> Entity_Comment { get; set; }
-        public virtual DbSet<Entity_HasRating> Entity_HasRating { get; set; }
         public virtual DbSet<OccupationalTask> OccupationalTask { get; set; }
-        public virtual DbSet<Entity_Competency> Entity_Competency { get; set; }
-        public virtual DbSet<Entity_Concept> Entity_Concept { get; set; }
         public virtual DbSet<Account> Account { get; set; }
         public virtual DbSet<ActivityLog> ActivityLog { get; set; }
-        public virtual DbSet<Import_EntityResolution> Import_EntityResolution { get; set; }
-        public virtual DbSet<Import_Message> Import_Message { get; set; }
-        public virtual DbSet<Import_Staging> Import_Staging { get; set; }
         public virtual DbSet<AspNetRoles> AspNetRoles { get; set; }
         public virtual DbSet<AspNetUserRoles> AspNetUserRoles { get; set; }
         public virtual DbSet<RegistryHistory> RegistryHistory { get; set; }
@@ -56,9 +48,15 @@ namespace Data.Tables
         public virtual DbSet<AspNetUsers> AspNetUsers { get; set; }
         public virtual DbSet<Subscription> Subscription { get; set; }
         public virtual DbSet<Subscription_EntityType> Subscription_EntityType { get; set; }
-        public virtual DbSet<System_ProxyCodes> System_ProxyCodes { get; set; }
         public virtual DbSet<Course> Course { get; set; }
         public virtual DbSet<Course_Task> Course_Task { get; set; }
         public virtual DbSet<RMTLProject> RMTLProject { get; set; }
+        public virtual DbSet<CurriculumControlAuthority> CurriculumControlAuthority { get; set; }
+        public virtual DbSet<FunctionalArea> FunctionalArea { get; set; }
+        public virtual DbSet<RatingLevelTask> RatingLevelTask { get; set; }
+        public virtual DbSet<RmtlProject_Billet> RmtlProject_Billet { get; set; }
+        public virtual DbSet<RmtlProjectBilletTask> RmtlProjectBilletTask { get; set; }
+        public virtual DbSet<Source> Source { get; set; }
+        public virtual DbSet<WorkElementType> WorkElementType { get; set; }
     }
 }

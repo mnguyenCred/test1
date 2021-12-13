@@ -12,14 +12,12 @@ namespace Data.Tables
     using System;
     using System.Collections.Generic;
     
-    public partial class Import_Message
+    public partial class RmtlProjectBilletTask
     {
         public int Id { get; set; }
-        public int ParentId { get; set; }
-        public Nullable<System.DateTime> Created { get; set; }
-        public Nullable<int> Severity { get; set; }
-        public string Message { get; set; }
-    
-        public virtual Import_Staging Import_Staging { get; set; }
+        public int ProjectBilletId { get; set; }
+        public int RatingLevelTaskId { get; set; }
+        public System.DateTime Created { get; set; }
+        public System.DateTime LastUpdated { get; set; }
     }
 }

@@ -12,16 +12,13 @@ namespace Data.Tables
     using System;
     using System.Collections.Generic;
     
-    public partial class Entity_Concept
+    public partial class WorkElementType
     {
         public int Id { get; set; }
-        public int EntityId { get; set; }
-        public int ConceptSchemeId { get; set; }
-        public int ConceptId { get; set; }
-        public string Uri { get; set; }
-        public Nullable<System.DateTime> Created { get; set; }
-        public Nullable<int> CreatedById { get; set; }
-    
-        public virtual Entity Entity { get; set; }
+        public string Name { get; set; }
+        public string description { get; set; }
+        public System.DateTime DateCreated { get; set; }
+        public System.DateTime DateModified { get; set; }
+        public string CTID { get; set; }
     }
 }

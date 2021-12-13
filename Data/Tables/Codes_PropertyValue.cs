@@ -14,13 +14,6 @@ namespace Data.Tables
     
     public partial class Codes_PropertyValue
     {
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2214:DoNotCallOverridableMethodsInConstructors")]
-        public Codes_PropertyValue()
-        {
-            this.Entity_Property = new HashSet<Entity_Property>();
-            this.Entity_Reference = new HashSet<Entity_Reference>();
-        }
-    
         public int Id { get; set; }
         public int CategoryId { get; set; }
         public string Title { get; set; }
@@ -35,9 +28,5 @@ namespace Data.Tables
         public Nullable<bool> IsSubType1 { get; set; }
     
         public virtual Codes_PropertyCategory Codes_PropertyCategory { get; set; }
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<Entity_Property> Entity_Property { get; set; }
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<Entity_Reference> Entity_Reference { get; set; }
     }
 }

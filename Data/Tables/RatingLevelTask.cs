@@ -12,21 +12,25 @@ namespace Data.Tables
     using System;
     using System.Collections.Generic;
     
-    public partial class Entity_Reference
+    public partial class RatingLevelTask
     {
         public int Id { get; set; }
-        public int EntityId { get; set; }
-        public int CategoryId { get; set; }
-        public string Title { get; set; }
-        public string TextValue { get; set; }
+        public string CodedNotation { get; set; }
+        public int RankId { get; set; }
+        public int LevelId { get; set; }
+        public int FunctionalAreaId { get; set; }
+        public Nullable<int> SourceId { get; set; }
+        public Nullable<int> WorkElementTypeId { get; set; }
+        public string WorkElementTask { get; set; }
+        public Nullable<int> TaskApplicabilityId { get; set; }
+        public Nullable<int> TaskStatusId { get; set; }
+        public Nullable<int> FormalTrainingGapId { get; set; }
+        public string Notes { get; set; }
         public Nullable<System.DateTime> Created { get; set; }
         public Nullable<int> CreatedById { get; set; }
         public Nullable<System.DateTime> LastUpdated { get; set; }
         public Nullable<int> LastUpdatedById { get; set; }
-        public Nullable<int> PropertyValueId { get; set; }
-    
-        public virtual Codes_PropertyCategory Codes_PropertyCategory { get; set; }
-        public virtual Codes_PropertyValue Codes_PropertyValue { get; set; }
-        public virtual Entity Entity { get; set; }
+        public string CTID { get; set; }
+        public Nullable<int> TrainingTaskId { get; set; }
     }
 }

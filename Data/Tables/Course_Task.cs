@@ -16,11 +16,12 @@ namespace Data.Tables
     {
         public int Id { get; set; }
         public int CourseId { get; set; }
-        public string Task { get; set; }
         public Nullable<System.DateTime> Created { get; set; }
         public Nullable<int> CreatedById { get; set; }
         public Nullable<System.DateTime> LastUpdated { get; set; }
         public Nullable<int> LastUpdatedById { get; set; }
+        public string TaskStatement { get; set; }
+        public string CTID { get; set; }
     
         public virtual Course Course { get; set; }
     }

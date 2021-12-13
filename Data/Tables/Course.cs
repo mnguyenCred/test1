@@ -22,7 +22,6 @@ namespace Data.Tables
     
         public int Id { get; set; }
         public string CIN { get; set; }
-        public string CourseName { get; set; }
         public Nullable<int> CourseTypeId { get; set; }
         public Nullable<int> LifeCycleControlDocumentId { get; set; }
         public Nullable<System.DateTime> Created { get; set; }
@@ -31,6 +30,13 @@ namespace Data.Tables
         public Nullable<int> LastUpdatedById { get; set; }
         public string CourseType { get; set; }
         public string LifeCycleControlDocument { get; set; }
+        public string Name { get; set; }
+        public string Description { get; set; }
+        public Nullable<int> AssessmentApproachId { get; set; }
+        public Nullable<int> CurriculumControlAuthorityId { get; set; }
+        public string CTID { get; set; }
+        public string CurriculumControlAuthority { get; set; }
+        public string CurrentAssessmentApproach { get; set; }
     
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<Course_Task> Course_Task { get; set; }

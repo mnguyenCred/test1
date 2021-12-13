@@ -18,7 +18,6 @@ namespace Data.Tables
         public Codes_PropertyCategory()
         {
             this.Codes_PropertyValue = new HashSet<Codes_PropertyValue>();
-            this.Entity_Reference = new HashSet<Entity_Reference>();
         }
     
         public int Id { get; set; }
@@ -35,7 +34,5 @@ namespace Data.Tables
     
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<Codes_PropertyValue> Codes_PropertyValue { get; set; }
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<Entity_Reference> Entity_Reference { get; set; }
     }
 }

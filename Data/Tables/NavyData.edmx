@@ -20,7 +20,7 @@
           <Property Name="LastUpdatedById" Type="int" />
           <Property Name="RowId" Type="uniqueidentifier" Nullable="false" />
           <Property Name="AspNetId" Type="nvarchar" MaxLength="128" />
-          <Property Name="CEAccountIdentifier" Type="varchar" MaxLength="50" />
+          <Property Name="ExternalAccountIdentifier" Type="varchar" MaxLength="50" />
         </EntityType>
         <EntityType Name="ActivityLog">
           <Key>
@@ -189,15 +189,21 @@
           </Key>
           <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
           <Property Name="CIN" Type="nvarchar" MaxLength="50" Nullable="false" />
-          <Property Name="CourseName" Type="nvarchar" MaxLength="200" Nullable="false" />
+          <Property Name="Name" Type="nvarchar" MaxLength="200" Nullable="false" />
+          <Property Name="Description" Type="nvarchar(max)" />
           <Property Name="CourseTypeId" Type="int" />
           <Property Name="LifeCycleControlDocumentId" Type="int" />
+          <Property Name="AssessmentApproachId" Type="int" />
+          <Property Name="CurriculumControlAuthorityId" Type="int" />
+          <Property Name="CTID" Type="varchar" MaxLength="50" />
           <Property Name="Created" Type="datetime" />
           <Property Name="CreatedById" Type="int" />
           <Property Name="LastUpdated" Type="datetime" />
           <Property Name="LastUpdatedById" Type="int" />
           <Property Name="CourseType" Type="nvarchar" MaxLength="50" />
           <Property Name="LifeCycleControlDocument" Type="nvarchar" MaxLength="100" />
+          <Property Name="CurriculumControlAuthority" Type="nvarchar" MaxLength="200" />
+          <Property Name="CurrentAssessmentApproach" Type="nvarchar" MaxLength="200" />
         </EntityType>
         <EntityType Name="Course_Task">
           <Key>
@@ -205,11 +211,21 @@
           </Key>
           <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
           <Property Name="CourseId" Type="int" Nullable="false" />
-          <Property Name="Task" Type="nvarchar(max)" Nullable="false" />
+          <Property Name="TaskStatement" Type="nvarchar(max)" Nullable="false" />
+          <Property Name="CTID" Type="varchar" MaxLength="50" />
           <Property Name="Created" Type="datetime" />
           <Property Name="CreatedById" Type="int" />
           <Property Name="LastUpdated" Type="datetime" />
           <Property Name="LastUpdatedById" Type="int" />
+        </EntityType>
+        <EntityType Name="CurriculumControlAuthority">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="Name" Type="nvarchar" MaxLength="300" />
+          <Property Name="Abbreviation" Type="nvarchar" MaxLength="50" />
+          <Property Name="CTID" Type="varchar" MaxLength="50" />
         </EntityType>
         <EntityType Name="EnlistedClassification">
           <Key>
@@ -251,104 +267,16 @@
           <Property Name="CreatedById" Type="int" />
           <Property Name="LastUpdatedById" Type="int" />
         </EntityType>
-        <EntityType Name="Entity_Competency">
+        <EntityType Name="FunctionalArea">
           <Key>
             <PropertyRef Name="Id" />
           </Key>
           <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
-          <Property Name="EntityId" Type="int" Nullable="false" />
-          <Property Name="CompetencyFrameworkId" Type="int" Nullable="false" />
-          <Property Name="Uri" Type="varchar" MaxLength="300" Nullable="false" />
-          <Property Name="Created" Type="datetime" />
-          <Property Name="CreatedById" Type="int" />
-        </EntityType>
-        <EntityType Name="Entity_Concept">
-          <Key>
-            <PropertyRef Name="Id" />
-          </Key>
-          <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
-          <Property Name="EntityId" Type="int" Nullable="false" />
-          <Property Name="ConceptSchemeId" Type="int" Nullable="false" />
-          <Property Name="ConceptId" Type="int" Nullable="false" />
-          <Property Name="Uri" Type="varchar" MaxLength="300" Nullable="false" />
-          <Property Name="Created" Type="datetime" />
-          <Property Name="CreatedById" Type="int" />
-        </EntityType>
-        <EntityType Name="Entity_HasRating">
-          <Key>
-            <PropertyRef Name="Id" />
-          </Key>
-          <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
-          <Property Name="EntityId" Type="int" Nullable="false" />
-          <Property Name="RatingId" Type="int" Nullable="false" />
-          <Property Name="CreatedById" Type="int" />
-          <Property Name="Uri" Type="varchar" MaxLength="300" Nullable="false" />
-          <Property Name="Created" Type="datetime" />
+          <Property Name="Name" Type="nvarchar" MaxLength="200" Nullable="false" />
+          <Property Name="Description" Type="varchar(max)" Nullable="false" />
+          <Property Name="DateCreated" Type="datetime" />
+          <Property Name="DateModified" Type="datetime" />
           <Property Name="CTID" Type="varchar" MaxLength="50" />
-        </EntityType>
-        <EntityType Name="Entity_Property">
-          <Key>
-            <PropertyRef Name="Id" />
-          </Key>
-          <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
-          <Property Name="EntityId" Type="int" Nullable="false" />
-          <Property Name="PropertyValueId" Type="int" Nullable="false" />
-          <Property Name="Created" Type="datetime" />
-          <Property Name="CreatedById" Type="int" />
-        </EntityType>
-        <EntityType Name="Entity_Reference">
-          <Key>
-            <PropertyRef Name="Id" />
-          </Key>
-          <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
-          <Property Name="EntityId" Type="int" Nullable="false" />
-          <Property Name="CategoryId" Type="int" Nullable="false" />
-          <Property Name="Title" Type="nvarchar" MaxLength="600" />
-          <Property Name="TextValue" Type="nvarchar" MaxLength="600" />
-          <Property Name="Created" Type="datetime" />
-          <Property Name="CreatedById" Type="int" />
-          <Property Name="LastUpdated" Type="datetime" />
-          <Property Name="LastUpdatedById" Type="int" />
-          <Property Name="PropertyValueId" Type="int" />
-        </EntityType>
-        <EntityType Name="Import_EntityResolution">
-          <Key>
-            <PropertyRef Name="Id" />
-          </Key>
-          <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
-          <Property Name="Created" Type="datetime" />
-          <Property Name="ReferencedId" Type="varchar" MaxLength="200" />
-          <Property Name="ReferencedCtid" Type="varchar" MaxLength="50" />
-          <Property Name="ReferencedEntityTypeId" Type="int" />
-          <Property Name="EntityUid" Type="uniqueidentifier" />
-          <Property Name="IsResolved" Type="bit" />
-          <Property Name="EntityBaseId" Type="int" />
-        </EntityType>
-        <EntityType Name="Import_Message">
-          <Key>
-            <PropertyRef Name="Id" />
-          </Key>
-          <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
-          <Property Name="ParentId" Type="int" Nullable="false" />
-          <Property Name="Created" Type="datetime" />
-          <Property Name="Severity" Type="int" />
-          <Property Name="Message" Type="varchar" MaxLength="500" />
-        </EntityType>
-        <EntityType Name="Import_Staging">
-          <Key>
-            <PropertyRef Name="Id" />
-          </Key>
-          <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
-          <Property Name="EnvelopeId" Type="varchar" MaxLength="50" Nullable="false" />
-          <Property Name="EntityTypedId" Type="int" Nullable="false" />
-          <Property Name="Ctid" Type="varchar" MaxLength="50" />
-          <Property Name="DownloadDate" Type="datetime" Nullable="false" />
-          <Property Name="ImportDate" Type="datetime" />
-          <Property Name="Message" Type="varchar(max)" />
-          <Property Name="DocumentUpdatedAt" Type="datetime" />
-          <Property Name="ResourcePublicKey" Type="varchar(max)" />
-          <Property Name="Payload" Type="varchar(max)" Nullable="false" />
-          <Property Name="IsMostRecentDownload" Type="bit" />
         </EntityType>
         <EntityType Name="Job">
           <Key>
@@ -434,6 +362,29 @@
           <Property Name="CredentialRegistryURI" Type="varchar" MaxLength="200" />
           <Property Name="MainEntityOfPage" Type="varchar" MaxLength="600" />
         </EntityType>
+        <EntityType Name="RatingLevelTask">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="CodedNotation" Type="varchar" MaxLength="100" />
+          <Property Name="RankId" Type="int" Nullable="false" />
+          <Property Name="LevelId" Type="int" Nullable="false" />
+          <Property Name="FunctionalAreaId" Type="int" Nullable="false" />
+          <Property Name="SourceId" Type="int" />
+          <Property Name="WorkElementTypeId" Type="int" />
+          <Property Name="WorkElementTask" Type="nvarchar(max)" Nullable="false" />
+          <Property Name="TaskApplicabilityId" Type="int" />
+          <Property Name="TaskStatusId" Type="int" />
+          <Property Name="FormalTrainingGapId" Type="int" />
+          <Property Name="Notes" Type="nvarchar(max)" />
+          <Property Name="Created" Type="datetime" />
+          <Property Name="CreatedById" Type="int" />
+          <Property Name="LastUpdated" Type="datetime" />
+          <Property Name="LastUpdatedById" Type="int" />
+          <Property Name="CTID" Type="varchar" MaxLength="50" />
+          <Property Name="TrainingTaskId" Type="int" />
+        </EntityType>
         <EntityType Name="RegistryHistory">
           <Key>
             <PropertyRef Name="Id" />
@@ -474,6 +425,40 @@
           <Property Name="LastPublished" Type="datetime" />
           <Property Name="LastPublishedById" Type="int" />
         </EntityType>
+        <EntityType Name="RmtlProject_Billet">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="RmtlProjectId" Type="int" Nullable="false" />
+          <Property Name="JobId" Type="int" Nullable="false" />
+          <Property Name="Created" Type="datetime" Nullable="false" />
+          <Property Name="LastUpdated" Type="datetime" Nullable="false" />
+        </EntityType>
+        <EntityType Name="RmtlProjectBilletTask">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="ProjectBilletId" Type="int" Nullable="false" />
+          <Property Name="RatingLevelTaskId" Type="int" Nullable="false" />
+          <Property Name="Created" Type="datetime" Nullable="false" />
+          <Property Name="LastUpdated" Type="datetime" Nullable="false" />
+        </EntityType>
+        <EntityType Name="Source">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="Name" Type="nvarchar" MaxLength="200" Nullable="false" />
+          <Property Name="SourceDate" Type="nvarchar" MaxLength="50" />
+          <Property Name="Description" Type="varchar(max)" />
+          <Property Name="DateCreated" Type="datetime" />
+          <Property Name="CreatedById" Type="int" />
+          <Property Name="DateModified" Type="datetime" />
+          <Property Name="LastUpdatedById" Type="int" />
+          <Property Name="CTID" Type="varchar" MaxLength="50" />
+        </EntityType>
         <EntityType Name="Subscription">
           <Key>
             <PropertyRef Name="Id" />
@@ -501,19 +486,16 @@
           <Property Name="EntityTypeId" Type="int" Nullable="false" />
           <Property Name="Created" Type="datetime" Nullable="false" />
         </EntityType>
-        <EntityType Name="System_ProxyCodes">
+        <EntityType Name="WorkElementType">
           <Key>
             <PropertyRef Name="Id" />
           </Key>
           <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
-          <Property Name="ProxyCode" Type="varchar" MaxLength="300" Nullable="false" />
-          <Property Name="UserIdentifier" Type="uniqueidentifier" Nullable="false" />
-          <Property Name="IsIdentityProxy" Type="bit" />
-          <Property Name="ProxyType" Type="varchar" MaxLength="50" />
-          <Property Name="IsActive" Type="bit" Nullable="false" />
-          <Property Name="Created" Type="datetime" Nullable="false" />
-          <Property Name="ExpiryDate" Type="datetime" Nullable="false" />
-          <Property Name="AccessDate" Type="datetime" />
+          <Property Name="Name" Type="nvarchar" MaxLength="50" Nullable="false" />
+          <Property Name="description" Type="varchar" MaxLength="1" Nullable="false" />
+          <Property Name="DateCreated" Type="datetime" Nullable="false" />
+          <Property Name="DateModified" Type="datetime" Nullable="false" />
+          <Property Name="CTID" Type="varchar" MaxLength="50" />
         </EntityType>
         <EntityType Name="WorkRole">
           <Key>
@@ -531,6 +513,60 @@
           <Property Name="LastPublished" Type="datetime" />
           <Property Name="RowId" Type="uniqueidentifier" Nullable="false" />
         </EntityType>
+        <Association Name="FK_Account_AspNetUsers">
+          <End Role="AspNetUsers" Type="Self.AspNetUsers" Multiplicity="0..1">
+            <OnDelete Action="Cascade" />
+          </End>
+          <End Role="Account" Type="Self.Account" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="AspNetUsers">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="Account">
+              <PropertyRef Name="AspNetId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_AspNetUserRoles_AspNetRoles">
+          <End Role="AspNetRoles" Type="Self.AspNetRoles" Multiplicity="1">
+            <OnDelete Action="Cascade" />
+          </End>
+          <End Role="AspNetUserRoles" Type="Self.AspNetUserRoles" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="AspNetRoles">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="AspNetUserRoles">
+              <PropertyRef Name="RoleId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_AspNetUserRoles_AspNetUsers">
+          <End Role="AspNetUsers" Type="Self.AspNetUsers" Multiplicity="1">
+            <OnDelete Action="Cascade" />
+          </End>
+          <End Role="AspNetUserRoles" Type="Self.AspNetUserRoles" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="AspNetUsers">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="AspNetUserRoles">
+              <PropertyRef Name="UserId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_AspNetUsers_AspNetUsers">
+          <End Role="AspNetUsers" Type="Self.AspNetUsers" Multiplicity="1" />
+          <End Role="AspNetUsers1" Type="Self.AspNetUsers" Multiplicity="0..1" />
+          <ReferentialConstraint>
+            <Principal Role="AspNetUsers">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="AspNetUsers1">
+              <PropertyRef Name="Id" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
         <Association Name="FK_Codes_TagValue_Codes_TagCategory">
           <End Role="Codes_PropertyCategory" Type="Self.Codes_PropertyCategory" Multiplicity="1">
             <OnDelete Action="Cascade" />
@@ -663,112 +699,6 @@
             </Dependent>
           </ReferentialConstraint>
         </Association>
-        <Association Name="FK_Entity_Competency_Entity">
-          <End Role="Entity" Type="Self.Entity" Multiplicity="1">
-            <OnDelete Action="Cascade" />
-          </End>
-          <End Role="Entity_Competency" Type="Self.Entity_Competency" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="Entity">
-              <PropertyRef Name="Id" />
-            </Principal>
-            <Dependent Role="Entity_Competency">
-              <PropertyRef Name="EntityId" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
-        <Association Name="FK_Entity_Concept_Entity">
-          <End Role="Entity" Type="Self.Entity" Multiplicity="1">
-            <OnDelete Action="Cascade" />
-          </End>
-          <End Role="Entity_Concept" Type="Self.Entity_Concept" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="Entity">
-              <PropertyRef Name="Id" />
-            </Principal>
-            <Dependent Role="Entity_Concept">
-              <PropertyRef Name="EntityId" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
-        <Association Name="FK_Entity_HasRating_Entity">
-          <End Role="Entity" Type="Self.Entity" Multiplicity="1">
-            <OnDelete Action="Cascade" />
-          </End>
-          <End Role="Entity_HasRating" Type="Self.Entity_HasRating" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="Entity">
-              <PropertyRef Name="Id" />
-            </Principal>
-            <Dependent Role="Entity_HasRating">
-              <PropertyRef Name="EntityId" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
-        <Association Name="FK_Entity_Property_Codes_PropertyValue">
-          <End Role="Codes_PropertyValue" Type="Self.Codes_PropertyValue" Multiplicity="1" />
-          <End Role="Entity_Property" Type="Self.Entity_Property" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="Codes_PropertyValue">
-              <PropertyRef Name="Id" />
-            </Principal>
-            <Dependent Role="Entity_Property">
-              <PropertyRef Name="PropertyValueId" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
-        <Association Name="FK_Entity_Property_Entity">
-          <End Role="Entity" Type="Self.Entity" Multiplicity="1">
-            <OnDelete Action="Cascade" />
-          </End>
-          <End Role="Entity_Property" Type="Self.Entity_Property" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="Entity">
-              <PropertyRef Name="Id" />
-            </Principal>
-            <Dependent Role="Entity_Property">
-              <PropertyRef Name="EntityId" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
-        <Association Name="FK_Entity_Reference_Codes_PropertyCategory">
-          <End Role="Codes_PropertyCategory" Type="Self.Codes_PropertyCategory" Multiplicity="1" />
-          <End Role="Entity_Reference" Type="Self.Entity_Reference" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="Codes_PropertyCategory">
-              <PropertyRef Name="Id" />
-            </Principal>
-            <Dependent Role="Entity_Reference">
-              <PropertyRef Name="CategoryId" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
-        <Association Name="FK_Entity_Reference_Codes_PropertyValue">
-          <End Role="Codes_PropertyValue" Type="Self.Codes_PropertyValue" Multiplicity="0..1" />
-          <End Role="Entity_Reference" Type="Self.Entity_Reference" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="Codes_PropertyValue">
-              <PropertyRef Name="Id" />
-            </Principal>
-            <Dependent Role="Entity_Reference">
-              <PropertyRef Name="PropertyValueId" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
-        <Association Name="FK_Entity_Reference_Entity">
-          <End Role="Entity" Type="Self.Entity" Multiplicity="1">
-            <OnDelete Action="Cascade" />
-          </End>
-          <End Role="Entity_Reference" Type="Self.Entity_Reference" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="Entity">
-              <PropertyRef Name="Id" />
-            </Principal>
-            <Dependent Role="Entity_Reference">
-              <PropertyRef Name="EntityId" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
         <Association Name="FK_Entity_Codes_EntityType">
           <End Role="Codes_EntityType" Type="Self.Codes_EntityType" Multiplicity="1" />
           <End Role="Entity" Type="Self.Entity" Multiplicity="*" />
@@ -778,20 +708,6 @@
             </Principal>
             <Dependent Role="Entity">
               <PropertyRef Name="EntityTypeId" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
-        <Association Name="FK_Import_Message_Import_Staging">
-          <End Role="Import_Staging" Type="Self.Import_Staging" Multiplicity="1">
-            <OnDelete Action="Cascade" />
-          </End>
-          <End Role="Import_Message" Type="Self.Import_Message" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="Import_Staging">
-              <PropertyRef Name="Id" />
-            </Principal>
-            <Dependent Role="Import_Message">
-              <PropertyRef Name="ParentId" />
             </Dependent>
           </ReferentialConstraint>
         </Association>
@@ -836,27 +752,41 @@
           <EntitySet Name="ConceptScheme_Concept" EntityType="Self.ConceptScheme_Concept" Schema="dbo" Table="ConceptScheme.Concept" store:Type="Tables" />
           <EntitySet Name="Course" EntityType="Self.Course" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="Course_Task" EntityType="Self.Course_Task" Schema="dbo" Table="Course.Task" store:Type="Tables" />
+          <EntitySet Name="CurriculumControlAuthority" EntityType="Self.CurriculumControlAuthority" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="EnlistedClassification" EntityType="Self.EnlistedClassification" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="Entity" EntityType="Self.Entity" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="Entity_Comment" EntityType="Self.Entity_Comment" Schema="dbo" Table="Entity.Comment" store:Type="Tables" />
-          <EntitySet Name="Entity_Competency" EntityType="Self.Entity_Competency" Schema="dbo" Table="Entity.Competency" store:Type="Tables" />
-          <EntitySet Name="Entity_Concept" EntityType="Self.Entity_Concept" Schema="dbo" Table="Entity.Concept" store:Type="Tables" />
-          <EntitySet Name="Entity_HasRating" EntityType="Self.Entity_HasRating" Schema="dbo" Table="Entity.HasRating" store:Type="Tables" />
-          <EntitySet Name="Entity_Property" EntityType="Self.Entity_Property" Schema="dbo" Table="Entity.Property" store:Type="Tables" />
-          <EntitySet Name="Entity_Reference" EntityType="Self.Entity_Reference" Schema="dbo" Table="Entity.Reference" store:Type="Tables" />
-          <EntitySet Name="Import_EntityResolution" EntityType="Self.Import_EntityResolution" Schema="dbo" Table="Import.EntityResolution" store:Type="Tables" />
-          <EntitySet Name="Import_Message" EntityType="Self.Import_Message" Schema="dbo" Table="Import.Message" store:Type="Tables" />
-          <EntitySet Name="Import_Staging" EntityType="Self.Import_Staging" Schema="dbo" Table="Import.Staging" store:Type="Tables" />
+          <EntitySet Name="FunctionalArea" EntityType="Self.FunctionalArea" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="Job" EntityType="Self.Job" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="OccupationalTask" EntityType="Self.OccupationalTask" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="Organization" EntityType="Self.Organization" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="Rating" EntityType="Self.Rating" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="RatingLevelTask" EntityType="Self.RatingLevelTask" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="RegistryHistory" EntityType="Self.RegistryHistory" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="RMTLProject" EntityType="Self.RMTLProject" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="RmtlProject_Billet" EntityType="Self.RmtlProject_Billet" Schema="dbo" Table="RmtlProject.Billet" store:Type="Tables" />
+          <EntitySet Name="RmtlProjectBilletTask" EntityType="Self.RmtlProjectBilletTask" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="Source" EntityType="Self.Source" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="Subscription" EntityType="Self.Subscription" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="Subscription_EntityType" EntityType="Self.Subscription_EntityType" Schema="dbo" Table="Subscription.EntityType" store:Type="Tables" />
-          <EntitySet Name="System_ProxyCodes" EntityType="Self.System_ProxyCodes" Schema="dbo" Table="System.ProxyCodes" store:Type="Tables" />
+          <EntitySet Name="WorkElementType" EntityType="Self.WorkElementType" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="WorkRole" EntityType="Self.WorkRole" Schema="dbo" store:Type="Tables" />
+          <AssociationSet Name="FK_Account_AspNetUsers" Association="Self.FK_Account_AspNetUsers">
+            <End Role="AspNetUsers" EntitySet="AspNetUsers" />
+            <End Role="Account" EntitySet="Account" />
+          </AssociationSet>
+          <AssociationSet Name="FK_AspNetUserRoles_AspNetRoles" Association="Self.FK_AspNetUserRoles_AspNetRoles">
+            <End Role="AspNetRoles" EntitySet="AspNetRoles" />
+            <End Role="AspNetUserRoles" EntitySet="AspNetUserRoles" />
+          </AssociationSet>
+          <AssociationSet Name="FK_AspNetUserRoles_AspNetUsers" Association="Self.FK_AspNetUserRoles_AspNetUsers">
+            <End Role="AspNetUsers" EntitySet="AspNetUsers" />
+            <End Role="AspNetUserRoles" EntitySet="AspNetUserRoles" />
+          </AssociationSet>
+          <AssociationSet Name="FK_AspNetUsers_AspNetUsers" Association="Self.FK_AspNetUsers_AspNetUsers">
+            <End Role="AspNetUsers" EntitySet="AspNetUsers" />
+            <End Role="AspNetUsers1" EntitySet="AspNetUsers" />
+          </AssociationSet>
           <AssociationSet Name="FK_Codes_TagValue_Codes_TagCategory" Association="Self.FK_Codes_TagValue_Codes_TagCategory">
             <End Role="Codes_PropertyCategory" EntitySet="Codes_PropertyCategory" />
             <End Role="Codes_PropertyValue" EntitySet="Codes_PropertyValue" />
@@ -897,45 +827,9 @@
             <End Role="Entity" EntitySet="Entity" />
             <End Role="Entity_Comment" EntitySet="Entity_Comment" />
           </AssociationSet>
-          <AssociationSet Name="FK_Entity_Competency_Entity" Association="Self.FK_Entity_Competency_Entity">
-            <End Role="Entity" EntitySet="Entity" />
-            <End Role="Entity_Competency" EntitySet="Entity_Competency" />
-          </AssociationSet>
-          <AssociationSet Name="FK_Entity_Concept_Entity" Association="Self.FK_Entity_Concept_Entity">
-            <End Role="Entity" EntitySet="Entity" />
-            <End Role="Entity_Concept" EntitySet="Entity_Concept" />
-          </AssociationSet>
-          <AssociationSet Name="FK_Entity_HasRating_Entity" Association="Self.FK_Entity_HasRating_Entity">
-            <End Role="Entity" EntitySet="Entity" />
-            <End Role="Entity_HasRating" EntitySet="Entity_HasRating" />
-          </AssociationSet>
-          <AssociationSet Name="FK_Entity_Property_Codes_PropertyValue" Association="Self.FK_Entity_Property_Codes_PropertyValue">
-            <End Role="Codes_PropertyValue" EntitySet="Codes_PropertyValue" />
-            <End Role="Entity_Property" EntitySet="Entity_Property" />
-          </AssociationSet>
-          <AssociationSet Name="FK_Entity_Property_Entity" Association="Self.FK_Entity_Property_Entity">
-            <End Role="Entity" EntitySet="Entity" />
-            <End Role="Entity_Property" EntitySet="Entity_Property" />
-          </AssociationSet>
-          <AssociationSet Name="FK_Entity_Reference_Codes_PropertyCategory" Association="Self.FK_Entity_Reference_Codes_PropertyCategory">
-            <End Role="Codes_PropertyCategory" EntitySet="Codes_PropertyCategory" />
-            <End Role="Entity_Reference" EntitySet="Entity_Reference" />
-          </AssociationSet>
-          <AssociationSet Name="FK_Entity_Reference_Codes_PropertyValue" Association="Self.FK_Entity_Reference_Codes_PropertyValue">
-            <End Role="Codes_PropertyValue" EntitySet="Codes_PropertyValue" />
-            <End Role="Entity_Reference" EntitySet="Entity_Reference" />
-          </AssociationSet>
-          <AssociationSet Name="FK_Entity_Reference_Entity" Association="Self.FK_Entity_Reference_Entity">
-            <End Role="Entity" EntitySet="Entity" />
-            <End Role="Entity_Reference" EntitySet="Entity_Reference" />
-          </AssociationSet>
           <AssociationSet Name="FK_Entity_Codes_EntityType" Association="Self.FK_Entity_Codes_EntityType">
             <End Role="Codes_EntityType" EntitySet="Codes_EntityType" />
             <End Role="Entity" EntitySet="Entity" />
-          </AssociationSet>
-          <AssociationSet Name="FK_Import_Message_Import_Staging" Association="Self.FK_Import_Message_Import_Staging">
-            <End Role="Import_Staging" EntitySet="Import_Staging" />
-            <End Role="Import_Message" EntitySet="Import_Message" />
           </AssociationSet>
           <AssociationSet Name="FK_Subscription_EntityType_Codes_EntityType" Association="Self.FK_Subscription_EntityType_Codes_EntityType">
             <End Role="Codes_EntityType" EntitySet="Codes_EntityType" />
@@ -966,7 +860,6 @@
           <Property Name="InterfaceType" Type="Int32" />
           <Property Name="PropertyTableName" Type="String" MaxLength="100" FixedLength="false" Unicode="false" />
           <NavigationProperty Name="Codes_PropertyValue" Relationship="Self.FK_Codes_TagValue_Codes_TagCategory" FromRole="Codes_PropertyCategory" ToRole="Codes_PropertyValue" />
-          <NavigationProperty Name="Entity_Reference" Relationship="ceNavyModel.FK_Entity_Reference_Codes_PropertyCategory" FromRole="Codes_PropertyCategory" ToRole="Entity_Reference" />
         </EntityType>
         <EntityType Name="Codes_PropertyValue">
           <Key>
@@ -985,8 +878,6 @@
           <Property Name="Totals" Type="Int32" />
           <Property Name="IsSubType1" Type="Boolean" />
           <NavigationProperty Name="Codes_PropertyCategory" Relationship="Self.FK_Codes_TagValue_Codes_TagCategory" FromRole="Codes_PropertyValue" ToRole="Codes_PropertyCategory" />
-          <NavigationProperty Name="Entity_Property" Relationship="ceNavyModel.FK_Entity_Property_Codes_PropertyValue" FromRole="Codes_PropertyValue" ToRole="Entity_Property" />
-          <NavigationProperty Name="Entity_Reference" Relationship="ceNavyModel.FK_Entity_Reference_Codes_PropertyValue" FromRole="Codes_PropertyValue" ToRole="Entity_Reference" />
         </EntityType>
         <EntityType Name="ConceptScheme_Concept">
           <Key>
@@ -1034,28 +925,6 @@
           </AssociationSet>
           <EntitySet Name="Codes_EntityType" EntityType="ceNavyModel.Codes_EntityType" />
           <EntitySet Name="Entity" EntityType="ceNavyModel.Entity" />
-          <EntitySet Name="Entity_Property" EntityType="ceNavyModel.Entity_Property" />
-          <EntitySet Name="Entity_Reference" EntityType="ceNavyModel.Entity_Reference" />
-          <AssociationSet Name="FK_Entity_Reference_Codes_PropertyCategory" Association="ceNavyModel.FK_Entity_Reference_Codes_PropertyCategory">
-            <End Role="Codes_PropertyCategory" EntitySet="Codes_PropertyCategory" />
-            <End Role="Entity_Reference" EntitySet="Entity_Reference" />
-          </AssociationSet>
-          <AssociationSet Name="FK_Entity_Property_Codes_PropertyValue" Association="ceNavyModel.FK_Entity_Property_Codes_PropertyValue">
-            <End Role="Codes_PropertyValue" EntitySet="Codes_PropertyValue" />
-            <End Role="Entity_Property" EntitySet="Entity_Property" />
-          </AssociationSet>
-          <AssociationSet Name="FK_Entity_Reference_Codes_PropertyValue" Association="ceNavyModel.FK_Entity_Reference_Codes_PropertyValue">
-            <End Role="Codes_PropertyValue" EntitySet="Codes_PropertyValue" />
-            <End Role="Entity_Reference" EntitySet="Entity_Reference" />
-          </AssociationSet>
-          <AssociationSet Name="FK_Entity_Property_Entity1" Association="ceNavyModel.FK_Entity_Property_Entity1">
-            <End Role="Entity" EntitySet="Entity" />
-            <End Role="Entity_Property" EntitySet="Entity_Property" />
-          </AssociationSet>
-          <AssociationSet Name="FK_Entity_Reference_Entity" Association="ceNavyModel.FK_Entity_Reference_Entity">
-            <End Role="Entity" EntitySet="Entity" />
-            <End Role="Entity_Reference" EntitySet="Entity_Reference" />
-          </AssociationSet>
           <AssociationSet Name="FK_Entity_Codes_EntityType" Association="ceNavyModel.FK_Entity_Codes_EntityType">
             <End Role="Codes_EntityType" EntitySet="Codes_EntityType" />
             <End Role="Entity" EntitySet="Entity" />
@@ -1065,25 +934,10 @@
           <EntitySet Name="WorkRole" EntityType="ceNavyModel.WorkRole" />
           <EntitySet Name="EnlistedClassification" EntityType="ceNavyModel.EnlistedClassification" />
           <EntitySet Name="Entity_Comment" EntityType="ceNavyModel.Entity_Comment" />
-          <EntitySet Name="Entity_HasRating" EntityType="ceNavyModel.Entity_HasRating" />
           <EntitySet Name="OccupationalTask" EntityType="ceNavyModel.OccupationalTask" />
           <AssociationSet Name="FK_Entity_Comment_Entity" Association="ceNavyModel.FK_Entity_Comment_Entity">
             <End Role="Entity" EntitySet="Entity" />
             <End Role="Entity_Comment" EntitySet="Entity_Comment" />
-          </AssociationSet>
-          <EntitySet Name="Entity_Competency" EntityType="ceNavyModel.Entity_Competency" />
-          <EntitySet Name="Entity_Concept" EntityType="ceNavyModel.Entity_Concept" />
-          <AssociationSet Name="FK_Entity_Competency_Entity" Association="ceNavyModel.FK_Entity_Competency_Entity">
-            <End Role="Entity" EntitySet="Entity" />
-            <End Role="Entity_Competency" EntitySet="Entity_Competency" />
-          </AssociationSet>
-          <AssociationSet Name="FK_Entity_Concept_Entity" Association="ceNavyModel.FK_Entity_Concept_Entity">
-            <End Role="Entity" EntitySet="Entity" />
-            <End Role="Entity_Concept" EntitySet="Entity_Concept" />
-          </AssociationSet>
-          <AssociationSet Name="FK_Entity_HasRating_Entity" Association="ceNavyModel.FK_Entity_HasRating_Entity">
-            <End Role="Entity" EntitySet="Entity" />
-            <End Role="Entity_HasRating" EntitySet="Entity_HasRating" />
           </AssociationSet>
           <EntitySet Name="Account" EntityType="ceNavyModel.Account" />
           <EntitySet Name="ActivityLog" EntityType="ceNavyModel.ActivityLog" />
@@ -1102,13 +956,6 @@
           <AssociationSet Name="FK_ConceptScheme_AccountPublishedBy" Association="ceNavyModel.FK_ConceptScheme_AccountPublishedBy">
             <End Role="Account" EntitySet="Account" />
             <End Role="ConceptScheme" EntitySet="ConceptScheme" />
-          </AssociationSet>
-          <EntitySet Name="Import_EntityResolution" EntityType="ceNavyModel.Import_EntityResolution" />
-          <EntitySet Name="Import_Message" EntityType="ceNavyModel.Import_Message" />
-          <EntitySet Name="Import_Staging" EntityType="ceNavyModel.Import_Staging" />
-          <AssociationSet Name="FK_Import_Message_Import_Staging" Association="ceNavyModel.FK_Import_Message_Import_Staging">
-            <End Role="Import_Staging" EntitySet="Import_Staging" />
-            <End Role="Import_Message" EntitySet="Import_Message" />
           </AssociationSet>
           <EntitySet Name="AspNetRoles" EntityType="ceNavyModel.AspNetRoles" />
           <EntitySet Name="AspNetUserRoles" EntityType="ceNavyModel.AspNetUserRoles" />
@@ -1134,13 +981,35 @@
             <End Role="Subscription" EntitySet="Subscription" />
             <End Role="Subscription_EntityType" EntitySet="Subscription_EntityType" />
           </AssociationSet>
-          <EntitySet Name="System_ProxyCodes" EntityType="ceNavyModel.System_ProxyCodes" />
           <EntitySet Name="Course" EntityType="ceNavyModel.Course" />
           <EntitySet Name="Course_Task" EntityType="ceNavyModel.Course_Task" />
           <EntitySet Name="RMTLProject" EntityType="ceNavyModel.RMTLProject" />
           <AssociationSet Name="FK_Course_Task_Course" Association="ceNavyModel.FK_Course_Task_Course">
             <End Role="Course" EntitySet="Course" />
             <End Role="Course_Task" EntitySet="Course_Task" />
+          </AssociationSet>
+          <EntitySet Name="CurriculumControlAuthority" EntityType="ceNavyModel.CurriculumControlAuthority" />
+          <EntitySet Name="FunctionalArea" EntityType="ceNavyModel.FunctionalArea" />
+          <EntitySet Name="RatingLevelTask" EntityType="ceNavyModel.RatingLevelTask" />
+          <EntitySet Name="RmtlProject_Billet" EntityType="ceNavyModel.RmtlProject_Billet" />
+          <EntitySet Name="RmtlProjectBilletTask" EntityType="ceNavyModel.RmtlProjectBilletTask" />
+          <EntitySet Name="Source" EntityType="ceNavyModel.Source" />
+          <EntitySet Name="WorkElementType" EntityType="ceNavyModel.WorkElementType" />
+          <AssociationSet Name="FK_Account_AspNetUsers" Association="ceNavyModel.FK_Account_AspNetUsers">
+            <End Role="AspNetUsers" EntitySet="AspNetUsers" />
+            <End Role="Account" EntitySet="Account" />
+          </AssociationSet>
+          <AssociationSet Name="FK_AspNetUserRoles_AspNetRoles" Association="ceNavyModel.FK_AspNetUserRoles_AspNetRoles">
+            <End Role="AspNetRoles" EntitySet="AspNetRoles" />
+            <End Role="AspNetUserRoles" EntitySet="AspNetUserRoles" />
+          </AssociationSet>
+          <AssociationSet Name="FK_AspNetUserRoles_AspNetUsers" Association="ceNavyModel.FK_AspNetUserRoles_AspNetUsers">
+            <End Role="AspNetUsers" EntitySet="AspNetUsers" />
+            <End Role="AspNetUserRoles" EntitySet="AspNetUserRoles" />
+          </AssociationSet>
+          <AssociationSet Name="FK_AspNetUsers_AspNetUsers" Association="ceNavyModel.FK_AspNetUsers_AspNetUsers">
+            <End Role="AspNetUsers" EntitySet="AspNetUsers" />
+            <End Role="AspNetUsers1" EntitySet="AspNetUsers" />
           </AssociationSet>
         </EntityContainer>
         <EntityType Name="ConceptScheme">
@@ -1234,108 +1103,9 @@
           <Property Name="EntityBaseId" Type="Int32" />
           <Property Name="EntityBaseName" Type="String" MaxLength="300" FixedLength="false" Unicode="true" />
           <Property Name="LastUpdated" Type="DateTime" Precision="3" />
-          <NavigationProperty Name="Entity_Property" Relationship="ceNavyModel.FK_Entity_Property_Entity1" FromRole="Entity" ToRole="Entity_Property" />
-          <NavigationProperty Name="Entity_Reference" Relationship="ceNavyModel.FK_Entity_Reference_Entity" FromRole="Entity" ToRole="Entity_Reference" />
           <NavigationProperty Name="Codes_EntityType" Relationship="ceNavyModel.FK_Entity_Codes_EntityType" FromRole="Entity" ToRole="Codes_EntityType" />
           <NavigationProperty Name="Entity_Comment" Relationship="ceNavyModel.FK_Entity_Comment_Entity" FromRole="Entity" ToRole="Entity_Comment" />
-          <NavigationProperty Name="Entity_Competency" Relationship="ceNavyModel.FK_Entity_Competency_Entity" FromRole="Entity" ToRole="Entity_Competency" />
-          <NavigationProperty Name="Entity_Concept" Relationship="ceNavyModel.FK_Entity_Concept_Entity" FromRole="Entity" ToRole="Entity_Concept" />
-          <NavigationProperty Name="Entity_HasRating" Relationship="ceNavyModel.FK_Entity_HasRating_Entity" FromRole="Entity" ToRole="Entity_HasRating" />
         </EntityType>
-        <EntityType Name="Entity_Property">
-          <Key>
-            <PropertyRef Name="Id" />
-          </Key>
-          <Property Name="Id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
-          <Property Name="EntityId" Type="Int32" Nullable="false" />
-          <Property Name="PropertyValueId" Type="Int32" Nullable="false" />
-          <Property Name="Created" Type="DateTime" Precision="3" />
-          <Property Name="CreatedById" Type="Int32" />
-          <NavigationProperty Name="Codes_PropertyValue" Relationship="ceNavyModel.FK_Entity_Property_Codes_PropertyValue" FromRole="Entity_Property" ToRole="Codes_PropertyValue" />
-          <NavigationProperty Name="Entity" Relationship="ceNavyModel.FK_Entity_Property_Entity1" FromRole="Entity_Property" ToRole="Entity" />
-        </EntityType>
-        <EntityType Name="Entity_Reference">
-          <Key>
-            <PropertyRef Name="Id" />
-          </Key>
-          <Property Name="Id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
-          <Property Name="EntityId" Type="Int32" Nullable="false" />
-          <Property Name="CategoryId" Type="Int32" Nullable="false" />
-          <Property Name="Title" Type="String" MaxLength="600" FixedLength="false" Unicode="true" />
-          <Property Name="TextValue" Type="String" MaxLength="600" FixedLength="false" Unicode="true" />
-          <Property Name="Created" Type="DateTime" Precision="3" />
-          <Property Name="CreatedById" Type="Int32" />
-          <Property Name="LastUpdated" Type="DateTime" Precision="3" />
-          <Property Name="LastUpdatedById" Type="Int32" />
-          <Property Name="PropertyValueId" Type="Int32" />
-          <NavigationProperty Name="Codes_PropertyCategory" Relationship="ceNavyModel.FK_Entity_Reference_Codes_PropertyCategory" FromRole="Entity_Reference" ToRole="Codes_PropertyCategory" />
-          <NavigationProperty Name="Codes_PropertyValue" Relationship="ceNavyModel.FK_Entity_Reference_Codes_PropertyValue" FromRole="Entity_Reference" ToRole="Codes_PropertyValue" />
-          <NavigationProperty Name="Entity" Relationship="ceNavyModel.FK_Entity_Reference_Entity" FromRole="Entity_Reference" ToRole="Entity" />
-        </EntityType>
-        <Association Name="FK_Entity_Reference_Codes_PropertyCategory">
-          <End Type="ceNavyModel.Codes_PropertyCategory" Role="Codes_PropertyCategory" Multiplicity="1" />
-          <End Type="ceNavyModel.Entity_Reference" Role="Entity_Reference" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="Codes_PropertyCategory">
-              <PropertyRef Name="Id" />
-            </Principal>
-            <Dependent Role="Entity_Reference">
-              <PropertyRef Name="CategoryId" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
-        <Association Name="FK_Entity_Property_Codes_PropertyValue">
-          <End Type="ceNavyModel.Codes_PropertyValue" Role="Codes_PropertyValue" Multiplicity="1" />
-          <End Type="ceNavyModel.Entity_Property" Role="Entity_Property" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="Codes_PropertyValue">
-              <PropertyRef Name="Id" />
-            </Principal>
-            <Dependent Role="Entity_Property">
-              <PropertyRef Name="PropertyValueId" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
-        <Association Name="FK_Entity_Reference_Codes_PropertyValue">
-          <End Type="ceNavyModel.Codes_PropertyValue" Role="Codes_PropertyValue" Multiplicity="0..1" />
-          <End Type="ceNavyModel.Entity_Reference" Role="Entity_Reference" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="Codes_PropertyValue">
-              <PropertyRef Name="Id" />
-            </Principal>
-            <Dependent Role="Entity_Reference">
-              <PropertyRef Name="PropertyValueId" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
-        <Association Name="FK_Entity_Property_Entity1">
-          <End Type="ceNavyModel.Entity" Role="Entity" Multiplicity="1">
-            <OnDelete Action="Cascade" />
-          </End>
-          <End Type="ceNavyModel.Entity_Property" Role="Entity_Property" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="Entity">
-              <PropertyRef Name="Id" />
-            </Principal>
-            <Dependent Role="Entity_Property">
-              <PropertyRef Name="EntityId" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
-        <Association Name="FK_Entity_Reference_Entity">
-          <End Type="ceNavyModel.Entity" Role="Entity" Multiplicity="1">
-            <OnDelete Action="Cascade" />
-          </End>
-          <End Type="ceNavyModel.Entity_Reference" Role="Entity_Reference" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="Entity">
-              <PropertyRef Name="Id" />
-            </Principal>
-            <Dependent Role="Entity_Reference">
-              <PropertyRef Name="EntityId" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
         <Association Name="FK_Entity_Codes_EntityType">
           <End Type="ceNavyModel.Codes_EntityType" Role="Codes_EntityType" Multiplicity="1" />
           <End Type="ceNavyModel.Entity" Role="Entity" Multiplicity="*" />
@@ -1432,19 +1202,6 @@
           <Property Name="LastUpdatedById" Type="Int32" />
           <NavigationProperty Name="Entity" Relationship="ceNavyModel.FK_Entity_Comment_Entity" FromRole="Entity_Comment" ToRole="Entity" />
         </EntityType>
-        <EntityType Name="Entity_HasRating">
-          <Key>
-            <PropertyRef Name="Id" />
-          </Key>
-          <Property Name="Id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
-          <Property Name="EntityId" Type="Int32" Nullable="false" />
-          <Property Name="RatingId" Type="Int32" Nullable="false" />
-          <Property Name="CreatedById" Type="Int32" />
-          <Property Name="Uri" Type="String" Nullable="false" MaxLength="300" FixedLength="false" Unicode="false" />
-          <Property Name="Created" Type="DateTime" Precision="3" />
-          <Property Name="CTID" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
-          <NavigationProperty Name="Entity" Relationship="ceNavyModel.FK_Entity_HasRating_Entity" FromRole="Entity_HasRating" ToRole="Entity" />
-        </EntityType>
         <EntityType Name="OccupationalTask">
           <Key>
             <PropertyRef Name="Id" />
@@ -1477,73 +1234,6 @@
             </Dependent>
           </ReferentialConstraint>
         </Association>
-        <EntityType Name="Entity_Competency">
-          <Key>
-            <PropertyRef Name="Id" />
-          </Key>
-          <Property Name="Id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
-          <Property Name="EntityId" Type="Int32" Nullable="false" />
-          <Property Name="CompetencyFrameworkId" Type="Int32" Nullable="false" />
-          <Property Name="Uri" Type="String" Nullable="false" MaxLength="300" FixedLength="false" Unicode="false" />
-          <Property Name="Created" Type="DateTime" Precision="3" />
-          <Property Name="CreatedById" Type="Int32" />
-          <NavigationProperty Name="Entity" Relationship="ceNavyModel.FK_Entity_Competency_Entity" FromRole="Entity_Competency" ToRole="Entity" />
-        </EntityType>
-        <EntityType Name="Entity_Concept">
-          <Key>
-            <PropertyRef Name="Id" />
-          </Key>
-          <Property Name="Id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
-          <Property Name="EntityId" Type="Int32" Nullable="false" />
-          <Property Name="ConceptSchemeId" Type="Int32" Nullable="false" />
-          <Property Name="ConceptId" Type="Int32" Nullable="false" />
-          <Property Name="Uri" Type="String" Nullable="false" MaxLength="300" FixedLength="false" Unicode="false" />
-          <Property Name="Created" Type="DateTime" Precision="3" />
-          <Property Name="CreatedById" Type="Int32" />
-          <NavigationProperty Name="Entity" Relationship="ceNavyModel.FK_Entity_Concept_Entity" FromRole="Entity_Concept" ToRole="Entity" />
-        </EntityType>
-        <Association Name="FK_Entity_Competency_Entity">
-          <End Type="ceNavyModel.Entity" Role="Entity" Multiplicity="1">
-            <OnDelete Action="Cascade" />
-          </End>
-          <End Type="ceNavyModel.Entity_Competency" Role="Entity_Competency" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="Entity">
-              <PropertyRef Name="Id" />
-            </Principal>
-            <Dependent Role="Entity_Competency">
-              <PropertyRef Name="EntityId" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
-        <Association Name="FK_Entity_Concept_Entity">
-          <End Type="ceNavyModel.Entity" Role="Entity" Multiplicity="1">
-            <OnDelete Action="Cascade" />
-          </End>
-          <End Type="ceNavyModel.Entity_Concept" Role="Entity_Concept" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="Entity">
-              <PropertyRef Name="Id" />
-            </Principal>
-            <Dependent Role="Entity_Concept">
-              <PropertyRef Name="EntityId" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
-        <Association Name="FK_Entity_HasRating_Entity">
-          <End Type="ceNavyModel.Entity" Role="Entity" Multiplicity="1">
-            <OnDelete Action="Cascade" />
-          </End>
-          <End Type="ceNavyModel.Entity_HasRating" Role="Entity_HasRating" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="Entity">
-              <PropertyRef Name="Id" />
-            </Principal>
-            <Dependent Role="Entity_HasRating">
-              <PropertyRef Name="EntityId" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
         <EntityType Name="Account">
           <Key>
             <PropertyRef Name="Id" />
@@ -1559,11 +1249,12 @@
           <Property Name="LastUpdatedById" Type="Int32" />
           <Property Name="RowId" Type="Guid" Nullable="false" />
           <Property Name="AspNetId" Type="String" MaxLength="128" FixedLength="false" Unicode="true" />
-          <Property Name="CEAccountIdentifier" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
           <NavigationProperty Name="ConceptScheme" Relationship="ceNavyModel.FK_ConceptScheme__AccountCreatedBy" FromRole="Account" ToRole="ConceptScheme" />
           <NavigationProperty Name="ConceptScheme1" Relationship="ceNavyModel.FK_ConceptScheme_AccountApprovedBy" FromRole="Account" ToRole="ConceptScheme" />
           <NavigationProperty Name="ConceptScheme2" Relationship="ceNavyModel.FK_ConceptScheme_AccountLastUpdatedBy" FromRole="Account" ToRole="ConceptScheme" />
           <NavigationProperty Name="ConceptScheme3" Relationship="ceNavyModel.FK_ConceptScheme_AccountPublishedBy" FromRole="Account" ToRole="ConceptScheme" />
+          <Property Name="ExternalAccountIdentifier" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+          <NavigationProperty Name="AspNetUsers" Relationship="ceNavyModel.FK_Account_AspNetUsers" FromRole="Account" ToRole="AspNetUsers" />
         </EntityType>
         <EntityType Name="ActivityLog">
           <Key>
@@ -1636,61 +1327,6 @@
             </Dependent>
           </ReferentialConstraint>
         </Association>
-        <EntityType Name="Import_EntityResolution">
-          <Key>
-            <PropertyRef Name="Id" />
-          </Key>
-          <Property Name="Id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
-          <Property Name="Created" Type="DateTime" Precision="3" />
-          <Property Name="ReferencedId" Type="String" MaxLength="200" FixedLength="false" Unicode="false" />
-          <Property Name="ReferencedCtid" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
-          <Property Name="ReferencedEntityTypeId" Type="Int32" />
-          <Property Name="EntityUid" Type="Guid" />
-          <Property Name="IsResolved" Type="Boolean" />
-          <Property Name="EntityBaseId" Type="Int32" />
-        </EntityType>
-        <EntityType Name="Import_Message">
-          <Key>
-            <PropertyRef Name="Id" />
-          </Key>
-          <Property Name="Id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
-          <Property Name="ParentId" Type="Int32" Nullable="false" />
-          <Property Name="Created" Type="DateTime" Precision="3" />
-          <Property Name="Severity" Type="Int32" />
-          <Property Name="Message" Type="String" MaxLength="500" FixedLength="false" Unicode="false" />
-          <NavigationProperty Name="Import_Staging" Relationship="ceNavyModel.FK_Import_Message_Import_Staging" FromRole="Import_Message" ToRole="Import_Staging" />
-        </EntityType>
-        <EntityType Name="Import_Staging">
-          <Key>
-            <PropertyRef Name="Id" />
-          </Key>
-          <Property Name="Id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
-          <Property Name="EnvelopeId" Type="String" Nullable="false" MaxLength="50" FixedLength="false" Unicode="false" />
-          <Property Name="EntityTypedId" Type="Int32" Nullable="false" />
-          <Property Name="Ctid" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
-          <Property Name="DownloadDate" Type="DateTime" Nullable="false" Precision="3" />
-          <Property Name="ImportDate" Type="DateTime" Precision="3" />
-          <Property Name="Message" Type="String" MaxLength="Max" FixedLength="false" Unicode="false" />
-          <Property Name="DocumentUpdatedAt" Type="DateTime" Precision="3" />
-          <Property Name="ResourcePublicKey" Type="String" MaxLength="Max" FixedLength="false" Unicode="false" />
-          <Property Name="Payload" Type="String" Nullable="false" MaxLength="Max" FixedLength="false" Unicode="false" />
-          <Property Name="IsMostRecentDownload" Type="Boolean" />
-          <NavigationProperty Name="Import_Message" Relationship="ceNavyModel.FK_Import_Message_Import_Staging" FromRole="Import_Staging" ToRole="Import_Message" />
-        </EntityType>
-        <Association Name="FK_Import_Message_Import_Staging">
-          <End Type="ceNavyModel.Import_Staging" Role="Import_Staging" Multiplicity="1">
-            <OnDelete Action="Cascade" />
-          </End>
-          <End Type="ceNavyModel.Import_Message" Role="Import_Message" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="Import_Staging">
-              <PropertyRef Name="Id" />
-            </Principal>
-            <Dependent Role="Import_Message">
-              <PropertyRef Name="ParentId" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
         <EntityType Name="AspNetRoles">
           <Key>
             <PropertyRef Name="Id" />
@@ -1698,6 +1334,7 @@
           <Property Name="Id" Type="String" Nullable="false" MaxLength="128" FixedLength="false" Unicode="true" />
           <Property Name="Name" Type="String" Nullable="false" MaxLength="256" FixedLength="false" Unicode="true" />
           <Property Name="IsActive" Type="Boolean" />
+          <NavigationProperty Name="AspNetUserRoles" Relationship="ceNavyModel.FK_AspNetUserRoles_AspNetRoles" FromRole="AspNetRoles" ToRole="AspNetUserRoles" />
         </EntityType>
         <EntityType Name="AspNetUserRoles">
           <Key>
@@ -1707,6 +1344,8 @@
           <Property Name="UserId" Type="String" Nullable="false" MaxLength="128" FixedLength="false" Unicode="true" />
           <Property Name="RoleId" Type="String" Nullable="false" MaxLength="128" FixedLength="false" Unicode="true" />
           <Property Name="Created" Type="DateTime" Precision="3" />
+          <NavigationProperty Name="AspNetRoles" Relationship="ceNavyModel.FK_AspNetUserRoles_AspNetRoles" FromRole="AspNetUserRoles" ToRole="AspNetRoles" />
+          <NavigationProperty Name="AspNetUsers" Relationship="ceNavyModel.FK_AspNetUserRoles_AspNetUsers" FromRole="AspNetUserRoles" ToRole="AspNetUsers" />
         </EntityType>
         <EntityType Name="RegistryHistory">
           <Key>
@@ -1771,6 +1410,10 @@
           <Property Name="UserId" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
           <NavigationProperty Name="AspNetUserClaims" Relationship="ceNavyModel.FK_dbo_AspNetUserClaims_dbo_AspNetUsers_UserId" FromRole="AspNetUsers" ToRole="AspNetUserClaims" />
           <NavigationProperty Name="AspNetUserLogins" Relationship="ceNavyModel.FK_dbo_AspNetUserLogins_dbo_AspNetUsers_UserId" FromRole="AspNetUsers" ToRole="AspNetUserLogins" />
+          <NavigationProperty Name="Account" Relationship="ceNavyModel.FK_Account_AspNetUsers" FromRole="AspNetUsers" ToRole="Account" />
+          <NavigationProperty Name="AspNetUserRoles" Relationship="ceNavyModel.FK_AspNetUserRoles_AspNetUsers" FromRole="AspNetUsers" ToRole="AspNetUserRoles" />
+          <NavigationProperty Name="AspNetUsers1" Relationship="ceNavyModel.FK_AspNetUsers_AspNetUsers" FromRole="AspNetUsers" ToRole="AspNetUsers1" />
+          <NavigationProperty Name="AspNetUsers2" Relationship="ceNavyModel.FK_AspNetUsers_AspNetUsers" FromRole="AspNetUsers1" ToRole="AspNetUsers" />
         </EntityType>
         <Association Name="FK_dbo_AspNetUserClaims_dbo_AspNetUsers_UserId">
           <End Type="ceNavyModel.AspNetUsers" Role="AspNetUsers" Multiplicity="1">
@@ -1856,27 +1499,12 @@
             </Dependent>
           </ReferentialConstraint>
         </Association>
-        <EntityType Name="System_ProxyCodes">
-          <Key>
-            <PropertyRef Name="Id" />
-          </Key>
-          <Property Name="Id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
-          <Property Name="ProxyCode" Type="String" Nullable="false" MaxLength="300" FixedLength="false" Unicode="false" />
-          <Property Name="UserIdentifier" Type="Guid" Nullable="false" />
-          <Property Name="IsIdentityProxy" Type="Boolean" />
-          <Property Name="ProxyType" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
-          <Property Name="IsActive" Type="Boolean" Nullable="false" />
-          <Property Name="Created" Type="DateTime" Nullable="false" Precision="3" />
-          <Property Name="ExpiryDate" Type="DateTime" Nullable="false" Precision="3" />
-          <Property Name="AccessDate" Type="DateTime" Precision="3" />
-        </EntityType>
         <EntityType Name="Course">
           <Key>
             <PropertyRef Name="Id" />
           </Key>
           <Property Name="Id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
           <Property Name="CIN" Type="String" Nullable="false" MaxLength="50" FixedLength="false" Unicode="true" />
-          <Property Name="CourseName" Type="String" Nullable="false" MaxLength="200" FixedLength="false" Unicode="true" />
           <Property Name="CourseTypeId" Type="Int32" />
           <Property Name="LifeCycleControlDocumentId" Type="Int32" />
           <Property Name="Created" Type="DateTime" Precision="3" />
@@ -1886,6 +1514,13 @@
           <Property Name="CourseType" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
           <Property Name="LifeCycleControlDocument" Type="String" MaxLength="100" FixedLength="false" Unicode="true" />
           <NavigationProperty Name="Course_Task" Relationship="ceNavyModel.FK_Course_Task_Course" FromRole="Course" ToRole="Course_Task" />
+          <Property Name="Name" Type="String" Nullable="false" MaxLength="200" FixedLength="false" Unicode="true" />
+          <Property Name="Description" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
+          <Property Name="AssessmentApproachId" Type="Int32" />
+          <Property Name="CurriculumControlAuthorityId" Type="Int32" />
+          <Property Name="CTID" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+          <Property Name="CurriculumControlAuthority" Type="String" MaxLength="200" FixedLength="false" Unicode="true" />
+          <Property Name="CurrentAssessmentApproach" Type="String" MaxLength="200" FixedLength="false" Unicode="true" />
         </EntityType>
         <EntityType Name="Course_Task">
           <Key>
@@ -1893,12 +1528,13 @@
           </Key>
           <Property Name="Id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
           <Property Name="CourseId" Type="Int32" Nullable="false" />
-          <Property Name="Task" Type="String" Nullable="false" MaxLength="Max" FixedLength="false" Unicode="true" />
           <Property Name="Created" Type="DateTime" Precision="3" />
           <Property Name="CreatedById" Type="Int32" />
           <Property Name="LastUpdated" Type="DateTime" Precision="3" />
           <Property Name="LastUpdatedById" Type="Int32" />
           <NavigationProperty Name="Course" Relationship="ceNavyModel.FK_Course_Task_Course" FromRole="Course_Task" ToRole="Course" />
+          <Property Name="TaskStatement" Type="String" Nullable="false" MaxLength="Max" FixedLength="false" Unicode="true" />
+          <Property Name="CTID" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
         </EntityType>
         <EntityType Name="RMTLProject">
           <Key>
@@ -1932,6 +1568,148 @@
             </Principal>
             <Dependent Role="Course_Task">
               <PropertyRef Name="CourseId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <EntityType Name="CurriculumControlAuthority">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="Name" Type="String" MaxLength="300" FixedLength="false" Unicode="true" />
+          <Property Name="Abbreviation" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="CTID" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+        </EntityType>
+        <EntityType Name="FunctionalArea">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="Name" Type="String" Nullable="false" MaxLength="200" FixedLength="false" Unicode="true" />
+          <Property Name="Description" Type="String" Nullable="false" MaxLength="Max" FixedLength="false" Unicode="false" />
+          <Property Name="DateCreated" Type="DateTime" Precision="3" />
+          <Property Name="DateModified" Type="DateTime" Precision="3" />
+          <Property Name="CTID" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+        </EntityType>
+        <EntityType Name="RatingLevelTask">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="CodedNotation" Type="String" MaxLength="100" FixedLength="false" Unicode="false" />
+          <Property Name="RankId" Type="Int32" Nullable="false" />
+          <Property Name="LevelId" Type="Int32" Nullable="false" />
+          <Property Name="FunctionalAreaId" Type="Int32" Nullable="false" />
+          <Property Name="SourceId" Type="Int32" />
+          <Property Name="WorkElementTypeId" Type="Int32" />
+          <Property Name="WorkElementTask" Type="String" Nullable="false" MaxLength="Max" FixedLength="false" Unicode="true" />
+          <Property Name="TaskApplicabilityId" Type="Int32" />
+          <Property Name="TaskStatusId" Type="Int32" />
+          <Property Name="FormalTrainingGapId" Type="Int32" />
+          <Property Name="Notes" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
+          <Property Name="Created" Type="DateTime" Precision="3" />
+          <Property Name="CreatedById" Type="Int32" />
+          <Property Name="LastUpdated" Type="DateTime" Precision="3" />
+          <Property Name="LastUpdatedById" Type="Int32" />
+          <Property Name="CTID" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+          <Property Name="TrainingTaskId" Type="Int32" />
+        </EntityType>
+        <EntityType Name="RmtlProject_Billet">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="RmtlProjectId" Type="Int32" Nullable="false" />
+          <Property Name="JobId" Type="Int32" Nullable="false" />
+          <Property Name="Created" Type="DateTime" Nullable="false" Precision="3" />
+          <Property Name="LastUpdated" Type="DateTime" Nullable="false" Precision="3" />
+        </EntityType>
+        <EntityType Name="RmtlProjectBilletTask">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="ProjectBilletId" Type="Int32" Nullable="false" />
+          <Property Name="RatingLevelTaskId" Type="Int32" Nullable="false" />
+          <Property Name="Created" Type="DateTime" Nullable="false" Precision="3" />
+          <Property Name="LastUpdated" Type="DateTime" Nullable="false" Precision="3" />
+        </EntityType>
+        <EntityType Name="Source">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="Name" Type="String" Nullable="false" MaxLength="200" FixedLength="false" Unicode="true" />
+          <Property Name="SourceDate" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="Description" Type="String" MaxLength="Max" FixedLength="false" Unicode="false" />
+          <Property Name="DateCreated" Type="DateTime" Precision="3" />
+          <Property Name="CreatedById" Type="Int32" />
+          <Property Name="DateModified" Type="DateTime" Precision="3" />
+          <Property Name="LastUpdatedById" Type="Int32" />
+          <Property Name="CTID" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+        </EntityType>
+        <EntityType Name="WorkElementType">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="Name" Type="String" Nullable="false" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="description" Type="String" Nullable="false" MaxLength="1" FixedLength="false" Unicode="false" />
+          <Property Name="DateCreated" Type="DateTime" Nullable="false" Precision="3" />
+          <Property Name="DateModified" Type="DateTime" Nullable="false" Precision="3" />
+          <Property Name="CTID" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+        </EntityType>
+        <Association Name="FK_Account_AspNetUsers">
+          <End Type="ceNavyModel.AspNetUsers" Role="AspNetUsers" Multiplicity="0..1">
+            <OnDelete Action="Cascade" />
+          </End>
+          <End Type="ceNavyModel.Account" Role="Account" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="AspNetUsers">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="Account">
+              <PropertyRef Name="AspNetId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_AspNetUserRoles_AspNetRoles">
+          <End Type="ceNavyModel.AspNetRoles" Role="AspNetRoles" Multiplicity="1">
+            <OnDelete Action="Cascade" />
+          </End>
+          <End Type="ceNavyModel.AspNetUserRoles" Role="AspNetUserRoles" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="AspNetRoles">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="AspNetUserRoles">
+              <PropertyRef Name="RoleId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_AspNetUserRoles_AspNetUsers">
+          <End Type="ceNavyModel.AspNetUsers" Role="AspNetUsers" Multiplicity="1">
+            <OnDelete Action="Cascade" />
+          </End>
+          <End Type="ceNavyModel.AspNetUserRoles" Role="AspNetUserRoles" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="AspNetUsers">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="AspNetUserRoles">
+              <PropertyRef Name="UserId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_AspNetUsers_AspNetUsers">
+          <End Type="ceNavyModel.AspNetUsers" Role="AspNetUsers" Multiplicity="1" />
+          <End Type="ceNavyModel.AspNetUsers" Role="AspNetUsers1" Multiplicity="0..1" />
+          <ReferentialConstraint>
+            <Principal Role="AspNetUsers">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="AspNetUsers1">
+              <PropertyRef Name="Id" />
             </Dependent>
           </ReferentialConstraint>
         </Association>
@@ -2067,33 +1845,6 @@
               </MappingFragment>
             </EntityTypeMapping>
           </EntitySetMapping>
-          <EntitySetMapping Name="Entity_Property">
-            <EntityTypeMapping TypeName="ceNavyModel.Entity_Property">
-              <MappingFragment StoreEntitySet="Entity_Property">
-                <ScalarProperty Name="CreatedById" ColumnName="CreatedById" />
-                <ScalarProperty Name="Created" ColumnName="Created" />
-                <ScalarProperty Name="PropertyValueId" ColumnName="PropertyValueId" />
-                <ScalarProperty Name="EntityId" ColumnName="EntityId" />
-                <ScalarProperty Name="Id" ColumnName="Id" />
-              </MappingFragment>
-            </EntityTypeMapping>
-          </EntitySetMapping>
-          <EntitySetMapping Name="Entity_Reference">
-            <EntityTypeMapping TypeName="ceNavyModel.Entity_Reference">
-              <MappingFragment StoreEntitySet="Entity_Reference">
-                <ScalarProperty Name="PropertyValueId" ColumnName="PropertyValueId" />
-                <ScalarProperty Name="LastUpdatedById" ColumnName="LastUpdatedById" />
-                <ScalarProperty Name="LastUpdated" ColumnName="LastUpdated" />
-                <ScalarProperty Name="CreatedById" ColumnName="CreatedById" />
-                <ScalarProperty Name="Created" ColumnName="Created" />
-                <ScalarProperty Name="TextValue" ColumnName="TextValue" />
-                <ScalarProperty Name="Title" ColumnName="Title" />
-                <ScalarProperty Name="CategoryId" ColumnName="CategoryId" />
-                <ScalarProperty Name="EntityId" ColumnName="EntityId" />
-                <ScalarProperty Name="Id" ColumnName="Id" />
-              </MappingFragment>
-            </EntityTypeMapping>
-          </EntitySetMapping>
           <EntitySetMapping Name="Job">
             <EntityTypeMapping TypeName="ceNavyModel.Job">
               <MappingFragment StoreEntitySet="Job">
@@ -2182,19 +1933,6 @@
               </MappingFragment>
             </EntityTypeMapping>
           </EntitySetMapping>
-          <EntitySetMapping Name="Entity_HasRating">
-            <EntityTypeMapping TypeName="ceNavyModel.Entity_HasRating">
-              <MappingFragment StoreEntitySet="Entity_HasRating">
-                <ScalarProperty Name="CTID" ColumnName="CTID" />
-                <ScalarProperty Name="Created" ColumnName="Created" />
-                <ScalarProperty Name="Uri" ColumnName="Uri" />
-                <ScalarProperty Name="CreatedById" ColumnName="CreatedById" />
-                <ScalarProperty Name="RatingId" ColumnName="RatingId" />
-                <ScalarProperty Name="EntityId" ColumnName="EntityId" />
-                <ScalarProperty Name="Id" ColumnName="Id" />
-              </MappingFragment>
-            </EntityTypeMapping>
-          </EntitySetMapping>
           <EntitySetMapping Name="OccupationalTask">
             <EntityTypeMapping TypeName="ceNavyModel.OccupationalTask">
               <MappingFragment StoreEntitySet="OccupationalTask">
@@ -2214,35 +1952,10 @@
               </MappingFragment>
             </EntityTypeMapping>
           </EntitySetMapping>
-          <EntitySetMapping Name="Entity_Competency">
-            <EntityTypeMapping TypeName="ceNavyModel.Entity_Competency">
-              <MappingFragment StoreEntitySet="Entity_Competency">
-                <ScalarProperty Name="CreatedById" ColumnName="CreatedById" />
-                <ScalarProperty Name="Created" ColumnName="Created" />
-                <ScalarProperty Name="Uri" ColumnName="Uri" />
-                <ScalarProperty Name="CompetencyFrameworkId" ColumnName="CompetencyFrameworkId" />
-                <ScalarProperty Name="EntityId" ColumnName="EntityId" />
-                <ScalarProperty Name="Id" ColumnName="Id" />
-              </MappingFragment>
-            </EntityTypeMapping>
-          </EntitySetMapping>
-          <EntitySetMapping Name="Entity_Concept">
-            <EntityTypeMapping TypeName="ceNavyModel.Entity_Concept">
-              <MappingFragment StoreEntitySet="Entity_Concept">
-                <ScalarProperty Name="CreatedById" ColumnName="CreatedById" />
-                <ScalarProperty Name="Created" ColumnName="Created" />
-                <ScalarProperty Name="Uri" ColumnName="Uri" />
-                <ScalarProperty Name="ConceptId" ColumnName="ConceptId" />
-                <ScalarProperty Name="ConceptSchemeId" ColumnName="ConceptSchemeId" />
-                <ScalarProperty Name="EntityId" ColumnName="EntityId" />
-                <ScalarProperty Name="Id" ColumnName="Id" />
-              </MappingFragment>
-            </EntityTypeMapping>
-          </EntitySetMapping>
           <EntitySetMapping Name="Account">
             <EntityTypeMapping TypeName="ceNavyModel.Account">
               <MappingFragment StoreEntitySet="Account">
-                <ScalarProperty Name="CEAccountIdentifier" ColumnName="CEAccountIdentifier" />
+                <ScalarProperty Name="ExternalAccountIdentifier" ColumnName="ExternalAccountIdentifier" />
                 <ScalarProperty Name="AspNetId" ColumnName="AspNetId" />
                 <ScalarProperty Name="RowId" ColumnName="RowId" />
                 <ScalarProperty Name="LastUpdatedById" ColumnName="LastUpdatedById" />
@@ -2277,48 +1990,6 @@
                 <ScalarProperty Name="Activity" ColumnName="Activity" />
                 <ScalarProperty Name="ActivityType" ColumnName="ActivityType" />
                 <ScalarProperty Name="CreatedDate" ColumnName="CreatedDate" />
-                <ScalarProperty Name="Id" ColumnName="Id" />
-              </MappingFragment>
-            </EntityTypeMapping>
-          </EntitySetMapping>
-          <EntitySetMapping Name="Import_EntityResolution">
-            <EntityTypeMapping TypeName="ceNavyModel.Import_EntityResolution">
-              <MappingFragment StoreEntitySet="Import_EntityResolution">
-                <ScalarProperty Name="EntityBaseId" ColumnName="EntityBaseId" />
-                <ScalarProperty Name="IsResolved" ColumnName="IsResolved" />
-                <ScalarProperty Name="EntityUid" ColumnName="EntityUid" />
-                <ScalarProperty Name="ReferencedEntityTypeId" ColumnName="ReferencedEntityTypeId" />
-                <ScalarProperty Name="ReferencedCtid" ColumnName="ReferencedCtid" />
-                <ScalarProperty Name="ReferencedId" ColumnName="ReferencedId" />
-                <ScalarProperty Name="Created" ColumnName="Created" />
-                <ScalarProperty Name="Id" ColumnName="Id" />
-              </MappingFragment>
-            </EntityTypeMapping>
-          </EntitySetMapping>
-          <EntitySetMapping Name="Import_Message">
-            <EntityTypeMapping TypeName="ceNavyModel.Import_Message">
-              <MappingFragment StoreEntitySet="Import_Message">
-                <ScalarProperty Name="Message" ColumnName="Message" />
-                <ScalarProperty Name="Severity" ColumnName="Severity" />
-                <ScalarProperty Name="Created" ColumnName="Created" />
-                <ScalarProperty Name="ParentId" ColumnName="ParentId" />
-                <ScalarProperty Name="Id" ColumnName="Id" />
-              </MappingFragment>
-            </EntityTypeMapping>
-          </EntitySetMapping>
-          <EntitySetMapping Name="Import_Staging">
-            <EntityTypeMapping TypeName="ceNavyModel.Import_Staging">
-              <MappingFragment StoreEntitySet="Import_Staging">
-                <ScalarProperty Name="IsMostRecentDownload" ColumnName="IsMostRecentDownload" />
-                <ScalarProperty Name="Payload" ColumnName="Payload" />
-                <ScalarProperty Name="ResourcePublicKey" ColumnName="ResourcePublicKey" />
-                <ScalarProperty Name="DocumentUpdatedAt" ColumnName="DocumentUpdatedAt" />
-                <ScalarProperty Name="Message" ColumnName="Message" />
-                <ScalarProperty Name="ImportDate" ColumnName="ImportDate" />
-                <ScalarProperty Name="DownloadDate" ColumnName="DownloadDate" />
-                <ScalarProperty Name="Ctid" ColumnName="Ctid" />
-                <ScalarProperty Name="EntityTypedId" ColumnName="EntityTypedId" />
-                <ScalarProperty Name="EnvelopeId" ColumnName="EnvelopeId" />
                 <ScalarProperty Name="Id" ColumnName="Id" />
               </MappingFragment>
             </EntityTypeMapping>
@@ -2432,24 +2103,16 @@
               </MappingFragment>
             </EntityTypeMapping>
           </EntitySetMapping>
-          <EntitySetMapping Name="System_ProxyCodes">
-            <EntityTypeMapping TypeName="ceNavyModel.System_ProxyCodes">
-              <MappingFragment StoreEntitySet="System_ProxyCodes">
-                <ScalarProperty Name="AccessDate" ColumnName="AccessDate" />
-                <ScalarProperty Name="ExpiryDate" ColumnName="ExpiryDate" />
-                <ScalarProperty Name="Created" ColumnName="Created" />
-                <ScalarProperty Name="IsActive" ColumnName="IsActive" />
-                <ScalarProperty Name="ProxyType" ColumnName="ProxyType" />
-                <ScalarProperty Name="IsIdentityProxy" ColumnName="IsIdentityProxy" />
-                <ScalarProperty Name="UserIdentifier" ColumnName="UserIdentifier" />
-                <ScalarProperty Name="ProxyCode" ColumnName="ProxyCode" />
-                <ScalarProperty Name="Id" ColumnName="Id" />
-              </MappingFragment>
-            </EntityTypeMapping>
-          </EntitySetMapping>
           <EntitySetMapping Name="Course">
             <EntityTypeMapping TypeName="ceNavyModel.Course">
               <MappingFragment StoreEntitySet="Course">
+                <ScalarProperty Name="CurrentAssessmentApproach" ColumnName="CurrentAssessmentApproach" />
+                <ScalarProperty Name="CurriculumControlAuthority" ColumnName="CurriculumControlAuthority" />
+                <ScalarProperty Name="CTID" ColumnName="CTID" />
+                <ScalarProperty Name="CurriculumControlAuthorityId" ColumnName="CurriculumControlAuthorityId" />
+                <ScalarProperty Name="AssessmentApproachId" ColumnName="AssessmentApproachId" />
+                <ScalarProperty Name="Description" ColumnName="Description" />
+                <ScalarProperty Name="Name" ColumnName="Name" />
                 <ScalarProperty Name="LifeCycleControlDocument" ColumnName="LifeCycleControlDocument" />
                 <ScalarProperty Name="CourseType" ColumnName="CourseType" />
                 <ScalarProperty Name="LastUpdatedById" ColumnName="LastUpdatedById" />
@@ -2458,7 +2121,6 @@
                 <ScalarProperty Name="Created" ColumnName="Created" />
                 <ScalarProperty Name="LifeCycleControlDocumentId" ColumnName="LifeCycleControlDocumentId" />
                 <ScalarProperty Name="CourseTypeId" ColumnName="CourseTypeId" />
-                <ScalarProperty Name="CourseName" ColumnName="CourseName" />
                 <ScalarProperty Name="CIN" ColumnName="CIN" />
                 <ScalarProperty Name="Id" ColumnName="Id" />
               </MappingFragment>
@@ -2467,11 +2129,12 @@
           <EntitySetMapping Name="Course_Task">
             <EntityTypeMapping TypeName="ceNavyModel.Course_Task">
               <MappingFragment StoreEntitySet="Course_Task">
+                <ScalarProperty Name="CTID" ColumnName="CTID" />
+                <ScalarProperty Name="TaskStatement" ColumnName="TaskStatement" />
                 <ScalarProperty Name="LastUpdatedById" ColumnName="LastUpdatedById" />
                 <ScalarProperty Name="LastUpdated" ColumnName="LastUpdated" />
                 <ScalarProperty Name="CreatedById" ColumnName="CreatedById" />
                 <ScalarProperty Name="Created" ColumnName="Created" />
-                <ScalarProperty Name="Task" ColumnName="Task" />
                 <ScalarProperty Name="CourseId" ColumnName="CourseId" />
                 <ScalarProperty Name="Id" ColumnName="Id" />
               </MappingFragment>
@@ -2495,6 +2158,101 @@
                 <ScalarProperty Name="RatingId" ColumnName="RatingId" />
                 <ScalarProperty Name="Name" ColumnName="Name" />
                 <ScalarProperty Name="CTID" ColumnName="CTID" />
+                <ScalarProperty Name="Id" ColumnName="Id" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="CurriculumControlAuthority">
+            <EntityTypeMapping TypeName="ceNavyModel.CurriculumControlAuthority">
+              <MappingFragment StoreEntitySet="CurriculumControlAuthority">
+                <ScalarProperty Name="CTID" ColumnName="CTID" />
+                <ScalarProperty Name="Abbreviation" ColumnName="Abbreviation" />
+                <ScalarProperty Name="Name" ColumnName="Name" />
+                <ScalarProperty Name="Id" ColumnName="Id" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="FunctionalArea">
+            <EntityTypeMapping TypeName="ceNavyModel.FunctionalArea">
+              <MappingFragment StoreEntitySet="FunctionalArea">
+                <ScalarProperty Name="CTID" ColumnName="CTID" />
+                <ScalarProperty Name="DateModified" ColumnName="DateModified" />
+                <ScalarProperty Name="DateCreated" ColumnName="DateCreated" />
+                <ScalarProperty Name="Description" ColumnName="Description" />
+                <ScalarProperty Name="Name" ColumnName="Name" />
+                <ScalarProperty Name="Id" ColumnName="Id" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="RatingLevelTask">
+            <EntityTypeMapping TypeName="ceNavyModel.RatingLevelTask">
+              <MappingFragment StoreEntitySet="RatingLevelTask">
+                <ScalarProperty Name="TrainingTaskId" ColumnName="TrainingTaskId" />
+                <ScalarProperty Name="CTID" ColumnName="CTID" />
+                <ScalarProperty Name="LastUpdatedById" ColumnName="LastUpdatedById" />
+                <ScalarProperty Name="LastUpdated" ColumnName="LastUpdated" />
+                <ScalarProperty Name="CreatedById" ColumnName="CreatedById" />
+                <ScalarProperty Name="Created" ColumnName="Created" />
+                <ScalarProperty Name="Notes" ColumnName="Notes" />
+                <ScalarProperty Name="FormalTrainingGapId" ColumnName="FormalTrainingGapId" />
+                <ScalarProperty Name="TaskStatusId" ColumnName="TaskStatusId" />
+                <ScalarProperty Name="TaskApplicabilityId" ColumnName="TaskApplicabilityId" />
+                <ScalarProperty Name="WorkElementTask" ColumnName="WorkElementTask" />
+                <ScalarProperty Name="WorkElementTypeId" ColumnName="WorkElementTypeId" />
+                <ScalarProperty Name="SourceId" ColumnName="SourceId" />
+                <ScalarProperty Name="FunctionalAreaId" ColumnName="FunctionalAreaId" />
+                <ScalarProperty Name="LevelId" ColumnName="LevelId" />
+                <ScalarProperty Name="RankId" ColumnName="RankId" />
+                <ScalarProperty Name="CodedNotation" ColumnName="CodedNotation" />
+                <ScalarProperty Name="Id" ColumnName="Id" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="RmtlProject_Billet">
+            <EntityTypeMapping TypeName="ceNavyModel.RmtlProject_Billet">
+              <MappingFragment StoreEntitySet="RmtlProject_Billet">
+                <ScalarProperty Name="LastUpdated" ColumnName="LastUpdated" />
+                <ScalarProperty Name="Created" ColumnName="Created" />
+                <ScalarProperty Name="JobId" ColumnName="JobId" />
+                <ScalarProperty Name="RmtlProjectId" ColumnName="RmtlProjectId" />
+                <ScalarProperty Name="Id" ColumnName="Id" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="RmtlProjectBilletTask">
+            <EntityTypeMapping TypeName="ceNavyModel.RmtlProjectBilletTask">
+              <MappingFragment StoreEntitySet="RmtlProjectBilletTask">
+                <ScalarProperty Name="LastUpdated" ColumnName="LastUpdated" />
+                <ScalarProperty Name="Created" ColumnName="Created" />
+                <ScalarProperty Name="RatingLevelTaskId" ColumnName="RatingLevelTaskId" />
+                <ScalarProperty Name="ProjectBilletId" ColumnName="ProjectBilletId" />
+                <ScalarProperty Name="Id" ColumnName="Id" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="Source">
+            <EntityTypeMapping TypeName="ceNavyModel.Source">
+              <MappingFragment StoreEntitySet="Source">
+                <ScalarProperty Name="CTID" ColumnName="CTID" />
+                <ScalarProperty Name="LastUpdatedById" ColumnName="LastUpdatedById" />
+                <ScalarProperty Name="DateModified" ColumnName="DateModified" />
+                <ScalarProperty Name="CreatedById" ColumnName="CreatedById" />
+                <ScalarProperty Name="DateCreated" ColumnName="DateCreated" />
+                <ScalarProperty Name="Description" ColumnName="Description" />
+                <ScalarProperty Name="SourceDate" ColumnName="SourceDate" />
+                <ScalarProperty Name="Name" ColumnName="Name" />
+                <ScalarProperty Name="Id" ColumnName="Id" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="WorkElementType">
+            <EntityTypeMapping TypeName="ceNavyModel.WorkElementType">
+              <MappingFragment StoreEntitySet="WorkElementType">
+                <ScalarProperty Name="CTID" ColumnName="CTID" />
+                <ScalarProperty Name="DateModified" ColumnName="DateModified" />
+                <ScalarProperty Name="DateCreated" ColumnName="DateCreated" />
+                <ScalarProperty Name="description" ColumnName="description" />
+                <ScalarProperty Name="Name" ColumnName="Name" />
                 <ScalarProperty Name="Id" ColumnName="Id" />
               </MappingFragment>
             </EntityTypeMapping>

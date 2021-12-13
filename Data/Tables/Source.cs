@@ -12,15 +12,16 @@ namespace Data.Tables
     using System;
     using System.Collections.Generic;
     
-    public partial class Import_EntityResolution
+    public partial class Source
     {
         public int Id { get; set; }
-        public Nullable<System.DateTime> Created { get; set; }
-        public string ReferencedId { get; set; }
-        public string ReferencedCtid { get; set; }
-        public Nullable<int> ReferencedEntityTypeId { get; set; }
-        public Nullable<System.Guid> EntityUid { get; set; }
-        public Nullable<bool> IsResolved { get; set; }
-        public Nullable<int> EntityBaseId { get; set; }
+        public string Name { get; set; }
+        public string SourceDate { get; set; }
+        public string Description { get; set; }
+        public Nullable<System.DateTime> DateCreated { get; set; }
+        public Nullable<int> CreatedById { get; set; }
+        public Nullable<System.DateTime> DateModified { get; set; }
+        public Nullable<int> LastUpdatedById { get; set; }
+        public string CTID { get; set; }
     }
 }

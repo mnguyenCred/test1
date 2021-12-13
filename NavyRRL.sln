@@ -13,6 +13,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NavyRRL.API", "API\NavyRRL.
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NavyRRL.API.Tests", "API\NavyRRL.API.Tests\NavyRRL.API.Tests.csproj", "{40957F65-5629-488F-865E-6C78E78479CC}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Utilities", "Utilities\Utilities.csproj", "{05ECE341-87B1-417B-996E-2639C7D5AE5F}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -35,6 +37,10 @@ Global
 		{40957F65-5629-488F-865E-6C78E78479CC}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{40957F65-5629-488F-865E-6C78E78479CC}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{40957F65-5629-488F-865E-6C78E78479CC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{05ECE341-87B1-417B-996E-2639C7D5AE5F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{05ECE341-87B1-417B-996E-2639C7D5AE5F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{05ECE341-87B1-417B-996E-2639C7D5AE5F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{05ECE341-87B1-417B-996E-2639C7D5AE5F}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

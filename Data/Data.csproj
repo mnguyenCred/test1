@@ -101,6 +101,9 @@
     <Compile Include="Tables\Course_Task.cs">
       <DependentUpon>NavyData.tt</DependentUpon>
     </Compile>
+    <Compile Include="Tables\CurriculumControlAuthority.cs">
+      <DependentUpon>NavyData.tt</DependentUpon>
+    </Compile>
     <Compile Include="Tables\EnlistedClassification.cs">
       <DependentUpon>NavyData.tt</DependentUpon>
     </Compile>
@@ -110,28 +113,7 @@
     <Compile Include="Tables\Entity_Comment.cs">
       <DependentUpon>NavyData.tt</DependentUpon>
     </Compile>
-    <Compile Include="Tables\Entity_Competency.cs">
-      <DependentUpon>NavyData.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Tables\Entity_Concept.cs">
-      <DependentUpon>NavyData.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Tables\Entity_HasRating.cs">
-      <DependentUpon>NavyData.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Tables\Entity_Property.cs">
-      <DependentUpon>NavyData.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Tables\Entity_Reference.cs">
-      <DependentUpon>NavyData.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Tables\Import_EntityResolution.cs">
-      <DependentUpon>NavyData.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Tables\Import_Message.cs">
-      <DependentUpon>NavyData.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Tables\Import_Staging.cs">
+    <Compile Include="Tables\FunctionalArea.cs">
       <DependentUpon>NavyData.tt</DependentUpon>
     </Compile>
     <Compile Include="Tables\Job.cs">
@@ -161,10 +143,22 @@
     <Compile Include="Tables\Rating.cs">
       <DependentUpon>NavyData.tt</DependentUpon>
     </Compile>
+    <Compile Include="Tables\RatingLevelTask.cs">
+      <DependentUpon>NavyData.tt</DependentUpon>
+    </Compile>
     <Compile Include="Tables\RegistryHistory.cs">
       <DependentUpon>NavyData.tt</DependentUpon>
     </Compile>
     <Compile Include="Tables\RMTLProject.cs">
+      <DependentUpon>NavyData.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Tables\RmtlProjectBilletTask.cs">
+      <DependentUpon>NavyData.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Tables\RmtlProject_Billet.cs">
+      <DependentUpon>NavyData.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Tables\Source.cs">
       <DependentUpon>NavyData.tt</DependentUpon>
     </Compile>
     <Compile Include="Tables\Subscription.cs">
@@ -173,7 +167,7 @@
     <Compile Include="Tables\Subscription_EntityType.cs">
       <DependentUpon>NavyData.tt</DependentUpon>
     </Compile>
-    <Compile Include="Tables\System_ProxyCodes.cs">
+    <Compile Include="Tables\WorkElementType.cs">
       <DependentUpon>NavyData.tt</DependentUpon>
     </Compile>
     <Compile Include="Tables\WorkRole.cs">

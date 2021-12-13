@@ -12,15 +12,12 @@ namespace Data.Tables
     using System;
     using System.Collections.Generic;
     
-    public partial class Entity_Competency
+    public partial class RmtlProject_Billet
     {
         public int Id { get; set; }
-        public int EntityId { get; set; }
-        public int CompetencyFrameworkId { get; set; }
-        public string Uri { get; set; }
-        public Nullable<System.DateTime> Created { get; set; }
-        public Nullable<int> CreatedById { get; set; }
-    
-        public virtual Entity Entity { get; set; }
+        public int RmtlProjectId { get; set; }
+        public int JobId { get; set; }
+        public System.DateTime Created { get; set; }
+        public System.DateTime LastUpdated { get; set; }
     }
 }
