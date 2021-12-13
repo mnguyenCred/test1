@@ -1,0 +1,596 @@
+﻿
+@{
+    ViewBag.Title = "Upload RMTL Source Data";
+}
+
+<script type="text/javascript">
+	//Globals
+	var UI = {
+		Upload: {
+			File: {},
+			ProcessButton: {},
+			Status: {}
+		},
+		SummaryView: {
+			Summary: {}
+		},
+		TableView: {
+			Table: {}
+		},
+		ObjectsView: {
+			List: {},
+		},
+		RawJSONView: {
+			Display: {}
+		},
+		TabSets: []
+	};
+	var Data = {
+		RawCSV: "",
+		Graph: []
+	};
+	//
+
+	//Setup
+	$(document).ready(function () {
+		setupUI();
+		setupTabs();
+	});
+	//
+
+	//Could be optimized; just get it working for now
+	function setupUI() {
+		UI.Upload.File = $(".sourceFileBox");
+		UI.Upload.ProcessButton = $("[data-action='processCSV']");
+		UI.Upload.Status = $(".statusBox");
+		UI.SummaryView.Summary = $(".summaryBox");
+		UI.TableView.Table = $(".tableView tbody");
+		UI.ObjectsView.List = $(".objectListBox");
+		UI.RawJSONView.Display = $(".rawJSONBox");
+
+		UI.Upload.ProcessButton.on("click", function () {
+			processFile();
+		});
+
+	}
+	//
+
+	function setStatus(text) {
+		UI.Upload.Status.html(text);
+	}
+	//
+
+	function processFile() {
+		var file = UI.Upload.File[0].files[0];
+		if (!file) {
+			setStatus("Please select a file.");
+		}
+		else {
+			setStatus("Reading File...");
+			var reader = new FileReader();
+			reader.onload = function () {
+				setStatus("Processing File...");
+				parseCSV(reader.result);
+
+				setStatus("Converting raw data to objects...");
+				convertDataToObjects();
+
+				setStatus("Displaying data...");
+				displayData();
+
+				setStatus("Finished");
+			};
+			reader.onerror = function () {
+				setStatus("Error reading file: " + reader.error);
+			}
+			reader.readAsText(file);
+		}
+	}
+	//
+
+	function parseCSV(rawText) {
+		//Normalize the text
+		Data.RawCSV = rawText.replace(/\r\n/g, "\n").replace(/""/g, "<INSERTQUOTE>");
+		var rows = [];
+		var currentRow = [];
+		var currentCell = [];
+		var isInQuotes = false;
+
+		//Process each character
+		Data.RawCSV.split("").forEach(function (character) {
+			if (character == '"') {
+				isInQuotes = !isInQuotes;
+			}
+			else if (isInQuotes) {
+				currentCell.push(character);
+			}
+			else if (character == ",") {
+				currentRow.push(currentCell.join("").replace(/<INSERTQUOTE>/g, '"').trim());
+				currentCell = [];
+			}
+			else if (character == "\n") {
+				currentRow.push(currentCell.join("").replace(/<INSERTQUOTE>/g, '"').trim());
+				currentCell = [];
+				rows.push(currentRow);
+				currentRow = [];
+			}
+			else {
+				currentCell.push(character);
+			}
+		});
+
+		//Don't forget stragglers at the end
+		currentRow.push(currentCell.join("").replace(/<INSERTQUOTE>/g, '"').trim());
+		rows.push(currentRow);
+
+		//Set data
+		rows.shift(); //Discard first row, since it is not a true header row
+		Data.CSVColumns = rows.shift();
+		Data.CSVRows = rows;
+
+		//Create flat JSON
+		Data.CSVJSON = [];
+		Data.CSVRows.forEach(function (row) {
+			var temp = {};
+			Data.CSVColumns.forEach(function (column, index) {
+				temp[column] = row[index];
+			});
+			Data.CSVJSON.push(temp);
+		});
+
+		console.log("CSV Processed", Data);
+	}
+	//
+
+	function convertDataToObjects() {
+		//Processing
+		//TODO: Seed this with known constants, such as concept schemes
+		Data.Graph = [];
+
+		//Divide the data up into objects
+		Data.CSVJSON.forEach(function (row) {
+			var billetTitle = getOrNew("BilletTitle", {
+				Name: row["Billet Title"],
+				HasRatingTask: []
+			});
+
+			var workRole = getOrNew("WorkRole", {
+				Name: row["Functional Area"],
+				//HasRatingTask: []
+			});
+
+			var taskSource = getOrNew("ReferenceResource", {
+				Name: row["Source"],
+				PublicationDate: row["Date of Source"],
+				ReferenceType: []
+			});
+
+			var taskSourceType = getOrNew("Concept", {
+				Name: row["Work Element Type"]
+			});
+
+			var ratingTask = getOrNew("RatingTask", {
+				Description: row["Work Element (Task)"],
+				Note: row["Notes"],
+				HasWorkRole: [],
+				TrainingGapType: [],
+				ApplicabilityType: [],
+				PayGradeType: [],
+				HasTrainingTask: [],
+				HasReferenceResource: [],
+				HasRating: [], //Allow tasks to have multiple ratings (don't use this for uniqueness check)
+				//Properties only here for uniqueness checks
+				//This may result in multiple tasks with identical descriptions but different sources, which is intentional behavior
+				"temp:WorkRole": row["Functional Area"],
+				"temp:TrainingGapType": row["Formal Training Gap"],
+				"temp:ApplicabilityType": row["Task Applicability"],
+				"temp:PayGradeType": row["Rank"],
+				"temp:HasTrainingTask": row["CTTL/PPP/TCCD Statement"],
+				"temp:HasReferenceResource": row["Source"],
+				"temp:HasReferenceResource_Date": row["Date of Source"]
+			});
+
+			var rating = getOrNew("Rating", {
+				CodedNotation: row["Rating"]
+			});
+
+			var payGradeType = getOrNew("Concept", {
+				CodedNotation: row["Rank"]
+			});
+
+			var trainingGapType = getOrNew("Concept", {
+				Name: row["Formal Training Gap"]
+			});
+
+			var applicabilityType = getOrNew("Concept", {
+				Name: row["Task Applicability"]
+			});
+
+			var courseSource = getOrNew("ReferenceResource", {
+				Name: row["Life-Cycle Control Document"]
+			}, true);
+
+			var trainingTask = getOrNew("TrainingTask", {
+				Description: row["CTTL/PPP/TCCD Statement"]
+			}, true);
+
+			var assessmentMethodType = getOrNew("Concept", {
+				Name: row["Current Assessment Approach"]
+			}, true);
+
+			var course = getOrNew("Course", {
+				Name: row["Course Name"],
+				CodedNotation: row["CIN"],
+				CurriculumControlAuthority: [],
+				CourseType: [],
+				HasReferenceResource: [],
+				HasTrainingTask: [],
+				AssessmentMethodType: []
+			}, true);
+
+			var cca = getOrNew("Organization", {
+				Name: row["Curriculum Control Authority (CCA)"]
+			}, true);
+
+			var courseType = getOrNew("Concept", {
+				Name: row["Course Type (A/C/G/F/T)"]
+			}, true);
+
+			//Attach the objects to each other
+			appendReference(billetTitle?.HasRatingTask, ratingTask);
+			//appendReference(workRole?.HasRatingTask, ratingTask);
+			appendReference(ratingTask?.HasWorkRole, workRole);
+			appendReference(ratingTask?.TrainingGapType, trainingGapType);
+			appendReference(ratingTask?.ApplicabilityType, applicabilityType);
+			appendReference(ratingTask?.PayGradeType, payGradeType);
+			appendReference(ratingTask?.HasTrainingTask, trainingTask);
+			appendReference(ratingTask?.HasReferenceResource, taskSource);
+			appendReference(ratingTask?.HasRating, rating);
+			appendReference(course?.AssessmentMethodType, assessmentMethodType);
+			appendReference(course?.CourseType, courseType);
+			appendReference(course?.HasReferenceResource, courseSource);
+			appendReference(course?.HasTrainingTask, trainingTask);
+			appendReference(course?.CurriculumControlAuthority, cca);
+			appendReference(taskSource?.ReferenceType, taskSourceType);
+		});
+
+		//Cleanup
+		Data.Graph.sort(function (a, b) { return a.Type > b.Type ? 1 : -1; });
+		Data.Graph.filter(m => m.Type == "RatingTask").forEach(function (RatingTask) {
+			if (RatingTask.Note == "N/A") {
+				delete RatingTask.Note;
+			}
+			Object.keys(RatingTask).forEach(function (key) {
+				if (key.indexOf("temp:") == 0) {
+					delete RatingTask[key];
+				}
+			});
+		});
+	}
+	//
+
+	function getOrNew(type, data, rejectEmptyValues) {
+		//Filter by Type
+		var matches = Data.Graph.filter(m => m.Type == type);
+
+		//Filter by other properties
+		var hasEmptyValue = false;
+		Object.keys(data).forEach(function (key) {
+			if (typeof (data[key]) == "string") {
+				//Flag anything that has a blank string or "N/A" string value
+				if (data[key]?.toLowerCase() == "n/a" || data[key]?.length == 0) {
+					hasEmptyValue = true;
+				}
+				else {
+					//matches = matches.filter(m => m[key]?.toLowerCase() == data[key]?.toLowerCase());
+					matches = matches.filter(m => m[key] == data[key]); //We probably want to show differently-cased things as different items so that they stand out and can be corrected in the source data(?)
+				}
+			}
+		});
+
+		//If desired, reject empty value
+		if (rejectEmptyValues && hasEmptyValue) {
+			return null;
+		}
+
+		if (matches[0]) {
+			if (matches.length > 1) {
+				console.log("Warning: Found more than one match for item", { type: type, item: data, matches: matches });
+			}
+			return matches[0];
+		}
+		else {
+			var newItem = {
+				Type: type,
+				CTID: "ce-" + crypto.randomUUID(),
+				...data
+			};
+			Data.Graph.push(newItem);
+			return newItem;
+		}
+	}
+	//
+
+	function appendReference(container, data) {
+		if (container && data && container.indexOf(data.CTID) == -1) {
+			container.push(data.CTID);
+		}
+	}
+	//
+
+	function displayData() {
+		console.log("Displaying data", Data.Graph);
+
+		//Summary
+		UI.SummaryView.Summary.html("<p>The following data was detected:</p>");
+		var summaryTable = $("<table class=\"summaryTable\"></table>").appendTo(UI.SummaryView.Summary);
+		[
+			[getDataByType("Rating").filter(m => m.CodedNotation?.toLowerCase() != "all").length, "Ratings"],
+			[getDataByType("BilletTitle").length, "Billet Titles"],
+			[getDataByType("WorkRole").length, "Functional Areas"],
+			[getDataByType("RatingTask").length, "Rating Tasks"],
+			[getDataByType("Course").length, "Courses"],
+			[getDataByType("TrainingTask").length, "Training Tasks"],
+			[getDataByType("ReferenceResource").length, "Source Documents"],
+			[getDataByType("Organization").length, "Organizations"]
+		].forEach(function (item) {
+			summaryTable.append("<tr><td>" + item.join("</td><td>") + "</td></td>");
+		});
+		UI.SummaryView.Summary.append("<p>Please verify the contents of the data through the views above.</p>");
+
+		//Table
+		var headers = ["Rating", "Rank", "Billet Title", "Functional Area", "Source", "Source Date", "Rating Task", "Task Applicability", "Training Gap Type", "Course Identifier", "Course Name", "Course Type", "Curriculum Control Authority", "Training Task", "Training Assessment", "Note"];
+		UI.TableView.Table.html("<tr>" + headers.map(m => "<th>" + m + "</th>").join("") + "</tr>");
+		Data.Graph.filter(m => m.Type == "RatingTask").forEach(function (Task) {
+			var rowWrapper = $("<tr></tr>").appendTo(UI.TableView.Table);
+			setTimeout(() => {
+				var TrainingTasks = getDataByCTIDs(Task.HasTrainingTask);
+				var Courses = Data.Graph.filter(m => m.Type == "Course" && TrainingTasks.filter(n => m.HasTrainingTask.indexOf(n.CTID) > -1).length > 0);
+				var row = [
+					getFields(Task.HasRating, "CodedNotation"),
+					getFields(Task.PayGradeType, "CodedNotation"),
+					Data.Graph.filter(m => m.Type == "BilletTitle" && m.HasRatingTask.indexOf(Task.CTID) > -1).map(m => m.Name).join(" | "),
+					getFields(Task.HasWorkRole, "Name"),
+					getFields(Task.HasReferenceResource, "Name"),
+					getFields(Task.HasReferenceResource, "PublicationDate"),
+					Task.Description,
+					getFields(Task.ApplicabilityType, "Name"),
+					getFields(Task.TrainingGapType, "Name"),
+					Courses.map(m => m.CodedNotation || "").join(" | "),
+					Courses.map(m => m.Name || "").join(" | "),
+					getFields(Courses.flatMap(m => m.CourseType), "Name"),
+					getFields(Courses.flatMap(m => m.CurriculumControlAuthority), "Name"),
+					getFields(Task.HasTrainingTask, "Description"),
+					getFields(TrainingTasks.flatMap(m => m.AssessmentMethodType), "Name"),
+					Task.Note || ""
+				];
+				rowWrapper.append(row.map(m => "<td>" + m + "</td>").join(""));
+			}, 0);
+		});
+
+		//Objects
+		UI.ObjectsView.List.html("");
+		renderObjectList("Rating");
+		renderObjectList("BilletTitle");
+		renderObjectList("WorkRole");
+		renderObjectList("RatingTask");
+		renderObjectList("Course");
+		renderObjectList("TrainingTask");
+		renderObjectList("ReferenceResource");
+		renderObjectList("Organization");
+
+		//Raw JSON
+		setTimeout(() => {
+			UI.RawJSONView.Display.html(JSON.stringify(Data.Graph, null, "\t"));
+		}, 0);
+		
+	}
+	//
+
+	function renderObjectList(type) {
+		var Items = getDataByType(type);
+		var mainBox = $(".objectViewBox [data-type='" + type + "']");
+		var headerCount = mainBox.find("h4 span");
+		var itemsBox = mainBox.find(".itemList");
+		headerCount.html(Items.length);
+		itemsBox.html(Items.length == 0 ? "No items of this type were detected." : "");
+		Items.forEach(function (Item) {
+			var box = $("<div class=\"itemBox\" data-type=\"" + type + "\"></div>").appendTo(itemsBox);
+			setTimeout(() => {
+				appendProperty(box, "Name", Item.Name);
+				appendProperty(box, "Publication Date", Item.PublicationDate);
+				appendProperty(box, "Description", Item.Description, "bigText");
+				appendProperty(box, "Training Task Text", Item.Type == "RatingTask" ? getFields(Item.HasTrainingTask, "Description") : "", "bigText");
+				appendProperty(box, "Code", Item.CodedNotation);
+				appendProperty(box, "Has # Rating Tasks", Item.HasRatingTask?.length);
+				appendProperty(box, "Rating(s)", getFields(Item.HasRating, "CodedNotation"));
+				appendProperty(box, "Pay Grade Type(s)", getFields(Item.PayGradeType, "CodedNotation"));
+				appendProperty(box, "Source", getFields(Item.HasReferenceResource, "Name"));
+				appendProperty(box, "Reference Type", getFields(Item.ReferenceType, "Name"));
+				appendProperty(box, "Functional Area(s)", getFields(Item.HasWorkRole, "Name"));
+				appendProperty(box, "Training Gap Type", getFields(Item.TrainingGapType, "Name"));
+				appendProperty(box, "Applicability Type", getFields(Item.ApplicabilityType, "Name"));
+				appendProperty(box, "Assessment Method Type", getFields(Item.AssessmentMethodType, "Name"));
+				appendProperty(box, "Curriculum Control Authority", getFields(Item.CurriculumControlAuthority, "Name"));
+				appendProperty(box, "Course Type", getFields(Item.CourseType, "Name"));
+				appendProperty(box, "Has # Training Tasks", Item.HasTrainingTask?.length);
+				appendProperty(box, "Referenced From # Objects", Data.Graph.filter(m => m.HasReferenceResource?.indexOf(Item.CTID) > -1).length);
+				appendProperty(box, "Note", Item.Note, "bigText");
+			}, 0);
+		});
+	}
+	//
+
+	function getDataByCTIDs(ctids) {
+		return Data.Graph.filter(m => (ctids || []).indexOf(m.CTID) > -1);
+	}
+	//
+
+	function getDataByType(type) {
+		return Data.Graph.filter(m => m.Type == type);
+	}
+	//
+
+	function getFields(ctids, fieldName) {
+		return getDataByCTIDs(ctids)?.map(m => m[fieldName] || "").join(" | ");
+	}
+	//
+
+	function appendProperty(container, label, value, cssClass) {
+		if (value) {
+			var box = $("<div class=\"property " + (cssClass || "") + "\"></div>").appendTo(container);
+			box.append("<div class=\"miniLabel\">" + label + "</div>");
+			box.append("<div class=\"value\">" + value + "</div>");
+		}
+	}
+	//
+</script>
+<script type="text/javascript">
+	//Could be moved to an external file(?)
+	function setupTabs() {
+		$(".tabBox").each(function () {
+			var box = $(this);
+			var TabSet = {
+				Box: box,
+				ButtonsBox: box.find("> .tabButtons"),
+				Tabs: []
+			};
+			UI?.TabSets?.push(TabSet);
+			TabSet.Box.find("> .tabs > .tab").each(function () {
+				var box = $(this);
+				var Tab = {
+					Box: box,
+					Button: $("<button class=\"tabButton\">" + box.attr("data-tab") + "</button>").appendTo(TabSet.ButtonsBox)
+				};
+				TabSet.Tabs.push(Tab);
+				Tab.Button.on("click", function () {
+					TabSet.Tabs.forEach(function (OtherTab) {
+						OtherTab.Button.removeClass("active");
+						OtherTab.Box.removeClass("active");
+					});
+					Tab.Button.addClass("active");
+					Tab.Box.addClass("active");
+				});
+			});
+			TabSet.Tabs[0]?.Button.trigger("click");
+		});
+	}
+	//
+</script>
+<style type="text/css">
+	/* Also potentially moveable to a separate file */
+	.tabBox { }
+	.tabBox .tabButtons { }
+	.tabBox .tabButtons button { border: 1px solid #777; padding: 2px 5px; }
+	.tabBox .tabButtons button.active { background-color: #555; color: #FFF; }
+	.tabBox .tabs .tab:not(.active) { display: none; }
+	/**/
+
+	/* Upload */
+	.uploadWrapper { margin-bottom: 10px; }
+	.uploadWrapper .uploadForm { display: inline-flex; align-items: center; background-color: #EEE; }
+	.uploadWrapper .uploadForm input { flex: 300px 0 0; margin-right: 10px; }
+	.uploadWrapper .uploadForm button {  }
+
+	/* Display */
+
+	/* Summary View */
+	.summaryTable {  }
+	.summaryTable td { padding: 2.5px 5px; }
+	.summaryTable td:first-child { text-align: right; font-weight: bold; }
+	.summaryTable tr:not(:last-child) td { border-bottom: 1px solid #CCC; }
+
+	/* Table View */
+	.tableWrapper { max-height: 90vh; overflow: auto; }
+	.tableWrapper table th, .tableWrapper table td { padding: 2.5px 5px; border: 1px solid #CCC; font-size: 12px; }
+	.tableWrapper table th { background-color: #555; color: #FFF; font-weight: bold; }
+
+	/* Object View */
+	.objectViewBox { }
+	.objectViewBox .itemBox { display: flex; flex-wrap: wrap; border-top: 1px solid #CCC; margin: 5px 0; }
+	.objectViewBox .itemBox .property { flex: 1 1; padding: 5px 15px; }
+	.objectViewBox .itemBox .property .miniLabel { font-size: 10px; }
+	.objectViewBox .itemBox .property .value {  }
+	.objectViewBox .itemBox .property.bigText { flex: 0 0 100%; }
+	.objectViewBox [data-type='RatingTask'] .itemBox .property:not(.bigText) { flex: 0 0 25%; }
+
+	/* Raw JSON View */
+	.rawJSONBox { font-family: Consolas, 'Courier New', monospace; font-size: 12px; padding: 10px; background-color: #EEE; tab-size: 25px; white-space: pre-wrap; }
+</style>
+
+<h2>Upload RMTL Source Data</h2>
+
+<div class="uploadWrapper">
+	<p>Select the RMTL Spreadsheet CSV File and click "Process":</p>
+	<div class="uploadForm">
+		<input data-property="sourceFile" class="sourceFileBox" type="file" accept="text/csv" />
+		<button data-action="processCSV">Process</button>
+	</div>
+	<div class="statusBox">Ready</div>
+</div>
+<div class="display tabBox">
+	<div class="tabButtons"></div>
+	<div class="tabs">
+
+		<div class="tab" data-tab="Summary">
+			<h3>Summary</h3>
+			<div class="summaryBox">The summary will be displayed once you have processed a file.</div>
+		</div>
+
+		<div class="tab" data-tab="Table View">
+			<h3>Table View</h3>
+			<div class="tableWrapper">
+				<table class="tableView">
+					<tbody></tbody>
+				</table>
+			</div>
+		</div>
+
+		<div class="tab" data-tab="Object View">
+			<h3>Object View</h3>
+			<div class="objectViewBox tabBox">
+				<div class="tabButtons"></div>
+				<div class="tabs">
+					<div class="tab" data-tab="Ratings" data-type="Rating">
+						<h4><span class="count"></span> Ratings</h4>
+						<div class="itemList"></div>
+					</div>
+					<div class="tab" data-tab="Billet Titles" data-type="BilletTitle">
+						<h4><span class="count"></span> Billet Titles</h4>
+						<div class="itemList"></div>
+					</div>
+					<div class="tab" data-tab="Functional Areas" data-type="WorkRole">
+						<h4><span class="count"></span> Functional Areas</h4>
+						<div class="itemList"></div>
+					</div>
+					<div class="tab" data-tab="Rating Tasks" data-type="RatingTask">
+						<h4><span class="count"></span> Rating Tasks</h4>
+						<div class="itemList"></div>
+					</div>
+					<div class="tab" data-tab="Courses" data-type="Course">
+						<h4><span class="count"></span> Courses</h4>
+						<div class="itemList"></div>
+					</div>
+					<div class="tab" data-tab="Training Tasks" data-type="TrainingTask">
+						<h4><span class="count"></span> Training Tasks</h4>
+						<div class="itemList"></div>
+					</div>
+					<div class="tab" data-tab="Reference Resources" data-type="ReferenceResource">
+						<h4><span class="count"></span> Reference Resources</h4>
+						<div class="itemList"></div>
+					</div>
+					<div class="tab" data-tab="Organizations" data-type="Organization">
+						<h4><span class="count"></span> Organizations</h4>
+						<div class="itemList"></div>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<div class="tab" data-tab="JSON View">
+			<h3>JSON View</h3>
+			<div class="rawJSONBox"></div>
+		</div>
+
+	</div>
+</div>

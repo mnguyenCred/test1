@@ -988,16 +988,13 @@
             <End Role="Course" EntitySet="Course" />
             <End Role="Course_Task" EntitySet="Course_Task" />
           </AssociationSet>
-          <EntitySet Name="CurriculumControlAuthority" EntityType="ceNavyModel.CurriculumControlAuthority" />
-          <EntitySet Name="FunctionalArea" EntityType="ceNavyModel.FunctionalArea" />
-          <EntitySet Name="RatingLevelTask" EntityType="ceNavyModel.RatingLevelTask" />
-          <EntitySet Name="RmtlProject_Billet" EntityType="ceNavyModel.RmtlProject_Billet" />
-          <EntitySet Name="RmtlProjectBilletTask" EntityType="ceNavyModel.RmtlProjectBilletTask" />
-          <EntitySet Name="Source" EntityType="ceNavyModel.Source" />
-          <EntitySet Name="WorkElementType" EntityType="ceNavyModel.WorkElementType" />
           <AssociationSet Name="FK_Account_AspNetUsers" Association="ceNavyModel.FK_Account_AspNetUsers">
             <End Role="AspNetUsers" EntitySet="AspNetUsers" />
             <End Role="Account" EntitySet="Account" />
+          </AssociationSet>
+          <AssociationSet Name="FK_AspNetUsers_AspNetUsers" Association="ceNavyModel.FK_AspNetUsers_AspNetUsers">
+            <End Role="AspNetUsers" EntitySet="AspNetUsers" />
+            <End Role="AspNetUsers1" EntitySet="AspNetUsers" />
           </AssociationSet>
           <AssociationSet Name="FK_AspNetUserRoles_AspNetRoles" Association="ceNavyModel.FK_AspNetUserRoles_AspNetRoles">
             <End Role="AspNetRoles" EntitySet="AspNetRoles" />
@@ -1006,10 +1003,6 @@
           <AssociationSet Name="FK_AspNetUserRoles_AspNetUsers" Association="ceNavyModel.FK_AspNetUserRoles_AspNetUsers">
             <End Role="AspNetUsers" EntitySet="AspNetUsers" />
             <End Role="AspNetUserRoles" EntitySet="AspNetUserRoles" />
-          </AssociationSet>
-          <AssociationSet Name="FK_AspNetUsers_AspNetUsers" Association="ceNavyModel.FK_AspNetUsers_AspNetUsers">
-            <End Role="AspNetUsers" EntitySet="AspNetUsers" />
-            <End Role="AspNetUsers1" EntitySet="AspNetUsers" />
           </AssociationSet>
         </EntityContainer>
         <EntityType Name="ConceptScheme">
@@ -1411,9 +1404,9 @@
           <NavigationProperty Name="AspNetUserClaims" Relationship="ceNavyModel.FK_dbo_AspNetUserClaims_dbo_AspNetUsers_UserId" FromRole="AspNetUsers" ToRole="AspNetUserClaims" />
           <NavigationProperty Name="AspNetUserLogins" Relationship="ceNavyModel.FK_dbo_AspNetUserLogins_dbo_AspNetUsers_UserId" FromRole="AspNetUsers" ToRole="AspNetUserLogins" />
           <NavigationProperty Name="Account" Relationship="ceNavyModel.FK_Account_AspNetUsers" FromRole="AspNetUsers" ToRole="Account" />
-          <NavigationProperty Name="AspNetUserRoles" Relationship="ceNavyModel.FK_AspNetUserRoles_AspNetUsers" FromRole="AspNetUsers" ToRole="AspNetUserRoles" />
           <NavigationProperty Name="AspNetUsers1" Relationship="ceNavyModel.FK_AspNetUsers_AspNetUsers" FromRole="AspNetUsers" ToRole="AspNetUsers1" />
           <NavigationProperty Name="AspNetUsers2" Relationship="ceNavyModel.FK_AspNetUsers_AspNetUsers" FromRole="AspNetUsers1" ToRole="AspNetUsers" />
+          <NavigationProperty Name="AspNetUserRoles" Relationship="ceNavyModel.FK_AspNetUserRoles_AspNetUsers" FromRole="AspNetUsers" ToRole="AspNetUserRoles" />
         </EntityType>
         <Association Name="FK_dbo_AspNetUserClaims_dbo_AspNetUsers_UserId">
           <End Type="ceNavyModel.AspNetUsers" Role="AspNetUsers" Multiplicity="1">

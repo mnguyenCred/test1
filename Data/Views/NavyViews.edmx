@@ -6,7 +6,7 @@
     <edmx:StorageModels>
     <Schema Namespace="ceNavyViewModel.Store" Provider="System.Data.SqlClient" ProviderManifestToken="2012" Alias="Self" xmlns:store="http://schemas.microsoft.com/ado/2007/12/edm/EntityStoreSchemaGenerator" xmlns:customannotation="http://schemas.microsoft.com/ado/2013/11/edm/customannotation" xmlns="http://schemas.microsoft.com/ado/2009/11/edm/ssdl">
         <!--Errors Found During Generation:
-warning 6002: The table/view 'ceNavy.dbo.Account_Summary' does not have a primary key defined. The key has been inferred and the definition was created as a read-only table/view.-->
+warning 6002: The table/view 'NavyRRL.dbo.Account_Summary' does not have a primary key defined. The key has been inferred and the definition was created as a read-only table/view.-->
         <EntityType Name="Account_Summary">
           <Key>
             <PropertyRef Name="Id" />
@@ -17,7 +17,6 @@ warning 6002: The table/view 'ceNavy.dbo.Account_Summary' does not have a primar
             <PropertyRef Name="SortName" />
             <PropertyRef Name="Email" />
             <PropertyRef Name="RowId" />
-            <PropertyRef Name="OrgMbrs" />
           </Key>
           <Property Name="Id" Type="int" Nullable="false" />
           <Property Name="UserName" Type="varchar" MaxLength="50" Nullable="false" />
@@ -30,15 +29,14 @@ warning 6002: The table/view 'ceNavy.dbo.Account_Summary' does not have a primar
           <Property Name="Created" Type="datetime" />
           <Property Name="LastUpdated" Type="datetime" />
           <Property Name="LastUpdatedById" Type="int" />
-          <Property Name="CEAccountIdentifier" Type="varchar" MaxLength="50" />
+          <Property Name="ExternalAccountIdentifier" Type="varchar" MaxLength="50" />
           <Property Name="RowId" Type="uniqueidentifier" Nullable="false" />
           <Property Name="AspNetId" Type="nvarchar" MaxLength="128" />
           <Property Name="Roles" Type="nvarchar(max)" />
-          <Property Name="OrgMbrs" Type="varchar" MaxLength="1" Nullable="false" />
           <Property Name="lastLogon" Type="datetime" />
         </EntityType>
         <!--Errors Found During Generation:
-warning 6002: The table/view 'ceNavy.dbo.Activity_Summary' does not have a primary key defined. The key has been inferred and the definition was created as a read-only table/view.-->
+warning 6002: The table/view 'NavyRRL.dbo.Activity_Summary' does not have a primary key defined. The key has been inferred and the definition was created as a read-only table/view.-->
         <EntityType Name="Activity_Summary">
           <Key>
             <PropertyRef Name="Id" />
@@ -66,7 +64,25 @@ warning 6002: The table/view 'ceNavy.dbo.Activity_Summary' does not have a prima
           <Property Name="Referrer" Type="varchar(max)" />
         </EntityType>
         <!--Errors Found During Generation:
-warning 6002: The table/view 'ceNavy.dbo.Entity_Reference_Summary' does not have a primary key defined. The key has been inferred and the definition was created as a read-only table/view.-->
+warning 6002: The table/view 'NavyRRL.dbo.AspNetUserRoles_Summary' does not have a primary key defined. The key has been inferred and the definition was created as a read-only table/view.-->
+        <EntityType Name="AspNetUserRoles_Summary">
+          <Key>
+            <PropertyRef Name="Id" />
+            <PropertyRef Name="Email" />
+            <PropertyRef Name="SortName" />
+            <PropertyRef Name="RoleName" />
+            <PropertyRef Name="RoleId" />
+          </Key>
+          <Property Name="Id" Type="int" Nullable="false" />
+          <Property Name="Email" Type="varchar" MaxLength="100" Nullable="false" />
+          <Property Name="SortName" Type="varchar" MaxLength="102" Nullable="false" />
+          <Property Name="RoleName" Type="nvarchar" MaxLength="256" Nullable="false" />
+          <Property Name="RoleId" Type="nvarchar" MaxLength="128" Nullable="false" />
+          <Property Name="Created" Type="datetime" />
+          <Property Name="AspNetId" Type="nvarchar" MaxLength="128" />
+        </EntityType>
+        <!--Errors Found During Generation:
+warning 6002: The table/view 'NavyRRL.dbo.Entity_Reference_Summary' does not have a primary key defined. The key has been inferred and the definition was created as a read-only table/view.-->
         <EntityType Name="Entity_Reference_Summary">
           <Key>
             <PropertyRef Name="PK" />
@@ -95,7 +111,7 @@ warning 6002: The table/view 'ceNavy.dbo.Entity_Reference_Summary' does not have
           <Property Name="LastUpdatedById" Type="int" />
         </EntityType>
         <!--Errors Found During Generation:
-warning 6002: The table/view 'ceNavy.dbo.EntityProperty_Summary' does not have a primary key defined. The key has been inferred and the definition was created as a read-only table/view.-->
+warning 6002: The table/view 'NavyRRL.dbo.EntityProperty_Summary' does not have a primary key defined. The key has been inferred and the definition was created as a read-only table/view.-->
         <EntityType Name="EntityProperty_Summary">
           <Key>
             <PropertyRef Name="EntityId" />
@@ -128,7 +144,7 @@ warning 6002: The table/view 'ceNavy.dbo.EntityProperty_Summary' does not have a
           <Property Name="IsSubType1" Type="bit" />
         </EntityType>
         <!--Errors Found During Generation:
-warning 6002: The table/view 'ceNavy.dbo.SubscriptionEntities' does not have a primary key defined. The key has been inferred and the definition was created as a read-only table/view.-->
+warning 6002: The table/view 'NavyRRL.dbo.SubscriptionEntities' does not have a primary key defined. The key has been inferred and the definition was created as a read-only table/view.-->
         <EntityType Name="SubscriptionEntities">
           <Key>
             <PropertyRef Name="Id" />
@@ -154,11 +170,10 @@ warning 6002: The table/view 'ceNavy.dbo.SubscriptionEntities' does not have a p
     [Account_Summary].[Created] AS [Created], 
     [Account_Summary].[LastUpdated] AS [LastUpdated], 
     [Account_Summary].[LastUpdatedById] AS [LastUpdatedById], 
-    [Account_Summary].[CEAccountIdentifier] AS [CEAccountIdentifier], 
+    [Account_Summary].[ExternalAccountIdentifier] AS [ExternalAccountIdentifier], 
     [Account_Summary].[RowId] AS [RowId], 
     [Account_Summary].[AspNetId] AS [AspNetId], 
     [Account_Summary].[Roles] AS [Roles], 
-    [Account_Summary].[OrgMbrs] AS [OrgMbrs], 
     [Account_Summary].[lastLogon] AS [lastLogon]
     FROM [dbo].[Account_Summary] AS [Account_Summary]</DefiningQuery>
           </EntitySet>
@@ -182,6 +197,17 @@ warning 6002: The table/view 'ceNavy.dbo.SubscriptionEntities' does not have a p
     [Activity_Summary].[IPAddress] AS [IPAddress], 
     [Activity_Summary].[Referrer] AS [Referrer]
     FROM [dbo].[Activity_Summary] AS [Activity_Summary]</DefiningQuery>
+          </EntitySet>
+          <EntitySet Name="AspNetUserRoles_Summary" EntityType="Self.AspNetUserRoles_Summary" store:Type="Views" store:Schema="dbo">
+            <DefiningQuery>SELECT 
+    [AspNetUserRoles_Summary].[Id] AS [Id], 
+    [AspNetUserRoles_Summary].[Email] AS [Email], 
+    [AspNetUserRoles_Summary].[SortName] AS [SortName], 
+    [AspNetUserRoles_Summary].[RoleName] AS [RoleName], 
+    [AspNetUserRoles_Summary].[RoleId] AS [RoleId], 
+    [AspNetUserRoles_Summary].[Created] AS [Created], 
+    [AspNetUserRoles_Summary].[AspNetId] AS [AspNetId]
+    FROM [dbo].[AspNetUserRoles_Summary] AS [AspNetUserRoles_Summary]</DefiningQuery>
           </EntitySet>
           <EntitySet Name="Entity_Reference_Summary" EntityType="Self.Entity_Reference_Summary" store:Type="Views" store:Schema="dbo">
             <DefiningQuery>SELECT 
@@ -279,6 +305,7 @@ warning 6002: The table/view 'ceNavy.dbo.SubscriptionEntities' does not have a p
           <EntitySet Name="Activity_Summary" EntityType="ceNavyViewModel.Activity_Summary" />
           <EntitySet Name="Account_Summary" EntityType="ceNavyViewModel.Account_Summary" />
           <EntitySet Name="SubscriptionEntities" EntityType="ceNavyViewModel.SubscriptionEntities" />
+          <EntitySet Name="AspNetUserRoles_Summary" EntityType="ceNavyViewModel.AspNetUserRoles_Summary" />
         </EntityContainer>
         <EntityType Name="Entity_Reference_Summary">
           <Key>
@@ -343,7 +370,6 @@ warning 6002: The table/view 'ceNavy.dbo.SubscriptionEntities' does not have a p
             <PropertyRef Name="SortName" />
             <PropertyRef Name="Email" />
             <PropertyRef Name="RowId" />
-            <PropertyRef Name="OrgMbrs" />
           </Key>
           <Property Name="Id" Type="Int32" Nullable="false" />
           <Property Name="UserName" Type="String" Nullable="false" MaxLength="50" FixedLength="false" Unicode="false" />
@@ -356,12 +382,11 @@ warning 6002: The table/view 'ceNavy.dbo.SubscriptionEntities' does not have a p
           <Property Name="Created" Type="DateTime" Precision="3" />
           <Property Name="LastUpdated" Type="DateTime" Precision="3" />
           <Property Name="LastUpdatedById" Type="Int32" />
-          <Property Name="CEAccountIdentifier" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
           <Property Name="RowId" Type="Guid" Nullable="false" />
           <Property Name="AspNetId" Type="String" MaxLength="128" FixedLength="false" Unicode="true" />
           <Property Name="Roles" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
-          <Property Name="OrgMbrs" Type="String" Nullable="false" MaxLength="1" FixedLength="false" Unicode="false" />
           <Property Name="lastLogon" Type="DateTime" Precision="3" />
+          <Property Name="ExternalAccountIdentifier" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
         </EntityType>
         <EntityType Name="SubscriptionEntities">
           <Key>
@@ -373,6 +398,22 @@ warning 6002: The table/view 'ceNavy.dbo.SubscriptionEntities' does not have a p
           <Property Name="IsActive" Type="Boolean" />
           <Property Name="SchemaUrl" Type="String" MaxLength="200" FixedLength="false" Unicode="false" />
           <Property Name="Created" Type="DateTime" Precision="3" />
+        </EntityType>
+        <EntityType Name="AspNetUserRoles_Summary">
+          <Key>
+            <PropertyRef Name="Id" />
+            <PropertyRef Name="Email" />
+            <PropertyRef Name="SortName" />
+            <PropertyRef Name="RoleName" />
+            <PropertyRef Name="RoleId" />
+          </Key>
+          <Property Name="Id" Type="Int32" Nullable="false" />
+          <Property Name="Email" Type="String" Nullable="false" MaxLength="100" FixedLength="false" Unicode="false" />
+          <Property Name="SortName" Type="String" Nullable="false" MaxLength="102" FixedLength="false" Unicode="false" />
+          <Property Name="RoleName" Type="String" Nullable="false" MaxLength="256" FixedLength="false" Unicode="true" />
+          <Property Name="RoleId" Type="String" Nullable="false" MaxLength="128" FixedLength="false" Unicode="true" />
+          <Property Name="Created" Type="DateTime" Precision="3" />
+          <Property Name="AspNetId" Type="String" MaxLength="128" FixedLength="false" Unicode="true" />
         </EntityType>
       </Schema>
     </edmx:ConceptualModels>
@@ -454,12 +495,11 @@ warning 6002: The table/view 'ceNavy.dbo.SubscriptionEntities' does not have a p
           <EntitySetMapping Name="Account_Summary">
             <EntityTypeMapping TypeName="ceNavyViewModel.Account_Summary">
               <MappingFragment StoreEntitySet="Account_Summary">
+                <ScalarProperty Name="ExternalAccountIdentifier" ColumnName="ExternalAccountIdentifier" />
                 <ScalarProperty Name="lastLogon" ColumnName="lastLogon" />
-                <ScalarProperty Name="OrgMbrs" ColumnName="OrgMbrs" />
                 <ScalarProperty Name="Roles" ColumnName="Roles" />
                 <ScalarProperty Name="AspNetId" ColumnName="AspNetId" />
                 <ScalarProperty Name="RowId" ColumnName="RowId" />
-                <ScalarProperty Name="CEAccountIdentifier" ColumnName="CEAccountIdentifier" />
                 <ScalarProperty Name="LastUpdatedById" ColumnName="LastUpdatedById" />
                 <ScalarProperty Name="LastUpdated" ColumnName="LastUpdated" />
                 <ScalarProperty Name="Created" ColumnName="Created" />
@@ -482,6 +522,19 @@ warning 6002: The table/view 'ceNavy.dbo.SubscriptionEntities' does not have a p
                 <ScalarProperty Name="IsActive" ColumnName="IsActive" />
                 <ScalarProperty Name="Description" ColumnName="Description" />
                 <ScalarProperty Name="Title" ColumnName="Title" />
+                <ScalarProperty Name="Id" ColumnName="Id" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="AspNetUserRoles_Summary">
+            <EntityTypeMapping TypeName="ceNavyViewModel.AspNetUserRoles_Summary">
+              <MappingFragment StoreEntitySet="AspNetUserRoles_Summary">
+                <ScalarProperty Name="AspNetId" ColumnName="AspNetId" />
+                <ScalarProperty Name="Created" ColumnName="Created" />
+                <ScalarProperty Name="RoleId" ColumnName="RoleId" />
+                <ScalarProperty Name="RoleName" ColumnName="RoleName" />
+                <ScalarProperty Name="SortName" ColumnName="SortName" />
+                <ScalarProperty Name="Email" ColumnName="Email" />
                 <ScalarProperty Name="Id" ColumnName="Id" />
               </MappingFragment>
             </EntityTypeMapping>

@@ -12,23 +12,14 @@ namespace Data.Views
     using System;
     using System.Collections.Generic;
     
-    public partial class Account_Summary
+    public partial class AspNetUserRoles_Summary
     {
         public int Id { get; set; }
-        public string UserName { get; set; }
-        public string FirstName { get; set; }
-        public string LastName { get; set; }
-        public string FullName { get; set; }
-        public string SortName { get; set; }
         public string Email { get; set; }
-        public Nullable<bool> IsActive { get; set; }
+        public string SortName { get; set; }
+        public string RoleName { get; set; }
+        public string RoleId { get; set; }
         public Nullable<System.DateTime> Created { get; set; }
-        public Nullable<System.DateTime> LastUpdated { get; set; }
-        public Nullable<int> LastUpdatedById { get; set; }
-        public System.Guid RowId { get; set; }
         public string AspNetId { get; set; }
-        public string Roles { get; set; }
-        public Nullable<System.DateTime> lastLogon { get; set; }
-        public string ExternalAccountIdentifier { get; set; }
     }
 }

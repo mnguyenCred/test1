@@ -4,7 +4,7 @@
   <edmx:Designer xmlns="http://schemas.microsoft.com/ado/2009/11/edmx">
     <!-- Diagram content (shape and connector positions) -->
     <edmx:Diagrams>
-      <Diagram DiagramId="8a33e850aafc4f4396f1d9ba410eef21" Name="Diagram1" ZoomLevel="77">
+      <Diagram DiagramId="8a33e850aafc4f4396f1d9ba410eef21" Name="Diagram1" ZoomLevel="55">
         <EntityTypeShape EntityType="ceNavyModel.Codes_PropertyCategory" Width="2.125" PointX="11.125" PointY="1.125" IsExpanded="true" FillColor="192, 192, 255" />
         <EntityTypeShape EntityType="ceNavyModel.Codes_PropertyValue" Width="2.25" PointX="14.375" PointY="1" IsExpanded="true" FillColor="192, 192, 255" />
         <EntityTypeShape EntityType="ceNavyModel.ConceptScheme_Concept" Width="2.75" PointX="1.625" PointY="7.5" IsExpanded="true" FillColor="192, 192, 255" />
@@ -14,47 +14,58 @@
         <AssociationConnector Association="ceNavyModel.FK_ConceptScheme_Concept_ConceptScheme" />
         <EntityTypeShape EntityType="ceNavyModel.Codes_EntityType" Width="2.25" PointX="13.375" PointY="12" FillColor="128, 255, 128" />
         <EntityTypeShape EntityType="ceNavyModel.Entity" Width="1.5" PointX="13.75" PointY="6.75" FillColor="128, 255, 128" />
+        <EntityTypeShape EntityType="ceNavyModel.Entity_Property" Width="1.5" PointX="17.5" PointY="5.625" FillColor="128, 255, 128" />
+        <EntityTypeShape EntityType="ceNavyModel.Entity_Reference" Width="1.5" PointX="10.875" PointY="5.75" FillColor="128, 255, 128" />
+        <AssociationConnector Association="ceNavyModel.FK_Entity_Reference_Codes_PropertyCategory" />
+        <AssociationConnector Association="ceNavyModel.FK_Entity_Property_Codes_PropertyValue" />
+        <AssociationConnector Association="ceNavyModel.FK_Entity_Reference_Codes_PropertyValue" />
+        <AssociationConnector Association="ceNavyModel.FK_Entity_Property_Entity1" />
+        <AssociationConnector Association="ceNavyModel.FK_Entity_Reference_Entity" />
         <AssociationConnector Association="ceNavyModel.FK_Entity_Codes_EntityType" />
-        <EntityTypeShape EntityType="ceNavyModel.Job" Width="1.5" PointX="3.125" PointY="11.875" FillColor="Green" />
-        <EntityTypeShape EntityType="ceNavyModel.Rating" Width="2.25" PointX="5.25" PointY="11.875" FillColor="Green" />
-        <EntityTypeShape EntityType="ceNavyModel.WorkRole" Width="1.5" PointX="8.25" PointY="12" FillColor="Green" />
-        <EntityTypeShape EntityType="ceNavyModel.EnlistedClassification" Width="1.5" PointX="0.75" PointY="11.75" />
-        <EntityTypeShape EntityType="ceNavyModel.Entity_Comment" Width="1.5" PointX="17.125" PointY="7.25" />
-        <EntityTypeShape EntityType="ceNavyModel.OccupationalTask" Width="3" PointX="7.125" PointY="16.25" />
+        <EntityTypeShape EntityType="ceNavyModel.Job" Width="1.5" PointX="18.375" PointY="16.375" FillColor="Green" />
+        <EntityTypeShape EntityType="ceNavyModel.Rating" Width="2.25" PointX="23.625" PointY="10.625" FillColor="Green" />
+        <EntityTypeShape EntityType="ceNavyModel.WorkRole" Width="1.5" PointX="24.375" PointY="18.625" FillColor="Green" />
+        <EntityTypeShape EntityType="ceNavyModel.EnlistedClassification" Width="1.5" PointX="26.375" PointY="14.75" />
+        <EntityTypeShape EntityType="ceNavyModel.Entity_Comment" Width="1.5" PointX="17.875" PointY="11.75" />
+        <EntityTypeShape EntityType="ceNavyModel.Entity_HasRating" Width="1.5" PointX="11.125" PointY="11.875" />
+        <EntityTypeShape EntityType="ceNavyModel.OccupationalTask" Width="3" PointX="20.625" PointY="14.75" />
         <AssociationConnector Association="ceNavyModel.FK_Entity_Comment_Entity" />
-        <EntityTypeShape EntityType="ceNavyModel.Account" Width="2.25" PointX="6.25" PointY="6.875" />
+        <EntityTypeShape EntityType="ceNavyModel.Entity_Competency" Width="1.5" PointX="19.375" PointY="7.5" />
+        <EntityTypeShape EntityType="ceNavyModel.Entity_Concept" Width="1.5" PointX="20.75" PointY="10.625" />
+        <AssociationConnector Association="ceNavyModel.FK_Entity_Competency_Entity" />
+        <AssociationConnector Association="ceNavyModel.FK_Entity_Concept_Entity" />
+        <AssociationConnector Association="ceNavyModel.FK_Entity_HasRating_Entity" />
+        <EntityTypeShape EntityType="ceNavyModel.Account" Width="2.75" PointX="6.25" PointY="6.875" />
         <EntityTypeShape EntityType="ceNavyModel.ActivityLog" Width="2" PointX="11.875" PointY="16" />
         <AssociationConnector Association="ceNavyModel.FK_ConceptScheme__AccountCreatedBy" />
         <AssociationConnector Association="ceNavyModel.FK_ConceptScheme_AccountApprovedBy" />
         <AssociationConnector Association="ceNavyModel.FK_ConceptScheme_AccountLastUpdatedBy" />
         <AssociationConnector Association="ceNavyModel.FK_ConceptScheme_AccountPublishedBy" />
-        <EntityTypeShape EntityType="ceNavyModel.AspNetRoles" Width="1.5" PointX="16.875" PointY="4.5" />
-        <EntityTypeShape EntityType="ceNavyModel.AspNetUserRoles" Width="1.5" PointX="18.125" PointY="1.375" />
-        <EntityTypeShape EntityType="ceNavyModel.RegistryHistory" Width="2.625" PointX="0.75" PointY="19.75" FillColor="Fuchsia" />
-        <EntityTypeShape EntityType="ceNavyModel.AspNetUserClaims" Width="1.5" PointX="21.625" PointY="16" />
-        <EntityTypeShape EntityType="ceNavyModel.AspNetUserLogins" Width="1.5" PointX="21.625" PointY="18.75" />
-        <EntityTypeShape EntityType="ceNavyModel.AspNetUsers" Width="1.5" PointX="22.25" PointY="9.875" />
+        <EntityTypeShape EntityType="ceNavyModel.Import_EntityResolution" Width="1.5" PointX="17.375" PointY="0.75" />
+        <EntityTypeShape EntityType="ceNavyModel.Import_Message" Width="1.5" PointX="16.625" PointY="16.625" />
+        <EntityTypeShape EntityType="ceNavyModel.Import_Staging" Width="1.5" PointX="14.375" PointY="16" />
+        <AssociationConnector Association="ceNavyModel.FK_Import_Message_Import_Staging" />
+        <EntityTypeShape EntityType="ceNavyModel.AspNetRoles" Width="1.5" PointX="6.875" PointY="19.375" />
+        <EntityTypeShape EntityType="ceNavyModel.AspNetUserRoles" Width="1.5" PointX="3.375" PointY="19.125" />
+        <EntityTypeShape EntityType="ceNavyModel.RegistryHistory" Width="2.625" PointX="27.375" PointY="6" FillColor="Fuchsia" />
+        <EntityTypeShape EntityType="ceNavyModel.AspNetUserClaims" Width="1.5" PointX="5.75" PointY="13.75" />
+        <EntityTypeShape EntityType="ceNavyModel.AspNetUserLogins" Width="1.5" PointX="4.5" PointY="16.375" />
+        <EntityTypeShape EntityType="ceNavyModel.AspNetUsers" Width="1.5" PointX="0.875" PointY="13" />
         <AssociationConnector Association="ceNavyModel.FK_dbo_AspNetUserClaims_dbo_AspNetUsers_UserId" />
         <AssociationConnector Association="ceNavyModel.FK_dbo_AspNetUserLogins_dbo_AspNetUsers_UserId" />
         <EntityTypeShape EntityType="ceNavyModel.Subscription" Width="1.5" PointX="17" PointY="21.25" />
         <EntityTypeShape EntityType="ceNavyModel.Subscription_EntityType" Width="1.5" PointX="14.25" PointY="21.125" />
         <AssociationConnector Association="ceNavyModel.FK_Subscription_EntityType_Codes_EntityType" />
         <AssociationConnector Association="ceNavyModel.FK_Subscription_EntityType_Subscription" />
-        <EntityTypeShape EntityType="ceNavyModel.Course" Width="2.25" PointX="5" PointY="20.75" />
-        <EntityTypeShape EntityType="ceNavyModel.Course_Task" Width="2.25" PointX="8.625" PointY="21.375" />
-        <EntityTypeShape EntityType="ceNavyModel.RMTLProject" Width="2.625" PointX="20.75" PointY="0.625" />
+        <EntityTypeShape EntityType="ceNavyModel.System_ProxyCodes" Width="1.5" PointX="31" PointY="6" FillColor="Red" />
+        <EntityTypeShape EntityType="ceNavyModel.Course" Width="1.5" PointX="33" PointY="7.25" />
+        <EntityTypeShape EntityType="ceNavyModel.Course_Task" Width="1.5" PointX="35.25" PointY="7.625" />
+        <EntityTypeShape EntityType="ceNavyModel.RMTLProject" Width="1.5" PointX="21.375" PointY="0.75" />
         <AssociationConnector Association="ceNavyModel.FK_Course_Task_Course" />
-        <EntityTypeShape EntityType="ceNavyModel.CurriculumControlAuthority" Width="1.5" PointX="0.75" PointY="15.75" />
-        <EntityTypeShape EntityType="ceNavyModel.FunctionalArea" Width="1.5" PointX="2.75" PointY="16.75" />
-        <EntityTypeShape EntityType="ceNavyModel.RatingLevelTask" Width="1.5" PointX="11.75" PointY="21.75" />
-        <EntityTypeShape EntityType="ceNavyModel.RmtlProject_Billet" Width="1.5" PointX="4.75" PointY="16.75" />
-        <EntityTypeShape EntityType="ceNavyModel.RmtlProjectBilletTask" Width="1.5" PointX="24.25" PointY="5.25" />
-        <EntityTypeShape EntityType="ceNavyModel.Source" Width="1.5" PointX="21.75" PointY="21.75" />
-        <EntityTypeShape EntityType="ceNavyModel.WorkElementType" Width="3.125" PointX="23.75" PointY="0.75" />
         <AssociationConnector Association="ceNavyModel.FK_Account_AspNetUsers" />
+        <AssociationConnector Association="ceNavyModel.FK_AspNetUsers_AspNetUsers" />
         <AssociationConnector Association="ceNavyModel.FK_AspNetUserRoles_AspNetRoles" />
         <AssociationConnector Association="ceNavyModel.FK_AspNetUserRoles_AspNetUsers" />
-        <AssociationConnector Association="ceNavyModel.FK_AspNetUsers_AspNetUsers" />
       </Diagram>
     </edmx:Diagrams>
   </edmx:Designer>

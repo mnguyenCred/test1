@@ -30,5 +30,6 @@ namespace Data.Views
         public virtual DbSet<Activity_Summary> Activity_Summary { get; set; }
         public virtual DbSet<Account_Summary> Account_Summary { get; set; }
         public virtual DbSet<SubscriptionEntities> SubscriptionEntities { get; set; }
+        public virtual DbSet<AspNetUserRoles_Summary> AspNetUserRoles_Summary { get; set; }
     }
 }
