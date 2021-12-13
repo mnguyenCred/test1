@@ -12,5 +12,6 @@ namespace Models.Schema
 		public List<Reference<TrainingTask>> HasTrainingTask { get; set; }
 		public Reference<ReferenceResource> HasReferenceResource { get; set; }
 		public Reference<Concept> CourseType { get; set; }
+		public Reference<Concept> AssessmentMethodType { get; set; }
 	}
 }
