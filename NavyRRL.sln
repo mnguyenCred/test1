@@ -19,6 +19,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Navy.Utilities", "Navy.Util
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Factories", "Factories\Factories.csproj", "{AA33C5AE-3FBC-42CD-A1B8-EA727217C639}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Services", "Services\Services.csproj", "{AA0BA92A-41E2-468B-AD9B-59DD3EB0C288}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -53,6 +55,10 @@ Global
 		{AA33C5AE-3FBC-42CD-A1B8-EA727217C639}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{AA33C5AE-3FBC-42CD-A1B8-EA727217C639}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{AA33C5AE-3FBC-42CD-A1B8-EA727217C639}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AA0BA92A-41E2-468B-AD9B-59DD3EB0C288}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AA0BA92A-41E2-468B-AD9B-59DD3EB0C288}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AA0BA92A-41E2-468B-AD9B-59DD3EB0C288}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AA0BA92A-41E2-468B-AD9B-59DD3EB0C288}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

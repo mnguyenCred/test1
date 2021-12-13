@@ -10,11 +10,12 @@
 
 	@*<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/v/dt/jszip-2.5.0/dt-1.11.3/af-2.3.7/b-2.0.1/b-html5-2.0.1/cr-1.5.5/date-1.1.1/r-2.2.9/datatables.min.css" />
 
-	<script type="text/javascript" src="https://cdn.datatables.net/v/dt/jszip-2.5.0/dt-1.11.3/af-2.3.7/b-2.0.1/b-html5-2.0.1/cr-1.5.5/date-1.1.1/r-2.2.9/datatables.min.js"></script>*@
+		<script type="text/javascript" src="https://cdn.datatables.net/v/dt/jszip-2.5.0/dt-1.11.3/af-2.3.7/b-2.0.1/b-html5-2.0.1/cr-1.5.5/date-1.1.1/r-2.2.9/datatables.min.js"></script>*@
 
 	@Scripts.Render( "~/bundles/jquery" )
 	@Scripts.Render( "~/bundles/bootstrap" )
 
+	@RenderSection( "css", false )
 	@RenderSection( "scripts", required: false )
 	<link rel="stylesheet" type="text/css" href="Content/DataTables/datatables.min.css" />
 

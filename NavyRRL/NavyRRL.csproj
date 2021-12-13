@@ -188,6 +188,7 @@
     <Compile Include="Startup.cs" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="Content\bootstrap-multiselect.css" />
     <Content Include="Content\bootstrap-theme.css" />
     <Content Include="Content\bootstrap-theme.min.css" />
     <Content Include="Content\bootstrap.css" />
@@ -385,10 +386,13 @@
     <Content Include="Content\DataTables\Responsive-2.2.9\js\responsive.jqueryui.min.js" />
     <Content Include="Content\DataTables\Responsive-2.2.9\js\responsive.semanticui.js" />
     <Content Include="Content\DataTables\Responsive-2.2.9\js\responsive.semanticui.min.js" />
+    <Content Include="Content\font-awesome.css" />
+    <Content Include="Content\font-awesome.min.css" />
     <Content Include="favicon.ico" />
     <Content Include="fonts\glyphicons-halflings-regular.svg" />
     <Content Include="Global.asax" />
     <Content Include="Content\Site.css" />
+    <Content Include="Scripts\bootstrap-multiselect.js" />
     <Content Include="Scripts\bootstrap.js" />
     <Content Include="Scripts\bootstrap.min.js" />
     <Content Include="Scripts\esm\popper-utils.js" />
@@ -540,10 +544,10 @@
     <Content Include="Scripts\popper-utils.js.map" />
     <Content Include="Views\Detail\DetailV1.cshtml" />
     <Content Include="Views\Upload\UploadV1.cshtml" />
+    <Content Include="Views\Demo\ImportSummary.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
-    <Folder Include="Views\Demo\" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
@@ -553,6 +557,20 @@
   </ItemGroup>
   <ItemGroup>
     <Service Include="{4A0DDDB5-7A95-4FBF-97CC-616D07737A77}" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Data\Data.csproj">
+      <Project>{afbf8dfa-05f5-4827-9f8e-458254a86c54}</Project>
+      <Name>Data</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Models\Models.csproj">
+      <Project>{7c6cdcb7-9c31-4310-b34d-028bf8bb816f}</Project>
+      <Name>Models</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Services\Services.csproj">
+      <Project>{aa0ba92a-41e2-468b-ad9b-59dd3eb0c288}</Project>
+      <Name>Services</Name>
+    </ProjectReference>
   </ItemGroup>
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>

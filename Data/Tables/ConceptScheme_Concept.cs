@@ -14,6 +14,15 @@ namespace Data.Tables
     
     public partial class ConceptScheme_Concept
     {
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2214:DoNotCallOverridableMethodsInConstructors")]
+        public ConceptScheme_Concept()
+        {
+            this.RatingLevelTask = new HashSet<RatingLevelTask>();
+            this.RatingLevelTask1 = new HashSet<RatingLevelTask>();
+            this.RatingLevelTask2 = new HashSet<RatingLevelTask>();
+            this.RatingLevelTask3 = new HashSet<RatingLevelTask>();
+        }
+    
         public int Id { get; set; }
         public int ConceptSchemeId { get; set; }
         public string PrefLabel { get; set; }
@@ -26,5 +35,13 @@ namespace Data.Tables
         public Nullable<System.DateTime> LastUpdated { get; set; }
     
         public virtual ConceptScheme ConceptScheme { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<RatingLevelTask> RatingLevelTask { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<RatingLevelTask> RatingLevelTask1 { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<RatingLevelTask> RatingLevelTask2 { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<RatingLevelTask> RatingLevelTask3 { get; set; }
     }
 }

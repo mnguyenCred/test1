@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<edmx:Edmx Version="3.0" xmlns:edmx="http://schemas.microsoft.com/ado/2009/11/edmx">
+ <!-- EF Designer content (DO NOT EDIT MANUALLY BELOW HERE) -->
+  <edmx:Designer xmlns="http://schemas.microsoft.com/ado/2009/11/edmx">
+    <!-- Diagram content (shape and connector positions) -->
+    <edmx:Diagrams>
+      <Diagram DiagramId="1cbd21b9a0474d02b074dae2db684a6a" Name="Diagram1" ZoomLevel="74">
+        <EntityTypeShape EntityType="NavyRRLModel.Account" Width="1.5" PointX="1.5" PointY="15" IsExpanded="true" />
+        <EntityTypeShape EntityType="NavyRRLModel.ActivityLog" Width="1.5" PointX="23.25" PointY="7" IsExpanded="true" />
+        <EntityTypeShape EntityType="NavyRRLModel.AspNetUsers" Width="1.5" PointX="1.5" PointY="20.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="NavyRRLModel.Assessment" Width="1.5" PointX="18.25" PointY="6" IsExpanded="true" />
+        <EntityTypeShape EntityType="NavyRRLModel.ConceptScheme" Width="1.5" PointX="0.75" PointY="8.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="NavyRRLModel.ConceptScheme_Concept" Width="1.5" PointX="3" PointY="9.125" IsExpanded="true" />
+        <EntityTypeShape EntityType="NavyRRLModel.Course" Width="1.5" PointX="0.75" PointY="1.875" IsExpanded="true" />
+        <EntityTypeShape EntityType="NavyRRLModel.Course_Task" Width="1.5" PointX="3" PointY="2.625" IsExpanded="true" />
+        <EntityTypeShape EntityType="NavyRRLModel.CurriculumControlAuthority" Width="1.5" PointX="18.25" PointY="10" IsExpanded="true" />
+        <EntityTypeShape EntityType="NavyRRLModel.FunctionalArea" Width="1.5" PointX="11.125" PointY="7.125" IsExpanded="true" />
+        <EntityTypeShape EntityType="NavyRRLModel.Job" Width="1.5" PointX="7.75" PointY="1" IsExpanded="true" />
+        <EntityTypeShape EntityType="NavyRRLModel.Organization" Width="1.5" PointX="16.25" PointY="13" IsExpanded="true" />
+        <EntityTypeShape EntityType="NavyRRLModel.Rating" Width="1.5" PointX="16.5" PointY="0.875" IsExpanded="true" />
+        <EntityTypeShape EntityType="NavyRRLModel.RatingLevelTask" Width="1.5" PointX="5.25" PointY="1.125" IsExpanded="true" />
+        <EntityTypeShape EntityType="NavyRRLModel.RMTLProject" Width="1.5" PointX="12.875" PointY="0.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="NavyRRLModel.RmtlProject_Billet" Width="1.5" PointX="10.25" PointY="0.875" IsExpanded="true" />
+        <EntityTypeShape EntityType="NavyRRLModel.RmtlProjectBilletTask" Width="1.5" PointX="18.25" PointY="13" IsExpanded="true" />
+        <EntityTypeShape EntityType="NavyRRLModel.Source" Width="1.5" PointX="11.125" PointY="10.25" IsExpanded="true" />
+        <EntityTypeShape EntityType="NavyRRLModel.WorkElementType" Width="1.5" PointX="11.125" PointY="13.875" IsExpanded="true" />
+        <EntityTypeShape EntityType="NavyRRLModel.ImportRMTL" Width="1.5" PointX="20.25" PointY="6" IsExpanded="true" />
+        <AssociationConnector Association="NavyRRLModel.FK_Account_AspNetUsers" ManuallyRouted="false" />
+        <AssociationConnector Association="NavyRRLModel.FK_ConceptScheme__AccountCreatedBy" ManuallyRouted="false" />
+        <AssociationConnector Association="NavyRRLModel.FK_ConceptScheme_AccountApprovedBy" ManuallyRouted="false" />
+        <AssociationConnector Association="NavyRRLModel.FK_ConceptScheme_AccountLastUpdatedBy" ManuallyRouted="false" />
+        <AssociationConnector Association="NavyRRLModel.FK_ConceptScheme_AccountPublishedBy" ManuallyRouted="false" />
+        <AssociationConnector Association="NavyRRLModel.FK_AspNetUsers_AspNetUsers" ManuallyRouted="false" />
+        <AssociationConnector Association="NavyRRLModel.FK_ConceptScheme_Concept_ConceptScheme" ManuallyRouted="false" />
+        <AssociationConnector Association="NavyRRLModel.FK_RatingLevelTask_ConceptScheme_Concept" ManuallyRouted="false" />
+        <AssociationConnector Association="NavyRRLModel.FK_RatingLevelTask_ConceptScheme_Concept1" ManuallyRouted="false" />
+        <AssociationConnector Association="NavyRRLModel.FK_RatingLevelTask_ConceptScheme_Concept2" ManuallyRouted="false" />
+        <AssociationConnector Association="NavyRRLModel.FK_RatingLevelTask_ConceptScheme_Concept3" ManuallyRouted="false" />
+        <AssociationConnector Association="NavyRRLModel.FK_Course_Task_Course" ManuallyRouted="false" />
+        <AssociationConnector Association="NavyRRLModel.FK_RatingLevelTask_Course_Task" ManuallyRouted="false" />
+        <AssociationConnector Association="NavyRRLModel.FK_RatingLevelTask_FunctionalArea" ManuallyRouted="false" />
+        <AssociationConnector Association="NavyRRLModel.FK_RmtlProject_Billet_Job" ManuallyRouted="false" />
+        <AssociationConnector Association="NavyRRLModel.FK_RatingLevelTask_Source" ManuallyRouted="false" />
+        <AssociationConnector Association="NavyRRLModel.FK_RatingLevelTask_WorkElementType" ManuallyRouted="false" />
+        <AssociationConnector Association="NavyRRLModel.FK_RmtlProject_Billet_RMTLProject" ManuallyRouted="false" />
+        <EntityTypeShape EntityType="NavyRRLModel.AspNetUserRoles" Width="1.5" PointX="3.75" PointY="22.25" />
+        <AssociationConnector Association="NavyRRLModel.FK_AspNetUserRoles_AspNetUsers" />
+        <EntityTypeShape EntityType="NavyRRLModel.AspNetRoles" Width="1.5" PointX="1.5" PointY="27.375" />
+        <AssociationConnector Association="NavyRRLModel.FK_AspNetUserRoles_AspNetRoles" />
+      </Diagram>
+    </edmx:Diagrams>
+  </edmx:Designer>
+</edmx:Edmx>

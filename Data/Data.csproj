@@ -60,118 +60,85 @@
   <ItemGroup>
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Tables\Account.cs">
-      <DependentUpon>NavyData.tt</DependentUpon>
+      <DependentUpon>NavyRRLTables.tt</DependentUpon>
     </Compile>
     <Compile Include="Tables\ActivityLog.cs">
-      <DependentUpon>NavyData.tt</DependentUpon>
+      <DependentUpon>NavyRRLTables.tt</DependentUpon>
     </Compile>
     <Compile Include="Tables\AspNetRoles.cs">
-      <DependentUpon>NavyData.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Tables\AspNetUserClaims.cs">
-      <DependentUpon>NavyData.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Tables\AspNetUserLogins.cs">
-      <DependentUpon>NavyData.tt</DependentUpon>
+      <DependentUpon>NavyRRLTables.tt</DependentUpon>
     </Compile>
     <Compile Include="Tables\AspNetUserRoles.cs">
-      <DependentUpon>NavyData.tt</DependentUpon>
+      <DependentUpon>NavyRRLTables.tt</DependentUpon>
     </Compile>
     <Compile Include="Tables\AspNetUsers.cs">
-      <DependentUpon>NavyData.tt</DependentUpon>
+      <DependentUpon>NavyRRLTables.tt</DependentUpon>
     </Compile>
-    <Compile Include="Tables\Codes_EntityType.cs">
-      <DependentUpon>NavyData.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Tables\Codes_PropertyCategory.cs">
-      <DependentUpon>NavyData.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Tables\Codes_PropertyValue.cs">
-      <DependentUpon>NavyData.tt</DependentUpon>
+    <Compile Include="Tables\Assessment.cs">
+      <DependentUpon>NavyRRLTables.tt</DependentUpon>
     </Compile>
     <Compile Include="Tables\ConceptScheme.cs">
-      <DependentUpon>NavyData.tt</DependentUpon>
+      <DependentUpon>NavyRRLTables.tt</DependentUpon>
     </Compile>
     <Compile Include="Tables\ConceptScheme_Concept.cs">
-      <DependentUpon>NavyData.tt</DependentUpon>
+      <DependentUpon>NavyRRLTables.tt</DependentUpon>
     </Compile>
     <Compile Include="Tables\Course.cs">
-      <DependentUpon>NavyData.tt</DependentUpon>
+      <DependentUpon>NavyRRLTables.tt</DependentUpon>
     </Compile>
     <Compile Include="Tables\Course_Task.cs">
-      <DependentUpon>NavyData.tt</DependentUpon>
+      <DependentUpon>NavyRRLTables.tt</DependentUpon>
     </Compile>
     <Compile Include="Tables\CurriculumControlAuthority.cs">
-      <DependentUpon>NavyData.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Tables\EnlistedClassification.cs">
-      <DependentUpon>NavyData.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Tables\Entity.cs">
-      <DependentUpon>NavyData.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Tables\Entity_Comment.cs">
-      <DependentUpon>NavyData.tt</DependentUpon>
+      <DependentUpon>NavyRRLTables.tt</DependentUpon>
     </Compile>
     <Compile Include="Tables\FunctionalArea.cs">
-      <DependentUpon>NavyData.tt</DependentUpon>
+      <DependentUpon>NavyRRLTables.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Tables\ImportRMTL.cs">
+      <DependentUpon>NavyRRLTables.tt</DependentUpon>
     </Compile>
     <Compile Include="Tables\Job.cs">
-      <DependentUpon>NavyData.tt</DependentUpon>
+      <DependentUpon>NavyRRLTables.tt</DependentUpon>
     </Compile>
-    <Compile Include="Tables\NavyData.Context.cs">
+    <Compile Include="Tables\NavyRRLTables.Context.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
-      <DependentUpon>NavyData.Context.tt</DependentUpon>
+      <DependentUpon>NavyRRLTables.Context.tt</DependentUpon>
     </Compile>
-    <Compile Include="Tables\NavyData.cs">
+    <Compile Include="Tables\NavyRRLTables.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
-      <DependentUpon>NavyData.tt</DependentUpon>
+      <DependentUpon>NavyRRLTables.tt</DependentUpon>
     </Compile>
-    <Compile Include="Tables\NavyData.Designer.cs">
+    <Compile Include="Tables\NavyRRLTables.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
-      <DependentUpon>NavyData.edmx</DependentUpon>
-    </Compile>
-    <Compile Include="Tables\OccupationalTask.cs">
-      <DependentUpon>NavyData.tt</DependentUpon>
+      <DependentUpon>NavyRRLTables.edmx</DependentUpon>
     </Compile>
     <Compile Include="Tables\Organization.cs">
-      <DependentUpon>NavyData.tt</DependentUpon>
+      <DependentUpon>NavyRRLTables.tt</DependentUpon>
     </Compile>
     <Compile Include="Tables\Rating.cs">
-      <DependentUpon>NavyData.tt</DependentUpon>
+      <DependentUpon>NavyRRLTables.tt</DependentUpon>
     </Compile>
     <Compile Include="Tables\RatingLevelTask.cs">
-      <DependentUpon>NavyData.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Tables\RegistryHistory.cs">
-      <DependentUpon>NavyData.tt</DependentUpon>
+      <DependentUpon>NavyRRLTables.tt</DependentUpon>
     </Compile>
     <Compile Include="Tables\RMTLProject.cs">
-      <DependentUpon>NavyData.tt</DependentUpon>
+      <DependentUpon>NavyRRLTables.tt</DependentUpon>
     </Compile>
     <Compile Include="Tables\RmtlProjectBilletTask.cs">
-      <DependentUpon>NavyData.tt</DependentUpon>
+      <DependentUpon>NavyRRLTables.tt</DependentUpon>
     </Compile>
     <Compile Include="Tables\RmtlProject_Billet.cs">
-      <DependentUpon>NavyData.tt</DependentUpon>
+      <DependentUpon>NavyRRLTables.tt</DependentUpon>
     </Compile>
     <Compile Include="Tables\Source.cs">
-      <DependentUpon>NavyData.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Tables\Subscription.cs">
-      <DependentUpon>NavyData.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Tables\Subscription_EntityType.cs">
-      <DependentUpon>NavyData.tt</DependentUpon>
+      <DependentUpon>NavyRRLTables.tt</DependentUpon>
     </Compile>
     <Compile Include="Tables\WorkElementType.cs">
-      <DependentUpon>NavyData.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Tables\WorkRole.cs">
-      <DependentUpon>NavyData.tt</DependentUpon>
+      <DependentUpon>NavyRRLTables.tt</DependentUpon>
     </Compile>
     <Compile Include="Views\Account_Summary.cs">
       <DependentUpon>NavyViews.tt</DependentUpon>
@@ -180,6 +147,9 @@
       <DependentUpon>NavyViews.tt</DependentUpon>
     </Compile>
     <Compile Include="Views\AspNetUserRoles_Summary.cs">
+      <DependentUpon>NavyViews.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Views\ConceptSchemeSummary.cs">
       <DependentUpon>NavyViews.tt</DependentUpon>
     </Compile>
     <Compile Include="Views\EntityProperty_Summary.cs">
@@ -203,39 +173,45 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>NavyViews.edmx</DependentUpon>
     </Compile>
+    <Compile Include="Views\RatingLevelTaskSummary.cs">
+      <DependentUpon>NavyViews.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Views\RmtlSummary.cs">
+      <DependentUpon>NavyViews.tt</DependentUpon>
+    </Compile>
     <Compile Include="Views\SubscriptionEntities.cs">
       <DependentUpon>NavyViews.tt</DependentUpon>
     </Compile>
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
-    <EntityDeploy Include="Tables\NavyData.edmx">
-      <Generator>EntityModelCodeGenerator</Generator>
-      <LastGenOutput>NavyData.Designer.cs</LastGenOutput>
-    </EntityDeploy>
     <None Include="packages.config" />
-    <None Include="Tables\NavyData.edmx.diagram">
-      <DependentUpon>NavyData.edmx</DependentUpon>
-    </None>
     <EntityDeploy Include="Views\NavyViews.edmx">
       <Generator>EntityModelCodeGenerator</Generator>
       <LastGenOutput>NavyViews.Designer.cs</LastGenOutput>
     </EntityDeploy>
+    <EntityDeploy Include="Tables\NavyRRLTables.edmx">
+      <Generator>EntityModelCodeGenerator</Generator>
+      <LastGenOutput>NavyRRLTables.Designer.cs</LastGenOutput>
+    </EntityDeploy>
+    <None Include="Tables\NavyRRLTables.edmx.diagram">
+      <DependentUpon>NavyRRLTables.edmx</DependentUpon>
+    </None>
     <None Include="Views\NavyViews.edmx.diagram">
       <DependentUpon>NavyViews.edmx</DependentUpon>
     </None>
   </ItemGroup>
   <ItemGroup />
   <ItemGroup>
-    <Content Include="Tables\NavyData.Context.tt">
+    <Content Include="Tables\NavyRRLTables.Context.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
-      <DependentUpon>NavyData.edmx</DependentUpon>
-      <LastGenOutput>NavyData.Context.cs</LastGenOutput>
+      <DependentUpon>NavyRRLTables.edmx</DependentUpon>
+      <LastGenOutput>NavyRRLTables.Context.cs</LastGenOutput>
     </Content>
-    <Content Include="Tables\NavyData.tt">
+    <Content Include="Tables\NavyRRLTables.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
-      <DependentUpon>NavyData.edmx</DependentUpon>
-      <LastGenOutput>NavyData.cs</LastGenOutput>
+      <DependentUpon>NavyRRLTables.edmx</DependentUpon>
+      <LastGenOutput>NavyRRLTables.cs</LastGenOutput>
     </Content>
     <Content Include="Views\NavyViews.Context.tt">
       <Generator>TextTemplatingFileGenerator</Generator>

@@ -20,6 +20,8 @@ namespace Data.Tables
         public string Activity { get; set; }
         public string Event { get; set; }
         public string Comment { get; set; }
+        public string ActivityObjectIdentifier { get; set; }
+        public string RelatedTargetUrl { get; set; }
         public Nullable<int> TargetUserId { get; set; }
         public Nullable<int> ActionByUserId { get; set; }
         public Nullable<int> ActivityObjectId { get; set; }
@@ -30,7 +32,5 @@ namespace Data.Tables
         public string Referrer { get; set; }
         public Nullable<System.Guid> ActivityObjectParentEntityUid { get; set; }
         public string DataOwnerCTID { get; set; }
-        public string RelatedTargetUrl { get; set; }
-        public string ActivityObjectIdentifier { get; set; }
     }
 }

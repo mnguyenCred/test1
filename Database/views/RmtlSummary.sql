@@ -41,7 +41,7 @@ GO
 ALTER VIEW [dbo].[RmtlSummary]
 AS
 SELECT       
-	a.Name AS RMTLProejct
+	a.Name AS RMTLProject
 	, b.Name AS Rating
 	, f.Rank, f.[Level]
 	, d.Name AS BilletTitle

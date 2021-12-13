@@ -13,7 +13,7 @@ using System.Text.RegularExpressions;
 using System.Web;
 using System.Web.Configuration;
 
-using DataEntities = Data.Tables.ceNavyEntities;
+using DataEntities = Data.Tables.NavyRRLEntities;
 using Navy.Utilities;
 
 using Newtonsoft.Json;
@@ -33,7 +33,6 @@ namespace Factories
 
         public static int RELATIONSHIP_TYPE_HAS_PART = 1;
         public static int RELATIONSHIP_TYPE_IS_PART_OF = 2;
-        public static int RELATIONSHIP_TYPE_IsETPLResource = 3;
 
 
         public static bool IsDevEnv()
@@ -100,7 +99,7 @@ namespace Factories
         public static string DBConnectionRO()
         {
 
-            string conn = WebConfigurationManager.ConnectionStrings["cti_RO"].ConnectionString;
+            string conn = WebConfigurationManager.ConnectionStrings["navy_RO"].ConnectionString;
             return conn;
 
         }

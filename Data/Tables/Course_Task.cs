@@ -14,15 +14,23 @@ namespace Data.Tables
     
     public partial class Course_Task
     {
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2214:DoNotCallOverridableMethodsInConstructors")]
+        public Course_Task()
+        {
+            this.RatingLevelTask = new HashSet<RatingLevelTask>();
+        }
+    
         public int Id { get; set; }
         public int CourseId { get; set; }
+        public string TaskStatement { get; set; }
+        public string CTID { get; set; }
         public Nullable<System.DateTime> Created { get; set; }
         public Nullable<int> CreatedById { get; set; }
         public Nullable<System.DateTime> LastUpdated { get; set; }
         public Nullable<int> LastUpdatedById { get; set; }
-        public string TaskStatement { get; set; }
-        public string CTID { get; set; }
     
         public virtual Course Course { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<RatingLevelTask> RatingLevelTask { get; set; }
     }
 }

@@ -19,5 +19,8 @@ namespace Data.Tables
         public int JobId { get; set; }
         public System.DateTime Created { get; set; }
         public System.DateTime LastUpdated { get; set; }
+    
+        public virtual Job Job { get; set; }
+        public virtual RMTLProject RMTLProject { get; set; }
     }
 }

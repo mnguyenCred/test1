@@ -1,0 +1,2075 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<edmx:Edmx Version="3.0" xmlns:edmx="http://schemas.microsoft.com/ado/2009/11/edmx">
+  <!-- EF Runtime content -->
+  <edmx:Runtime>
+    <!-- SSDL content -->
+    <edmx:StorageModels>
+    <Schema Namespace="NavyRRLModel.Store" Provider="System.Data.SqlClient" ProviderManifestToken="2012" Alias="Self" xmlns:store="http://schemas.microsoft.com/ado/2007/12/edm/EntityStoreSchemaGenerator" xmlns:customannotation="http://schemas.microsoft.com/ado/2013/11/edm/customannotation" xmlns="http://schemas.microsoft.com/ado/2009/11/edm/ssdl">
+        <EntityType Name="Account">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="UserName" Type="varchar" MaxLength="50" Nullable="false" />
+          <Property Name="FirstName" Type="varchar" MaxLength="50" Nullable="false" />
+          <Property Name="LastName" Type="varchar" MaxLength="50" Nullable="false" />
+          <Property Name="Email" Type="varchar" MaxLength="100" Nullable="false" />
+          <Property Name="IsActive" Type="bit" />
+          <Property Name="Created" Type="datetime" />
+          <Property Name="LastUpdated" Type="datetime" />
+          <Property Name="LastUpdatedById" Type="int" />
+          <Property Name="RowId" Type="uniqueidentifier" Nullable="false" />
+          <Property Name="AspNetId" Type="nvarchar" MaxLength="128" />
+          <Property Name="ExternalAccountIdentifier" Type="varchar" MaxLength="50" />
+        </EntityType>
+        <EntityType Name="ActivityLog">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="CreatedDate" Type="datetime" Nullable="false" />
+          <Property Name="ActivityType" Type="varchar" MaxLength="100" Nullable="false" />
+          <Property Name="Activity" Type="varchar" MaxLength="100" Nullable="false" />
+          <Property Name="Event" Type="varchar" MaxLength="100" Nullable="false" />
+          <Property Name="Comment" Type="varchar" MaxLength="1000" />
+          <Property Name="ActivityObjectIdentifier" Type="varchar" MaxLength="50" />
+          <Property Name="RelatedTargetUrl" Type="varchar" MaxLength="600" />
+          <Property Name="TargetUserId" Type="int" />
+          <Property Name="ActionByUserId" Type="int" />
+          <Property Name="ActivityObjectId" Type="int" />
+          <Property Name="ObjectRelatedId" Type="int" />
+          <Property Name="TargetObjectId" Type="int" />
+          <Property Name="SessionId" Type="varchar" MaxLength="50" />
+          <Property Name="IPAddress" Type="varchar" MaxLength="50" />
+          <Property Name="Referrer" Type="varchar(max)" />
+          <Property Name="ActivityObjectParentEntityUid" Type="uniqueidentifier" />
+          <Property Name="DataOwnerCTID" Type="varchar" MaxLength="50" />
+        </EntityType>
+        <EntityType Name="AspNetRoles">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="nvarchar" MaxLength="128" Nullable="false" />
+          <Property Name="Name" Type="nvarchar" MaxLength="256" Nullable="false" />
+          <Property Name="IsActive" Type="bit" />
+        </EntityType>
+        <EntityType Name="AspNetUserRoles">
+          <Key>
+            <PropertyRef Name="UserId" />
+            <PropertyRef Name="RoleId" />
+          </Key>
+          <Property Name="UserId" Type="nvarchar" MaxLength="128" Nullable="false" />
+          <Property Name="RoleId" Type="nvarchar" MaxLength="128" Nullable="false" />
+          <Property Name="Created" Type="datetime" />
+        </EntityType>
+        <EntityType Name="AspNetUsers">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="nvarchar" MaxLength="128" Nullable="false" />
+          <Property Name="Email" Type="nvarchar" MaxLength="256" />
+          <Property Name="EmailConfirmed" Type="bit" Nullable="false" />
+          <Property Name="PasswordHash" Type="nvarchar(max)" />
+          <Property Name="SecurityStamp" Type="nvarchar(max)" />
+          <Property Name="PhoneNumber" Type="nvarchar(max)" />
+          <Property Name="PhoneNumberConfirmed" Type="bit" Nullable="false" />
+          <Property Name="TwoFactorEnabled" Type="bit" Nullable="false" />
+          <Property Name="LockoutEndDateUtc" Type="datetime" />
+          <Property Name="LockoutEnabled" Type="bit" Nullable="false" />
+          <Property Name="AccessFailedCount" Type="int" Nullable="false" />
+          <Property Name="UserName" Type="nvarchar" MaxLength="256" Nullable="false" />
+          <Property Name="FirstName" Type="varchar" MaxLength="50" />
+          <Property Name="LastName" Type="varchar" MaxLength="50" />
+          <Property Name="Created" Type="datetime" />
+          <Property Name="UserId" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+        </EntityType>
+        <EntityType Name="Assessment">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="Name" Type="nvarchar" MaxLength="500" Nullable="false" />
+          <Property Name="Description" Type="nvarchar(max)" />
+          <Property Name="Created" Type="datetime" />
+          <Property Name="CreatedById" Type="int" />
+          <Property Name="LastUpdated" Type="datetime" />
+          <Property Name="LastUpdatedById" Type="int" />
+          <Property Name="CTID" Type="varchar" MaxLength="50" />
+        </EntityType>
+        <EntityType Name="ConceptScheme">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="int" Nullable="false" />
+          <Property Name="Name" Type="nvarchar" MaxLength="400" Nullable="false" />
+          <Property Name="Description" Type="varchar(max)" />
+          <Property Name="RowId" Type="uniqueidentifier" Nullable="false" />
+          <Property Name="CTID" Type="varchar" MaxLength="50" />
+          <Property Name="SchemaUri" Type="varchar" MaxLength="50" />
+          <Property Name="Created" Type="datetime" Nullable="false" />
+          <Property Name="CreatedById" Type="int" Nullable="false" />
+          <Property Name="LastUpdated" Type="datetime" Nullable="false" />
+          <Property Name="LastUpdatedById" Type="int" />
+          <Property Name="LastApproved" Type="datetime" />
+          <Property Name="LastApprovedById" Type="int" />
+          <Property Name="LastPublished" Type="datetime" />
+          <Property Name="LastPublishedById" Type="int" />
+        </EntityType>
+        <EntityType Name="ConceptScheme_Concept">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="ConceptSchemeId" Type="int" Nullable="false" />
+          <Property Name="PrefLabel" Type="varchar" MaxLength="1000" Nullable="false" />
+          <Property Name="CTID" Type="varchar" MaxLength="50" />
+          <Property Name="CodedNotation" Type="varchar" MaxLength="50" />
+          <Property Name="AlternateLabel" Type="varchar" MaxLength="500" />
+          <Property Name="Description" Type="varchar(max)" />
+          <Property Name="ListId" Type="int" />
+          <Property Name="Created" Type="datetime" />
+          <Property Name="LastUpdated" Type="datetime" />
+        </EntityType>
+        <EntityType Name="Course">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="CIN" Type="nvarchar" MaxLength="50" Nullable="false" />
+          <Property Name="Name" Type="nvarchar" MaxLength="200" Nullable="false" />
+          <Property Name="Description" Type="nvarchar(max)" />
+          <Property Name="CourseTypeId" Type="int" />
+          <Property Name="LifeCycleControlDocumentId" Type="int" />
+          <Property Name="AssessmentApproachId" Type="int" />
+          <Property Name="CurriculumControlAuthorityId" Type="int" />
+          <Property Name="CTID" Type="varchar" MaxLength="50" />
+          <Property Name="Created" Type="datetime" />
+          <Property Name="CreatedById" Type="int" />
+          <Property Name="LastUpdated" Type="datetime" />
+          <Property Name="LastUpdatedById" Type="int" />
+          <Property Name="CourseType" Type="nvarchar" MaxLength="50" />
+          <Property Name="LifeCycleControlDocument" Type="nvarchar" MaxLength="100" />
+          <Property Name="CurriculumControlAuthority" Type="nvarchar" MaxLength="200" />
+          <Property Name="CurrentAssessmentApproach" Type="nvarchar" MaxLength="200" />
+        </EntityType>
+        <EntityType Name="Course_Task">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="CourseId" Type="int" Nullable="false" />
+          <Property Name="TaskStatement" Type="nvarchar(max)" Nullable="false" />
+          <Property Name="CTID" Type="varchar" MaxLength="50" />
+          <Property Name="Created" Type="datetime" />
+          <Property Name="CreatedById" Type="int" />
+          <Property Name="LastUpdated" Type="datetime" />
+          <Property Name="LastUpdatedById" Type="int" />
+        </EntityType>
+        <EntityType Name="CurriculumControlAuthority">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="Name" Type="nvarchar" MaxLength="300" />
+          <Property Name="Abbreviation" Type="nvarchar" MaxLength="50" />
+          <Property Name="CTID" Type="varchar" MaxLength="50" />
+        </EntityType>
+        <EntityType Name="FunctionalArea">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="Name" Type="nvarchar" MaxLength="200" Nullable="false" />
+          <Property Name="Description" Type="varchar(max)" Nullable="false" />
+          <Property Name="DateCreated" Type="datetime" />
+          <Property Name="DateModified" Type="datetime" />
+          <Property Name="CTID" Type="varchar" MaxLength="50" />
+        </EntityType>
+        <!--Errors Found During Generation:
+warning 6002: The table/view 'NavyRRL.dbo.ImportRMTL' does not have a primary key defined. The key has been inferred and the definition was created as a read-only table/view.-->
+        <EntityType Name="ImportRMTL">
+          <Key>
+            <PropertyRef Name="IndexIdentifier" />
+            <PropertyRef Name="Unique_Identifier" />
+            <PropertyRef Name="Rating" />
+            <PropertyRef Name="Rank" />
+            <PropertyRef Name="RankLevel" />
+            <PropertyRef Name="Billet_Title" />
+            <PropertyRef Name="Functional_Area" />
+            <PropertyRef Name="Source" />
+            <PropertyRef Name="Date_of_Source" />
+            <PropertyRef Name="Work_Element_Type" />
+            <PropertyRef Name="Work_Element_Task" />
+            <PropertyRef Name="Task_Applicability" />
+            <PropertyRef Name="Formal_Training_Gap" />
+            <PropertyRef Name="CIN" />
+            <PropertyRef Name="Course_Name" />
+            <PropertyRef Name="Course_Type" />
+            <PropertyRef Name="Curriculum_Control_Authority" />
+            <PropertyRef Name="Life_Cycle_Control_Document" />
+            <PropertyRef Name="Task_Statement" />
+            <PropertyRef Name="Current_Assessment_Approach" />
+            <PropertyRef Name="TaskNotes" />
+            <PropertyRef Name="Training_Solution_Type" />
+            <PropertyRef Name="Cluster_Analysis_Title" />
+            <PropertyRef Name="Recommended_Modality" />
+            <PropertyRef Name="Development_Specification" />
+            <PropertyRef Name="Candidate_Platform" />
+            <PropertyRef Name="CFM_Placement" />
+            <PropertyRef Name="Priority_Placement" />
+            <PropertyRef Name="Development_Ratio" />
+            <PropertyRef Name="Development_Time" />
+            <PropertyRef Name="ClusterAnalysisNotes" />
+          </Key>
+          <Property Name="IndexIdentifier" Type="nvarchar" MaxLength="50" Nullable="false" />
+          <Property Name="Unique_Identifier" Type="int" Nullable="false" />
+          <Property Name="Rating" Type="nvarchar" MaxLength="50" Nullable="false" />
+          <Property Name="Rank" Type="nvarchar" MaxLength="50" Nullable="false" />
+          <Property Name="RankLevel" Type="nvarchar" MaxLength="50" Nullable="false" />
+          <Property Name="Billet_Title" Type="nvarchar" MaxLength="500" Nullable="false" />
+          <Property Name="Functional_Area" Type="nvarchar" MaxLength="500" Nullable="false" />
+          <Property Name="Source" Type="nvarchar" MaxLength="500" Nullable="false" />
+          <Property Name="Date_of_Source" Type="varchar" MaxLength="50" Nullable="false" />
+          <Property Name="Work_Element_Type" Type="nvarchar" MaxLength="500" Nullable="false" />
+          <Property Name="Work_Element_Task" Type="nvarchar(max)" Nullable="false" />
+          <Property Name="Task_Applicability" Type="nvarchar" MaxLength="500" Nullable="false" />
+          <Property Name="Formal_Training_Gap" Type="nvarchar" MaxLength="500" Nullable="false" />
+          <Property Name="CIN" Type="nvarchar" MaxLength="50" Nullable="false" />
+          <Property Name="Course_Name" Type="nvarchar" MaxLength="500" Nullable="false" />
+          <Property Name="Course_Type" Type="nvarchar" MaxLength="50" Nullable="false" />
+          <Property Name="Curriculum_Control_Authority" Type="nvarchar" MaxLength="50" Nullable="false" />
+          <Property Name="Life_Cycle_Control_Document" Type="nvarchar" MaxLength="50" Nullable="false" />
+          <Property Name="Task_Statement" Type="nvarchar(max)" Nullable="false" />
+          <Property Name="Current_Assessment_Approach" Type="nvarchar" MaxLength="50" Nullable="false" />
+          <Property Name="TaskNotes" Type="nvarchar(max)" Nullable="false" />
+          <Property Name="Training_Solution_Type" Type="nvarchar" MaxLength="500" Nullable="false" />
+          <Property Name="Cluster_Analysis_Title" Type="nvarchar" MaxLength="500" Nullable="false" />
+          <Property Name="Recommended_Modality" Type="nvarchar" MaxLength="500" Nullable="false" />
+          <Property Name="Development_Specification" Type="nvarchar" MaxLength="500" Nullable="false" />
+          <Property Name="Candidate_Platform" Type="nvarchar" MaxLength="500" Nullable="false" />
+          <Property Name="CFM_Placement" Type="nvarchar" MaxLength="500" Nullable="false" />
+          <Property Name="Priority_Placement" Type="nvarchar" MaxLength="500" Nullable="false" />
+          <Property Name="Development_Ratio" Type="nvarchar" MaxLength="500" Nullable="false" />
+          <Property Name="Development_Time" Type="nvarchar" MaxLength="500" Nullable="false" />
+          <Property Name="ClusterAnalysisNotes" Type="nvarchar(max)" Nullable="false" />
+          <Property Name="RatingId" Type="int" />
+          <Property Name="RankId" Type="int" />
+          <Property Name="LevelId" Type="int" />
+          <Property Name="BilletTitleId" Type="int" />
+          <Property Name="FunctionalAreaId" Type="int" />
+          <Property Name="SourceId" Type="int" />
+          <Property Name="WorkElementTypeId" Type="int" />
+          <Property Name="RatingLevelTaskId" Type="int" />
+          <Property Name="TaskApplicabilityId" Type="int" />
+          <Property Name="FormalTrainingGapId" Type="int" />
+          <Property Name="CourseId" Type="int" />
+          <Property Name="CourseTaskId" Type="int" />
+        </EntityType>
+        <EntityType Name="Job">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="CTID" Type="varchar" MaxLength="50" Nullable="false" />
+          <Property Name="Name" Type="varchar" MaxLength="500" Nullable="false" />
+          <Property Name="CodedNotation" Type="varchar" MaxLength="100" />
+          <Property Name="JobVersion" Type="int" />
+          <Property Name="Description" Type="varchar(max)" />
+          <Property Name="ShortName30" Type="varchar" MaxLength="30" />
+          <Property Name="ShortName14" Type="varchar" MaxLength="14" />
+          <Property Name="CredentialRegistryId" Type="varchar" MaxLength="50" />
+          <Property Name="Created" Type="datetime" />
+          <Property Name="LastUpdated" Type="datetime" />
+          <Property Name="LastPublished" Type="datetime" />
+          <Property Name="RowId" Type="uniqueidentifier" Nullable="false" />
+        </EntityType>
+        <EntityType Name="Organization">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="RowId" Type="uniqueidentifier" Nullable="false" />
+          <Property Name="Name" Type="varchar" MaxLength="300" Nullable="false" />
+          <Property Name="Description" Type="varchar(max)" />
+          <Property Name="CTID" Type="varchar" MaxLength="50" />
+          <Property Name="SubjectWebpage" Type="varchar" MaxLength="500" />
+          <Property Name="StatusId" Type="int" />
+          <Property Name="CredentialRegistryId" Type="varchar" MaxLength="50" />
+          <Property Name="ImageURL" Type="varchar" MaxLength="500" />
+          <Property Name="Created" Type="datetime" />
+          <Property Name="CreatedById" Type="int" />
+          <Property Name="LastUpdated" Type="datetime" />
+          <Property Name="LastUpdatedById" Type="int" />
+          <Property Name="FoundingDate" Type="varchar" MaxLength="20" />
+          <Property Name="AvailabilityListing" Type="varchar" MaxLength="300" />
+          <Property Name="AgentPurpose" Type="varchar" MaxLength="500" />
+          <Property Name="AgentPurposeDescription" Type="varchar(max)" />
+          <Property Name="MissionAndGoalsStatement" Type="varchar" MaxLength="500" />
+          <Property Name="MissionAndGoalsStatementDescription" Type="varchar(max)" />
+          <Property Name="ISQAOrganization" Type="bit" />
+          <Property Name="AlternativeIdentifier" Type="varchar" MaxLength="200" />
+          <Property Name="IsThirdPartyOrganization" Type="bit" />
+        </EntityType>
+        <EntityType Name="Rating">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="CTID" Type="varchar" MaxLength="50" Nullable="false" />
+          <Property Name="Name" Type="varchar" MaxLength="500" Nullable="false" />
+          <Property Name="CodedNotation" Type="varchar" MaxLength="100" />
+          <Property Name="Description" Type="varchar(max)" />
+          <Property Name="Version" Type="varchar" MaxLength="30" />
+          <Property Name="RatingUploadDate" Type="varchar" MaxLength="50" />
+          <Property Name="RatingPublicationDate" Type="varchar" MaxLength="50" />
+          <Property Name="Image" Type="varchar" MaxLength="500" />
+          <Property Name="CredentialRegistryId" Type="varchar" MaxLength="50" />
+          <Property Name="Created" Type="datetime" />
+          <Property Name="LastUpdated" Type="datetime" />
+          <Property Name="LastPublished" Type="datetime" />
+          <Property Name="RowId" Type="uniqueidentifier" Nullable="false" />
+          <Property Name="CredentialRegistryURI" Type="varchar" MaxLength="200" />
+          <Property Name="MainEntityOfPage" Type="varchar" MaxLength="600" />
+        </EntityType>
+        <EntityType Name="RatingLevelTask">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="CodedNotation" Type="varchar" MaxLength="100" />
+          <Property Name="RankId" Type="int" Nullable="false" />
+          <Property Name="LevelId" Type="int" Nullable="false" />
+          <Property Name="FunctionalAreaId" Type="int" Nullable="false" />
+          <Property Name="SourceId" Type="int" />
+          <Property Name="WorkElementTypeId" Type="int" />
+          <Property Name="WorkElementTask" Type="nvarchar(max)" Nullable="false" />
+          <Property Name="TaskApplicabilityId" Type="int" />
+          <Property Name="TaskStatusId" Type="int" />
+          <Property Name="FormalTrainingGapId" Type="int" />
+          <Property Name="Notes" Type="nvarchar(max)" />
+          <Property Name="Created" Type="datetime" />
+          <Property Name="CreatedById" Type="int" />
+          <Property Name="LastUpdated" Type="datetime" />
+          <Property Name="LastUpdatedById" Type="int" />
+          <Property Name="CTID" Type="varchar" MaxLength="50" />
+          <Property Name="TrainingTaskId" Type="int" />
+        </EntityType>
+        <EntityType Name="RMTLProject">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="CTID" Type="varchar" MaxLength="50" />
+          <Property Name="Name" Type="varchar" MaxLength="300" Nullable="false" />
+          <Property Name="RatingId" Type="int" Nullable="false" />
+          <Property Name="Description" Type="nvarchar(max)" />
+          <Property Name="StatusId" Type="int" />
+          <Property Name="VersionControlIdentifier" Type="varchar" MaxLength="50" />
+          <Property Name="Notes" Type="nvarchar(max)" />
+          <Property Name="Created" Type="datetime" Nullable="false" />
+          <Property Name="CreatedById" Type="int" />
+          <Property Name="LastUpdated" Type="datetime" Nullable="false" />
+          <Property Name="LastUpdatedById" Type="int" />
+          <Property Name="LastApproved" Type="datetime" />
+          <Property Name="LastApprovedById" Type="int" />
+          <Property Name="LastPublished" Type="datetime" />
+          <Property Name="LastPublishedById" Type="int" />
+        </EntityType>
+        <EntityType Name="RmtlProject_Billet">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="RmtlProjectId" Type="int" Nullable="false" />
+          <Property Name="JobId" Type="int" Nullable="false" />
+          <Property Name="Created" Type="datetime" Nullable="false" />
+          <Property Name="LastUpdated" Type="datetime" Nullable="false" />
+        </EntityType>
+        <EntityType Name="RmtlProjectBilletTask">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="ProjectBilletId" Type="int" Nullable="false" />
+          <Property Name="RatingLevelTaskId" Type="int" Nullable="false" />
+          <Property Name="Created" Type="datetime" Nullable="false" />
+          <Property Name="LastUpdated" Type="datetime" Nullable="false" />
+        </EntityType>
+        <EntityType Name="Source">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="Name" Type="nvarchar" MaxLength="200" Nullable="false" />
+          <Property Name="SourceDate" Type="nvarchar" MaxLength="50" />
+          <Property Name="Description" Type="varchar(max)" />
+          <Property Name="DateCreated" Type="datetime" />
+          <Property Name="CreatedById" Type="int" />
+          <Property Name="DateModified" Type="datetime" />
+          <Property Name="LastUpdatedById" Type="int" />
+          <Property Name="CTID" Type="varchar" MaxLength="50" />
+        </EntityType>
+        <EntityType Name="WorkElementType">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="Name" Type="nvarchar" MaxLength="50" Nullable="false" />
+          <Property Name="description" Type="varchar" MaxLength="1" Nullable="false" />
+          <Property Name="DateCreated" Type="datetime" Nullable="false" />
+          <Property Name="DateModified" Type="datetime" Nullable="false" />
+          <Property Name="CTID" Type="varchar" MaxLength="50" />
+        </EntityType>
+        <Association Name="FK_Account_AspNetUsers">
+          <End Role="AspNetUsers" Type="Self.AspNetUsers" Multiplicity="0..1">
+            <OnDelete Action="Cascade" />
+          </End>
+          <End Role="Account" Type="Self.Account" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="AspNetUsers">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="Account">
+              <PropertyRef Name="AspNetId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_AspNetUserRoles_AspNetRoles">
+          <End Role="AspNetRoles" Type="Self.AspNetRoles" Multiplicity="1">
+            <OnDelete Action="Cascade" />
+          </End>
+          <End Role="AspNetUserRoles" Type="Self.AspNetUserRoles" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="AspNetRoles">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="AspNetUserRoles">
+              <PropertyRef Name="RoleId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_AspNetUserRoles_AspNetUsers">
+          <End Role="AspNetUsers" Type="Self.AspNetUsers" Multiplicity="1">
+            <OnDelete Action="Cascade" />
+          </End>
+          <End Role="AspNetUserRoles" Type="Self.AspNetUserRoles" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="AspNetUsers">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="AspNetUserRoles">
+              <PropertyRef Name="UserId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_AspNetUsers_AspNetUsers">
+          <End Role="AspNetUsers" Type="Self.AspNetUsers" Multiplicity="1" />
+          <End Role="AspNetUsers1" Type="Self.AspNetUsers" Multiplicity="0..1" />
+          <ReferentialConstraint>
+            <Principal Role="AspNetUsers">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="AspNetUsers1">
+              <PropertyRef Name="Id" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_ConceptScheme_Concept_ConceptScheme">
+          <End Role="ConceptScheme" Type="Self.ConceptScheme" Multiplicity="1">
+            <OnDelete Action="Cascade" />
+          </End>
+          <End Role="ConceptScheme_Concept" Type="Self.ConceptScheme_Concept" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="ConceptScheme">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="ConceptScheme_Concept">
+              <PropertyRef Name="ConceptSchemeId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_ConceptScheme__AccountCreatedBy">
+          <End Role="Account" Type="Self.Account" Multiplicity="1" />
+          <End Role="ConceptScheme" Type="Self.ConceptScheme" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Account">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="ConceptScheme">
+              <PropertyRef Name="CreatedById" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_ConceptScheme_AccountApprovedBy">
+          <End Role="Account" Type="Self.Account" Multiplicity="0..1" />
+          <End Role="ConceptScheme" Type="Self.ConceptScheme" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Account">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="ConceptScheme">
+              <PropertyRef Name="LastApprovedById" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_ConceptScheme_AccountLastUpdatedBy">
+          <End Role="Account" Type="Self.Account" Multiplicity="0..1" />
+          <End Role="ConceptScheme" Type="Self.ConceptScheme" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Account">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="ConceptScheme">
+              <PropertyRef Name="LastUpdatedById" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_ConceptScheme_AccountPublishedBy">
+          <End Role="Account" Type="Self.Account" Multiplicity="0..1" />
+          <End Role="ConceptScheme" Type="Self.ConceptScheme" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Account">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="ConceptScheme">
+              <PropertyRef Name="LastPublishedById" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_Course_Task_Course">
+          <End Role="Course" Type="Self.Course" Multiplicity="1">
+            <OnDelete Action="Cascade" />
+          </End>
+          <End Role="Course_Task" Type="Self.Course_Task" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Course">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="Course_Task">
+              <PropertyRef Name="CourseId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_RatingLevelTask_ConceptScheme_Concept">
+          <End Role="ConceptScheme_Concept" Type="Self.ConceptScheme_Concept" Multiplicity="1" />
+          <End Role="RatingLevelTask" Type="Self.RatingLevelTask" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="ConceptScheme_Concept">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="RatingLevelTask">
+              <PropertyRef Name="RankId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_RatingLevelTask_ConceptScheme_Concept1">
+          <End Role="ConceptScheme_Concept" Type="Self.ConceptScheme_Concept" Multiplicity="1" />
+          <End Role="RatingLevelTask" Type="Self.RatingLevelTask" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="ConceptScheme_Concept">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="RatingLevelTask">
+              <PropertyRef Name="LevelId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_RatingLevelTask_ConceptScheme_Concept2">
+          <End Role="ConceptScheme_Concept" Type="Self.ConceptScheme_Concept" Multiplicity="0..1" />
+          <End Role="RatingLevelTask" Type="Self.RatingLevelTask" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="ConceptScheme_Concept">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="RatingLevelTask">
+              <PropertyRef Name="TaskApplicabilityId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_RatingLevelTask_ConceptScheme_Concept3">
+          <End Role="ConceptScheme_Concept" Type="Self.ConceptScheme_Concept" Multiplicity="0..1" />
+          <End Role="RatingLevelTask" Type="Self.RatingLevelTask" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="ConceptScheme_Concept">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="RatingLevelTask">
+              <PropertyRef Name="FormalTrainingGapId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_RatingLevelTask_Course_Task">
+          <End Role="Course_Task" Type="Self.Course_Task" Multiplicity="0..1" />
+          <End Role="RatingLevelTask" Type="Self.RatingLevelTask" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Course_Task">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="RatingLevelTask">
+              <PropertyRef Name="TrainingTaskId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_RatingLevelTask_FunctionalArea">
+          <End Role="FunctionalArea" Type="Self.FunctionalArea" Multiplicity="1" />
+          <End Role="RatingLevelTask" Type="Self.RatingLevelTask" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="FunctionalArea">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="RatingLevelTask">
+              <PropertyRef Name="FunctionalAreaId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_RatingLevelTask_Source">
+          <End Role="Source" Type="Self.Source" Multiplicity="0..1" />
+          <End Role="RatingLevelTask" Type="Self.RatingLevelTask" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Source">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="RatingLevelTask">
+              <PropertyRef Name="SourceId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_RatingLevelTask_WorkElementType">
+          <End Role="WorkElementType" Type="Self.WorkElementType" Multiplicity="0..1" />
+          <End Role="RatingLevelTask" Type="Self.RatingLevelTask" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="WorkElementType">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="RatingLevelTask">
+              <PropertyRef Name="WorkElementTypeId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_RmtlProject_Billet_Job">
+          <End Role="Job" Type="Self.Job" Multiplicity="1">
+            <OnDelete Action="Cascade" />
+          </End>
+          <End Role="RmtlProject_Billet" Type="Self.RmtlProject_Billet" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Job">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="RmtlProject_Billet">
+              <PropertyRef Name="JobId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_RmtlProject_Billet_RMTLProject">
+          <End Role="RMTLProject" Type="Self.RMTLProject" Multiplicity="1">
+            <OnDelete Action="Cascade" />
+          </End>
+          <End Role="RmtlProject_Billet" Type="Self.RmtlProject_Billet" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="RMTLProject">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="RmtlProject_Billet">
+              <PropertyRef Name="RmtlProjectId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <EntityContainer Name="NavyRRLModelStoreContainer">
+          <EntitySet Name="Account" EntityType="Self.Account" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="ActivityLog" EntityType="Self.ActivityLog" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="AspNetRoles" EntityType="Self.AspNetRoles" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="AspNetUserRoles" EntityType="Self.AspNetUserRoles" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="AspNetUsers" EntityType="Self.AspNetUsers" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="Assessment" EntityType="Self.Assessment" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="ConceptScheme" EntityType="Self.ConceptScheme" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="ConceptScheme_Concept" EntityType="Self.ConceptScheme_Concept" Schema="dbo" Table="ConceptScheme.Concept" store:Type="Tables" />
+          <EntitySet Name="Course" EntityType="Self.Course" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="Course_Task" EntityType="Self.Course_Task" Schema="dbo" Table="Course.Task" store:Type="Tables" />
+          <EntitySet Name="CurriculumControlAuthority" EntityType="Self.CurriculumControlAuthority" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="FunctionalArea" EntityType="Self.FunctionalArea" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="Job" EntityType="Self.Job" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="Organization" EntityType="Self.Organization" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="Rating" EntityType="Self.Rating" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="RatingLevelTask" EntityType="Self.RatingLevelTask" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="RMTLProject" EntityType="Self.RMTLProject" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="RmtlProject_Billet" EntityType="Self.RmtlProject_Billet" Schema="dbo" Table="RmtlProject.Billet" store:Type="Tables" />
+          <EntitySet Name="RmtlProjectBilletTask" EntityType="Self.RmtlProjectBilletTask" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="Source" EntityType="Self.Source" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="WorkElementType" EntityType="Self.WorkElementType" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="ImportRMTL" EntityType="Self.ImportRMTL" store:Type="Tables" store:Schema="dbo">
+            <DefiningQuery>SELECT 
+    [ImportRMTL].[IndexIdentifier] AS [IndexIdentifier], 
+    [ImportRMTL].[Unique_Identifier] AS [Unique_Identifier], 
+    [ImportRMTL].[Rating] AS [Rating], 
+    [ImportRMTL].[Rank] AS [Rank], 
+    [ImportRMTL].[RankLevel] AS [RankLevel], 
+    [ImportRMTL].[Billet_Title] AS [Billet_Title], 
+    [ImportRMTL].[Functional_Area] AS [Functional_Area], 
+    [ImportRMTL].[Source] AS [Source], 
+    [ImportRMTL].[Date_of_Source] AS [Date_of_Source], 
+    [ImportRMTL].[Work_Element_Type] AS [Work_Element_Type], 
+    [ImportRMTL].[Work_Element_Task] AS [Work_Element_Task], 
+    [ImportRMTL].[Task_Applicability] AS [Task_Applicability], 
+    [ImportRMTL].[Formal_Training_Gap] AS [Formal_Training_Gap], 
+    [ImportRMTL].[CIN] AS [CIN], 
+    [ImportRMTL].[Course_Name] AS [Course_Name], 
+    [ImportRMTL].[Course_Type] AS [Course_Type], 
+    [ImportRMTL].[Curriculum_Control_Authority] AS [Curriculum_Control_Authority], 
+    [ImportRMTL].[Life_Cycle_Control_Document] AS [Life_Cycle_Control_Document], 
+    [ImportRMTL].[Task_Statement] AS [Task_Statement], 
+    [ImportRMTL].[Current_Assessment_Approach] AS [Current_Assessment_Approach], 
+    [ImportRMTL].[TaskNotes] AS [TaskNotes], 
+    [ImportRMTL].[Training_Solution_Type] AS [Training_Solution_Type], 
+    [ImportRMTL].[Cluster_Analysis_Title] AS [Cluster_Analysis_Title], 
+    [ImportRMTL].[Recommended_Modality] AS [Recommended_Modality], 
+    [ImportRMTL].[Development_Specification] AS [Development_Specification], 
+    [ImportRMTL].[Candidate_Platform] AS [Candidate_Platform], 
+    [ImportRMTL].[CFM_Placement] AS [CFM_Placement], 
+    [ImportRMTL].[Priority_Placement] AS [Priority_Placement], 
+    [ImportRMTL].[Development_Ratio] AS [Development_Ratio], 
+    [ImportRMTL].[Development_Time] AS [Development_Time], 
+    [ImportRMTL].[ClusterAnalysisNotes] AS [ClusterAnalysisNotes], 
+    [ImportRMTL].[RatingId] AS [RatingId], 
+    [ImportRMTL].[RankId] AS [RankId], 
+    [ImportRMTL].[LevelId] AS [LevelId], 
+    [ImportRMTL].[BilletTitleId] AS [BilletTitleId], 
+    [ImportRMTL].[FunctionalAreaId] AS [FunctionalAreaId], 
+    [ImportRMTL].[SourceId] AS [SourceId], 
+    [ImportRMTL].[WorkElementTypeId] AS [WorkElementTypeId], 
+    [ImportRMTL].[RatingLevelTaskId] AS [RatingLevelTaskId], 
+    [ImportRMTL].[TaskApplicabilityId] AS [TaskApplicabilityId], 
+    [ImportRMTL].[FormalTrainingGapId] AS [FormalTrainingGapId], 
+    [ImportRMTL].[CourseId] AS [CourseId], 
+    [ImportRMTL].[CourseTaskId] AS [CourseTaskId]
+    FROM [dbo].[ImportRMTL] AS [ImportRMTL]</DefiningQuery>
+          </EntitySet>
+          <AssociationSet Name="FK_Account_AspNetUsers" Association="Self.FK_Account_AspNetUsers">
+            <End Role="AspNetUsers" EntitySet="AspNetUsers" />
+            <End Role="Account" EntitySet="Account" />
+          </AssociationSet>
+          <AssociationSet Name="FK_AspNetUserRoles_AspNetRoles" Association="Self.FK_AspNetUserRoles_AspNetRoles">
+            <End Role="AspNetRoles" EntitySet="AspNetRoles" />
+            <End Role="AspNetUserRoles" EntitySet="AspNetUserRoles" />
+          </AssociationSet>
+          <AssociationSet Name="FK_AspNetUserRoles_AspNetUsers" Association="Self.FK_AspNetUserRoles_AspNetUsers">
+            <End Role="AspNetUsers" EntitySet="AspNetUsers" />
+            <End Role="AspNetUserRoles" EntitySet="AspNetUserRoles" />
+          </AssociationSet>
+          <AssociationSet Name="FK_AspNetUsers_AspNetUsers" Association="Self.FK_AspNetUsers_AspNetUsers">
+            <End Role="AspNetUsers" EntitySet="AspNetUsers" />
+            <End Role="AspNetUsers1" EntitySet="AspNetUsers" />
+          </AssociationSet>
+          <AssociationSet Name="FK_ConceptScheme_Concept_ConceptScheme" Association="Self.FK_ConceptScheme_Concept_ConceptScheme">
+            <End Role="ConceptScheme" EntitySet="ConceptScheme" />
+            <End Role="ConceptScheme_Concept" EntitySet="ConceptScheme_Concept" />
+          </AssociationSet>
+          <AssociationSet Name="FK_ConceptScheme__AccountCreatedBy" Association="Self.FK_ConceptScheme__AccountCreatedBy">
+            <End Role="Account" EntitySet="Account" />
+            <End Role="ConceptScheme" EntitySet="ConceptScheme" />
+          </AssociationSet>
+          <AssociationSet Name="FK_ConceptScheme_AccountApprovedBy" Association="Self.FK_ConceptScheme_AccountApprovedBy">
+            <End Role="Account" EntitySet="Account" />
+            <End Role="ConceptScheme" EntitySet="ConceptScheme" />
+          </AssociationSet>
+          <AssociationSet Name="FK_ConceptScheme_AccountLastUpdatedBy" Association="Self.FK_ConceptScheme_AccountLastUpdatedBy">
+            <End Role="Account" EntitySet="Account" />
+            <End Role="ConceptScheme" EntitySet="ConceptScheme" />
+          </AssociationSet>
+          <AssociationSet Name="FK_ConceptScheme_AccountPublishedBy" Association="Self.FK_ConceptScheme_AccountPublishedBy">
+            <End Role="Account" EntitySet="Account" />
+            <End Role="ConceptScheme" EntitySet="ConceptScheme" />
+          </AssociationSet>
+          <AssociationSet Name="FK_Course_Task_Course" Association="Self.FK_Course_Task_Course">
+            <End Role="Course" EntitySet="Course" />
+            <End Role="Course_Task" EntitySet="Course_Task" />
+          </AssociationSet>
+          <AssociationSet Name="FK_RatingLevelTask_ConceptScheme_Concept" Association="Self.FK_RatingLevelTask_ConceptScheme_Concept">
+            <End Role="ConceptScheme_Concept" EntitySet="ConceptScheme_Concept" />
+            <End Role="RatingLevelTask" EntitySet="RatingLevelTask" />
+          </AssociationSet>
+          <AssociationSet Name="FK_RatingLevelTask_ConceptScheme_Concept1" Association="Self.FK_RatingLevelTask_ConceptScheme_Concept1">
+            <End Role="ConceptScheme_Concept" EntitySet="ConceptScheme_Concept" />
+            <End Role="RatingLevelTask" EntitySet="RatingLevelTask" />
+          </AssociationSet>
+          <AssociationSet Name="FK_RatingLevelTask_ConceptScheme_Concept2" Association="Self.FK_RatingLevelTask_ConceptScheme_Concept2">
+            <End Role="ConceptScheme_Concept" EntitySet="ConceptScheme_Concept" />
+            <End Role="RatingLevelTask" EntitySet="RatingLevelTask" />
+          </AssociationSet>
+          <AssociationSet Name="FK_RatingLevelTask_ConceptScheme_Concept3" Association="Self.FK_RatingLevelTask_ConceptScheme_Concept3">
+            <End Role="ConceptScheme_Concept" EntitySet="ConceptScheme_Concept" />
+            <End Role="RatingLevelTask" EntitySet="RatingLevelTask" />
+          </AssociationSet>
+          <AssociationSet Name="FK_RatingLevelTask_Course_Task" Association="Self.FK_RatingLevelTask_Course_Task">
+            <End Role="Course_Task" EntitySet="Course_Task" />
+            <End Role="RatingLevelTask" EntitySet="RatingLevelTask" />
+          </AssociationSet>
+          <AssociationSet Name="FK_RatingLevelTask_FunctionalArea" Association="Self.FK_RatingLevelTask_FunctionalArea">
+            <End Role="FunctionalArea" EntitySet="FunctionalArea" />
+            <End Role="RatingLevelTask" EntitySet="RatingLevelTask" />
+          </AssociationSet>
+          <AssociationSet Name="FK_RatingLevelTask_Source" Association="Self.FK_RatingLevelTask_Source">
+            <End Role="Source" EntitySet="Source" />
+            <End Role="RatingLevelTask" EntitySet="RatingLevelTask" />
+          </AssociationSet>
+          <AssociationSet Name="FK_RatingLevelTask_WorkElementType" Association="Self.FK_RatingLevelTask_WorkElementType">
+            <End Role="WorkElementType" EntitySet="WorkElementType" />
+            <End Role="RatingLevelTask" EntitySet="RatingLevelTask" />
+          </AssociationSet>
+          <AssociationSet Name="FK_RmtlProject_Billet_Job" Association="Self.FK_RmtlProject_Billet_Job">
+            <End Role="Job" EntitySet="Job" />
+            <End Role="RmtlProject_Billet" EntitySet="RmtlProject_Billet" />
+          </AssociationSet>
+          <AssociationSet Name="FK_RmtlProject_Billet_RMTLProject" Association="Self.FK_RmtlProject_Billet_RMTLProject">
+            <End Role="RMTLProject" EntitySet="RMTLProject" />
+            <End Role="RmtlProject_Billet" EntitySet="RmtlProject_Billet" />
+          </AssociationSet>
+        </EntityContainer>
+      </Schema></edmx:StorageModels>
+    <!-- CSDL content -->
+    <edmx:ConceptualModels>
+      <Schema Namespace="NavyRRLModel" Alias="Self" annotation:UseStrongSpatialTypes="false" xmlns:annotation="http://schemas.microsoft.com/ado/2009/02/edm/annotation" xmlns:customannotation="http://schemas.microsoft.com/ado/2013/11/edm/customannotation" xmlns="http://schemas.microsoft.com/ado/2009/11/edm">
+        <EntityType Name="Account">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="UserName" Type="String" MaxLength="50" FixedLength="false" Unicode="false" Nullable="false" />
+          <Property Name="FirstName" Type="String" MaxLength="50" FixedLength="false" Unicode="false" Nullable="false" />
+          <Property Name="LastName" Type="String" MaxLength="50" FixedLength="false" Unicode="false" Nullable="false" />
+          <Property Name="Email" Type="String" MaxLength="100" FixedLength="false" Unicode="false" Nullable="false" />
+          <Property Name="IsActive" Type="Boolean" />
+          <Property Name="Created" Type="DateTime" Precision="3" />
+          <Property Name="LastUpdated" Type="DateTime" Precision="3" />
+          <Property Name="LastUpdatedById" Type="Int32" />
+          <Property Name="RowId" Type="Guid" Nullable="false" />
+          <Property Name="AspNetId" Type="String" MaxLength="128" FixedLength="false" Unicode="true" />
+          <Property Name="ExternalAccountIdentifier" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+          <NavigationProperty Name="AspNetUsers" Relationship="Self.FK_Account_AspNetUsers" FromRole="Account" ToRole="AspNetUsers" />
+          <NavigationProperty Name="ConceptScheme" Relationship="Self.FK_ConceptScheme__AccountCreatedBy" FromRole="Account" ToRole="ConceptScheme" />
+          <NavigationProperty Name="ConceptScheme1" Relationship="Self.FK_ConceptScheme_AccountApprovedBy" FromRole="Account" ToRole="ConceptScheme" />
+          <NavigationProperty Name="ConceptScheme2" Relationship="Self.FK_ConceptScheme_AccountLastUpdatedBy" FromRole="Account" ToRole="ConceptScheme" />
+          <NavigationProperty Name="ConceptScheme3" Relationship="Self.FK_ConceptScheme_AccountPublishedBy" FromRole="Account" ToRole="ConceptScheme" />
+        </EntityType>
+        <EntityType Name="ActivityLog">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="CreatedDate" Type="DateTime" Nullable="false" Precision="3" />
+          <Property Name="ActivityType" Type="String" MaxLength="100" FixedLength="false" Unicode="false" Nullable="false" />
+          <Property Name="Activity" Type="String" MaxLength="100" FixedLength="false" Unicode="false" Nullable="false" />
+          <Property Name="Event" Type="String" MaxLength="100" FixedLength="false" Unicode="false" Nullable="false" />
+          <Property Name="Comment" Type="String" MaxLength="1000" FixedLength="false" Unicode="false" />
+          <Property Name="ActivityObjectIdentifier" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+          <Property Name="RelatedTargetUrl" Type="String" MaxLength="600" FixedLength="false" Unicode="false" />
+          <Property Name="TargetUserId" Type="Int32" />
+          <Property Name="ActionByUserId" Type="Int32" />
+          <Property Name="ActivityObjectId" Type="Int32" />
+          <Property Name="ObjectRelatedId" Type="Int32" />
+          <Property Name="TargetObjectId" Type="Int32" />
+          <Property Name="SessionId" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+          <Property Name="IPAddress" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+          <Property Name="Referrer" Type="String" MaxLength="Max" FixedLength="false" Unicode="false" />
+          <Property Name="ActivityObjectParentEntityUid" Type="Guid" />
+          <Property Name="DataOwnerCTID" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+        </EntityType>
+        <EntityType Name="AspNetUsers">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="String" MaxLength="128" FixedLength="false" Unicode="true" Nullable="false" />
+          <Property Name="Email" Type="String" MaxLength="256" FixedLength="false" Unicode="true" />
+          <Property Name="EmailConfirmed" Type="Boolean" Nullable="false" />
+          <Property Name="PasswordHash" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
+          <Property Name="SecurityStamp" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
+          <Property Name="PhoneNumber" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
+          <Property Name="PhoneNumberConfirmed" Type="Boolean" Nullable="false" />
+          <Property Name="TwoFactorEnabled" Type="Boolean" Nullable="false" />
+          <Property Name="LockoutEndDateUtc" Type="DateTime" Precision="3" />
+          <Property Name="LockoutEnabled" Type="Boolean" Nullable="false" />
+          <Property Name="AccessFailedCount" Type="Int32" Nullable="false" />
+          <Property Name="UserName" Type="String" MaxLength="256" FixedLength="false" Unicode="true" Nullable="false" />
+          <Property Name="FirstName" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+          <Property Name="LastName" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+          <Property Name="Created" Type="DateTime" Precision="3" />
+          <Property Name="UserId" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <NavigationProperty Name="Account" Relationship="Self.FK_Account_AspNetUsers" FromRole="AspNetUsers" ToRole="Account" />
+          <NavigationProperty Name="AspNetUsers1" Relationship="Self.FK_AspNetUsers_AspNetUsers" FromRole="AspNetUsers" ToRole="AspNetUsers1" />
+          <NavigationProperty Name="AspNetUsers2" Relationship="Self.FK_AspNetUsers_AspNetUsers" FromRole="AspNetUsers1" ToRole="AspNetUsers" />
+          <NavigationProperty Name="AspNetUserRoles" Relationship="NavyRRLModel.FK_AspNetUserRoles_AspNetUsers" FromRole="AspNetUsers" ToRole="AspNetUserRoles" />
+        </EntityType>
+        <EntityType Name="Assessment">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="Name" Type="String" MaxLength="500" FixedLength="false" Unicode="true" Nullable="false" />
+          <Property Name="Description" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
+          <Property Name="Created" Type="DateTime" Precision="3" />
+          <Property Name="CreatedById" Type="Int32" />
+          <Property Name="LastUpdated" Type="DateTime" Precision="3" />
+          <Property Name="LastUpdatedById" Type="Int32" />
+          <Property Name="CTID" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+        </EntityType>
+        <EntityType Name="ConceptScheme">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="Int32" Nullable="false" />
+          <Property Name="Name" Type="String" MaxLength="400" FixedLength="false" Unicode="true" Nullable="false" />
+          <Property Name="Description" Type="String" MaxLength="Max" FixedLength="false" Unicode="false" />
+          <Property Name="RowId" Type="Guid" Nullable="false" />
+          <Property Name="CTID" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+          <Property Name="SchemaUri" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+          <Property Name="Created" Type="DateTime" Nullable="false" Precision="3" />
+          <Property Name="CreatedById" Type="Int32" Nullable="false" />
+          <Property Name="LastUpdated" Type="DateTime" Nullable="false" Precision="3" />
+          <Property Name="LastUpdatedById" Type="Int32" />
+          <Property Name="LastApproved" Type="DateTime" Precision="3" />
+          <Property Name="LastApprovedById" Type="Int32" />
+          <Property Name="LastPublished" Type="DateTime" Precision="3" />
+          <Property Name="LastPublishedById" Type="Int32" />
+          <NavigationProperty Name="Account" Relationship="Self.FK_ConceptScheme__AccountCreatedBy" FromRole="ConceptScheme" ToRole="Account" />
+          <NavigationProperty Name="Account1" Relationship="Self.FK_ConceptScheme_AccountApprovedBy" FromRole="ConceptScheme" ToRole="Account" />
+          <NavigationProperty Name="Account2" Relationship="Self.FK_ConceptScheme_AccountLastUpdatedBy" FromRole="ConceptScheme" ToRole="Account" />
+          <NavigationProperty Name="Account3" Relationship="Self.FK_ConceptScheme_AccountPublishedBy" FromRole="ConceptScheme" ToRole="Account" />
+          <NavigationProperty Name="ConceptScheme_Concept" Relationship="Self.FK_ConceptScheme_Concept_ConceptScheme" FromRole="ConceptScheme" ToRole="ConceptScheme_Concept" />
+        </EntityType>
+        <EntityType Name="ConceptScheme_Concept">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="ConceptSchemeId" Type="Int32" Nullable="false" />
+          <Property Name="PrefLabel" Type="String" MaxLength="1000" FixedLength="false" Unicode="false" Nullable="false" />
+          <Property Name="CTID" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+          <Property Name="CodedNotation" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+          <Property Name="AlternateLabel" Type="String" MaxLength="500" FixedLength="false" Unicode="false" />
+          <Property Name="Description" Type="String" MaxLength="Max" FixedLength="false" Unicode="false" />
+          <Property Name="ListId" Type="Int32" />
+          <Property Name="Created" Type="DateTime" Precision="3" />
+          <Property Name="LastUpdated" Type="DateTime" Precision="3" />
+          <NavigationProperty Name="ConceptScheme" Relationship="Self.FK_ConceptScheme_Concept_ConceptScheme" FromRole="ConceptScheme_Concept" ToRole="ConceptScheme" />
+          <NavigationProperty Name="RatingLevelTask" Relationship="Self.FK_RatingLevelTask_ConceptScheme_Concept" FromRole="ConceptScheme_Concept" ToRole="RatingLevelTask" />
+          <NavigationProperty Name="RatingLevelTask1" Relationship="Self.FK_RatingLevelTask_ConceptScheme_Concept1" FromRole="ConceptScheme_Concept" ToRole="RatingLevelTask" />
+          <NavigationProperty Name="RatingLevelTask2" Relationship="Self.FK_RatingLevelTask_ConceptScheme_Concept2" FromRole="ConceptScheme_Concept" ToRole="RatingLevelTask" />
+          <NavigationProperty Name="RatingLevelTask3" Relationship="Self.FK_RatingLevelTask_ConceptScheme_Concept3" FromRole="ConceptScheme_Concept" ToRole="RatingLevelTask" />
+        </EntityType>
+        <EntityType Name="Course">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="CIN" Type="String" MaxLength="50" FixedLength="false" Unicode="true" Nullable="false" />
+          <Property Name="Name" Type="String" MaxLength="200" FixedLength="false" Unicode="true" Nullable="false" />
+          <Property Name="Description" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
+          <Property Name="CourseTypeId" Type="Int32" />
+          <Property Name="LifeCycleControlDocumentId" Type="Int32" />
+          <Property Name="AssessmentApproachId" Type="Int32" />
+          <Property Name="CurriculumControlAuthorityId" Type="Int32" />
+          <Property Name="CTID" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+          <Property Name="Created" Type="DateTime" Precision="3" />
+          <Property Name="CreatedById" Type="Int32" />
+          <Property Name="LastUpdated" Type="DateTime" Precision="3" />
+          <Property Name="LastUpdatedById" Type="Int32" />
+          <Property Name="CourseType" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="LifeCycleControlDocument" Type="String" MaxLength="100" FixedLength="false" Unicode="true" />
+          <Property Name="CurriculumControlAuthority" Type="String" MaxLength="200" FixedLength="false" Unicode="true" />
+          <Property Name="CurrentAssessmentApproach" Type="String" MaxLength="200" FixedLength="false" Unicode="true" />
+          <NavigationProperty Name="Course_Task" Relationship="Self.FK_Course_Task_Course" FromRole="Course" ToRole="Course_Task" />
+        </EntityType>
+        <EntityType Name="Course_Task">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="CourseId" Type="Int32" Nullable="false" />
+          <Property Name="TaskStatement" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" Nullable="false" />
+          <Property Name="CTID" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+          <Property Name="Created" Type="DateTime" Precision="3" />
+          <Property Name="CreatedById" Type="Int32" />
+          <Property Name="LastUpdated" Type="DateTime" Precision="3" />
+          <Property Name="LastUpdatedById" Type="Int32" />
+          <NavigationProperty Name="Course" Relationship="Self.FK_Course_Task_Course" FromRole="Course_Task" ToRole="Course" />
+          <NavigationProperty Name="RatingLevelTask" Relationship="Self.FK_RatingLevelTask_Course_Task" FromRole="Course_Task" ToRole="RatingLevelTask" />
+        </EntityType>
+        <EntityType Name="CurriculumControlAuthority">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="Name" Type="String" MaxLength="300" FixedLength="false" Unicode="true" />
+          <Property Name="Abbreviation" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="CTID" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+        </EntityType>
+        <EntityType Name="FunctionalArea">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="Name" Type="String" MaxLength="200" FixedLength="false" Unicode="true" Nullable="false" />
+          <Property Name="Description" Type="String" MaxLength="Max" FixedLength="false" Unicode="false" Nullable="false" />
+          <Property Name="DateCreated" Type="DateTime" Precision="3" />
+          <Property Name="DateModified" Type="DateTime" Precision="3" />
+          <Property Name="CTID" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+          <NavigationProperty Name="RatingLevelTask" Relationship="Self.FK_RatingLevelTask_FunctionalArea" FromRole="FunctionalArea" ToRole="RatingLevelTask" />
+        </EntityType>
+        <EntityType Name="Job">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="CTID" Type="String" MaxLength="50" FixedLength="false" Unicode="false" Nullable="false" />
+          <Property Name="Name" Type="String" MaxLength="500" FixedLength="false" Unicode="false" Nullable="false" />
+          <Property Name="CodedNotation" Type="String" MaxLength="100" FixedLength="false" Unicode="false" />
+          <Property Name="JobVersion" Type="Int32" />
+          <Property Name="Description" Type="String" MaxLength="Max" FixedLength="false" Unicode="false" />
+          <Property Name="ShortName30" Type="String" MaxLength="30" FixedLength="false" Unicode="false" />
+          <Property Name="ShortName14" Type="String" MaxLength="14" FixedLength="false" Unicode="false" />
+          <Property Name="CredentialRegistryId" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+          <Property Name="Created" Type="DateTime" Precision="3" />
+          <Property Name="LastUpdated" Type="DateTime" Precision="3" />
+          <Property Name="LastPublished" Type="DateTime" Precision="3" />
+          <Property Name="RowId" Type="Guid" Nullable="false" />
+          <NavigationProperty Name="RmtlProject_Billet" Relationship="Self.FK_RmtlProject_Billet_Job" FromRole="Job" ToRole="RmtlProject_Billet" />
+        </EntityType>
+        <EntityType Name="Organization">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="RowId" Type="Guid" Nullable="false" />
+          <Property Name="Name" Type="String" MaxLength="300" FixedLength="false" Unicode="false" Nullable="false" />
+          <Property Name="Description" Type="String" MaxLength="Max" FixedLength="false" Unicode="false" />
+          <Property Name="CTID" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+          <Property Name="SubjectWebpage" Type="String" MaxLength="500" FixedLength="false" Unicode="false" />
+          <Property Name="StatusId" Type="Int32" />
+          <Property Name="CredentialRegistryId" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+          <Property Name="ImageURL" Type="String" MaxLength="500" FixedLength="false" Unicode="false" />
+          <Property Name="Created" Type="DateTime" Precision="3" />
+          <Property Name="CreatedById" Type="Int32" />
+          <Property Name="LastUpdated" Type="DateTime" Precision="3" />
+          <Property Name="LastUpdatedById" Type="Int32" />
+          <Property Name="FoundingDate" Type="String" MaxLength="20" FixedLength="false" Unicode="false" />
+          <Property Name="AvailabilityListing" Type="String" MaxLength="300" FixedLength="false" Unicode="false" />
+          <Property Name="AgentPurpose" Type="String" MaxLength="500" FixedLength="false" Unicode="false" />
+          <Property Name="AgentPurposeDescription" Type="String" MaxLength="Max" FixedLength="false" Unicode="false" />
+          <Property Name="MissionAndGoalsStatement" Type="String" MaxLength="500" FixedLength="false" Unicode="false" />
+          <Property Name="MissionAndGoalsStatementDescription" Type="String" MaxLength="Max" FixedLength="false" Unicode="false" />
+          <Property Name="ISQAOrganization" Type="Boolean" />
+          <Property Name="AlternativeIdentifier" Type="String" MaxLength="200" FixedLength="false" Unicode="false" />
+          <Property Name="IsThirdPartyOrganization" Type="Boolean" />
+        </EntityType>
+        <EntityType Name="Rating">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="CTID" Type="String" MaxLength="50" FixedLength="false" Unicode="false" Nullable="false" />
+          <Property Name="Name" Type="String" MaxLength="500" FixedLength="false" Unicode="false" Nullable="false" />
+          <Property Name="CodedNotation" Type="String" MaxLength="100" FixedLength="false" Unicode="false" />
+          <Property Name="Description" Type="String" MaxLength="Max" FixedLength="false" Unicode="false" />
+          <Property Name="Version" Type="String" MaxLength="30" FixedLength="false" Unicode="false" />
+          <Property Name="RatingUploadDate" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+          <Property Name="RatingPublicationDate" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+          <Property Name="Image" Type="String" MaxLength="500" FixedLength="false" Unicode="false" />
+          <Property Name="CredentialRegistryId" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+          <Property Name="Created" Type="DateTime" Precision="3" />
+          <Property Name="LastUpdated" Type="DateTime" Precision="3" />
+          <Property Name="LastPublished" Type="DateTime" Precision="3" />
+          <Property Name="RowId" Type="Guid" Nullable="false" />
+          <Property Name="CredentialRegistryURI" Type="String" MaxLength="200" FixedLength="false" Unicode="false" />
+          <Property Name="MainEntityOfPage" Type="String" MaxLength="600" FixedLength="false" Unicode="false" />
+        </EntityType>
+        <EntityType Name="RatingLevelTask">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="CodedNotation" Type="String" MaxLength="100" FixedLength="false" Unicode="false" />
+          <Property Name="RankId" Type="Int32" Nullable="false" />
+          <Property Name="LevelId" Type="Int32" Nullable="false" />
+          <Property Name="FunctionalAreaId" Type="Int32" Nullable="false" />
+          <Property Name="SourceId" Type="Int32" />
+          <Property Name="WorkElementTypeId" Type="Int32" />
+          <Property Name="WorkElementTask" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" Nullable="false" />
+          <Property Name="TaskApplicabilityId" Type="Int32" />
+          <Property Name="TaskStatusId" Type="Int32" />
+          <Property Name="FormalTrainingGapId" Type="Int32" />
+          <Property Name="Notes" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
+          <Property Name="Created" Type="DateTime" Precision="3" />
+          <Property Name="CreatedById" Type="Int32" />
+          <Property Name="LastUpdated" Type="DateTime" Precision="3" />
+          <Property Name="LastUpdatedById" Type="Int32" />
+          <Property Name="CTID" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+          <Property Name="TrainingTaskId" Type="Int32" />
+          <NavigationProperty Name="ConceptScheme_Concept" Relationship="Self.FK_RatingLevelTask_ConceptScheme_Concept" FromRole="RatingLevelTask" ToRole="ConceptScheme_Concept" />
+          <NavigationProperty Name="ConceptScheme_Concept1" Relationship="Self.FK_RatingLevelTask_ConceptScheme_Concept1" FromRole="RatingLevelTask" ToRole="ConceptScheme_Concept" />
+          <NavigationProperty Name="ConceptScheme_Concept2" Relationship="Self.FK_RatingLevelTask_ConceptScheme_Concept2" FromRole="RatingLevelTask" ToRole="ConceptScheme_Concept" />
+          <NavigationProperty Name="ConceptScheme_Concept3" Relationship="Self.FK_RatingLevelTask_ConceptScheme_Concept3" FromRole="RatingLevelTask" ToRole="ConceptScheme_Concept" />
+          <NavigationProperty Name="Course_Task" Relationship="Self.FK_RatingLevelTask_Course_Task" FromRole="RatingLevelTask" ToRole="Course_Task" />
+          <NavigationProperty Name="FunctionalArea" Relationship="Self.FK_RatingLevelTask_FunctionalArea" FromRole="RatingLevelTask" ToRole="FunctionalArea" />
+          <NavigationProperty Name="Source" Relationship="Self.FK_RatingLevelTask_Source" FromRole="RatingLevelTask" ToRole="Source" />
+          <NavigationProperty Name="WorkElementType" Relationship="Self.FK_RatingLevelTask_WorkElementType" FromRole="RatingLevelTask" ToRole="WorkElementType" />
+        </EntityType>
+        <EntityType Name="RMTLProject">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="CTID" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+          <Property Name="Name" Type="String" MaxLength="300" FixedLength="false" Unicode="false" Nullable="false" />
+          <Property Name="RatingId" Type="Int32" Nullable="false" />
+          <Property Name="Description" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
+          <Property Name="StatusId" Type="Int32" />
+          <Property Name="VersionControlIdentifier" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+          <Property Name="Notes" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
+          <Property Name="Created" Type="DateTime" Nullable="false" Precision="3" />
+          <Property Name="CreatedById" Type="Int32" />
+          <Property Name="LastUpdated" Type="DateTime" Nullable="false" Precision="3" />
+          <Property Name="LastUpdatedById" Type="Int32" />
+          <Property Name="LastApproved" Type="DateTime" Precision="3" />
+          <Property Name="LastApprovedById" Type="Int32" />
+          <Property Name="LastPublished" Type="DateTime" Precision="3" />
+          <Property Name="LastPublishedById" Type="Int32" />
+          <NavigationProperty Name="RmtlProject_Billet" Relationship="Self.FK_RmtlProject_Billet_RMTLProject" FromRole="RMTLProject" ToRole="RmtlProject_Billet" />
+        </EntityType>
+        <EntityType Name="RmtlProject_Billet">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="RmtlProjectId" Type="Int32" Nullable="false" />
+          <Property Name="JobId" Type="Int32" Nullable="false" />
+          <Property Name="Created" Type="DateTime" Nullable="false" Precision="3" />
+          <Property Name="LastUpdated" Type="DateTime" Nullable="false" Precision="3" />
+          <NavigationProperty Name="Job" Relationship="Self.FK_RmtlProject_Billet_Job" FromRole="RmtlProject_Billet" ToRole="Job" />
+          <NavigationProperty Name="RMTLProject" Relationship="Self.FK_RmtlProject_Billet_RMTLProject" FromRole="RmtlProject_Billet" ToRole="RMTLProject" />
+        </EntityType>
+        <EntityType Name="RmtlProjectBilletTask">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="ProjectBilletId" Type="Int32" Nullable="false" />
+          <Property Name="RatingLevelTaskId" Type="Int32" Nullable="false" />
+          <Property Name="Created" Type="DateTime" Nullable="false" Precision="3" />
+          <Property Name="LastUpdated" Type="DateTime" Nullable="false" Precision="3" />
+        </EntityType>
+        <EntityType Name="Source">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="Name" Type="String" MaxLength="200" FixedLength="false" Unicode="true" Nullable="false" />
+          <Property Name="SourceDate" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="Description" Type="String" MaxLength="Max" FixedLength="false" Unicode="false" />
+          <Property Name="DateCreated" Type="DateTime" Precision="3" />
+          <Property Name="CreatedById" Type="Int32" />
+          <Property Name="DateModified" Type="DateTime" Precision="3" />
+          <Property Name="LastUpdatedById" Type="Int32" />
+          <Property Name="CTID" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+          <NavigationProperty Name="RatingLevelTask" Relationship="Self.FK_RatingLevelTask_Source" FromRole="Source" ToRole="RatingLevelTask" />
+        </EntityType>
+        <EntityType Name="WorkElementType">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="Name" Type="String" MaxLength="50" FixedLength="false" Unicode="true" Nullable="false" />
+          <Property Name="description" Type="String" MaxLength="1" FixedLength="false" Unicode="false" Nullable="false" />
+          <Property Name="DateCreated" Type="DateTime" Nullable="false" Precision="3" />
+          <Property Name="DateModified" Type="DateTime" Nullable="false" Precision="3" />
+          <Property Name="CTID" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+          <NavigationProperty Name="RatingLevelTask" Relationship="Self.FK_RatingLevelTask_WorkElementType" FromRole="WorkElementType" ToRole="RatingLevelTask" />
+        </EntityType>
+        <EntityType Name="ImportRMTL">
+          <Key>
+            <PropertyRef Name="IndexIdentifier" />
+            <PropertyRef Name="Unique_Identifier" />
+            <PropertyRef Name="Rating" />
+            <PropertyRef Name="Rank" />
+            <PropertyRef Name="RankLevel" />
+            <PropertyRef Name="Billet_Title" />
+            <PropertyRef Name="Functional_Area" />
+            <PropertyRef Name="Source" />
+            <PropertyRef Name="Date_of_Source" />
+            <PropertyRef Name="Work_Element_Type" />
+            <PropertyRef Name="Work_Element_Task" />
+            <PropertyRef Name="Task_Applicability" />
+            <PropertyRef Name="Formal_Training_Gap" />
+            <PropertyRef Name="CIN" />
+            <PropertyRef Name="Course_Name" />
+            <PropertyRef Name="Course_Type" />
+            <PropertyRef Name="Curriculum_Control_Authority" />
+            <PropertyRef Name="Life_Cycle_Control_Document" />
+            <PropertyRef Name="Task_Statement" />
+            <PropertyRef Name="Current_Assessment_Approach" />
+            <PropertyRef Name="TaskNotes" />
+            <PropertyRef Name="Training_Solution_Type" />
+            <PropertyRef Name="Cluster_Analysis_Title" />
+            <PropertyRef Name="Recommended_Modality" />
+            <PropertyRef Name="Development_Specification" />
+            <PropertyRef Name="Candidate_Platform" />
+            <PropertyRef Name="CFM_Placement" />
+            <PropertyRef Name="Priority_Placement" />
+            <PropertyRef Name="Development_Ratio" />
+            <PropertyRef Name="Development_Time" />
+            <PropertyRef Name="ClusterAnalysisNotes" />
+          </Key>
+          <Property Name="IndexIdentifier" Type="String" MaxLength="50" FixedLength="false" Unicode="true" Nullable="false" />
+          <Property Name="Unique_Identifier" Type="Int32" Nullable="false" />
+          <Property Name="Rating" Type="String" MaxLength="50" FixedLength="false" Unicode="true" Nullable="false" />
+          <Property Name="Rank" Type="String" MaxLength="50" FixedLength="false" Unicode="true" Nullable="false" />
+          <Property Name="RankLevel" Type="String" MaxLength="50" FixedLength="false" Unicode="true" Nullable="false" />
+          <Property Name="Billet_Title" Type="String" MaxLength="500" FixedLength="false" Unicode="true" Nullable="false" />
+          <Property Name="Functional_Area" Type="String" MaxLength="500" FixedLength="false" Unicode="true" Nullable="false" />
+          <Property Name="Source" Type="String" MaxLength="500" FixedLength="false" Unicode="true" Nullable="false" />
+          <Property Name="Date_of_Source" Type="String" MaxLength="50" FixedLength="false" Unicode="false" Nullable="false" />
+          <Property Name="Work_Element_Type" Type="String" MaxLength="500" FixedLength="false" Unicode="true" Nullable="false" />
+          <Property Name="Work_Element_Task" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" Nullable="false" />
+          <Property Name="Task_Applicability" Type="String" MaxLength="500" FixedLength="false" Unicode="true" Nullable="false" />
+          <Property Name="Formal_Training_Gap" Type="String" MaxLength="500" FixedLength="false" Unicode="true" Nullable="false" />
+          <Property Name="CIN" Type="String" MaxLength="50" FixedLength="false" Unicode="true" Nullable="false" />
+          <Property Name="Course_Name" Type="String" MaxLength="500" FixedLength="false" Unicode="true" Nullable="false" />
+          <Property Name="Course_Type" Type="String" MaxLength="50" FixedLength="false" Unicode="true" Nullable="false" />
+          <Property Name="Curriculum_Control_Authority" Type="String" MaxLength="50" FixedLength="false" Unicode="true" Nullable="false" />
+          <Property Name="Life_Cycle_Control_Document" Type="String" MaxLength="50" FixedLength="false" Unicode="true" Nullable="false" />
+          <Property Name="Task_Statement" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" Nullable="false" />
+          <Property Name="Current_Assessment_Approach" Type="String" MaxLength="50" FixedLength="false" Unicode="true" Nullable="false" />
+          <Property Name="TaskNotes" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" Nullable="false" />
+          <Property Name="Training_Solution_Type" Type="String" MaxLength="500" FixedLength="false" Unicode="true" Nullable="false" />
+          <Property Name="Cluster_Analysis_Title" Type="String" MaxLength="500" FixedLength="false" Unicode="true" Nullable="false" />
+          <Property Name="Recommended_Modality" Type="String" MaxLength="500" FixedLength="false" Unicode="true" Nullable="false" />
+          <Property Name="Development_Specification" Type="String" MaxLength="500" FixedLength="false" Unicode="true" Nullable="false" />
+          <Property Name="Candidate_Platform" Type="String" MaxLength="500" FixedLength="false" Unicode="true" Nullable="false" />
+          <Property Name="CFM_Placement" Type="String" MaxLength="500" FixedLength="false" Unicode="true" Nullable="false" />
+          <Property Name="Priority_Placement" Type="String" MaxLength="500" FixedLength="false" Unicode="true" Nullable="false" />
+          <Property Name="Development_Ratio" Type="String" MaxLength="500" FixedLength="false" Unicode="true" Nullable="false" />
+          <Property Name="Development_Time" Type="String" MaxLength="500" FixedLength="false" Unicode="true" Nullable="false" />
+          <Property Name="ClusterAnalysisNotes" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" Nullable="false" />
+          <Property Name="RatingId" Type="Int32" />
+          <Property Name="RankId" Type="Int32" />
+          <Property Name="LevelId" Type="Int32" />
+          <Property Name="BilletTitleId" Type="Int32" />
+          <Property Name="FunctionalAreaId" Type="Int32" />
+          <Property Name="SourceId" Type="Int32" />
+          <Property Name="WorkElementTypeId" Type="Int32" />
+          <Property Name="RatingLevelTaskId" Type="Int32" />
+          <Property Name="TaskApplicabilityId" Type="Int32" />
+          <Property Name="FormalTrainingGapId" Type="Int32" />
+          <Property Name="CourseId" Type="Int32" />
+          <Property Name="CourseTaskId" Type="Int32" />
+        </EntityType>
+        <Association Name="FK_Account_AspNetUsers">
+          <End Role="AspNetUsers" Type="Self.AspNetUsers" Multiplicity="0..1">
+            <OnDelete Action="Cascade" />
+          </End>
+          <End Role="Account" Type="Self.Account" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="AspNetUsers">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="Account">
+              <PropertyRef Name="AspNetId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_ConceptScheme__AccountCreatedBy">
+          <End Role="Account" Type="Self.Account" Multiplicity="1" />
+          <End Role="ConceptScheme" Type="Self.ConceptScheme" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Account">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="ConceptScheme">
+              <PropertyRef Name="CreatedById" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_ConceptScheme_AccountApprovedBy">
+          <End Role="Account" Type="Self.Account" Multiplicity="0..1" />
+          <End Role="ConceptScheme" Type="Self.ConceptScheme" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Account">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="ConceptScheme">
+              <PropertyRef Name="LastApprovedById" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_ConceptScheme_AccountLastUpdatedBy">
+          <End Role="Account" Type="Self.Account" Multiplicity="0..1" />
+          <End Role="ConceptScheme" Type="Self.ConceptScheme" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Account">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="ConceptScheme">
+              <PropertyRef Name="LastUpdatedById" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_ConceptScheme_AccountPublishedBy">
+          <End Role="Account" Type="Self.Account" Multiplicity="0..1" />
+          <End Role="ConceptScheme" Type="Self.ConceptScheme" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Account">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="ConceptScheme">
+              <PropertyRef Name="LastPublishedById" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_AspNetUsers_AspNetUsers">
+          <End Role="AspNetUsers" Type="Self.AspNetUsers" Multiplicity="1" />
+          <End Role="AspNetUsers1" Type="Self.AspNetUsers" Multiplicity="0..1" />
+          <ReferentialConstraint>
+            <Principal Role="AspNetUsers">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="AspNetUsers1">
+              <PropertyRef Name="Id" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_ConceptScheme_Concept_ConceptScheme">
+          <End Role="ConceptScheme" Type="Self.ConceptScheme" Multiplicity="1">
+            <OnDelete Action="Cascade" />
+          </End>
+          <End Role="ConceptScheme_Concept" Type="Self.ConceptScheme_Concept" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="ConceptScheme">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="ConceptScheme_Concept">
+              <PropertyRef Name="ConceptSchemeId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_RatingLevelTask_ConceptScheme_Concept">
+          <End Role="ConceptScheme_Concept" Type="Self.ConceptScheme_Concept" Multiplicity="1" />
+          <End Role="RatingLevelTask" Type="Self.RatingLevelTask" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="ConceptScheme_Concept">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="RatingLevelTask">
+              <PropertyRef Name="RankId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_RatingLevelTask_ConceptScheme_Concept1">
+          <End Role="ConceptScheme_Concept" Type="Self.ConceptScheme_Concept" Multiplicity="1" />
+          <End Role="RatingLevelTask" Type="Self.RatingLevelTask" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="ConceptScheme_Concept">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="RatingLevelTask">
+              <PropertyRef Name="LevelId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_RatingLevelTask_ConceptScheme_Concept2">
+          <End Role="ConceptScheme_Concept" Type="Self.ConceptScheme_Concept" Multiplicity="0..1" />
+          <End Role="RatingLevelTask" Type="Self.RatingLevelTask" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="ConceptScheme_Concept">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="RatingLevelTask">
+              <PropertyRef Name="TaskApplicabilityId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_RatingLevelTask_ConceptScheme_Concept3">
+          <End Role="ConceptScheme_Concept" Type="Self.ConceptScheme_Concept" Multiplicity="0..1" />
+          <End Role="RatingLevelTask" Type="Self.RatingLevelTask" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="ConceptScheme_Concept">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="RatingLevelTask">
+              <PropertyRef Name="FormalTrainingGapId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_Course_Task_Course">
+          <End Role="Course" Type="Self.Course" Multiplicity="1">
+            <OnDelete Action="Cascade" />
+          </End>
+          <End Role="Course_Task" Type="Self.Course_Task" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Course">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="Course_Task">
+              <PropertyRef Name="CourseId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_RatingLevelTask_Course_Task">
+          <End Role="Course_Task" Type="Self.Course_Task" Multiplicity="0..1" />
+          <End Role="RatingLevelTask" Type="Self.RatingLevelTask" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Course_Task">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="RatingLevelTask">
+              <PropertyRef Name="TrainingTaskId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_RatingLevelTask_FunctionalArea">
+          <End Role="FunctionalArea" Type="Self.FunctionalArea" Multiplicity="1" />
+          <End Role="RatingLevelTask" Type="Self.RatingLevelTask" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="FunctionalArea">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="RatingLevelTask">
+              <PropertyRef Name="FunctionalAreaId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_RmtlProject_Billet_Job">
+          <End Role="Job" Type="Self.Job" Multiplicity="1">
+            <OnDelete Action="Cascade" />
+          </End>
+          <End Role="RmtlProject_Billet" Type="Self.RmtlProject_Billet" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Job">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="RmtlProject_Billet">
+              <PropertyRef Name="JobId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_RatingLevelTask_Source">
+          <End Role="Source" Type="Self.Source" Multiplicity="0..1" />
+          <End Role="RatingLevelTask" Type="Self.RatingLevelTask" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Source">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="RatingLevelTask">
+              <PropertyRef Name="SourceId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_RatingLevelTask_WorkElementType">
+          <End Role="WorkElementType" Type="Self.WorkElementType" Multiplicity="0..1" />
+          <End Role="RatingLevelTask" Type="Self.RatingLevelTask" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="WorkElementType">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="RatingLevelTask">
+              <PropertyRef Name="WorkElementTypeId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_RmtlProject_Billet_RMTLProject">
+          <End Role="RMTLProject" Type="Self.RMTLProject" Multiplicity="1">
+            <OnDelete Action="Cascade" />
+          </End>
+          <End Role="RmtlProject_Billet" Type="Self.RmtlProject_Billet" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="RMTLProject">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="RmtlProject_Billet">
+              <PropertyRef Name="RmtlProjectId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <EntityContainer Name="NavyRRLEntities" annotation:LazyLoadingEnabled="true">
+          <EntitySet Name="Account" EntityType="Self.Account" />
+          <EntitySet Name="ActivityLog" EntityType="Self.ActivityLog" />
+          <EntitySet Name="AspNetUsers" EntityType="Self.AspNetUsers" />
+          <EntitySet Name="Assessment" EntityType="Self.Assessment" />
+          <EntitySet Name="ConceptScheme" EntityType="Self.ConceptScheme" />
+          <EntitySet Name="ConceptScheme_Concept" EntityType="Self.ConceptScheme_Concept" />
+          <EntitySet Name="Course" EntityType="Self.Course" />
+          <EntitySet Name="Course_Task" EntityType="Self.Course_Task" />
+          <EntitySet Name="CurriculumControlAuthority" EntityType="Self.CurriculumControlAuthority" />
+          <EntitySet Name="FunctionalArea" EntityType="Self.FunctionalArea" />
+          <EntitySet Name="Job" EntityType="Self.Job" />
+          <EntitySet Name="Organization" EntityType="Self.Organization" />
+          <EntitySet Name="Rating" EntityType="Self.Rating" />
+          <EntitySet Name="RatingLevelTask" EntityType="Self.RatingLevelTask" />
+          <EntitySet Name="RMTLProject" EntityType="Self.RMTLProject" />
+          <EntitySet Name="RmtlProject_Billet" EntityType="Self.RmtlProject_Billet" />
+          <EntitySet Name="RmtlProjectBilletTask" EntityType="Self.RmtlProjectBilletTask" />
+          <EntitySet Name="Source" EntityType="Self.Source" />
+          <EntitySet Name="WorkElementType" EntityType="Self.WorkElementType" />
+          <EntitySet Name="ImportRMTL" EntityType="Self.ImportRMTL" />
+          <AssociationSet Name="FK_Account_AspNetUsers" Association="Self.FK_Account_AspNetUsers">
+            <End Role="AspNetUsers" EntitySet="AspNetUsers" />
+            <End Role="Account" EntitySet="Account" />
+          </AssociationSet>
+          <AssociationSet Name="FK_ConceptScheme__AccountCreatedBy" Association="Self.FK_ConceptScheme__AccountCreatedBy">
+            <End Role="Account" EntitySet="Account" />
+            <End Role="ConceptScheme" EntitySet="ConceptScheme" />
+          </AssociationSet>
+          <AssociationSet Name="FK_ConceptScheme_AccountApprovedBy" Association="Self.FK_ConceptScheme_AccountApprovedBy">
+            <End Role="Account" EntitySet="Account" />
+            <End Role="ConceptScheme" EntitySet="ConceptScheme" />
+          </AssociationSet>
+          <AssociationSet Name="FK_ConceptScheme_AccountLastUpdatedBy" Association="Self.FK_ConceptScheme_AccountLastUpdatedBy">
+            <End Role="Account" EntitySet="Account" />
+            <End Role="ConceptScheme" EntitySet="ConceptScheme" />
+          </AssociationSet>
+          <AssociationSet Name="FK_ConceptScheme_AccountPublishedBy" Association="Self.FK_ConceptScheme_AccountPublishedBy">
+            <End Role="Account" EntitySet="Account" />
+            <End Role="ConceptScheme" EntitySet="ConceptScheme" />
+          </AssociationSet>
+          <AssociationSet Name="FK_AspNetUsers_AspNetUsers" Association="Self.FK_AspNetUsers_AspNetUsers">
+            <End Role="AspNetUsers" EntitySet="AspNetUsers" />
+            <End Role="AspNetUsers1" EntitySet="AspNetUsers" />
+          </AssociationSet>
+          <AssociationSet Name="FK_ConceptScheme_Concept_ConceptScheme" Association="Self.FK_ConceptScheme_Concept_ConceptScheme">
+            <End Role="ConceptScheme" EntitySet="ConceptScheme" />
+            <End Role="ConceptScheme_Concept" EntitySet="ConceptScheme_Concept" />
+          </AssociationSet>
+          <AssociationSet Name="FK_RatingLevelTask_ConceptScheme_Concept" Association="Self.FK_RatingLevelTask_ConceptScheme_Concept">
+            <End Role="ConceptScheme_Concept" EntitySet="ConceptScheme_Concept" />
+            <End Role="RatingLevelTask" EntitySet="RatingLevelTask" />
+          </AssociationSet>
+          <AssociationSet Name="FK_RatingLevelTask_ConceptScheme_Concept1" Association="Self.FK_RatingLevelTask_ConceptScheme_Concept1">
+            <End Role="ConceptScheme_Concept" EntitySet="ConceptScheme_Concept" />
+            <End Role="RatingLevelTask" EntitySet="RatingLevelTask" />
+          </AssociationSet>
+          <AssociationSet Name="FK_RatingLevelTask_ConceptScheme_Concept2" Association="Self.FK_RatingLevelTask_ConceptScheme_Concept2">
+            <End Role="ConceptScheme_Concept" EntitySet="ConceptScheme_Concept" />
+            <End Role="RatingLevelTask" EntitySet="RatingLevelTask" />
+          </AssociationSet>
+          <AssociationSet Name="FK_RatingLevelTask_ConceptScheme_Concept3" Association="Self.FK_RatingLevelTask_ConceptScheme_Concept3">
+            <End Role="ConceptScheme_Concept" EntitySet="ConceptScheme_Concept" />
+            <End Role="RatingLevelTask" EntitySet="RatingLevelTask" />
+          </AssociationSet>
+          <AssociationSet Name="FK_Course_Task_Course" Association="Self.FK_Course_Task_Course">
+            <End Role="Course" EntitySet="Course" />
+            <End Role="Course_Task" EntitySet="Course_Task" />
+          </AssociationSet>
+          <AssociationSet Name="FK_RatingLevelTask_Course_Task" Association="Self.FK_RatingLevelTask_Course_Task">
+            <End Role="Course_Task" EntitySet="Course_Task" />
+            <End Role="RatingLevelTask" EntitySet="RatingLevelTask" />
+          </AssociationSet>
+          <AssociationSet Name="FK_RatingLevelTask_FunctionalArea" Association="Self.FK_RatingLevelTask_FunctionalArea">
+            <End Role="FunctionalArea" EntitySet="FunctionalArea" />
+            <End Role="RatingLevelTask" EntitySet="RatingLevelTask" />
+          </AssociationSet>
+          <AssociationSet Name="FK_RmtlProject_Billet_Job" Association="Self.FK_RmtlProject_Billet_Job">
+            <End Role="Job" EntitySet="Job" />
+            <End Role="RmtlProject_Billet" EntitySet="RmtlProject_Billet" />
+          </AssociationSet>
+          <AssociationSet Name="FK_RatingLevelTask_Source" Association="Self.FK_RatingLevelTask_Source">
+            <End Role="Source" EntitySet="Source" />
+            <End Role="RatingLevelTask" EntitySet="RatingLevelTask" />
+          </AssociationSet>
+          <AssociationSet Name="FK_RatingLevelTask_WorkElementType" Association="Self.FK_RatingLevelTask_WorkElementType">
+            <End Role="WorkElementType" EntitySet="WorkElementType" />
+            <End Role="RatingLevelTask" EntitySet="RatingLevelTask" />
+          </AssociationSet>
+          <AssociationSet Name="FK_RmtlProject_Billet_RMTLProject" Association="Self.FK_RmtlProject_Billet_RMTLProject">
+            <End Role="RMTLProject" EntitySet="RMTLProject" />
+            <End Role="RmtlProject_Billet" EntitySet="RmtlProject_Billet" />
+          </AssociationSet>
+          <EntitySet Name="AspNetUserRoles" EntityType="NavyRRLModel.AspNetUserRoles" />
+          <AssociationSet Name="FK_AspNetUserRoles_AspNetUsers" Association="NavyRRLModel.FK_AspNetUserRoles_AspNetUsers">
+            <End Role="AspNetUsers" EntitySet="AspNetUsers" />
+            <End Role="AspNetUserRoles" EntitySet="AspNetUserRoles" />
+          </AssociationSet>
+          <EntitySet Name="AspNetRoles" EntityType="NavyRRLModel.AspNetRoles" />
+          <AssociationSet Name="FK_AspNetUserRoles_AspNetRoles" Association="NavyRRLModel.FK_AspNetUserRoles_AspNetRoles">
+            <End Role="AspNetRoles" EntitySet="AspNetRoles" />
+            <End Role="AspNetUserRoles" EntitySet="AspNetUserRoles" />
+          </AssociationSet>
+        </EntityContainer>
+        <EntityType Name="AspNetUserRoles">
+          <Key>
+            <PropertyRef Name="UserId" />
+            <PropertyRef Name="RoleId" />
+          </Key>
+          <Property Name="UserId" Type="String" Nullable="false" MaxLength="128" FixedLength="false" Unicode="true" />
+          <Property Name="RoleId" Type="String" Nullable="false" MaxLength="128" FixedLength="false" Unicode="true" />
+          <Property Name="Created" Type="DateTime" Precision="3" />
+          <NavigationProperty Name="AspNetUsers" Relationship="NavyRRLModel.FK_AspNetUserRoles_AspNetUsers" FromRole="AspNetUserRoles" ToRole="AspNetUsers" />
+          <NavigationProperty Name="AspNetRoles" Relationship="NavyRRLModel.FK_AspNetUserRoles_AspNetRoles" FromRole="AspNetUserRoles" ToRole="AspNetRoles" />
+        </EntityType>
+        <Association Name="FK_AspNetUserRoles_AspNetUsers">
+          <End Type="NavyRRLModel.AspNetUsers" Role="AspNetUsers" Multiplicity="1">
+            <OnDelete Action="Cascade" />
+          </End>
+          <End Type="NavyRRLModel.AspNetUserRoles" Role="AspNetUserRoles" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="AspNetUsers">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="AspNetUserRoles">
+              <PropertyRef Name="UserId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <EntityType Name="AspNetRoles">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="String" Nullable="false" MaxLength="128" FixedLength="false" Unicode="true" />
+          <Property Name="Name" Type="String" Nullable="false" MaxLength="256" FixedLength="false" Unicode="true" />
+          <Property Name="IsActive" Type="Boolean" />
+          <NavigationProperty Name="AspNetUserRoles" Relationship="NavyRRLModel.FK_AspNetUserRoles_AspNetRoles" FromRole="AspNetRoles" ToRole="AspNetUserRoles" />
+        </EntityType>
+        <Association Name="FK_AspNetUserRoles_AspNetRoles">
+          <End Type="NavyRRLModel.AspNetRoles" Role="AspNetRoles" Multiplicity="1">
+            <OnDelete Action="Cascade" />
+          </End>
+          <End Type="NavyRRLModel.AspNetUserRoles" Role="AspNetUserRoles" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="AspNetRoles">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="AspNetUserRoles">
+              <PropertyRef Name="RoleId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+      </Schema>
+    </edmx:ConceptualModels>
+    <!-- C-S mapping content -->
+    <edmx:Mappings>
+      <Mapping Space="C-S" xmlns="http://schemas.microsoft.com/ado/2009/11/mapping/cs">
+        <EntityContainerMapping StorageEntityContainer="NavyRRLModelStoreContainer" CdmEntityContainer="NavyRRLEntities">
+          <EntitySetMapping Name="Account">
+            <EntityTypeMapping TypeName="NavyRRLModel.Account">
+              <MappingFragment StoreEntitySet="Account">
+                <ScalarProperty Name="Id" ColumnName="Id" />
+                <ScalarProperty Name="UserName" ColumnName="UserName" />
+                <ScalarProperty Name="FirstName" ColumnName="FirstName" />
+                <ScalarProperty Name="LastName" ColumnName="LastName" />
+                <ScalarProperty Name="Email" ColumnName="Email" />
+                <ScalarProperty Name="IsActive" ColumnName="IsActive" />
+                <ScalarProperty Name="Created" ColumnName="Created" />
+                <ScalarProperty Name="LastUpdated" ColumnName="LastUpdated" />
+                <ScalarProperty Name="LastUpdatedById" ColumnName="LastUpdatedById" />
+                <ScalarProperty Name="RowId" ColumnName="RowId" />
+                <ScalarProperty Name="AspNetId" ColumnName="AspNetId" />
+                <ScalarProperty Name="ExternalAccountIdentifier" ColumnName="ExternalAccountIdentifier" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="ActivityLog">
+            <EntityTypeMapping TypeName="NavyRRLModel.ActivityLog">
+              <MappingFragment StoreEntitySet="ActivityLog">
+                <ScalarProperty Name="Id" ColumnName="Id" />
+                <ScalarProperty Name="CreatedDate" ColumnName="CreatedDate" />
+                <ScalarProperty Name="ActivityType" ColumnName="ActivityType" />
+                <ScalarProperty Name="Activity" ColumnName="Activity" />
+                <ScalarProperty Name="Event" ColumnName="Event" />
+                <ScalarProperty Name="Comment" ColumnName="Comment" />
+                <ScalarProperty Name="ActivityObjectIdentifier" ColumnName="ActivityObjectIdentifier" />
+                <ScalarProperty Name="RelatedTargetUrl" ColumnName="RelatedTargetUrl" />
+                <ScalarProperty Name="TargetUserId" ColumnName="TargetUserId" />
+                <ScalarProperty Name="ActionByUserId" ColumnName="ActionByUserId" />
+                <ScalarProperty Name="ActivityObjectId" ColumnName="ActivityObjectId" />
+                <ScalarProperty Name="ObjectRelatedId" ColumnName="ObjectRelatedId" />
+                <ScalarProperty Name="TargetObjectId" ColumnName="TargetObjectId" />
+                <ScalarProperty Name="SessionId" ColumnName="SessionId" />
+                <ScalarProperty Name="IPAddress" ColumnName="IPAddress" />
+                <ScalarProperty Name="Referrer" ColumnName="Referrer" />
+                <ScalarProperty Name="ActivityObjectParentEntityUid" ColumnName="ActivityObjectParentEntityUid" />
+                <ScalarProperty Name="DataOwnerCTID" ColumnName="DataOwnerCTID" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="AspNetUsers">
+            <EntityTypeMapping TypeName="NavyRRLModel.AspNetUsers">
+              <MappingFragment StoreEntitySet="AspNetUsers">
+                <ScalarProperty Name="Id" ColumnName="Id" />
+                <ScalarProperty Name="Email" ColumnName="Email" />
+                <ScalarProperty Name="EmailConfirmed" ColumnName="EmailConfirmed" />
+                <ScalarProperty Name="PasswordHash" ColumnName="PasswordHash" />
+                <ScalarProperty Name="SecurityStamp" ColumnName="SecurityStamp" />
+                <ScalarProperty Name="PhoneNumber" ColumnName="PhoneNumber" />
+                <ScalarProperty Name="PhoneNumberConfirmed" ColumnName="PhoneNumberConfirmed" />
+                <ScalarProperty Name="TwoFactorEnabled" ColumnName="TwoFactorEnabled" />
+                <ScalarProperty Name="LockoutEndDateUtc" ColumnName="LockoutEndDateUtc" />
+                <ScalarProperty Name="LockoutEnabled" ColumnName="LockoutEnabled" />
+                <ScalarProperty Name="AccessFailedCount" ColumnName="AccessFailedCount" />
+                <ScalarProperty Name="UserName" ColumnName="UserName" />
+                <ScalarProperty Name="FirstName" ColumnName="FirstName" />
+                <ScalarProperty Name="LastName" ColumnName="LastName" />
+                <ScalarProperty Name="Created" ColumnName="Created" />
+                <ScalarProperty Name="UserId" ColumnName="UserId" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="Assessment">
+            <EntityTypeMapping TypeName="NavyRRLModel.Assessment">
+              <MappingFragment StoreEntitySet="Assessment">
+                <ScalarProperty Name="Id" ColumnName="Id" />
+                <ScalarProperty Name="Name" ColumnName="Name" />
+                <ScalarProperty Name="Description" ColumnName="Description" />
+                <ScalarProperty Name="Created" ColumnName="Created" />
+                <ScalarProperty Name="CreatedById" ColumnName="CreatedById" />
+                <ScalarProperty Name="LastUpdated" ColumnName="LastUpdated" />
+                <ScalarProperty Name="LastUpdatedById" ColumnName="LastUpdatedById" />
+                <ScalarProperty Name="CTID" ColumnName="CTID" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="ConceptScheme">
+            <EntityTypeMapping TypeName="NavyRRLModel.ConceptScheme">
+              <MappingFragment StoreEntitySet="ConceptScheme">
+                <ScalarProperty Name="Id" ColumnName="Id" />
+                <ScalarProperty Name="Name" ColumnName="Name" />
+                <ScalarProperty Name="Description" ColumnName="Description" />
+                <ScalarProperty Name="RowId" ColumnName="RowId" />
+                <ScalarProperty Name="CTID" ColumnName="CTID" />
+                <ScalarProperty Name="SchemaUri" ColumnName="SchemaUri" />
+                <ScalarProperty Name="Created" ColumnName="Created" />
+                <ScalarProperty Name="CreatedById" ColumnName="CreatedById" />
+                <ScalarProperty Name="LastUpdated" ColumnName="LastUpdated" />
+                <ScalarProperty Name="LastUpdatedById" ColumnName="LastUpdatedById" />
+                <ScalarProperty Name="LastApproved" ColumnName="LastApproved" />
+                <ScalarProperty Name="LastApprovedById" ColumnName="LastApprovedById" />
+                <ScalarProperty Name="LastPublished" ColumnName="LastPublished" />
+                <ScalarProperty Name="LastPublishedById" ColumnName="LastPublishedById" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="ConceptScheme_Concept">
+            <EntityTypeMapping TypeName="NavyRRLModel.ConceptScheme_Concept">
+              <MappingFragment StoreEntitySet="ConceptScheme_Concept">
+                <ScalarProperty Name="Id" ColumnName="Id" />
+                <ScalarProperty Name="ConceptSchemeId" ColumnName="ConceptSchemeId" />
+                <ScalarProperty Name="PrefLabel" ColumnName="PrefLabel" />
+                <ScalarProperty Name="CTID" ColumnName="CTID" />
+                <ScalarProperty Name="CodedNotation" ColumnName="CodedNotation" />
+                <ScalarProperty Name="AlternateLabel" ColumnName="AlternateLabel" />
+                <ScalarProperty Name="Description" ColumnName="Description" />
+                <ScalarProperty Name="ListId" ColumnName="ListId" />
+                <ScalarProperty Name="Created" ColumnName="Created" />
+                <ScalarProperty Name="LastUpdated" ColumnName="LastUpdated" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="Course">
+            <EntityTypeMapping TypeName="NavyRRLModel.Course">
+              <MappingFragment StoreEntitySet="Course">
+                <ScalarProperty Name="Id" ColumnName="Id" />
+                <ScalarProperty Name="CIN" ColumnName="CIN" />
+                <ScalarProperty Name="Name" ColumnName="Name" />
+                <ScalarProperty Name="Description" ColumnName="Description" />
+                <ScalarProperty Name="CourseTypeId" ColumnName="CourseTypeId" />
+                <ScalarProperty Name="LifeCycleControlDocumentId" ColumnName="LifeCycleControlDocumentId" />
+                <ScalarProperty Name="AssessmentApproachId" ColumnName="AssessmentApproachId" />
+                <ScalarProperty Name="CurriculumControlAuthorityId" ColumnName="CurriculumControlAuthorityId" />
+                <ScalarProperty Name="CTID" ColumnName="CTID" />
+                <ScalarProperty Name="Created" ColumnName="Created" />
+                <ScalarProperty Name="CreatedById" ColumnName="CreatedById" />
+                <ScalarProperty Name="LastUpdated" ColumnName="LastUpdated" />
+                <ScalarProperty Name="LastUpdatedById" ColumnName="LastUpdatedById" />
+                <ScalarProperty Name="CourseType" ColumnName="CourseType" />
+                <ScalarProperty Name="LifeCycleControlDocument" ColumnName="LifeCycleControlDocument" />
+                <ScalarProperty Name="CurriculumControlAuthority" ColumnName="CurriculumControlAuthority" />
+                <ScalarProperty Name="CurrentAssessmentApproach" ColumnName="CurrentAssessmentApproach" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="Course_Task">
+            <EntityTypeMapping TypeName="NavyRRLModel.Course_Task">
+              <MappingFragment StoreEntitySet="Course_Task">
+                <ScalarProperty Name="Id" ColumnName="Id" />
+                <ScalarProperty Name="CourseId" ColumnName="CourseId" />
+                <ScalarProperty Name="TaskStatement" ColumnName="TaskStatement" />
+                <ScalarProperty Name="CTID" ColumnName="CTID" />
+                <ScalarProperty Name="Created" ColumnName="Created" />
+                <ScalarProperty Name="CreatedById" ColumnName="CreatedById" />
+                <ScalarProperty Name="LastUpdated" ColumnName="LastUpdated" />
+                <ScalarProperty Name="LastUpdatedById" ColumnName="LastUpdatedById" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="CurriculumControlAuthority">
+            <EntityTypeMapping TypeName="NavyRRLModel.CurriculumControlAuthority">
+              <MappingFragment StoreEntitySet="CurriculumControlAuthority">
+                <ScalarProperty Name="Id" ColumnName="Id" />
+                <ScalarProperty Name="Name" ColumnName="Name" />
+                <ScalarProperty Name="Abbreviation" ColumnName="Abbreviation" />
+                <ScalarProperty Name="CTID" ColumnName="CTID" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="FunctionalArea">
+            <EntityTypeMapping TypeName="NavyRRLModel.FunctionalArea">
+              <MappingFragment StoreEntitySet="FunctionalArea">
+                <ScalarProperty Name="Id" ColumnName="Id" />
+                <ScalarProperty Name="Name" ColumnName="Name" />
+                <ScalarProperty Name="Description" ColumnName="Description" />
+                <ScalarProperty Name="DateCreated" ColumnName="DateCreated" />
+                <ScalarProperty Name="DateModified" ColumnName="DateModified" />
+                <ScalarProperty Name="CTID" ColumnName="CTID" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="Job">
+            <EntityTypeMapping TypeName="NavyRRLModel.Job">
+              <MappingFragment StoreEntitySet="Job">
+                <ScalarProperty Name="Id" ColumnName="Id" />
+                <ScalarProperty Name="CTID" ColumnName="CTID" />
+                <ScalarProperty Name="Name" ColumnName="Name" />
+                <ScalarProperty Name="CodedNotation" ColumnName="CodedNotation" />
+                <ScalarProperty Name="JobVersion" ColumnName="JobVersion" />
+                <ScalarProperty Name="Description" ColumnName="Description" />
+                <ScalarProperty Name="ShortName30" ColumnName="ShortName30" />
+                <ScalarProperty Name="ShortName14" ColumnName="ShortName14" />
+                <ScalarProperty Name="CredentialRegistryId" ColumnName="CredentialRegistryId" />
+                <ScalarProperty Name="Created" ColumnName="Created" />
+                <ScalarProperty Name="LastUpdated" ColumnName="LastUpdated" />
+                <ScalarProperty Name="LastPublished" ColumnName="LastPublished" />
+                <ScalarProperty Name="RowId" ColumnName="RowId" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="Organization">
+            <EntityTypeMapping TypeName="NavyRRLModel.Organization">
+              <MappingFragment StoreEntitySet="Organization">
+                <ScalarProperty Name="Id" ColumnName="Id" />
+                <ScalarProperty Name="RowId" ColumnName="RowId" />
+                <ScalarProperty Name="Name" ColumnName="Name" />
+                <ScalarProperty Name="Description" ColumnName="Description" />
+                <ScalarProperty Name="CTID" ColumnName="CTID" />
+                <ScalarProperty Name="SubjectWebpage" ColumnName="SubjectWebpage" />
+                <ScalarProperty Name="StatusId" ColumnName="StatusId" />
+                <ScalarProperty Name="CredentialRegistryId" ColumnName="CredentialRegistryId" />
+                <ScalarProperty Name="ImageURL" ColumnName="ImageURL" />
+                <ScalarProperty Name="Created" ColumnName="Created" />
+                <ScalarProperty Name="CreatedById" ColumnName="CreatedById" />
+                <ScalarProperty Name="LastUpdated" ColumnName="LastUpdated" />
+                <ScalarProperty Name="LastUpdatedById" ColumnName="LastUpdatedById" />
+                <ScalarProperty Name="FoundingDate" ColumnName="FoundingDate" />
+                <ScalarProperty Name="AvailabilityListing" ColumnName="AvailabilityListing" />
+                <ScalarProperty Name="AgentPurpose" ColumnName="AgentPurpose" />
+                <ScalarProperty Name="AgentPurposeDescription" ColumnName="AgentPurposeDescription" />
+                <ScalarProperty Name="MissionAndGoalsStatement" ColumnName="MissionAndGoalsStatement" />
+                <ScalarProperty Name="MissionAndGoalsStatementDescription" ColumnName="MissionAndGoalsStatementDescription" />
+                <ScalarProperty Name="ISQAOrganization" ColumnName="ISQAOrganization" />
+                <ScalarProperty Name="AlternativeIdentifier" ColumnName="AlternativeIdentifier" />
+                <ScalarProperty Name="IsThirdPartyOrganization" ColumnName="IsThirdPartyOrganization" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="Rating">
+            <EntityTypeMapping TypeName="NavyRRLModel.Rating">
+              <MappingFragment StoreEntitySet="Rating">
+                <ScalarProperty Name="Id" ColumnName="Id" />
+                <ScalarProperty Name="CTID" ColumnName="CTID" />
+                <ScalarProperty Name="Name" ColumnName="Name" />
+                <ScalarProperty Name="CodedNotation" ColumnName="CodedNotation" />
+                <ScalarProperty Name="Description" ColumnName="Description" />
+                <ScalarProperty Name="Version" ColumnName="Version" />
+                <ScalarProperty Name="RatingUploadDate" ColumnName="RatingUploadDate" />
+                <ScalarProperty Name="RatingPublicationDate" ColumnName="RatingPublicationDate" />
+                <ScalarProperty Name="Image" ColumnName="Image" />
+                <ScalarProperty Name="CredentialRegistryId" ColumnName="CredentialRegistryId" />
+                <ScalarProperty Name="Created" ColumnName="Created" />
+                <ScalarProperty Name="LastUpdated" ColumnName="LastUpdated" />
+                <ScalarProperty Name="LastPublished" ColumnName="LastPublished" />
+                <ScalarProperty Name="RowId" ColumnName="RowId" />
+                <ScalarProperty Name="CredentialRegistryURI" ColumnName="CredentialRegistryURI" />
+                <ScalarProperty Name="MainEntityOfPage" ColumnName="MainEntityOfPage" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="RatingLevelTask">
+            <EntityTypeMapping TypeName="NavyRRLModel.RatingLevelTask">
+              <MappingFragment StoreEntitySet="RatingLevelTask">
+                <ScalarProperty Name="Id" ColumnName="Id" />
+                <ScalarProperty Name="CodedNotation" ColumnName="CodedNotation" />
+                <ScalarProperty Name="RankId" ColumnName="RankId" />
+                <ScalarProperty Name="LevelId" ColumnName="LevelId" />
+                <ScalarProperty Name="FunctionalAreaId" ColumnName="FunctionalAreaId" />
+                <ScalarProperty Name="SourceId" ColumnName="SourceId" />
+                <ScalarProperty Name="WorkElementTypeId" ColumnName="WorkElementTypeId" />
+                <ScalarProperty Name="WorkElementTask" ColumnName="WorkElementTask" />
+                <ScalarProperty Name="TaskApplicabilityId" ColumnName="TaskApplicabilityId" />
+                <ScalarProperty Name="TaskStatusId" ColumnName="TaskStatusId" />
+                <ScalarProperty Name="FormalTrainingGapId" ColumnName="FormalTrainingGapId" />
+                <ScalarProperty Name="Notes" ColumnName="Notes" />
+                <ScalarProperty Name="Created" ColumnName="Created" />
+                <ScalarProperty Name="CreatedById" ColumnName="CreatedById" />
+                <ScalarProperty Name="LastUpdated" ColumnName="LastUpdated" />
+                <ScalarProperty Name="LastUpdatedById" ColumnName="LastUpdatedById" />
+                <ScalarProperty Name="CTID" ColumnName="CTID" />
+                <ScalarProperty Name="TrainingTaskId" ColumnName="TrainingTaskId" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="RMTLProject">
+            <EntityTypeMapping TypeName="NavyRRLModel.RMTLProject">
+              <MappingFragment StoreEntitySet="RMTLProject">
+                <ScalarProperty Name="Id" ColumnName="Id" />
+                <ScalarProperty Name="CTID" ColumnName="CTID" />
+                <ScalarProperty Name="Name" ColumnName="Name" />
+                <ScalarProperty Name="RatingId" ColumnName="RatingId" />
+                <ScalarProperty Name="Description" ColumnName="Description" />
+                <ScalarProperty Name="StatusId" ColumnName="StatusId" />
+                <ScalarProperty Name="VersionControlIdentifier" ColumnName="VersionControlIdentifier" />
+                <ScalarProperty Name="Notes" ColumnName="Notes" />
+                <ScalarProperty Name="Created" ColumnName="Created" />
+                <ScalarProperty Name="CreatedById" ColumnName="CreatedById" />
+                <ScalarProperty Name="LastUpdated" ColumnName="LastUpdated" />
+                <ScalarProperty Name="LastUpdatedById" ColumnName="LastUpdatedById" />
+                <ScalarProperty Name="LastApproved" ColumnName="LastApproved" />
+                <ScalarProperty Name="LastApprovedById" ColumnName="LastApprovedById" />
+                <ScalarProperty Name="LastPublished" ColumnName="LastPublished" />
+                <ScalarProperty Name="LastPublishedById" ColumnName="LastPublishedById" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="RmtlProject_Billet">
+            <EntityTypeMapping TypeName="NavyRRLModel.RmtlProject_Billet">
+              <MappingFragment StoreEntitySet="RmtlProject_Billet">
+                <ScalarProperty Name="Id" ColumnName="Id" />
+                <ScalarProperty Name="RmtlProjectId" ColumnName="RmtlProjectId" />
+                <ScalarProperty Name="JobId" ColumnName="JobId" />
+                <ScalarProperty Name="Created" ColumnName="Created" />
+                <ScalarProperty Name="LastUpdated" ColumnName="LastUpdated" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="RmtlProjectBilletTask">
+            <EntityTypeMapping TypeName="NavyRRLModel.RmtlProjectBilletTask">
+              <MappingFragment StoreEntitySet="RmtlProjectBilletTask">
+                <ScalarProperty Name="Id" ColumnName="Id" />
+                <ScalarProperty Name="ProjectBilletId" ColumnName="ProjectBilletId" />
+                <ScalarProperty Name="RatingLevelTaskId" ColumnName="RatingLevelTaskId" />
+                <ScalarProperty Name="Created" ColumnName="Created" />
+                <ScalarProperty Name="LastUpdated" ColumnName="LastUpdated" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="Source">
+            <EntityTypeMapping TypeName="NavyRRLModel.Source">
+              <MappingFragment StoreEntitySet="Source">
+                <ScalarProperty Name="Id" ColumnName="Id" />
+                <ScalarProperty Name="Name" ColumnName="Name" />
+                <ScalarProperty Name="SourceDate" ColumnName="SourceDate" />
+                <ScalarProperty Name="Description" ColumnName="Description" />
+                <ScalarProperty Name="DateCreated" ColumnName="DateCreated" />
+                <ScalarProperty Name="CreatedById" ColumnName="CreatedById" />
+                <ScalarProperty Name="DateModified" ColumnName="DateModified" />
+                <ScalarProperty Name="LastUpdatedById" ColumnName="LastUpdatedById" />
+                <ScalarProperty Name="CTID" ColumnName="CTID" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="WorkElementType">
+            <EntityTypeMapping TypeName="NavyRRLModel.WorkElementType">
+              <MappingFragment StoreEntitySet="WorkElementType">
+                <ScalarProperty Name="Id" ColumnName="Id" />
+                <ScalarProperty Name="Name" ColumnName="Name" />
+                <ScalarProperty Name="description" ColumnName="description" />
+                <ScalarProperty Name="DateCreated" ColumnName="DateCreated" />
+                <ScalarProperty Name="DateModified" ColumnName="DateModified" />
+                <ScalarProperty Name="CTID" ColumnName="CTID" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="ImportRMTL">
+            <EntityTypeMapping TypeName="NavyRRLModel.ImportRMTL">
+              <MappingFragment StoreEntitySet="ImportRMTL">
+                <ScalarProperty Name="IndexIdentifier" ColumnName="IndexIdentifier" />
+                <ScalarProperty Name="Unique_Identifier" ColumnName="Unique_Identifier" />
+                <ScalarProperty Name="Rating" ColumnName="Rating" />
+                <ScalarProperty Name="Rank" ColumnName="Rank" />
+                <ScalarProperty Name="RankLevel" ColumnName="RankLevel" />
+                <ScalarProperty Name="Billet_Title" ColumnName="Billet_Title" />
+                <ScalarProperty Name="Functional_Area" ColumnName="Functional_Area" />
+                <ScalarProperty Name="Source" ColumnName="Source" />
+                <ScalarProperty Name="Date_of_Source" ColumnName="Date_of_Source" />
+                <ScalarProperty Name="Work_Element_Type" ColumnName="Work_Element_Type" />
+                <ScalarProperty Name="Work_Element_Task" ColumnName="Work_Element_Task" />
+                <ScalarProperty Name="Task_Applicability" ColumnName="Task_Applicability" />
+                <ScalarProperty Name="Formal_Training_Gap" ColumnName="Formal_Training_Gap" />
+                <ScalarProperty Name="CIN" ColumnName="CIN" />
+                <ScalarProperty Name="Course_Name" ColumnName="Course_Name" />
+                <ScalarProperty Name="Course_Type" ColumnName="Course_Type" />
+                <ScalarProperty Name="Curriculum_Control_Authority" ColumnName="Curriculum_Control_Authority" />
+                <ScalarProperty Name="Life_Cycle_Control_Document" ColumnName="Life_Cycle_Control_Document" />
+                <ScalarProperty Name="Task_Statement" ColumnName="Task_Statement" />
+                <ScalarProperty Name="Current_Assessment_Approach" ColumnName="Current_Assessment_Approach" />
+                <ScalarProperty Name="TaskNotes" ColumnName="TaskNotes" />
+                <ScalarProperty Name="Training_Solution_Type" ColumnName="Training_Solution_Type" />
+                <ScalarProperty Name="Cluster_Analysis_Title" ColumnName="Cluster_Analysis_Title" />
+                <ScalarProperty Name="Recommended_Modality" ColumnName="Recommended_Modality" />
+                <ScalarProperty Name="Development_Specification" ColumnName="Development_Specification" />
+                <ScalarProperty Name="Candidate_Platform" ColumnName="Candidate_Platform" />
+                <ScalarProperty Name="CFM_Placement" ColumnName="CFM_Placement" />
+                <ScalarProperty Name="Priority_Placement" ColumnName="Priority_Placement" />
+                <ScalarProperty Name="Development_Ratio" ColumnName="Development_Ratio" />
+                <ScalarProperty Name="Development_Time" ColumnName="Development_Time" />
+                <ScalarProperty Name="ClusterAnalysisNotes" ColumnName="ClusterAnalysisNotes" />
+                <ScalarProperty Name="RatingId" ColumnName="RatingId" />
+                <ScalarProperty Name="RankId" ColumnName="RankId" />
+                <ScalarProperty Name="LevelId" ColumnName="LevelId" />
+                <ScalarProperty Name="BilletTitleId" ColumnName="BilletTitleId" />
+                <ScalarProperty Name="FunctionalAreaId" ColumnName="FunctionalAreaId" />
+                <ScalarProperty Name="SourceId" ColumnName="SourceId" />
+                <ScalarProperty Name="WorkElementTypeId" ColumnName="WorkElementTypeId" />
+                <ScalarProperty Name="RatingLevelTaskId" ColumnName="RatingLevelTaskId" />
+                <ScalarProperty Name="TaskApplicabilityId" ColumnName="TaskApplicabilityId" />
+                <ScalarProperty Name="FormalTrainingGapId" ColumnName="FormalTrainingGapId" />
+                <ScalarProperty Name="CourseId" ColumnName="CourseId" />
+                <ScalarProperty Name="CourseTaskId" ColumnName="CourseTaskId" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="AspNetUserRoles">
+            <EntityTypeMapping TypeName="NavyRRLModel.AspNetUserRoles">
+              <MappingFragment StoreEntitySet="AspNetUserRoles">
+                <ScalarProperty Name="Created" ColumnName="Created" />
+                <ScalarProperty Name="RoleId" ColumnName="RoleId" />
+                <ScalarProperty Name="UserId" ColumnName="UserId" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="AspNetRoles">
+            <EntityTypeMapping TypeName="NavyRRLModel.AspNetRoles">
+              <MappingFragment StoreEntitySet="AspNetRoles">
+                <ScalarProperty Name="IsActive" ColumnName="IsActive" />
+                <ScalarProperty Name="Name" ColumnName="Name" />
+                <ScalarProperty Name="Id" ColumnName="Id" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+        </EntityContainerMapping>
+      </Mapping>
+    </edmx:Mappings>
+  </edmx:Runtime>
+  <!-- EF Designer content (DO NOT EDIT MANUALLY BELOW HERE) -->
+  <Designer xmlns="http://schemas.microsoft.com/ado/2009/11/edmx">
+    <Connection>
+      <DesignerInfoPropertySet>
+        <DesignerProperty Name="MetadataArtifactProcessing" Value="EmbedInOutputAssembly" />
+      </DesignerInfoPropertySet>
+    </Connection>
+    <Options>
+      <DesignerInfoPropertySet>
+        <DesignerProperty Name="ValidateOnBuild" Value="true" />
+        <DesignerProperty Name="EnablePluralization" Value="false" />
+        <DesignerProperty Name="IncludeForeignKeysInModel" Value="true" />
+        <DesignerProperty Name="UseLegacyProvider" Value="false" />
+        <DesignerProperty Name="CodeGenerationStrategy" Value="None" />
+      </DesignerInfoPropertySet>
+    </Options>
+    <!-- Diagram content (shape and connector positions) -->
+    <Diagrams></Diagrams>
+  </Designer>
+</edmx:Edmx>

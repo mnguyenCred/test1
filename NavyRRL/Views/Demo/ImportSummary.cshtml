@@ -1,0 +1,168 @@
+﻿
+@{
+	ViewBag.Title = "Import Summary";
+}
+@section css{
+	<link href="~/Content/bootstrap.min.css" rel="stylesheet" />
+	<link href="~/Content/DataTables/DataTables-1.11.3/css/dataTables.bootstrap.min.css" rel="stylesheet" />
+	<link href="~/Content/bootstrap-multiselect.css" rel="stylesheet" />
+	<link href="~/Content/DataTables/Buttons-2.0.1/css/buttons.dataTables.min.css" rel="stylesheet" />
+	<link href="~/Content/Site.css" rel="stylesheet" />
+	<link href="~/Content/font-awesome.min.css" rel="stylesheet" />
+	<style type="text/css">
+		.custom-loader { background-color: crimson !important; }
+			.custom-loader i { color: #fff !important; }
+		.ui-autocomplete { z-index: 999999; height: 200px; overflow-y: auto; width: 420px; }
+		td.highlight { background-color: whitesmoke !important; }
+		#mainSiteFooter { display: none; }
+		#queryTable_filter { display: none; }
+	</style>
+}
+<h2>Import Summary</h2>
+
+<div style="width:100%">
+	<table id="queryTable" class="table"></table>
+	<div id="queryGridPager"></div>
+	<br />
+</div>
+
+@section scripts{
+	@*added bootstrap*@
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.3/jszip.min.js"></script>
+	<script src="~/Scripts/bootstrap.min.js"></script>
+	<script src="~/Content/DataTables/DataTables-1.11.3/js/jquery.dataTables.min.js"></script>
+	<script src="~/Content/DataTables/DataTables-1.11.3/js/dataTables.bootstrap.min.js"></script>
+	<script src="~/Content/DataTables/Buttons-2.0.1/js/dataTables.buttons.min.js"></script>
+	<script src="~/Content/DataTables/Buttons-2.0.1/js/buttons.html5.min.js"></script>
+	<script src="~/Scripts/bootstrap-multiselect.js"></script>
+	@Scripts.Render( "~/bundles/jqueryval" )
+
+	<script type="text/javascript">
+        $(document).ready(function () {
+            var myGrid = $('#queryTable');
+
+            var table = myGrid.DataTable({
+                language: { processing: "<div class='overlay custom-loader'><i class='fa fa-cog fa-spin fa-2x'></i></div>" },
+                processing: true,
+				serverSide: true,
+				searchDelay: 2000,
+                paging: true,
+                bAutoWidth: true,
+                filter: true,
+                orderMulti: false,
+                iDisplayLength: 25,
+				aLengthMenu: [[10, 25, 50, 100, 200, 500, 2000, 5000], [10, 25, 50, 100, 200, 500, 2000, 5000]],
+                ajax: {
+                    url: '@Html.Raw(Url.Action( "ImportSummarySearch", "Demo", new { area = "Admin" }))',
+                    type: 'POST',
+                    dataType: "json"
+                },
+                //order: [[0, "desc"]],
+                //columnDefs: [{ targets: [0, 1, 2, 3], orderable: true }, { targets: 4, orderable: false, searchable: false }],
+                columns: [
+                //{ data: "Id", name: "Id", title: 'Id', width: "5%", filter: true },
+					{ data: 'IndexIdentifier', name: "IndexIdentifier", title: "IndexIdentifier", filter: true, width: "50px" },
+					{ data: 'Unique_Identifier', name: "Unique_Identifier", title: "Unique_Identifier", filter: true, width: "50px" },
+					{ data: 'Rating', name: "Rating", title: "Rating", filter: true, width: "15%" },
+					{ data: 'Rank', name: "Rank", title: "Rank", filter: true },
+					{ data: 'RankLevel', name: "RankLevel", title: "Level", filter: true },
+                    { data: 'Billet_Title', name: "Billet_Title", title: "Billet Title", filter: true, width: "15%" },
+
+					{ data: 'Functional_Area', name: "Functional_Area", title: "Functional Area", filter: true },
+					{ data: 'Source', name: "Source", title: "Source", filter: false }
+
+                    { data: 'Date_of_Source', name: "Date_of_Source", title: "Date_of_Source", filter: true },
+					{ data: 'Work_Element_Type', name: "Work_Element_Type", title: "Work_Element_Type", filter: true, width: "15%" },
+					{ data: 'Work_Element_Task', name: "Work_Element_Task", title: "Work_Element_Task", filter: true },
+					{ data: 'Task_Applicability', name: "Task_Applicability", title: "Task_Applicability", filter: true },
+                    { data: 'Formal_Training_Gap', name: "Formal_Training_Gap", title: "Formal_Training_Gap", filter: false }
+                    
+                    { data: 'CIN', name: "CIN", title: "CIN", filter: true },
+					{ data: 'Course_Name', name: "Course_Name", title: "Course_Name", filter: true, width: "15%" },
+					{ data: 'Course_Type', name: "Course_Type", title: "Course_Type", filter: true },
+					{ data: 'Curriculum_Control_Authority', name: "Curriculum_Control_Authority", title: "Curriculum_Control_Authority", filter: true },
+                    { data: 'Life_Cycle_Control_Document', name: "Life_Cycle_Control_Document", title: "Life_Cycle_Control_Document", filter: false }
+
+                    { data: 'Task_Statement', name: "Task_Statement", title: "Task_Statement", filter: true },
+					{ data: 'Current_Assessment_Approach', name: "Current_Assessment_Approach", title: "Current_Assessment_Approach", filter: true },
+					{ data: 'TaskNotes', name: "TaskNotes", title: "TaskNotes", filter: false }
+                ],
+                dom: 'lBfrtip',
+                buttons: [
+                    {
+                        extend: "excel",
+                        text: "Export to Excel",
+                        fieldSeparator: ";",
+                        footer: false,
+                        exportOptions: {
+                            //modifier: { page: -1 },
+                            orthogonal: "filter"
+                        }
+                    }
+				]
+
+
+			});
+			$('#queryTable tbody')
+				.on('mouseenter', 'td', function () {
+					var colIdx = table.cell(this).index().column;
+
+					$(table.cells().nodes()).removeClass('highlight');
+					$(table.column(colIdx).nodes()).addClass('highlight');
+				});
+
+            //{ data: 'ParentObject', name: "ParentObject", title: "Parent Object", filter: false },
+
+            //adding filter search inputs based on the columns
+            var row = $("<tr />", {}).appendTo($('#queryTable thead'));
+            //console.log(table.settings().init());
+            $.each(table.settings().init().columns, function () {
+                var th = $("<th />", {});
+                if (this.filter)
+                    th.append($("<input/>", { type: "text", placeholder: this.title }).addClass("form-control" + (this.type === "date" ? " datepicker" : "")));
+
+                row.append(th);
+            });
+            $(".datepicker").attr("readOnly", true).datepicker({
+                showButtonPanel: true,
+                closeText: "Clear",
+                onClose: function () {
+                    if ($(window.event.srcElement).hasClass("ui-datepicker-close")) {
+                        $(this).val("");
+                        var input = $(this);
+                        var index = input.parent().index();
+                        table.columns(index).search("").draw();
+                    }
+                },
+                onSelect: function (dateText, inst) {
+                    var input = $(this);
+                    var index = input.parent().index();
+                    this.value = dateText;
+                    table.columns(index).search(dateText).draw();
+                },
+                beforeShow: function (input) {
+                    setTimeout(function () {
+                        $(input).datepicker("widget").find(".ui-datepicker-current").hide();
+                    }, 1);
+                }
+            }).on("change", function (dateText, inst) {
+                var input = $(this);
+                var index = input.parent().index();
+                table.columns(index).search(dateText).draw();
+            });
+            $(document).on("keyup change", "#queryTable thead input:text", function (e) {
+                if (this.value === this.defaultValue) return false;
+
+                this.defaultValue = this.value;
+                var input = $(e.target);
+                var index = input.parent().index();
+                table.columns(index).search(this.value).draw();
+            });
+
+
+
+
+        });
+	</script>
+}
+

@@ -14,6 +14,12 @@ namespace Data.Tables
     
     public partial class Source
     {
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2214:DoNotCallOverridableMethodsInConstructors")]
+        public Source()
+        {
+            this.RatingLevelTask = new HashSet<RatingLevelTask>();
+        }
+    
         public int Id { get; set; }
         public string Name { get; set; }
         public string SourceDate { get; set; }
@@ -23,5 +29,8 @@ namespace Data.Tables
         public Nullable<System.DateTime> DateModified { get; set; }
         public Nullable<int> LastUpdatedById { get; set; }
         public string CTID { get; set; }
+    
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<RatingLevelTask> RatingLevelTask { get; set; }
     }
 }

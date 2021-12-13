@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 using Models;
 using Models.Application;
 using EM = Data.Tables;
-using DataEntities = Data.Tables.ceNavyEntities;
+using DataEntities = Data.Tables.NavyRRLEntities;
 using ViewContext = Data.Views.ceNavyViewEntities;
 using Views = Data.Views;
 using Navy.Utilities;

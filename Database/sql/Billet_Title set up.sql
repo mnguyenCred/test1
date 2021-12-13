@@ -101,7 +101,11 @@ SELECT distinct b.Id, c.Id
 
 -- =============================================
 -- billet tasks
+/*
+The RmtlProjectBilletTask has to consider all sailors 
 
+
+*/
 USE [NavyRRL]
 GO
 

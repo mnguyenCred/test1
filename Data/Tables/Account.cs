@@ -36,6 +36,7 @@ namespace Data.Tables
         public string AspNetId { get; set; }
         public string ExternalAccountIdentifier { get; set; }
     
+        public virtual AspNetUsers AspNetUsers { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<ConceptScheme> ConceptScheme { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
@@ -44,6 +45,5 @@ namespace Data.Tables
         public virtual ICollection<ConceptScheme> ConceptScheme2 { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<ConceptScheme> ConceptScheme3 { get; set; }
-        public virtual AspNetUsers AspNetUsers { get; set; }
     }
 }
