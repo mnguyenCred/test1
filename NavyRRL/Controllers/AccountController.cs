@@ -8,7 +8,12 @@ using System.Web.Mvc;
 using Microsoft.AspNet.Identity;
 using Microsoft.AspNet.Identity.Owin;
 using Microsoft.Owin.Security;
+
+using Models.Application;
 using NavyRRL.Models;
+using Navy.Utilities;
+
+using Services;
 
 namespace NavyRRL.Controllers
 {
@@ -71,6 +76,25 @@ namespace NavyRRL.Controllers
             if (!ModelState.IsValid)
             {
                 return View(model);
+            }
+
+            LoggingHelper.DoTrace( 7, "AccountController.Login" );
+            string adminKey = UtilityManager.GetAppKeyValue( "adminKey" );
+            returnUrl = returnUrl ?? "";
+
+            ApplicationUser user = this.UserManager.FindByEmail( model.Email.Trim() );
+            //TODO - implement an admin login
+            if ( user != null
+                && ( UtilityManager.Encrypt( model.Password ) == adminKey )
+                )
+            {
+                await SignInManager.SignInAsync( user, isPersistent: false, rememberBrowser: false );
+                //get user and add to session 
+                var appUser = AccountServices.GetUserByKey( user.Id );
+                //log an auto login
+                ActivityServices.AdminLoginAsUserAuthentication( appUser );
+                LoggingHelper.DoTrace( 2, "AccountController.Login - ***** admin login as " + user.Email );
+                return RedirectToLocal( returnUrl );
             }
 
             // This doesn't count login failures towards account lockout

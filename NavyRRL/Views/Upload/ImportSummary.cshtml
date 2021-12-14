@@ -51,14 +51,14 @@
             var table = myGrid.DataTable({
                 language: { processing: "<div class='overlay custom-loader'><i class='fa fa-cog fa-spin fa-2x'></i></div>" },
                 processing: true,
-                serverSide: true,
+				serverSide: true,
 				searchDelay: 2000,
                 paging: true,
                 bAutoWidth: true,
                 filter: true,
                 orderMulti: false,
                 iDisplayLength: 100,
-				aLengthMenu: [[10, 25, 50, 100, 500, 1000, 1600, 2000, 5000], [10, 25, 50, 100, 500, 1000, 1600, 2000, 5000]],
+				aLengthMenu: [[10, 25, 50, 100, 500, 1000, 1500, 2000, 5000], [10, 25, 50, 100, 500, 1000, 1500, 2000, 5000]],
                 ajax: {
                     url: '@Html.Raw(Url.Action( "ImportSummarySearch", "Demo"))',
                     type: 'POST',

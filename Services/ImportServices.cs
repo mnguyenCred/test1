@@ -19,13 +19,13 @@ namespace Services
 			if ( string.IsNullOrWhiteSpace( parms.OrderBy ) )
 			{
 				parms.IsDescending = true;
-				parms.OrderBy = "IndexIdentifier";
+				parms.OrderBy = "Unique_Identifier";
 			}
 			else
 			{
-				if ( "id dataownername entityname publishername publishmethoduri eventdate publishingentitytype".IndexOf( parms.OrderBy.ToLower() ) == -1 )
+				if ( "id indexidentifier unique_identifier rating rank ranklevel billet_title functional_area source date_of_source work_element_type work_element_task task_applicability formal_training_gap cin course_name course_type curriculum_control_authority life_cycle_control_document task_statement current_assessment_approach".IndexOf( parms.OrderBy.ToLower() ) == -1 )
 				{
-					parms.OrderBy = "IndexIdentifier";
+					parms.OrderBy = "Unique_Identifier";
 					//if ( parms.IsDescending )
 					//	parms.OrderBy += " DESC";
 				}

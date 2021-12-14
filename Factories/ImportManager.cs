@@ -94,6 +94,7 @@ namespace Factories
 					item.Course_Name = GetRowColumn( dr, "Course_Name", "" );
 					item.Course_Type = GetRowColumn( dr, "Course_Type" );
 					item.Curriculum_Control_Authority = GetRowColumn( dr, "Curriculum_Control_Authority", "" );
+					item.Life_Cycle_Control_Document = GetRowColumn( dr, "Life_Cycle_Control_Document", "" );
 					item.Task_Statement = GetRowColumn( dr, "Task_Statement", "" );
 
 					item.Current_Assessment_Approach = GetRowColumn( dr, "Current_Assessment_Approach", "" );

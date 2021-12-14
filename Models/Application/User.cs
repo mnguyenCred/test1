@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.Text;
 
+using UserAppRoles = Data.Tables.AspNetUserRoles;
+
 namespace Models.Application
 {
 	[Serializable]
@@ -43,5 +45,10 @@ namespace Models.Application
 			else
 				return this.FirstName + " " + this.LastName;
 		}
+	}
+	[Serializable]
+	public class UserRoles : UserAppRoles
+	{
+
 	}
 }

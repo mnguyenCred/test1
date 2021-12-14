@@ -61,7 +61,7 @@ namespace Factories
             else
                 return false;
         }
-        //public static bool HasStateChanged( Data.CTIEntities context )
+        //public static bool HasStateChanged( DataEntities context )
         //{
         //    if ( context.ChangeTracker.Entries().Any( e =>
         //            e.State == EntityState.Added ||
@@ -1508,25 +1508,25 @@ namespace Factories
             byte[] bytes = System.Text.Encoding.GetEncoding( "Cyrillic" ).GetBytes( text );
             return System.Text.Encoding.ASCII.GetString( bytes );
         }
-        //protected string HandleDBValidationError( System.Data.Entity.Validation.DbEntityValidationException dbex, string source, string title )
-        //{
-        //    string message = string.Format( "{0} DbEntityValidationException, Name: {1}", source, title );
+        protected string HandleDBValidationError( System.Data.Entity.Validation.DbEntityValidationException dbex, string source, string title )
+        {
+            string message = string.Format( "{0} DbEntityValidationException, Name: {1}", source, title );
 
-        //    foreach ( var eve in dbex.EntityValidationErrors )
-        //    {
-        //        message += string.Format( "\rEntity of type \"{0}\" in state \"{1}\" has the following validation errors:",
-        //            eve.Entry.Entity.GetType().Name, eve.Entry.State );
-        //        foreach ( var ve in eve.ValidationErrors )
-        //        {
-        //            message += string.Format( "- Property: \"{0}\", Error: \"{1}\"",
-        //                ve.PropertyName, ve.ErrorMessage );
-        //        }
+            foreach ( var eve in dbex.EntityValidationErrors )
+            {
+                message += string.Format( "\rEntity of type \"{0}\" in state \"{1}\" has the following validation errors:",
+                    eve.Entry.Entity.GetType().Name, eve.Entry.State );
+                foreach ( var ve in eve.ValidationErrors )
+                {
+                    message += string.Format( "- Property: \"{0}\", Error: \"{1}\"",
+                        ve.PropertyName, ve.ErrorMessage );
+                }
 
-        //        LoggingHelper.LogError( message, true );
-        //    }
+                LoggingHelper.LogError( message, true );
+            }
 
-        //    return message;
-        //}
+            return message;
+        }
 
         public static string FormatExceptions( Exception ex )
         {

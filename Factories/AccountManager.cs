@@ -11,6 +11,8 @@ using DataEntities = Data.Tables.NavyRRLEntities;
 using ViewContext = Data.Views.ceNavyViewEntities;
 using Views = Data.Views;
 using Navy.Utilities;
+using System.Data;
+using System.Data.SqlClient;
 
 namespace Factories
 {
@@ -602,7 +604,7 @@ namespace Factories
 
 			return entity;
 		}
-		/*
+		/**/
 		public static List<AppUser> Search( string pFilter, string pOrderBy, int pageNumber, int pageSize, ref int pTotalRows, int userId = 0 )
 		{
 			string connectionString = DBConnectionRO();
@@ -658,10 +660,10 @@ namespace Factories
 
 					item.Email = GetRowColumn( dr, "Email", "" );
 					item.Roles = GetRowColumn( dr, "Roles", "" );
-					item.OrgMbrs = GetRowColumn( dr, "OrgMbrs", "" );
-					item.lastLogon = GetRowColumn( dr, "lastLogon", "" );
-					if ( IsValidDate( item.lastLogon ) )
-						item.lastLogon = item.lastLogon.Substring( 0, 10 );
+					//item.OrgMbrs = GetRowColumn( dr, "OrgMbrs", "" );
+					//item.lastLogon = GetRowColumn( dr, "lastLogon", "" );
+					//if ( IsValidDate( item.lastLogon ) )
+					//	item.lastLogon = item.lastLogon.Substring( 0, 10 );
 
 					list.Add( item );
 				}
@@ -670,7 +672,7 @@ namespace Factories
 
 			}
 		}
-		*/
+		
 		public static void MapFromDB( Views.Account_Summary input, AppUser to )
 		{
 			to.Id = input.Id;
@@ -747,7 +749,7 @@ namespace Factories
 		  //NOTE: AspNetRoles is to be a guid, so not likely to use this version
 		  //public void GetAllUsersInRole( int roleId )
 		  //{
-		  //	using ( var context = new Data.CTIEntities() )
+		  //	using ( var context = new DataEntities() )
 		  //	{
 		  //		var customers = context.AspNetUsers
 		  //			  .Where( u => u.AspNetRoles.Any( r => r.Id == roleId ) )
@@ -775,6 +777,164 @@ namespace Factories
 
 		}
 
-#endregion
+		#region Roles
+		public bool AddRole( int userId, int roleId, int createdByUserId, ref string statusMessage )
+		{
+			bool isValid = true;
+			string aspNetUserId = "";
+			if ( userId == 0 )
+			{
+				statusMessage = "Error - please provide a valid user";
+				return false;
+			}
+			if ( roleId < 1 || roleId > SiteReader )
+			{
+				statusMessage = "Error - please provide a valid role identifier";
+				return false;
+			}
+
+			AppUser user = AppUser_Get( userId );
+			if ( user != null && user.Id > 0 )
+				aspNetUserId = user.AspNetUserId;
+
+			if ( !IsValidGuid( aspNetUserId ) )
+			{
+				statusMessage = "Error - please provide a valid user identifier";
+				return false;
+			}
+
+			EM.AspNetUserRoles efEntity = new EM.AspNetUserRoles();
+			using ( var context = new DataEntities() )
+			{
+				try
+				{
+					efEntity.UserId = aspNetUserId;
+					efEntity.RoleId = roleId.ToString();
+					efEntity.Created = System.DateTime.Now;
+
+					context.AspNetUserRoles.Add( efEntity );
+
+					// submit the change to database
+					int count = context.SaveChanges();
+					if ( count > 0 )
+					{
+						statusMessage = "successful";
+						//other, maybe notification
+					}
+					else
+					{
+						//?no info on error
+						statusMessage = "Error - the Account_AddRole was not successful. ";
+						string message = string.Format( "AccountManager. Account_AddRole Failed", "Attempted to add an Account_AddRole. The process appeared to not work, but there was not an exception, so we have no message, or no clue. Email: {0}, roleId {1}, requestedBy: {2}", user.Email, roleId, createdByUserId );
+						EmailManager.NotifyAdmin( "	Manager. Account_AddRole Failed", message );
+					}
+				}
+				catch ( Exception ex )
+				{
+					LoggingHelper.LogError( ex, thisClassName + string.Format( ".Account_AddRole(), Email: {0}", user.Email ) );
+					statusMessage = ex.Message;
+					isValid = false;
+				}
+			}
+
+			return isValid;
+		}
+
+
+		public bool DeleteRole( AppUser entity, int roleId, int updatedByUserId, ref string statusMessage )
+		{
+			bool isValid = true;
+
+			if ( entity == null || !IsValidGuid( entity.AspNetUserId ) )
+			{
+				statusMessage = "Error - please provide a value user identifier";
+				return false;
+			}
+			if ( roleId < 1 || roleId > SiteReader )
+			{
+				statusMessage = "Error - please provide a value role identifier";
+				return false;
+			}
+
+			using ( var context = new DataEntities() )
+			{
+				try
+				{
+					EM.AspNetUserRoles efEntity = context.AspNetUserRoles
+							.SingleOrDefault( s => s.UserId == entity.AspNetUserId && s.RoleId == roleId.ToString() );
+
+					if ( efEntity != null && !string.IsNullOrWhiteSpace( efEntity.RoleId ) )
+					{
+						context.AspNetUserRoles.Remove( efEntity );
+						int count = context.SaveChanges();
+						if ( count > 0 )
+						{
+							isValid = true;
+							//TODO - add logging here or in the services
+						}
+					}
+					else
+					{
+						statusMessage = "Error - delete failed, as record was not found.";
+					}
+				}
+				catch ( Exception ex )
+				{
+					LoggingHelper.LogError( ex, thisClassName + string.Format( ".Account_DeleteRole(), Email: {0}", entity.Email ) );
+					statusMessage = ex.Message;
+					isValid = false;
+				}
+			}
+
+			return isValid;
+		}
+
+		public void UpdateRoles( string aspNetUserId, string[] roles )
+		{
+			using ( var db = new DataEntities() )
+			{
+				try
+				{
+					var existRoles = db.AspNetUserRoles.Where( x => x.UserId == aspNetUserId.ToString() );
+					var oldRoles = existRoles.Select( x => x.RoleId ).ToArray();
+
+					if ( roles == null )
+						roles = new string[] { };
+
+					//Add New Roles Selected
+					roles.Except( oldRoles ).ToList().ForEach( x =>
+					{
+						var userRole = new EM.AspNetUserRoles { UserId = aspNetUserId, RoleId = x, Created = DateTime.Now };
+						db.Entry( userRole ).State = System.Data.Entity.EntityState.Added;
+					} );
+
+					//Delete existing Roles unselected
+					existRoles.Where( x => !roles.Contains( x.RoleId ) ).ToList().ForEach( x =>
+					{
+						db.Entry( x ).State = System.Data.Entity.EntityState.Deleted;
+					} );
+
+					db.SaveChanges();
+				}
+				catch ( Exception ex )
+				{
+					LoggingHelper.LogError( ex, thisClassName + string.Format( ".UpdateRoles(), aspNetUserId: {0}", aspNetUserId ) );
+					//statusMessage = ex.Message;
+
+				}
+			}
+		}
+
+		public static List<EM.AspNetRoles> GetRoles()
+		{
+			using ( var context = new DataEntities() )
+			{
+				return context.AspNetRoles.Where( s => s.IsActive == true ).ToList();
+			}
+		}
+
+
+		#endregion
+		#endregion
 	}
 }

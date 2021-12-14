@@ -26,5 +26,11 @@ namespace NavyRRL.Controllers
 
             return View();
         }
+
+        public ActionResult PageNotFound()
+        {
+            //return View( "~/Views/Home/PageNotFound.cshtml" );
+            return View();
+        }
     }
 }
