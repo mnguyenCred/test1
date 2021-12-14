@@ -177,6 +177,7 @@
     <Compile Include="Controllers\DetailController.cs" />
     <Compile Include="Controllers\HomeController.cs" />
     <Compile Include="Controllers\ManageController.cs" />
+    <Compile Include="Controllers\SearchController.cs" />
     <Compile Include="Controllers\UploadController.cs" />
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
@@ -545,6 +546,7 @@
     <Content Include="Views\Detail\DetailV1.cshtml" />
     <Content Include="Views\Upload\UploadV1.cshtml" />
     <Content Include="Views\Demo\ImportSummary.cshtml" />
+    <Content Include="Views\Search\SearchV1.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
