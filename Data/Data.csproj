@@ -146,6 +146,9 @@
     <Compile Include="Tables\Source.cs">
       <DependentUpon>NavyRRLTables.tt</DependentUpon>
     </Compile>
+    <Compile Include="Tables\System_ProxyCodes.cs">
+      <DependentUpon>NavyRRLTables.tt</DependentUpon>
+    </Compile>
     <Compile Include="Tables\WorkElementType.cs">
       <DependentUpon>NavyRRLTables.tt</DependentUpon>
     </Compile>

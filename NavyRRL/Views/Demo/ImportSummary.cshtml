@@ -10,24 +10,27 @@
 
 	<link href="~/Content/Site.css" rel="stylesheet" />
 	<link href="~/Content/font-awesome.min.css" rel="stylesheet" />
-<style type="text/css">
+	<style type="text/css">
 		.custom-loader { background-color: crimson !important; }
 			.custom-loader i { color: #fff !important; }
 		.ui-autocomplete { z-index: 999999; height: 200px; overflow-y: auto; width: 420px; }
 		td.highlight { background-color: whitesmoke !important; }
 		#mainSiteFooter { display: none; }
-		#queryTable_filter { display: none; }
+		.dataTables_filter { display: none; }
 
-	@@media (min-width: 1200px) {
-		.container { width: 150%; }
-	}
-</style>
+		/*	show pager on the left*/
+		#results_paginate { margin: 0; white-space: nowrap; text-align: left; }
+
+		@@media (min-width: 1200px) {
+			.container { width: 150%; }
+		}
+	</style>
 }
 <h2>Import Summary</h2>
 
 <div style="width:100%">
-	<table id="queryTable" class="table"></table>
-	<div id="queryGridPager"></div>
+	<table id="results" class="table"></table>
+	<div id="jqGridPager"></div>
 	<br />
 </div>
 
@@ -46,7 +49,7 @@
 
 	<script type="text/javascript">
         $(document).ready(function () {
-            var myGrid = $('#queryTable');
+            var myGrid = $('#results');
 
             var table = myGrid.DataTable({
                 language: { processing: "<div class='overlay custom-loader'><i class='fa fa-cog fa-spin fa-2x'></i></div>" },
@@ -57,7 +60,7 @@
                 bAutoWidth: true,
                 filter: true,
                 orderMulti: false,
-                iDisplayLength: 100,
+                iDisplayLength: 10,
 				aLengthMenu: [[10, 25, 50, 100, 500, 1000, 1600, 2000, 5000], [10, 25, 50, 100, 500, 1000, 1600, 2000, 5000]],
                 ajax: {
                     url: '@Html.Raw(Url.Action( "ImportSummarySearch", "Demo"))',
@@ -69,7 +72,8 @@
                 columns: [
                 //{ data: "Id", name: "Id", title: 'Id', width: "5%", filter: true },
 					{ data: 'IndexIdentifier', name: "IndexIdentifier", title: "Index Identifier", filter: true, width: "50px" },
-					{ data: 'Unique_Identifier', name: "Unique_Identifier", title: "Unique Identifier", filter: true, width: "50px" },
+                    { data: 'Unique_Identifier', name: "Unique_Identifier", title: "Unique Identifier", filter: true, width: "50px" },
+					{ data: 'Message', name: "Message", title: "Message", filter: true },
 					{ data: 'Rating', name: "Rating", title: "Rating", filter: true },
 					{ data: 'Rank', name: "Rank", title: "Rank", filter: true },
 					{ data: 'RankLevel', name: "RankLevel", title: "Level", filter: true },
@@ -84,7 +88,7 @@
 					{ data: 'Task_Applicability', name: "Task_Applicability", title: "Task Applicability", filter: true },
 					{ data: 'Formal_Training_Gap', name: "Formal_Training_Gap", title: "Formal Training Gap", filter: true },
 
-					{ data: 'CIN', name: "CIN", title: "CIN", filter: true, width: "120px" },
+					{ data: 'CIN', name: "CIN", title: "CIN", filter: true, width: "200px" },
 					{ data: 'Course_Name', name: "Course_Name", title: "Course Name", filter: true, width: "400px" },
 					{ data: 'Course_Type', name: "Course_Type", title: "Course Type", filter: true },
 					{ data: 'Curriculum_Control_Authority', name: "Curriculum_Control_Authority", title: "CCA", filter: true, width: "80px" },
@@ -94,6 +98,18 @@
 					{ data: 'Current_Assessment_Approach', name: "Current_Assessment_Approach", title: "Current Assessment Approach", filter: true },
 					{ data: 'TaskNotes', name: "TaskNotes", title: "Task Notes", filter: true, width: "400px", bSortable: false }
                 ],
+				columnDefs: [
+					{
+						"targets": 2, "width": "10%",
+						"data": "Message",
+                        "render": function (data, type, row, meta) {
+							if (data)
+								return 'Error <div><a style="color:red;" class="btn collapsed " data-toggle="collapse" data-target="#viewMsg' + row.Unique_Identifier + '" aria-expanded="false">View Message »</a></div> <div class="collapse" id = "viewMsg' + row.Unique_Identifier + '" style="overflow: hidden; height: 0px;" aria-expanded="false" >' + data + '</div >';
+							else return 'OK';
+
+						}
+					}
+				],
                 dom: 'lBfrtip',
                 buttons: [
                     {
@@ -110,7 +126,7 @@
 
 
 			});
-			$('#queryTable tbody')
+			$('#results tbody')
 				.on('mouseenter', 'td', function () {
 					var colIdx = table.cell(this).index().column;
 
@@ -121,7 +137,7 @@
             //{ data: 'ParentObject', name: "ParentObject", title: "Parent Object", filter: false },
 
             //adding filter search inputs based on the columns
-            var row = $("<tr />", {}).appendTo($('#queryTable thead'));
+            var row = $("<tr />", {}).appendTo($('#results thead'));
             //console.log(table.settings().init());
             $.each(table.settings().init().columns, function () {
                 var th = $("<th />", {});
@@ -157,7 +173,7 @@
             //    var index = input.parent().index();
             //    table.columns(index).search(dateText).draw();
             //});
-            $(document).on("keyup change", "#queryTable thead input:text", function (e) {
+            $(document).on("keyup change", "#results thead input:text", function (e) {
                 if (this.value === this.defaultValue) return false;
 
                 this.defaultValue = this.value;

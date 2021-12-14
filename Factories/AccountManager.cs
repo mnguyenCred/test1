@@ -776,6 +776,148 @@ namespace Factories
 			to.LastUpdatedById = fromEntity.LastUpdatedById;
 
 		}
+		#endregion
+
+		#region Proxies
+
+		public bool Store_ProxyCode( string proxyCode, int userId, string proxyType, int expiryDays, ref string statusMessage )
+		{
+			bool isValid = true;
+			EM.System_ProxyCodes efEntity = new EM.System_ProxyCodes();
+			//string proxyId = "";
+			try
+			{
+				using ( var context = new DataEntities() )
+				{
+					efEntity.UserId = userId;
+					efEntity.ProxyCode = proxyCode;
+					//assuming if storing existing, likely for identity
+					efEntity.IsIdentityProxy = true;
+					efEntity.Created = System.DateTime.Now;
+					efEntity.ExpiryDate = System.DateTime.Now.AddDays( expiryDays );
+
+					efEntity.IsActive = true;
+					efEntity.ProxyType = proxyType;
+
+					context.System_ProxyCodes.Add( efEntity );
+
+					int count = context.SaveChanges();
+					if ( count > 0 )
+					{
+						statusMessage = "Successful";
+						int id = efEntity.Id;
+
+					}
+					else
+					{
+						//?no info on error
+						return false;
+					}
+				}
+			}
+			catch ( Exception ex )
+			{
+				LoggingHelper.LogError( ex, thisClassName + ".Store_ProxyCode()" );
+				statusMessage = ex.Message;
+				return false;
+			}
+			return isValid;
+		}
+
+		/// <summary>
+		/// Create a proxy guid for requested purpose
+		/// </summary>
+		/// <param name="userId"></param>
+		/// <param name="proxyType"></param>
+		/// <param name="statusMessage"></param>
+		/// <returns></returns>
+		public string Create_ProxyLoginId( int userId, string proxyType, int expiryDays, ref string statusMessage )
+		{
+			var efEntity = new EM.System_ProxyCodes();
+			string proxyId = "";
+			try
+			{
+				using ( var context = new DataEntities() )
+				{
+					efEntity.UserId = userId;
+					efEntity.ProxyCode = Guid.NewGuid().ToString();
+					//assuming if generated, not for identity
+					efEntity.IsIdentityProxy = false;
+					efEntity.Created = System.DateTime.Now;
+					if ( proxyType == SessionLoginProxy )
+					{
+						//expire at midnight - not really good for night owls
+						//efEntity.ExpiryDate = new System.DateTime( DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day, 23, 59, 59 );
+						efEntity.ExpiryDate = System.DateTime.Now.AddDays( expiryDays );
+					}
+					else
+						efEntity.ExpiryDate = System.DateTime.Now.AddDays( expiryDays );
+
+					efEntity.IsActive = true;
+					efEntity.ProxyType = proxyType;
+
+					context.System_ProxyCodes.Add( efEntity );
+
+					// submit the change to database
+					int count = context.SaveChanges();
+					if ( count > 0 )
+					{
+						statusMessage = "Successful";
+						int id = efEntity.Id;
+						return efEntity.ProxyCode;
+					}
+					else
+					{
+						//?no info on error
+						return proxyId;
+					}
+				}
+			}
+			catch ( Exception ex )
+			{
+				LoggingHelper.LogError( ex, thisClassName + ".Create_Proxy()" );
+				statusMessage = ex.Message;
+				return proxyId;
+			}
+		}
+
+		public bool Proxy_IsCodeActive( string proxyCode )
+		{
+			bool isValid = false;
+			using ( var context = new DataEntities() )
+			{
+
+				var proxy = context.System_ProxyCodes.FirstOrDefault( s => s.ProxyCode == proxyCode );
+				if ( proxy != null && proxy.Id > 0 )
+				{
+					if ( proxy.IsActive
+						&& proxy.ExpiryDate > DateTime.Now )
+						isValid = true;
+				}
+			}
+
+			return isValid;
+
+		}
+		public bool InactivateProxy( string proxyCode, ref string statusMessage )
+		{
+			bool isValid = true;
+			using ( var context = new DataEntities() )
+			{
+				var proxy = context.System_ProxyCodes.FirstOrDefault( s => s.ProxyCode == proxyCode );
+				if ( proxy != null && proxy.Id > 0 )
+				{
+					proxy.IsActive = false;
+					proxy.AccessDate = System.DateTime.Now;
+
+					context.SaveChanges();
+				}
+			}
+			return isValid;
+
+		}
+		#endregion
+
 
 		#region Roles
 		public bool AddRole( int userId, int roleId, int createdByUserId, ref string statusMessage )
@@ -934,7 +1076,7 @@ namespace Factories
 		}
 
 
-		#endregion
+
 		#endregion
 	}
 }

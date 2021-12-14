@@ -1038,7 +1038,7 @@ namespace Services
 		//	int expiryDays = ServiceHelper.GetAppKeyValue( "forgotPasswordExiryDays", 1 );
 		//	return new AccountManager().Create_ProxyLoginId( userId, "Forgot Password", expiryDays, ref statusMessage );
 		//}
-		/*
+
 		/// <summary>
 		/// Store an identity code
 		/// </summary>
@@ -1067,6 +1067,7 @@ namespace Services
 			return new AccountManager().Store_ProxyCode( proxyCode, userId, proxyType, expiryDays, ref statusMessage );
 
 		}
+	
 		public static bool Proxy_IsCodeActive( string proxyCode )
 		{
 			return new AccountManager().Proxy_IsCodeActive( proxyCode );
@@ -1076,7 +1077,7 @@ namespace Services
 			string statusMessage = "";
 			return new AccountManager().InactivateProxy( proxyCode, ref statusMessage );
 		}
-		*/
+		/*	*/
 		#endregion
 	}
 }

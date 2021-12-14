@@ -47,5 +47,6 @@ namespace Data.Tables
         public virtual DbSet<ImportRMTL> ImportRMTL { get; set; }
         public virtual DbSet<AspNetUserRoles> AspNetUserRoles { get; set; }
         public virtual DbSet<AspNetRoles> AspNetRoles { get; set; }
+        public virtual DbSet<System_ProxyCodes> System_ProxyCodes { get; set; }
     }
 }

@@ -10,7 +10,10 @@ using Microsoft.AspNet.Identity.EntityFramework;
 using Microsoft.AspNet.Identity.Owin;
 using Microsoft.Owin;
 using Microsoft.Owin.Security;
+
 using NavyRRL.Models;
+using Navy.Utilities;
+using Services;
 
 namespace NavyRRL
 {
@@ -19,9 +22,25 @@ namespace NavyRRL
         public Task SendAsync(IdentityMessage message)
         {
             // Plug in your email service here to send an email.
-            return Task.FromResult(0);
+            // NOTE: the passed subject is essentially a code. The actual subject will be set in the account services method
+            if ( message.Subject == "Reset_Password" )
+            {
+                //change to treat incoming as subject code - for flexibility
+                AccountServices.SendEmail_ResetPassword( message.Destination, message.Body );
+            }
+            else if ( message.Subject == "Confirm_Account" )
+            {
+                AccountServices.SendEmail_ConfirmAccount( message.Destination, message.Body );
+            }
+            else
+            {
+                //have a fall back to admin if code not recognized
+                AccountServices.SendEmail_MissingSubjectType( message.Subject, message.Destination, message.Body );
+            }
+            return Task.FromResult( 0 );
         }
     }
+    
 
     public class SmsService : IIdentityMessageService
     {
@@ -51,9 +70,9 @@ namespace NavyRRL
             };
 
             // Configure validation logic for passwords
-            manager.PasswordValidator = new PasswordValidator
+            manager.PasswordValidator = new CustomPasswordValidator
             {
-                RequiredLength = 6,
+                RequiredLength = 8,
                 RequireNonLetterOrDigit = true,
                 RequireDigit = true,
                 RequireLowercase = true,
@@ -76,13 +95,27 @@ namespace NavyRRL
                 Subject = "Security Code",
                 BodyFormat = "Your security code is {0}"
             });
-            manager.EmailService = new EmailService();
+           // manager.EmailService = new EmailServices();
+
             manager.SmsService = new SmsService();
             var dataProtectionProvider = options.DataProtectionProvider;
             if (dataProtectionProvider != null)
             {
-                manager.UserTokenProvider = 
-                    new DataProtectorTokenProvider<ApplicationUser>(dataProtectionProvider.Create("ASP.NET Identity"));
+                if ( UtilityManager.GetAppKeyValue( "environment" ) == "development" )
+                {
+                    //controlling expiration - will this affect remembering day by day?
+                    manager.UserTokenProvider =
+                   new DataProtectorTokenProvider<ApplicationUser>
+                      ( dataProtectionProvider.Create( "ASP.NET Identity" ) )
+                   {
+                       TokenLifespan = TimeSpan.FromHours( 24 )
+                   };
+                }
+                else
+                {
+                    manager.UserTokenProvider =
+                        new DataProtectorTokenProvider<ApplicationUser>( dataProtectionProvider.Create( "ASP.NET Identity" ) );
+                }
             }
             return manager;
         }
@@ -104,6 +137,35 @@ namespace NavyRRL
         public static ApplicationSignInManager Create(IdentityFactoryOptions<ApplicationSignInManager> options, IOwinContext context)
         {
             return new ApplicationSignInManager(context.GetUserManager<ApplicationUserManager>(), context.Authentication);
+        }
+
+    }
+
+    public class CustomPasswordValidator : PasswordValidator
+    {
+        public override async Task<IdentityResult> ValidateAsync( string password )
+        {
+            var requireNonLetterOrDigit = base.RequireNonLetterOrDigit;
+            base.RequireNonLetterOrDigit = false;
+            var result = await base.ValidateAsync( password );
+
+            if ( !requireNonLetterOrDigit )
+                return result;
+
+            if ( !Enumerable.All<char>( ( IEnumerable<char> ) password, new Func<char, bool>( this.IsLetterOrDigit ) ) )
+                return result;
+
+            // Build a new list of errors so that the custom 'PasswordRequireNonLetterOrDigit' could be added. 
+            List<string> list = new List<string>();
+            foreach ( var error in result.Errors )
+            {
+                list.Add( error );
+            }
+            // Add our own message: (The default by MS is: 'Passwords must have at least one non letter or digit character.')
+            list.Add( "Passwords must have at least one character that is neither a letter or digit. (E.g. '- $ % _ etc.')" );
+            result = await Task.FromResult<IdentityResult>( IdentityResult.Failed( string.Join( " ", ( IEnumerable<string> ) list ) ) );
+
+            return result;
         }
     }
 }

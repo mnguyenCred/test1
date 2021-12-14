@@ -57,5 +57,6 @@ namespace Data.Tables
         public Nullable<int> FormalTrainingGapId { get; set; }
         public Nullable<int> CourseId { get; set; }
         public Nullable<int> CourseTaskId { get; set; }
+        public string Message { get; set; }
     }
 }

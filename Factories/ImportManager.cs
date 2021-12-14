@@ -99,7 +99,8 @@ namespace Factories
 
 					item.Current_Assessment_Approach = GetRowColumn( dr, "Current_Assessment_Approach", "" );
 					item.TaskNotes = GetRowColumn( dr, "TaskNotes" );
-				
+
+					item.Message = GetRowColumn( dr, "Message", "" );
 
 					list.Add( item );
 				}

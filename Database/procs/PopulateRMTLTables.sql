@@ -14,7 +14,6 @@ GO
 USE NavyRRL
 GO
 
-
 --=====================================================
 DECLARE @RC int, @Rating           varchar(50)
 set @Rating='QM'
@@ -37,12 +36,15 @@ Modifications
 
 */
 
---Alter PROCEDURE [dbo].[PopulateRMTLTables]
---		@Rating           varchar(50) = ''
---As
+Alter PROCEDURE [dbo].[PopulateRMTLTables]
+		@Rating           varchar(50) = ''
+As
 SET NOCOUNT ON;
 declare @RMTLProjectd int
 ,@errmsg   nvarchar(2048)
+,@ErrorsFound bit
+
+set @ErrorsFound= 0
 
 /* =================================
 - clear existing data?
@@ -63,13 +65,13 @@ SELECT @RMTLProjectd= a.[Id]
   where Rating.CodedNotation = @Rating
   print '@RMTLProjectd = ' +convert(varchar,@RMTLProjectd)
 
-if @RMTLProjectd < 1 Begin
+if @RMTLProjectd < 1 
 	Begin
-		SELECT @errmsg = 'Error an RMTL Project was not found for the provided rating: ' + @Rating
-	print @errmsg
+			SELECT @errmsg = 'Error an RMTL Project was not found for the provided rating: ' + @Rating
+		print @errmsg
 
-	RAISERROR(@errmsg, 10, 1)
-end
+		RAISERROR(@errmsg, 10, 1)
+	end
 -- rating - concept scheme
 UPDATE [dbo].ImportRMTL
    SET [RatingId] = b.Id
@@ -78,6 +80,14 @@ from [ImportRMTL] a
 inner join Rating b on a.Rating = b.CodedNotation 
 
 -- Rank - concept scheme
+UPDATE [dbo].ImportRMTL
+   SET [RankId] = b.Id
+--	select  a.[Rank], b.PrefLabel, CodedNotation
+from ImportRMTL a
+inner join [ConceptScheme.Concept] b on a.[Rank] = b.CodedNotation 
+WHERE        (ConceptSchemeId = 3)
+
+-- Level - concept scheme
 UPDATE [dbo].ImportRMTL
    SET [LevelId] = b.Id
 --	select  a.[RankLevel], b.PrefLabel, CodedNotation
@@ -210,10 +220,11 @@ INSERT INTO #tempMessageTable ( Unique_Identifier, Rating, CIN, CourseName,[Mess
 		) allCourses
 	  group by [CIN] having count(*) > 1
 	) dups on a.CIN = dups.CIN
-	if @@ROWCOUNT > 0 begin
+	if @@ROWCOUNT > 0 
+	begin
 		--should these be ignored
 		print 'found duplicate CIN/Courses'
-
+		set @ErrorsFound= 1
 	end
 -- create min. record ------
 INSERT INTO [dbo].[Course]
@@ -301,7 +312,7 @@ UPDATE [dbo].ImportRMTL
 from [dbo].ImportRMTL a
 inner join [Course.Task] b on a.CourseId = b.CourseId 
 and a.[Task_Statement]= b.TaskStatement
-and b.id is null 
+and a.CourseTaskId is null 
 -- =================================
 
 
@@ -345,7 +356,7 @@ IndexIdentifier as TaskCodedNotation
  Left Join [RatingLevelTask] b on a.IndexIdentifier = b.CodedNotation
  where b.id is null 
  --
-   Update dbo.[RatingLevelTask]
+ Update dbo.[RatingLevelTask]
 set CTID = 'ce-' + Lower(NewId())
 where ISNULL(CTID,'') = ''
 --
@@ -386,7 +397,8 @@ SELECT @RMTLProjectd= a.[Id]
   print '@RMTLProjectd = ' +convert(varchar,@RMTLProjectd)
 
   --
-  if @RMTLProjectd > 0 Begin
+  if @RMTLProjectd > 0 
+  Begin
 	INSERT INTO [dbo].[RmtlProject.Billet]
            (RmtlProjectId, [JobId])
 	SELECT distinct @RMTLProjectd, c.Id
@@ -418,6 +430,8 @@ SELECT @RMTLProjectd= a.[Id]
 
 		RAISERROR(@errmsg, 10, 1)
 		end
+
+
 GO
 
 

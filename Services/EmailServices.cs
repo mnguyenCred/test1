@@ -4,10 +4,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-using Models.Helpers;
-using Utilities;
+using Models.Application;
+using Navy.Utilities;
 
-namespace CTIServices
+namespace Services
 {
 	public class EmailServices
 	{
@@ -58,7 +58,7 @@ namespace CTIServices
 				BodyHtml = message,
 				Tags = new List<string>() { "Admin Notification" }
 			};
-			SaveNotificationsForUsers( notification );
+			//SaveNotificationsForUsers( notification );
 
 			//Send the email
 			return EmailManager.NotifyAdmin( emailTo, subject, message );
@@ -86,35 +86,35 @@ namespace CTIServices
 				Subject = subject,
 				BodyHtml = message
 			};
-			SaveNotificationsForUsers( notification );
+			//SaveNotificationsForUsers( notification );
 
 			return true;
 		}
 		//
 
 		//Save a copy of the notification for each user in the ToEmails list
-		public static void SaveNotificationsForUsers( Notification notification )
-		{
-			try
-			{
-				//Each user gets their own copy of the email, since this allows per-user "IsRead" tracking and probably other useful things
-				foreach ( var userEmail in notification.ToEmails.Where( m => !string.IsNullOrWhiteSpace( m ) ).ToList() )
-				{
-					var user = AccountServices.GetUserByEmail( userEmail );
-					if ( user != null && user.Id > 0 )
-					{
-						notification.ForAccountRowId = user.RowId;
-						var temp = UtilityManager.SimpleMap<Notification>( notification );
-						temp.ForAccountRowId = ( AccountServices.GetUserByEmail( userEmail ) ?? new Models.AppUser() ).RowId;
-						NotificationServices.Save( temp );
-					}
-				}
-			}
-			catch ( Exception ex )
-			{
-				LoggingHelper.LogError( ex, "SaveNotificationsForUsers - Exception occurred ", true );
-			}
-		}
+		//public static void SaveNotificationsForUsers( Notification notification )
+		//{
+		//	try
+		//	{
+		//		//Each user gets their own copy of the email, since this allows per-user "IsRead" tracking and probably other useful things
+		//		foreach ( var userEmail in notification.ToEmails.Where( m => !string.IsNullOrWhiteSpace( m ) ).ToList() )
+		//		{
+		//			var user = AccountServices.GetUserByEmail( userEmail );
+		//			if ( user != null && user.Id > 0 )
+		//			{
+		//				notification.ForAccountRowId = user.RowId;
+		//				var temp = UtilityManager.SimpleMap<Notification>( notification );
+		//				temp.ForAccountRowId = ( AccountServices.GetUserByEmail( userEmail ) ?? new Models.AppUser() ).RowId;
+		//				NotificationServices.Save( temp );
+		//			}
+		//		}
+		//	}
+		//	catch ( Exception ex )
+		//	{
+		//		LoggingHelper.LogError( ex, "SaveNotificationsForUsers - Exception occurred ", true );
+		//	}
+		//}
 
 	}
 	//

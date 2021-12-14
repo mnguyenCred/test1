@@ -7,16 +7,21 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace Data.TablesOLD
+namespace Data.Tables
 {
     using System;
     using System.Collections.Generic;
     
-    public partial class CurriculumControlAuthority
+    public partial class System_ProxyCodes
     {
         public int Id { get; set; }
-        public string Name { get; set; }
-        public string Abbreviation { get; set; }
-        public string CTID { get; set; }
+        public string ProxyCode { get; set; }
+        public int UserId { get; set; }
+        public Nullable<bool> IsIdentityProxy { get; set; }
+        public string ProxyType { get; set; }
+        public bool IsActive { get; set; }
+        public System.DateTime Created { get; set; }
+        public System.DateTime ExpiryDate { get; set; }
+        public Nullable<System.DateTime> AccessDate { get; set; }
     }
 }

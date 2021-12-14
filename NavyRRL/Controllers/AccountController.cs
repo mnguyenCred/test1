@@ -173,14 +173,47 @@ namespace NavyRRL.Controllers
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> Register(RegisterViewModel model)
         {
-            if (ModelState.IsValid)
+            LoggingHelper.DoTrace( 7, "AccountController.Register" );
+            bool doingEmailConfirmation = UtilityManager.GetAppKeyValue( "doingEmailConfirmation", false );
+            if ( model == null )
             {
+                string[] errors = new string[5];
+                errors[0] = "Error: provide a valid view model";
+                var res = new IdentityResult( errors );
+                AddErrors( res );
+            }
+            else if ( ModelState.IsValid)
+            {
+                string statusMessage = "";
                 var user = new ApplicationUser { UserName = model.Email, Email = model.Email };
                 var result = await UserManager.CreateAsync(user, model.Password);
                 if (result.Succeeded)
                 {
-                    await SignInManager.SignInAsync(user, isPersistent:false, rememberBrowser:false);
+                    int id = new AccountServices().Create( model.Email,
+                        model.FirstName, model.LastName,
+                        model.Email, user.Id,
+                        model.Password,
+                        "",
+                        ref statusMessage, doingEmailConfirmation );
                     
+                    if ( doingEmailConfirmation == false )
+                    {
+                        await SignInManager.SignInAsync( user, isPersistent: false, rememberBrowser: false );
+                        //get user and add to session 
+                        var appUser = AccountServices.GetUserByKey( user.Id );
+                    }
+                    else
+                    {
+                        // For more information on how to enable account confirmation and password reset please visit http://go.microsoft.com/fwlink/?LinkID=320771
+                        // Send an email with this link
+                        string code = await UserManager.GenerateEmailConfirmationTokenAsync( user.Id );
+                        var callbackUrl = Url.Action( "ConfirmEmail", "Account", new { userId = user.Id, code = code }, protocol: Request.Url.Scheme );
+
+                        //NOTE: the subject is really a code - do not change it here!!
+                        await UserManager.SendEmailAsync( user.Id, "Confirm_Account", callbackUrl );
+
+                        new AccountServices().Proxies_StoreProxyCode( code, user.Email, "ConfirmEmail" );
+                    }
                     // For more information on how to enable account confirmation and password reset please visit https://go.microsoft.com/fwlink/?LinkID=320771
                     // Send an email with this link
                     // string code = await UserManager.GenerateEmailConfirmationTokenAsync(user.Id);

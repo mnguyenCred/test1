@@ -264,6 +264,7 @@ warning 6002: The table/view 'NavyRRL.dbo.ImportRMTL' does not have a primary ke
           <Property Name="FormalTrainingGapId" Type="int" />
           <Property Name="CourseId" Type="int" />
           <Property Name="CourseTaskId" Type="int" />
+          <Property Name="Message" Type="varchar" MaxLength="1000" />
         </EntityType>
         <EntityType Name="Job">
           <Key>
@@ -408,6 +409,20 @@ warning 6002: The table/view 'NavyRRL.dbo.ImportRMTL' does not have a primary ke
           <Property Name="DateModified" Type="datetime" />
           <Property Name="LastUpdatedById" Type="int" />
           <Property Name="CTID" Type="varchar" MaxLength="50" />
+        </EntityType>
+        <EntityType Name="System_ProxyCodes">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="ProxyCode" Type="varchar" MaxLength="300" Nullable="false" />
+          <Property Name="UserId" Type="int" Nullable="false" />
+          <Property Name="IsIdentityProxy" Type="bit" />
+          <Property Name="ProxyType" Type="varchar" MaxLength="50" />
+          <Property Name="IsActive" Type="bit" Nullable="false" />
+          <Property Name="Created" Type="datetime" Nullable="false" />
+          <Property Name="ExpiryDate" Type="datetime" Nullable="false" />
+          <Property Name="AccessDate" Type="datetime" />
         </EntityType>
         <EntityType Name="WorkElementType">
           <Key>
@@ -695,6 +710,7 @@ warning 6002: The table/view 'NavyRRL.dbo.ImportRMTL' does not have a primary ke
           <EntitySet Name="RmtlProject_Billet" EntityType="Self.RmtlProject_Billet" Schema="dbo" Table="RmtlProject.Billet" store:Type="Tables" />
           <EntitySet Name="RmtlProjectBilletTask" EntityType="Self.RmtlProjectBilletTask" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="Source" EntityType="Self.Source" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="System_ProxyCodes" EntityType="Self.System_ProxyCodes" Schema="dbo" Table="System.ProxyCodes" store:Type="Tables" />
           <EntitySet Name="WorkElementType" EntityType="Self.WorkElementType" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="ImportRMTL" EntityType="Self.ImportRMTL" store:Type="Tables" store:Schema="dbo">
             <DefiningQuery>SELECT 
@@ -740,7 +756,8 @@ warning 6002: The table/view 'NavyRRL.dbo.ImportRMTL' does not have a primary ke
     [ImportRMTL].[TaskApplicabilityId] AS [TaskApplicabilityId], 
     [ImportRMTL].[FormalTrainingGapId] AS [FormalTrainingGapId], 
     [ImportRMTL].[CourseId] AS [CourseId], 
-    [ImportRMTL].[CourseTaskId] AS [CourseTaskId]
+    [ImportRMTL].[CourseTaskId] AS [CourseTaskId], 
+    [ImportRMTL].[Message] AS [Message]
     FROM [dbo].[ImportRMTL] AS [ImportRMTL]</DefiningQuery>
           </EntitySet>
           <AssociationSet Name="FK_Account_AspNetUsers" Association="Self.FK_Account_AspNetUsers">
@@ -1260,6 +1277,7 @@ warning 6002: The table/view 'NavyRRL.dbo.ImportRMTL' does not have a primary ke
           <Property Name="FormalTrainingGapId" Type="Int32" />
           <Property Name="CourseId" Type="Int32" />
           <Property Name="CourseTaskId" Type="Int32" />
+          <Property Name="Message" Type="String" MaxLength="1000" FixedLength="false" Unicode="false" />
         </EntityType>
         <Association Name="FK_Account_AspNetUsers">
           <End Role="AspNetUsers" Type="Self.AspNetUsers" Multiplicity="0..1">
@@ -1590,6 +1608,7 @@ warning 6002: The table/view 'NavyRRL.dbo.ImportRMTL' does not have a primary ke
             <End Role="AspNetRoles" EntitySet="AspNetRoles" />
             <End Role="AspNetUserRoles" EntitySet="AspNetUserRoles" />
           </AssociationSet>
+          <EntitySet Name="System_ProxyCodes" EntityType="NavyRRLModel.System_ProxyCodes" />
         </EntityContainer>
         <EntityType Name="AspNetUserRoles">
           <Key>
@@ -1639,6 +1658,20 @@ warning 6002: The table/view 'NavyRRL.dbo.ImportRMTL' does not have a primary ke
             </Dependent>
           </ReferentialConstraint>
         </Association>
+        <EntityType Name="System_ProxyCodes">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="ProxyCode" Type="String" Nullable="false" MaxLength="300" FixedLength="false" Unicode="false" />
+          <Property Name="UserId" Type="Int32" Nullable="false" />
+          <Property Name="IsIdentityProxy" Type="Boolean" />
+          <Property Name="ProxyType" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+          <Property Name="IsActive" Type="Boolean" Nullable="false" />
+          <Property Name="Created" Type="DateTime" Nullable="false" Precision="3" />
+          <Property Name="ExpiryDate" Type="DateTime" Nullable="false" Precision="3" />
+          <Property Name="AccessDate" Type="DateTime" Precision="3" />
+        </EntityType>
       </Schema>
     </edmx:ConceptualModels>
     <!-- C-S mapping content -->
@@ -1985,6 +2018,7 @@ warning 6002: The table/view 'NavyRRL.dbo.ImportRMTL' does not have a primary ke
           <EntitySetMapping Name="ImportRMTL">
             <EntityTypeMapping TypeName="NavyRRLModel.ImportRMTL">
               <MappingFragment StoreEntitySet="ImportRMTL">
+                <ScalarProperty Name="Message" ColumnName="Message" />
                 <ScalarProperty Name="IndexIdentifier" ColumnName="IndexIdentifier" />
                 <ScalarProperty Name="Unique_Identifier" ColumnName="Unique_Identifier" />
                 <ScalarProperty Name="Rating" ColumnName="Rating" />
@@ -2045,6 +2079,21 @@ warning 6002: The table/view 'NavyRRL.dbo.ImportRMTL' does not have a primary ke
               <MappingFragment StoreEntitySet="AspNetRoles">
                 <ScalarProperty Name="IsActive" ColumnName="IsActive" />
                 <ScalarProperty Name="Name" ColumnName="Name" />
+                <ScalarProperty Name="Id" ColumnName="Id" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="System_ProxyCodes">
+            <EntityTypeMapping TypeName="NavyRRLModel.System_ProxyCodes">
+              <MappingFragment StoreEntitySet="System_ProxyCodes">
+                <ScalarProperty Name="AccessDate" ColumnName="AccessDate" />
+                <ScalarProperty Name="ExpiryDate" ColumnName="ExpiryDate" />
+                <ScalarProperty Name="Created" ColumnName="Created" />
+                <ScalarProperty Name="IsActive" ColumnName="IsActive" />
+                <ScalarProperty Name="ProxyType" ColumnName="ProxyType" />
+                <ScalarProperty Name="IsIdentityProxy" ColumnName="IsIdentityProxy" />
+                <ScalarProperty Name="UserId" ColumnName="UserId" />
+                <ScalarProperty Name="ProxyCode" ColumnName="ProxyCode" />
                 <ScalarProperty Name="Id" ColumnName="Id" />
               </MappingFragment>
             </EntityTypeMapping>
