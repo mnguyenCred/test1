@@ -90,7 +90,7 @@ INSERT INTO [dbo].[RmtlProject.Billet]
 SELECT distinct b.Id, c.Id
 --,a.Billet_Title, b.Name
 
-  FROM [NavyRRL].[dbo].[QM_RMTL_11232021] a
+  FROM [dbo].[QM_RMTL_11232021] a
   inner join RMTLProject b on a.RatingId = b.RatingId
   left join Job c on a.Billet_Title = c.name
   left join [RmtlProject.Billet] d on b.Id = d.RmtlProjectId and d.JobId = c.Id
@@ -119,10 +119,10 @@ INSERT INTO [dbo].[RmtlProjectBilletTask]
 SELECT distinct b.Id rmtlProjectBilletId, c.Id as ratingLevelTaskId
 --,a.Billet_Title, b.Name
 
-  FROM [NavyRRL].[dbo].[QM_RMTL_11232021] a
-  inner join [RmtlProject.Billet] b on a.BilletTitleId = b.JobId
-  inner join RatingLevelTask c on a.RatingLevelTaskId = c.Id
-  left join [RmtlProjectBilletTask] d on b.Id = d.[ProjectBilletId] and d.[RatingLevelTaskId] = c.Id
+  FROM [dbo].[QM_RMTL_11232021] a
+  inner join	[RmtlProject.Billet] b on a.BilletTitleId = b.JobId
+  inner join	RatingLevelTask c on a.RatingLevelTaskId = c.Id
+  left join		[RmtlProjectBilletTask] d on b.Id = d.[ProjectBilletId] and d.[RatingLevelTaskId] = c.Id
   where d.id is null 
   order by 1
   go
