@@ -21,7 +21,7 @@ DBCC CHECKIDENT ('[Course.Task]', RESEED, 0);
 -- =======================================
 -- duplicates checking
 SELECT distinct  a.[CIN], a.[Course_Name]
-FROM [NavyRRL].[dbo].[QM_RMTL_11232021] a
+FROM [dbo].[QM_RMTL_11232021] a
 inner join (
 SELECT 
       allCourses.[CIN]
@@ -29,7 +29,7 @@ SELECT
 	  ,count(*) ttl
   FROM 
 	(	SELECT distinct  [CIN], [Course_Name]
-		FROM [NavyRRL].[dbo].[QM_RMTL_11232021]
+		FROM [dbo].[QM_RMTL_11232021]
 		WHERE CIN <> 'N/A'
 	 -- order by 1,2
 	) allCourses
@@ -85,19 +85,7 @@ base.[CIN]
           ELSE left(CCATypes,len(CCATypes)-1)
 		  END AS CCATypes
 
-      --,[Course_Type]
-      --,[Curriculum_Control_Authority]
-      --,[Life_Cycle_Control_Document]
-      --,[Task_Statement]
-      
-      --,[NEC_Refresher_Training_Selection]
-      --,[Journeyman_Core_Training_Selection]
-      --,[Master_Core_Training_Selection]
-      --,[Notes]
-      --,[AssessmentId]
-      --,[CourseId]
-      --,[CourseTaskId]
-  FROM [NavyRRL].[dbo].[QM_RMTL_11232021] base
+  FROM [dbo].[QM_RMTL_11232021] base
   left join course b on base.CIN = b.CIN
 
 CROSS APPLY (
@@ -225,7 +213,7 @@ and a.[Task_Statement]= b.TaskStatement
 	--and a.[Life_Cycle_Control_Document]= b.[LifeCycleControlDocument]
 	--and a.[Curriculum_Control_Authority]= b.[CurriculumControlAuthority]
 	--and a.[Current_Assessment_Approach]= b.[CurrentAssessmentApproach]
-
+and b.id is null 
 GO
 
 -- =================================================================
