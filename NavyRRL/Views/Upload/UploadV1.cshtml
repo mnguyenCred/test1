@@ -392,7 +392,7 @@
 	//
 
 	function renderObjectList(type) {
-		var Items = getDataByType(type);
+		var Items = getDataByType(type).sort((a, b) => { return (a.Name || a.Description || a.CodedNotation) > (b.Name || b.Description || b.CodedNotation) ? 1 : -1 });
 		var mainBox = $(".objectViewBox [data-type='" + type + "']");
 		var headerCount = mainBox.find("h4 span");
 		var itemsBox = mainBox.find(".itemList");
@@ -418,7 +418,8 @@
 				appendProperty(box, "Curriculum Control Authority", getFields(Item.CurriculumControlAuthority, "Name"));
 				appendProperty(box, "Course Type", getFields(Item.CourseType, "Name"));
 				appendProperty(box, "Has # Training Tasks", Item.HasTrainingTask?.length);
-				appendProperty(box, "Referenced From # Objects", Data.Graph.filter(m => m.HasReferenceResource?.indexOf(Item.CTID) > -1).length);
+				appendProperty(box, "Referenced From # Components", Data.Graph.filter(m => m.HasReferenceResource?.indexOf(Item.CTID) > -1).length);
+				appendProperty(box, "Referenced From # Rating Tasks", Item.Type == "TrainingTask" ? Data.Graph.filter(m => m.HasTrainingTask?.indexOf(Item.CTID) > -1).length : "");
 				appendProperty(box, "Note", Item.Note, "bigText");
 			}, 0);
 		});
@@ -512,14 +513,14 @@
 	/* Object View */
 	.objectViewBox { }
 	.objectViewBox .itemBox { display: flex; flex-wrap: wrap; border-top: 1px solid #CCC; margin: 5px 0; }
-	.objectViewBox .itemBox .property { flex: 1 1; padding: 5px 15px; }
-	.objectViewBox .itemBox .property .miniLabel { font-size: 10px; }
+	.objectViewBox .itemBox .property { flex: 0 1 25%; padding: 5px 15px; }
+	.objectViewBox .itemBox .property .miniLabel { font-size: 10px; color: #33A; font-weight: bold; }
 	.objectViewBox .itemBox .property .value {  }
 	.objectViewBox .itemBox .property.bigText { flex: 0 0 100%; }
-	.objectViewBox [data-type='RatingTask'] .itemBox .property:not(.bigText) { flex: 0 0 25%; }
 
 	/* Raw JSON View */
 	.rawJSONBox { font-family: Consolas, 'Courier New', monospace; font-size: 12px; padding: 10px; background-color: #EEE; tab-size: 25px; white-space: pre-wrap; }
+	.mainTabButtons button:nth-child(4) { opacity: 0.5; }
 </style>
 
 <h2>Upload RMTL Source Data</h2>
@@ -533,7 +534,7 @@
 	<div class="statusBox">Ready</div>
 </div>
 <div class="display tabBox">
-	<div class="tabButtons"></div>
+	<div class="tabButtons mainTabButtons"></div>
 	<div class="tabs">
 
 		<div class="tab" data-tab="Summary">
@@ -550,8 +551,8 @@
 			</div>
 		</div>
 
-		<div class="tab" data-tab="Object View">
-			<h3>Object View</h3>
+		<div class="tab" data-tab="Component View">
+			<h3>Component View</h3>
 			<div class="objectViewBox tabBox">
 				<div class="tabButtons"></div>
 				<div class="tabs">
@@ -583,8 +584,8 @@
 						<h4><span class="count"></span> Reference Resources</h4>
 						<div class="itemList"></div>
 					</div>
-					<div class="tab" data-tab="Organizations" data-type="Organization">
-						<h4><span class="count"></span> Organizations</h4>
+					<div class="tab" data-tab="Training Organizations" data-type="Organization">
+						<h4><span class="count"></span> Training Organizations</h4>
 						<div class="itemList"></div>
 					</div>
 				</div>

@@ -12,15 +12,15 @@
 		//Call this once Data.Graph is ready
 		setupFilters: function () {
 			Search.UI.FilterList.html("");
+			Search.UI.Table.SortBy = {};
+			Search.UI.Table.SortReverse = true;
 			Search.Filters = [
 				makeFilter_CheckBoxList("Show/Hide Columns", {
 					initialize: function (Filter) {
 						Filter.StyleBox = $(".searchResultsTableStyles");
 						Filter.StyleBox.html("");
 						Filter.StyleList = [];
-						var table = $(".searchResultsTable");
-						var headers = table.find("th");
-						headers.each(function (index, header) {
+						Search.UI.Headers.each(function (index, header) {
 							Filter.addOption($(header).text(), index, function () {
 								Filter.StyleList = Filter.Items.map(m => parseInt(m) + 1).map(m => ".searchBox .searchResultsBox .searchResultsTable th:nth-child(" + m + "), .searchBox .searchResultsBox .searchResultsTable td:nth-child(" + m + ") { display: table-cell; }");
 								Filter.StyleBox.html(Filter.StyleList.join("\n"));
@@ -40,6 +40,9 @@
 					},
 					applyFilter: function (Filter, Results) {
 						return Results.filter(m => m.HasRating?.filter(n => Filter.Items.map(o => o.value).indexOf(n) > -1).length > 0);
+					},
+					getAJAXFilter: function (Filter) {
+						return { Name: "filter:Rating", Values: Filter.Items.map(m => m.value) };
 					}
 				}),
 				makeFilter_MicroSearch("Functional Area", "Add Functional Area...", {
@@ -50,6 +53,9 @@
 					},
 					applyFilter: function (Filter, Results) {
 						return Results.filter(m => m.HasWorkRole?.filter(n => Filter.Items.map(o => o.value).indexOf(n) > -1).length > 0);
+					},
+					getAJAXFilter: function (Filter) {
+						return { Name: "filter:WorkRole", Values: Filter.Items.map(m => m.value) };
 					}
 				}),
 				makeFilter_MicroSearch("Billet Title", "Add Billet Title...", {
@@ -61,17 +67,26 @@
 					applyFilter: function (Filter, Results) {
 						var matchingBilletTitleTaskCTIDs = Data.Graph.filter(m => Filter.Items.map(n => n.value).indexOf(m.CTID) > -1).flatMap(m => m.HasRatingTask);
 						return Results.filter(m => matchingBilletTitleTaskCTIDs.indexOf(m.CTID) > -1);
+					},
+					getAJAXFilter: function (Filter) {
+						return { Name: "filter:BilletTitle", Values: Filter.Items.map(m => m.value) };
 					}
 				}),
 				makeFilter_Text("Rating Task Keywords", {
 					applyFilter: function (Filter, Results) {
 						return Results.filter(m => m.Description?.toLowerCase().indexOf(Filter.Text.val().toLowerCase()) > -1);
+					},
+					getAJAXFilter: function (Filter) {
+						return { Name: "filter:Keyword_RatingTask", Values: [Filter.Text.val().trim()] };
 					}
 				}),
 				makeFilter_Text("Training Task Keywords", {
 					applyFilter: function (Filter, Results) {
 						var matchingTrainingTaskCTIDs = Data.Graph.filter(n => n.Type == "TrainingTask" && n.Description?.toLowerCase().indexOf(Filter.Text.val().toLowerCase()) > -1).map(m => m.CTID);
 						return Results.filter(m => m.HasTrainingTask && matchingTrainingTaskCTIDs.filter(n => m.HasTrainingTask?.indexOf(n) > -1).length > 0);
+					},
+					getAJAXFilter: function (Filter) {
+						return { Name: "filter:Keyword_TrainingTask", Values: [Filter.Text.val().trim()] };
 					}
 				}),
 				makeFilter_CheckBoxList("Pay Grade Type", {
@@ -84,6 +99,9 @@
 					},
 					applyFilter: function (Filter, Results) {
 						return Results.filter(m => Filter.Items.filter(n => m.PayGradeType.indexOf(n) > -1).length > 0);
+					},
+					getAJAXFilter: function (Filter) {
+						return { Name: "filter:PayGradeType", Values: Filter.Items.map(m => m) };
 					}
 				}),
 				makeFilter_CheckBoxList("Source Type", {
@@ -97,6 +115,9 @@
 					applyFilter: function (Filter, Results) {
 						var matchingSourceTypeCTIDs = Data.Graph.filter(m => m.Type == "ReferenceResource" && m.ReferenceType?.filter(n => Filter.Items.indexOf(n) > -1).length > 0).map(m => m.CTID);
 						return Results.filter(m => matchingSourceTypeCTIDs.filter(n => m.HasReferenceResource.indexOf(n) > -1).length > 0);
+					},
+					getAJAXFilter: function (Filter) {
+						return { Name: "filter:SourceType", Values: Filter.Items.map(m => m) };
 					}
 				}),
 				makeFilter_CheckBoxList("Training Gap Type", {
@@ -109,6 +130,9 @@
 					},
 					applyFilter: function (Filter, Results) {
 						return Results.filter(m => Filter.Items.filter(n => m.TrainingGapType.indexOf(n) > -1).length > 0);
+					},
+					getAJAXFilter: function (Filter) {
+						return { Name: "filter:TrainingGapType", Values: Filter.Items.map(m => m) };
 					}
 				}),
 				makeFilter_CheckBoxList("Applicability Type", {
@@ -121,9 +145,33 @@
 					},
 					applyFilter: function (Filter, Results) {
 						return Results.filter(m => Filter.Items.filter(n => m.ApplicabilityType.indexOf(n) > -1).length > 0);
+					},
+					getAJAXFilter: function (Filter) {
+						return { Name: "filter:ApplicabilityType", Values: Filter.Items.map(m => m) };
 					}
 				})
 			];
+
+			//Make headers sortable			
+			Search.UI.Headers.each(function (index) {
+				var header = $(this);
+				header.on("click keyup", function (e) {
+					if ((e.which || e.keyCode) == 13 || e.type == "click") {
+						Search.UI.Table.SortBy = header;
+						Search.UI.Table.SortReverse = !Search.UI.Table.SortReverse;
+						Search.UI.Headers.removeClass("sortBy sortReverseBy");
+						header.addClass(Search.UI.Table.SortReverse ? "sortReverseBy" : "sortBy");
+						var rows = Search.UI.Table.find("tr:not(.tableHeader)");
+						rows.get().sort((a, b) => {
+							return $(a).find("td:nth-child(" + (index + 1) + ")").text() > $(b).find("td:nth-child(" + (index + 1) + ")").text() ? (Search.UI.Table.SortReverse ? -1 : 1) : (Search.UI.Table.SortReverse ? 1 : -1);
+						}).forEach(function (row, index) {
+							Search.UI.Table.append($(row));
+						});
+					}
+				});
+			});
+
+			//Initial data
 			doSearch();
 		}
 	};
@@ -236,6 +284,11 @@
 		Search.UI.FilterList = Search.UI.Box.find(".searchFilterList");
 		Search.UI.ResultsBox = Search.UI.Box.find(".searchResultsBox");
 		Search.UI.ResultsTableBody = Search.UI.Box.find(".searchResultsTable tbody");
+		Search.UI.Table = $(".searchResultsTable");
+		Search.UI.Headers = Search.UI.Table.find("th");
+		Search.UI.Headers.each(function () {
+			$(this).attr("tabindex", "0");
+		});
 	}
 	//
 
@@ -247,6 +300,10 @@
 			}
 		});
 		renderResults();
+
+		//For AJAX
+		var filtersForAJAX = Search.Filters.filter(m => m.getAJAXFilter != null && m.isApplicable()).map(m => m.getAJAXFilter(m));
+		console.log("Filters for AJAX", filtersForAJAX);
 	}
 	//
 
@@ -319,11 +376,14 @@
 	.searchBox .searchFilterBox .filterItem .filterContent .itemsBox .microSearchItem span { flex: 1 1 auto; padding: 2.5px 10px 2.5px 5px; }
 	.searchBox .searchFilterBox .filterItem .filterContent .itemsBox .microSearchItem .redButton { width: 26px; height: 26px; background-color: #D55; color: #FFF; font-weight: bold; border: none; }
 
-	.searchBox .searchResultsBox { overflow-x: scroll; }
+	.searchBox .searchResultsBox { overflow-x: scroll; padding: 0 1px; }
 	.searchBox .searchResultsBox .searchResultsTable { min-width: 100%; }
-	.searchBox .searchResultsBox .searchResultsTable th { white-space: nowrap; background-color: #555; color: #FFF; padding: 5px 10px; }
+	.searchBox .searchResultsBox .searchResultsTable th { white-space: nowrap; background-color: #555; color: #FFF; padding: 5px 10px; border: 1px solid #555; cursor: pointer; }
+	.searchBox .searchResultsBox .searchResultsTable th:hover, .searchBox .searchResultsBox .searchResultsTable th:focus { background-color: #777; }
 	.searchBox .searchResultsBox .searchResultsTable td { border: 1px solid #CCC; padding: 1px 5px; font-size: 12px; }
 	.searchBox .searchResultsBox .searchResultsTable th, .searchBox .searchResultsBox .searchResultsTable td { display: none; }
+	.searchBox .searchResultsBox .searchResultsTable th.sortBy::after { content: "\2191"; margin-left: 5px; }
+	.searchBox .searchResultsBox .searchResultsTable th.sortReverseBy::after { content: "\2193"; margin-left: 5px; }
 </style>
 <style type="text/css" class="searchResultsTableStyles"></style>
 
