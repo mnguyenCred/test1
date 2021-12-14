@@ -13,6 +13,25 @@
 		setupFilters: function () {
 			Search.UI.FilterList.html("");
 			Search.Filters = [
+				makeFilter_CheckBoxList("Show/Hide Columns", {
+					initialize: function (Filter) {
+						Filter.StyleBox = $(".searchResultsTableStyles");
+						Filter.StyleBox.html("");
+						Filter.StyleList = [];
+						var table = $(".searchResultsTable");
+						var headers = table.find("th");
+						headers.each(function (index, header) {
+							Filter.addOption($(header).text(), index, function () {
+								Filter.StyleList = Filter.Items.map(m => parseInt(m) + 1).map(m => ".searchBox .searchResultsBox .searchResultsTable th:nth-child(" + m + "), .searchBox .searchResultsBox .searchResultsTable td:nth-child(" + m + ") { display: table-cell; }");
+								Filter.StyleBox.html(Filter.StyleList.join("\n"));
+							});
+						});
+						Filter.Box.find("input").prop("checked", true).trigger("change");
+					},
+					applyFilter: function (Filter, Results) {
+						return Results; //This filter doesn't actually do anything to the result set
+					}
+				}),
 				makeFilter_MicroSearch("Rating", "Add Rating...", {
 					doMicroSearch: function (Filter) {
 						Data.Graph.filter(m => m.Type == "Rating" && m.CodedNotation.toLowerCase().indexOf(Filter.Text.val().toLowerCase()) > -1).slice(0, 10).forEach(function (Item) {
@@ -128,12 +147,12 @@
 	function makeFilter_CheckBoxList(label, settings) {
 		var Filter = makeFilter_Core(label, "text", settings);
 		Filter.Items = [];
-		Filter.addOption = function (label, value) {
+		Filter.addOption = function (label, value, onChange) {
 			var wrapper = $("<label><span>" + label + "</span></label>").appendTo(Filter.Content);
 			var checkBox = $("<input type=\"checkbox\" value=\"" + value + "\">").prependTo(wrapper);
 			checkBox.on("change", function () {
 				Filter.Items = Filter.Content.find("input:checked").get().map(m => m.value);
-				doSearch();
+				onChange ? onChange() : doSearch();
 			});
 		};
 		Filter.isApplicable = function () {
@@ -238,9 +257,28 @@
 		Search.Results.forEach(function (Result) {
 			var row = $("<tr></tr>").appendTo(Search.UI.ResultsTableBody);
 			setTimeout(function () {
-				row.append("<td>" + getFields(Result.PayGradeType, "CodedNotation") + "</td>");
-				row.append("<td>" + Result.Description + "</td>");
-				row.append("<td>" + getFields(Result.HasTrainingTask, "Description") + "</td>");
+				var TrainingTasks = getDataByCTIDs(Result.HasTrainingTask);
+				var Courses = Data.Graph.filter(m => m.Type == "Course" && TrainingTasks.filter(n => m.HasTrainingTask.indexOf(n.CTID) > -1).length > 0);
+				var rowData = [
+					getFields(Result.HasRating, "CodedNotation"),
+					getFields(Result.PayGradeType, "CodedNotation"),
+					Data.Graph.filter(m => m.Type == "BilletTitle" && m.HasRatingTask.indexOf(Result.CTID) > -1).map(m => m.Name).join(" | "),
+					getFields(Result.HasWorkRole, "Name"),
+					getFields(Result.HasReferenceResource, "Name"),
+					getFields(Result.HasReferenceResource?.flatMap(m => m.ReferenceType), "Name"),
+					getFields(Result.HasReferenceResource, "PublicationDate"),
+					Result.Description,
+					getFields(Result.ApplicabilityType, "Name"),
+					getFields(Result.TrainingGapType, "Name"),
+					Courses.map(m => m.CodedNotation || "").join(" | "),
+					Courses.map(m => m.Name || "").join(" | "),
+					getFields(Courses.flatMap(m => m.CourseType), "Name"),
+					getFields(Courses.flatMap(m => m.CurriculumControlAuthority), "Name"),
+					getFields(Result.HasTrainingTask, "Description"),
+					getFields(TrainingTasks.flatMap(m => m.AssessmentMethodType), "Name"),
+					Result.Note || ""
+				];
+				row.append("<td>" + rowData.join("</td><td>") + "</td>");
 			}, 0);
 		});
 	}
@@ -285,7 +323,9 @@
 	.searchBox .searchResultsBox .searchResultsTable { min-width: 100%; }
 	.searchBox .searchResultsBox .searchResultsTable th { white-space: nowrap; background-color: #555; color: #FFF; padding: 5px 10px; }
 	.searchBox .searchResultsBox .searchResultsTable td { border: 1px solid #CCC; padding: 1px 5px; font-size: 12px; }
+	.searchBox .searchResultsBox .searchResultsTable th, .searchBox .searchResultsBox .searchResultsTable td { display: none; }
 </style>
+<style type="text/css" class="searchResultsTableStyles"></style>
 
 <h2>Search</h2>
 
@@ -297,7 +337,25 @@
 	<div class="searchResultsBox">
 		<table class="searchResultsTable">
 			<tbody>
-				<tr class="tableHeader"><th>Pay Grade</th><th>Rating Task Text</th><th>Training Task Text</th></tr>
+				<tr class="tableHeader">
+					<th>Rating</th>
+					<th>Pay Grade</th>
+					<th>Billet Title</th>
+					<th>Functional Area</th>
+					<th>Source</th>
+					<th>Source Type</th>
+					<th>Source Date</th>
+					<th style="min-width:400px;">Rating Task Text</th>
+					<th>Applicability Type</th>
+					<th>Training Gap Type</th>
+					<th>Course Code</th>
+					<th>Course Name</th>
+					<th>Course Type</th>
+					<th>CCA</th>
+					<th style="min-width:400px;">Training Task Text</th>
+					<th>Assessment Method Type</th>
+					<th>Note</th>
+				</tr>
 			</tbody>
 		</table>
 	</div>
