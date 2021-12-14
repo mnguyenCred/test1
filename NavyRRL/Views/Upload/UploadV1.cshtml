@@ -151,6 +151,7 @@
 		Data.CSVJSON.forEach(function (row) {
 			var billetTitle = getOrNew("BilletTitle", {
 				Name: row["Billet Title"],
+				HasRating: [],
 				HasRatingTask: []
 			});
 
@@ -238,6 +239,7 @@
 
 			//Attach the objects to each other
 			appendReference(billetTitle?.HasRatingTask, ratingTask);
+			appendReference(billetTitle?.HasRating, rating.CodedNotation.toLowerCase() == "all" ? null : rating);
 			//appendReference(workRole?.HasRatingTask, ratingTask);
 			appendReference(ratingTask?.HasWorkRole, workRole);
 			appendReference(ratingTask?.TrainingGapType, trainingGapType);
@@ -383,7 +385,9 @@
 		setTimeout(() => {
 			UI.RawJSONView.Display.html(JSON.stringify(Data.Graph, null, "\t"));
 		}, 0);
-		
+
+		//Search
+		Search?.setupFilters();
 	}
 	//
 
@@ -590,6 +594,10 @@
 		<div class="tab" data-tab="JSON View">
 			<h3>JSON View</h3>
 			<div class="rawJSONBox"></div>
+		</div>
+
+		<div class="tab" data-tab="Search">
+			@Html.Partial( "~/views/search/searchv1.cshtml" )
 		</div>
 
 	</div>
