@@ -636,7 +636,7 @@ namespace Services
 			//string toEmail = user.Email;
 			string bcc = UtilityManager.GetAppKeyValue( "systemAdminEmail", "" );
 
-			string fromEmail = UtilityManager.GetAppKeyValue( "contactUsMailFrom", "mparsons@credentialengine.org" );
+			string fromEmail = UtilityManager.GetAppKeyValue( "contactUsMailFrom", CodesManager.DefaultEmailAddress );
 			string subject = "Confirm Your Application account";
 			string email = EmailManager.GetEmailText( "ConfirmAccount" );
 			string eMessage = "";
@@ -647,7 +647,7 @@ namespace Services
 				//assign and substitute: 0-FirstName, 1-body from AccountController
 				eMessage = string.Format( email, user.FirstName, url );
 
-				//EmailServices.SendEmail( toEmail, fromEmail, subject, eMessage, "", bcc );
+				EmailServices.SendEmail( toEmail, fromEmail, subject, eMessage, "", bcc );
 			}
 			catch ( Exception ex )
 			{
@@ -662,9 +662,9 @@ namespace Services
 			AppUser user = GetUserByEmail( userEmail );
 			string subject = "Forgot password attempt with unconfirmed email";
 
-			string toEmail = UtilityManager.GetAppKeyValue( "systemAdminEmail", "mparsons@credentialengine.org" );
+			string toEmail = UtilityManager.GetAppKeyValue( "systemAdminEmail", CodesManager.DefaultEmailAddress);
 
-			string fromEmail = UtilityManager.GetAppKeyValue( "contactUsMailFrom", "mparsons@credentialengine.org" );
+			string fromEmail = UtilityManager.GetAppKeyValue( "contactUsMailFrom", CodesManager.DefaultEmailAddress );
 			//string subject = "Forgot Password";
 			string email = "User: {0} attempted Forgot Password, and email has not been confirmed.<br/>Email: {1}<br/>Created: {2}";
 			string eMessage = "";

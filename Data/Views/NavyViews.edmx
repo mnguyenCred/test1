@@ -95,68 +95,8 @@ warning 6002: The table/view 'NavyRRL.dbo.ConceptSchemeSummary' does not have a 
           <Property Name="conceptid" Type="int" Nullable="false" />
           <Property Name="ListId" Type="int" />
           <Property Name="Concept" Type="varchar" MaxLength="1000" Nullable="false" />
-        </EntityType>
-        <!--Errors Found During Generation:
-warning 6002: The table/view 'NavyRRL.dbo.Entity_Reference_Summary' does not have a primary key defined. The key has been inferred and the definition was created as a read-only table/view.-->
-        <EntityType Name="Entity_Reference_Summary">
-          <Key>
-            <PropertyRef Name="PK" />
-            <PropertyRef Name="EntityId" />
-            <PropertyRef Name="EntityTypeId" />
-            <PropertyRef Name="EntityUid" />
-            <PropertyRef Name="EntityReferenceId" />
-            <PropertyRef Name="CategoryId" />
-          </Key>
-          <Property Name="PK" Type="int" Nullable="false" />
-          <Property Name="EntityId" Type="int" Nullable="false" />
-          <Property Name="EntityTypeId" Type="int" Nullable="false" />
-          <Property Name="EntityType" Type="varchar" MaxLength="200" />
-          <Property Name="EntityUid" Type="uniqueidentifier" Nullable="false" />
-          <Property Name="EntityName" Type="nvarchar" MaxLength="300" />
-          <Property Name="EntityBaseId" Type="int" />
-          <Property Name="EntityReferenceId" Type="int" Nullable="false" />
-          <Property Name="CategoryId" Type="int" Nullable="false" />
-          <Property Name="PropertyValueId" Type="int" />
-          <Property Name="Title" Type="nvarchar" MaxLength="600" />
-          <Property Name="TextValue" Type="nvarchar" MaxLength="600" />
-          <Property Name="PropertyValue" Type="varchar" MaxLength="200" />
-          <Property Name="Created" Type="datetime" />
-          <Property Name="CreatedById" Type="int" />
-          <Property Name="LastUpdated" Type="datetime" />
-          <Property Name="LastUpdatedById" Type="int" />
-        </EntityType>
-        <!--Errors Found During Generation:
-warning 6002: The table/view 'NavyRRL.dbo.EntityProperty_Summary' does not have a primary key defined. The key has been inferred and the definition was created as a read-only table/view.-->
-        <EntityType Name="EntityProperty_Summary">
-          <Key>
-            <PropertyRef Name="EntityId" />
-            <PropertyRef Name="EntityUid" />
-            <PropertyRef Name="EntityTypeId" />
-            <PropertyRef Name="PropertyValueId" />
-            <PropertyRef Name="EntityPropertyId" />
-            <PropertyRef Name="Property" />
-            <PropertyRef Name="CategoryId" />
-            <PropertyRef Name="Category" />
-          </Key>
-          <Property Name="EntityId" Type="int" Nullable="false" />
-          <Property Name="EntityUid" Type="uniqueidentifier" Nullable="false" />
-          <Property Name="EntityTypeId" Type="int" Nullable="false" />
-          <Property Name="EntityBaseId" Type="int" />
-          <Property Name="EntityBaseName" Type="nvarchar" MaxLength="300" />
-          <Property Name="Title" Type="varchar" MaxLength="100" />
-          <Property Name="PropertyValueId" Type="int" Nullable="false" />
-          <Property Name="EntityPropertyId" Type="int" Nullable="false" />
-          <Property Name="Property" Type="varchar" MaxLength="200" Nullable="false" />
-          <Property Name="PropertySchemaName" Type="varchar" MaxLength="100" />
-          <Property Name="ParentSchemaName" Type="varchar" MaxLength="100" />
-          <Property Name="CategoryId" Type="int" Nullable="false" />
-          <Property Name="SortOrder" Type="int" />
-          <Property Name="Category" Type="varchar" MaxLength="50" Nullable="false" />
-          <Property Name="Created" Type="datetime" />
-          <Property Name="CreatedById" Type="int" />
-          <Property Name="Description" Type="varchar" MaxLength="500" />
-          <Property Name="IsActive" Type="bit" />
-          <Property Name="IsSubType1" Type="bit" />
+          <Property Name="CodedNotation" Type="varchar" MaxLength="50" />
+          <Property Name="Description" Type="varchar(max)" />
         </EntityType>
         <!--Errors Found During Generation:
 warning 6002: The table/view 'NavyRRL.dbo.RatingLevelTaskSummary' does not have a primary key defined. The key has been inferred and the definition was created as a read-only table/view.-->
@@ -207,7 +147,7 @@ warning 6002: The table/view 'NavyRRL.dbo.RatingLevelTaskSummary' does not have 
 warning 6002: The table/view 'NavyRRL.dbo.RmtlSummary' does not have a primary key defined. The key has been inferred and the definition was created as a read-only table/view.-->
         <EntityType Name="RmtlSummary">
           <Key>
-            <PropertyRef Name="RMTLProejct" />
+            <PropertyRef Name="RMTLProject" />
             <PropertyRef Name="Rating" />
             <PropertyRef Name="Rank" />
             <PropertyRef Name="Level" />
@@ -219,7 +159,7 @@ warning 6002: The table/view 'NavyRRL.dbo.RmtlSummary' does not have a primary k
             <PropertyRef Name="TaskApplicability" />
             <PropertyRef Name="FormalTrainingGap" />
           </Key>
-          <Property Name="RMTLProejct" Type="varchar" MaxLength="300" Nullable="false" />
+          <Property Name="RMTLProject" Type="varchar" MaxLength="300" Nullable="false" />
           <Property Name="Rating" Type="varchar" MaxLength="500" Nullable="false" />
           <Property Name="Rank" Type="varchar" MaxLength="1000" Nullable="false" />
           <Property Name="Level" Type="varchar" MaxLength="1000" Nullable="false" />
@@ -311,52 +251,10 @@ warning 6002: The table/view 'NavyRRL.dbo.SubscriptionEntities' does not have a 
     [ConceptSchemeSummary].[Name] AS [Name], 
     [ConceptSchemeSummary].[conceptid] AS [conceptid], 
     [ConceptSchemeSummary].[ListId] AS [ListId], 
-    [ConceptSchemeSummary].[Concept] AS [Concept]
+    [ConceptSchemeSummary].[Concept] AS [Concept], 
+    [ConceptSchemeSummary].[CodedNotation] AS [CodedNotation], 
+    [ConceptSchemeSummary].[Description] AS [Description]
     FROM [dbo].[ConceptSchemeSummary] AS [ConceptSchemeSummary]</DefiningQuery>
-          </EntitySet>
-          <EntitySet Name="Entity_Reference_Summary" EntityType="Self.Entity_Reference_Summary" store:Type="Views" store:Schema="dbo">
-            <DefiningQuery>SELECT 
-    [Entity_Reference_Summary].[PK] AS [PK], 
-    [Entity_Reference_Summary].[EntityId] AS [EntityId], 
-    [Entity_Reference_Summary].[EntityTypeId] AS [EntityTypeId], 
-    [Entity_Reference_Summary].[EntityType] AS [EntityType], 
-    [Entity_Reference_Summary].[EntityUid] AS [EntityUid], 
-    [Entity_Reference_Summary].[EntityName] AS [EntityName], 
-    [Entity_Reference_Summary].[EntityBaseId] AS [EntityBaseId], 
-    [Entity_Reference_Summary].[EntityReferenceId] AS [EntityReferenceId], 
-    [Entity_Reference_Summary].[CategoryId] AS [CategoryId], 
-    [Entity_Reference_Summary].[PropertyValueId] AS [PropertyValueId], 
-    [Entity_Reference_Summary].[Title] AS [Title], 
-    [Entity_Reference_Summary].[TextValue] AS [TextValue], 
-    [Entity_Reference_Summary].[PropertyValue] AS [PropertyValue], 
-    [Entity_Reference_Summary].[Created] AS [Created], 
-    [Entity_Reference_Summary].[CreatedById] AS [CreatedById], 
-    [Entity_Reference_Summary].[LastUpdated] AS [LastUpdated], 
-    [Entity_Reference_Summary].[LastUpdatedById] AS [LastUpdatedById]
-    FROM [dbo].[Entity_Reference_Summary] AS [Entity_Reference_Summary]</DefiningQuery>
-          </EntitySet>
-          <EntitySet Name="EntityProperty_Summary" EntityType="Self.EntityProperty_Summary" store:Type="Views" store:Schema="dbo">
-            <DefiningQuery>SELECT 
-    [EntityProperty_Summary].[EntityId] AS [EntityId], 
-    [EntityProperty_Summary].[EntityUid] AS [EntityUid], 
-    [EntityProperty_Summary].[EntityTypeId] AS [EntityTypeId], 
-    [EntityProperty_Summary].[EntityBaseId] AS [EntityBaseId], 
-    [EntityProperty_Summary].[EntityBaseName] AS [EntityBaseName], 
-    [EntityProperty_Summary].[Title] AS [Title], 
-    [EntityProperty_Summary].[PropertyValueId] AS [PropertyValueId], 
-    [EntityProperty_Summary].[EntityPropertyId] AS [EntityPropertyId], 
-    [EntityProperty_Summary].[Property] AS [Property], 
-    [EntityProperty_Summary].[PropertySchemaName] AS [PropertySchemaName], 
-    [EntityProperty_Summary].[ParentSchemaName] AS [ParentSchemaName], 
-    [EntityProperty_Summary].[CategoryId] AS [CategoryId], 
-    [EntityProperty_Summary].[SortOrder] AS [SortOrder], 
-    [EntityProperty_Summary].[Category] AS [Category], 
-    [EntityProperty_Summary].[Created] AS [Created], 
-    [EntityProperty_Summary].[CreatedById] AS [CreatedById], 
-    [EntityProperty_Summary].[Description] AS [Description], 
-    [EntityProperty_Summary].[IsActive] AS [IsActive], 
-    [EntityProperty_Summary].[IsSubType1] AS [IsSubType1]
-    FROM [dbo].[EntityProperty_Summary] AS [EntityProperty_Summary]</DefiningQuery>
           </EntitySet>
           <EntitySet Name="RatingLevelTaskSummary" EntityType="Self.RatingLevelTaskSummary" store:Type="Views" store:Schema="dbo">
             <DefiningQuery>SELECT 
@@ -391,7 +289,7 @@ warning 6002: The table/view 'NavyRRL.dbo.SubscriptionEntities' does not have a 
           </EntitySet>
           <EntitySet Name="RmtlSummary" EntityType="Self.RmtlSummary" store:Type="Views" store:Schema="dbo">
             <DefiningQuery>SELECT 
-    [RmtlSummary].[RMTLProejct] AS [RMTLProejct], 
+    [RmtlSummary].[RMTLProject] AS [RMTLProject], 
     [RmtlSummary].[Rating] AS [Rating], 
     [RmtlSummary].[Rank] AS [Rank], 
     [RmtlSummary].[Level] AS [Level], 
@@ -427,40 +325,7 @@ warning 6002: The table/view 'NavyRRL.dbo.SubscriptionEntities' does not have a 
     <!-- CSDL content -->
     <edmx:ConceptualModels>
       <Schema Namespace="ceNavyViewModel" Alias="Self" annotation:UseStrongSpatialTypes="false" xmlns:annotation="http://schemas.microsoft.com/ado/2009/02/edm/annotation" xmlns:customannotation="http://schemas.microsoft.com/ado/2013/11/edm/customannotation" xmlns="http://schemas.microsoft.com/ado/2009/11/edm">
-        <EntityType Name="EntityProperty_Summary">
-          <Key>
-            <PropertyRef Name="EntityId" />
-            <PropertyRef Name="EntityUid" />
-            <PropertyRef Name="EntityTypeId" />
-            <PropertyRef Name="PropertyValueId" />
-            <PropertyRef Name="EntityPropertyId" />
-            <PropertyRef Name="Property" />
-            <PropertyRef Name="CategoryId" />
-            <PropertyRef Name="Category" />
-          </Key>
-          <Property Name="EntityId" Type="Int32" Nullable="false" />
-          <Property Name="EntityUid" Type="Guid" Nullable="false" />
-          <Property Name="EntityTypeId" Type="Int32" Nullable="false" />
-          <Property Name="EntityBaseId" Type="Int32" />
-          <Property Name="EntityBaseName" Type="String" MaxLength="300" FixedLength="false" Unicode="true" />
-          <Property Name="Title" Type="String" MaxLength="100" FixedLength="false" Unicode="false" />
-          <Property Name="PropertyValueId" Type="Int32" Nullable="false" />
-          <Property Name="EntityPropertyId" Type="Int32" Nullable="false" />
-          <Property Name="Property" Type="String" MaxLength="200" FixedLength="false" Unicode="false" Nullable="false" />
-          <Property Name="PropertySchemaName" Type="String" MaxLength="100" FixedLength="false" Unicode="false" />
-          <Property Name="ParentSchemaName" Type="String" MaxLength="100" FixedLength="false" Unicode="false" />
-          <Property Name="CategoryId" Type="Int32" Nullable="false" />
-          <Property Name="SortOrder" Type="Int32" />
-          <Property Name="Category" Type="String" MaxLength="50" FixedLength="false" Unicode="false" Nullable="false" />
-          <Property Name="Created" Type="DateTime" Precision="3" />
-          <Property Name="CreatedById" Type="Int32" />
-          <Property Name="Description" Type="String" MaxLength="500" FixedLength="false" Unicode="false" />
-          <Property Name="IsActive" Type="Boolean" />
-          <Property Name="IsSubType1" Type="Boolean" />
-        </EntityType>
         <EntityContainer Name="ceNavyViewEntities" annotation:LazyLoadingEnabled="true">
-          <EntitySet Name="EntityProperty_Summary" EntityType="Self.EntityProperty_Summary" />
-          <EntitySet Name="Entity_Reference_Summary" EntityType="ceNavyViewModel.Entity_Reference_Summary" />
           <EntitySet Name="Activity_Summary" EntityType="ceNavyViewModel.Activity_Summary" />
           <EntitySet Name="Account_Summary" EntityType="ceNavyViewModel.Account_Summary" />
           <EntitySet Name="SubscriptionEntities" EntityType="ceNavyViewModel.SubscriptionEntities" />
@@ -469,33 +334,6 @@ warning 6002: The table/view 'NavyRRL.dbo.SubscriptionEntities' does not have a 
           <EntitySet Name="RatingLevelTaskSummary" EntityType="ceNavyViewModel.RatingLevelTaskSummary" />
           <EntitySet Name="RmtlSummary" EntityType="ceNavyViewModel.RmtlSummary" />
         </EntityContainer>
-        <EntityType Name="Entity_Reference_Summary">
-          <Key>
-            <PropertyRef Name="PK" />
-            <PropertyRef Name="EntityId" />
-            <PropertyRef Name="EntityTypeId" />
-            <PropertyRef Name="EntityUid" />
-            <PropertyRef Name="EntityReferenceId" />
-            <PropertyRef Name="CategoryId" />
-          </Key>
-          <Property Name="PK" Type="Int32" Nullable="false" />
-          <Property Name="EntityId" Type="Int32" Nullable="false" />
-          <Property Name="EntityTypeId" Type="Int32" Nullable="false" />
-          <Property Name="EntityType" Type="String" MaxLength="200" FixedLength="false" Unicode="false" />
-          <Property Name="EntityUid" Type="Guid" Nullable="false" />
-          <Property Name="EntityName" Type="String" MaxLength="300" FixedLength="false" Unicode="true" />
-          <Property Name="EntityBaseId" Type="Int32" />
-          <Property Name="EntityReferenceId" Type="Int32" Nullable="false" />
-          <Property Name="CategoryId" Type="Int32" Nullable="false" />
-          <Property Name="PropertyValueId" Type="Int32" />
-          <Property Name="Title" Type="String" MaxLength="600" FixedLength="false" Unicode="true" />
-          <Property Name="TextValue" Type="String" MaxLength="600" FixedLength="false" Unicode="true" />
-          <Property Name="PropertyValue" Type="String" MaxLength="200" FixedLength="false" Unicode="false" />
-          <Property Name="Created" Type="DateTime" Precision="3" />
-          <Property Name="CreatedById" Type="Int32" />
-          <Property Name="LastUpdated" Type="DateTime" Precision="3" />
-          <Property Name="LastUpdatedById" Type="Int32" />
-        </EntityType>
         <EntityType Name="Activity_Summary">
           <Key>
             <PropertyRef Name="Id" />
@@ -589,6 +427,8 @@ warning 6002: The table/view 'NavyRRL.dbo.SubscriptionEntities' does not have a 
           <Property Name="conceptid" Type="Int32" Nullable="false" />
           <Property Name="ListId" Type="Int32" />
           <Property Name="Concept" Type="String" Nullable="false" MaxLength="1000" FixedLength="false" Unicode="false" />
+          <Property Name="CodedNotation" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+          <Property Name="Description" Type="String" MaxLength="Max" FixedLength="false" Unicode="false" />
         </EntityType>
         <EntityType Name="RatingLevelTaskSummary">
           <Key>
@@ -635,7 +475,6 @@ warning 6002: The table/view 'NavyRRL.dbo.SubscriptionEntities' does not have a 
         </EntityType>
         <EntityType Name="RmtlSummary">
           <Key>
-            <PropertyRef Name="RMTLProejct" />
             <PropertyRef Name="Rating" />
             <PropertyRef Name="Rank" />
             <PropertyRef Name="Level" />
@@ -646,8 +485,8 @@ warning 6002: The table/view 'NavyRRL.dbo.SubscriptionEntities' does not have a 
             <PropertyRef Name="WorkElementTask" />
             <PropertyRef Name="TaskApplicability" />
             <PropertyRef Name="FormalTrainingGap" />
+            <PropertyRef Name="RMTLProject" />
           </Key>
-          <Property Name="RMTLProejct" Type="String" Nullable="false" MaxLength="300" FixedLength="false" Unicode="false" />
           <Property Name="Rating" Type="String" Nullable="false" MaxLength="500" FixedLength="false" Unicode="false" />
           <Property Name="Rank" Type="String" Nullable="false" MaxLength="1000" FixedLength="false" Unicode="false" />
           <Property Name="Level" Type="String" Nullable="false" MaxLength="1000" FixedLength="false" Unicode="false" />
@@ -666,6 +505,7 @@ warning 6002: The table/view 'NavyRRL.dbo.SubscriptionEntities' does not have a 
           <Property Name="CurrentAssessmentApproach" Type="String" MaxLength="200" FixedLength="false" Unicode="true" />
           <Property Name="CurriculumControlAuthority" Type="String" MaxLength="200" FixedLength="false" Unicode="true" />
           <Property Name="LifeCycleControlDocument" Type="String" MaxLength="100" FixedLength="false" Unicode="true" />
+          <Property Name="RMTLProject" Type="String" Nullable="false" MaxLength="300" FixedLength="false" Unicode="false" />
         </EntityType>
       </Schema>
     </edmx:ConceptualModels>
@@ -673,54 +513,6 @@ warning 6002: The table/view 'NavyRRL.dbo.SubscriptionEntities' does not have a 
     <edmx:Mappings>
       <Mapping Space="C-S" xmlns="http://schemas.microsoft.com/ado/2009/11/mapping/cs">
         <EntityContainerMapping StorageEntityContainer="ceNavyViewModelStoreContainer" CdmEntityContainer="ceNavyViewEntities">
-          <EntitySetMapping Name="EntityProperty_Summary">
-            <EntityTypeMapping TypeName="ceNavyViewModel.EntityProperty_Summary">
-              <MappingFragment StoreEntitySet="EntityProperty_Summary">
-                <ScalarProperty Name="EntityId" ColumnName="EntityId" />
-                <ScalarProperty Name="EntityUid" ColumnName="EntityUid" />
-                <ScalarProperty Name="EntityTypeId" ColumnName="EntityTypeId" />
-                <ScalarProperty Name="EntityBaseId" ColumnName="EntityBaseId" />
-                <ScalarProperty Name="EntityBaseName" ColumnName="EntityBaseName" />
-                <ScalarProperty Name="Title" ColumnName="Title" />
-                <ScalarProperty Name="PropertyValueId" ColumnName="PropertyValueId" />
-                <ScalarProperty Name="EntityPropertyId" ColumnName="EntityPropertyId" />
-                <ScalarProperty Name="Property" ColumnName="Property" />
-                <ScalarProperty Name="PropertySchemaName" ColumnName="PropertySchemaName" />
-                <ScalarProperty Name="ParentSchemaName" ColumnName="ParentSchemaName" />
-                <ScalarProperty Name="CategoryId" ColumnName="CategoryId" />
-                <ScalarProperty Name="SortOrder" ColumnName="SortOrder" />
-                <ScalarProperty Name="Category" ColumnName="Category" />
-                <ScalarProperty Name="Created" ColumnName="Created" />
-                <ScalarProperty Name="CreatedById" ColumnName="CreatedById" />
-                <ScalarProperty Name="Description" ColumnName="Description" />
-                <ScalarProperty Name="IsActive" ColumnName="IsActive" />
-                <ScalarProperty Name="IsSubType1" ColumnName="IsSubType1" />
-              </MappingFragment>
-            </EntityTypeMapping>
-          </EntitySetMapping>
-          <EntitySetMapping Name="Entity_Reference_Summary">
-            <EntityTypeMapping TypeName="ceNavyViewModel.Entity_Reference_Summary">
-              <MappingFragment StoreEntitySet="Entity_Reference_Summary">
-                <ScalarProperty Name="LastUpdatedById" ColumnName="LastUpdatedById" />
-                <ScalarProperty Name="LastUpdated" ColumnName="LastUpdated" />
-                <ScalarProperty Name="CreatedById" ColumnName="CreatedById" />
-                <ScalarProperty Name="Created" ColumnName="Created" />
-                <ScalarProperty Name="PropertyValue" ColumnName="PropertyValue" />
-                <ScalarProperty Name="TextValue" ColumnName="TextValue" />
-                <ScalarProperty Name="Title" ColumnName="Title" />
-                <ScalarProperty Name="PropertyValueId" ColumnName="PropertyValueId" />
-                <ScalarProperty Name="CategoryId" ColumnName="CategoryId" />
-                <ScalarProperty Name="EntityReferenceId" ColumnName="EntityReferenceId" />
-                <ScalarProperty Name="EntityBaseId" ColumnName="EntityBaseId" />
-                <ScalarProperty Name="EntityName" ColumnName="EntityName" />
-                <ScalarProperty Name="EntityUid" ColumnName="EntityUid" />
-                <ScalarProperty Name="EntityType" ColumnName="EntityType" />
-                <ScalarProperty Name="EntityTypeId" ColumnName="EntityTypeId" />
-                <ScalarProperty Name="EntityId" ColumnName="EntityId" />
-                <ScalarProperty Name="PK" ColumnName="PK" />
-              </MappingFragment>
-            </EntityTypeMapping>
-          </EntitySetMapping>
           <EntitySetMapping Name="Activity_Summary">
             <EntityTypeMapping TypeName="ceNavyViewModel.Activity_Summary">
               <MappingFragment StoreEntitySet="Activity_Summary">
@@ -794,6 +586,8 @@ warning 6002: The table/view 'NavyRRL.dbo.SubscriptionEntities' does not have a 
           <EntitySetMapping Name="ConceptSchemeSummary">
             <EntityTypeMapping TypeName="ceNavyViewModel.ConceptSchemeSummary">
               <MappingFragment StoreEntitySet="ConceptSchemeSummary">
+                <ScalarProperty Name="Description" ColumnName="Description" />
+                <ScalarProperty Name="CodedNotation" ColumnName="CodedNotation" />
                 <ScalarProperty Name="Concept" ColumnName="Concept" />
                 <ScalarProperty Name="ListId" ColumnName="ListId" />
                 <ScalarProperty Name="conceptid" ColumnName="conceptid" />
@@ -838,6 +632,7 @@ warning 6002: The table/view 'NavyRRL.dbo.SubscriptionEntities' does not have a 
           <EntitySetMapping Name="RmtlSummary">
             <EntityTypeMapping TypeName="ceNavyViewModel.RmtlSummary">
               <MappingFragment StoreEntitySet="RmtlSummary">
+                <ScalarProperty Name="RMTLProject" ColumnName="RMTLProject" />
                 <ScalarProperty Name="LifeCycleControlDocument" ColumnName="LifeCycleControlDocument" />
                 <ScalarProperty Name="CurriculumControlAuthority" ColumnName="CurriculumControlAuthority" />
                 <ScalarProperty Name="CurrentAssessmentApproach" ColumnName="CurrentAssessmentApproach" />
@@ -856,7 +651,6 @@ warning 6002: The table/view 'NavyRRL.dbo.SubscriptionEntities' does not have a 
                 <ScalarProperty Name="Level" ColumnName="Level" />
                 <ScalarProperty Name="Rank" ColumnName="Rank" />
                 <ScalarProperty Name="Rating" ColumnName="Rating" />
-                <ScalarProperty Name="RMTLProejct" ColumnName="RMTLProejct" />
               </MappingFragment>
             </EntityTypeMapping>
           </EntitySetMapping>

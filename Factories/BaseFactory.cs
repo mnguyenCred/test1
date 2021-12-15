@@ -28,8 +28,6 @@ namespace Factories
         public List<string> warnings = new List<string>();
 
         public static string commonStatusMessage = "";
-        public static int MinimumDescriptionLength = UtilityManager.GetAppKeyValue( "minDescriptionTextLength", 12 );
-        public static bool usingQuantitiveValue = UtilityManager.GetAppKeyValue( "usingQuantitiveValue", false );
 
         public static int RELATIONSHIP_TYPE_HAS_PART = 1;
         public static int RELATIONSHIP_TYPE_IS_PART_OF = 2;

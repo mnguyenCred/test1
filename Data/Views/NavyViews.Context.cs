@@ -25,8 +25,6 @@ namespace Data.Views
             throw new UnintentionalCodeFirstException();
         }
     
-        public virtual DbSet<EntityProperty_Summary> EntityProperty_Summary { get; set; }
-        public virtual DbSet<Entity_Reference_Summary> Entity_Reference_Summary { get; set; }
         public virtual DbSet<Activity_Summary> Activity_Summary { get; set; }
         public virtual DbSet<Account_Summary> Account_Summary { get; set; }
         public virtual DbSet<SubscriptionEntities> SubscriptionEntities { get; set; }

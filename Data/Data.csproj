@@ -164,12 +164,6 @@
     <Compile Include="Views\ConceptSchemeSummary.cs">
       <DependentUpon>NavyViews.tt</DependentUpon>
     </Compile>
-    <Compile Include="Views\EntityProperty_Summary.cs">
-      <DependentUpon>NavyViews.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Views\Entity_Reference_Summary.cs">
-      <DependentUpon>NavyViews.tt</DependentUpon>
-    </Compile>
     <Compile Include="Views\NavyViews.Context.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>

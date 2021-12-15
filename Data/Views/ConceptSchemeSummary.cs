@@ -19,5 +19,7 @@ namespace Data.Views
         public int conceptid { get; set; }
         public Nullable<int> ListId { get; set; }
         public string Concept { get; set; }
+        public string CodedNotation { get; set; }
+        public string Description { get; set; }
     }
 }

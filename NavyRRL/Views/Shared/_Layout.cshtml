@@ -17,9 +17,9 @@
 
 	@RenderSection( "css", false )
 	@RenderSection( "scripts", required: false )
-	<link rel="stylesheet" type="text/css" href="~/Content/DataTables/DataTables-1.11.3/css/dataTables.bootstrap.min.css" />
+	@*<link rel="stylesheet" type="text/css" href="~/Content/DataTables/DataTables-1.11.3/css/dataTables.bootstrap.min.css" />*@
 
-	<script type="text/javascript" src="~/Content/DataTables/datatables.min.js"></script>
+	@*<script type="text/javascript" src="~/Content/DataTables/datatables.min.js"></script>*@
 
 </head>
 <body>
@@ -39,7 +39,7 @@
 					<li>@Html.ActionLink( "Upload", "Index", "Upload" )</li>
 					<li>@Html.ActionLink( "Review", "ImportSummary", "Demo" )</li>
 					@*<li>@Html.ActionLink( "About", "About", "Home" )</li>
-		<li>@Html.ActionLink( "Contact", "Contact", "Home" )</li>*@
+						<li>@Html.ActionLink( "Contact", "Contact", "Home" )</li>*@
 				</ul>
 				@Html.Partial( "_LoginPartial" )
 			</div>
@@ -52,6 +52,6 @@
 			<p>&copy; @DateTime.Now.Year - Navy RCDC RRL</p>
 		</footer>
 	</div>
-
+	@Html.Partial( "~/Views/Shared/_ConsoleMessage.cshtml" )
 </body>
 </html>

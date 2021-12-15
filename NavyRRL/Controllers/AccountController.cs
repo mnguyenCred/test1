@@ -210,8 +210,8 @@ namespace NavyRRL.Controllers
                         var callbackUrl = Url.Action( "ConfirmEmail", "Account", new { userId = user.Id, code = code }, protocol: Request.Url.Scheme );
 
                         //NOTE: the subject is really a code - do not change it here!!
-                        await UserManager.SendEmailAsync( user.Id, "Confirm_Account", callbackUrl );
-
+                        //await UserManager.SendEmailAsync( user.Id, "Confirm_Account", callbackUrl );
+                        AccountServices.SendEmail_ConfirmAccount( user.Email, callbackUrl );
                         new AccountServices().Proxies_StoreProxyCode( code, user.Email, "ConfirmEmail" );
                     }
                     // For more information on how to enable account confirmation and password reset please visit https://go.microsoft.com/fwlink/?LinkID=320771
@@ -234,12 +234,43 @@ namespace NavyRRL.Controllers
         [AllowAnonymous]
         public async Task<ActionResult> ConfirmEmail(string userId, string code)
         {
+            ViewBag.Header = "Confirm Email";
             if (userId == null || code == null)
             {
+                ViewBag.Message = "Error: both a user identifier and an access code must be provided.";
                 return View("Error");
             }
+
+            if ( !AccountServices.Proxy_IsCodeActive( code ) )
+            {
+                ViewBag.Header = "Invalid Confirmation Code";
+                ViewBag.Message = "Error: The confirmation code is invalid or has expired.";
+                return View( "Error" );
+            }
             var result = await UserManager.ConfirmEmailAsync(userId, code);
-            return View(result.Succeeded ? "ConfirmEmail" : "Error");
+            //return View(result.Succeeded ? "ConfirmEmail" : "Error");
+            if ( result.Succeeded )
+            {
+                new AccountServices().Proxy_SetInactivate( code );
+
+                //activate user
+                new AccountServices().ActivateUser( userId );
+                //return View( "ConfirmEmail" );
+                return View();
+            }
+            else
+            {
+                AddErrors( result );
+                var msg = "";
+                if ( result.Errors != null && result.Errors.Count() > 0 )
+                    msg = "Confirmation of email failed: " + result.Errors.ToString();
+                else
+                    msg = "Confirmation of email failed ";
+
+                ViewBag.Header = "Confirmation Failed";
+                ViewBag.Message = msg;
+                return View( "Error" );
+            }
         }
 
         //
@@ -259,13 +290,51 @@ namespace NavyRRL.Controllers
         {
             if (ModelState.IsValid)
             {
+                bool notifyOnEmailNotConfirmed = UtilityManager.GetAppKeyValue( "notifyOnEmailNotConfirmed", false );
+
                 var user = await UserManager.FindByNameAsync(model.Email);
-                if (user == null || !(await UserManager.IsEmailConfirmedAsync(user.Id)))
+                if (user == null )
                 {
                     // Don't reveal that the user does not exist or is not confirmed
-                    return View("ForgotPasswordConfirmation");
-                }
+                    //return View("ForgotPasswordConfirmation");
+                    // 16-09-02 mp - actually for now inform user of incorrect email
+                    if ( UtilityManager.GetAppKeyValue( "notifyOnEmailNotFound", false ) )
+                    {
+                        ConsoleMessageHelper.SetConsoleErrorMessage( "Error - the entered email was not found in our system.<br/>Please try again or contact site administration for help" );
 
+                        return View();
+                    }
+                    else
+                    {
+                        return View( "~/Views/Account/ForgotPasswordConfirmation.cshtml" );
+                    }
+                }
+                else if ( !( await UserManager.IsEmailConfirmedAsync( user.Id ) ) )
+                {
+                    if ( notifyOnEmailNotConfirmed == false )
+                    {
+                        // Don't reveal that the user is not confirmed????
+                        //log this in anticipation of issues
+                        AccountServices.SendEmail_OnUnConfirmedEmail( model.Email );
+                        return View( "~/Views/Account/ForgotPasswordConfirmation.cshtml" );
+                    }
+                    else
+                    {
+                        //do we allow fall thru - the reset will not set the email confirmed - should it?
+                        //or resend the confirm email, and notify? the user may not know the password, and would have to do a forgot password regardless?
+
+                        string code2 = await UserManager.GenerateEmailConfirmationTokenAsync( user.Id );
+                        var callbackUrl2 = Url.Action( "ConfirmEmail", "Account", new { userId = user.Id, code = code2 }, protocol: Request.Url.Scheme );
+
+                        //await UserManager.SendEmailAsync( user.Id, "Confirm Your Account", "Please confirm your account by clicking <a href=\"" + callbackUrl2 + "\">here</a>" );
+                        //await UserManager.SendEmailAsync( user.Id, "Confirm_Account", callbackUrl2 );
+                        AccountServices.SendEmail_ConfirmAccount( user.Email, callbackUrl2 );
+                        ConsoleMessageHelper.SetConsoleInfoMessage( "NOTE - your email has never been confirmed. The confirmation email was resent." );
+                        new AccountServices().Proxies_StoreProxyCode( code2, user.Email, "Re-ConfirmEmail" );
+
+                        return View();
+                    }
+                }
                 // For more information on how to enable account confirmation and password reset please visit https://go.microsoft.com/fwlink/?LinkID=320771
                 // Send an email with this link
                 // string code = await UserManager.GeneratePasswordResetTokenAsync(user.Id);

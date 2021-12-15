@@ -1,10 +1,33 @@
 ﻿@{
-    ViewBag.Title = "Confirm Email";
+
+	var pageHeading = "Confirm Email";
+	var confirmValid = true;
+	var pageMessage = "An unexpected condition has occurred. ";
+
+	ViewBag.Title = "Confirm Email";
+	var message = ViewBag.Message ?? "";
+	if ( !string.IsNullOrWhiteSpace( message ) )
+	{
+		pageHeading = "Email Not Confirmed";
+		confirmValid = false;
+	}
 }
 
-<h2>@ViewBag.Title.</h2>
-<div>
-    <p>
-        Thank you for confirming your email. Please @Html.ActionLink("Click here to Log in", "Login", "Account", routeValues: null, htmlAttributes: new { id = "loginLink" })
-    </p>
-</div>
+<h2>@pageHeading.</h2>
+@if ( confirmValid )
+{
+	<div>
+		<p>
+			Thank you for confirming your email. Please @Html.ActionLink( "Click here to Log in", "Login", "Account", routeValues: null, htmlAttributes: new { id = "loginLink" } )
+		</p>
+	</div>
+}
+else
+{
+	<div>
+		<p>
+			@pageMessage
+		</p>
+	</div>
+}
+

@@ -55,6 +55,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ConsoleMessageHelper.cs" />
     <Compile Include="EmailManager.cs" />
     <Compile Include="LoggingHelper.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

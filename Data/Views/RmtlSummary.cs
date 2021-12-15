@@ -14,7 +14,6 @@ namespace Data.Views
     
     public partial class RmtlSummary
     {
-        public string RMTLProejct { get; set; }
         public string Rating { get; set; }
         public string Rank { get; set; }
         public string Level { get; set; }
@@ -33,5 +32,6 @@ namespace Data.Views
         public string CurrentAssessmentApproach { get; set; }
         public string CurriculumControlAuthority { get; set; }
         public string LifeCycleControlDocument { get; set; }
+        public string RMTLProject { get; set; }
     }
 }

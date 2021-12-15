@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 
 using Models.Application;
 using Navy.Utilities;
+using Factories;
 
 namespace Services
 {
@@ -21,8 +22,12 @@ namespace Services
 		//Send a site email
 		public static bool SendSiteEmail( string subject, string message, string cc = "" )
 		{
-			var toEmail = UtilityManager.GetAppKeyValue( "contactUsMailTo", "mparsons@credentialengine.org" );
-			var fromEmail = UtilityManager.GetAppKeyValue( "contactUsMailFrom", "mparsons@credentialengine.org" );
+			var toEmail = UtilityManager.GetAppKeyValue( "contactUsMailTo");
+			var fromEmail = UtilityManager.GetAppKeyValue( "contactUsMailFrom");
+			if (string.IsNullOrWhiteSpace(toEmail))
+            {
+
+            }
 			return SendEmail( toEmail, fromEmail, subject, message, cc );
 		}
 		//
@@ -30,7 +35,7 @@ namespace Services
 		//Send a regular email
 		public static bool SendEmail( string toEmail, string subject, string message, bool ccAdmin = false )
 		{
-			var fromEmail = UtilityManager.GetAppKeyValue( "contactUsMailFrom", "mparsons@credentialengine.org" );
+			var fromEmail = UtilityManager.GetAppKeyValue( "contactUsMailFrom", CodesManager.DefaultEmailAddress );
 			var cc = ccAdmin ? UtilityManager.GetAppKeyValue( "contactUsMailTo" ) : "";
 			return SendEmail( toEmail, fromEmail, subject, message, cc );
 		}

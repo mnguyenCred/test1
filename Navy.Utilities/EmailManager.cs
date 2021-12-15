@@ -26,8 +26,6 @@ namespace Navy.Utilities
 		/// </summary>
 		public EmailManager()
 		{ }
-		public static string finderSite = UtilityManager.GetAppKeyValue( "credentialFinderSite" );
-		public static string publisherSite = UtilityManager.GetAppKeyValue( "credentialFinderSite" );
 		public static string FormatEmailAddress( string address, string userName )
 		{
 			MailAddress fAddress;
@@ -48,18 +46,18 @@ namespace Navy.Utilities
 		/// <returns></returns>
 		public static bool SendSiteEmail( string subject, string message, string CC = "" )
 		{
-			string toEmail = UtilityManager.GetAppKeyValue( "contactUsMailTo", "mparsons@credentialengine.org" );
-			string fromEmail = UtilityManager.GetAppKeyValue( "contactUsMailFrom", "mparsons@credentialengine.org" );
+			string toEmail = UtilityManager.GetAppKeyValue( "contactUsMailTo");
+			string fromEmail = UtilityManager.GetAppKeyValue( "contactUsMailFrom");
 			return SendEmail( toEmail, fromEmail, subject, message, CC);
 
 		} //
 
 		public static bool SendEmail( string toEmail, string subject, string message, bool ccAdmin = false )
 		{
-			string fromEmail = UtilityManager.GetAppKeyValue( "contactUsMailFrom", "mparsons@credentialengine.org" );
+			string fromEmail = UtilityManager.GetAppKeyValue( "contactUsMailFrom");
             string ccEmail = "";
             if (ccAdmin)
-                ccEmail = UtilityManager.GetAppKeyValue("contactUsMailTo", "mparsons@credentialengine.org");
+                ccEmail = UtilityManager.GetAppKeyValue("contactUsMailTo");
             return SendEmail( toEmail, fromEmail, subject, message, ccEmail, "" );
 
 		} //
@@ -130,48 +128,42 @@ namespace Navy.Utilities
 			char[] delim = new char[ 1 ];
 			delim[ 0 ] = ',';
             MailMessage email = new MailMessage();
-            string appEmail = UtilityManager.GetAppKeyValue( "contactUsMailFrom", "mparsons@credentialengine.org" );
-			string systemAdminEmail = UtilityManager.GetAppKeyValue( "systemAdminEmail", "mparsons@credentialengine.org" );
+            string defaultFromEmail = UtilityManager.GetAppKeyValue( "contactUsMailFrom" );
+			string systemAdminEmail = UtilityManager.GetAppKeyValue( "systemAdminEmail" );
 			if ( string.IsNullOrWhiteSpace( BCC ) )
 				BCC = systemAdminEmail;
 			else
 				BCC += ", " + systemAdminEmail;
 			if (string.IsNullOrWhiteSpace(toEmail))
-				toEmail = UtilityManager.GetAppKeyValue( "contactUsMailTo", "mparsons@credentialengine.org" );
+            {
+				LoggingHelper.LogError( string.Format( "A 'TO' email address was not provided for Subject: {0}", subject ));
+				return false;
+            }
 			try
 			{
 				MailAddress maFrom;
-				if ( fromEmail.Trim().Length == 0 )
-                    fromEmail = appEmail;
+				if (string.IsNullOrWhiteSpace( fromEmail ) )
+                    fromEmail = defaultFromEmail;
 
 				//10-04-06 mparsons - with our new mail server, we can't send emails where the from address is anything but @credentialengine.org
 				//									- also try to handle the aliases 
 				if ( fromEmail.IndexOf( "||" ) > -1 )
 					fromEmail = HandleProxyEmails( fromEmail.Trim() );
 
-				if ( fromEmail.ToLower().IndexOf( "@credentialengine.org" ) == -1 )
+				if ( string.IsNullOrWhiteSpace( fromEmail ) )
 				{
-					//not this site so set to DoNotReply@ and switch
-					string orig = fromEmail;
-                    fromEmail = appEmail;
-					//insert as first
-                    //TODO - need a method parm to determine when should add to CC if at all. Should only show note on orginal sender
-                    //if ( CC.Trim().Length > 0 )
-                    //    CC = orig + "; " + CC;
-                    //else
-                    //    CC = orig;
-
+					LoggingHelper.LogError( string.Format( "A 'FROM' email address was not provided for Subject: {0}", subject ) );
+					return false;
 				}
 
-
-                maFrom = new MailAddress( fromEmail );
+				maFrom = new MailAddress( fromEmail );
 
 				//check for overrides on the to email 
 				if ( UtilityManager.GetAppKeyValue( "usingTempOverrideEmail", "no" ) == "yes" )
 				{
                     if ( toEmail.ToLower().IndexOf( "credentialengine.org" ) < 0  )
 					{
-						toEmail = UtilityManager.GetAppKeyValue( "systemAdminEmail", "mparsons@credentialengine.org" );
+						toEmail = UtilityManager.GetAppKeyValue( "systemAdminEmail");
 					}
 				}
 
@@ -232,8 +224,7 @@ namespace Navy.Utilities
 					}
 				}
 				//handle common substitions
-				message = message.Replace( "[CredentialFinderSite]", finderSite );
-				message = message.Replace( "[CredentialPublisherSite]", publisherSite );
+				//...
 				//
 
 				email.Subject = subject;
@@ -283,7 +274,6 @@ namespace Navy.Utilities
 				smtp.Credentials = new NetworkCredential( "mparsons", "WhoKnows" );
 
 				smtp.Send( emailMsg );
-				//SmtpMail.Send(email);
 			}
 			//else if ( emailService == "sendGrid" )
 			//{
@@ -446,9 +436,6 @@ namespace Navy.Utilities
 		///		- then any characters
 		///		- then two underscore characters
 		///		- followed with the valid domain name
-		///	NOTE 17-12-19
-		///	By accident it appears that using pipes can result in aliases. I used
-		///	mparsons|mp19a|@siuccwd.com, and got email at siuccwd.com?
 		/// </summary>
 		/// <param name="address">Email address</param>
 		/// <returns>translated email address as needed</returns>
@@ -456,47 +443,25 @@ namespace Navy.Utilities
 		{
 			string newAddr = address;
 
-			int atPos = address.IndexOf( "@" );
-			int wnPos = address.IndexOf( "_siuccwd.com" );
-			if ( wnPos > atPos )
+			int atPos = address.IndexOf( "@" );			
+			int p1 = address.IndexOf( "||" );
+			if ( p1 > 0 )
 			{
-				newAddr = address.Substring( 0, atPos + 1 ) + address.Substring( wnPos + 1 );
-			} else
-			{
-				int p1 = address.IndexOf( "||" );
-				if ( p1 > 0 )
+				//check for second pipe or @
+				int p2 = address.IndexOf( "|", p1 + 2 );
+				if ( p2 > p1 )
 				{
-					//check for second pipe or @
-					int p2 = address.IndexOf( "|", p1 + 2 );
+					newAddr = address.Substring( 0, p1 ) + address.Substring( p2 + 1 );
+				}
+				else if ( p2 == -1 )
+				{
+					p2 = address.IndexOf( "@", p1 + 2 );
 					if ( p2 > p1 )
 					{
-						newAddr = address.Substring( 0, p1 ) + address.Substring( p2 + 1 );
-					}
-					else if ( p2 == -1 )
-					{
-						p2 = address.IndexOf( "@", p1 + 2 );
-						if ( p2 > p1 )
-						{
-							newAddr = address.Substring( 0, p1 ) + address.Substring( p2 );
-						}
-					}
-				}
-				else
-				{
-					//check for others with format:
-					//	someName@_ ??? __realDomain.com
-					atPos = address.IndexOf( "@_" );
-					if ( atPos > 1 )
-					{
-						wnPos = address.IndexOf( "__", atPos );
-						if ( wnPos > atPos )
-						{
-							newAddr = address.Substring( 0, atPos + 1 ) + address.Substring( wnPos + 2 );
-						}
+						newAddr = address.Substring( 0, p1 ) + address.Substring( p2 );
 					}
 				}
 			}
-
 			return newAddr;
 		} //
 
@@ -508,7 +473,7 @@ namespace Navy.Utilities
 		/// <returns>True id message was sent successfully, otherwise false</returns>
 		public static bool NotifyAdmin( string subject, string message )
 		{
-			string emailTo = UtilityManager.GetAppKeyValue( "systemAdminEmail", "mparsons@credentialengine.org" );	
+			string emailTo = UtilityManager.GetAppKeyValue( "systemAdminEmail");	
 
 			return  NotifyAdmin( emailTo, subject, message );
         } 
@@ -525,8 +490,8 @@ namespace Navy.Utilities
 			char[] delim = new char[ 1 ];
 			delim[ 0 ] = ',';
 			bool loggingNotification = true;
-			string emailFrom = UtilityManager.GetAppKeyValue( "systemNotifyFromEmail", "pubMissingSystemNotifyFromEmail@credentialengine.org" );
-			string cc = UtilityManager.GetAppKeyValue( "systemAdminEmail", "" );
+			string emailFrom = UtilityManager.GetAppKeyValue( "systemNotifyFromEmail" );
+			string cc = UtilityManager.GetAppKeyValue( "systemAdminEmail");
             if ( emailTo == "" )
             {
                 emailTo = cc;
