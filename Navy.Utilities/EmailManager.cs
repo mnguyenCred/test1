@@ -233,7 +233,7 @@ namespace Navy.Utilities
 				
 				email.IsBodyHtml = true;
 				//email.BodyFormat = MailFormat.Html;
-				if ( UtilityManager.GetAppKeyValue( "sendEmailFlag", "false" ) == "TRUE" )
+				if ( UtilityManager.GetAppKeyValue( "sendEmailFlag", false )  )
 				{
 					DoSendEmail( email);
 				}

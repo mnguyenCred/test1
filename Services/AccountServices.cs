@@ -1,22 +1,20 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Web;
 //using System.Web.Mvc;
 using System.Web.SessionState;
 
-using Models;
-using Models.Application;
-using Navy.Utilities;
-using Factories;
-using Data;
 using Data.Tables;
+using Factories;
+
+using Models.Application;
+
+using Navy.Utilities;
+
 
 namespace Services
 {
-	public class AccountServices
+    public class AccountServices
 	{
 		private static string thisClassName = "AccountServices";
 		#region Authorization methods

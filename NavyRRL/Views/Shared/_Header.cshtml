@@ -1,0 +1,139 @@
+﻿@using Microsoft.AspNet.Identity
+@using Navy.Utilities
+@using Models.Application;
+@using Services;
+@{
+	var url = Request.Url.PathAndQuery.ToLower();
+	var environment = UtilityManager.GetAppKeyValue( "environment", "" );
+	//this is the default callback, but also need to return to the current page
+
+	var loginUrl = "~/Account/Login";
+	var registerUrl = "~/Account/Register";
+	//
+	AppUser user = AccountServices.GetCurrentUser();
+	var showingMenus = true;
+	try
+	{
+		if ( ( user == null || user.Id == 0 )
+			&& !url.ToLower().Contains( "home/about" )
+			&& !url.ToLower().Contains( "home/sorry" )
+			&& !url.ToLower().Contains( "account/login" )
+			&& !url.ToLower().Contains( "account/register" )
+			&& !url.ToLower().Contains( "message/" )
+			//&& Request.Path != "/"
+			&& !url.ToLower().Contains( "/page/" )
+			)
+		{
+			//save current url
+			string nextUrl = "";
+			if ( !string.IsNullOrWhiteSpace( url ) )
+			{
+				//nextUrl = "&nextUrl=" + @Url.Content( "~" + url );
+				if ( loginUrl.IndexOf( "/message/" ) > -1 )
+				{
+					nextUrl = "";
+				}
+				else if ( loginUrl.IndexOf( "?" ) > 0 )
+				{
+					nextUrl = "&nextUrl=" + url;
+				}
+				else
+				{
+					nextUrl = "?nextUrl=" + url;
+				}
+			}
+			//Response.Redirect( "~/Home/About" );
+			Response.Redirect( @Url.Content( @loginUrl + nextUrl ) );
+		}
+
+
+		if ( !AccountServices.CanUserViewSite()
+			&& !url.ToLower().Contains( "home/about" )
+			&& !url.ToLower().Contains( "home/sorry" )
+			&& !url.ToLower().Contains( "account/" )
+			&& !url.ToLower().Contains( "manage/" )
+			)
+		{
+			Response.Redirect( "~/Home/About" );
+		}
+	}
+	catch ( Exception ex )
+	{
+		//ignore, prob due to redirect
+	}
+
+}
+
+<script type="text/javascript">
+	/* Initialization */
+	$(document).ready(function () {
+
+	});  //ready
+</script>
+
+
+<div id="mainSiteHeader">
+	<div id="mainSiteHeaderTrim" class="rainbow"></div>
+	<div id="mainSiteHeaderLeft" class="inlineBlockBox">
+		<a class="column" id="mainSiteLogo" href="@Url.Content( "~" )" title="Site Logo"></a>
+
+	</div>
+	<div id="mainSiteHeaderRight" role="navigation" aria-label="Main Site Navigation">
+		<button id="btnMobileMenuOpen" class="whiteButton"><i class="fas fa-bars"></i><span class="offscreen">MobileMenu</span></button>
+		<div id="mainSiteMenu" class="inlineBlockBox">
+			<div id="mobileMenuHeader" style="">
+				<button id="btnMobileMenuClose" class="actionButton"><i class="fas fa-times closeButton"></i><span class="offscreen">Mobile menu close</span></button>
+			</div>
+
+			@if ( Request.IsAuthenticated && ( user != null && user.Id > 0 ) && showingMenus )
+			{
+
+				if ( AccountServices.CanUserCreateContent() )
+				{
+					<div class="headerMenu column" id="headerMenuAdd">
+						<button class="headerMenuTitle"><i class="fa fa-plus"></i> Add New <i class="fa fa-caret-down expandArrow"></i><i class="fa fa-caret-up collapseArrow"></i></button>
+						<div class="headerMenuList">
+							<a href="@Url.Content( "~/upload/" )">New RMTL</a>
+							<a href="@Url.Content( "~/demo/importSummary" )">Review</a>
+						</div>
+					</div>
+				}
+
+				if ( AccountServices.IsUserSiteStaff() )
+				{
+					<div class="headerMenu column" id="headerMenuAdmin">
+						<button class="headerMenuTitle"><i class="fa fa-plus"></i> Admin <i class="fa fa-caret-down expandArrow"></i><i class="fa fa-caret-up collapseArrow"></i></button>
+						<div class="headerMenuList">
+							<a href="@Url.Content( "~/Admin/User/" )">Accounts</a>
+							@*<a href="@Url.Content( "~/Admin/Activity/Index" )">Activity Log</a>*@
+							<a href="@Url.Content( "~/Admin/User/ResetPassword" )">Reset User Password</a>
+							<a href="@Url.Content( "~/Admin/User/AddUser" )">Add Account</a>@**@
+						</div>
+					</div>
+				}
+
+				<div class="headerMenu column" id="headerMenuAccount">
+					<button class="headerMenuTitle"><i class="fa fa-user"></i> <div id="userName" title="@user.FullName()">@user.FullName()</div> <i class="fa fa-caret-down expandArrow"></i><i class="fa fa-caret-up collapseArrow"></i></button>
+					<div class="headerMenuList">
+
+						<form action="@Url.Content("~/Account/LogOff")" method="post" id="logoutForm">
+							@Html.AntiForgeryToken()
+							<a href="javascript:document.getElementById('logoutForm').submit();" id="logoutLink">Logout</a>
+						</form>
+					</div>
+				</div>
+			}
+			else
+			{
+				<div class="headerMenu column" id="headerMenuAdd">
+					<button class="headerMenuTitle"><i class="fa fa-user"></i>Login<i class="fa fa-caret-down expandArrow"></i><i class="fa fa-caret-up collapseArrow"></i></button>
+					<div class="headerMenuList">
+						<a href="@Url.Content( @loginUrl )">Existing Account Login</a>
+						<a href="@Url.Content( @registerUrl )">Register</a>
+
+					</div>
+				</div>
+			}
+		</div>
+	</div>
+</div>

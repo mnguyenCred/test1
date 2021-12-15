@@ -553,6 +553,7 @@
     <Content Include="Views\Home\PageNotFound.cshtml" />
     <Content Include="Views\Upload\ImportSummary.cshtml" />
     <Content Include="Views\Shared\_ConsoleMessage.cshtml" />
+    <Content Include="Views\Shared\_Header.cshtml" />
     <None Include="Web.Sandbox.config">
       <DependentUpon>Web.config</DependentUpon>
     </None>
