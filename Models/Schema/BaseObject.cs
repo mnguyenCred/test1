@@ -8,9 +8,11 @@ namespace Models.Schema
 	{
 		public int Id { get; set; }
 		public Guid Guid { get; set; }
+		public string CTID { get { return "ce-" + Guid.ToString().ToLower(); } set { Guid = Guid.Parse( value.Substring( 3, value.Length - 3 ) ); } }
+
 		public DateTime DateCreated { get; set; }
-		public Reference<User> CreatedBy { get; set; }
+		public Guid CreatedBy { get; set; }
 		public DateTime DateModified { get; set; }
-		public Reference<User> ModifiedBy { get; set; }
+		public Guid ModifiedBy { get; set; }
 	}
 }

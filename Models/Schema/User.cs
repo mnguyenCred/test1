@@ -9,6 +9,7 @@ namespace Models.Schema
 		public string UserName { get; set; } //Screen Name
 		public string FirstName { get; set; }
 		public string LastName { get; set; }
-		
+
+		//Other properties?
 	}
 }

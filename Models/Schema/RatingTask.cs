@@ -4,24 +4,17 @@ using System.Text;
 
 namespace Models.Schema
 {
-	/*
-	 * Notes
-	 * - where is work element type area? Need to confirm if it really is part of the source table/class
-	 */
 	public class RatingTask : BaseObject
 	{
 		public string Description { get; set; }
 		public string Note { get; set; }
-		public Reference<TrainingTask> HasTrainingTask { get; set; }
-		public Reference<ReferenceResource> HasReferenceResource { get; set; } //Source Document
-		//rank
-		public Reference<Concept> PayGradeType { get; set; }
-		//level
-		//can be derived from rank, should the latter be part of the paygrade table?
-		public Reference<Concept> StatusType { get; set; }
-		public Reference<Concept> ApplicabilityType { get; set; } //Will this be at the RMTL task level, or standalone task level?
-		public Reference<Concept> TrainingGapType { get; set; }
-		//functional area
-		public Reference<WorkRole> HasWorkRole { get; set; }
+		public Guid HasTrainingTask { get; set; } //GUID for the Training Task for this Rating Task
+		public Guid HasReferenceResource { get; set; } //GUID for the Reference Resource for this Rating Task
+		public Guid PayGradeType { get; set; } //GUID for the Concept for the Pay Grade Type (aka Rank) for this Rating Task
+		public Guid StatusType { get; set; } //GUID for the Concept for the Status Type for this Rating Task
+		public Guid ApplicabilityType { get; set; } //GUID for the Concept for the Applicability Type for this Rating Task
+		public List<Guid> HasWorkRole { get; set; } //List of GUIDs for the Work Role(s) (aka Functional Area(s)) for this Rating Task
+		public Guid TrainingGapType { get; set; } //GUID for the Concept for the Training Gap Type for this Rating Task
+		public Guid ReferenceType { get; set; } //GUID for the Concept for the Reference Type for this Rating Task
 	}
 }

@@ -113,8 +113,9 @@
 						});
 					},
 					applyFilter: function (Filter, Results) {
-						var matchingSourceTypeCTIDs = Data.Graph.filter(m => m.Type == "ReferenceResource" && m.ReferenceType?.filter(n => Filter.Items.indexOf(n) > -1).length > 0).map(m => m.CTID);
-						return Results.filter(m => matchingSourceTypeCTIDs.filter(n => m.HasReferenceResource.indexOf(n) > -1).length > 0);
+						//var matchingSourceTypeCTIDs = Data.Graph.filter(m => m.Type == "ReferenceResource" && m.ReferenceType?.filter(n => Filter.Items.indexOf(n) > -1).length > 0).map(m => m.CTID);
+						//return Results.filter(m => matchingSourceTypeCTIDs.filter(n => m.HasReferenceResource.indexOf(n) > -1).length > 0);
+						return Results.filter(m => Filter.Items.filter(n => m.ReferenceType.indexOf(n) > -1).length > 0);
 					},
 					getAJAXFilter: function (Filter) {
 						return { Name: "filter:SourceType", Values: Filter.Items.map(m => m) };
@@ -322,7 +323,7 @@
 					Data.Graph.filter(m => m.Type == "BilletTitle" && m.HasRatingTask.indexOf(Result.CTID) > -1).map(m => m.Name).join(" | "),
 					getFields(Result.HasWorkRole, "Name"),
 					getFields(Result.HasReferenceResource, "Name"),
-					getFields(Result.HasReferenceResource?.flatMap(m => m.ReferenceType), "Name"),
+					getFields(Result.ReferenceType, "Name"),
 					getFields(Result.HasReferenceResource, "PublicationDate"),
 					Result.Description,
 					getFields(Result.ApplicabilityType, "Name"),

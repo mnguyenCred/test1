@@ -10,11 +10,10 @@ namespace Models.Schema
 		public string Description { get; set; }
 		public string Note { get; set; }
 		public string VersionIdentifier { get; set; }
-		public Reference<Concept> StatusType { get; set; }
-		public Reference<Rating> HasRating { get; set; }
-		public List<Reference<ChangeProposal>> HasChangeProposal {get; set;}
-		public List<Reference<Comment>> HasComment { get; set; }
-		public Reference<User> OwnedBy { get; set; }
-		public List<Reference<BilletTitle>> HasBilletTitle { get; set; }
+		public Guid StatusType { get; set; } //GUID for the Concept for the Status Type for this RMTL Project
+		public Guid HasRating { get; set; } //GUID for the Rating for this RMTL Project
+		public List<Guid> HasChangeProposal {get; set;} //List of GUIDs for the Change Proposals for this RMTL Project
+		public List<Guid> HasComment { get; set; } //List of GUIDs for the Comments for this RMTL Project
+		public Guid OwnedBy { get; set; } //GUID for the User that owns this RMTL Project
 	}
 }
