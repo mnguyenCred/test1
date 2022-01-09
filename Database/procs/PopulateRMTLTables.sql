@@ -13,6 +13,23 @@ GO
 /*
 USE NavyRRL
 GO
+reset FKs
+
+UPDATE [dbo].[ImportRMTL]
+   SET [RatingId] = NULL
+      ,[RankId] = NULL
+      ,[LevelId] = NULL
+      ,[BilletTitleId] = NULL
+      ,[FunctionalAreaId] = NULL
+      ,[SourceId] = NULL
+      ,[WorkElementTypeId] = NULL
+      ,[RatingLevelTaskId] = NULL
+      ,[TaskApplicabilityId] = NULL
+      ,[FormalTrainingGapId] = NULL
+      ,[CourseId] = NULL
+      ,[CourseTaskId] = NULL
+
+GO
 
 --=====================================================
 DECLARE @RC int, @Rating           varchar(50)
