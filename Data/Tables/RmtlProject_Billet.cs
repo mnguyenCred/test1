@@ -14,6 +14,12 @@ namespace Data.Tables
     
     public partial class RmtlProject_Billet
     {
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2214:DoNotCallOverridableMethodsInConstructors")]
+        public RmtlProject_Billet()
+        {
+            this.RmtlProjectBilletTask = new HashSet<RmtlProjectBilletTask>();
+        }
+    
         public int Id { get; set; }
         public int RmtlProjectId { get; set; }
         public int JobId { get; set; }
@@ -22,5 +28,7 @@ namespace Data.Tables
     
         public virtual Job Job { get; set; }
         public virtual RMTLProject RMTLProject { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<RmtlProjectBilletTask> RmtlProjectBilletTask { get; set; }
     }
 }
