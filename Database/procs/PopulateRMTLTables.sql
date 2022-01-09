@@ -18,6 +18,7 @@ GO
 DECLARE @RC int, @Rating           varchar(50)
 set @Rating='QM'
 
+set @Rating='ABF'
 EXECUTE @RC = [PopulateRMTLTables] @Rating
 
 
@@ -200,7 +201,8 @@ WHERE        (ConceptSchemeId = 10)
 --	- could get list of candidates and exclude all, or use the first one
 --	- actually ony add the CIN, then do updates
 CREATE TABLE #tempMessageTable(
-	Unique_Identifier       int PRIMARY KEY  NOT NULL
+	RowNumber         int PRIMARY KEY IDENTITY(1,1) NOT NULL,
+	Unique_Identifier       int   NULL
 	,Rating			varchar(50)
 	,CIN			varchar(50)
 	,CourseName		varchar(500)
@@ -208,7 +210,7 @@ CREATE TABLE #tempMessageTable(
 )
 
 INSERT INTO #tempMessageTable ( Unique_Identifier, Rating, CIN, CourseName,[Message]	)
-	SELECT distinct a.Unique_Identifier, a.Rating, a.[CIN], a.[Course_Name],'Courses with same CIN and different names'
+	SELECT distinct isnull(a.Unique_Identifier, 0), a.Rating, a.[CIN], a.[Course_Name],'Courses with same CIN and different names'
 	FROM [dbo].ImportRMTL a
 	inner join (
 		SELECT   allCourses.[CIN]  ,count(*) ttl
@@ -297,7 +299,9 @@ INSERT INTO [dbo].[Course.Task]
 SELECT distinct a.CourseId ,[Task_Statement]
 from [dbo].ImportRMTL a
 left join [Course.Task] b on a.Task_Statement = b.TaskStatement
-where a.CIN <> 'N/A'
+where a.CIN <> 'N/A' 
+AND a.Task_Statement is not null
+AND a.Task_Statement <> 'N/A'
 and b.id is null 
 --642
 --
@@ -319,8 +323,9 @@ and a.CourseTaskId is null
 --***** there are some duplicate tasks, but different identifiers!
 INSERT INTO [dbo].[RatingTask]
            (
-		   [CodedNotation],
-		   [RankId]
+		   [CodedNotation]
+		   ,RowId
+		   ,[RankId]
            ,[LevelId]
            ,[FunctionalAreaId]
            ,[SourceId]
@@ -331,6 +336,7 @@ INSERT INTO [dbo].[RatingTask]
            ,[FormalTrainingGapId]
            ,TrainingTaskId
            ,[Notes]
+		  
            --,[Created]
            --,[CreatedById]
            --,[LastUpdated]
@@ -339,6 +345,7 @@ INSERT INTO [dbo].[RatingTask]
 
 SELECT 
 IndexIdentifier as TaskCodedNotation
+,newId() as RowId
 ,a.[RankId]
 ,a.[LevelId]
 ,a.[FunctionalAreaId]
