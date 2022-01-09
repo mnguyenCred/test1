@@ -6,10 +6,12 @@ namespace Models.Schema
 {
 	public class User : BaseObject
 	{
-		public string UserName { get; set; } //Screen Name
+		public string UserName { get; set; } //Screen Name 
 		public string FirstName { get; set; }
 		public string LastName { get; set; }
 
 		//Other properties?
+		public string Email { get; set; }
+		public string Organization { get; set; }
 	}
 }

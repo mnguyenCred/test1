@@ -30,7 +30,7 @@ namespace Data.Views
         public virtual DbSet<SubscriptionEntities> SubscriptionEntities { get; set; }
         public virtual DbSet<AspNetUserRoles_Summary> AspNetUserRoles_Summary { get; set; }
         public virtual DbSet<ConceptSchemeSummary> ConceptSchemeSummary { get; set; }
-        public virtual DbSet<RatingLevelTaskSummary> RatingLevelTaskSummary { get; set; }
         public virtual DbSet<RmtlSummary> RmtlSummary { get; set; }
+        public virtual DbSet<RatingTaskSummary> RatingTaskSummary { get; set; }
     }
 }

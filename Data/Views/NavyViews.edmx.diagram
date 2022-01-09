@@ -4,14 +4,14 @@
   <edmx:Designer xmlns="http://schemas.microsoft.com/ado/2009/11/edmx">
     <!-- Diagram content (shape and connector positions) -->
     <edmx:Diagrams>
-      <Diagram DiagramId="f0c058a3e8214195a80077f365b68286" Name="Diagram1" ZoomLevel="88">
+      <Diagram DiagramId="f0c058a3e8214195a80077f365b68286" Name="Diagram1" ZoomLevel="57">
         <EntityTypeShape EntityType="ceNavyViewModel.Activity_Summary" Width="2.75" PointX="1.375" PointY="0.625" />
         <EntityTypeShape EntityType="ceNavyViewModel.Account_Summary" Width="2.375" PointX="10.5" PointY="0.875" />
         <EntityTypeShape EntityType="ceNavyViewModel.SubscriptionEntities" Width="2.25" PointX="13.75" PointY="5.75" />
         <EntityTypeShape EntityType="ceNavyViewModel.AspNetUserRoles_Summary" Width="1.5" PointX="15.25" PointY="1" />
         <EntityTypeShape EntityType="ceNavyViewModel.ConceptSchemeSummary" Width="2.125" PointX="0.75" PointY="5.875" />
-        <EntityTypeShape EntityType="ceNavyViewModel.RatingLevelTaskSummary" Width="1.5" PointX="2.75" PointY="9.75" />
         <EntityTypeShape EntityType="ceNavyViewModel.RmtlSummary" Width="2.75" PointX="7.125" PointY="7.875" />
+        <EntityTypeShape EntityType="ceNavyViewModel.RatingTaskSummary" Width="1.5" PointX="10.375" PointY="6.75" />
       </Diagram>
     </edmx:Diagrams>
   </edmx:Designer>

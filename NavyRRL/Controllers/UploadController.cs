@@ -20,8 +20,8 @@ namespace NavyRRL.Controllers
 		//Initial processing of the data before any changes are made to the database
 		public ActionResult PreProcess(  )
 		{
-
-		}
+            return View();
+        }
 		//
 
         //public ActionResult Review()

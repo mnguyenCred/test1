@@ -317,7 +317,7 @@ and a.CourseTaskId is null
 
 
 --***** there are some duplicate tasks, but different identifiers!
-INSERT INTO [dbo].[RatingLevelTask]
+INSERT INTO [dbo].[RatingTask]
            (
 		   [CodedNotation],
 		   [RankId]
@@ -345,7 +345,7 @@ IndexIdentifier as TaskCodedNotation
 ,a.[SourceId]
 ,a.[WorkElementTypeId]
 
-,a.[Work_Element_Task] as RatingLevelTask
+,a.[Work_Element_Task] as RatingTask
 ,a.TaskApplicabilityId
 ,a.FormalTrainingGapId
 ,a.CourseTaskId
@@ -353,19 +353,19 @@ IndexIdentifier as TaskCodedNotation
 ,case when a.[TaskNotes] = 'N/A'  then NULL else a.[TaskNotes] end [TaskNotes]
    
  FROM [dbo].ImportRMTL a
- Left Join [RatingLevelTask] b on a.IndexIdentifier = b.CodedNotation
+ Left Join [RatingTask] b on a.IndexIdentifier = b.CodedNotation
  where b.id is null 
  --
- Update dbo.[RatingLevelTask]
+ Update dbo.[RatingTask]
 set CTID = 'ce-' + Lower(NewId())
 where ISNULL(CTID,'') = ''
 --
 UPDATE [dbo].ImportRMTL
-   SET [RatingLevelTaskId] = b.Id
+   SET RatingLevelTaskId = b.Id
 --	select  a.IndexIdentifier, a.[Work_Element_Task], b.CodedNotation
 from ImportRMTL a
-inner join [RatingLevelTask] b on a.IndexIdentifier = b.CodedNotation 
-where a.[RatingLevelTaskId] is null
+inner join [RatingTask] b on a.IndexIdentifier = b.CodedNotation 
+where a.RatingLevelTaskId is null
 
 -- =================================
 INSERT INTO [dbo].[Job]
@@ -411,15 +411,15 @@ SELECT @RMTLProjectd= a.[Id]
 
 	  --
 	  INSERT INTO [dbo].[RmtlProjectBilletTask]
-           ([ProjectBilletId],[RatingLevelTaskId])
+           ([ProjectBilletId],RatingTaskId)
 
-		SELECT distinct b.Id rmtlProjectBilletId, c.Id as ratingLevelTaskId
+		SELECT distinct b.Id rmtlProjectBilletId, c.Id as RatingLevelTaskId
 		--,a.Billet_Title, b.Name
 
 		  FROM [dbo].ImportRMTL a
 		  inner join	[RmtlProject.Billet] b on a.BilletTitleId = b.JobId
-		  inner join	RatingLevelTask c on a.RatingLevelTaskId = c.Id
-		  left join		[RmtlProjectBilletTask] d on b.Id = d.[ProjectBilletId] and d.[RatingLevelTaskId] = c.Id
+		  inner join	RatingTask c on a.RatingLevelTaskId = c.Id
+		  left join		[RmtlProjectBilletTask] d on b.Id = d.[ProjectBilletId] and d.RatingTaskId = c.Id
 		  where d.id is null 
 		  order by 1
 
