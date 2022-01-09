@@ -10,6 +10,7 @@ namespace Models.Schema
 		 * - HasRating
 		 * - CodedNotation
 		 * - StatusType will need to be reviewed as may differ depending on task context
+		 * - use of Guids - the existing concept table has CTID not guid. Would need to add to the table
 		 * - HasComment
 		 *		- list of comments for the appropriate context of project?
 		 * - Don't like the oblique properties
@@ -24,12 +25,16 @@ namespace Models.Schema
 		/// </summary>
 		public Guid HasReferenceResource { get; set; } //GUID for the Reference Resource for this Rating Task
 		public Guid PayGradeType { get; set; } //GUID for the Concept for the Pay Grade Type (aka Rank) for this Rating Task
+
+		public int StatusId { get; set; }
+		public Concept Status { get; set; }
 		public Guid StatusType { get; set; } //GUID for the Concept for the Status Type for this Rating Task
 
 		public Guid ApplicabilityType { get; set; } //GUID for the Concept for the Applicability Type for this Rating Task
+		public Concept TaskApplicabilityType { get; set; }
 		public List<Guid> HasWorkRole { get; set; } //List of GUIDs for the Work Role(s) (aka Functional Area(s)) for this Rating Task
 		public Guid TrainingGapType { get; set; } //GUID for the Concept for the Training Gap Type for this Rating Task
-
+		public Concept TaskTrainingGap { get; set; }
 		/// <summary>
 		/// What is the reference type in this context
 		/// - 

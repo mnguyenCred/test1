@@ -4,6 +4,12 @@ using System.Text;
 
 namespace Models.Schema
 {
+	/*
+	 * Naming
+	 * Guid should be a property not a Datatype
+	 *	- ex RowId
+	 * 
+	 */ 
 	public class BaseObject
 	{
 		public int Id { get; set; }

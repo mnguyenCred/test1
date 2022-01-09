@@ -33,6 +33,7 @@ namespace Data.Tables
         public Nullable<System.DateTime> Created { get; set; }
         public Nullable<System.DateTime> LastUpdated { get; set; }
         public string Label { get; set; }
+        public System.Guid RowId { get; set; }
     
         public virtual ConceptScheme ConceptScheme { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]

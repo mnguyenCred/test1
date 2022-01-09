@@ -39,11 +39,12 @@ namespace Data.Tables
         public Nullable<int> LastUpdatedById { get; set; }
         public string CTID { get; set; }
         public Nullable<int> TrainingTaskId { get; set; }
+        public System.Guid RowId { get; set; }
     
-        public virtual ConceptScheme_Concept ConceptScheme_Concept { get; set; }
-        public virtual ConceptScheme_Concept ConceptScheme_Concept1 { get; set; }
-        public virtual ConceptScheme_Concept ConceptScheme_Concept2 { get; set; }
-        public virtual ConceptScheme_Concept ConceptScheme_Concept3 { get; set; }
+        public virtual ConceptScheme_Concept ConceptScheme_Rank { get; set; }
+        public virtual ConceptScheme_Concept ConceptScheme_Level { get; set; }
+        public virtual ConceptScheme_Concept ConceptScheme_Applicability { get; set; }
+        public virtual ConceptScheme_Concept ConceptScheme_TrainingGap { get; set; }
         public virtual Course_Task Course_Task { get; set; }
         public virtual FunctionalArea FunctionalArea { get; set; }
         public virtual Source Source { get; set; }

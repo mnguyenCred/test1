@@ -135,6 +135,7 @@
             <PropertyRef Name="Id" />
           </Key>
           <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="RowId" Type="uniqueidentifier" Nullable="false" />
           <Property Name="ConceptSchemeId" Type="int" Nullable="false" />
           <Property Name="Label" Type="varchar" MaxLength="1000" Nullable="false" />
           <Property Name="CTID" Type="varchar" MaxLength="50" />
@@ -362,7 +363,7 @@ warning 6002: The table/view 'NavyRRL.dbo.ImportRMTL' does not have a primary ke
             <PropertyRef Name="Id" />
           </Key>
           <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
-          <Property Name="CodedNotation" Type="varchar" MaxLength="100" />
+          <Property Name="RowId" Type="uniqueidentifier" Nullable="false" />
           <Property Name="RankId" Type="int" Nullable="false" />
           <Property Name="LevelId" Type="int" Nullable="false" />
           <Property Name="FunctionalAreaId" Type="int" Nullable="false" />
@@ -372,13 +373,14 @@ warning 6002: The table/view 'NavyRRL.dbo.ImportRMTL' does not have a primary ke
           <Property Name="TaskApplicabilityId" Type="int" />
           <Property Name="TaskStatusId" Type="int" />
           <Property Name="FormalTrainingGapId" Type="int" />
+          <Property Name="CodedNotation" Type="varchar" MaxLength="100" />
+          <Property Name="TrainingTaskId" Type="int" />
+          <Property Name="CTID" Type="varchar" MaxLength="50" />
           <Property Name="Notes" Type="nvarchar(max)" />
           <Property Name="Created" Type="datetime" />
           <Property Name="CreatedById" Type="int" />
           <Property Name="LastUpdated" Type="datetime" />
           <Property Name="LastUpdatedById" Type="int" />
-          <Property Name="CTID" Type="varchar" MaxLength="50" />
-          <Property Name="TrainingTaskId" Type="int" />
         </EntityType>
         <EntityType Name="RatingTask_HasRating">
           <Key>
@@ -539,20 +541,6 @@ warning 6002: The table/view 'NavyRRL.dbo.ImportRMTL' does not have a primary ke
             </Dependent>
           </ReferentialConstraint>
         </Association>
-        <Association Name="FK_ConceptScheme_Concept_ConceptScheme">
-          <End Role="ConceptScheme" Type="Self.ConceptScheme" Multiplicity="1">
-            <OnDelete Action="Cascade" />
-          </End>
-          <End Role="ConceptScheme_Concept" Type="Self.ConceptScheme_Concept" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="ConceptScheme">
-              <PropertyRef Name="Id" />
-            </Principal>
-            <Dependent Role="ConceptScheme_Concept">
-              <PropertyRef Name="ConceptSchemeId" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
         <Association Name="FK_ConceptScheme__AccountCreatedBy">
           <End Role="Account" Type="Self.Account" Multiplicity="1" />
           <End Role="ConceptScheme" Type="Self.ConceptScheme" Multiplicity="*" />
@@ -643,54 +631,6 @@ warning 6002: The table/view 'NavyRRL.dbo.ImportRMTL' does not have a primary ke
             </Dependent>
           </ReferentialConstraint>
         </Association>
-        <Association Name="FK_RatingLevelTask_ConceptScheme_Concept">
-          <End Role="ConceptScheme_Concept" Type="Self.ConceptScheme_Concept" Multiplicity="1" />
-          <End Role="RatingTask" Type="Self.RatingTask" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="ConceptScheme_Concept">
-              <PropertyRef Name="Id" />
-            </Principal>
-            <Dependent Role="RatingTask">
-              <PropertyRef Name="RankId" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
-        <Association Name="FK_RatingLevelTask_ConceptScheme_Concept1">
-          <End Role="ConceptScheme_Concept" Type="Self.ConceptScheme_Concept" Multiplicity="1" />
-          <End Role="RatingTask" Type="Self.RatingTask" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="ConceptScheme_Concept">
-              <PropertyRef Name="Id" />
-            </Principal>
-            <Dependent Role="RatingTask">
-              <PropertyRef Name="LevelId" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
-        <Association Name="FK_RatingLevelTask_ConceptScheme_Concept2">
-          <End Role="ConceptScheme_Concept" Type="Self.ConceptScheme_Concept" Multiplicity="0..1" />
-          <End Role="RatingTask" Type="Self.RatingTask" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="ConceptScheme_Concept">
-              <PropertyRef Name="Id" />
-            </Principal>
-            <Dependent Role="RatingTask">
-              <PropertyRef Name="TaskApplicabilityId" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
-        <Association Name="FK_RatingLevelTask_ConceptScheme_Concept3">
-          <End Role="ConceptScheme_Concept" Type="Self.ConceptScheme_Concept" Multiplicity="0..1" />
-          <End Role="RatingTask" Type="Self.RatingTask" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="ConceptScheme_Concept">
-              <PropertyRef Name="Id" />
-            </Principal>
-            <Dependent Role="RatingTask">
-              <PropertyRef Name="FormalTrainingGapId" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
         <Association Name="FK_RatingLevelTask_Course_Task">
           <End Role="Course_Task" Type="Self.Course_Task" Multiplicity="0..1" />
           <End Role="RatingTask" Type="Self.RatingTask" Multiplicity="*" />
@@ -715,6 +655,30 @@ warning 6002: The table/view 'NavyRRL.dbo.ImportRMTL' does not have a primary ke
             </Dependent>
           </ReferentialConstraint>
         </Association>
+        <Association Name="FK_RatingLevelTask_Level">
+          <End Role="ConceptScheme_Concept" Type="Self.ConceptScheme_Concept" Multiplicity="1" />
+          <End Role="RatingTask" Type="Self.RatingTask" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="ConceptScheme_Concept">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="RatingTask">
+              <PropertyRef Name="LevelId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_RatingLevelTask_Rank">
+          <End Role="ConceptScheme_Concept" Type="Self.ConceptScheme_Concept" Multiplicity="1" />
+          <End Role="RatingTask" Type="Self.RatingTask" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="ConceptScheme_Concept">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="RatingTask">
+              <PropertyRef Name="RankId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
         <Association Name="FK_RatingLevelTask_Source">
           <End Role="Source" Type="Self.Source" Multiplicity="0..1" />
           <End Role="RatingTask" Type="Self.RatingTask" Multiplicity="*" />
@@ -724,6 +688,30 @@ warning 6002: The table/view 'NavyRRL.dbo.ImportRMTL' does not have a primary ke
             </Principal>
             <Dependent Role="RatingTask">
               <PropertyRef Name="SourceId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_RatingLevelTask_TaskApplicability">
+          <End Role="ConceptScheme_Concept" Type="Self.ConceptScheme_Concept" Multiplicity="0..1" />
+          <End Role="RatingTask" Type="Self.RatingTask" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="ConceptScheme_Concept">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="RatingTask">
+              <PropertyRef Name="TaskApplicabilityId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_RatingLevelTask_TrainingGap">
+          <End Role="ConceptScheme_Concept" Type="Self.ConceptScheme_Concept" Multiplicity="0..1" />
+          <End Role="RatingTask" Type="Self.RatingTask" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="ConceptScheme_Concept">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="RatingTask">
+              <PropertyRef Name="FormalTrainingGapId" />
             </Dependent>
           </ReferentialConstraint>
         </Association>
@@ -917,10 +905,6 @@ warning 6002: The table/view 'NavyRRL.dbo.ImportRMTL' does not have a primary ke
             <End Role="RMTLProject" EntitySet="RMTLProject" />
             <End Role="Comment" EntitySet="Comment" />
           </AssociationSet>
-          <AssociationSet Name="FK_ConceptScheme_Concept_ConceptScheme" Association="Self.FK_ConceptScheme_Concept_ConceptScheme">
-            <End Role="ConceptScheme" EntitySet="ConceptScheme" />
-            <End Role="ConceptScheme_Concept" EntitySet="ConceptScheme_Concept" />
-          </AssociationSet>
           <AssociationSet Name="FK_ConceptScheme__AccountCreatedBy" Association="Self.FK_ConceptScheme__AccountCreatedBy">
             <End Role="Account" EntitySet="Account" />
             <End Role="ConceptScheme" EntitySet="ConceptScheme" />
@@ -949,22 +933,6 @@ warning 6002: The table/view 'NavyRRL.dbo.ImportRMTL' does not have a primary ke
             <End Role="Rating" EntitySet="Rating" />
             <End Role="Job_HasRating" EntitySet="Job_HasRating" />
           </AssociationSet>
-          <AssociationSet Name="FK_RatingLevelTask_ConceptScheme_Concept" Association="Self.FK_RatingLevelTask_ConceptScheme_Concept">
-            <End Role="ConceptScheme_Concept" EntitySet="ConceptScheme_Concept" />
-            <End Role="RatingTask" EntitySet="RatingTask" />
-          </AssociationSet>
-          <AssociationSet Name="FK_RatingLevelTask_ConceptScheme_Concept1" Association="Self.FK_RatingLevelTask_ConceptScheme_Concept1">
-            <End Role="ConceptScheme_Concept" EntitySet="ConceptScheme_Concept" />
-            <End Role="RatingTask" EntitySet="RatingTask" />
-          </AssociationSet>
-          <AssociationSet Name="FK_RatingLevelTask_ConceptScheme_Concept2" Association="Self.FK_RatingLevelTask_ConceptScheme_Concept2">
-            <End Role="ConceptScheme_Concept" EntitySet="ConceptScheme_Concept" />
-            <End Role="RatingTask" EntitySet="RatingTask" />
-          </AssociationSet>
-          <AssociationSet Name="FK_RatingLevelTask_ConceptScheme_Concept3" Association="Self.FK_RatingLevelTask_ConceptScheme_Concept3">
-            <End Role="ConceptScheme_Concept" EntitySet="ConceptScheme_Concept" />
-            <End Role="RatingTask" EntitySet="RatingTask" />
-          </AssociationSet>
           <AssociationSet Name="FK_RatingLevelTask_Course_Task" Association="Self.FK_RatingLevelTask_Course_Task">
             <End Role="Course_Task" EntitySet="Course_Task" />
             <End Role="RatingTask" EntitySet="RatingTask" />
@@ -973,8 +941,24 @@ warning 6002: The table/view 'NavyRRL.dbo.ImportRMTL' does not have a primary ke
             <End Role="FunctionalArea" EntitySet="FunctionalArea" />
             <End Role="RatingTask" EntitySet="RatingTask" />
           </AssociationSet>
+          <AssociationSet Name="FK_RatingLevelTask_Level" Association="Self.FK_RatingLevelTask_Level">
+            <End Role="ConceptScheme_Concept" EntitySet="ConceptScheme_Concept" />
+            <End Role="RatingTask" EntitySet="RatingTask" />
+          </AssociationSet>
+          <AssociationSet Name="FK_RatingLevelTask_Rank" Association="Self.FK_RatingLevelTask_Rank">
+            <End Role="ConceptScheme_Concept" EntitySet="ConceptScheme_Concept" />
+            <End Role="RatingTask" EntitySet="RatingTask" />
+          </AssociationSet>
           <AssociationSet Name="FK_RatingLevelTask_Source" Association="Self.FK_RatingLevelTask_Source">
             <End Role="Source" EntitySet="Source" />
+            <End Role="RatingTask" EntitySet="RatingTask" />
+          </AssociationSet>
+          <AssociationSet Name="FK_RatingLevelTask_TaskApplicability" Association="Self.FK_RatingLevelTask_TaskApplicability">
+            <End Role="ConceptScheme_Concept" EntitySet="ConceptScheme_Concept" />
+            <End Role="RatingTask" EntitySet="RatingTask" />
+          </AssociationSet>
+          <AssociationSet Name="FK_RatingLevelTask_TrainingGap" Association="Self.FK_RatingLevelTask_TrainingGap">
+            <End Role="ConceptScheme_Concept" EntitySet="ConceptScheme_Concept" />
             <End Role="RatingTask" EntitySet="RatingTask" />
           </AssociationSet>
           <AssociationSet Name="FK_RatingLevelTask_WorkElementType" Association="Self.FK_RatingLevelTask_WorkElementType">
@@ -1136,6 +1120,7 @@ warning 6002: The table/view 'NavyRRL.dbo.ImportRMTL' does not have a primary ke
           <NavigationProperty Name="RatingTask1" Relationship="NavyRRLModel.FK_RatingLevelTask_ConceptScheme_Concept11" FromRole="ConceptScheme_Concept" ToRole="RatingTask" />
           <NavigationProperty Name="RatingTask2" Relationship="NavyRRLModel.FK_RatingLevelTask_ConceptScheme_Concept21" FromRole="ConceptScheme_Concept" ToRole="RatingTask" />
           <NavigationProperty Name="RatingTask3" Relationship="NavyRRLModel.FK_RatingLevelTask_ConceptScheme_Concept31" FromRole="ConceptScheme_Concept" ToRole="RatingTask" />
+          <Property Name="RowId" Type="Guid" Nullable="false" />
         </EntityType>
         <EntityType Name="Course">
           <Key>
@@ -1814,16 +1799,17 @@ warning 6002: The table/view 'NavyRRL.dbo.ImportRMTL' does not have a primary ke
           <Property Name="LastUpdatedById" Type="Int32" />
           <Property Name="CTID" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
           <Property Name="TrainingTaskId" Type="Int32" />
-          <NavigationProperty Name="ConceptScheme_Concept" Relationship="NavyRRLModel.FK_RatingLevelTask_ConceptScheme_Concept4" FromRole="RatingTask" ToRole="ConceptScheme_Concept" />
-          <NavigationProperty Name="ConceptScheme_Concept1" Relationship="NavyRRLModel.FK_RatingLevelTask_ConceptScheme_Concept11" FromRole="RatingTask" ToRole="ConceptScheme_Concept" />
-          <NavigationProperty Name="ConceptScheme_Concept2" Relationship="NavyRRLModel.FK_RatingLevelTask_ConceptScheme_Concept21" FromRole="RatingTask" ToRole="ConceptScheme_Concept" />
-          <NavigationProperty Name="ConceptScheme_Concept3" Relationship="NavyRRLModel.FK_RatingLevelTask_ConceptScheme_Concept31" FromRole="RatingTask" ToRole="ConceptScheme_Concept" />
+          <NavigationProperty Name="ConceptScheme_Rank" Relationship="NavyRRLModel.FK_RatingLevelTask_ConceptScheme_Concept4" FromRole="RatingTask" ToRole="ConceptScheme_Concept" />
+          <NavigationProperty Name="ConceptScheme_Level" Relationship="NavyRRLModel.FK_RatingLevelTask_ConceptScheme_Concept11" FromRole="RatingTask" ToRole="ConceptScheme_Concept" />
+          <NavigationProperty Name="ConceptScheme_Applicability" Relationship="NavyRRLModel.FK_RatingLevelTask_ConceptScheme_Concept21" FromRole="RatingTask" ToRole="ConceptScheme_Concept" />
+          <NavigationProperty Name="ConceptScheme_TrainingGap" Relationship="NavyRRLModel.FK_RatingLevelTask_ConceptScheme_Concept31" FromRole="RatingTask" ToRole="ConceptScheme_Concept" />
           <NavigationProperty Name="Course_Task" Relationship="NavyRRLModel.FK_RatingLevelTask_Course_Task1" FromRole="RatingTask" ToRole="Course_Task" />
           <NavigationProperty Name="FunctionalArea" Relationship="NavyRRLModel.FK_RatingLevelTask_FunctionalArea1" FromRole="RatingTask" ToRole="FunctionalArea" />
           <NavigationProperty Name="Source" Relationship="NavyRRLModel.FK_RatingLevelTask_Source1" FromRole="RatingTask" ToRole="Source" />
           <NavigationProperty Name="WorkElementType" Relationship="NavyRRLModel.FK_RatingLevelTask_WorkElementType1" FromRole="RatingTask" ToRole="WorkElementType" />
           <NavigationProperty Name="RatingTask_HasRating" Relationship="NavyRRLModel.FK_RatingTask_HasRatingTask_Task" FromRole="RatingTask" ToRole="RatingTask_HasRating" />
           <NavigationProperty Name="RmtlProjectBilletTask" Relationship="NavyRRLModel.FK_RmtlProjectBilletTask_RatingTask" FromRole="RatingTask" ToRole="RmtlProjectBilletTask" />
+          <Property Name="RowId" Type="Guid" Nullable="false" />
         </EntityType>
         <EntityType Name="RatingTask_HasRating">
           <Key>
@@ -2123,6 +2109,7 @@ warning 6002: The table/view 'NavyRRL.dbo.ImportRMTL' does not have a primary ke
           <EntitySetMapping Name="ConceptScheme_Concept">
             <EntityTypeMapping TypeName="NavyRRLModel.ConceptScheme_Concept">
               <MappingFragment StoreEntitySet="ConceptScheme_Concept">
+                <ScalarProperty Name="RowId" ColumnName="RowId" />
                 <ScalarProperty Name="Label" ColumnName="Label" />
                 <ScalarProperty Name="Id" ColumnName="Id" />
                 <ScalarProperty Name="ConceptSchemeId" ColumnName="ConceptSchemeId" />
@@ -2450,6 +2437,7 @@ warning 6002: The table/view 'NavyRRL.dbo.ImportRMTL' does not have a primary ke
           <EntitySetMapping Name="RatingTask">
             <EntityTypeMapping TypeName="NavyRRLModel.RatingTask">
               <MappingFragment StoreEntitySet="RatingTask">
+                <ScalarProperty Name="RowId" ColumnName="RowId" />
                 <ScalarProperty Name="TrainingTaskId" ColumnName="TrainingTaskId" />
                 <ScalarProperty Name="CTID" ColumnName="CTID" />
                 <ScalarProperty Name="LastUpdatedById" ColumnName="LastUpdatedById" />

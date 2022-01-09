@@ -1,19 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data;
+using System.Data.SqlClient;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-using Models;
 using Models.Application;
-using EM = Data.Tables;
+
 using DataEntities = Data.Tables.NavyRRLEntities;
+using EM = Data.Tables;
 using ViewContext = Data.Views.ceNavyViewEntities;
 using Views = Data.Views;
 using Navy.Utilities;
-using System.Data;
-using System.Data.SqlClient;
-
 namespace Factories
 {
     public class AccountManager : BaseFactory
