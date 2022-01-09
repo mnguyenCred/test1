@@ -82,7 +82,7 @@ inner join Rating b on a.Rating = b.CodedNotation
 -- Rank - concept scheme
 UPDATE [dbo].ImportRMTL
    SET [RankId] = b.Id
---	select  a.[Rank], b.PrefLabel, CodedNotation
+--	select  a.[Rank], b.Label, CodedNotation
 from ImportRMTL a
 inner join [ConceptScheme.Concept] b on a.[Rank] = b.CodedNotation 
 WHERE        (ConceptSchemeId = 3)
@@ -90,7 +90,7 @@ WHERE        (ConceptSchemeId = 3)
 -- Level - concept scheme
 UPDATE [dbo].ImportRMTL
    SET [LevelId] = b.Id
---	select  a.[RankLevel], b.PrefLabel, CodedNotation
+--	select  a.[RankLevel], b.Label, CodedNotation
 from ImportRMTL a
 inner join [ConceptScheme.Concept] b on a.[RankLevel] = b.CodedNotation 
 WHERE        (ConceptSchemeId = 11)
@@ -179,9 +179,9 @@ inner join WorkElementType b on a.[Work_Element_Type] = b.name
 
 UPDATE [dbo].ImportRMTL
    SET [TaskApplicabilityId] = b.Id
---	select  a.[Task_Applicability], b.PrefLabel, Id
+--	select  a.[Task_Applicability], b.Label, Id
 from ImportRMTL a
-inner join [ConceptScheme.Concept] b on a.[Task_Applicability] = b.PrefLabel 
+inner join [ConceptScheme.Concept] b on a.[Task_Applicability] = b.Label 
 WHERE        (ConceptSchemeId = 12)
 
 -- ============================================
@@ -189,9 +189,9 @@ WHERE        (ConceptSchemeId = 12)
 
 UPDATE [dbo].ImportRMTL
    SET [FormalTrainingGapId] = b.Id
---	select  a.[Formal_Training_Gap], b.PrefLabel,  b.CodedNotation , Id
+--	select  a.[Formal_Training_Gap], b.Label,  b.CodedNotation , Id
 from ImportRMTL a
-inner join [ConceptScheme.Concept] b on a.[Formal_Training_Gap] = b.PrefLabel 
+inner join [ConceptScheme.Concept] b on a.[Formal_Training_Gap] = b.Label 
 WHERE        (ConceptSchemeId = 10)
 
 -- ============================================

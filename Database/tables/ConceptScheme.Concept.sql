@@ -1,7 +1,7 @@
 USE [NavyRRL]
 GO
 
-/****** Object:  Table [dbo].[ConceptScheme.Concept]    Script Date: 12/12/2021 9:29:47 PM ******/
+/****** Object:  Table [dbo].[ConceptScheme.Concept]    Script Date: 1/8/2022 8:46:23 PM ******/
 SET ANSI_NULLS ON
 GO
 
@@ -11,7 +11,7 @@ GO
 CREATE TABLE [dbo].[ConceptScheme.Concept](
 	[Id] [int] IDENTITY(1,1) NOT NULL,
 	[ConceptSchemeId] [int] NOT NULL,
-	[PrefLabel] [varchar](1000) NOT NULL,
+	[Label] [varchar](1000) NOT NULL,
 	[CTID] [varchar](50) NULL,
 	[CodedNotation] [varchar](50) NULL,
 	[AlternateLabel] [varchar](500) NULL,
