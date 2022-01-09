@@ -12,7 +12,7 @@ namespace Data.Views
     using System;
     using System.Collections.Generic;
     
-    public partial class RatingLevelTaskSummary
+    public partial class RatingTaskSummary
     {
         public int Id { get; set; }
         public string Identifier { get; set; }

@@ -4,14 +4,14 @@ using System.Text;
 
 namespace Models.Schema
 {
-	class Course : BaseObject
+	public class Course : BaseObject
 	{
 		public string Name { get; set; }
 		public string CodedNotation { get; set; }
-		public List<Reference<Organization>> CurriculumControlAuthority { get; set; }
-		public List<Reference<TrainingTask>> HasTrainingTask { get; set; }
-		public Reference<ReferenceResource> HasReferenceResource { get; set; }
-		public Reference<Concept> CourseType { get; set; }
-		public Reference<Concept> AssessmentMethodType { get; set; }
+		public List<Guid> CurriculumControlAuthority { get; set; } //List of GUIDs for the Organiation(s) that are CCAs for this Course
+		public List<Guid> HasTrainingTask { get; set; } //List of GUIDs for the Training Tasks for this Course
+		public Guid HasReferenceResource { get; set; } //GUID for the Reference Resource for this Course
+		public Guid CourseType { get; set; } //GUID for the Concept for the Course Type for this Course
+		public Guid AssessmentMethodType { get; set; } //GUID for the Concept for the Assessment Method Type for this Course
 	}
 }

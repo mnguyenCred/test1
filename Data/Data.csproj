@@ -86,6 +86,9 @@
     <Compile Include="Tables\Assessment.cs">
       <DependentUpon>NavyRRLTables.tt</DependentUpon>
     </Compile>
+    <Compile Include="Tables\Comment.cs">
+      <DependentUpon>NavyRRLTables.tt</DependentUpon>
+    </Compile>
     <Compile Include="Tables\ConceptScheme.cs">
       <DependentUpon>NavyRRLTables.tt</DependentUpon>
     </Compile>
@@ -110,6 +113,9 @@
     <Compile Include="Tables\Job.cs">
       <DependentUpon>NavyRRLTables.tt</DependentUpon>
     </Compile>
+    <Compile Include="Tables\Job_HasRating.cs">
+      <DependentUpon>NavyRRLTables.tt</DependentUpon>
+    </Compile>
     <Compile Include="Tables\NavyRRLTables.Context.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
@@ -131,7 +137,10 @@
     <Compile Include="Tables\Rating.cs">
       <DependentUpon>NavyRRLTables.tt</DependentUpon>
     </Compile>
-    <Compile Include="Tables\RatingLevelTask.cs">
+    <Compile Include="Tables\RatingTask.cs">
+      <DependentUpon>NavyRRLTables.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Tables\RatingTask_HasRating.cs">
       <DependentUpon>NavyRRLTables.tt</DependentUpon>
     </Compile>
     <Compile Include="Tables\RMTLProject.cs">
@@ -179,7 +188,7 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>NavyViews.edmx</DependentUpon>
     </Compile>
-    <Compile Include="Views\RatingLevelTaskSummary.cs">
+    <Compile Include="Views\RatingTaskSummary.cs">
       <DependentUpon>NavyViews.tt</DependentUpon>
     </Compile>
     <Compile Include="Views\RmtlSummary.cs">

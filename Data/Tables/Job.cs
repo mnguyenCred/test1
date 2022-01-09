@@ -18,6 +18,7 @@ namespace Data.Tables
         public Job()
         {
             this.RmtlProject_Billet = new HashSet<RmtlProject_Billet>();
+            this.Job_HasRating = new HashSet<Job_HasRating>();
         }
     
         public int Id { get; set; }
@@ -36,5 +37,7 @@ namespace Data.Tables
     
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<RmtlProject_Billet> RmtlProject_Billet { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<Job_HasRating> Job_HasRating { get; set; }
     }
 }

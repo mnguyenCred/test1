@@ -38,7 +38,6 @@ namespace Data.Tables
         public virtual DbSet<Job> Job { get; set; }
         public virtual DbSet<Organization> Organization { get; set; }
         public virtual DbSet<Rating> Rating { get; set; }
-        public virtual DbSet<RatingLevelTask> RatingLevelTask { get; set; }
         public virtual DbSet<RMTLProject> RMTLProject { get; set; }
         public virtual DbSet<RmtlProject_Billet> RmtlProject_Billet { get; set; }
         public virtual DbSet<RmtlProjectBilletTask> RmtlProjectBilletTask { get; set; }
@@ -48,5 +47,9 @@ namespace Data.Tables
         public virtual DbSet<AspNetUserRoles> AspNetUserRoles { get; set; }
         public virtual DbSet<AspNetRoles> AspNetRoles { get; set; }
         public virtual DbSet<System_ProxyCodes> System_ProxyCodes { get; set; }
+        public virtual DbSet<Comment> Comment { get; set; }
+        public virtual DbSet<Job_HasRating> Job_HasRating { get; set; }
+        public virtual DbSet<RatingTask> RatingTask { get; set; }
+        public virtual DbSet<RatingTask_HasRating> RatingTask_HasRating { get; set; }
     }
 }

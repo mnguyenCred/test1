@@ -16,8 +16,13 @@ namespace Data.Tables
     {
         public int Id { get; set; }
         public int ProjectBilletId { get; set; }
-        public int RatingLevelTaskId { get; set; }
         public System.DateTime Created { get; set; }
         public System.DateTime LastUpdated { get; set; }
+        public int RatingTaskId { get; set; }
+        public Nullable<int> CreatedById { get; set; }
+        public Nullable<int> LastUpdatedById { get; set; }
+    
+        public virtual RmtlProject_Billet RmtlProject_Billet { get; set; }
+        public virtual RatingTask RatingTask { get; set; }
     }
 }

@@ -14,6 +14,13 @@ namespace Data.Tables
     
     public partial class Rating
     {
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2214:DoNotCallOverridableMethodsInConstructors")]
+        public Rating()
+        {
+            this.Job_HasRating = new HashSet<Job_HasRating>();
+            this.RatingTask_HasRating = new HashSet<RatingTask_HasRating>();
+        }
+    
         public int Id { get; set; }
         public string CTID { get; set; }
         public string Name { get; set; }
@@ -30,5 +37,10 @@ namespace Data.Tables
         public System.Guid RowId { get; set; }
         public string CredentialRegistryURI { get; set; }
         public string MainEntityOfPage { get; set; }
+    
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<Job_HasRating> Job_HasRating { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<RatingTask_HasRating> RatingTask_HasRating { get; set; }
     }
 }

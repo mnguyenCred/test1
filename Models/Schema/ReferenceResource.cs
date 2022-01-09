@@ -13,7 +13,7 @@ namespace Models.Schema
 		public string VersionIdentifier { get; set; }
 		public DateTime PublicationDate { get; set; }
 		public List<string> SubjectWebpage { get; set; }
-		public Reference<Concept> ReferenceType { get; set; }
-		public Reference<Concept> StatusType { get; set; }
+		public Guid ReferenceType { get; set; } //GUID for the Concept for the Reference Type for this Reference Resource
+		public Guid StatusType { get; set; } //GUID for the Concept for the Status Type for this Reference Resource
 	}
 }

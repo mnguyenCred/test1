@@ -1,0 +1,50 @@
+USE [NavyRRL]
+GO
+
+INSERT INTO [dbo].[ImportRMTL]
+           (
+           [Rating]
+           ,[Rank]
+           ,[RankLevel]
+           ,[Billet_Title]
+           ,[Functional_Area]
+           ,[Source]
+           ,[Date_of_Source]
+           ,[Work_Element_Type]
+           ,[Work_Element_Task]
+           ,[Task_Applicability]
+           ,[Formal_Training_Gap]
+           ,[CIN]
+           ,[Course_Name]
+           ,[Course_Type]
+           ,[Curriculum_Control_Authority]
+           ,[Life_Cycle_Control_Document]
+           ,[Task_Statement]
+           ,[Current_Assessment_Approach]
+           ,[TaskNotes]
+		   )
+
+SELECT [Rating]
+      ,[Rank]
+      ,[RankLevel]
+      ,[Billet_Title]
+      ,[Functional_Area]
+      ,[Source]
+      ,[Date_of_Source]
+      ,[Work_Element_Type]
+      ,[Work_Element_Task]
+      ,[Task_Applicability]
+      ,[Formal_Training_Gap]
+      ,[CIN]
+      ,[Course_Name]
+      ,[Course_Type]
+      ,[Curriculum_Control_Authority_CCA]
+      ,[Life_Cycle_Control_Document]
+      ,[Task_Statement]
+      ,[Current_Assessment_Approach]
+      ,[Notes]
+  FROM [dbo].[Import_ABF_RMTL]
+GO
+
+
+

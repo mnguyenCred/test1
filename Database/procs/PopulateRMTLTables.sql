@@ -35,6 +35,7 @@ GO
 DECLARE @RC int, @Rating           varchar(50)
 set @Rating='QM'
 
+set @Rating='ABF'
 EXECUTE @RC = [PopulateRMTLTables] @Rating
 
 
@@ -99,7 +100,7 @@ inner join Rating b on a.Rating = b.CodedNotation
 -- Rank - concept scheme
 UPDATE [dbo].ImportRMTL
    SET [RankId] = b.Id
---	select  a.[Rank], b.PrefLabel, CodedNotation
+--	select  a.[Rank], b.Label, CodedNotation
 from ImportRMTL a
 inner join [ConceptScheme.Concept] b on a.[Rank] = b.CodedNotation 
 WHERE        (ConceptSchemeId = 3)
@@ -107,7 +108,7 @@ WHERE        (ConceptSchemeId = 3)
 -- Level - concept scheme
 UPDATE [dbo].ImportRMTL
    SET [LevelId] = b.Id
---	select  a.[RankLevel], b.PrefLabel, CodedNotation
+--	select  a.[RankLevel], b.Label, CodedNotation
 from ImportRMTL a
 inner join [ConceptScheme.Concept] b on a.[RankLevel] = b.CodedNotation 
 WHERE        (ConceptSchemeId = 11)
@@ -196,9 +197,9 @@ inner join WorkElementType b on a.[Work_Element_Type] = b.name
 
 UPDATE [dbo].ImportRMTL
    SET [TaskApplicabilityId] = b.Id
---	select  a.[Task_Applicability], b.PrefLabel, Id
+--	select  a.[Task_Applicability], b.Label, Id
 from ImportRMTL a
-inner join [ConceptScheme.Concept] b on a.[Task_Applicability] = b.PrefLabel 
+inner join [ConceptScheme.Concept] b on a.[Task_Applicability] = b.Label 
 WHERE        (ConceptSchemeId = 12)
 
 -- ============================================
@@ -206,9 +207,9 @@ WHERE        (ConceptSchemeId = 12)
 
 UPDATE [dbo].ImportRMTL
    SET [FormalTrainingGapId] = b.Id
---	select  a.[Formal_Training_Gap], b.PrefLabel,  b.CodedNotation , Id
+--	select  a.[Formal_Training_Gap], b.Label,  b.CodedNotation , Id
 from ImportRMTL a
-inner join [ConceptScheme.Concept] b on a.[Formal_Training_Gap] = b.PrefLabel 
+inner join [ConceptScheme.Concept] b on a.[Formal_Training_Gap] = b.Label 
 WHERE        (ConceptSchemeId = 10)
 
 -- ============================================
@@ -217,7 +218,8 @@ WHERE        (ConceptSchemeId = 10)
 --	- could get list of candidates and exclude all, or use the first one
 --	- actually ony add the CIN, then do updates
 CREATE TABLE #tempMessageTable(
-	Unique_Identifier       int PRIMARY KEY  NOT NULL
+	RowNumber         int PRIMARY KEY IDENTITY(1,1) NOT NULL,
+	Unique_Identifier       int   NULL
 	,Rating			varchar(50)
 	,CIN			varchar(50)
 	,CourseName		varchar(500)
@@ -225,7 +227,7 @@ CREATE TABLE #tempMessageTable(
 )
 
 INSERT INTO #tempMessageTable ( Unique_Identifier, Rating, CIN, CourseName,[Message]	)
-	SELECT distinct a.Unique_Identifier, a.Rating, a.[CIN], a.[Course_Name],'Courses with same CIN and different names'
+	SELECT distinct isnull(a.Unique_Identifier, 0), a.Rating, a.[CIN], a.[Course_Name],'Courses with same CIN and different names'
 	FROM [dbo].ImportRMTL a
 	inner join (
 		SELECT   allCourses.[CIN]  ,count(*) ttl
@@ -314,7 +316,9 @@ INSERT INTO [dbo].[Course.Task]
 SELECT distinct a.CourseId ,[Task_Statement]
 from [dbo].ImportRMTL a
 left join [Course.Task] b on a.Task_Statement = b.TaskStatement
-where a.CIN <> 'N/A'
+where a.CIN <> 'N/A' 
+AND a.Task_Statement is not null
+AND a.Task_Statement <> 'N/A'
 and b.id is null 
 --642
 --
@@ -334,10 +338,11 @@ and a.CourseTaskId is null
 
 
 --***** there are some duplicate tasks, but different identifiers!
-INSERT INTO [dbo].[RatingLevelTask]
+INSERT INTO [dbo].[RatingTask]
            (
-		   [CodedNotation],
-		   [RankId]
+		   [CodedNotation]
+		   ,RowId
+		   ,[RankId]
            ,[LevelId]
            ,[FunctionalAreaId]
            ,[SourceId]
@@ -348,6 +353,7 @@ INSERT INTO [dbo].[RatingLevelTask]
            ,[FormalTrainingGapId]
            ,TrainingTaskId
            ,[Notes]
+		  
            --,[Created]
            --,[CreatedById]
            --,[LastUpdated]
@@ -356,13 +362,14 @@ INSERT INTO [dbo].[RatingLevelTask]
 
 SELECT 
 IndexIdentifier as TaskCodedNotation
+,newId() as RowId
 ,a.[RankId]
 ,a.[LevelId]
 ,a.[FunctionalAreaId]
 ,a.[SourceId]
 ,a.[WorkElementTypeId]
 
-,a.[Work_Element_Task] as RatingLevelTask
+,a.[Work_Element_Task] as RatingTask
 ,a.TaskApplicabilityId
 ,a.FormalTrainingGapId
 ,a.CourseTaskId
@@ -370,19 +377,19 @@ IndexIdentifier as TaskCodedNotation
 ,case when a.[TaskNotes] = 'N/A'  then NULL else a.[TaskNotes] end [TaskNotes]
    
  FROM [dbo].ImportRMTL a
- Left Join [RatingLevelTask] b on a.IndexIdentifier = b.CodedNotation
+ Left Join [RatingTask] b on a.IndexIdentifier = b.CodedNotation
  where b.id is null 
  --
- Update dbo.[RatingLevelTask]
+ Update dbo.[RatingTask]
 set CTID = 'ce-' + Lower(NewId())
 where ISNULL(CTID,'') = ''
 --
 UPDATE [dbo].ImportRMTL
-   SET [RatingLevelTaskId] = b.Id
+   SET RatingLevelTaskId = b.Id
 --	select  a.IndexIdentifier, a.[Work_Element_Task], b.CodedNotation
 from ImportRMTL a
-inner join [RatingLevelTask] b on a.IndexIdentifier = b.CodedNotation 
-where a.[RatingLevelTaskId] is null
+inner join [RatingTask] b on a.IndexIdentifier = b.CodedNotation 
+where a.RatingLevelTaskId is null
 
 -- =================================
 INSERT INTO [dbo].[Job]
@@ -428,15 +435,15 @@ SELECT @RMTLProjectd= a.[Id]
 
 	  --
 	  INSERT INTO [dbo].[RmtlProjectBilletTask]
-           ([ProjectBilletId],[RatingLevelTaskId])
+           ([ProjectBilletId],RatingTaskId)
 
-		SELECT distinct b.Id rmtlProjectBilletId, c.Id as ratingLevelTaskId
+		SELECT distinct b.Id rmtlProjectBilletId, c.Id as RatingLevelTaskId
 		--,a.Billet_Title, b.Name
 
 		  FROM [dbo].ImportRMTL a
 		  inner join	[RmtlProject.Billet] b on a.BilletTitleId = b.JobId
-		  inner join	RatingLevelTask c on a.RatingLevelTaskId = c.Id
-		  left join		[RmtlProjectBilletTask] d on b.Id = d.[ProjectBilletId] and d.[RatingLevelTaskId] = c.Id
+		  inner join	RatingTask c on a.RatingLevelTaskId = c.Id
+		  left join		[RmtlProjectBilletTask] d on b.Id = d.[ProjectBilletId] and d.RatingTaskId = c.Id
 		  where d.id is null 
 		  order by 1
 

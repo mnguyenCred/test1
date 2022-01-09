@@ -43,23 +43,23 @@ SELECT [Id]
 		,CurriculumControlAuthority
 		,LifeCycleControlDocument
       ,[Notes]
-  FROM [dbo].[RatingLevelTaskSummary]
+  FROM [dbo].[RatingTaskSummary]
 
 GO
 
 
 */
 
-Alter  VIEW [dbo].RatingLevelTaskSummary
+Create  VIEW [dbo].RatingTaskSummary
 AS
 
 SELECT 
 a.Id,
 a.CodedNotation As Identifier
 ,a.[RankId]
-, isnull(c1.PrefLabel,'missing') As [Rank]
+, isnull(c1.Label,'missing') As [Rank]
 ,a.[LevelId]
-, isnull(c2.PrefLabel,'missing') As [Level]
+, isnull(c2.Label,'missing') As [Level]
 
 ,a.[FunctionalAreaId]
 , isnull(b.name,'missing') As FunctionalArea
@@ -75,10 +75,10 @@ a.CodedNotation As Identifier
 
 ,a.WorkElementTask
 ,a.TaskApplicabilityId
-, isnull(e.PrefLabel,'missing') As TaskApplicability
+, isnull(e.Label,'missing') As TaskApplicability
 --,a.[Task_Applicability]
 ,a.FormalTrainingGapId
-, isnull(f.PrefLabel,'missing') As FormalTrainingGap
+, isnull(f.Label,'missing') As FormalTrainingGap
 --,a.[Formal_Training_Gap]
 ,h.CIN
 ,h.Name as CourseName
@@ -96,7 +96,7 @@ a.CodedNotation As Identifier
 
 
    
-  FROM [NavyRRL].[dbo].[RatingLevelTask] a
+  FROM [NavyRRL].[dbo].[RatingTask] a
 left join [ConceptScheme.Concept]	c1 on a.[RankId] = c1.Id
 left join [ConceptScheme.Concept]	c2 on a.[LevelId] = c2.Id
 left join FunctionalArea			b on a.FunctionalAreaId = b.Id
@@ -109,5 +109,5 @@ Left Join [Course]				h on g.CourseId = h.Id
 
 go
 
-grant select on RatingLevelTaskSummary to public
+grant select on RatingTaskSummary to public
 go

@@ -14,6 +14,8 @@ using System.Web;
 using System.Web.Configuration;
 
 using DataEntities = Data.Tables.NavyRRLEntities;
+using Data.Tables;
+using Models.Schema;
 using Navy.Utilities;
 
 using Newtonsoft.Json;
@@ -108,9 +110,21 @@ namespace Factories
         }
         #endregion
 
-        #region data retrieval
+        public static Concept MapConcept( ConceptScheme_Concept input )
+        {
+            var output = new Concept();
+            if ( input != null && input.Id > 0)
+            {
+                output.Id = input.Id;
+                output.Label = input.Label;
+                output.Description = input.Description;
+                output.CTID = input.CTID;
+            }
 
-      
+            return output; 
+        }
+
+        #region data retrieval     
 
         public static string GetRowColumn( DataRow row, string column, string defaultValue = "" )
         {
@@ -165,7 +179,6 @@ namespace Factories
             return colValue;
 
         }
-
 
         /// <summary>
         /// Helper method to retrieve an int column from a row while handling invalid values

@@ -179,6 +179,7 @@
 				PayGradeType: [],
 				HasTrainingTask: [],
 				HasReferenceResource: [],
+				ReferenceType: [],
 				HasRating: [], //Allow tasks to have multiple ratings (don't use this for uniqueness check)
 				//Properties only here for uniqueness checks
 				//This may result in multiple tasks with identical descriptions but different sources, which is intentional behavior
@@ -247,6 +248,7 @@
 			appendReference(ratingTask?.PayGradeType, payGradeType);
 			appendReference(ratingTask?.HasTrainingTask, trainingTask);
 			appendReference(ratingTask?.HasReferenceResource, taskSource);
+			appendReference(ratingTask?.ReferenceType, taskSourceType);
 			appendReference(ratingTask?.HasRating, rating);
 			appendReference(course?.AssessmentMethodType, assessmentMethodType);
 			appendReference(course?.CourseType, courseType);

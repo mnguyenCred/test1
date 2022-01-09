@@ -8,6 +8,5 @@ namespace Models.Schema
 	{
 		public string Name { get; set; }
 		public string Description { get; set; }
-		public List<Reference<RatingTask>> HasRatingTask { get; set; }
 	}
 }
