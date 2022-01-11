@@ -54,7 +54,6 @@ namespace Factories
         }
         public static void MapFromDB( ConceptScheme_Concept input, Concept output )
         {
-
             if ( input != null && input.Id > 0 )
             {
                 output.Id = input.Id;

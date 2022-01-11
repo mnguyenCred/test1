@@ -10,9 +10,11 @@ namespace Models.Schema
 		public Guid RowId { get; set; }
 		public string CTID { get { return "ce-" + RowId.ToString().ToLower(); } set { RowId = Guid.Parse( value.Substring( 3, value.Length - 3 ) ); } }
 
-		public DateTime DateCreated { get; set; }
+		public DateTime Created { get; set; }
+		public int CreatedById { get; set; }
 		public Guid CreatedBy { get; set; }
-		public DateTime DateModified { get; set; }
+		public DateTime LastUpdated { get; set; }
+		public int LastUpdatedById { get; set; }
 		public Guid ModifiedBy { get; set; }
 	}
 }

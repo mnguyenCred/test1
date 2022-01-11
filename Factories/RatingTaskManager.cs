@@ -40,29 +40,34 @@ namespace Factories
 
         public static void MapFromDB( DBEntity input, AppEntity output )
         {
+            //test automap
+            List<string> errors = new List<string>();
+            BaseFactory.AutoMap(input, output, errors );
 
-            output.Id = input.Id;
+
+            //output.Id = input.Id;
             //the status may have to specific to the project - task context?
 			//Yes, this would be specific to a project
             //output.StatusId = input.TaskStatusId ?? 1;
-            output.RowId = input.RowId;
+            //output.RowId = input.RowId;
 
-            output.Description = input.WorkElementTask;
+            //output.Description = input.WorkElementTask;
             //
             //output.TaskApplicabilityId = input.TaskApplicabilityId;
             if ( input.TaskApplicabilityId > 0 )
             {
-				//output.TaskApplicabilityType = ConceptSchemeManager.MapConcept( input.ConceptScheme_Applicability );
-				//var thing = input.ConceptScheme_Applicability;
-				//output.ApplicabilityType = output.TaskApplicabilityType.Guid;
-				output.ApplicabilityType = ConceptSchemeManager.MapConcept( input.ConceptScheme_Applicability )?.RowId ?? Guid.Empty;
+                ConceptSchemeManager.MapFromDB( input.ConceptScheme_Applicability, output.TaskApplicabilityType );
+                output.ApplicabilityType = (output.TaskApplicabilityType)?.RowId ?? Guid.Empty;
+                //OR
+                //output.ApplicabilityType = ConceptSchemeManager.MapConcept( input.ConceptScheme_Applicability )?.RowId ?? Guid.Empty;
 
 			}
             if ( input.FormalTrainingGapId > 0 )
             {
-                //output.TaskTrainingGap = ConceptSchemeManager.MapConcept( input.ConceptScheme_TrainingGap );
-                //output.TrainingGapType = output.TaskTrainingGap.Guid;
-				output.ApplicabilityType = ConceptSchemeManager.MapConcept( input.ConceptScheme_TrainingGap )?.RowId ?? Guid.Empty;
+                ConceptSchemeManager.MapFromDB( input.ConceptScheme_TrainingGap, output.TaskTrainingGap );
+                output.TrainingGapType = ( output.TaskTrainingGap )?.RowId ?? Guid.Empty;
+                //OR
+                //output.TrainingGapType = ConceptSchemeManager.MapConcept( input.ConceptScheme_TrainingGap )?.RowId ?? Guid.Empty;
 			}
         }
 

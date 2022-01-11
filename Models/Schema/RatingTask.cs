@@ -20,9 +20,18 @@ namespace Models.Schema
 		public Guid HasTrainingTask { get; set; } //GUID for the Training Task for this Rating Task
 		public Guid HasReferenceResource { get; set; } //GUID for the Reference Resource that this Rating Task came from (e.g. a reference to "NAVPERS 18068F Vol. II")
 		public Guid PayGradeType { get; set; } //GUID for the Concept for the Pay Grade Type (aka Rank) for this Rating Task
+		/// <summary>
+		/// GUID for the Concept for the Applicability Type for this Rating Task
+		/// </summary>
 		public Guid ApplicabilityType { get; set; } //GUID for the Concept for the Applicability Type for this Rating Task
 		public List<Guid> HasWorkRole { get; set; } //List of GUIDs for the Work Role(s) (aka Functional Area(s)) for this Rating Task
 		public Guid TrainingGapType { get; set; } //GUID for the Concept for the Training Gap Type for this Rating Task
 		public Guid ReferenceType { get; set; } //GUID for the Concept for the Reference Type for this Rating Task (e.g. a reference to "300 Series PQS Watch Station")
+
+
+		//derived
+		public Concept TaskApplicabilityType { get; set; } = new Concept();
+		public Concept TaskTrainingGap { get; set; } = new Concept();
+
 	}
 }
