@@ -43,23 +43,27 @@ namespace Factories
 
             output.Id = input.Id;
             //the status may have to specific to the project - task context?
-            output.StatusId = input.TaskStatusId ?? 1;
-            output.Guid = input.RowId;
+			//Yes, this would be specific to a project
+            //output.StatusId = input.TaskStatusId ?? 1;
+            output.RowId = input.RowId;
 
             output.Description = input.WorkElementTask;
             //
             //output.TaskApplicabilityId = input.TaskApplicabilityId;
             if ( input.TaskApplicabilityId > 0 )
             {
-                output.TaskApplicabilityType = ConceptSchemeManager.MapConcept( input.ConceptScheme_Applicability );
-                //var thing = input.ConceptScheme_Applicability;
-                output.ApplicabilityType = output.TaskApplicabilityType.Guid;
-            }
+				//output.TaskApplicabilityType = ConceptSchemeManager.MapConcept( input.ConceptScheme_Applicability );
+				//var thing = input.ConceptScheme_Applicability;
+				//output.ApplicabilityType = output.TaskApplicabilityType.Guid;
+				output.ApplicabilityType = ConceptSchemeManager.MapConcept( input.ConceptScheme_Applicability )?.RowId ?? Guid.Empty;
+
+			}
             if ( input.FormalTrainingGapId > 0 )
             {
-                output.TaskTrainingGap = ConceptSchemeManager.MapConcept( input.ConceptScheme_TrainingGap );
-                output.TrainingGapType = output.TaskTrainingGap.Guid;
-            }
+                //output.TaskTrainingGap = ConceptSchemeManager.MapConcept( input.ConceptScheme_TrainingGap );
+                //output.TrainingGapType = output.TaskTrainingGap.Guid;
+				output.ApplicabilityType = ConceptSchemeManager.MapConcept( input.ConceptScheme_TrainingGap )?.RowId ?? Guid.Empty;
+			}
         }
 
         #endregion

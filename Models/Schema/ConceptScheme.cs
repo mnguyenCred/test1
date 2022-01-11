@@ -9,9 +9,13 @@ namespace Models.Schema
 		public string Name { get; set; }
 		public string Description { get; set; }
 	}
+	//
+
 	public class Concept : BaseObject
 	{
 		public string Label { get; set; }
 		public string Description { get; set; }
+		public Guid InScheme { get; set; }
 	}
+	//
 }

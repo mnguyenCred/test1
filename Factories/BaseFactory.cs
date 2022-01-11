@@ -19,6 +19,7 @@ using Models.Schema;
 using Navy.Utilities;
 
 using Newtonsoft.Json;
+using System.Reflection;
 
 namespace Factories
 {
@@ -108,8 +109,83 @@ namespace Factories
             string conn = WebConfigurationManager.ConnectionStrings["DefaultConnection"].ConnectionString;
             return conn;
         }
-        #endregion
+		#endregion
 
+
+		//Automatic mapping based on property name + type
+		public static bool AutoMap<T1, T2> ( T1 source, T2 destination, List<string> errors = null, List<string> skipProperties = null, int maxDepth = 10 )
+		{
+			//Ensure source and destination are not null
+			if( source == null || destination == null )
+			{
+				errors.Add( "Error: Source and Destination must not be null" );
+				return false;
+			}
+
+			//Get a list of properties for the source and destination
+			var sourceProperties = source.GetType().GetProperties().ToList();
+			var destinationProperties = destination.GetType().GetProperties().Where( m => m.CanWrite ).ToList();
+
+			//Setup helpers
+			skipProperties = skipProperties ?? new List<string>();
+			errors = errors ?? new List<string>();
+			var mappingWasSuccessful = true;
+
+			//For each property in the destination object...
+			foreach( var destinationProperty in destinationProperties.Where( m => !skipProperties.Contains( m.Name ) ).ToList() )
+			{
+				try
+				{
+					//Find a matching property (based on name and type) in the source object
+					var matchingSourceProperty = sourceProperties.FirstOrDefault( m => m.Name.ToLower() == destinationProperty.Name.ToLower() && m.PropertyType == destinationProperty.PropertyType );
+					if( matchingSourceProperty != null )
+					{
+						//Update the destination property's value to match the source property's value
+						//Caution: For non-value types (including List<>s), this will set the value to reference the same object in RAM. It does not create a separate copy.
+						destinationProperty.SetValue( destination, matchingSourceProperty.GetValue( source ) );
+					}
+				}
+				catch( Exception ex )
+				{
+					//If there are any errors, add them to the errors list
+					//The errors list is a List<string> passed by reference so no need to make it a "ref" or "out" parameter
+					errors.Add( "Error mapping property: " + destinationProperty.Name + ": " + ex.Message + ( ex.InnerException != null ? "; Inner exception: " + ex.InnerException.Message : "" ) );
+					mappingWasSuccessful = false;
+				}
+			}
+
+			//Return true if there were no errrors
+			return mappingWasSuccessful;
+		}
+		//
+
+		//Automatic mapping via serialization
+		//This is a little bit slower but guarantees that nothing is passed by reference
+		//However it does not allow "skipping" properties
+		public static bool AutoMapBySerialization<T1, T2>(T1 source, T2 destination, List<string> errors = null )
+		{
+			//Setup helpers
+			errors = errors ?? new List<string>();
+			var mappingWasSuccessful = true;
+
+			try
+			{
+				//Brute-force deep-clone via serialization
+				destination = JsonConvert.DeserializeObject<T2>( JsonConvert.SerializeObject( source ) );
+			}
+			catch ( Exception ex )
+			{
+				//If there are any errors, add them to the errors list
+				//The errors list is a List<string> passed by reference so no need to make it a "ref" or "out" parameter
+				errors.Add( "Error mapping data: " + ex.Message + ( ex.InnerException != null ? "; Inner exception: " + ex.InnerException.Message : "" ) );
+				mappingWasSuccessful = false;
+			}
+
+			return mappingWasSuccessful;
+		}
+		//
+
+		//This seems to have been moved to ConceptSchemeManager?
         public static Concept MapConcept( ConceptScheme_Concept input )
         {
             var output = new Concept();
