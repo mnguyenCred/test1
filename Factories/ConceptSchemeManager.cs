@@ -47,7 +47,7 @@ namespace Factories
 
             output.Id = input.Id;
             output.Name = input.Name;
-            output.Guid = input.RowId;
+            output.RowId = input.RowId;
             output.Description = input.Description;
             //
 
@@ -58,7 +58,7 @@ namespace Factories
             if ( input != null && input.Id > 0 )
             {
                 output.Id = input.Id;
-                output.Guid = input.RowId;
+                output.RowId = input.RowId;
                 output.Label = input.Label;
                 output.Description = input.Description;
                 output.CTID = input.CTID;
@@ -73,7 +73,7 @@ namespace Factories
             if ( input != null && input.Id > 0 )
             {
                 output.Id = input.Id;
-                output.Guid = input.RowId;
+                output.RowId = input.RowId;
                 output.Label = input.Label;
                 output.Description = input.Description;
                 output.CTID = input.CTID;

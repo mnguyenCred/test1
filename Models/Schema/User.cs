@@ -12,6 +12,6 @@ namespace Models.Schema
 
 		//Other properties?
 		public string Email { get; set; }
-		public string Organization { get; set; }
+		public string Organization { get; set; } //Is this organization name, ID, URL, etc?
 	}
 }
