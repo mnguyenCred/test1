@@ -91,6 +91,7 @@ if @RMTLProjectd < 1
 		RAISERROR(@errmsg, 10, 1)
 	end
 -- rating - concept scheme
+-- Why is this being updated????????
 UPDATE [dbo].ImportRMTL
    SET [RatingId] = b.Id
 --	select  a.Rating, b.Name, b.CodedNotation
@@ -98,6 +99,7 @@ from [ImportRMTL] a
 inner join Rating b on a.Rating = b.CodedNotation 
 
 -- Rank - concept scheme
+-- Why is this being updated????????
 UPDATE [dbo].ImportRMTL
    SET [RankId] = b.Id
 --	select  a.[Rank], b.Label, CodedNotation
@@ -106,6 +108,7 @@ inner join [ConceptScheme.Concept] b on a.[Rank] = b.CodedNotation
 WHERE        (ConceptSchemeId = 3)
 
 -- Level - concept scheme
+-- Why is this being updated????????
 UPDATE [dbo].ImportRMTL
    SET [LevelId] = b.Id
 --	select  a.[RankLevel], b.Label, CodedNotation
@@ -347,7 +350,7 @@ INSERT INTO [dbo].[RatingTask]
            ,[FunctionalAreaId]
            ,[SourceId]
            ,[WorkElementTypeId]
-           ,[WorkElementTask]
+           ,Description
            ,[TaskApplicabilityId]
           -- ,[TaskStatusId]
            ,[FormalTrainingGapId]
@@ -371,6 +374,7 @@ IndexIdentifier as TaskCodedNotation
 
 ,a.[Work_Element_Task] as RatingTask
 ,a.TaskApplicabilityId
+--? as TaskStatusId
 ,a.FormalTrainingGapId
 ,a.CourseTaskId
 
@@ -383,13 +387,20 @@ IndexIdentifier as TaskCodedNotation
  Update dbo.[RatingTask]
 set CTID = 'ce-' + Lower(NewId())
 where ISNULL(CTID,'') = ''
---
+
+-- add rating task Id to the import
 UPDATE [dbo].ImportRMTL
    SET RatingLevelTaskId = b.Id
---	select  a.IndexIdentifier, a.[Work_Element_Task], b.CodedNotation
+--	select distinct a.id,  a.rating,  a.Rank, a.Functional_Area, a.Source, a.[Work_Element_Task], b.CodedNotation
 from ImportRMTL a
-inner join [RatingTask] b on a.IndexIdentifier = b.CodedNotation 
-where a.RatingLevelTaskId is null
+inner join [RatingTask] b on 
+	a.RankId = b.RankId and
+	a.FunctionalAreaId = b.FunctionalAreaId and
+	a.SourceId	= b.SourceId and 
+	a.Work_Element_Task = b.description
+
+where a.Rating = @Rating -- <> 'All'
+and a.RatingLevelTaskId is null
 
 -- =================================
 INSERT INTO [dbo].[Job]

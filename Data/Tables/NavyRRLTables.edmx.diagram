@@ -4,7 +4,7 @@
   <edmx:Designer xmlns="http://schemas.microsoft.com/ado/2009/11/edmx">
     <!-- Diagram content (shape and connector positions) -->
     <edmx:Diagrams>
-      <Diagram DiagramId="1cbd21b9a0474d02b074dae2db684a6a" Name="Diagram1" ZoomLevel="51">
+      <Diagram DiagramId="1cbd21b9a0474d02b074dae2db684a6a" Name="Diagram1" ZoomLevel="66">
         <EntityTypeShape EntityType="NavyRRLModel.Account" Width="1.5" PointX="3.875" PointY="17.5" IsExpanded="true" />
         <EntityTypeShape EntityType="NavyRRLModel.ActivityLog" Width="1.5" PointX="23.25" PointY="7" IsExpanded="true" />
         <EntityTypeShape EntityType="NavyRRLModel.AspNetUsers" Width="1.5" PointX="6.625" PointY="19.75" IsExpanded="true" />
@@ -20,7 +20,7 @@
         <EntityTypeShape EntityType="NavyRRLModel.RMTLProject" Width="1.5" PointX="6.625" PointY="0.5" IsExpanded="true" />
         <EntityTypeShape EntityType="NavyRRLModel.RmtlProject_Billet" Width="1.5" PointX="10.25" PointY="0.875" IsExpanded="true" />
         <EntityTypeShape EntityType="NavyRRLModel.RmtlProjectBilletTask" Width="2.5" PointX="11.375" PointY="5.625" IsExpanded="true" />
-        <EntityTypeShape EntityType="NavyRRLModel.Source" Width="1.5" PointX="16.375" PointY="9.875" IsExpanded="true" />
+        <EntityTypeShape EntityType="NavyRRLModel.Source" Width="2.125" PointX="15.375" PointY="9.875" IsExpanded="true" />
         <EntityTypeShape EntityType="NavyRRLModel.WorkElementType" Width="1.5" PointX="17.125" PointY="17.125" IsExpanded="true" />
         <AssociationConnector Association="NavyRRLModel.FK_Account_AspNetUsers" ManuallyRouted="false" />
         <AssociationConnector Association="NavyRRLModel.FK_ConceptScheme__AccountCreatedBy" ManuallyRouted="false" />

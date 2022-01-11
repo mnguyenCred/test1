@@ -24,12 +24,12 @@ namespace Data.Tables
         public string Name { get; set; }
         public string SourceDate { get; set; }
         public string Description { get; set; }
-        public Nullable<System.DateTime> DateCreated { get; set; }
         public Nullable<int> CreatedById { get; set; }
-        public Nullable<System.DateTime> DateModified { get; set; }
         public Nullable<int> LastUpdatedById { get; set; }
         public string CTID { get; set; }
         public System.Guid RowId { get; set; }
+        public Nullable<System.DateTime> Created { get; set; }
+        public Nullable<System.DateTime> LastUpdated { get; set; }
     
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<RatingTask> RatingTask { get; set; }

@@ -8,7 +8,12 @@ namespace Models.Schema
 	{
 		public int Id { get; set; }
 		public Guid RowId { get; set; }
-		public string CTID { get { return "ce-" + RowId.ToString().ToLower(); } set { RowId = Guid.Parse( value.Substring( 3, value.Length - 3 ) ); } }
+		public string CTID { get; set; }
+		//{ get { 
+		//		return "ce-" + RowId.ToString().ToLower(); 
+		//	} 
+		//	set { RowId = Guid.Parse( value.Substring( 3, value.Length - 3 ) ); } 
+		//}
 
 		public DateTime Created { get; set; }
 		public int CreatedById { get; set; }

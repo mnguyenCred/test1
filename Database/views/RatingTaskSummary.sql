@@ -69,46 +69,50 @@ Alter  VIEW [dbo].RatingTaskSummary
 AS
 
 SELECT 
-a.Id,
-a.CodedNotation 
-,a.[RankId]
-, isnull(c1.Label,'missing') As [Rank]
-,c1.RowId as PayGradeType
-,a.[LevelId]
-, isnull(c2.Label,'missing') As [Level]
+	a.Id,
+	a.CTID,
+	a.RowId,
+	a.created, --as TaskCreated,
+	a.LastUpdated, --as TaskLastUpdated,
+	a.CodedNotation 
+	,a.[RankId]
+	, isnull(c1.Label,'missing') As [Rank]
+	,c1.RowId as PayGradeType
+	,a.[LevelId]
+	, isnull(c2.Label,'missing') As [Level]
 
-,a.[FunctionalAreaId]
-, isnull(b.name,'missing') As FunctionalArea
-,a.[SourceId]
-, isnull(c.name,'missing') As Source
-,c.SourceDate
-,c.RowId as HasReferenceResource
---,a.[Source] as origSource
--- ,a.[Date_of_Source]
-,a.[WorkElementTypeId]
-, isnull(d.name,'missing') As WorkElementType
-,d.RowId as ReferenceType
---,a.[Work_Element_Type]
+	,a.[FunctionalAreaId]
+	, isnull(b.name,'missing') As FunctionalArea
+	,a.[SourceId]
+	, isnull(c.name,'missing') As Source
+	,c.SourceDate
+	,c.RowId as HasReferenceResource
+	--,a.[Source] as origSource
+	-- ,a.[Date_of_Source]
+	,a.[WorkElementTypeId]
+	, isnull(d.name,'missing') As WorkElementType
+	,d.RowId as ReferenceType
+	--,a.[Work_Element_Type]
 
-,a.Description
-,a.TaskApplicabilityId
-, isnull(e.Label,'missing') As TaskApplicability
---,a.[Task_Applicability]
-,e.RowId as ApplicabilityType
-,a.FormalTrainingGapId
-, isnull(f.Label,'missing') As FormalTrainingGap
-,f.RowId as TrainingGapType
---,a.[Formal_Training_Gap]
-,h.CIN
-,h.Name as CourseName
-,h.CourseType
-,a.TrainingTaskId
-,g.TaskStatement
-,b.RowId as HasTrainingTask
-,h.CurrentAssessmentApproach
-,h.CurriculumControlAuthority
-,h.LifeCycleControlDocument
-,a.Notes
+	,a.Description
+	,a.TaskApplicabilityId
+	, isnull(e.Label,'missing') As TaskApplicability
+	--,a.[Task_Applicability]
+	,e.RowId as ApplicabilityType
+	,a.FormalTrainingGapId
+	, isnull(f.Label,'missing') As FormalTrainingGap
+	,f.RowId as TrainingGapType
+	--,a.[Formal_Training_Gap]
+	,h.CIN
+	,h.Name as CourseName
+	,h.CourseType
+	,a.TrainingTaskId
+	,g.TaskStatement
+	,b.RowId as HasTrainingTask
+	,h.CurrentAssessmentApproach
+	,h.CurriculumControlAuthority
+	,h.LifeCycleControlDocument
+	,a.Notes
 
 	--     ,a.[RatingId]
 

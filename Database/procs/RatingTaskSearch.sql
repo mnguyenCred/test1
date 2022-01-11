@@ -14,15 +14,13 @@ GO
 
 --=====================================================
 
-DECLARE @RC int, @Filter varchar(5000),@AccountsDB		varchar(100)
-DECLARE @StartPageIndex int, @PageSize int, @TotalRows int,@SortOrder varchar(500),@GroupingByDay   bit
---, @GroupingByDay 
+DECLARE @RC int, @Filter varchar(5000)
+DECLARE @StartPageIndex int, @PageSize int, @TotalRows int,@SortOrder varchar(500),@CurrentUserId	int
 
-set @AccountsDB = 'ce_Accounts'
-set @GroupingByDay = 0
 set @SortOrder = 'Rating'
 set @SortOrder = 'Id'
 
+--set @CurrentUserId = 108
 set @Filter = '  Rating = ''abf'' '
 
 set @Filter = ' base.id in (select a.[RatingTaskId] from [RatingTask.HasRating] a inner join Rating b on a.ratingId = b.Id where b.CodedNotation = ''qm'' )	'
@@ -33,7 +31,7 @@ set @StartPageIndex = 1
 set @PageSize = 100
 --set statistics time on       
 EXECUTE @RC = [RatingTaskSearch]
-     @Filter, @SortOrder, @StartPageIndex  ,@PageSize, @TotalRows OUTPUT
+     @Filter, @SortOrder, @StartPageIndex  ,@PageSize,  @CurrentUserId, @TotalRows OUTPUT
 
 select 'total rows = ' + convert(varchar,@TotalRows)
 
@@ -51,6 +49,8 @@ Options:
   @StartPageIndex - starting page number. If interface is at 20 when next
 page is requested, this would be set to 21?
   @PageSize - number of records on a page
+  @CurrentUserId - at some point will want to limit what a person can see
+				- not clear how to do this at the task level, although maybe can see all tasks, just control editing?
   @TotalRows OUTPUT - total available rows. Used by interface to build a
 custom pager
   ------------------------------------------------------
@@ -59,11 +59,12 @@ Modifications
 
 */
 
-Create PROCEDURE [dbo].[RatingTaskSearch]
+Alter PROCEDURE [dbo].[RatingTaskSearch]
 		@Filter           varchar(5000)
 		,@SortOrder         varchar(500)
 		,@StartPageIndex  int
 		,@PageSize        int
+		,@CurrentUserId	int -- at some point will want to limit what a person can see
 		,@TotalRows       int OUTPUT
 
 As
@@ -75,6 +76,7 @@ DECLARE
       ,@startRow        int
       ,@debugLevel      int
       ,@SQL             varchar(5000)
+	   ,@HasSitePrivileges bit
   --    ,@SortOrder         varchar(100)
 
 -- =================================
@@ -87,7 +89,13 @@ else
       set @SortOrder = ' Order by Id '
 
 Set @debugLevel = 4
-
+set @HasSitePrivileges= 0
+--check for site privileges
+if (exists (
+select RoleId from [dbo].[AspNetUserRoles_Summary] where id = @CurrentUserId And RoleId in (1,2,3)
+))
+	set @HasSitePrivileges = 1
+print '@HasSitePrivileges: ' + convert(varchar, @HasSitePrivileges)
 --===================================================
 -- Calculate the range
 --===================================================
@@ -149,6 +157,9 @@ SET ROWCOUNT @PageSize
 SELECT       
 	RowNumber 
 	,a.Id
+	,b.RowId
+	,b.Created
+	,b.LastUpdated
       ,[CodedNotation]
       ,[RankId]
       ,[Rank]
@@ -164,6 +175,7 @@ SELECT
       ,[WorkElementTypeId]
       ,[WorkElementType]
       ,[ReferenceType]
+	  ,CTID
       ,[Description]
       ,[TaskApplicabilityId]
       ,[TaskApplicability]

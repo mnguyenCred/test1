@@ -30,8 +30,8 @@ namespace Data.Tables
         public string AlternateLabel { get; set; }
         public string Description { get; set; }
         public Nullable<int> ListId { get; set; }
-        public Nullable<System.DateTime> Created { get; set; }
-        public Nullable<System.DateTime> LastUpdated { get; set; }
+        public System.DateTime Created { get; set; }
+        public System.DateTime LastUpdated { get; set; }
         public string Label { get; set; }
         public System.Guid RowId { get; set; }
     
