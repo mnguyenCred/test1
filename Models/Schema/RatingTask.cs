@@ -21,7 +21,7 @@ namespace Models.Schema
 
 		/// <summary>
 		/// Reference Resources include:
-		/// - 
+		/// - Source
 		/// </summary>
 		public Guid HasReferenceResource { get; set; } //GUID for the Reference Resource for this Rating Task
 		public Guid PayGradeType { get; set; } //GUID for the Concept for the Pay Grade Type (aka Rank) for this Rating Task
@@ -37,7 +37,7 @@ namespace Models.Schema
 		public Concept TaskTrainingGap { get; set; }
 		/// <summary>
 		/// What is the reference type in this context
-		/// - 
+		/// - Source Type
 		/// </summary>
 		public Guid ReferenceType { get; set; } //GUID for the Concept for the Reference Type for this Rating Task
 	}
