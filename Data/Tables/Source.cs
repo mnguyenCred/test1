@@ -29,6 +29,7 @@ namespace Data.Tables
         public Nullable<System.DateTime> DateModified { get; set; }
         public Nullable<int> LastUpdatedById { get; set; }
         public string CTID { get; set; }
+        public System.Guid RowId { get; set; }
     
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<RatingTask> RatingTask { get; set; }

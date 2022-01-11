@@ -71,7 +71,7 @@ namespace Factories
 				foreach ( DataRow dr in result.Rows )
 				{
 					item = new ThisEntity();
-					//item.Id = GetRowColumn( dr, "Id", 0 );
+					item.Id = GetRowColumn( dr, "Id", 0 );
 					item.IndexIdentifier = GetRowColumn( dr, "IndexIdentifier", "" );
 					item.Unique_Identifier = GetRowColumn( dr, "Unique_Identifier", 0 );
 					item.Rating = GetRowColumn( dr, "Rating", "" );

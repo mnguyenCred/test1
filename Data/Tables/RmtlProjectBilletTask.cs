@@ -21,6 +21,7 @@ namespace Data.Tables
         public int RatingTaskId { get; set; }
         public Nullable<int> CreatedById { get; set; }
         public Nullable<int> LastUpdatedById { get; set; }
+        public System.Guid RowId { get; set; }
     
         public virtual RmtlProject_Billet RmtlProject_Billet { get; set; }
         public virtual RatingTask RatingTask { get; set; }

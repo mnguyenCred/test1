@@ -18,6 +18,7 @@ namespace Data.Tables
         public int RatingTaskId { get; set; }
         public int RatingId { get; set; }
         public Nullable<System.DateTime> Created { get; set; }
+        public System.Guid RowId { get; set; }
     
         public virtual Rating Rating { get; set; }
         public virtual RatingTask RatingTask { get; set; }

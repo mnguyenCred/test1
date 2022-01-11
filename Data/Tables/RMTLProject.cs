@@ -37,6 +37,7 @@ namespace Data.Tables
         public Nullable<int> LastApprovedById { get; set; }
         public Nullable<System.DateTime> LastPublished { get; set; }
         public Nullable<int> LastPublishedById { get; set; }
+        public System.Guid RowId { get; set; }
     
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<RmtlProject_Billet> RmtlProject_Billet { get; set; }

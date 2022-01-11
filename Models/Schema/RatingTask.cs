@@ -26,7 +26,11 @@ namespace Models.Schema
 		public Guid ApplicabilityType { get; set; } //GUID for the Concept for the Applicability Type for this Rating Task
 		public List<Guid> HasWorkRole { get; set; } //List of GUIDs for the Work Role(s) (aka Functional Area(s)) for this Rating Task
 		public Guid TrainingGapType { get; set; } //GUID for the Concept for the Training Gap Type for this Rating Task
-		public Guid ReferenceType { get; set; } //GUID for the Concept for the Reference Type for this Rating Task (e.g. a reference to "300 Series PQS Watch Station")
+		/// <summary>
+		/// GUID for the Concept for the Reference Type for this Rating Task (e.g. a reference to "300 Series PQS Watch Station")
+		/// AKA WorkElementType
+		/// </summary>
+		public Guid ReferenceType { get; set; } //
 
 
 		//derived

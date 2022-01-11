@@ -8,6 +8,7 @@ namespace Models.Schema
 	{
 		public string Name { get; set; }
 		public string Description { get; set; }
+		public List<Concept> Concepts { get; set; } = new List<Concept>();
 	}
 	//
 
