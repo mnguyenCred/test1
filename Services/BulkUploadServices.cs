@@ -65,7 +65,8 @@ namespace Services
 				var payGradeType = FindConceptOrError( concepts, row.PayGradeType_Notation, true, "Pay Grade (Rank)", result.Errors );
 				var trainingGapType = FindConceptOrError( concepts, row.RatingTask_TrainingGapType_Label, false, "Training Gap Type", result.Errors );
 				var applicabilityType = FindConceptOrError( concepts, row.RatingTask_ApplicabilityType_Label, false, "Applicability Type", result.Errors );
-				var sourceType = FindConceptOrError( concepts, row.Shared_ReferenceType, false, "Reference Resource Type", result.Errors );
+				var sharedSourceType = FindConceptOrError( concepts, row.Shared_ReferenceType, false, "Reference Resource Type (for Rating-Level Task)", result.Errors );
+				var courseSourceType = FindConceptOrError( concepts, row.Course_HasReferenceResource_Name, false, "Reference Resource Type (for Course)", result.Errors );
 				var courseType = string.IsNullOrWhiteSpace( row.Course_CourseType_Label ) ?
 					null : //It's okay if this is null, since only some rows have course types
 					FindConceptOrError( concepts, row.Course_CourseType_Label, false, "Course Type", result.Errors );
@@ -151,7 +152,7 @@ namespace Services
 					 Find( graph.WorkRole, m.HasWorkRole ).Select( n => n.Name ).Contains( row.WorkRole_Name ) &&
 					 Find( graph.ReferenceResource, m.HasReferenceResource )?.Name == row.ReferenceResource_Name &&
 					 Find( graph.ReferenceResource, m.HasReferenceResource )?.PublicationDate == ParseDateOrEmpty( row.ReferenceResource_PublicationDate ) &&
-					 sourceType?.Label == row.Shared_ReferenceType &&
+					 sharedSourceType?.Label == row.Shared_ReferenceType &&
 					 trainingGapType?.Label == row.RatingTask_TrainingGapType_Label &&
 					 applicabilityType?.Label == row.RatingTask_ApplicabilityType_Label &&
 					 payGradeType?.Notation == row.PayGradeType_Notation &&
@@ -167,7 +168,7 @@ namespace Services
 						PayGradeType = payGradeType.RowId,
 						ApplicabilityType = applicabilityType.RowId,
 						TrainingGapType = trainingGapType.RowId,
-						ReferenceType = sourceType.RowId
+						ReferenceType = sharedSourceType.RowId
 					};
 					graph.RatingTask.Add( ratingTask );
 					result.ItemsToBeCreated.RatingTask.Add( ratingTask );
@@ -362,8 +363,55 @@ namespace Services
 					Append( course.HasTrainingTask, trainingTask.RowId );
 				}
 				debug[ latestStepFlag ] = "Processed Existing/New Course data for row " + rowCount;
+
+				//If the ReferenceResource for the task already exists, and needs to be modified, then handle it
+				if ( Find( existing.ReferenceResource, taskSource.RowId ) != null )
+				{
+					//Assign reference types to reference if it doesn't already reference them
+					if ( sharedSourceType != null && !taskSource.ReferenceType.Contains( sharedSourceType.RowId ) )
+					{
+						//Use a temporary copy of the object to keep track of which items get added to it
+						var tracked = Find( result.UploadedInnerListsForCopiesOfItems.ReferenceResource, taskSource.RowId );
+						if ( tracked == null )
+						{
+							tracked = new ReferenceResource() { RowId = taskSource.RowId };
+							result.UploadedInnerListsForCopiesOfItems.ReferenceResource.Add( tracked );
+						}
+						tracked.ReferenceType.Add( sharedSourceType.RowId );
+					}
+				}
+				//Otherwise, just treat it like a new ReferenceResource
+				else
+				{
+					Append( taskSource.ReferenceType, sharedSourceType.RowId );
+				}
+				debug[ latestStepFlag ] = "Processed Reference Type for Reference Resource (for Task)";
+
+				//If the ReferenceResource for the task already exists, and needs to be modified, then handle it
+				if ( Find( existing.ReferenceResource, courseSource.RowId ) != null )
+				{
+					//Assign reference types to reference if it doesn't already reference them
+					if ( courseSourceType != null && !courseSource.ReferenceType.Contains( courseSourceType.RowId ) )
+					{
+						//Use a temporary copy of the object to keep track of which items get added to it
+						var tracked = Find( result.UploadedInnerListsForCopiesOfItems.ReferenceResource, courseSource.RowId );
+						if ( tracked == null )
+						{
+							tracked = new ReferenceResource() { RowId = courseSource.RowId };
+							result.UploadedInnerListsForCopiesOfItems.ReferenceResource.Add( tracked );
+						}
+						tracked.ReferenceType.Add( courseSourceType.RowId );
+					}
+				}
+				//Otherwise, just treat it like a new ReferenceResource
+				else
+				{
+					Append( courseSource.ReferenceType, courseSourceType.RowId );
+				}
+				debug[ latestStepFlag ] = "Processed Reference Type for Reference Resource (for Course)";
+
 			}
-			if( result.Errors.Count() > 0 )
+			if ( result.Errors.Count() > 0 )
 			{
 				result.Errors.Add( "One or more errors found. Processing cancelled. Please resolve the errors and try again." );
 				return result;
