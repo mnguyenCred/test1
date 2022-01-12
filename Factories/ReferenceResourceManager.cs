@@ -4,9 +4,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-using AppEntity = Models.Schema.ConceptScheme;
-using Concept = Models.Schema.Concept;
-using DBEntity = Data.Tables.ConceptScheme;
+using AppEntity = Models.Schema.ReferenceResource;
+using DBEntity = Data.Tables.Source;
 
 using DataEntities = Data.Tables.NavyRRLEntities;
 using ViewContext = Data.Views.ceNavyViewEntities;
@@ -15,20 +14,20 @@ using Navy.Utilities;
 
 namespace Factories
 {
-    public class ConceptSchemeManager
+    public class ReferenceResourceManager
     {
-        public static string thisClassName = "ConceptSchemeManager";
+        public static string thisClassName = "ReferenceResourceManager";
 
         #region Retrieval
         public static AppEntity Get( string name )
         {
             var entity = new AppEntity();
-            if ( string.IsNullOrWhiteSpace(name))
+            if ( string.IsNullOrWhiteSpace( name ) )
                 return null;
 
             using ( var context = new DataEntities() )
             {
-                var item = context.ConceptScheme
+                var item = context.Source
                             .FirstOrDefault( s => s.Name.ToLower() == name.ToLower() );
 
                 if ( item != null && item.Id > 0 )
@@ -44,7 +43,7 @@ namespace Factories
 
             using ( var context = new DataEntities() )
             {
-                var item = context.ConceptScheme
+                var item = context.Source
                             .FirstOrDefault( s => s.RowId == rowId );
 
                 if ( item != null && item.Id > 0 )
@@ -62,7 +61,7 @@ namespace Factories
 
             using ( var context = new DataEntities() )
             {
-                var item = context.ConceptScheme
+                var item = context.Source
                             .SingleOrDefault( s => s.Id == id );
 
                 if ( item != null && item.Id > 0 )
@@ -74,9 +73,8 @@ namespace Factories
             return entity;
         }
         /// <summary>
-        /// Get all concept schemes
-        /// May want to actually limit what all will return 
-        /// We could set some to be 'inactive'?
+        /// Get all 
+        /// May need a get all for a rating? Should not matter as this is external data?
         /// </summary>
         /// <returns></returns>
         public static List<AppEntity> GetAll()
@@ -86,13 +84,12 @@ namespace Factories
 
             using ( var context = new DataEntities() )
             {
-                var results = context.ConceptScheme
-                    .Where( s => s.SchemaUri != null )
+                var results = context.Source
                         .OrderBy( s => s.Name )
                         .ToList();
-                if (results?.Count > 0)
+                if ( results?.Count > 0 )
                 {
-                    foreach ( var item in results)
+                    foreach ( var item in results )
                     {
                         if ( item != null && item.Id > 0 )
                         {
@@ -102,7 +99,7 @@ namespace Factories
                         }
                     }
                 }
-                
+
             }
             return list;
         }
@@ -111,64 +108,14 @@ namespace Factories
             //should include list of concepts
             List<string> errors = new List<string>();
             BaseFactory.AutoMap( input, output, errors );
-            if (input.RowId != output.RowId)
-            {
-                output.RowId = input.RowId;
-            }
-            //output.Id = input.Id;
-            //output.Name = input.Name;
-            //output.RowId = input.RowId;
-            //output.Description = input.Description;
-            if (input.ConceptScheme_Concept?.Count > 0)
-            {
-                foreach( var item  in input.ConceptScheme_Concept )
-                {
-                    var concept = new Concept();
-                    MapFromDB( item, concept );
-                    output.Concepts.Add( concept );
-                }
-            }
-            //
-
-        }
-        public static void MapFromDB( ConceptScheme_Concept input, Concept output )
-        {
-            List<string> errors = new List<string>();
-            BaseFactory.AutoMap( input, output, errors );
             if ( input.RowId != output.RowId )
             {
                 output.RowId = input.RowId;
             }
-
-            //if ( input != null && input.Id > 0 )
-            //{
-            //    output.Id = input.Id;
-            //    output.RowId = input.RowId;
-            //    output.Label = input.Label;
-            //    output.Description = input.Description;
-            //    output.CTID = input.CTID;
-            //}
             //
 
         }
 
-        public static Concept MapConcept( ConceptScheme_Concept input )
-        {
-            var output = new Concept();
-            List<string> errors = new List<string>();
-            BaseFactory.AutoMap( input, output, errors );
-
-            //if ( input != null && input.Id > 0 )
-            //{
-            //    output.Id = input.Id;
-            //    output.RowId = input.RowId;
-            //    output.Label = input.Label;
-            //    output.Description = input.Description;
-            //    output.CTID = input.CTID;
-            //}
-
-            return output;
-        }
         #endregion
     }
 }

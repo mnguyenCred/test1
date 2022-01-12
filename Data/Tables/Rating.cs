@@ -30,13 +30,12 @@ namespace Data.Tables
         public string RatingUploadDate { get; set; }
         public string RatingPublicationDate { get; set; }
         public string Image { get; set; }
-        public string CredentialRegistryId { get; set; }
         public Nullable<System.DateTime> Created { get; set; }
         public Nullable<System.DateTime> LastUpdated { get; set; }
-        public Nullable<System.DateTime> LastPublished { get; set; }
         public System.Guid RowId { get; set; }
-        public string CredentialRegistryURI { get; set; }
         public string MainEntityOfPage { get; set; }
+        public Nullable<int> CreatedById { get; set; }
+        public Nullable<int> LastUpdatedById { get; set; }
     
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<Job_HasRating> Job_HasRating { get; set; }

@@ -22,5 +22,6 @@ namespace Data.Tables
         public Nullable<System.DateTime> LastUpdated { get; set; }
         public Nullable<int> LastUpdatedById { get; set; }
         public string CTID { get; set; }
+        public System.Guid RowId { get; set; }
     }
 }

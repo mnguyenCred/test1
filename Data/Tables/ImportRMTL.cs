@@ -14,8 +14,9 @@ namespace Data.Tables
     
     public partial class ImportRMTL
     {
+        public int Id { get; set; }
         public string IndexIdentifier { get; set; }
-        public int Unique_Identifier { get; set; }
+        public Nullable<int> Unique_Identifier { get; set; }
         public string Rating { get; set; }
         public string Rank { get; set; }
         public string RankLevel { get; set; }

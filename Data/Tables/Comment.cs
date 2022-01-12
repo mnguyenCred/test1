@@ -18,12 +18,12 @@ namespace Data.Tables
         public System.Guid RowId { get; set; }
         public Nullable<int> RmtlProjectId { get; set; }
         public System.Guid AppliesTo { get; set; }
-        public string Comment1 { get; set; }
-        public Nullable<int> Status { get; set; }
         public System.DateTime Created { get; set; }
         public Nullable<int> CreatedById { get; set; }
         public System.DateTime LastUpdated { get; set; }
         public Nullable<int> LastUpdatedById { get; set; }
+        public string Description { get; set; }
+        public Nullable<int> StatusTypeId { get; set; }
     
         public virtual RMTLProject RMTLProject { get; set; }
     }

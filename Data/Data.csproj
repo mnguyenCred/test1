@@ -104,9 +104,6 @@
     <Compile Include="Tables\CurriculumControlAuthority.cs">
       <DependentUpon>NavyRRLTables.tt</DependentUpon>
     </Compile>
-    <Compile Include="Tables\FunctionalArea.cs">
-      <DependentUpon>NavyRRLTables.tt</DependentUpon>
-    </Compile>
     <Compile Include="Tables\ImportRMTL.cs">
       <DependentUpon>NavyRRLTables.tt</DependentUpon>
     </Compile>

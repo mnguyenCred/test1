@@ -18,5 +18,6 @@ namespace Data.Tables
         public string Name { get; set; }
         public string Abbreviation { get; set; }
         public string CTID { get; set; }
+        public System.Guid RowId { get; set; }
     }
 }

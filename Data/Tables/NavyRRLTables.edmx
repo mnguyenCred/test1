@@ -88,6 +88,7 @@
             <PropertyRef Name="Id" />
           </Key>
           <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="RowId" Type="uniqueidentifier" Nullable="false" />
           <Property Name="Name" Type="nvarchar" MaxLength="500" Nullable="false" />
           <Property Name="Description" Type="nvarchar(max)" />
           <Property Name="Created" Type="datetime" />
@@ -104,8 +105,8 @@
           <Property Name="RowId" Type="uniqueidentifier" Nullable="false" />
           <Property Name="RmtlProjectId" Type="int" />
           <Property Name="AppliesTo" Type="uniqueidentifier" Nullable="false" />
-          <Property Name="Comment" Type="varchar(max)" Nullable="false" />
-          <Property Name="Status" Type="int" />
+          <Property Name="Description" Type="varchar(max)" Nullable="false" />
+          <Property Name="StatusTypeId" Type="int" />
           <Property Name="Created" Type="datetime" Nullable="false" />
           <Property Name="CreatedById" Type="int" />
           <Property Name="LastUpdated" Type="datetime" Nullable="false" />
@@ -143,16 +144,17 @@
           <Property Name="AlternateLabel" Type="varchar" MaxLength="500" />
           <Property Name="Description" Type="varchar(max)" />
           <Property Name="ListId" Type="int" />
-          <Property Name="Created" Type="datetime" />
-          <Property Name="LastUpdated" Type="datetime" />
+          <Property Name="Created" Type="datetime" Nullable="false" />
+          <Property Name="LastUpdated" Type="datetime" Nullable="false" />
         </EntityType>
         <EntityType Name="Course">
           <Key>
             <PropertyRef Name="Id" />
           </Key>
           <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="RowId" Type="uniqueidentifier" Nullable="false" />
           <Property Name="CIN" Type="nvarchar" MaxLength="50" Nullable="false" />
-          <Property Name="Name" Type="nvarchar" MaxLength="200" Nullable="false" />
+          <Property Name="Name" Type="nvarchar" MaxLength="300" Nullable="false" />
           <Property Name="Description" Type="nvarchar(max)" />
           <Property Name="CourseTypeId" Type="int" />
           <Property Name="LifeCycleControlDocumentId" Type="int" />
@@ -173,8 +175,9 @@
             <PropertyRef Name="Id" />
           </Key>
           <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="RowId" Type="uniqueidentifier" Nullable="false" />
           <Property Name="CourseId" Type="int" Nullable="false" />
-          <Property Name="TaskStatement" Type="nvarchar(max)" Nullable="false" />
+          <Property Name="Description" Type="nvarchar(max)" Nullable="false" />
           <Property Name="CTID" Type="varchar" MaxLength="50" />
           <Property Name="Created" Type="datetime" />
           <Property Name="CreatedById" Type="int" />
@@ -186,59 +189,18 @@
             <PropertyRef Name="Id" />
           </Key>
           <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="RowId" Type="uniqueidentifier" Nullable="false" />
           <Property Name="Name" Type="nvarchar" MaxLength="300" />
           <Property Name="Abbreviation" Type="nvarchar" MaxLength="50" />
           <Property Name="CTID" Type="varchar" MaxLength="50" />
         </EntityType>
-        <EntityType Name="FunctionalArea">
+        <EntityType Name="ImportRMTL">
           <Key>
             <PropertyRef Name="Id" />
           </Key>
           <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
-          <Property Name="Name" Type="nvarchar" MaxLength="200" Nullable="false" />
-          <Property Name="Description" Type="varchar(max)" Nullable="false" />
-          <Property Name="DateCreated" Type="datetime" />
-          <Property Name="DateModified" Type="datetime" />
-          <Property Name="CTID" Type="varchar" MaxLength="50" />
-        </EntityType>
-        <!--Errors Found During Generation:
-warning 6002: The table/view 'NavyRRL.dbo.ImportRMTL' does not have a primary key defined. The key has been inferred and the definition was created as a read-only table/view.-->
-        <EntityType Name="ImportRMTL">
-          <Key>
-            <PropertyRef Name="IndexIdentifier" />
-            <PropertyRef Name="Unique_Identifier" />
-            <PropertyRef Name="Rating" />
-            <PropertyRef Name="Rank" />
-            <PropertyRef Name="RankLevel" />
-            <PropertyRef Name="Billet_Title" />
-            <PropertyRef Name="Functional_Area" />
-            <PropertyRef Name="Source" />
-            <PropertyRef Name="Date_of_Source" />
-            <PropertyRef Name="Work_Element_Type" />
-            <PropertyRef Name="Work_Element_Task" />
-            <PropertyRef Name="Task_Applicability" />
-            <PropertyRef Name="Formal_Training_Gap" />
-            <PropertyRef Name="CIN" />
-            <PropertyRef Name="Course_Name" />
-            <PropertyRef Name="Course_Type" />
-            <PropertyRef Name="Curriculum_Control_Authority" />
-            <PropertyRef Name="Life_Cycle_Control_Document" />
-            <PropertyRef Name="Task_Statement" />
-            <PropertyRef Name="Current_Assessment_Approach" />
-            <PropertyRef Name="TaskNotes" />
-            <PropertyRef Name="Training_Solution_Type" />
-            <PropertyRef Name="Cluster_Analysis_Title" />
-            <PropertyRef Name="Recommended_Modality" />
-            <PropertyRef Name="Development_Specification" />
-            <PropertyRef Name="Candidate_Platform" />
-            <PropertyRef Name="CFM_Placement" />
-            <PropertyRef Name="Priority_Placement" />
-            <PropertyRef Name="Development_Ratio" />
-            <PropertyRef Name="Development_Time" />
-            <PropertyRef Name="ClusterAnalysisNotes" />
-          </Key>
-          <Property Name="IndexIdentifier" Type="nvarchar" MaxLength="50" Nullable="false" />
-          <Property Name="Unique_Identifier" Type="int" Nullable="false" />
+          <Property Name="IndexIdentifier" Type="nvarchar" MaxLength="50" />
+          <Property Name="Unique_Identifier" Type="int" />
           <Property Name="Rating" Type="nvarchar" MaxLength="50" Nullable="false" />
           <Property Name="Rank" Type="nvarchar" MaxLength="50" Nullable="false" />
           <Property Name="RankLevel" Type="nvarchar" MaxLength="50" Nullable="false" />
@@ -250,24 +212,24 @@ warning 6002: The table/view 'NavyRRL.dbo.ImportRMTL' does not have a primary ke
           <Property Name="Work_Element_Task" Type="nvarchar(max)" Nullable="false" />
           <Property Name="Task_Applicability" Type="nvarchar" MaxLength="500" Nullable="false" />
           <Property Name="Formal_Training_Gap" Type="nvarchar" MaxLength="500" Nullable="false" />
-          <Property Name="CIN" Type="nvarchar" MaxLength="50" Nullable="false" />
-          <Property Name="Course_Name" Type="nvarchar" MaxLength="500" Nullable="false" />
-          <Property Name="Course_Type" Type="nvarchar" MaxLength="50" Nullable="false" />
-          <Property Name="Curriculum_Control_Authority" Type="nvarchar" MaxLength="50" Nullable="false" />
-          <Property Name="Life_Cycle_Control_Document" Type="nvarchar" MaxLength="50" Nullable="false" />
-          <Property Name="Task_Statement" Type="nvarchar(max)" Nullable="false" />
-          <Property Name="Current_Assessment_Approach" Type="nvarchar" MaxLength="50" Nullable="false" />
-          <Property Name="TaskNotes" Type="nvarchar(max)" Nullable="false" />
-          <Property Name="Training_Solution_Type" Type="nvarchar" MaxLength="500" Nullable="false" />
-          <Property Name="Cluster_Analysis_Title" Type="nvarchar" MaxLength="500" Nullable="false" />
-          <Property Name="Recommended_Modality" Type="nvarchar" MaxLength="500" Nullable="false" />
-          <Property Name="Development_Specification" Type="nvarchar" MaxLength="500" Nullable="false" />
-          <Property Name="Candidate_Platform" Type="nvarchar" MaxLength="500" Nullable="false" />
-          <Property Name="CFM_Placement" Type="nvarchar" MaxLength="500" Nullable="false" />
-          <Property Name="Priority_Placement" Type="nvarchar" MaxLength="500" Nullable="false" />
-          <Property Name="Development_Ratio" Type="nvarchar" MaxLength="500" Nullable="false" />
-          <Property Name="Development_Time" Type="nvarchar" MaxLength="500" Nullable="false" />
-          <Property Name="ClusterAnalysisNotes" Type="nvarchar(max)" Nullable="false" />
+          <Property Name="CIN" Type="nvarchar" MaxLength="50" />
+          <Property Name="Course_Name" Type="nvarchar" MaxLength="500" />
+          <Property Name="Course_Type" Type="nvarchar" MaxLength="50" />
+          <Property Name="Curriculum_Control_Authority" Type="nvarchar" MaxLength="50" />
+          <Property Name="Life_Cycle_Control_Document" Type="nvarchar" MaxLength="50" />
+          <Property Name="Task_Statement" Type="nvarchar(max)" />
+          <Property Name="Current_Assessment_Approach" Type="nvarchar" MaxLength="50" />
+          <Property Name="TaskNotes" Type="nvarchar(max)" />
+          <Property Name="Training_Solution_Type" Type="nvarchar" MaxLength="500" />
+          <Property Name="Cluster_Analysis_Title" Type="nvarchar" MaxLength="500" />
+          <Property Name="Recommended_Modality" Type="nvarchar" MaxLength="500" />
+          <Property Name="Development_Specification" Type="nvarchar" MaxLength="500" />
+          <Property Name="Candidate_Platform" Type="nvarchar" MaxLength="500" />
+          <Property Name="CFM_Placement" Type="nvarchar" MaxLength="500" />
+          <Property Name="Priority_Placement" Type="nvarchar" MaxLength="500" />
+          <Property Name="Development_Ratio" Type="nvarchar" MaxLength="500" />
+          <Property Name="Development_Time" Type="nvarchar" MaxLength="500" />
+          <Property Name="ClusterAnalysisNotes" Type="nvarchar(max)" />
           <Property Name="RatingId" Type="int" />
           <Property Name="RankId" Type="int" />
           <Property Name="LevelId" Type="int" />
@@ -288,15 +250,17 @@ warning 6002: The table/view 'NavyRRL.dbo.ImportRMTL' does not have a primary ke
           </Key>
           <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
           <Property Name="CTID" Type="varchar" MaxLength="50" Nullable="false" />
-          <Property Name="Name" Type="varchar" MaxLength="500" Nullable="false" />
+          <Property Name="Name" Type="nvarchar" MaxLength="500" Nullable="false" />
           <Property Name="CodedNotation" Type="varchar" MaxLength="100" />
           <Property Name="JobVersion" Type="int" />
-          <Property Name="Description" Type="varchar(max)" />
+          <Property Name="Description" Type="nvarchar(max)" />
           <Property Name="ShortName30" Type="varchar" MaxLength="30" />
           <Property Name="ShortName14" Type="varchar" MaxLength="14" />
           <Property Name="CredentialRegistryId" Type="varchar" MaxLength="50" />
           <Property Name="Created" Type="datetime" />
+          <Property Name="CreatedById" Type="int" />
           <Property Name="LastUpdated" Type="datetime" />
+          <Property Name="LastUpdatedById" Type="int" />
           <Property Name="LastPublished" Type="datetime" />
           <Property Name="RowId" Type="uniqueidentifier" Nullable="false" />
         </EntityType>
@@ -305,6 +269,7 @@ warning 6002: The table/view 'NavyRRL.dbo.ImportRMTL' does not have a primary ke
             <PropertyRef Name="Id" />
           </Key>
           <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="RowId" Type="uniqueidentifier" Nullable="false" />
           <Property Name="JobId" Type="int" Nullable="false" />
           <Property Name="HasRatingId" Type="int" Nullable="false" />
           <Property Name="Created" Type="datetime" Nullable="false" />
@@ -316,8 +281,8 @@ warning 6002: The table/view 'NavyRRL.dbo.ImportRMTL' does not have a primary ke
           </Key>
           <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
           <Property Name="RowId" Type="uniqueidentifier" Nullable="false" />
-          <Property Name="Name" Type="varchar" MaxLength="300" Nullable="false" />
-          <Property Name="Description" Type="varchar(max)" />
+          <Property Name="Name" Type="nvarchar" MaxLength="300" Nullable="false" />
+          <Property Name="Description" Type="nvarchar(max)" />
           <Property Name="CTID" Type="varchar" MaxLength="50" />
           <Property Name="SubjectWebpage" Type="varchar" MaxLength="500" />
           <Property Name="StatusId" Type="int" />
@@ -343,20 +308,19 @@ warning 6002: The table/view 'NavyRRL.dbo.ImportRMTL' does not have a primary ke
           </Key>
           <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
           <Property Name="CTID" Type="varchar" MaxLength="50" Nullable="false" />
-          <Property Name="Name" Type="varchar" MaxLength="500" Nullable="false" />
+          <Property Name="Name" Type="nvarchar" MaxLength="500" Nullable="false" />
           <Property Name="CodedNotation" Type="varchar" MaxLength="100" />
-          <Property Name="Description" Type="varchar(max)" />
+          <Property Name="Description" Type="nvarchar(max)" />
+          <Property Name="MainEntityOfPage" Type="varchar" MaxLength="600" />
           <Property Name="Version" Type="varchar" MaxLength="30" />
           <Property Name="RatingUploadDate" Type="varchar" MaxLength="50" />
           <Property Name="RatingPublicationDate" Type="varchar" MaxLength="50" />
           <Property Name="Image" Type="varchar" MaxLength="500" />
-          <Property Name="CredentialRegistryId" Type="varchar" MaxLength="50" />
           <Property Name="Created" Type="datetime" />
+          <Property Name="CreatedById" Type="int" />
           <Property Name="LastUpdated" Type="datetime" />
-          <Property Name="LastPublished" Type="datetime" />
+          <Property Name="LastUpdatedById" Type="int" />
           <Property Name="RowId" Type="uniqueidentifier" Nullable="false" />
-          <Property Name="CredentialRegistryURI" Type="varchar" MaxLength="200" />
-          <Property Name="MainEntityOfPage" Type="varchar" MaxLength="600" />
         </EntityType>
         <EntityType Name="RatingTask">
           <Key>
@@ -366,10 +330,10 @@ warning 6002: The table/view 'NavyRRL.dbo.ImportRMTL' does not have a primary ke
           <Property Name="RowId" Type="uniqueidentifier" Nullable="false" />
           <Property Name="RankId" Type="int" Nullable="false" />
           <Property Name="LevelId" Type="int" Nullable="false" />
-          <Property Name="FunctionalAreaId" Type="int" Nullable="false" />
+          <Property Name="FunctionalAreaId" Type="int" />
           <Property Name="SourceId" Type="int" />
           <Property Name="WorkElementTypeId" Type="int" />
-          <Property Name="WorkElementTask" Type="nvarchar(max)" Nullable="false" />
+          <Property Name="Description" Type="nvarchar(max)" Nullable="false" />
           <Property Name="TaskApplicabilityId" Type="int" />
           <Property Name="TaskStatusId" Type="int" />
           <Property Name="FormalTrainingGapId" Type="int" />
@@ -377,9 +341,9 @@ warning 6002: The table/view 'NavyRRL.dbo.ImportRMTL' does not have a primary ke
           <Property Name="TrainingTaskId" Type="int" />
           <Property Name="CTID" Type="varchar" MaxLength="50" />
           <Property Name="Notes" Type="nvarchar(max)" />
-          <Property Name="Created" Type="datetime" />
+          <Property Name="Created" Type="datetime" Nullable="false" />
           <Property Name="CreatedById" Type="int" />
-          <Property Name="LastUpdated" Type="datetime" />
+          <Property Name="LastUpdated" Type="datetime" Nullable="false" />
           <Property Name="LastUpdatedById" Type="int" />
         </EntityType>
         <EntityType Name="RatingTask_HasRating">
@@ -387,6 +351,7 @@ warning 6002: The table/view 'NavyRRL.dbo.ImportRMTL' does not have a primary ke
             <PropertyRef Name="Id" />
           </Key>
           <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="RowId" Type="uniqueidentifier" Nullable="false" />
           <Property Name="RatingTaskId" Type="int" Nullable="false" />
           <Property Name="RatingId" Type="int" Nullable="false" />
           <Property Name="Created" Type="datetime" />
@@ -396,8 +361,9 @@ warning 6002: The table/view 'NavyRRL.dbo.ImportRMTL' does not have a primary ke
             <PropertyRef Name="Id" />
           </Key>
           <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="RowId" Type="uniqueidentifier" Nullable="false" />
           <Property Name="CTID" Type="varchar" MaxLength="50" />
-          <Property Name="Name" Type="varchar" MaxLength="300" Nullable="false" />
+          <Property Name="Name" Type="nvarchar" MaxLength="300" Nullable="false" />
           <Property Name="RatingId" Type="int" Nullable="false" />
           <Property Name="Description" Type="nvarchar(max)" />
           <Property Name="StatusId" Type="int" />
@@ -420,13 +386,17 @@ warning 6002: The table/view 'NavyRRL.dbo.ImportRMTL' does not have a primary ke
           <Property Name="RmtlProjectId" Type="int" Nullable="false" />
           <Property Name="JobId" Type="int" Nullable="false" />
           <Property Name="Created" Type="datetime" Nullable="false" />
+          <Property Name="CreatedById" Type="int" />
           <Property Name="LastUpdated" Type="datetime" Nullable="false" />
+          <Property Name="LastUpdatedById" Type="int" />
+          <Property Name="RowId" Type="uniqueidentifier" Nullable="false" />
         </EntityType>
         <EntityType Name="RmtlProjectBilletTask">
           <Key>
             <PropertyRef Name="Id" />
           </Key>
           <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="RowId" Type="uniqueidentifier" Nullable="false" />
           <Property Name="ProjectBilletId" Type="int" Nullable="false" />
           <Property Name="RatingTaskId" Type="int" Nullable="false" />
           <Property Name="Created" Type="datetime" Nullable="false" />
@@ -439,12 +409,13 @@ warning 6002: The table/view 'NavyRRL.dbo.ImportRMTL' does not have a primary ke
             <PropertyRef Name="Id" />
           </Key>
           <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="RowId" Type="uniqueidentifier" Nullable="false" />
           <Property Name="Name" Type="nvarchar" MaxLength="200" Nullable="false" />
           <Property Name="SourceDate" Type="nvarchar" MaxLength="50" />
           <Property Name="Description" Type="varchar(max)" />
-          <Property Name="DateCreated" Type="datetime" />
+          <Property Name="Created" Type="datetime" Nullable="false" />
           <Property Name="CreatedById" Type="int" />
-          <Property Name="DateModified" Type="datetime" />
+          <Property Name="LastUpdated" Type="datetime" Nullable="false" />
           <Property Name="LastUpdatedById" Type="int" />
           <Property Name="CTID" Type="varchar" MaxLength="50" />
         </EntityType>
@@ -467,11 +438,14 @@ warning 6002: The table/view 'NavyRRL.dbo.ImportRMTL' does not have a primary ke
             <PropertyRef Name="Id" />
           </Key>
           <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
-          <Property Name="Name" Type="nvarchar" MaxLength="50" Nullable="false" />
-          <Property Name="description" Type="varchar" MaxLength="1" Nullable="false" />
-          <Property Name="DateCreated" Type="datetime" Nullable="false" />
-          <Property Name="DateModified" Type="datetime" Nullable="false" />
+          <Property Name="RowId" Type="uniqueidentifier" Nullable="false" />
+          <Property Name="Name" Type="nvarchar" MaxLength="300" Nullable="false" />
+          <Property Name="Description" Type="nvarchar(max)" Nullable="false" />
           <Property Name="CTID" Type="varchar" MaxLength="50" />
+          <Property Name="Created" Type="datetime" />
+          <Property Name="CreatedById" Type="int" />
+          <Property Name="LastUpdated" Type="datetime" />
+          <Property Name="LastUpdatedById" Type="int" />
         </EntityType>
         <Association Name="FK_Account_AspNetUsers">
           <End Role="AspNetUsers" Type="Self.AspNetUsers" Multiplicity="0..1">
@@ -640,18 +614,6 @@ warning 6002: The table/view 'NavyRRL.dbo.ImportRMTL' does not have a primary ke
             </Principal>
             <Dependent Role="RatingTask">
               <PropertyRef Name="TrainingTaskId" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
-        <Association Name="FK_RatingLevelTask_FunctionalArea">
-          <End Role="FunctionalArea" Type="Self.FunctionalArea" Multiplicity="1" />
-          <End Role="RatingTask" Type="Self.RatingTask" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="FunctionalArea">
-              <PropertyRef Name="Id" />
-            </Principal>
-            <Dependent Role="RatingTask">
-              <PropertyRef Name="FunctionalAreaId" />
             </Dependent>
           </ReferentialConstraint>
         </Association>
@@ -824,7 +786,7 @@ warning 6002: The table/view 'NavyRRL.dbo.ImportRMTL' does not have a primary ke
           <EntitySet Name="Course" EntityType="Self.Course" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="Course_Task" EntityType="Self.Course_Task" Schema="dbo" Table="Course.Task" store:Type="Tables" />
           <EntitySet Name="CurriculumControlAuthority" EntityType="Self.CurriculumControlAuthority" Schema="dbo" store:Type="Tables" />
-          <EntitySet Name="FunctionalArea" EntityType="Self.FunctionalArea" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="ImportRMTL" EntityType="Self.ImportRMTL" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="Job" EntityType="Self.Job" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="Job_HasRating" EntityType="Self.Job_HasRating" Schema="dbo" Table="Job.HasRating" store:Type="Tables" />
           <EntitySet Name="Organization" EntityType="Self.Organization" Schema="dbo" store:Type="Tables" />
@@ -837,54 +799,6 @@ warning 6002: The table/view 'NavyRRL.dbo.ImportRMTL' does not have a primary ke
           <EntitySet Name="Source" EntityType="Self.Source" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="System_ProxyCodes" EntityType="Self.System_ProxyCodes" Schema="dbo" Table="System.ProxyCodes" store:Type="Tables" />
           <EntitySet Name="WorkElementType" EntityType="Self.WorkElementType" Schema="dbo" store:Type="Tables" />
-          <EntitySet Name="ImportRMTL" EntityType="Self.ImportRMTL" store:Type="Tables" store:Schema="dbo">
-            <DefiningQuery>SELECT 
-    [ImportRMTL].[IndexIdentifier] AS [IndexIdentifier], 
-    [ImportRMTL].[Unique_Identifier] AS [Unique_Identifier], 
-    [ImportRMTL].[Rating] AS [Rating], 
-    [ImportRMTL].[Rank] AS [Rank], 
-    [ImportRMTL].[RankLevel] AS [RankLevel], 
-    [ImportRMTL].[Billet_Title] AS [Billet_Title], 
-    [ImportRMTL].[Functional_Area] AS [Functional_Area], 
-    [ImportRMTL].[Source] AS [Source], 
-    [ImportRMTL].[Date_of_Source] AS [Date_of_Source], 
-    [ImportRMTL].[Work_Element_Type] AS [Work_Element_Type], 
-    [ImportRMTL].[Work_Element_Task] AS [Work_Element_Task], 
-    [ImportRMTL].[Task_Applicability] AS [Task_Applicability], 
-    [ImportRMTL].[Formal_Training_Gap] AS [Formal_Training_Gap], 
-    [ImportRMTL].[CIN] AS [CIN], 
-    [ImportRMTL].[Course_Name] AS [Course_Name], 
-    [ImportRMTL].[Course_Type] AS [Course_Type], 
-    [ImportRMTL].[Curriculum_Control_Authority] AS [Curriculum_Control_Authority], 
-    [ImportRMTL].[Life_Cycle_Control_Document] AS [Life_Cycle_Control_Document], 
-    [ImportRMTL].[Task_Statement] AS [Task_Statement], 
-    [ImportRMTL].[Current_Assessment_Approach] AS [Current_Assessment_Approach], 
-    [ImportRMTL].[TaskNotes] AS [TaskNotes], 
-    [ImportRMTL].[Training_Solution_Type] AS [Training_Solution_Type], 
-    [ImportRMTL].[Cluster_Analysis_Title] AS [Cluster_Analysis_Title], 
-    [ImportRMTL].[Recommended_Modality] AS [Recommended_Modality], 
-    [ImportRMTL].[Development_Specification] AS [Development_Specification], 
-    [ImportRMTL].[Candidate_Platform] AS [Candidate_Platform], 
-    [ImportRMTL].[CFM_Placement] AS [CFM_Placement], 
-    [ImportRMTL].[Priority_Placement] AS [Priority_Placement], 
-    [ImportRMTL].[Development_Ratio] AS [Development_Ratio], 
-    [ImportRMTL].[Development_Time] AS [Development_Time], 
-    [ImportRMTL].[ClusterAnalysisNotes] AS [ClusterAnalysisNotes], 
-    [ImportRMTL].[RatingId] AS [RatingId], 
-    [ImportRMTL].[RankId] AS [RankId], 
-    [ImportRMTL].[LevelId] AS [LevelId], 
-    [ImportRMTL].[BilletTitleId] AS [BilletTitleId], 
-    [ImportRMTL].[FunctionalAreaId] AS [FunctionalAreaId], 
-    [ImportRMTL].[SourceId] AS [SourceId], 
-    [ImportRMTL].[WorkElementTypeId] AS [WorkElementTypeId], 
-    [ImportRMTL].[RatingLevelTaskId] AS [RatingLevelTaskId], 
-    [ImportRMTL].[TaskApplicabilityId] AS [TaskApplicabilityId], 
-    [ImportRMTL].[FormalTrainingGapId] AS [FormalTrainingGapId], 
-    [ImportRMTL].[CourseId] AS [CourseId], 
-    [ImportRMTL].[CourseTaskId] AS [CourseTaskId], 
-    [ImportRMTL].[Message] AS [Message]
-    FROM [dbo].[ImportRMTL] AS [ImportRMTL]</DefiningQuery>
-          </EntitySet>
           <AssociationSet Name="FK_Account_AspNetUsers" Association="Self.FK_Account_AspNetUsers">
             <End Role="AspNetUsers" EntitySet="AspNetUsers" />
             <End Role="Account" EntitySet="Account" />
@@ -935,10 +849,6 @@ warning 6002: The table/view 'NavyRRL.dbo.ImportRMTL' does not have a primary ke
           </AssociationSet>
           <AssociationSet Name="FK_RatingLevelTask_Course_Task" Association="Self.FK_RatingLevelTask_Course_Task">
             <End Role="Course_Task" EntitySet="Course_Task" />
-            <End Role="RatingTask" EntitySet="RatingTask" />
-          </AssociationSet>
-          <AssociationSet Name="FK_RatingLevelTask_FunctionalArea" Association="Self.FK_RatingLevelTask_FunctionalArea">
-            <End Role="FunctionalArea" EntitySet="FunctionalArea" />
             <End Role="RatingTask" EntitySet="RatingTask" />
           </AssociationSet>
           <AssociationSet Name="FK_RatingLevelTask_Level" Association="Self.FK_RatingLevelTask_Level">
@@ -1076,6 +986,7 @@ warning 6002: The table/view 'NavyRRL.dbo.ImportRMTL' does not have a primary ke
           <Property Name="LastUpdated" Type="DateTime" Precision="3" />
           <Property Name="LastUpdatedById" Type="Int32" />
           <Property Name="CTID" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+          <Property Name="RowId" Type="Guid" Nullable="false" />
         </EntityType>
         <EntityType Name="ConceptScheme">
           <Key>
@@ -1112,8 +1023,8 @@ warning 6002: The table/view 'NavyRRL.dbo.ImportRMTL' does not have a primary ke
           <Property Name="AlternateLabel" Type="String" MaxLength="500" FixedLength="false" Unicode="false" />
           <Property Name="Description" Type="String" MaxLength="Max" FixedLength="false" Unicode="false" />
           <Property Name="ListId" Type="Int32" />
-          <Property Name="Created" Type="DateTime" Precision="3" />
-          <Property Name="LastUpdated" Type="DateTime" Precision="3" />
+          <Property Name="Created" Type="DateTime" Precision="3" Nullable="false" />
+          <Property Name="LastUpdated" Type="DateTime" Precision="3" Nullable="false" />
           <NavigationProperty Name="ConceptScheme" Relationship="Self.FK_ConceptScheme_Concept_ConceptScheme" FromRole="ConceptScheme_Concept" ToRole="ConceptScheme" />
           <Property Name="Label" Type="String" Nullable="false" MaxLength="1000" FixedLength="false" Unicode="false" />
           <NavigationProperty Name="RatingTask" Relationship="NavyRRLModel.FK_RatingLevelTask_ConceptScheme_Concept4" FromRole="ConceptScheme_Concept" ToRole="RatingTask" />
@@ -1128,7 +1039,7 @@ warning 6002: The table/view 'NavyRRL.dbo.ImportRMTL' does not have a primary ke
           </Key>
           <Property Name="Id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
           <Property Name="CIN" Type="String" MaxLength="50" FixedLength="false" Unicode="true" Nullable="false" />
-          <Property Name="Name" Type="String" MaxLength="200" FixedLength="false" Unicode="true" Nullable="false" />
+          <Property Name="Name" Type="String" MaxLength="300" FixedLength="false" Unicode="true" Nullable="false" />
           <Property Name="Description" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
           <Property Name="CourseTypeId" Type="Int32" />
           <Property Name="LifeCycleControlDocumentId" Type="Int32" />
@@ -1144,6 +1055,7 @@ warning 6002: The table/view 'NavyRRL.dbo.ImportRMTL' does not have a primary ke
           <Property Name="CurriculumControlAuthority" Type="String" MaxLength="200" FixedLength="false" Unicode="true" />
           <Property Name="CurrentAssessmentApproach" Type="String" MaxLength="200" FixedLength="false" Unicode="true" />
           <NavigationProperty Name="Course_Task" Relationship="Self.FK_Course_Task_Course" FromRole="Course" ToRole="Course_Task" />
+          <Property Name="RowId" Type="Guid" Nullable="false" />
         </EntityType>
         <EntityType Name="Course_Task">
           <Key>
@@ -1151,7 +1063,6 @@ warning 6002: The table/view 'NavyRRL.dbo.ImportRMTL' does not have a primary ke
           </Key>
           <Property Name="Id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
           <Property Name="CourseId" Type="Int32" Nullable="false" />
-          <Property Name="TaskStatement" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" Nullable="false" />
           <Property Name="CTID" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
           <Property Name="Created" Type="DateTime" Precision="3" />
           <Property Name="CreatedById" Type="Int32" />
@@ -1159,6 +1070,8 @@ warning 6002: The table/view 'NavyRRL.dbo.ImportRMTL' does not have a primary ke
           <Property Name="LastUpdatedById" Type="Int32" />
           <NavigationProperty Name="Course" Relationship="Self.FK_Course_Task_Course" FromRole="Course_Task" ToRole="Course" />
           <NavigationProperty Name="RatingTask" Relationship="NavyRRLModel.FK_RatingLevelTask_Course_Task1" FromRole="Course_Task" ToRole="RatingTask" />
+          <Property Name="RowId" Type="Guid" Nullable="false" />
+          <Property Name="Description" Type="String" Nullable="false" MaxLength="Max" FixedLength="false" Unicode="true" />
         </EntityType>
         <EntityType Name="CurriculumControlAuthority">
           <Key>
@@ -1168,18 +1081,7 @@ warning 6002: The table/view 'NavyRRL.dbo.ImportRMTL' does not have a primary ke
           <Property Name="Name" Type="String" MaxLength="300" FixedLength="false" Unicode="true" />
           <Property Name="Abbreviation" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
           <Property Name="CTID" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
-        </EntityType>
-        <EntityType Name="FunctionalArea">
-          <Key>
-            <PropertyRef Name="Id" />
-          </Key>
-          <Property Name="Id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
-          <Property Name="Name" Type="String" MaxLength="200" FixedLength="false" Unicode="true" Nullable="false" />
-          <Property Name="Description" Type="String" MaxLength="Max" FixedLength="false" Unicode="false" Nullable="false" />
-          <Property Name="DateCreated" Type="DateTime" Precision="3" />
-          <Property Name="DateModified" Type="DateTime" Precision="3" />
-          <Property Name="CTID" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
-          <NavigationProperty Name="RatingTask" Relationship="NavyRRLModel.FK_RatingLevelTask_FunctionalArea1" FromRole="FunctionalArea" ToRole="RatingTask" />
+          <Property Name="RowId" Type="Guid" Nullable="false" />
         </EntityType>
         <EntityType Name="Job">
           <Key>
@@ -1187,10 +1089,10 @@ warning 6002: The table/view 'NavyRRL.dbo.ImportRMTL' does not have a primary ke
           </Key>
           <Property Name="Id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
           <Property Name="CTID" Type="String" MaxLength="50" FixedLength="false" Unicode="false" Nullable="false" />
-          <Property Name="Name" Type="String" MaxLength="500" FixedLength="false" Unicode="false" Nullable="false" />
+          <Property Name="Name" Type="String" MaxLength="500" FixedLength="false" Unicode="true" Nullable="false" />
           <Property Name="CodedNotation" Type="String" MaxLength="100" FixedLength="false" Unicode="false" />
           <Property Name="JobVersion" Type="Int32" />
-          <Property Name="Description" Type="String" MaxLength="Max" FixedLength="false" Unicode="false" />
+          <Property Name="Description" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
           <Property Name="ShortName30" Type="String" MaxLength="30" FixedLength="false" Unicode="false" />
           <Property Name="ShortName14" Type="String" MaxLength="14" FixedLength="false" Unicode="false" />
           <Property Name="CredentialRegistryId" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
@@ -1200,6 +1102,8 @@ warning 6002: The table/view 'NavyRRL.dbo.ImportRMTL' does not have a primary ke
           <Property Name="RowId" Type="Guid" Nullable="false" />
           <NavigationProperty Name="RmtlProject_Billet" Relationship="Self.FK_RmtlProject_Billet_Job" FromRole="Job" ToRole="RmtlProject_Billet" />
           <NavigationProperty Name="Job_HasRating" Relationship="NavyRRLModel.FK_Job_HasRating_Job" FromRole="Job" ToRole="Job_HasRating" />
+          <Property Name="CreatedById" Type="Int32" />
+          <Property Name="LastUpdatedById" Type="Int32" />
         </EntityType>
         <EntityType Name="Organization">
           <Key>
@@ -1207,8 +1111,8 @@ warning 6002: The table/view 'NavyRRL.dbo.ImportRMTL' does not have a primary ke
           </Key>
           <Property Name="Id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
           <Property Name="RowId" Type="Guid" Nullable="false" />
-          <Property Name="Name" Type="String" MaxLength="300" FixedLength="false" Unicode="false" Nullable="false" />
-          <Property Name="Description" Type="String" MaxLength="Max" FixedLength="false" Unicode="false" />
+          <Property Name="Name" Type="String" MaxLength="300" FixedLength="false" Unicode="true" Nullable="false" />
+          <Property Name="Description" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
           <Property Name="CTID" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
           <Property Name="SubjectWebpage" Type="String" MaxLength="500" FixedLength="false" Unicode="false" />
           <Property Name="StatusId" Type="Int32" />
@@ -1234,22 +1138,21 @@ warning 6002: The table/view 'NavyRRL.dbo.ImportRMTL' does not have a primary ke
           </Key>
           <Property Name="Id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
           <Property Name="CTID" Type="String" MaxLength="50" FixedLength="false" Unicode="false" Nullable="false" />
-          <Property Name="Name" Type="String" MaxLength="500" FixedLength="false" Unicode="false" Nullable="false" />
+          <Property Name="Name" Type="String" MaxLength="500" FixedLength="false" Unicode="true" Nullable="false" />
           <Property Name="CodedNotation" Type="String" MaxLength="100" FixedLength="false" Unicode="false" />
-          <Property Name="Description" Type="String" MaxLength="Max" FixedLength="false" Unicode="false" />
+          <Property Name="Description" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
           <Property Name="Version" Type="String" MaxLength="30" FixedLength="false" Unicode="false" />
           <Property Name="RatingUploadDate" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
           <Property Name="RatingPublicationDate" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
           <Property Name="Image" Type="String" MaxLength="500" FixedLength="false" Unicode="false" />
-          <Property Name="CredentialRegistryId" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
           <Property Name="Created" Type="DateTime" Precision="3" />
           <Property Name="LastUpdated" Type="DateTime" Precision="3" />
-          <Property Name="LastPublished" Type="DateTime" Precision="3" />
           <Property Name="RowId" Type="Guid" Nullable="false" />
-          <Property Name="CredentialRegistryURI" Type="String" MaxLength="200" FixedLength="false" Unicode="false" />
           <Property Name="MainEntityOfPage" Type="String" MaxLength="600" FixedLength="false" Unicode="false" />
           <NavigationProperty Name="Job_HasRating" Relationship="NavyRRLModel.FK_Job_HasRating_Rating" FromRole="Rating" ToRole="Job_HasRating" />
           <NavigationProperty Name="RatingTask_HasRating" Relationship="NavyRRLModel.FK_RatingTask_HasRating_Rating" FromRole="Rating" ToRole="RatingTask_HasRating" />
+          <Property Name="CreatedById" Type="Int32" />
+          <Property Name="LastUpdatedById" Type="Int32" />
         </EntityType>
         <EntityType Name="RMTLProject">
           <Key>
@@ -1257,7 +1160,7 @@ warning 6002: The table/view 'NavyRRL.dbo.ImportRMTL' does not have a primary ke
           </Key>
           <Property Name="Id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
           <Property Name="CTID" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
-          <Property Name="Name" Type="String" MaxLength="300" FixedLength="false" Unicode="false" Nullable="false" />
+          <Property Name="Name" Type="String" MaxLength="300" FixedLength="false" Unicode="true" Nullable="false" />
           <Property Name="RatingId" Type="Int32" Nullable="false" />
           <Property Name="Description" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
           <Property Name="StatusId" Type="Int32" />
@@ -1273,6 +1176,7 @@ warning 6002: The table/view 'NavyRRL.dbo.ImportRMTL' does not have a primary ke
           <Property Name="LastPublishedById" Type="Int32" />
           <NavigationProperty Name="RmtlProject_Billet" Relationship="Self.FK_RmtlProject_Billet_RMTLProject" FromRole="RMTLProject" ToRole="RmtlProject_Billet" />
           <NavigationProperty Name="Comment" Relationship="NavyRRLModel.FK_Comment_RMTLProject" FromRole="RMTLProject" ToRole="Comment" />
+          <Property Name="RowId" Type="Guid" Nullable="false" />
         </EntityType>
         <EntityType Name="RmtlProject_Billet">
           <Key>
@@ -1286,6 +1190,9 @@ warning 6002: The table/view 'NavyRRL.dbo.ImportRMTL' does not have a primary ke
           <NavigationProperty Name="Job" Relationship="Self.FK_RmtlProject_Billet_Job" FromRole="RmtlProject_Billet" ToRole="Job" />
           <NavigationProperty Name="RMTLProject" Relationship="Self.FK_RmtlProject_Billet_RMTLProject" FromRole="RmtlProject_Billet" ToRole="RMTLProject" />
           <NavigationProperty Name="RmtlProjectBilletTask" Relationship="NavyRRLModel.FK_RmtlProjectBilletTask_RmtlProject_Billet" FromRole="RmtlProject_Billet" ToRole="RmtlProjectBilletTask" />
+          <Property Name="CreatedById" Type="Int32" />
+          <Property Name="LastUpdatedById" Type="Int32" />
+          <Property Name="RowId" Type="Guid" Nullable="false" />
         </EntityType>
         <EntityType Name="RmtlProjectBilletTask">
           <Key>
@@ -1300,6 +1207,7 @@ warning 6002: The table/view 'NavyRRL.dbo.ImportRMTL' does not have a primary ke
           <Property Name="LastUpdatedById" Type="Int32" />
           <NavigationProperty Name="RmtlProject_Billet" Relationship="NavyRRLModel.FK_RmtlProjectBilletTask_RmtlProject_Billet" FromRole="RmtlProjectBilletTask" ToRole="RmtlProject_Billet" />
           <NavigationProperty Name="RatingTask" Relationship="NavyRRLModel.FK_RmtlProjectBilletTask_RatingTask" FromRole="RmtlProjectBilletTask" ToRole="RatingTask" />
+          <Property Name="RowId" Type="Guid" Nullable="false" />
         </EntityType>
         <EntityType Name="Source">
           <Key>
@@ -1309,103 +1217,28 @@ warning 6002: The table/view 'NavyRRL.dbo.ImportRMTL' does not have a primary ke
           <Property Name="Name" Type="String" MaxLength="200" FixedLength="false" Unicode="true" Nullable="false" />
           <Property Name="SourceDate" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
           <Property Name="Description" Type="String" MaxLength="Max" FixedLength="false" Unicode="false" />
-          <Property Name="DateCreated" Type="DateTime" Precision="3" />
           <Property Name="CreatedById" Type="Int32" />
-          <Property Name="DateModified" Type="DateTime" Precision="3" />
           <Property Name="LastUpdatedById" Type="Int32" />
           <Property Name="CTID" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
           <NavigationProperty Name="RatingTask" Relationship="NavyRRLModel.FK_RatingLevelTask_Source1" FromRole="Source" ToRole="RatingTask" />
+          <Property Name="RowId" Type="Guid" Nullable="false" />
+          <Property Name="Created" Type="DateTime" Precision="3" Nullable="false" />
+          <Property Name="LastUpdated" Type="DateTime" Precision="3" Nullable="false" />
         </EntityType>
         <EntityType Name="WorkElementType">
           <Key>
             <PropertyRef Name="Id" />
           </Key>
           <Property Name="Id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
-          <Property Name="Name" Type="String" MaxLength="50" FixedLength="false" Unicode="true" Nullable="false" />
-          <Property Name="description" Type="String" MaxLength="1" FixedLength="false" Unicode="false" Nullable="false" />
-          <Property Name="DateCreated" Type="DateTime" Nullable="false" Precision="3" />
-          <Property Name="DateModified" Type="DateTime" Nullable="false" Precision="3" />
+          <Property Name="Name" Type="String" MaxLength="300" FixedLength="false" Unicode="true" Nullable="false" />
           <Property Name="CTID" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
           <NavigationProperty Name="RatingTask" Relationship="NavyRRLModel.FK_RatingLevelTask_WorkElementType1" FromRole="WorkElementType" ToRole="RatingTask" />
-        </EntityType>
-        <EntityType Name="ImportRMTL">
-          <Key>
-            <PropertyRef Name="IndexIdentifier" />
-            <PropertyRef Name="Unique_Identifier" />
-            <PropertyRef Name="Rating" />
-            <PropertyRef Name="Rank" />
-            <PropertyRef Name="RankLevel" />
-            <PropertyRef Name="Billet_Title" />
-            <PropertyRef Name="Functional_Area" />
-            <PropertyRef Name="Source" />
-            <PropertyRef Name="Date_of_Source" />
-            <PropertyRef Name="Work_Element_Type" />
-            <PropertyRef Name="Work_Element_Task" />
-            <PropertyRef Name="Task_Applicability" />
-            <PropertyRef Name="Formal_Training_Gap" />
-            <PropertyRef Name="CIN" />
-            <PropertyRef Name="Course_Name" />
-            <PropertyRef Name="Course_Type" />
-            <PropertyRef Name="Curriculum_Control_Authority" />
-            <PropertyRef Name="Life_Cycle_Control_Document" />
-            <PropertyRef Name="Task_Statement" />
-            <PropertyRef Name="Current_Assessment_Approach" />
-            <PropertyRef Name="TaskNotes" />
-            <PropertyRef Name="Training_Solution_Type" />
-            <PropertyRef Name="Cluster_Analysis_Title" />
-            <PropertyRef Name="Recommended_Modality" />
-            <PropertyRef Name="Development_Specification" />
-            <PropertyRef Name="Candidate_Platform" />
-            <PropertyRef Name="CFM_Placement" />
-            <PropertyRef Name="Priority_Placement" />
-            <PropertyRef Name="Development_Ratio" />
-            <PropertyRef Name="Development_Time" />
-            <PropertyRef Name="ClusterAnalysisNotes" />
-          </Key>
-          <Property Name="IndexIdentifier" Type="String" MaxLength="50" FixedLength="false" Unicode="true" Nullable="false" />
-          <Property Name="Unique_Identifier" Type="Int32" Nullable="false" />
-          <Property Name="Rating" Type="String" MaxLength="50" FixedLength="false" Unicode="true" Nullable="false" />
-          <Property Name="Rank" Type="String" MaxLength="50" FixedLength="false" Unicode="true" Nullable="false" />
-          <Property Name="RankLevel" Type="String" MaxLength="50" FixedLength="false" Unicode="true" Nullable="false" />
-          <Property Name="Billet_Title" Type="String" MaxLength="500" FixedLength="false" Unicode="true" Nullable="false" />
-          <Property Name="Functional_Area" Type="String" MaxLength="500" FixedLength="false" Unicode="true" Nullable="false" />
-          <Property Name="Source" Type="String" MaxLength="500" FixedLength="false" Unicode="true" Nullable="false" />
-          <Property Name="Date_of_Source" Type="String" MaxLength="50" FixedLength="false" Unicode="false" Nullable="false" />
-          <Property Name="Work_Element_Type" Type="String" MaxLength="500" FixedLength="false" Unicode="true" Nullable="false" />
-          <Property Name="Work_Element_Task" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" Nullable="false" />
-          <Property Name="Task_Applicability" Type="String" MaxLength="500" FixedLength="false" Unicode="true" Nullable="false" />
-          <Property Name="Formal_Training_Gap" Type="String" MaxLength="500" FixedLength="false" Unicode="true" Nullable="false" />
-          <Property Name="CIN" Type="String" MaxLength="50" FixedLength="false" Unicode="true" Nullable="false" />
-          <Property Name="Course_Name" Type="String" MaxLength="500" FixedLength="false" Unicode="true" Nullable="false" />
-          <Property Name="Course_Type" Type="String" MaxLength="50" FixedLength="false" Unicode="true" Nullable="false" />
-          <Property Name="Curriculum_Control_Authority" Type="String" MaxLength="50" FixedLength="false" Unicode="true" Nullable="false" />
-          <Property Name="Life_Cycle_Control_Document" Type="String" MaxLength="50" FixedLength="false" Unicode="true" Nullable="false" />
-          <Property Name="Task_Statement" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" Nullable="false" />
-          <Property Name="Current_Assessment_Approach" Type="String" MaxLength="50" FixedLength="false" Unicode="true" Nullable="false" />
-          <Property Name="TaskNotes" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" Nullable="false" />
-          <Property Name="Training_Solution_Type" Type="String" MaxLength="500" FixedLength="false" Unicode="true" Nullable="false" />
-          <Property Name="Cluster_Analysis_Title" Type="String" MaxLength="500" FixedLength="false" Unicode="true" Nullable="false" />
-          <Property Name="Recommended_Modality" Type="String" MaxLength="500" FixedLength="false" Unicode="true" Nullable="false" />
-          <Property Name="Development_Specification" Type="String" MaxLength="500" FixedLength="false" Unicode="true" Nullable="false" />
-          <Property Name="Candidate_Platform" Type="String" MaxLength="500" FixedLength="false" Unicode="true" Nullable="false" />
-          <Property Name="CFM_Placement" Type="String" MaxLength="500" FixedLength="false" Unicode="true" Nullable="false" />
-          <Property Name="Priority_Placement" Type="String" MaxLength="500" FixedLength="false" Unicode="true" Nullable="false" />
-          <Property Name="Development_Ratio" Type="String" MaxLength="500" FixedLength="false" Unicode="true" Nullable="false" />
-          <Property Name="Development_Time" Type="String" MaxLength="500" FixedLength="false" Unicode="true" Nullable="false" />
-          <Property Name="ClusterAnalysisNotes" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" Nullable="false" />
-          <Property Name="RatingId" Type="Int32" />
-          <Property Name="RankId" Type="Int32" />
-          <Property Name="LevelId" Type="Int32" />
-          <Property Name="BilletTitleId" Type="Int32" />
-          <Property Name="FunctionalAreaId" Type="Int32" />
-          <Property Name="SourceId" Type="Int32" />
-          <Property Name="WorkElementTypeId" Type="Int32" />
-          <Property Name="RatingLevelTaskId" Type="Int32" />
-          <Property Name="TaskApplicabilityId" Type="Int32" />
-          <Property Name="FormalTrainingGapId" Type="Int32" />
-          <Property Name="CourseId" Type="Int32" />
-          <Property Name="CourseTaskId" Type="Int32" />
-          <Property Name="Message" Type="String" MaxLength="1000" FixedLength="false" Unicode="false" />
+          <Property Name="RowId" Type="Guid" Nullable="false" />
+          <Property Name="Description" Type="String" Nullable="false" MaxLength="Max" FixedLength="false" Unicode="true" />
+          <Property Name="Created" Type="DateTime" Precision="3" />
+          <Property Name="CreatedById" Type="Int32" />
+          <Property Name="LastUpdated" Type="DateTime" Precision="3" />
+          <Property Name="LastUpdatedById" Type="Int32" />
         </EntityType>
         <Association Name="FK_Account_AspNetUsers">
           <End Role="AspNetUsers" Type="Self.AspNetUsers" Multiplicity="0..1">
@@ -1547,7 +1380,6 @@ warning 6002: The table/view 'NavyRRL.dbo.ImportRMTL' does not have a primary ke
           <EntitySet Name="Course" EntityType="Self.Course" />
           <EntitySet Name="Course_Task" EntityType="Self.Course_Task" />
           <EntitySet Name="CurriculumControlAuthority" EntityType="Self.CurriculumControlAuthority" />
-          <EntitySet Name="FunctionalArea" EntityType="Self.FunctionalArea" />
           <EntitySet Name="Job" EntityType="Self.Job" />
           <EntitySet Name="Organization" EntityType="Self.Organization" />
           <EntitySet Name="Rating" EntityType="Self.Rating" />
@@ -1556,7 +1388,6 @@ warning 6002: The table/view 'NavyRRL.dbo.ImportRMTL' does not have a primary ke
           <EntitySet Name="RmtlProjectBilletTask" EntityType="Self.RmtlProjectBilletTask" />
           <EntitySet Name="Source" EntityType="Self.Source" />
           <EntitySet Name="WorkElementType" EntityType="Self.WorkElementType" />
-          <EntitySet Name="ImportRMTL" EntityType="Self.ImportRMTL" />
           <AssociationSet Name="FK_Account_AspNetUsers" Association="Self.FK_Account_AspNetUsers">
             <End Role="AspNetUsers" EntitySet="AspNetUsers" />
             <End Role="Account" EntitySet="Account" />
@@ -1640,10 +1471,6 @@ warning 6002: The table/view 'NavyRRL.dbo.ImportRMTL' does not have a primary ke
             <End Role="Course_Task" EntitySet="Course_Task" />
             <End Role="RatingTask" EntitySet="RatingTask" />
           </AssociationSet>
-          <AssociationSet Name="FK_RatingLevelTask_FunctionalArea1" Association="NavyRRLModel.FK_RatingLevelTask_FunctionalArea1">
-            <End Role="FunctionalArea" EntitySet="FunctionalArea" />
-            <End Role="RatingTask" EntitySet="RatingTask" />
-          </AssociationSet>
           <AssociationSet Name="FK_Job_HasRating_Job" Association="NavyRRLModel.FK_Job_HasRating_Job">
             <End Role="Job" EntitySet="Job" />
             <End Role="Job_HasRating" EntitySet="Job_HasRating" />
@@ -1672,6 +1499,7 @@ warning 6002: The table/view 'NavyRRL.dbo.ImportRMTL' does not have a primary ke
             <End Role="RatingTask" EntitySet="RatingTask" />
             <End Role="RmtlProjectBilletTask" EntitySet="RmtlProjectBilletTask" />
           </AssociationSet>
+          <EntitySet Name="ImportRMTL" EntityType="NavyRRLModel.ImportRMTL" />
         </EntityContainer>
         <EntityType Name="AspNetUserRoles">
           <Key>
@@ -1757,13 +1585,13 @@ warning 6002: The table/view 'NavyRRL.dbo.ImportRMTL' does not have a primary ke
           <Property Name="RowId" Type="Guid" Nullable="false" />
           <Property Name="RmtlProjectId" Type="Int32" />
           <Property Name="AppliesTo" Type="Guid" Nullable="false" />
-          <Property Name="Comment1" Type="String" Nullable="false" MaxLength="Max" FixedLength="false" Unicode="false" />
-          <Property Name="Status" Type="Int32" />
           <Property Name="Created" Type="DateTime" Nullable="false" Precision="3" />
           <Property Name="CreatedById" Type="Int32" />
           <Property Name="LastUpdated" Type="DateTime" Nullable="false" Precision="3" />
           <Property Name="LastUpdatedById" Type="Int32" />
           <NavigationProperty Name="RMTLProject" Relationship="NavyRRLModel.FK_Comment_RMTLProject" FromRole="Comment" ToRole="RMTLProject" />
+          <Property Name="Description" Type="String" Nullable="false" MaxLength="Max" FixedLength="false" Unicode="false" />
+          <Property Name="StatusTypeId" Type="Int32" />
         </EntityType>
         <EntityType Name="Job_HasRating">
           <Key>
@@ -1776,6 +1604,7 @@ warning 6002: The table/view 'NavyRRL.dbo.ImportRMTL' does not have a primary ke
           <Property Name="CreatedById" Type="Int32" />
           <NavigationProperty Name="Job" Relationship="NavyRRLModel.FK_Job_HasRating_Job" FromRole="Job_HasRating" ToRole="Job" />
           <NavigationProperty Name="Rating" Relationship="NavyRRLModel.FK_Job_HasRating_Rating" FromRole="Job_HasRating" ToRole="Rating" />
+          <Property Name="RowId" Type="Guid" Nullable="false" />
         </EntityType>
         <EntityType Name="RatingTask">
           <Key>
@@ -1785,17 +1614,16 @@ warning 6002: The table/view 'NavyRRL.dbo.ImportRMTL' does not have a primary ke
           <Property Name="CodedNotation" Type="String" MaxLength="100" FixedLength="false" Unicode="false" />
           <Property Name="RankId" Type="Int32" Nullable="false" />
           <Property Name="LevelId" Type="Int32" Nullable="false" />
-          <Property Name="FunctionalAreaId" Type="Int32" Nullable="false" />
+          <Property Name="FunctionalAreaId" Type="Int32" />
           <Property Name="SourceId" Type="Int32" />
           <Property Name="WorkElementTypeId" Type="Int32" />
-          <Property Name="WorkElementTask" Type="String" Nullable="false" MaxLength="Max" FixedLength="false" Unicode="true" />
           <Property Name="TaskApplicabilityId" Type="Int32" />
           <Property Name="TaskStatusId" Type="Int32" />
           <Property Name="FormalTrainingGapId" Type="Int32" />
           <Property Name="Notes" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
-          <Property Name="Created" Type="DateTime" Precision="3" />
+          <Property Name="Created" Type="DateTime" Precision="3" Nullable="false" />
           <Property Name="CreatedById" Type="Int32" />
-          <Property Name="LastUpdated" Type="DateTime" Precision="3" />
+          <Property Name="LastUpdated" Type="DateTime" Precision="3" Nullable="false" />
           <Property Name="LastUpdatedById" Type="Int32" />
           <Property Name="CTID" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
           <Property Name="TrainingTaskId" Type="Int32" />
@@ -1804,12 +1632,12 @@ warning 6002: The table/view 'NavyRRL.dbo.ImportRMTL' does not have a primary ke
           <NavigationProperty Name="ConceptScheme_Applicability" Relationship="NavyRRLModel.FK_RatingLevelTask_ConceptScheme_Concept21" FromRole="RatingTask" ToRole="ConceptScheme_Concept" />
           <NavigationProperty Name="ConceptScheme_TrainingGap" Relationship="NavyRRLModel.FK_RatingLevelTask_ConceptScheme_Concept31" FromRole="RatingTask" ToRole="ConceptScheme_Concept" />
           <NavigationProperty Name="Course_Task" Relationship="NavyRRLModel.FK_RatingLevelTask_Course_Task1" FromRole="RatingTask" ToRole="Course_Task" />
-          <NavigationProperty Name="FunctionalArea" Relationship="NavyRRLModel.FK_RatingLevelTask_FunctionalArea1" FromRole="RatingTask" ToRole="FunctionalArea" />
           <NavigationProperty Name="Source" Relationship="NavyRRLModel.FK_RatingLevelTask_Source1" FromRole="RatingTask" ToRole="Source" />
           <NavigationProperty Name="WorkElementType" Relationship="NavyRRLModel.FK_RatingLevelTask_WorkElementType1" FromRole="RatingTask" ToRole="WorkElementType" />
           <NavigationProperty Name="RatingTask_HasRating" Relationship="NavyRRLModel.FK_RatingTask_HasRatingTask_Task" FromRole="RatingTask" ToRole="RatingTask_HasRating" />
           <NavigationProperty Name="RmtlProjectBilletTask" Relationship="NavyRRLModel.FK_RmtlProjectBilletTask_RatingTask" FromRole="RatingTask" ToRole="RmtlProjectBilletTask" />
           <Property Name="RowId" Type="Guid" Nullable="false" />
+          <Property Name="Description" Type="String" Nullable="false" MaxLength="Max" FixedLength="false" Unicode="true" />
         </EntityType>
         <EntityType Name="RatingTask_HasRating">
           <Key>
@@ -1821,6 +1649,7 @@ warning 6002: The table/view 'NavyRRL.dbo.ImportRMTL' does not have a primary ke
           <Property Name="Created" Type="DateTime" Precision="3" />
           <NavigationProperty Name="Rating" Relationship="NavyRRLModel.FK_RatingTask_HasRating_Rating" FromRole="RatingTask_HasRating" ToRole="Rating" />
           <NavigationProperty Name="RatingTask" Relationship="NavyRRLModel.FK_RatingTask_HasRatingTask_Task" FromRole="RatingTask_HasRating" ToRole="RatingTask" />
+          <Property Name="RowId" Type="Guid" Nullable="false" />
         </EntityType>
         <Association Name="FK_Comment_RMTLProject">
           <End Type="NavyRRLModel.RMTLProject" Role="RMTLProject" Multiplicity="0..1">
@@ -1893,18 +1722,6 @@ warning 6002: The table/view 'NavyRRL.dbo.ImportRMTL' does not have a primary ke
             </Principal>
             <Dependent Role="RatingTask">
               <PropertyRef Name="TrainingTaskId" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
-        <Association Name="FK_RatingLevelTask_FunctionalArea1">
-          <End Type="NavyRRLModel.FunctionalArea" Role="FunctionalArea" Multiplicity="1" />
-          <End Type="NavyRRLModel.RatingTask" Role="RatingTask" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="FunctionalArea">
-              <PropertyRef Name="Id" />
-            </Principal>
-            <Dependent Role="RatingTask">
-              <PropertyRef Name="FunctionalAreaId" />
             </Dependent>
           </ReferentialConstraint>
         </Association>
@@ -2002,6 +1819,56 @@ warning 6002: The table/view 'NavyRRL.dbo.ImportRMTL' does not have a primary ke
             </Dependent>
           </ReferentialConstraint>
         </Association>
+        <EntityType Name="ImportRMTL">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="IndexIdentifier" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="Unique_Identifier" Type="Int32" />
+          <Property Name="Rating" Type="String" Nullable="false" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="Rank" Type="String" Nullable="false" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="RankLevel" Type="String" Nullable="false" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="Billet_Title" Type="String" Nullable="false" MaxLength="500" FixedLength="false" Unicode="true" />
+          <Property Name="Functional_Area" Type="String" Nullable="false" MaxLength="500" FixedLength="false" Unicode="true" />
+          <Property Name="Source" Type="String" Nullable="false" MaxLength="500" FixedLength="false" Unicode="true" />
+          <Property Name="Date_of_Source" Type="String" Nullable="false" MaxLength="50" FixedLength="false" Unicode="false" />
+          <Property Name="Work_Element_Type" Type="String" Nullable="false" MaxLength="500" FixedLength="false" Unicode="true" />
+          <Property Name="Work_Element_Task" Type="String" Nullable="false" MaxLength="Max" FixedLength="false" Unicode="true" />
+          <Property Name="Task_Applicability" Type="String" Nullable="false" MaxLength="500" FixedLength="false" Unicode="true" />
+          <Property Name="Formal_Training_Gap" Type="String" Nullable="false" MaxLength="500" FixedLength="false" Unicode="true" />
+          <Property Name="CIN" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="Course_Name" Type="String" MaxLength="500" FixedLength="false" Unicode="true" />
+          <Property Name="Course_Type" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="Curriculum_Control_Authority" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="Life_Cycle_Control_Document" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="Task_Statement" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
+          <Property Name="Current_Assessment_Approach" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="TaskNotes" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
+          <Property Name="Training_Solution_Type" Type="String" MaxLength="500" FixedLength="false" Unicode="true" />
+          <Property Name="Cluster_Analysis_Title" Type="String" MaxLength="500" FixedLength="false" Unicode="true" />
+          <Property Name="Recommended_Modality" Type="String" MaxLength="500" FixedLength="false" Unicode="true" />
+          <Property Name="Development_Specification" Type="String" MaxLength="500" FixedLength="false" Unicode="true" />
+          <Property Name="Candidate_Platform" Type="String" MaxLength="500" FixedLength="false" Unicode="true" />
+          <Property Name="CFM_Placement" Type="String" MaxLength="500" FixedLength="false" Unicode="true" />
+          <Property Name="Priority_Placement" Type="String" MaxLength="500" FixedLength="false" Unicode="true" />
+          <Property Name="Development_Ratio" Type="String" MaxLength="500" FixedLength="false" Unicode="true" />
+          <Property Name="Development_Time" Type="String" MaxLength="500" FixedLength="false" Unicode="true" />
+          <Property Name="ClusterAnalysisNotes" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
+          <Property Name="RatingId" Type="Int32" />
+          <Property Name="RankId" Type="Int32" />
+          <Property Name="LevelId" Type="Int32" />
+          <Property Name="BilletTitleId" Type="Int32" />
+          <Property Name="FunctionalAreaId" Type="Int32" />
+          <Property Name="SourceId" Type="Int32" />
+          <Property Name="WorkElementTypeId" Type="Int32" />
+          <Property Name="RatingLevelTaskId" Type="Int32" />
+          <Property Name="TaskApplicabilityId" Type="Int32" />
+          <Property Name="FormalTrainingGapId" Type="Int32" />
+          <Property Name="CourseId" Type="Int32" />
+          <Property Name="CourseTaskId" Type="Int32" />
+          <Property Name="Message" Type="String" MaxLength="1000" FixedLength="false" Unicode="false" />
+        </EntityType>
       </Schema>
     </edmx:ConceptualModels>
     <!-- C-S mapping content -->
@@ -2075,6 +1942,7 @@ warning 6002: The table/view 'NavyRRL.dbo.ImportRMTL' does not have a primary ke
           <EntitySetMapping Name="Assessment">
             <EntityTypeMapping TypeName="NavyRRLModel.Assessment">
               <MappingFragment StoreEntitySet="Assessment">
+                <ScalarProperty Name="RowId" ColumnName="RowId" />
                 <ScalarProperty Name="Id" ColumnName="Id" />
                 <ScalarProperty Name="Name" ColumnName="Name" />
                 <ScalarProperty Name="Description" ColumnName="Description" />
@@ -2126,6 +1994,7 @@ warning 6002: The table/view 'NavyRRL.dbo.ImportRMTL' does not have a primary ke
           <EntitySetMapping Name="Course">
             <EntityTypeMapping TypeName="NavyRRLModel.Course">
               <MappingFragment StoreEntitySet="Course">
+                <ScalarProperty Name="RowId" ColumnName="RowId" />
                 <ScalarProperty Name="Id" ColumnName="Id" />
                 <ScalarProperty Name="CIN" ColumnName="CIN" />
                 <ScalarProperty Name="Name" ColumnName="Name" />
@@ -2149,9 +2018,10 @@ warning 6002: The table/view 'NavyRRL.dbo.ImportRMTL' does not have a primary ke
           <EntitySetMapping Name="Course_Task">
             <EntityTypeMapping TypeName="NavyRRLModel.Course_Task">
               <MappingFragment StoreEntitySet="Course_Task">
+                <ScalarProperty Name="Description" ColumnName="Description" />
+                <ScalarProperty Name="RowId" ColumnName="RowId" />
                 <ScalarProperty Name="Id" ColumnName="Id" />
                 <ScalarProperty Name="CourseId" ColumnName="CourseId" />
-                <ScalarProperty Name="TaskStatement" ColumnName="TaskStatement" />
                 <ScalarProperty Name="CTID" ColumnName="CTID" />
                 <ScalarProperty Name="Created" ColumnName="Created" />
                 <ScalarProperty Name="CreatedById" ColumnName="CreatedById" />
@@ -2163,6 +2033,7 @@ warning 6002: The table/view 'NavyRRL.dbo.ImportRMTL' does not have a primary ke
           <EntitySetMapping Name="CurriculumControlAuthority">
             <EntityTypeMapping TypeName="NavyRRLModel.CurriculumControlAuthority">
               <MappingFragment StoreEntitySet="CurriculumControlAuthority">
+                <ScalarProperty Name="RowId" ColumnName="RowId" />
                 <ScalarProperty Name="Id" ColumnName="Id" />
                 <ScalarProperty Name="Name" ColumnName="Name" />
                 <ScalarProperty Name="Abbreviation" ColumnName="Abbreviation" />
@@ -2170,21 +2041,11 @@ warning 6002: The table/view 'NavyRRL.dbo.ImportRMTL' does not have a primary ke
               </MappingFragment>
             </EntityTypeMapping>
           </EntitySetMapping>
-          <EntitySetMapping Name="FunctionalArea">
-            <EntityTypeMapping TypeName="NavyRRLModel.FunctionalArea">
-              <MappingFragment StoreEntitySet="FunctionalArea">
-                <ScalarProperty Name="Id" ColumnName="Id" />
-                <ScalarProperty Name="Name" ColumnName="Name" />
-                <ScalarProperty Name="Description" ColumnName="Description" />
-                <ScalarProperty Name="DateCreated" ColumnName="DateCreated" />
-                <ScalarProperty Name="DateModified" ColumnName="DateModified" />
-                <ScalarProperty Name="CTID" ColumnName="CTID" />
-              </MappingFragment>
-            </EntityTypeMapping>
-          </EntitySetMapping>
           <EntitySetMapping Name="Job">
             <EntityTypeMapping TypeName="NavyRRLModel.Job">
               <MappingFragment StoreEntitySet="Job">
+                <ScalarProperty Name="LastUpdatedById" ColumnName="LastUpdatedById" />
+                <ScalarProperty Name="CreatedById" ColumnName="CreatedById" />
                 <ScalarProperty Name="Id" ColumnName="Id" />
                 <ScalarProperty Name="CTID" ColumnName="CTID" />
                 <ScalarProperty Name="Name" ColumnName="Name" />
@@ -2232,6 +2093,8 @@ warning 6002: The table/view 'NavyRRL.dbo.ImportRMTL' does not have a primary ke
           <EntitySetMapping Name="Rating">
             <EntityTypeMapping TypeName="NavyRRLModel.Rating">
               <MappingFragment StoreEntitySet="Rating">
+                <ScalarProperty Name="LastUpdatedById" ColumnName="LastUpdatedById" />
+                <ScalarProperty Name="CreatedById" ColumnName="CreatedById" />
                 <ScalarProperty Name="Id" ColumnName="Id" />
                 <ScalarProperty Name="CTID" ColumnName="CTID" />
                 <ScalarProperty Name="Name" ColumnName="Name" />
@@ -2241,12 +2104,9 @@ warning 6002: The table/view 'NavyRRL.dbo.ImportRMTL' does not have a primary ke
                 <ScalarProperty Name="RatingUploadDate" ColumnName="RatingUploadDate" />
                 <ScalarProperty Name="RatingPublicationDate" ColumnName="RatingPublicationDate" />
                 <ScalarProperty Name="Image" ColumnName="Image" />
-                <ScalarProperty Name="CredentialRegistryId" ColumnName="CredentialRegistryId" />
                 <ScalarProperty Name="Created" ColumnName="Created" />
                 <ScalarProperty Name="LastUpdated" ColumnName="LastUpdated" />
-                <ScalarProperty Name="LastPublished" ColumnName="LastPublished" />
                 <ScalarProperty Name="RowId" ColumnName="RowId" />
-                <ScalarProperty Name="CredentialRegistryURI" ColumnName="CredentialRegistryURI" />
                 <ScalarProperty Name="MainEntityOfPage" ColumnName="MainEntityOfPage" />
               </MappingFragment>
             </EntityTypeMapping>
@@ -2254,6 +2114,7 @@ warning 6002: The table/view 'NavyRRL.dbo.ImportRMTL' does not have a primary ke
           <EntitySetMapping Name="RMTLProject">
             <EntityTypeMapping TypeName="NavyRRLModel.RMTLProject">
               <MappingFragment StoreEntitySet="RMTLProject">
+                <ScalarProperty Name="RowId" ColumnName="RowId" />
                 <ScalarProperty Name="Id" ColumnName="Id" />
                 <ScalarProperty Name="CTID" ColumnName="CTID" />
                 <ScalarProperty Name="Name" ColumnName="Name" />
@@ -2276,6 +2137,9 @@ warning 6002: The table/view 'NavyRRL.dbo.ImportRMTL' does not have a primary ke
           <EntitySetMapping Name="RmtlProject_Billet">
             <EntityTypeMapping TypeName="NavyRRLModel.RmtlProject_Billet">
               <MappingFragment StoreEntitySet="RmtlProject_Billet">
+                <ScalarProperty Name="RowId" ColumnName="RowId" />
+                <ScalarProperty Name="LastUpdatedById" ColumnName="LastUpdatedById" />
+                <ScalarProperty Name="CreatedById" ColumnName="CreatedById" />
                 <ScalarProperty Name="Id" ColumnName="Id" />
                 <ScalarProperty Name="RmtlProjectId" ColumnName="RmtlProjectId" />
                 <ScalarProperty Name="JobId" ColumnName="JobId" />
@@ -2287,6 +2151,7 @@ warning 6002: The table/view 'NavyRRL.dbo.ImportRMTL' does not have a primary ke
           <EntitySetMapping Name="RmtlProjectBilletTask">
             <EntityTypeMapping TypeName="NavyRRLModel.RmtlProjectBilletTask">
               <MappingFragment StoreEntitySet="RmtlProjectBilletTask">
+                <ScalarProperty Name="RowId" ColumnName="RowId" />
                 <ScalarProperty Name="LastUpdatedById" ColumnName="LastUpdatedById" />
                 <ScalarProperty Name="CreatedById" ColumnName="CreatedById" />
                 <ScalarProperty Name="RatingTaskId" ColumnName="RatingTaskId" />
@@ -2300,13 +2165,14 @@ warning 6002: The table/view 'NavyRRL.dbo.ImportRMTL' does not have a primary ke
           <EntitySetMapping Name="Source">
             <EntityTypeMapping TypeName="NavyRRLModel.Source">
               <MappingFragment StoreEntitySet="Source">
+                <ScalarProperty Name="LastUpdated" ColumnName="LastUpdated" />
+                <ScalarProperty Name="Created" ColumnName="Created" />
+                <ScalarProperty Name="RowId" ColumnName="RowId" />
                 <ScalarProperty Name="Id" ColumnName="Id" />
                 <ScalarProperty Name="Name" ColumnName="Name" />
                 <ScalarProperty Name="SourceDate" ColumnName="SourceDate" />
                 <ScalarProperty Name="Description" ColumnName="Description" />
-                <ScalarProperty Name="DateCreated" ColumnName="DateCreated" />
                 <ScalarProperty Name="CreatedById" ColumnName="CreatedById" />
-                <ScalarProperty Name="DateModified" ColumnName="DateModified" />
                 <ScalarProperty Name="LastUpdatedById" ColumnName="LastUpdatedById" />
                 <ScalarProperty Name="CTID" ColumnName="CTID" />
               </MappingFragment>
@@ -2315,62 +2181,15 @@ warning 6002: The table/view 'NavyRRL.dbo.ImportRMTL' does not have a primary ke
           <EntitySetMapping Name="WorkElementType">
             <EntityTypeMapping TypeName="NavyRRLModel.WorkElementType">
               <MappingFragment StoreEntitySet="WorkElementType">
+                <ScalarProperty Name="LastUpdatedById" ColumnName="LastUpdatedById" />
+                <ScalarProperty Name="LastUpdated" ColumnName="LastUpdated" />
+                <ScalarProperty Name="CreatedById" ColumnName="CreatedById" />
+                <ScalarProperty Name="Created" ColumnName="Created" />
+                <ScalarProperty Name="Description" ColumnName="Description" />
+                <ScalarProperty Name="RowId" ColumnName="RowId" />
                 <ScalarProperty Name="Id" ColumnName="Id" />
                 <ScalarProperty Name="Name" ColumnName="Name" />
-                <ScalarProperty Name="description" ColumnName="description" />
-                <ScalarProperty Name="DateCreated" ColumnName="DateCreated" />
-                <ScalarProperty Name="DateModified" ColumnName="DateModified" />
                 <ScalarProperty Name="CTID" ColumnName="CTID" />
-              </MappingFragment>
-            </EntityTypeMapping>
-          </EntitySetMapping>
-          <EntitySetMapping Name="ImportRMTL">
-            <EntityTypeMapping TypeName="NavyRRLModel.ImportRMTL">
-              <MappingFragment StoreEntitySet="ImportRMTL">
-                <ScalarProperty Name="Message" ColumnName="Message" />
-                <ScalarProperty Name="IndexIdentifier" ColumnName="IndexIdentifier" />
-                <ScalarProperty Name="Unique_Identifier" ColumnName="Unique_Identifier" />
-                <ScalarProperty Name="Rating" ColumnName="Rating" />
-                <ScalarProperty Name="Rank" ColumnName="Rank" />
-                <ScalarProperty Name="RankLevel" ColumnName="RankLevel" />
-                <ScalarProperty Name="Billet_Title" ColumnName="Billet_Title" />
-                <ScalarProperty Name="Functional_Area" ColumnName="Functional_Area" />
-                <ScalarProperty Name="Source" ColumnName="Source" />
-                <ScalarProperty Name="Date_of_Source" ColumnName="Date_of_Source" />
-                <ScalarProperty Name="Work_Element_Type" ColumnName="Work_Element_Type" />
-                <ScalarProperty Name="Work_Element_Task" ColumnName="Work_Element_Task" />
-                <ScalarProperty Name="Task_Applicability" ColumnName="Task_Applicability" />
-                <ScalarProperty Name="Formal_Training_Gap" ColumnName="Formal_Training_Gap" />
-                <ScalarProperty Name="CIN" ColumnName="CIN" />
-                <ScalarProperty Name="Course_Name" ColumnName="Course_Name" />
-                <ScalarProperty Name="Course_Type" ColumnName="Course_Type" />
-                <ScalarProperty Name="Curriculum_Control_Authority" ColumnName="Curriculum_Control_Authority" />
-                <ScalarProperty Name="Life_Cycle_Control_Document" ColumnName="Life_Cycle_Control_Document" />
-                <ScalarProperty Name="Task_Statement" ColumnName="Task_Statement" />
-                <ScalarProperty Name="Current_Assessment_Approach" ColumnName="Current_Assessment_Approach" />
-                <ScalarProperty Name="TaskNotes" ColumnName="TaskNotes" />
-                <ScalarProperty Name="Training_Solution_Type" ColumnName="Training_Solution_Type" />
-                <ScalarProperty Name="Cluster_Analysis_Title" ColumnName="Cluster_Analysis_Title" />
-                <ScalarProperty Name="Recommended_Modality" ColumnName="Recommended_Modality" />
-                <ScalarProperty Name="Development_Specification" ColumnName="Development_Specification" />
-                <ScalarProperty Name="Candidate_Platform" ColumnName="Candidate_Platform" />
-                <ScalarProperty Name="CFM_Placement" ColumnName="CFM_Placement" />
-                <ScalarProperty Name="Priority_Placement" ColumnName="Priority_Placement" />
-                <ScalarProperty Name="Development_Ratio" ColumnName="Development_Ratio" />
-                <ScalarProperty Name="Development_Time" ColumnName="Development_Time" />
-                <ScalarProperty Name="ClusterAnalysisNotes" ColumnName="ClusterAnalysisNotes" />
-                <ScalarProperty Name="RatingId" ColumnName="RatingId" />
-                <ScalarProperty Name="RankId" ColumnName="RankId" />
-                <ScalarProperty Name="LevelId" ColumnName="LevelId" />
-                <ScalarProperty Name="BilletTitleId" ColumnName="BilletTitleId" />
-                <ScalarProperty Name="FunctionalAreaId" ColumnName="FunctionalAreaId" />
-                <ScalarProperty Name="SourceId" ColumnName="SourceId" />
-                <ScalarProperty Name="WorkElementTypeId" ColumnName="WorkElementTypeId" />
-                <ScalarProperty Name="RatingLevelTaskId" ColumnName="RatingLevelTaskId" />
-                <ScalarProperty Name="TaskApplicabilityId" ColumnName="TaskApplicabilityId" />
-                <ScalarProperty Name="FormalTrainingGapId" ColumnName="FormalTrainingGapId" />
-                <ScalarProperty Name="CourseId" ColumnName="CourseId" />
-                <ScalarProperty Name="CourseTaskId" ColumnName="CourseTaskId" />
               </MappingFragment>
             </EntityTypeMapping>
           </EntitySetMapping>
@@ -2410,12 +2229,12 @@ warning 6002: The table/view 'NavyRRL.dbo.ImportRMTL' does not have a primary ke
           <EntitySetMapping Name="Comment">
             <EntityTypeMapping TypeName="NavyRRLModel.Comment">
               <MappingFragment StoreEntitySet="Comment">
+                <ScalarProperty Name="StatusTypeId" ColumnName="StatusTypeId" />
+                <ScalarProperty Name="Description" ColumnName="Description" />
                 <ScalarProperty Name="LastUpdatedById" ColumnName="LastUpdatedById" />
                 <ScalarProperty Name="LastUpdated" ColumnName="LastUpdated" />
                 <ScalarProperty Name="CreatedById" ColumnName="CreatedById" />
                 <ScalarProperty Name="Created" ColumnName="Created" />
-                <ScalarProperty Name="Status" ColumnName="Status" />
-                <ScalarProperty Name="Comment1" ColumnName="Comment" />
                 <ScalarProperty Name="AppliesTo" ColumnName="AppliesTo" />
                 <ScalarProperty Name="RmtlProjectId" ColumnName="RmtlProjectId" />
                 <ScalarProperty Name="RowId" ColumnName="RowId" />
@@ -2426,6 +2245,7 @@ warning 6002: The table/view 'NavyRRL.dbo.ImportRMTL' does not have a primary ke
           <EntitySetMapping Name="Job_HasRating">
             <EntityTypeMapping TypeName="NavyRRLModel.Job_HasRating">
               <MappingFragment StoreEntitySet="Job_HasRating">
+                <ScalarProperty Name="RowId" ColumnName="RowId" />
                 <ScalarProperty Name="CreatedById" ColumnName="CreatedById" />
                 <ScalarProperty Name="Created" ColumnName="Created" />
                 <ScalarProperty Name="HasRatingId" ColumnName="HasRatingId" />
@@ -2437,6 +2257,7 @@ warning 6002: The table/view 'NavyRRL.dbo.ImportRMTL' does not have a primary ke
           <EntitySetMapping Name="RatingTask">
             <EntityTypeMapping TypeName="NavyRRLModel.RatingTask">
               <MappingFragment StoreEntitySet="RatingTask">
+                <ScalarProperty Name="Description" ColumnName="Description" />
                 <ScalarProperty Name="RowId" ColumnName="RowId" />
                 <ScalarProperty Name="TrainingTaskId" ColumnName="TrainingTaskId" />
                 <ScalarProperty Name="CTID" ColumnName="CTID" />
@@ -2448,7 +2269,6 @@ warning 6002: The table/view 'NavyRRL.dbo.ImportRMTL' does not have a primary ke
                 <ScalarProperty Name="FormalTrainingGapId" ColumnName="FormalTrainingGapId" />
                 <ScalarProperty Name="TaskStatusId" ColumnName="TaskStatusId" />
                 <ScalarProperty Name="TaskApplicabilityId" ColumnName="TaskApplicabilityId" />
-                <ScalarProperty Name="WorkElementTask" ColumnName="WorkElementTask" />
                 <ScalarProperty Name="WorkElementTypeId" ColumnName="WorkElementTypeId" />
                 <ScalarProperty Name="SourceId" ColumnName="SourceId" />
                 <ScalarProperty Name="FunctionalAreaId" ColumnName="FunctionalAreaId" />
@@ -2462,9 +2282,61 @@ warning 6002: The table/view 'NavyRRL.dbo.ImportRMTL' does not have a primary ke
           <EntitySetMapping Name="RatingTask_HasRating">
             <EntityTypeMapping TypeName="NavyRRLModel.RatingTask_HasRating">
               <MappingFragment StoreEntitySet="RatingTask_HasRating">
+                <ScalarProperty Name="RowId" ColumnName="RowId" />
                 <ScalarProperty Name="Created" ColumnName="Created" />
                 <ScalarProperty Name="RatingId" ColumnName="RatingId" />
                 <ScalarProperty Name="RatingTaskId" ColumnName="RatingTaskId" />
+                <ScalarProperty Name="Id" ColumnName="Id" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="ImportRMTL">
+            <EntityTypeMapping TypeName="NavyRRLModel.ImportRMTL">
+              <MappingFragment StoreEntitySet="ImportRMTL">
+                <ScalarProperty Name="Message" ColumnName="Message" />
+                <ScalarProperty Name="CourseTaskId" ColumnName="CourseTaskId" />
+                <ScalarProperty Name="CourseId" ColumnName="CourseId" />
+                <ScalarProperty Name="FormalTrainingGapId" ColumnName="FormalTrainingGapId" />
+                <ScalarProperty Name="TaskApplicabilityId" ColumnName="TaskApplicabilityId" />
+                <ScalarProperty Name="RatingLevelTaskId" ColumnName="RatingLevelTaskId" />
+                <ScalarProperty Name="WorkElementTypeId" ColumnName="WorkElementTypeId" />
+                <ScalarProperty Name="SourceId" ColumnName="SourceId" />
+                <ScalarProperty Name="FunctionalAreaId" ColumnName="FunctionalAreaId" />
+                <ScalarProperty Name="BilletTitleId" ColumnName="BilletTitleId" />
+                <ScalarProperty Name="LevelId" ColumnName="LevelId" />
+                <ScalarProperty Name="RankId" ColumnName="RankId" />
+                <ScalarProperty Name="RatingId" ColumnName="RatingId" />
+                <ScalarProperty Name="ClusterAnalysisNotes" ColumnName="ClusterAnalysisNotes" />
+                <ScalarProperty Name="Development_Time" ColumnName="Development_Time" />
+                <ScalarProperty Name="Development_Ratio" ColumnName="Development_Ratio" />
+                <ScalarProperty Name="Priority_Placement" ColumnName="Priority_Placement" />
+                <ScalarProperty Name="CFM_Placement" ColumnName="CFM_Placement" />
+                <ScalarProperty Name="Candidate_Platform" ColumnName="Candidate_Platform" />
+                <ScalarProperty Name="Development_Specification" ColumnName="Development_Specification" />
+                <ScalarProperty Name="Recommended_Modality" ColumnName="Recommended_Modality" />
+                <ScalarProperty Name="Cluster_Analysis_Title" ColumnName="Cluster_Analysis_Title" />
+                <ScalarProperty Name="Training_Solution_Type" ColumnName="Training_Solution_Type" />
+                <ScalarProperty Name="TaskNotes" ColumnName="TaskNotes" />
+                <ScalarProperty Name="Current_Assessment_Approach" ColumnName="Current_Assessment_Approach" />
+                <ScalarProperty Name="Task_Statement" ColumnName="Task_Statement" />
+                <ScalarProperty Name="Life_Cycle_Control_Document" ColumnName="Life_Cycle_Control_Document" />
+                <ScalarProperty Name="Curriculum_Control_Authority" ColumnName="Curriculum_Control_Authority" />
+                <ScalarProperty Name="Course_Type" ColumnName="Course_Type" />
+                <ScalarProperty Name="Course_Name" ColumnName="Course_Name" />
+                <ScalarProperty Name="CIN" ColumnName="CIN" />
+                <ScalarProperty Name="Formal_Training_Gap" ColumnName="Formal_Training_Gap" />
+                <ScalarProperty Name="Task_Applicability" ColumnName="Task_Applicability" />
+                <ScalarProperty Name="Work_Element_Task" ColumnName="Work_Element_Task" />
+                <ScalarProperty Name="Work_Element_Type" ColumnName="Work_Element_Type" />
+                <ScalarProperty Name="Date_of_Source" ColumnName="Date_of_Source" />
+                <ScalarProperty Name="Source" ColumnName="Source" />
+                <ScalarProperty Name="Functional_Area" ColumnName="Functional_Area" />
+                <ScalarProperty Name="Billet_Title" ColumnName="Billet_Title" />
+                <ScalarProperty Name="RankLevel" ColumnName="RankLevel" />
+                <ScalarProperty Name="Rank" ColumnName="Rank" />
+                <ScalarProperty Name="Rating" ColumnName="Rating" />
+                <ScalarProperty Name="Unique_Identifier" ColumnName="Unique_Identifier" />
+                <ScalarProperty Name="IndexIdentifier" ColumnName="IndexIdentifier" />
                 <ScalarProperty Name="Id" ColumnName="Id" />
               </MappingFragment>
             </EntityTypeMapping>

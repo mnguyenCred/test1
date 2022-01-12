@@ -60,9 +60,12 @@
     <Compile Include="BaseFactory.cs" />
     <Compile Include="CodesManager.cs" />
     <Compile Include="ConceptSchemeManager.cs" />
+    <Compile Include="CourseManager.cs" />
     <Compile Include="ImportManager.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RatingTaskManager.cs" />
+    <Compile Include="ReferenceResourceManager.cs" />
+    <Compile Include="TrainingTaskManager.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Data\Data.csproj">

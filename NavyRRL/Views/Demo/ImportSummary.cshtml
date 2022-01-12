@@ -70,10 +70,10 @@
                 //order: [[0, "desc"]],
                 //columnDefs: [{ targets: [0, 1, 2, 3], orderable: true }, { targets: 4, orderable: false, searchable: false }],
                 columns: [
-                //{ data: "Id", name: "Id", title: 'Id', width: "5%", filter: true },
+                    { data: "Id", name: "Id", title: 'Id', width: "5%", filter: true },
 					{ data: 'IndexIdentifier', name: "IndexIdentifier", title: "Index Identifier", filter: true, width: "50px" },
-                    { data: 'Unique_Identifier', name: "Unique_Identifier", title: "Unique Identifier", filter: true, width: "50px" },
-					{ data: 'Message', name: "Message", title: "Message", filter: true },
+                /*    { data: 'Unique_Identifier', name: "Unique_Identifier", title: "Unique Identifier", filter: true, width: "50px" },*/
+				/*	{ data: 'Message', name: "Message", title: "Message", filter: true },*/
 					{ data: 'Rating', name: "Rating", title: "Rating", filter: true },
 					{ data: 'Rank', name: "Rank", title: "Rank", filter: true },
 					{ data: 'RankLevel', name: "RankLevel", title: "Level", filter: true },
@@ -98,18 +98,18 @@
 					{ data: 'Current_Assessment_Approach', name: "Current_Assessment_Approach", title: "Current Assessment Approach", filter: true },
 					{ data: 'TaskNotes', name: "TaskNotes", title: "Task Notes", filter: true, width: "400px", bSortable: false }
                 ],
-				columnDefs: [
-					{
-						"targets": 2, "width": "10%",
-						"data": "Message",
-                        "render": function (data, type, row, meta) {
-							if (data)
-								return 'Error <div><a style="color:red;" class="btn collapsed " data-toggle="collapse" data-target="#viewMsg' + row.Unique_Identifier + '" aria-expanded="false">View Message »</a></div> <div class="collapse" id = "viewMsg' + row.Unique_Identifier + '" style="overflow: hidden; height: 0px;" aria-expanded="false" >' + data + '</div >';
-							else return 'OK';
+				//columnDefs: [
+				//	{
+				//		"targets": 2, "width": "10%",
+				//		"data": "Message",
+    //                    "render": function (data, type, row, meta) {
+				//			if (data)
+				//				return 'Error <div><a style="color:red;" class="btn collapsed " data-toggle="collapse" data-target="#viewMsg' + row.Unique_Identifier + '" aria-expanded="false">View Message »</a></div> <div class="collapse" id = "viewMsg' + row.Unique_Identifier + '" style="overflow: hidden; height: 0px;" aria-expanded="false" >' + data + '</div >';
+				//			else return 'OK';
 
-						}
-					}
-				],
+				//		}
+				//	}
+				//],
                 dom: 'lBfrtip',
                 buttons: [
                     {

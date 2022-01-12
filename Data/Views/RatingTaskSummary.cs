@@ -15,7 +15,6 @@ namespace Data.Views
     public partial class RatingTaskSummary
     {
         public int Id { get; set; }
-        public string Identifier { get; set; }
         public int RankId { get; set; }
         public string Rank { get; set; }
         public int LevelId { get; set; }
@@ -27,7 +26,6 @@ namespace Data.Views
         public string SourceDate { get; set; }
         public Nullable<int> WorkElementTypeId { get; set; }
         public string WorkElementType { get; set; }
-        public string WorkElementTask { get; set; }
         public Nullable<int> TaskApplicabilityId { get; set; }
         public string TaskApplicability { get; set; }
         public Nullable<int> FormalTrainingGapId { get; set; }
@@ -36,10 +34,22 @@ namespace Data.Views
         public string CourseName { get; set; }
         public string CourseType { get; set; }
         public Nullable<int> TrainingTaskId { get; set; }
-        public string TaskStatement { get; set; }
         public string CurrentAssessmentApproach { get; set; }
         public string CurriculumControlAuthority { get; set; }
         public string LifeCycleControlDocument { get; set; }
         public string Notes { get; set; }
+        public string CodedNotation { get; set; }
+        public Nullable<System.Guid> PayGradeType { get; set; }
+        public Nullable<System.Guid> HasReferenceResource { get; set; }
+        public Nullable<System.Guid> ReferenceType { get; set; }
+        public string Description { get; set; }
+        public Nullable<System.Guid> ApplicabilityType { get; set; }
+        public Nullable<System.Guid> TrainingGapType { get; set; }
+        public Nullable<System.Guid> HasTrainingTask { get; set; }
+        public string CTID { get; set; }
+        public System.Guid RowId { get; set; }
+        public System.DateTime created { get; set; }
+        public System.DateTime LastUpdated { get; set; }
+        public string TrainingTask { get; set; }
     }
 }

@@ -34,7 +34,6 @@ namespace Data.Tables
         public virtual DbSet<Course> Course { get; set; }
         public virtual DbSet<Course_Task> Course_Task { get; set; }
         public virtual DbSet<CurriculumControlAuthority> CurriculumControlAuthority { get; set; }
-        public virtual DbSet<FunctionalArea> FunctionalArea { get; set; }
         public virtual DbSet<Job> Job { get; set; }
         public virtual DbSet<Organization> Organization { get; set; }
         public virtual DbSet<Rating> Rating { get; set; }
@@ -43,7 +42,6 @@ namespace Data.Tables
         public virtual DbSet<RmtlProjectBilletTask> RmtlProjectBilletTask { get; set; }
         public virtual DbSet<Source> Source { get; set; }
         public virtual DbSet<WorkElementType> WorkElementType { get; set; }
-        public virtual DbSet<ImportRMTL> ImportRMTL { get; set; }
         public virtual DbSet<AspNetUserRoles> AspNetUserRoles { get; set; }
         public virtual DbSet<AspNetRoles> AspNetRoles { get; set; }
         public virtual DbSet<System_ProxyCodes> System_ProxyCodes { get; set; }
@@ -51,5 +49,6 @@ namespace Data.Tables
         public virtual DbSet<Job_HasRating> Job_HasRating { get; set; }
         public virtual DbSet<RatingTask> RatingTask { get; set; }
         public virtual DbSet<RatingTask_HasRating> RatingTask_HasRating { get; set; }
+        public virtual DbSet<ImportRMTL> ImportRMTL { get; set; }
     }
 }

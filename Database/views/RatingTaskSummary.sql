@@ -1,4 +1,6 @@
-/****** Script for SelectTopNRows command from SSMS  ******/
+use NavyRRL
+go
+
 
 /*
 SELECT 
@@ -13,13 +15,14 @@ from [QM_RMTL_11232021]
 group by Unique_Identifier having count(*) > 1
 go
 
-USE [NavyRRL]
+UUSE [NavyRRL]
 GO
 
 SELECT [Id]
-      ,[Identifier]
+      ,[CodedNotation]
       ,[RankId]
       ,[Rank]
+      ,[PayGradeType]
       ,[LevelId]
       ,[Level]
       ,[FunctionalAreaId]
@@ -27,68 +30,89 @@ SELECT [Id]
       ,[SourceId]
       ,[Source]
       ,[SourceDate]
+      ,[HasReferenceResource]
       ,[WorkElementTypeId]
       ,[WorkElementType]
-      ,[WorkElementTask]
+      ,[ReferenceType]
+      ,[Description]
       ,[TaskApplicabilityId]
-      ,[TaskApplication]
+      ,[TaskApplicability]
+      ,[ApplicabilityType]
       ,[FormalTrainingGapId]
       ,[FormalTrainingGap]
+      ,[TrainingGapType]
       ,[CIN]
       ,[CourseName]
       ,[CourseType]
       ,[TrainingTaskId]
       ,[TaskStatement]
-	  ,CurrentAssessmentApproach
-		,CurriculumControlAuthority
-		,LifeCycleControlDocument
+      ,[HasTrainingTask]
+      ,[CurrentAssessmentApproach]
+      ,[CurriculumControlAuthority]
+      ,[LifeCycleControlDocument]
       ,[Notes]
   FROM [dbo].[RatingTaskSummary]
+    where 
+	id in (select a.[RatingTaskId] from [RatingTask.HasRating] a inner join Rating b on a.ratingId = b.Id where b.CodedNotation = 'qm' )
+
+	[TaskApplicabilityId]= 77
+GO
+
+
 
 GO
 
 
 */
 
-Create  VIEW [dbo].RatingTaskSummary
+Alter  VIEW [dbo].RatingTaskSummary
 AS
 
 SELECT 
-a.Id,
-a.CodedNotation As Identifier
-,a.[RankId]
-, isnull(c1.Label,'missing') As [Rank]
-,a.[LevelId]
-, isnull(c2.Label,'missing') As [Level]
+	a.Id,
+	a.CTID,
+	a.RowId,
+	a.created, --as TaskCreated,
+	a.LastUpdated, --as TaskLastUpdated,
+	a.CodedNotation 
+	,a.[RankId]
+	, isnull(c1.Label,'missing') As [Rank]
+	,c1.RowId as PayGradeType
+	,a.[LevelId]
+	, isnull(c2.Label,'missing') As [Level]
 
-,a.[FunctionalAreaId]
-, isnull(b.name,'missing') As FunctionalArea
---,a.[Functional_Area]
-,a.[SourceId]
-, isnull(c.name,'missing') As Source
-,c.SourceDate
---,a.[Source] as origSource
--- ,a.[Date_of_Source]
-,a.[WorkElementTypeId]
-, isnull(d.name,'missing') As WorkElementType
---,a.[Work_Element_Type]
+	,a.[FunctionalAreaId]
+	, isnull(b.name,'missing') As FunctionalArea
+	,a.[SourceId]
+	, isnull(c.name,'missing') As Source
+	,c.SourceDate
+	,c.RowId as HasReferenceResource
+	--,a.[Source] as origSource
+	-- ,a.[Date_of_Source]
+	,a.[WorkElementTypeId]
+	, isnull(d.name,'missing') As WorkElementType
+	,d.RowId as ReferenceType
+	--,a.[Work_Element_Type]
 
-,a.WorkElementTask
-,a.TaskApplicabilityId
-, isnull(e.Label,'missing') As TaskApplicability
---,a.[Task_Applicability]
-,a.FormalTrainingGapId
-, isnull(f.Label,'missing') As FormalTrainingGap
---,a.[Formal_Training_Gap]
-,h.CIN
-,h.Name as CourseName
-,h.CourseType
-,a.TrainingTaskId
-,g.TaskStatement
-,h.CurrentAssessmentApproach
-,h.CurriculumControlAuthority
-,h.LifeCycleControlDocument
-,a.Notes
+	,a.Description
+	,a.TaskApplicabilityId
+	, isnull(e.Label,'missing') As TaskApplicability
+	--,a.[Task_Applicability]
+	,e.RowId as ApplicabilityType
+	,a.FormalTrainingGapId
+	, isnull(f.Label,'missing') As FormalTrainingGap
+	,f.RowId as TrainingGapType
+	--,a.[Formal_Training_Gap]
+	,h.CIN
+	,h.Name as CourseName
+	,h.CourseType
+	,a.TrainingTaskId
+	,g.Description as TrainingTask
+	,b.RowId as HasTrainingTask
+	,h.CurrentAssessmentApproach
+	,h.CurriculumControlAuthority
+	,h.LifeCycleControlDocument
+	,a.Notes
 
 	--     ,a.[RatingId]
 
@@ -96,7 +120,7 @@ a.CodedNotation As Identifier
 
 
    
-  FROM [NavyRRL].[dbo].[RatingTask] a
+  FROM [dbo].[RatingTask] a
 left join [ConceptScheme.Concept]	c1 on a.[RankId] = c1.Id
 left join [ConceptScheme.Concept]	c2 on a.[LevelId] = c2.Id
 left join FunctionalArea			b on a.FunctionalAreaId = b.Id
