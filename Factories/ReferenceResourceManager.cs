@@ -14,7 +14,7 @@ using Navy.Utilities;
 
 namespace Factories
 {
-    public class ReferenceResourceManager
+    public class ReferenceResourceManager : BaseFactory
     {
         public static string thisClassName = "ReferenceResourceManager";
 

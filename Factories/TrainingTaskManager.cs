@@ -15,7 +15,7 @@ using Navy.Utilities;
 
 namespace Factories
 {
-    public class TrainingTaskManager
+    public class TrainingTaskManager : BaseFactory
     {
         public static string thisClassName = "TrainingTaskManager";
 
@@ -62,7 +62,7 @@ namespace Factories
         /// May need a get all for a rating? Should not matter as this is external data?
         /// </summary>
         /// <returns></returns>
-        public static List<AppEntity> GetAll( bool includingTraingTasks = false )
+        public static List<AppEntity> GetAll( bool includingTrainingTasks = false )
         {
             var entity = new AppEntity();
             var list = new List<AppEntity>();

@@ -15,9 +15,20 @@ using Navy.Utilities;
 
 namespace Factories
 {
-    public class ConceptSchemeManager
+    public class ConceptSchemeManager : BaseFactory
     {
         public static string thisClassName = "ConceptSchemeManager";
+        //
+        public static string ConceptScheme_CommentStatus = "navy:CommentStatus";
+        public static string ConceptScheme_CourseType = "navy:CourseType";
+        public static string ConceptScheme_CurrentAssessmentApproach = "navy:CurrentAssessmentApproach";
+        public static string ConceptScheme_LifeCycleControlDocument = "navy:LifeCycleControlDocument";
+        public static string ConceptScheme_Pay_Grade = "navy:Paygrade";
+        public static string ConceptScheme_ProjectStatus = "navy:ProjectStatus";
+        public static string ConceptScheme_RatingLevel = "navy:RatingLevel";
+        public static string ConceptScheme_ReferenceResource = "navy:ReferenceResource";
+        public static string ConceptScheme_TaskApplicability = "navy:TaskApplicability";
+        public static string ConceptScheme_TrainingGap = "navy:TrainingGap";
 
         #region Retrieval
         public static AppEntity Get( string name )
@@ -105,6 +116,46 @@ namespace Factories
                 
             }
             return list;
+        }
+
+        public static Concept GetConcept( string conceptSchemeUri, string concept )
+        {
+            var entity = new Concept();
+            if ( string.IsNullOrWhiteSpace( conceptSchemeUri ) ||
+                string.IsNullOrWhiteSpace (concept ))
+                return entity;
+
+            using ( var context = new DataEntities() )
+            {
+                var item = context.ConceptScheme_Concept
+                            .SingleOrDefault( s => s.Label.ToLower() == concept.ToLower() && s.ConceptScheme.SchemaUri.ToLower() == conceptSchemeUri.ToLower() );
+
+                if ( item != null && item.Id > 0 )
+                {
+                    MapFromDB( item, entity );
+                }
+            }
+
+            return entity;
+        }
+        public static Concept GetConcept( int id )
+        {
+            var entity = new Concept();
+            if ( id < 1 )
+                return entity;
+
+            using ( var context = new DataEntities() )
+            {
+                var item = context.ConceptScheme_Concept
+                            .SingleOrDefault( s => s.Id == id );
+
+                if ( item != null && item.Id > 0 )
+                {
+                    MapFromDB( item, entity );
+                }
+            }
+
+            return entity;
         }
         public static void MapFromDB( DBEntity input, AppEntity output )
         {

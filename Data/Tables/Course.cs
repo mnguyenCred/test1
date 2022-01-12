@@ -29,9 +29,9 @@ namespace Data.Tables
         public Nullable<int> AssessmentApproachId { get; set; }
         public Nullable<int> CurriculumControlAuthorityId { get; set; }
         public string CTID { get; set; }
-        public Nullable<System.DateTime> Created { get; set; }
+        public System.DateTime Created { get; set; }
         public Nullable<int> CreatedById { get; set; }
-        public Nullable<System.DateTime> LastUpdated { get; set; }
+        public System.DateTime LastUpdated { get; set; }
         public Nullable<int> LastUpdatedById { get; set; }
         public string CourseType { get; set; }
         public string LifeCycleControlDocument { get; set; }

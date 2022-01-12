@@ -99,6 +99,9 @@ namespace Models.Schema
 		//Consider moving these to a separate class so they don't result in a lot of extra data being sent between client and server
 		public Concept TaskApplicabilityType { get; set; } = new Concept();
 		public Concept TaskTrainingGap { get; set; } = new Concept();
+	}
+	public class RatingTaskFull : RatingTask
+	{
 
 	}
 }
