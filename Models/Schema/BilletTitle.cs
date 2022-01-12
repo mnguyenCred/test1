@@ -10,7 +10,5 @@ namespace Models.Schema
 		public string Description { get; set; }
 		public Guid HasRating { get; set; } //GUID for a Rating
 		public List<Guid> HasRatingTask { get; set; } //List of GUIDs for Rating Tasks
-
-		public List<WorkRole> Temp { get; set; }
 	}
 }

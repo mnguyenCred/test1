@@ -6,6 +6,11 @@ namespace Models.Schema
 {
 	public class ReferenceResource : BaseObject
 	{
+		public ReferenceResource()
+		{
+			SubjectWebpage = new List<string>();
+		}
+
 		public string Name { get; set; }
 		public string Description { get; set; }
 		public string CodedNotation { get; set; }

@@ -9,8 +9,5 @@ namespace Models.Schema
 		public string Name { get; set; }
 		public string Description { get; set; }
 		public string CodedNotation { get; set; } //Abbreviation for the rating, e.g., "QM"
-
-		//Temporary
-		public List<WorkRole> Temp { get; set; }
 	}
 }

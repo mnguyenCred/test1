@@ -1,0 +1,170 @@
+﻿
+@{
+    ViewBag.Title = "UploadV2";
+}
+
+<script type="text/javascript">
+	var UI = {};
+	var Data = {};
+
+	$(document).ready(function () {
+		setupUI();
+	});
+	//
+
+	function setupUI() {
+		UI.RatingSelector = $(".ratingSelector");
+		UI.FileInput = $(".mainFileUpload");
+		UI.ProcessButton = $(".processButton");
+		UI.StatusBox = $(".status");
+
+		UI.ProcessButton.on("click", function () {
+			processFile();
+		});
+	}
+	//
+
+	function processFile() {
+		var file = UI.FileInput[0].files[0];
+		if (!file) {
+			setStatus("Please select a file.");
+		}
+		else {
+			setStatus("Reading File...");
+			var reader = new FileReader();
+			reader.onload = function () {
+				setStatus("Processing File...");
+				parseCSV(reader.result);
+
+				setStatus("Mapping Data...");
+				mapCSVJSON();
+
+				setStatus("Sending Data...");
+				submitData();
+			};
+			reader.onerror = function () {
+				setStatus("Error reading file: " + reader.error);
+			}
+			reader.readAsText(file);
+		}
+	}
+	//
+
+	function parseCSV(rawText) {
+		//Normalize the text
+		Data.RawCSV = rawText.replace(/\r\n/g, "\n").replace(/""/g, "<INSERTQUOTE>");
+		var rows = [];
+		var currentRow = [];
+		var currentCell = [];
+		var isInQuotes = false;
+
+		//Process each character
+		Data.RawCSV.split("").forEach(function (character) {
+			if (character == '"') {
+				isInQuotes = !isInQuotes;
+			}
+			else if (isInQuotes) {
+				currentCell.push(character);
+			}
+			else if (character == ",") {
+				currentRow.push(currentCell.join("").replace(/<INSERTQUOTE>/g, '"').trim());
+				currentCell = [];
+			}
+			else if (character == "\n") {
+				currentRow.push(currentCell.join("").replace(/<INSERTQUOTE>/g, '"').trim());
+				currentCell = [];
+				rows.push(currentRow);
+				currentRow = [];
+			}
+			else {
+				currentCell.push(character);
+			}
+		});
+
+		//Don't forget stragglers at the end
+		currentRow.push(currentCell.join("").replace(/<INSERTQUOTE>/g, '"').trim());
+		rows.push(currentRow);
+
+		//Set data
+		rows.shift(); //Discard first row, since it is not a true header row
+		Data.CSVColumns = rows.shift();
+		Data.CSVRows = rows;
+
+		//Create flat JSON
+		Data.CSVJSON = [];
+		Data.CSVRows.forEach(function (row) {
+			var temp = {};
+			Data.CSVColumns.forEach(function (column, index) {
+				temp[column] = row[index];
+			});
+			Data.CSVJSON.push(temp);
+		});
+
+		console.log("CSV Processed", Data);
+	}
+	//
+
+	function mapCSVJSON() {
+		Data.MappedTable = {
+			Rows: Data.CSVJSON.map(row => {
+				return {
+					Rating_CodedNotation: row[ "Rating" ],
+					PayGradeType_Notation: row[ "Rank" ],
+					BilletTitle_Name: row[ "Billet Title" ],
+					WorkRole_Name: row[ "Functional Area" ],
+					ReferenceResource_Name: row[ "Source" ],
+					ReferenceResource_PublicationDate: row[ "Date of Source" ],
+					Shared_ReferenceType: row[ "Work Element Type" ],
+					RatingTask_Description: row[ "Work Element (Task)" ],
+					RatingTask_ApplicabilityType_Label: row[ "Task Applicability" ],
+					RatingTask_TrainingGapType_Label: row[ "Formal Training Gap" ],
+					Course_CodedNotation: row[ "CIN" ],
+					Course_Name: row[ "Course Name" ],
+					Course_CourseType_Label: row[ "Course Type (A/C/G/F/T)" ],
+					Course_HasReferenceResource_Name: row["Life-Cycle Control Document"],
+					Course_CurriculumControlAuthority_Name: row["Curriculum Control Authority (CCA)"],
+					TrainingTask_Description: row[ "CTTL/PPP/TCCD Statement" ],
+					Course_AssessmentMethodType_Label: row[ "Current Assessment Approach" ],
+					Note: row[ "Notes" ]
+				}
+			})
+		};
+	}
+	//
+
+	function submitData() {
+		var data = { RawData: Data.MappedTable, RatingRowID: UI.RatingSelector.val() };
+		setStatus("Sending data, check console for details");
+		console.log("Submitting data", data);
+		fetch("@Url.Content("~/upload/processupload")", {
+			method: "POST",
+			headers: { 'Accept': 'application/json', 'Content-Type': 'application/json' },
+			body: JSON.stringify(data)
+		}).then((response) => {
+			setStatus("Received Response, check console for details");
+			console.log("Received response", response);
+			return response.text()
+		}).then((text) => {
+			console.log("Received text", text);
+			var finished = JSON.parse(text);
+			console.log("Parsed Data", finished);
+		});
+	}
+	//
+
+	function setStatus(text) {
+		UI.StatusBox.html(text);
+	}
+	//
+</script>
+<style type="text/css">
+
+</style>
+
+<h2>UploadV2</h2>
+
+<select class="ratingSelector">
+	<option value="00000000-0000-0000-0000-000000000000">Select a Rating...</option>
+</select>
+<input class="mainFileUpload" type="file" /><button class="processButton" data-action="process">Process</button>
+<div class="status"></div>
