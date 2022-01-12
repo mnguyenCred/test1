@@ -6,9 +6,28 @@ namespace Models.Schema
 {
 	public class BilletTitle : BaseObject
 	{
+		/// <summary>
+		/// Name of the Billet Title<br />
+		/// From Column: Billet Title
+		/// </summary>
 		public string Name { get; set; }
+
+		/// <summary>
+		/// Description of the Billet Title
+		/// From Column: TBD
+		/// </summary>
 		public string Description { get; set; }
-		public Guid HasRating { get; set; } //GUID for a Rating
-		public List<Guid> HasRatingTask { get; set; } //List of GUIDs for Rating Tasks
+
+		/// <summary>
+		/// Guid for the Rating this Billet Title is associated with<br />
+		/// From Column: Rating
+		/// </summary>
+		public Guid HasRating { get; set; }
+
+		/// <summary>
+		/// List of GUIDs for Rating Tasks associated with this Billet Title<br />
+		/// From Column: Work Element (Task)
+		/// </summary>
+		public List<Guid> HasRatingTask { get; set; }
 	}
 }

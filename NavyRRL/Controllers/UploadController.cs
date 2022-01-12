@@ -41,7 +41,7 @@ namespace NavyRRL.Controllers
 
         private static JsonResult JsonResponse( object data, bool valid = true, List<string> status = null, object extra = null )
 		{
-			return new JsonResult(){ Data = new { Data = data, Valid = valid, Status = status, Extra = extra } };
+			return new JsonResult(){ Data = new { Data = data, Valid = valid, Status = status, Extra = extra }, MaxJsonLength = int.MaxValue };
 		}
     }
 }

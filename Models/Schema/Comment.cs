@@ -16,12 +16,30 @@ namespace Models.Schema
 	 */ 
 	public class Comment : BaseObject
 	{
-		//??????????
+		/// <summary>
+		/// Reference to RMTL Project by ID (?)
+		/// </summary>
 		public int RMTLProject { get; set; }
+
+		/// <summary>
+		/// Description for this RMTL Project
+		/// </summary>
 		public string Description { get; set; }
-		public Guid OwnedBy { get; set; } //GUID for the owner of this Comment
-		//OR CommentFor, 
-		public Guid AppliesTo { get; set; } //GUID of the object that this Comment applies to
-		public Guid StatusType { get; set; } //GUID for the Concept for the Status Type of this Comment
+
+		/// <summary>
+		/// GUID for the owner of this Comment
+		/// </summary>
+		public Guid OwnedBy { get; set; }
+
+		/// <summary>
+		/// GUID of the object that this Comment applies to, including another Comment (when this Comment is a reply)<br />
+		/// TBD: Changing this property to "CommentFor" instead
+		/// </summary>
+		public Guid AppliesTo { get; set; }
+
+		/// <summary>
+		/// GUID for the Concept for the Status Type of this Comment
+		/// </summary>
+		public Guid StatusType { get; set; }
 	}
 }

@@ -6,40 +6,75 @@ namespace Models.Schema
 {
 	public class RatingTask : BaseObject
 	{
-		/* Updates?
-		 * - use of Guids - the existing concept table has CTID not guid. Would need to add to the table
-		 * - HasComment
-		 *		- list of comments for the appropriate context of project?
-		 *			- I think it would make more sense to just query for comments based on the RatingTask's RowId rather than have a property on RatingTask that contains comments
-		 * - Don't like the oblique properties
-		 */ 
+		/// <summary>
+		/// Actual text of the Rating Task<br />
+		/// From Column: Work Element (Task)
+		/// </summary>
 		public string Description { get; set; }
-		public string CodedNotation { get; set; } //May or may not end up being used
+
+		/// <summary>
+		/// May or may not end up being available in the source data<br />
+		/// From Column: TBD
+		/// </summary>
+		public string CodedNotation { get; set; }
+
+		/// <summary>
+		/// May or may not belong on Rating Task (might belong in RMTL Project data instead?)<br />
+		/// From Column: Notes
+		/// </summary>
 		public string Note { get; set; }
-		public List<Guid> HasRating { get; set; } //List of GUIDs for the Ratings that this Rating Task is associated with
-		public Guid HasTrainingTask { get; set; } //GUID for the Training Task for this Rating Task
+
 		/// <summary>
-		/// ReferenceResource
-		/// GUID for the Reference Resource that this Rating Task came from (e.g. a reference to "NAVPERS 18068F Vol. II")
-		/// AKA Source
+		/// List of GUIDs for the Ratings that this Rating Task is associated with<br />
+		/// From Column: Rating
 		/// </summary>
-		public Guid HasReferenceResource { get; set; } //
-		public Guid PayGradeType { get; set; } //GUID for the Concept for the Pay Grade Type (aka Rank) for this Rating Task
+		public List<Guid> HasRating { get; set; }
+
 		/// <summary>
-		/// GUID for the Concept for the Applicability Type for this Rating Task
+		/// GUID for the Training Task for this Rating Task<br />
+		/// From Column: CTTL/PPP/TCCD Statement
 		/// </summary>
-		public Guid ApplicabilityType { get; set; } //GUID for the Concept for the Applicability Type for this Rating Task
-		public List<Guid> HasWorkRole { get; set; } //List of GUIDs for the Work Role(s) (aka Functional Area(s)) for this Rating Task
-		public Guid TrainingGapType { get; set; } //GUID for the Concept for the Training Gap Type for this Rating Task
+		public Guid HasTrainingTask { get; set; }
+
 		/// <summary>
-		/// GUID for the Concept for the Reference Type for this Rating Task (e.g. a reference to "300 Series PQS Watch Station")
-		/// AKA WorkElementType
+		/// GUID for the Reference Resource that this Rating Task came from (e.g. a reference to "NAVPERS 18068F Vol. II")<br />
+		/// From Column: Source
 		/// </summary>
-		public Guid ReferenceType { get; set; } //
+		public Guid HasReferenceResource { get; set; }
+
+		/// <summary>
+		/// GUID for the Concept for the Pay Grade Type (aka Rank) for this Rating Task<br />
+		/// From Column: Rank
+		/// </summary>
+		public Guid PayGradeType { get; set; }
+
+		/// <summary>
+		/// GUID for the Concept for the Applicability Type for this Rating Task<br />
+		/// From Column: Task Applicability
+		/// </summary>
+		public Guid ApplicabilityType { get; set; }
+
+		/// <summary>
+		/// List of GUIDs for the Work Role(s) (aka Functional Area(s)) for this Rating Task<br />
+		/// From Column: Functional Area
+		/// </summary>
+		public List<Guid> HasWorkRole { get; set; }
+
+		/// <summary>
+		/// GUID for the Concept for the Training Gap Type for this Rating Task<br />
+		/// From Column: Formal Training Gap
+		/// </summary>
+		public Guid TrainingGapType { get; set; }
+
+		/// <summary>
+		/// GUID for the Concept for the Reference Type for this Rating Task (e.g. a reference to "300 Series PQS Watch Station")<br />
+		/// From Column: Work Element Type
+		/// </summary>
+		public Guid ReferenceType { get; set; }
 
 
-		//derived
-
+		//These are redundant now - see Models.Curation.UploadableTable (in Models.Curation.UploadableData.cs)
+		//Derived
 		public string FormalTrainingGap { get; set; }
 		public string FunctionalArea { get; set; }
 		public string Level { get; set; }
@@ -47,9 +82,10 @@ namespace Models.Schema
 		public string Source { get; set; }
 		public string SourceDate { get; set; }
 		public string TaskApplicability { get; set; }
-
 		public string WorkElementType { get; set; }
-		//course related
+
+
+		//Course Related
 		public string CIN { get; set; }
 		public string CourseName { get; set; }
 		public string CourseType { get; set; }
@@ -58,6 +94,9 @@ namespace Models.Schema
 		public string CurriculumControlAuthority { get; set; }
 		public string LifeCycleControlDocument { get; set; }
 
+
+		//Embedded
+		//Warning - these cause a lot of extra/duplicate data to be passed around between client and server!
 		public Concept TaskApplicabilityType { get; set; } = new Concept();
 		public Concept TaskTrainingGap { get; set; } = new Concept();
 
