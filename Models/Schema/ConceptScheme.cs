@@ -30,7 +30,7 @@ namespace Models.Schema
 		/// Preferred Label for this Concept<br />
 		/// AKA skos:prefLabel
 		/// </summary>
-		public string Label { get; set; }
+		public string Name { get; set; }
 
 		/// <summary>
 		/// Description for this Concept<br />
@@ -42,7 +42,7 @@ namespace Models.Schema
 		/// Notation for this Concept<br />
 		/// AKA skos:notation
 		/// </summary>
-		public string Notation { get; set; }
+		public string CodedNotation { get; set; }
 
 		/// <summary>
 		/// Guid for the Concept Scheme in which this Concept is a member<br />

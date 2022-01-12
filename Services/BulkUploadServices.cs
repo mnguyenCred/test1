@@ -152,10 +152,10 @@ namespace Services
 					 Find( graph.WorkRole, m.HasWorkRole ).Select( n => n.Name ).Contains( row.WorkRole_Name ) &&
 					 Find( graph.ReferenceResource, m.HasReferenceResource )?.Name == row.ReferenceResource_Name &&
 					 Find( graph.ReferenceResource, m.HasReferenceResource )?.PublicationDate == ParseDateOrEmpty( row.ReferenceResource_PublicationDate ) &&
-					 sharedSourceType?.Label == row.Shared_ReferenceType &&
-					 trainingGapType?.Label == row.RatingTask_TrainingGapType_Label &&
-					 applicabilityType?.Label == row.RatingTask_ApplicabilityType_Label &&
-					 payGradeType?.Notation == row.PayGradeType_Notation &&
+					 sharedSourceType?.Name == row.Shared_ReferenceType &&
+					 trainingGapType?.Name == row.RatingTask_TrainingGapType_Label &&
+					 applicabilityType?.Name == row.RatingTask_ApplicabilityType_Label &&
+					 payGradeType?.CodedNotation == row.PayGradeType_Notation &&
 					 ( Find( graph.TrainingTask, m.HasTrainingTask )?.Description ?? "" ) == ( row.TrainingTask_Description ?? "" )
 				);
 				if ( ratingTask == null ) {
@@ -236,7 +236,7 @@ namespace Services
 					course = graph.Course.FirstOrDefault( m =>
 						m.Name == row.Course_Name &&
 						m.CodedNotation == row.Course_CodedNotation &&
-						assessmentMethodType?.Label == row.Course_AssessmentMethodType_Label
+						assessmentMethodType?.Name == row.Course_AssessmentMethodType_Label
 					);
 					if(course == null )
 					{
@@ -592,11 +592,11 @@ namespace Services
 
 		private static Concept FindConceptOrError( List<Concept> haystack, string searchFor, bool useNotation, string warningLabel, List<string> warningMessages )
 		{
-			var match = haystack.FirstOrDefault( m => useNotation ? ( m.Notation.ToLower() == searchFor.ToLower() ) : ( m.Label.ToLower() == searchFor.ToLower() ) );
+			var match = haystack.FirstOrDefault( m => useNotation ? ( m.CodedNotation.ToLower() == searchFor.ToLower() ) : ( m.Name.ToLower() == searchFor.ToLower() ) );
 			if( match == null )
 			{
 				warningMessages.Add( "Error: Found unrecognized " + warningLabel + ": " + searchFor );
-				return new Concept() { RowId = Guid.NewGuid(), Label = useNotation ? null : searchFor, Notation = useNotation ? searchFor : null };
+				return new Concept() { RowId = Guid.NewGuid(), Name = useNotation ? null : searchFor, CodedNotation = useNotation ? searchFor : null };
 			}
 			return match;
 		}
