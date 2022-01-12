@@ -30,8 +30,8 @@ namespace Data.Tables
         public string RatingUploadDate { get; set; }
         public string RatingPublicationDate { get; set; }
         public string Image { get; set; }
-        public Nullable<System.DateTime> Created { get; set; }
-        public Nullable<System.DateTime> LastUpdated { get; set; }
+        public System.DateTime Created { get; set; }
+        public System.DateTime LastUpdated { get; set; }
         public System.Guid RowId { get; set; }
         public string MainEntityOfPage { get; set; }
         public Nullable<int> CreatedById { get; set; }

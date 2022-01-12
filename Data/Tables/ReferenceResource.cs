@@ -14,6 +14,12 @@ namespace Data.Tables
     
     public partial class ReferenceResource
     {
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2214:DoNotCallOverridableMethodsInConstructors")]
+        public ReferenceResource()
+        {
+            this.ReferenceResource_ReferenceType = new HashSet<ReferenceResource_ReferenceType>();
+        }
+    
         public int Id { get; set; }
         public System.Guid RowId { get; set; }
         public string Name { get; set; }
@@ -30,5 +36,8 @@ namespace Data.Tables
         public System.DateTime LastUpdated { get; set; }
         public Nullable<int> LastUpdatedById { get; set; }
         public string CTID { get; set; }
+    
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<ReferenceResource_ReferenceType> ReferenceResource_ReferenceType { get; set; }
     }
 }

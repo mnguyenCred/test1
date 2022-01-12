@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 using AppEntity = Models.Schema.ReferenceResource;
-using DBEntity = Data.Tables.Source;
+using DBEntity = Data.Tables.ReferenceResource;
 
 using DataEntities = Data.Tables.NavyRRLEntities;
 using ViewContext = Data.Views.ceNavyViewEntities;
@@ -27,7 +27,7 @@ namespace Factories
 
             using ( var context = new DataEntities() )
             {
-                var item = context.Source
+                var item = context.ReferenceResource
                             .FirstOrDefault( s => s.Name.ToLower() == name.ToLower() );
 
                 if ( item != null && item.Id > 0 )
@@ -43,7 +43,7 @@ namespace Factories
 
             using ( var context = new DataEntities() )
             {
-                var item = context.Source
+                var item = context.ReferenceResource
                             .FirstOrDefault( s => s.RowId == rowId );
 
                 if ( item != null && item.Id > 0 )
@@ -61,7 +61,7 @@ namespace Factories
 
             using ( var context = new DataEntities() )
             {
-                var item = context.Source
+                var item = context.ReferenceResource
                             .SingleOrDefault( s => s.Id == id );
 
                 if ( item != null && item.Id > 0 )
@@ -84,7 +84,7 @@ namespace Factories
 
             using ( var context = new DataEntities() )
             {
-                var results = context.Source
+                var results = context.ReferenceResource
                         .OrderBy( s => s.Name )
                         .ToList();
                 if ( results?.Count > 0 )

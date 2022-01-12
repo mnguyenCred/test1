@@ -51,5 +51,6 @@ namespace Data.Tables
         public virtual DbSet<RatingTask_HasRating> RatingTask_HasRating { get; set; }
         public virtual DbSet<ImportRMTL> ImportRMTL { get; set; }
         public virtual DbSet<ReferenceResource> ReferenceResource { get; set; }
+        public virtual DbSet<ReferenceResource_ReferenceType> ReferenceResource_ReferenceType { get; set; }
     }
 }

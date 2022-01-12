@@ -321,9 +321,9 @@
           <Property Name="RatingUploadDate" Type="varchar" MaxLength="50" />
           <Property Name="RatingPublicationDate" Type="varchar" MaxLength="50" />
           <Property Name="Image" Type="varchar" MaxLength="500" />
-          <Property Name="Created" Type="datetime" />
+          <Property Name="Created" Type="datetime" Nullable="false" />
           <Property Name="CreatedById" Type="int" />
-          <Property Name="LastUpdated" Type="datetime" />
+          <Property Name="LastUpdated" Type="datetime" Nullable="false" />
           <Property Name="LastUpdatedById" Type="int" />
           <Property Name="RowId" Type="uniqueidentifier" Nullable="false" />
         </EntityType>
@@ -359,7 +359,7 @@
           <Property Name="RowId" Type="uniqueidentifier" Nullable="false" />
           <Property Name="RatingTaskId" Type="int" Nullable="false" />
           <Property Name="RatingId" Type="int" Nullable="false" />
-          <Property Name="Created" Type="datetime" />
+          <Property Name="Created" Type="datetime" Nullable="false" />
         </EntityType>
         <EntityType Name="ReferenceResource">
           <Key>
@@ -381,6 +381,16 @@
           <Property Name="LastUpdated" Type="datetime" Nullable="false" />
           <Property Name="LastUpdatedById" Type="int" />
           <Property Name="CTID" Type="varchar" MaxLength="50" />
+        </EntityType>
+        <EntityType Name="ReferenceResource_ReferenceType">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="RowId" Type="uniqueidentifier" Nullable="false" />
+          <Property Name="ReferenceResourceId" Type="int" Nullable="false" />
+          <Property Name="ReferenceTypeId" Type="int" Nullable="false" />
+          <Property Name="Created" Type="datetime" Nullable="false" />
         </EntityType>
         <EntityType Name="RMTLProject">
           <Key>
@@ -743,6 +753,32 @@
             </Dependent>
           </ReferentialConstraint>
         </Association>
+        <Association Name="FK_ReferenceResource_ReferenceType_ConceptScheme_Concept">
+          <End Role="ConceptScheme_Concept" Type="Self.ConceptScheme_Concept" Multiplicity="1" />
+          <End Role="ReferenceResource_ReferenceType" Type="Self.ReferenceResource_ReferenceType" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="ConceptScheme_Concept">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="ReferenceResource_ReferenceType">
+              <PropertyRef Name="ReferenceTypeId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_ReferenceResource_ReferenceType_ReferenceResource">
+          <End Role="ReferenceResource" Type="Self.ReferenceResource" Multiplicity="1">
+            <OnDelete Action="Cascade" />
+          </End>
+          <End Role="ReferenceResource_ReferenceType" Type="Self.ReferenceResource_ReferenceType" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="ReferenceResource">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="ReferenceResource_ReferenceType">
+              <PropertyRef Name="ReferenceResourceId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
         <Association Name="FK_RmtlProject_Billet_Job">
           <End Role="Job" Type="Self.Job" Multiplicity="1">
             <OnDelete Action="Cascade" />
@@ -820,6 +856,7 @@
           <EntitySet Name="RatingTask" EntityType="Self.RatingTask" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="RatingTask_HasRating" EntityType="Self.RatingTask_HasRating" Schema="dbo" Table="RatingTask.HasRating" store:Type="Tables" />
           <EntitySet Name="ReferenceResource" EntityType="Self.ReferenceResource" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="ReferenceResource_ReferenceType" EntityType="Self.ReferenceResource_ReferenceType" Schema="dbo" Table="ReferenceResource.ReferenceType" store:Type="Tables" />
           <EntitySet Name="RMTLProject" EntityType="Self.RMTLProject" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="RmtlProject_Billet" EntityType="Self.RmtlProject_Billet" Schema="dbo" Table="RmtlProject.Billet" store:Type="Tables" />
           <EntitySet Name="RmtlProjectBilletTask" EntityType="Self.RmtlProjectBilletTask" Schema="dbo" store:Type="Tables" />
@@ -909,6 +946,14 @@
           <AssociationSet Name="FK_RatingTask_HasRatingTask_Task" Association="Self.FK_RatingTask_HasRatingTask_Task">
             <End Role="RatingTask" EntitySet="RatingTask" />
             <End Role="RatingTask_HasRating" EntitySet="RatingTask_HasRating" />
+          </AssociationSet>
+          <AssociationSet Name="FK_ReferenceResource_ReferenceType_ConceptScheme_Concept" Association="Self.FK_ReferenceResource_ReferenceType_ConceptScheme_Concept">
+            <End Role="ConceptScheme_Concept" EntitySet="ConceptScheme_Concept" />
+            <End Role="ReferenceResource_ReferenceType" EntitySet="ReferenceResource_ReferenceType" />
+          </AssociationSet>
+          <AssociationSet Name="FK_ReferenceResource_ReferenceType_ReferenceResource" Association="Self.FK_ReferenceResource_ReferenceType_ReferenceResource">
+            <End Role="ReferenceResource" EntitySet="ReferenceResource" />
+            <End Role="ReferenceResource_ReferenceType" EntitySet="ReferenceResource_ReferenceType" />
           </AssociationSet>
           <AssociationSet Name="FK_RmtlProject_Billet_Job" Association="Self.FK_RmtlProject_Billet_Job">
             <End Role="Job" EntitySet="Job" />
@@ -1059,6 +1104,7 @@
           <NavigationProperty Name="RatingTask3" Relationship="NavyRRLModel.FK_RatingLevelTask_ConceptScheme_Concept31" FromRole="ConceptScheme_Concept" ToRole="RatingTask" />
           <Property Name="RowId" Type="Guid" Nullable="false" />
           <Property Name="Name" Type="String" Nullable="false" MaxLength="1000" FixedLength="false" Unicode="false" />
+          <NavigationProperty Name="ReferenceResource_ReferenceType" Relationship="NavyRRLModel.FK_ReferenceResource_ReferenceType_ConceptScheme_Concept" FromRole="ConceptScheme_Concept" ToRole="ReferenceResource_ReferenceType" />
         </EntityType>
         <EntityType Name="Course">
           <Key>
@@ -1176,8 +1222,8 @@
           <Property Name="RatingUploadDate" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
           <Property Name="RatingPublicationDate" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
           <Property Name="Image" Type="String" MaxLength="500" FixedLength="false" Unicode="false" />
-          <Property Name="Created" Type="DateTime" Precision="3" />
-          <Property Name="LastUpdated" Type="DateTime" Precision="3" />
+          <Property Name="Created" Type="DateTime" Precision="3" Nullable="false" />
+          <Property Name="LastUpdated" Type="DateTime" Precision="3" Nullable="false" />
           <Property Name="RowId" Type="Guid" Nullable="false" />
           <Property Name="MainEntityOfPage" Type="String" MaxLength="600" FixedLength="false" Unicode="false" />
           <NavigationProperty Name="Job_HasRating" Relationship="NavyRRLModel.FK_Job_HasRating_Rating" FromRole="Rating" ToRole="Job_HasRating" />
@@ -1532,6 +1578,15 @@
           </AssociationSet>
           <EntitySet Name="ImportRMTL" EntityType="NavyRRLModel.ImportRMTL" />
           <EntitySet Name="ReferenceResource" EntityType="NavyRRLModel.ReferenceResource" />
+          <EntitySet Name="ReferenceResource_ReferenceType" EntityType="NavyRRLModel.ReferenceResource_ReferenceType" />
+          <AssociationSet Name="FK_ReferenceResource_ReferenceType_ConceptScheme_Concept" Association="NavyRRLModel.FK_ReferenceResource_ReferenceType_ConceptScheme_Concept">
+            <End Role="ConceptScheme_Concept" EntitySet="ConceptScheme_Concept" />
+            <End Role="ReferenceResource_ReferenceType" EntitySet="ReferenceResource_ReferenceType" />
+          </AssociationSet>
+          <AssociationSet Name="FK_ReferenceResource_ReferenceType_ReferenceResource" Association="NavyRRLModel.FK_ReferenceResource_ReferenceType_ReferenceResource">
+            <End Role="ReferenceResource" EntitySet="ReferenceResource" />
+            <End Role="ReferenceResource_ReferenceType" EntitySet="ReferenceResource_ReferenceType" />
+          </AssociationSet>
         </EntityContainer>
         <EntityType Name="AspNetUserRoles">
           <Key>
@@ -1678,7 +1733,7 @@
           <Property Name="Id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
           <Property Name="RatingTaskId" Type="Int32" Nullable="false" />
           <Property Name="RatingId" Type="Int32" Nullable="false" />
-          <Property Name="Created" Type="DateTime" Precision="3" />
+          <Property Name="Created" Type="DateTime" Precision="3" Nullable="false" />
           <NavigationProperty Name="Rating" Relationship="NavyRRLModel.FK_RatingTask_HasRating_Rating" FromRole="RatingTask_HasRating" ToRole="Rating" />
           <NavigationProperty Name="RatingTask" Relationship="NavyRRLModel.FK_RatingTask_HasRatingTask_Task" FromRole="RatingTask_HasRating" ToRole="RatingTask" />
           <Property Name="RowId" Type="Guid" Nullable="false" />
@@ -1922,7 +1977,46 @@
           <Property Name="LastUpdated" Type="DateTime" Nullable="false" Precision="3" />
           <Property Name="LastUpdatedById" Type="Int32" />
           <Property Name="CTID" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+          <NavigationProperty Name="ReferenceResource_ReferenceType" Relationship="NavyRRLModel.FK_ReferenceResource_ReferenceType_ReferenceResource" FromRole="ReferenceResource" ToRole="ReferenceResource_ReferenceType" />
         </EntityType>
+        <EntityType Name="ReferenceResource_ReferenceType">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="RowId" Type="Guid" Nullable="false" />
+          <Property Name="ReferenceResourceId" Type="Int32" Nullable="false" />
+          <Property Name="ReferenceTypeId" Type="Int32" Nullable="false" />
+          <Property Name="Created" Type="DateTime" Nullable="false" Precision="3" />
+          <NavigationProperty Name="ConceptScheme_Concept" Relationship="NavyRRLModel.FK_ReferenceResource_ReferenceType_ConceptScheme_Concept" FromRole="ReferenceResource_ReferenceType" ToRole="ConceptScheme_Concept" />
+          <NavigationProperty Name="ReferenceResource" Relationship="NavyRRLModel.FK_ReferenceResource_ReferenceType_ReferenceResource" FromRole="ReferenceResource_ReferenceType" ToRole="ReferenceResource" />
+        </EntityType>
+        <Association Name="FK_ReferenceResource_ReferenceType_ConceptScheme_Concept">
+          <End Type="NavyRRLModel.ConceptScheme_Concept" Role="ConceptScheme_Concept" Multiplicity="1" />
+          <End Type="NavyRRLModel.ReferenceResource_ReferenceType" Role="ReferenceResource_ReferenceType" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="ConceptScheme_Concept">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="ReferenceResource_ReferenceType">
+              <PropertyRef Name="ReferenceTypeId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_ReferenceResource_ReferenceType_ReferenceResource">
+          <End Type="NavyRRLModel.ReferenceResource" Role="ReferenceResource" Multiplicity="1">
+            <OnDelete Action="Cascade" />
+          </End>
+          <End Type="NavyRRLModel.ReferenceResource_ReferenceType" Role="ReferenceResource_ReferenceType" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="ReferenceResource">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="ReferenceResource_ReferenceType">
+              <PropertyRef Name="ReferenceResourceId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
       </Schema>
     </edmx:ConceptualModels>
     <!-- C-S mapping content -->
@@ -2417,6 +2511,17 @@
                 <ScalarProperty Name="CodedNotation" ColumnName="CodedNotation" />
                 <ScalarProperty Name="Description" ColumnName="Description" />
                 <ScalarProperty Name="Name" ColumnName="Name" />
+                <ScalarProperty Name="RowId" ColumnName="RowId" />
+                <ScalarProperty Name="Id" ColumnName="Id" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="ReferenceResource_ReferenceType">
+            <EntityTypeMapping TypeName="NavyRRLModel.ReferenceResource_ReferenceType">
+              <MappingFragment StoreEntitySet="ReferenceResource_ReferenceType">
+                <ScalarProperty Name="Created" ColumnName="Created" />
+                <ScalarProperty Name="ReferenceTypeId" ColumnName="ReferenceTypeId" />
+                <ScalarProperty Name="ReferenceResourceId" ColumnName="ReferenceResourceId" />
                 <ScalarProperty Name="RowId" ColumnName="RowId" />
                 <ScalarProperty Name="Id" ColumnName="Id" />
               </MappingFragment>

@@ -5,11 +5,11 @@
     <!-- Diagram content (shape and connector positions) -->
     <edmx:Diagrams>
       <Diagram DiagramId="1cbd21b9a0474d02b074dae2db684a6a" Name="Diagram1" ZoomLevel="66">
-        <EntityTypeShape EntityType="NavyRRLModel.Account" Width="1.5" PointX="3.875" PointY="17.5" IsExpanded="true" />
+        <EntityTypeShape EntityType="NavyRRLModel.Account" Width="1.5" PointX="6" PointY="21.125" IsExpanded="true" />
         <EntityTypeShape EntityType="NavyRRLModel.ActivityLog" Width="1.5" PointX="23.25" PointY="7" IsExpanded="true" />
-        <EntityTypeShape EntityType="NavyRRLModel.AspNetUsers" Width="1.5" PointX="6.625" PointY="19.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="NavyRRLModel.AspNetUsers" Width="1.5" PointX="10.625" PointY="21.375" IsExpanded="true" />
         <EntityTypeShape EntityType="NavyRRLModel.Assessment" Width="1.5" PointX="0.875" PointY="7.875" IsExpanded="true" />
-        <EntityTypeShape EntityType="NavyRRLModel.ConceptScheme" Width="1.5" PointX="1.125" PointY="13.375" IsExpanded="true" />
+        <EntityTypeShape EntityType="NavyRRLModel.ConceptScheme" Width="1.5" PointX="0.5" PointY="16.125" IsExpanded="true" />
         <EntityTypeShape EntityType="NavyRRLModel.ConceptScheme_Concept" Width="2.25" PointX="6.125" PointY="13.125" IsExpanded="true" />
         <EntityTypeShape EntityType="NavyRRLModel.Course" Width="1.5" PointX="3.875" PointY="4.5" IsExpanded="true" />
         <EntityTypeShape EntityType="NavyRRLModel.Course_Task" Width="1.5" PointX="6.875" PointY="8.25" IsExpanded="true" />
@@ -32,9 +32,9 @@
         <AssociationConnector Association="NavyRRLModel.FK_Course_Task_Course" ManuallyRouted="false" />
         <AssociationConnector Association="NavyRRLModel.FK_RmtlProject_Billet_Job" ManuallyRouted="false" />
         <AssociationConnector Association="NavyRRLModel.FK_RmtlProject_Billet_RMTLProject" ManuallyRouted="false" />
-        <EntityTypeShape EntityType="NavyRRLModel.AspNetUserRoles" Width="1.5" PointX="9.5" PointY="21.875" />
+        <EntityTypeShape EntityType="NavyRRLModel.AspNetUserRoles" Width="1.5" PointX="13.75" PointY="22.375" />
         <AssociationConnector Association="NavyRRLModel.FK_AspNetUserRoles_AspNetUsers" />
-        <EntityTypeShape EntityType="NavyRRLModel.AspNetRoles" Width="1.5" PointX="13.75" PointY="22.875" />
+        <EntityTypeShape EntityType="NavyRRLModel.AspNetRoles" Width="1.5" PointX="16.375" PointY="23.25" />
         <AssociationConnector Association="NavyRRLModel.FK_AspNetUserRoles_AspNetRoles" />
         <EntityTypeShape EntityType="NavyRRLModel.System_ProxyCodes" Width="1.5" PointX="23.5" PointY="0.875" />
         <AssociationConnector Association="NavyRRLModel.FK_RmtlProjectBilletTask_RmtlProject_Billet" />
@@ -56,7 +56,10 @@
         <AssociationConnector Association="NavyRRLModel.FK_RatingTask_HasRatingTask_Task" />
         <AssociationConnector Association="NavyRRLModel.FK_RmtlProjectBilletTask_RatingTask" />
         <EntityTypeShape EntityType="NavyRRLModel.ImportRMTL" Width="3" PointX="18.375" PointY="5.75" />
-        <EntityTypeShape EntityType="NavyRRLModel.ReferenceResource" Width="1.5" PointX="3.375" PointY="10.75" />
+        <EntityTypeShape EntityType="NavyRRLModel.ReferenceResource" Width="2.125" PointX="0.5" PointY="10.875" />
+        <EntityTypeShape EntityType="NavyRRLModel.ReferenceResource_ReferenceType" Width="1.5" PointX="3.625" PointY="12.75" />
+        <AssociationConnector Association="NavyRRLModel.FK_ReferenceResource_ReferenceType_ConceptScheme_Concept" />
+        <AssociationConnector Association="NavyRRLModel.FK_ReferenceResource_ReferenceType_ReferenceResource" />
       </Diagram>
     </edmx:Diagrams>
   </edmx:Designer>

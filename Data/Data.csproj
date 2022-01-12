@@ -143,6 +143,9 @@
     <Compile Include="Tables\ReferenceResource.cs">
       <DependentUpon>NavyRRLTables.tt</DependentUpon>
     </Compile>
+    <Compile Include="Tables\ReferenceResource_ReferenceType.cs">
+      <DependentUpon>NavyRRLTables.tt</DependentUpon>
+    </Compile>
     <Compile Include="Tables\RMTLProject.cs">
       <DependentUpon>NavyRRLTables.tt</DependentUpon>
     </Compile>

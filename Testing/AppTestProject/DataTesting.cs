@@ -65,9 +65,25 @@ namespace AppTestProject
         }
         #endregion
 
+        [TestMethod]
+        public void RatingGetAll()
+        {
+            try
+            {
+                var list = RatingManager.GetAll();
+                foreach ( var item in list )
+                {
+
+                }
+            }
+            catch ( Exception ex )
+            {
+                Assert.Fail( ex.Message );
+            }
+        }
         #region Source
         [TestMethod]
-        public void SourceGet()
+        public void ReferenceResourceGet()
         {
             var recordId = 1;
             try
@@ -81,10 +97,10 @@ namespace AppTestProject
             }
 
             //
-            SourceGetAll();
+            //SourceGetAll();
         }
         [TestMethod]
-        public void SourceGetAll()
+        public void ReferenceResourceGetAll()
         {
             try
             {

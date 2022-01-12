@@ -12,15 +12,15 @@ namespace Data.Tables
     using System;
     using System.Collections.Generic;
     
-    public partial class RatingTask_HasRating
+    public partial class ReferenceResource_ReferenceType
     {
         public int Id { get; set; }
-        public int RatingTaskId { get; set; }
-        public int RatingId { get; set; }
-        public System.DateTime Created { get; set; }
         public System.Guid RowId { get; set; }
+        public int ReferenceResourceId { get; set; }
+        public int ReferenceTypeId { get; set; }
+        public System.DateTime Created { get; set; }
     
-        public virtual Rating Rating { get; set; }
-        public virtual RatingTask RatingTask { get; set; }
+        public virtual ConceptScheme_Concept ConceptScheme_Concept { get; set; }
+        public virtual ReferenceResource ReferenceResource { get; set; }
     }
 }

@@ -122,15 +122,15 @@ INSERT INTO [dbo].[ConceptScheme.Concept]
            (newId() ,9
            ,'Life-Cycle Control Document'
            ,'ce-5f4db99a-5335-43cb-8193-22dcf81e99cd'
-           ,'LCCD'
+           ,'NEC'
 		   ,''
             ,GETDATE(),GETDATE())
 GO
 
 
+--=============================================
 -- updates
-USE [NavyRRL]
-GO
+
 
 UPDATE [dbo].[ConceptScheme.Concept]
    SET [Label] = 'Maintenance Index Page'
