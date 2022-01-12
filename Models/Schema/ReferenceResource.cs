@@ -54,10 +54,10 @@ namespace Models.Schema
 		public List<string> SubjectWebpage { get; set; }
 
 		/// <summary>
-		/// GUID for the Concept for the Reference Type for this Reference Resource<br />
+		/// List of GUIDs for the Concepts for the Reference Types for this Reference Resource<br />
 		/// From Column: Work Element Type
 		/// </summary>
-		public Guid ReferenceType { get; set; }
+		public List<Guid> ReferenceType { get; set; }
 
 		/// <summary>
 		/// GUID for the Concept for the Status Type for this Reference Resource<br />
