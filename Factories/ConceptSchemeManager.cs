@@ -128,7 +128,7 @@ namespace Factories
             using ( var context = new DataEntities() )
             {
                 var item = context.ConceptScheme_Concept
-                            .SingleOrDefault( s => s.Label.ToLower() == concept.ToLower() && s.ConceptScheme.SchemaUri.ToLower() == conceptSchemeUri.ToLower() );
+                            .SingleOrDefault( s => s.Name.ToLower() == concept.ToLower() && s.ConceptScheme.SchemaUri.ToLower() == conceptSchemeUri.ToLower() );
 
                 if ( item != null && item.Id > 0 )
                 {

@@ -32,8 +32,8 @@ namespace Data.Tables
         public Nullable<int> ListId { get; set; }
         public System.DateTime Created { get; set; }
         public System.DateTime LastUpdated { get; set; }
-        public string Label { get; set; }
         public System.Guid RowId { get; set; }
+        public string Name { get; set; }
     
         public virtual ConceptScheme ConceptScheme { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]

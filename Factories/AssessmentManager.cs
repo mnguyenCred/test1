@@ -41,6 +41,7 @@ namespace Factories
                         var record = Get( entity.Name );
                         if( record?.Id > 0 )
                         {
+                            //currently no description, so can just return
                             entity.Id = record.Id;
                             return true;
                         }

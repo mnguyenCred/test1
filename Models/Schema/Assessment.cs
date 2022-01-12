@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 
 namespace Models.Schema
 {
+    [Obsolete]
     public class Assessment : BaseObject
     {
         public string Name { get; set; }

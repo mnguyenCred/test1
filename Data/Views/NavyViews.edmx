@@ -113,7 +113,7 @@ warning 6002: The table/view 'NavyRRL.dbo.RatingTaskSummary' does not have a pri
             <PropertyRef Name="FunctionalArea" />
             <PropertyRef Name="Source" />
             <PropertyRef Name="WorkElementType" />
-            <PropertyRef Name="Description" />
+            <PropertyRef Name="RatingTask" />
             <PropertyRef Name="TaskApplicability" />
             <PropertyRef Name="FormalTrainingGap" />
             <PropertyRef Name="FunctionalAreaId" />
@@ -138,7 +138,7 @@ warning 6002: The table/view 'NavyRRL.dbo.RatingTaskSummary' does not have a pri
           <Property Name="WorkElementTypeId" Type="int" />
           <Property Name="WorkElementType" Type="nvarchar" MaxLength="300" Nullable="false" />
           <Property Name="ReferenceType" Type="uniqueidentifier" />
-          <Property Name="Description" Type="nvarchar(max)" Nullable="false" />
+          <Property Name="RatingTask" Type="nvarchar(max)" Nullable="false" />
           <Property Name="TaskApplicabilityId" Type="int" />
           <Property Name="TaskApplicability" Type="varchar" MaxLength="1000" Nullable="false" />
           <Property Name="ApplicabilityType" Type="uniqueidentifier" />
@@ -168,43 +168,33 @@ warning 6002: The table/view 'NavyRRL.dbo.RmtlSummary' does not have a primary k
             <PropertyRef Name="FunctionalArea" />
             <PropertyRef Name="Source" />
             <PropertyRef Name="WorkElementType" />
-            <PropertyRef Name="WorkElementTask" />
+            <PropertyRef Name="RatingTask" />
             <PropertyRef Name="TaskApplicability" />
             <PropertyRef Name="FormalTrainingGap" />
+            <PropertyRef Name="TrainingTask" />
           </Key>
-          <Property Name="RMTLProject" Type="varchar" MaxLength="300" Nullable="false" />
-          <Property Name="Rating" Type="varchar" MaxLength="500" Nullable="false" />
+          <Property Name="RMTLProject" Type="nvarchar" MaxLength="300" Nullable="false" />
+          <Property Name="Rating" Type="nvarchar" MaxLength="500" Nullable="false" />
           <Property Name="Rank" Type="varchar" MaxLength="1000" Nullable="false" />
           <Property Name="Level" Type="varchar" MaxLength="1000" Nullable="false" />
-          <Property Name="BilletTitle" Type="varchar" MaxLength="500" Nullable="false" />
-          <Property Name="FunctionalArea" Type="nvarchar" MaxLength="200" Nullable="false" />
+          <Property Name="BilletTitle" Type="nvarchar" MaxLength="500" Nullable="false" />
+          <Property Name="FunctionalArea" Type="nvarchar" MaxLength="300" Nullable="false" />
           <Property Name="Source" Type="nvarchar" MaxLength="200" Nullable="false" />
           <Property Name="SourceDate" Type="nvarchar" MaxLength="50" />
-          <Property Name="WorkElementType" Type="nvarchar" MaxLength="50" Nullable="false" />
-          <Property Name="WorkElementTask" Type="nvarchar(max)" Nullable="false" />
+          <Property Name="WorkElementType" Type="nvarchar" MaxLength="300" Nullable="false" />
+          <Property Name="RatingTask" Type="nvarchar(max)" Nullable="false" />
           <Property Name="TaskApplicability" Type="varchar" MaxLength="1000" Nullable="false" />
           <Property Name="FormalTrainingGap" Type="varchar" MaxLength="1000" Nullable="false" />
           <Property Name="CIN" Type="nvarchar" MaxLength="50" />
-          <Property Name="CourseName" Type="nvarchar" MaxLength="200" />
+          <Property Name="CourseName" Type="nvarchar" MaxLength="300" />
           <Property Name="CourseType" Type="nvarchar" MaxLength="50" />
-          <Property Name="TaskStatement" Type="nvarchar(max)" />
+          <Property Name="TrainingTask" Type="nvarchar(max)" Nullable="false" />
           <Property Name="CurrentAssessmentApproach" Type="nvarchar" MaxLength="200" />
           <Property Name="CurriculumControlAuthority" Type="nvarchar" MaxLength="200" />
           <Property Name="LifeCycleControlDocument" Type="nvarchar" MaxLength="100" />
         </EntityType>
         <!--Errors Found During Generation:
 warning 6002: The table/view 'NavyRRL.dbo.SubscriptionEntities' does not have a primary key defined. The key has been inferred and the definition was created as a read-only table/view.-->
-        <EntityType Name="SubscriptionEntities">
-          <Key>
-            <PropertyRef Name="Id" />
-          </Key>
-          <Property Name="Id" Type="int" Nullable="false" />
-          <Property Name="Title" Type="varchar" MaxLength="100" />
-          <Property Name="Description" Type="varchar" MaxLength="500" />
-          <Property Name="IsActive" Type="bit" />
-          <Property Name="SchemaUrl" Type="varchar" MaxLength="200" />
-          <Property Name="Created" Type="datetime" />
-        </EntityType>
         <EntityContainer Name="ceNavyViewModelStoreContainer">
           <EntitySet Name="Account_Summary" EntityType="Self.Account_Summary" store:Type="Views" store:Schema="dbo">
             <DefiningQuery>SELECT 
@@ -291,7 +281,7 @@ warning 6002: The table/view 'NavyRRL.dbo.SubscriptionEntities' does not have a 
     [RatingTaskSummary].[WorkElementTypeId] AS [WorkElementTypeId], 
     [RatingTaskSummary].[WorkElementType] AS [WorkElementType], 
     [RatingTaskSummary].[ReferenceType] AS [ReferenceType], 
-    [RatingTaskSummary].[Description] AS [Description], 
+    [RatingTaskSummary].[RatingTask] AS [RatingTask], 
     [RatingTaskSummary].[TaskApplicabilityId] AS [TaskApplicabilityId], 
     [RatingTaskSummary].[TaskApplicability] AS [TaskApplicability], 
     [RatingTaskSummary].[ApplicabilityType] AS [ApplicabilityType], 
@@ -321,27 +311,17 @@ warning 6002: The table/view 'NavyRRL.dbo.SubscriptionEntities' does not have a 
     [RmtlSummary].[Source] AS [Source], 
     [RmtlSummary].[SourceDate] AS [SourceDate], 
     [RmtlSummary].[WorkElementType] AS [WorkElementType], 
-    [RmtlSummary].[WorkElementTask] AS [WorkElementTask], 
+    [RmtlSummary].[RatingTask] AS [RatingTask], 
     [RmtlSummary].[TaskApplicability] AS [TaskApplicability], 
     [RmtlSummary].[FormalTrainingGap] AS [FormalTrainingGap], 
     [RmtlSummary].[CIN] AS [CIN], 
     [RmtlSummary].[CourseName] AS [CourseName], 
     [RmtlSummary].[CourseType] AS [CourseType], 
-    [RmtlSummary].[TaskStatement] AS [TaskStatement], 
+    [RmtlSummary].[TrainingTask] AS [TrainingTask], 
     [RmtlSummary].[CurrentAssessmentApproach] AS [CurrentAssessmentApproach], 
     [RmtlSummary].[CurriculumControlAuthority] AS [CurriculumControlAuthority], 
     [RmtlSummary].[LifeCycleControlDocument] AS [LifeCycleControlDocument]
     FROM [dbo].[RmtlSummary] AS [RmtlSummary]</DefiningQuery>
-          </EntitySet>
-          <EntitySet Name="SubscriptionEntities" EntityType="Self.SubscriptionEntities" store:Type="Views" store:Schema="dbo">
-            <DefiningQuery>SELECT 
-    [SubscriptionEntities].[Id] AS [Id], 
-    [SubscriptionEntities].[Title] AS [Title], 
-    [SubscriptionEntities].[Description] AS [Description], 
-    [SubscriptionEntities].[IsActive] AS [IsActive], 
-    [SubscriptionEntities].[SchemaUrl] AS [SchemaUrl], 
-    [SubscriptionEntities].[Created] AS [Created]
-    FROM [dbo].[SubscriptionEntities] AS [SubscriptionEntities]</DefiningQuery>
           </EntitySet>
         </EntityContainer>
       </Schema></edmx:StorageModels>
@@ -351,7 +331,6 @@ warning 6002: The table/view 'NavyRRL.dbo.SubscriptionEntities' does not have a 
         <EntityContainer Name="ceNavyViewEntities" annotation:LazyLoadingEnabled="true">
           <EntitySet Name="Activity_Summary" EntityType="ceNavyViewModel.Activity_Summary" />
           <EntitySet Name="Account_Summary" EntityType="ceNavyViewModel.Account_Summary" />
-          <EntitySet Name="SubscriptionEntities" EntityType="ceNavyViewModel.SubscriptionEntities" />
           <EntitySet Name="AspNetUserRoles_Summary" EntityType="ceNavyViewModel.AspNetUserRoles_Summary" />
           <EntitySet Name="ConceptSchemeSummary" EntityType="ceNavyViewModel.ConceptSchemeSummary" />
           <EntitySet Name="RmtlSummary" EntityType="ceNavyViewModel.RmtlSummary" />
@@ -411,17 +390,6 @@ warning 6002: The table/view 'NavyRRL.dbo.SubscriptionEntities' does not have a 
           <Property Name="lastLogon" Type="DateTime" Precision="3" />
           <Property Name="ExternalAccountIdentifier" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
         </EntityType>
-        <EntityType Name="SubscriptionEntities">
-          <Key>
-            <PropertyRef Name="Id" />
-          </Key>
-          <Property Name="Id" Type="Int32" Nullable="false" />
-          <Property Name="Title" Type="String" MaxLength="100" FixedLength="false" Unicode="false" />
-          <Property Name="Description" Type="String" MaxLength="500" FixedLength="false" Unicode="false" />
-          <Property Name="IsActive" Type="Boolean" />
-          <Property Name="SchemaUrl" Type="String" MaxLength="200" FixedLength="false" Unicode="false" />
-          <Property Name="Created" Type="DateTime" Precision="3" />
-        </EntityType>
         <EntityType Name="AspNetUserRoles_Summary">
           <Key>
             <PropertyRef Name="Id" />
@@ -462,30 +430,31 @@ warning 6002: The table/view 'NavyRRL.dbo.SubscriptionEntities' does not have a 
             <PropertyRef Name="FunctionalArea" />
             <PropertyRef Name="Source" />
             <PropertyRef Name="WorkElementType" />
-            <PropertyRef Name="WorkElementTask" />
             <PropertyRef Name="TaskApplicability" />
             <PropertyRef Name="FormalTrainingGap" />
             <PropertyRef Name="RMTLProject" />
+            <PropertyRef Name="RatingTask" />
+            <PropertyRef Name="TrainingTask" />
           </Key>
-          <Property Name="Rating" Type="String" Nullable="false" MaxLength="500" FixedLength="false" Unicode="false" />
+          <Property Name="Rating" Type="String" Nullable="false" MaxLength="500" FixedLength="false" Unicode="true" />
           <Property Name="Rank" Type="String" Nullable="false" MaxLength="1000" FixedLength="false" Unicode="false" />
           <Property Name="Level" Type="String" Nullable="false" MaxLength="1000" FixedLength="false" Unicode="false" />
-          <Property Name="BilletTitle" Type="String" Nullable="false" MaxLength="500" FixedLength="false" Unicode="false" />
-          <Property Name="FunctionalArea" Type="String" Nullable="false" MaxLength="200" FixedLength="false" Unicode="true" />
+          <Property Name="BilletTitle" Type="String" Nullable="false" MaxLength="500" FixedLength="false" Unicode="true" />
+          <Property Name="FunctionalArea" Type="String" Nullable="false" MaxLength="300" FixedLength="false" Unicode="true" />
           <Property Name="Source" Type="String" Nullable="false" MaxLength="200" FixedLength="false" Unicode="true" />
           <Property Name="SourceDate" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
-          <Property Name="WorkElementType" Type="String" Nullable="false" MaxLength="50" FixedLength="false" Unicode="true" />
-          <Property Name="WorkElementTask" Type="String" Nullable="false" MaxLength="Max" FixedLength="false" Unicode="true" />
+          <Property Name="WorkElementType" Type="String" Nullable="false" MaxLength="300" FixedLength="false" Unicode="true" />
           <Property Name="TaskApplicability" Type="String" Nullable="false" MaxLength="1000" FixedLength="false" Unicode="false" />
           <Property Name="FormalTrainingGap" Type="String" Nullable="false" MaxLength="1000" FixedLength="false" Unicode="false" />
           <Property Name="CIN" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
-          <Property Name="CourseName" Type="String" MaxLength="200" FixedLength="false" Unicode="true" />
+          <Property Name="CourseName" Type="String" MaxLength="300" FixedLength="false" Unicode="true" />
           <Property Name="CourseType" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
-          <Property Name="TaskStatement" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
           <Property Name="CurrentAssessmentApproach" Type="String" MaxLength="200" FixedLength="false" Unicode="true" />
           <Property Name="CurriculumControlAuthority" Type="String" MaxLength="200" FixedLength="false" Unicode="true" />
           <Property Name="LifeCycleControlDocument" Type="String" MaxLength="100" FixedLength="false" Unicode="true" />
-          <Property Name="RMTLProject" Type="String" Nullable="false" MaxLength="300" FixedLength="false" Unicode="false" />
+          <Property Name="RMTLProject" Type="String" Nullable="false" MaxLength="300" FixedLength="false" Unicode="true" />
+          <Property Name="RatingTask" Type="String" Nullable="false" MaxLength="Max" FixedLength="false" Unicode="true" />
+          <Property Name="TrainingTask" Type="String" Nullable="false" MaxLength="Max" FixedLength="false" Unicode="true" />
         </EntityType>
         <EntityType Name="RatingTaskSummary">
           <Key>
@@ -500,10 +469,10 @@ warning 6002: The table/view 'NavyRRL.dbo.SubscriptionEntities' does not have a 
             <PropertyRef Name="WorkElementType" />
             <PropertyRef Name="TaskApplicability" />
             <PropertyRef Name="FormalTrainingGap" />
-            <PropertyRef Name="Description" />
             <PropertyRef Name="RowId" />
             <PropertyRef Name="created" />
             <PropertyRef Name="LastUpdated" />
+            <PropertyRef Name="RatingTask" />
           </Key>
           <Property Name="Id" Type="Int32" Nullable="false" />
           <Property Name="RankId" Type="Int32" Nullable="false" />
@@ -533,7 +502,6 @@ warning 6002: The table/view 'NavyRRL.dbo.SubscriptionEntities' does not have a 
           <Property Name="PayGradeType" Type="Guid" />
           <Property Name="HasReferenceResource" Type="Guid" />
           <Property Name="ReferenceType" Type="Guid" />
-          <Property Name="Description" Type="String" Nullable="false" MaxLength="Max" FixedLength="false" Unicode="true" />
           <Property Name="ApplicabilityType" Type="Guid" />
           <Property Name="TrainingGapType" Type="Guid" />
           <Property Name="HasTrainingTask" Type="Guid" />
@@ -542,6 +510,7 @@ warning 6002: The table/view 'NavyRRL.dbo.SubscriptionEntities' does not have a 
           <Property Name="created" Type="DateTime" Nullable="false" Precision="3" />
           <Property Name="LastUpdated" Type="DateTime" Nullable="false" Precision="3" />
           <Property Name="TrainingTask" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
+          <Property Name="RatingTask" Type="String" Nullable="false" MaxLength="Max" FixedLength="false" Unicode="true" />
         </EntityType>
       </Schema>
     </edmx:ConceptualModels>
@@ -594,18 +563,6 @@ warning 6002: The table/view 'NavyRRL.dbo.SubscriptionEntities' does not have a 
               </MappingFragment>
             </EntityTypeMapping>
           </EntitySetMapping>
-          <EntitySetMapping Name="SubscriptionEntities">
-            <EntityTypeMapping TypeName="ceNavyViewModel.SubscriptionEntities">
-              <MappingFragment StoreEntitySet="SubscriptionEntities">
-                <ScalarProperty Name="Created" ColumnName="Created" />
-                <ScalarProperty Name="SchemaUrl" ColumnName="SchemaUrl" />
-                <ScalarProperty Name="IsActive" ColumnName="IsActive" />
-                <ScalarProperty Name="Description" ColumnName="Description" />
-                <ScalarProperty Name="Title" ColumnName="Title" />
-                <ScalarProperty Name="Id" ColumnName="Id" />
-              </MappingFragment>
-            </EntityTypeMapping>
-          </EntitySetMapping>
           <EntitySetMapping Name="AspNetUserRoles_Summary">
             <EntityTypeMapping TypeName="ceNavyViewModel.AspNetUserRoles_Summary">
               <MappingFragment StoreEntitySet="AspNetUserRoles_Summary">
@@ -635,17 +592,17 @@ warning 6002: The table/view 'NavyRRL.dbo.SubscriptionEntities' does not have a 
           <EntitySetMapping Name="RmtlSummary">
             <EntityTypeMapping TypeName="ceNavyViewModel.RmtlSummary">
               <MappingFragment StoreEntitySet="RmtlSummary">
+                <ScalarProperty Name="TrainingTask" ColumnName="TrainingTask" />
+                <ScalarProperty Name="RatingTask" ColumnName="RatingTask" />
                 <ScalarProperty Name="RMTLProject" ColumnName="RMTLProject" />
                 <ScalarProperty Name="LifeCycleControlDocument" ColumnName="LifeCycleControlDocument" />
                 <ScalarProperty Name="CurriculumControlAuthority" ColumnName="CurriculumControlAuthority" />
                 <ScalarProperty Name="CurrentAssessmentApproach" ColumnName="CurrentAssessmentApproach" />
-                <ScalarProperty Name="TaskStatement" ColumnName="TaskStatement" />
                 <ScalarProperty Name="CourseType" ColumnName="CourseType" />
                 <ScalarProperty Name="CourseName" ColumnName="CourseName" />
                 <ScalarProperty Name="CIN" ColumnName="CIN" />
                 <ScalarProperty Name="FormalTrainingGap" ColumnName="FormalTrainingGap" />
                 <ScalarProperty Name="TaskApplicability" ColumnName="TaskApplicability" />
-                <ScalarProperty Name="WorkElementTask" ColumnName="WorkElementTask" />
                 <ScalarProperty Name="WorkElementType" ColumnName="WorkElementType" />
                 <ScalarProperty Name="SourceDate" ColumnName="SourceDate" />
                 <ScalarProperty Name="Source" ColumnName="Source" />
@@ -660,6 +617,7 @@ warning 6002: The table/view 'NavyRRL.dbo.SubscriptionEntities' does not have a 
           <EntitySetMapping Name="RatingTaskSummary">
             <EntityTypeMapping TypeName="ceNavyViewModel.RatingTaskSummary">
               <MappingFragment StoreEntitySet="RatingTaskSummary">
+                <ScalarProperty Name="RatingTask" ColumnName="RatingTask" />
                 <ScalarProperty Name="TrainingTask" ColumnName="TrainingTask" />
                 <ScalarProperty Name="LastUpdated" ColumnName="LastUpdated" />
                 <ScalarProperty Name="created" ColumnName="created" />
@@ -668,7 +626,6 @@ warning 6002: The table/view 'NavyRRL.dbo.SubscriptionEntities' does not have a 
                 <ScalarProperty Name="HasTrainingTask" ColumnName="HasTrainingTask" />
                 <ScalarProperty Name="TrainingGapType" ColumnName="TrainingGapType" />
                 <ScalarProperty Name="ApplicabilityType" ColumnName="ApplicabilityType" />
-                <ScalarProperty Name="Description" ColumnName="Description" />
                 <ScalarProperty Name="ReferenceType" ColumnName="ReferenceType" />
                 <ScalarProperty Name="HasReferenceResource" ColumnName="HasReferenceResource" />
                 <ScalarProperty Name="PayGradeType" ColumnName="PayGradeType" />

@@ -59,5 +59,6 @@ namespace Data.Tables
         public Nullable<int> CourseId { get; set; }
         public Nullable<int> CourseTaskId { get; set; }
         public string Message { get; set; }
+        public System.DateTime ImportDate { get; set; }
     }
 }

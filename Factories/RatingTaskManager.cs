@@ -124,7 +124,7 @@ namespace Factories
 
 						item.Id = GetRowColumn( dr, "Id", 0 );
 						item.RowId = GetGuidType( dr, "RowId" );
-						item.Description = GetRowColumn( dr, "Description", "" );
+						item.Description = GetRowColumn( dr, "RatingTask", "" );
 						item.Note = GetRowColumn( dr, "Notes", "" );
 						item.CTID = GetRowPossibleColumn( dr, "CTID", "" );
 						item.Created = GetRowColumn( dr, "Created", DateTime.MinValue );

@@ -138,7 +138,7 @@
           <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
           <Property Name="RowId" Type="uniqueidentifier" Nullable="false" />
           <Property Name="ConceptSchemeId" Type="int" Nullable="false" />
-          <Property Name="Label" Type="varchar" MaxLength="1000" Nullable="false" />
+          <Property Name="Name" Type="varchar" MaxLength="1000" Nullable="false" />
           <Property Name="CTID" Type="varchar" MaxLength="50" />
           <Property Name="CodedNotation" Type="varchar" MaxLength="50" />
           <Property Name="AlternateLabel" Type="varchar" MaxLength="500" />
@@ -179,9 +179,9 @@
           <Property Name="CourseId" Type="int" Nullable="false" />
           <Property Name="Description" Type="nvarchar(max)" Nullable="false" />
           <Property Name="CTID" Type="varchar" MaxLength="50" />
-          <Property Name="Created" Type="datetime" />
+          <Property Name="Created" Type="datetime" Nullable="false" />
           <Property Name="CreatedById" Type="int" />
-          <Property Name="LastUpdated" Type="datetime" />
+          <Property Name="LastUpdated" Type="datetime" Nullable="false" />
           <Property Name="LastUpdatedById" Type="int" />
         </EntityType>
         <EntityType Name="CurriculumControlAuthority">
@@ -193,6 +193,10 @@
           <Property Name="Name" Type="nvarchar" MaxLength="300" />
           <Property Name="Abbreviation" Type="nvarchar" MaxLength="50" />
           <Property Name="CTID" Type="varchar" MaxLength="50" />
+          <Property Name="Created" Type="datetime" Nullable="false" />
+          <Property Name="CreatedById" Type="int" />
+          <Property Name="LastUpdated" Type="datetime" Nullable="false" />
+          <Property Name="LastUpdatedById" Type="int" />
         </EntityType>
         <EntityType Name="ImportRMTL">
           <Key>
@@ -243,6 +247,7 @@
           <Property Name="CourseId" Type="int" />
           <Property Name="CourseTaskId" Type="int" />
           <Property Name="Message" Type="varchar" MaxLength="1000" />
+          <Property Name="ImportDate" Type="datetime" Nullable="false" />
         </EntityType>
         <EntityType Name="Job">
           <Key>
@@ -355,6 +360,27 @@
           <Property Name="RatingTaskId" Type="int" Nullable="false" />
           <Property Name="RatingId" Type="int" Nullable="false" />
           <Property Name="Created" Type="datetime" />
+        </EntityType>
+        <EntityType Name="ReferenceResource">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="RowId" Type="uniqueidentifier" Nullable="false" />
+          <Property Name="Name" Type="nvarchar" MaxLength="300" Nullable="false" />
+          <Property Name="Description" Type="varchar(max)" />
+          <Property Name="CodedNotation" Type="varchar" MaxLength="100" />
+          <Property Name="PublicationDate" Type="nvarchar" MaxLength="50" />
+          <Property Name="SubjectWebpage" Type="varchar" MaxLength="500" />
+          <Property Name="StatusType" Type="int" />
+          <Property Name="VersionIdentifier" Type="varchar" MaxLength="100" />
+          <Property Name="ReferenceType" Type="int" />
+          <Property Name="Note" Type="nvarchar(max)" />
+          <Property Name="Created" Type="datetime" Nullable="false" />
+          <Property Name="CreatedById" Type="int" />
+          <Property Name="LastUpdated" Type="datetime" Nullable="false" />
+          <Property Name="LastUpdatedById" Type="int" />
+          <Property Name="CTID" Type="varchar" MaxLength="50" />
         </EntityType>
         <EntityType Name="RMTLProject">
           <Key>
@@ -793,6 +819,7 @@
           <EntitySet Name="Rating" EntityType="Self.Rating" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="RatingTask" EntityType="Self.RatingTask" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="RatingTask_HasRating" EntityType="Self.RatingTask_HasRating" Schema="dbo" Table="RatingTask.HasRating" store:Type="Tables" />
+          <EntitySet Name="ReferenceResource" EntityType="Self.ReferenceResource" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="RMTLProject" EntityType="Self.RMTLProject" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="RmtlProject_Billet" EntityType="Self.RmtlProject_Billet" Schema="dbo" Table="RmtlProject.Billet" store:Type="Tables" />
           <EntitySet Name="RmtlProjectBilletTask" EntityType="Self.RmtlProjectBilletTask" Schema="dbo" store:Type="Tables" />
@@ -1026,12 +1053,12 @@
           <Property Name="Created" Type="DateTime" Precision="3" Nullable="false" />
           <Property Name="LastUpdated" Type="DateTime" Precision="3" Nullable="false" />
           <NavigationProperty Name="ConceptScheme" Relationship="Self.FK_ConceptScheme_Concept_ConceptScheme" FromRole="ConceptScheme_Concept" ToRole="ConceptScheme" />
-          <Property Name="Label" Type="String" Nullable="false" MaxLength="1000" FixedLength="false" Unicode="false" />
           <NavigationProperty Name="RatingTask" Relationship="NavyRRLModel.FK_RatingLevelTask_ConceptScheme_Concept4" FromRole="ConceptScheme_Concept" ToRole="RatingTask" />
           <NavigationProperty Name="RatingTask1" Relationship="NavyRRLModel.FK_RatingLevelTask_ConceptScheme_Concept11" FromRole="ConceptScheme_Concept" ToRole="RatingTask" />
           <NavigationProperty Name="RatingTask2" Relationship="NavyRRLModel.FK_RatingLevelTask_ConceptScheme_Concept21" FromRole="ConceptScheme_Concept" ToRole="RatingTask" />
           <NavigationProperty Name="RatingTask3" Relationship="NavyRRLModel.FK_RatingLevelTask_ConceptScheme_Concept31" FromRole="ConceptScheme_Concept" ToRole="RatingTask" />
           <Property Name="RowId" Type="Guid" Nullable="false" />
+          <Property Name="Name" Type="String" Nullable="false" MaxLength="1000" FixedLength="false" Unicode="false" />
         </EntityType>
         <EntityType Name="Course">
           <Key>
@@ -1064,9 +1091,9 @@
           <Property Name="Id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
           <Property Name="CourseId" Type="Int32" Nullable="false" />
           <Property Name="CTID" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
-          <Property Name="Created" Type="DateTime" Precision="3" />
+          <Property Name="Created" Type="DateTime" Precision="3" Nullable="false" />
           <Property Name="CreatedById" Type="Int32" />
-          <Property Name="LastUpdated" Type="DateTime" Precision="3" />
+          <Property Name="LastUpdated" Type="DateTime" Precision="3" Nullable="false" />
           <Property Name="LastUpdatedById" Type="Int32" />
           <NavigationProperty Name="Course" Relationship="Self.FK_Course_Task_Course" FromRole="Course_Task" ToRole="Course" />
           <NavigationProperty Name="RatingTask" Relationship="NavyRRLModel.FK_RatingLevelTask_Course_Task1" FromRole="Course_Task" ToRole="RatingTask" />
@@ -1082,6 +1109,10 @@
           <Property Name="Abbreviation" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
           <Property Name="CTID" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
           <Property Name="RowId" Type="Guid" Nullable="false" />
+          <Property Name="Created" Type="DateTime" Nullable="false" Precision="3" />
+          <Property Name="CreatedById" Type="Int32" />
+          <Property Name="LastUpdated" Type="DateTime" Nullable="false" Precision="3" />
+          <Property Name="LastUpdatedById" Type="Int32" />
         </EntityType>
         <EntityType Name="Job">
           <Key>
@@ -1500,6 +1531,7 @@
             <End Role="RmtlProjectBilletTask" EntitySet="RmtlProjectBilletTask" />
           </AssociationSet>
           <EntitySet Name="ImportRMTL" EntityType="NavyRRLModel.ImportRMTL" />
+          <EntitySet Name="ReferenceResource" EntityType="NavyRRLModel.ReferenceResource" />
         </EntityContainer>
         <EntityType Name="AspNetUserRoles">
           <Key>
@@ -1868,6 +1900,28 @@
           <Property Name="CourseId" Type="Int32" />
           <Property Name="CourseTaskId" Type="Int32" />
           <Property Name="Message" Type="String" MaxLength="1000" FixedLength="false" Unicode="false" />
+          <Property Name="ImportDate" Type="DateTime" Nullable="false" Precision="3" />
+        </EntityType>
+        <EntityType Name="ReferenceResource">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="RowId" Type="Guid" Nullable="false" />
+          <Property Name="Name" Type="String" Nullable="false" MaxLength="300" FixedLength="false" Unicode="true" />
+          <Property Name="Description" Type="String" MaxLength="Max" FixedLength="false" Unicode="false" />
+          <Property Name="CodedNotation" Type="String" MaxLength="100" FixedLength="false" Unicode="false" />
+          <Property Name="PublicationDate" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="SubjectWebpage" Type="String" MaxLength="500" FixedLength="false" Unicode="false" />
+          <Property Name="StatusType" Type="Int32" />
+          <Property Name="VersionIdentifier" Type="String" MaxLength="100" FixedLength="false" Unicode="false" />
+          <Property Name="ReferenceType" Type="Int32" />
+          <Property Name="Note" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
+          <Property Name="Created" Type="DateTime" Nullable="false" Precision="3" />
+          <Property Name="CreatedById" Type="Int32" />
+          <Property Name="LastUpdated" Type="DateTime" Nullable="false" Precision="3" />
+          <Property Name="LastUpdatedById" Type="Int32" />
+          <Property Name="CTID" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
         </EntityType>
       </Schema>
     </edmx:ConceptualModels>
@@ -1977,8 +2031,8 @@
           <EntitySetMapping Name="ConceptScheme_Concept">
             <EntityTypeMapping TypeName="NavyRRLModel.ConceptScheme_Concept">
               <MappingFragment StoreEntitySet="ConceptScheme_Concept">
+                <ScalarProperty Name="Name" ColumnName="Name" />
                 <ScalarProperty Name="RowId" ColumnName="RowId" />
-                <ScalarProperty Name="Label" ColumnName="Label" />
                 <ScalarProperty Name="Id" ColumnName="Id" />
                 <ScalarProperty Name="ConceptSchemeId" ColumnName="ConceptSchemeId" />
                 <ScalarProperty Name="CTID" ColumnName="CTID" />
@@ -2033,6 +2087,10 @@
           <EntitySetMapping Name="CurriculumControlAuthority">
             <EntityTypeMapping TypeName="NavyRRLModel.CurriculumControlAuthority">
               <MappingFragment StoreEntitySet="CurriculumControlAuthority">
+                <ScalarProperty Name="LastUpdatedById" ColumnName="LastUpdatedById" />
+                <ScalarProperty Name="LastUpdated" ColumnName="LastUpdated" />
+                <ScalarProperty Name="CreatedById" ColumnName="CreatedById" />
+                <ScalarProperty Name="Created" ColumnName="Created" />
                 <ScalarProperty Name="RowId" ColumnName="RowId" />
                 <ScalarProperty Name="Id" ColumnName="Id" />
                 <ScalarProperty Name="Name" ColumnName="Name" />
@@ -2293,6 +2351,7 @@
           <EntitySetMapping Name="ImportRMTL">
             <EntityTypeMapping TypeName="NavyRRLModel.ImportRMTL">
               <MappingFragment StoreEntitySet="ImportRMTL">
+                <ScalarProperty Name="ImportDate" ColumnName="ImportDate" />
                 <ScalarProperty Name="Message" ColumnName="Message" />
                 <ScalarProperty Name="CourseTaskId" ColumnName="CourseTaskId" />
                 <ScalarProperty Name="CourseId" ColumnName="CourseId" />
@@ -2337,6 +2396,28 @@
                 <ScalarProperty Name="Rating" ColumnName="Rating" />
                 <ScalarProperty Name="Unique_Identifier" ColumnName="Unique_Identifier" />
                 <ScalarProperty Name="IndexIdentifier" ColumnName="IndexIdentifier" />
+                <ScalarProperty Name="Id" ColumnName="Id" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="ReferenceResource">
+            <EntityTypeMapping TypeName="NavyRRLModel.ReferenceResource">
+              <MappingFragment StoreEntitySet="ReferenceResource">
+                <ScalarProperty Name="CTID" ColumnName="CTID" />
+                <ScalarProperty Name="LastUpdatedById" ColumnName="LastUpdatedById" />
+                <ScalarProperty Name="LastUpdated" ColumnName="LastUpdated" />
+                <ScalarProperty Name="CreatedById" ColumnName="CreatedById" />
+                <ScalarProperty Name="Created" ColumnName="Created" />
+                <ScalarProperty Name="Note" ColumnName="Note" />
+                <ScalarProperty Name="ReferenceType" ColumnName="ReferenceType" />
+                <ScalarProperty Name="VersionIdentifier" ColumnName="VersionIdentifier" />
+                <ScalarProperty Name="StatusType" ColumnName="StatusType" />
+                <ScalarProperty Name="SubjectWebpage" ColumnName="SubjectWebpage" />
+                <ScalarProperty Name="PublicationDate" ColumnName="PublicationDate" />
+                <ScalarProperty Name="CodedNotation" ColumnName="CodedNotation" />
+                <ScalarProperty Name="Description" ColumnName="Description" />
+                <ScalarProperty Name="Name" ColumnName="Name" />
+                <ScalarProperty Name="RowId" ColumnName="RowId" />
                 <ScalarProperty Name="Id" ColumnName="Id" />
               </MappingFragment>
             </EntityTypeMapping>

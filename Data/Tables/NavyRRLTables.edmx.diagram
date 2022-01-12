@@ -56,6 +56,7 @@
         <AssociationConnector Association="NavyRRLModel.FK_RatingTask_HasRatingTask_Task" />
         <AssociationConnector Association="NavyRRLModel.FK_RmtlProjectBilletTask_RatingTask" />
         <EntityTypeShape EntityType="NavyRRLModel.ImportRMTL" Width="3" PointX="18.375" PointY="5.75" />
+        <EntityTypeShape EntityType="NavyRRLModel.ReferenceResource" Width="1.5" PointX="3.375" PointY="10.75" />
       </Diagram>
     </edmx:Diagrams>
   </edmx:Designer>

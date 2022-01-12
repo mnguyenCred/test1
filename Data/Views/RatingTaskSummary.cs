@@ -42,7 +42,6 @@ namespace Data.Views
         public Nullable<System.Guid> PayGradeType { get; set; }
         public Nullable<System.Guid> HasReferenceResource { get; set; }
         public Nullable<System.Guid> ReferenceType { get; set; }
-        public string Description { get; set; }
         public Nullable<System.Guid> ApplicabilityType { get; set; }
         public Nullable<System.Guid> TrainingGapType { get; set; }
         public Nullable<System.Guid> HasTrainingTask { get; set; }
@@ -51,5 +50,6 @@ namespace Data.Views
         public System.DateTime created { get; set; }
         public System.DateTime LastUpdated { get; set; }
         public string TrainingTask { get; set; }
+        public string RatingTask { get; set; }
     }
 }

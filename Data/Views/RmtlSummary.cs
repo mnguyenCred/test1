@@ -22,16 +22,16 @@ namespace Data.Views
         public string Source { get; set; }
         public string SourceDate { get; set; }
         public string WorkElementType { get; set; }
-        public string WorkElementTask { get; set; }
         public string TaskApplicability { get; set; }
         public string FormalTrainingGap { get; set; }
         public string CIN { get; set; }
         public string CourseName { get; set; }
         public string CourseType { get; set; }
-        public string TaskStatement { get; set; }
         public string CurrentAssessmentApproach { get; set; }
         public string CurriculumControlAuthority { get; set; }
         public string LifeCycleControlDocument { get; set; }
         public string RMTLProject { get; set; }
+        public string RatingTask { get; set; }
+        public string TrainingTask { get; set; }
     }
 }

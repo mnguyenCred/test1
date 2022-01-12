@@ -33,7 +33,7 @@ SELECT        TOP (100) PERCENT
 	, a.Name
 	, b.Id AS conceptid
 	, b.ListId
-	, b.Label AS Concept
+	, b.Name AS Concept
 	, b.CodedNotation
 	, b.Description
 FROM dbo.ConceptScheme a 

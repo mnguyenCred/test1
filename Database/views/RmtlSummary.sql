@@ -47,20 +47,21 @@ SELECT
 	, d.Name AS BilletTitle
 	, f.FunctionalArea
 	, f.Source, f.SourceDate
-	, f.WorkElementType, f.WorkElementTask
+	, f.WorkElementType
+	, f.RatingTask
 	, f.TaskApplicability
 	, f.FormalTrainingGap
 	, f.CIN, f.CourseName
     , f.CourseType
-	, f.TaskStatement
+	, f.TrainingTask
 ,f.CurrentAssessmentApproach
 ,f.CurriculumControlAuthority
 ,f.LifeCycleControlDocument
 FROM            dbo.RmtlProjectBilletTask AS e 
 INNER JOIN dbo.RatingTaskSummary AS f ON e.RatingTaskId = f.Id 
 INNER JOIN dbo.RMTLProject AS a 
-		INNER JOIN dbo.[RmtlProject.Billet] AS c ON a.Id = c.RmtlProjectId 
-		INNER JOIN dbo.Job AS d ON c.JobId = d.Id 
-		INNER JOIN dbo.Rating AS b ON a.RatingId = b.Id ON e.ProjectBilletId = c.Id
+INNER JOIN dbo.[RmtlProject.Billet] AS c ON a.Id = c.RmtlProjectId 
+INNER JOIN dbo.Job AS d ON c.JobId = d.Id 
+INNER JOIN dbo.Rating AS b ON a.RatingId = b.Id ON e.ProjectBilletId = c.Id
 GO
 

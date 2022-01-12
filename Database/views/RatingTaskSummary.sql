@@ -34,7 +34,7 @@ SELECT [Id]
       ,[WorkElementTypeId]
       ,[WorkElementType]
       ,[ReferenceType]
-      ,[Description]
+      ,[RatingTask]
       ,[TaskApplicabilityId]
       ,[TaskApplicability]
       ,[ApplicabilityType]
@@ -45,7 +45,7 @@ SELECT [Id]
       ,[CourseName]
       ,[CourseType]
       ,[TrainingTaskId]
-      ,[TaskStatement]
+      ,[TrainingTask]
       ,[HasTrainingTask]
       ,[CurrentAssessmentApproach]
       ,[CurriculumControlAuthority]
@@ -76,10 +76,10 @@ SELECT
 	a.LastUpdated, --as TaskLastUpdated,
 	a.CodedNotation 
 	,a.[RankId]
-	, isnull(c1.Label,'missing') As [Rank]
+	, isnull(c1.Name,'missing') As [Rank]
 	,c1.RowId as PayGradeType
 	,a.[LevelId]
-	, isnull(c2.Label,'missing') As [Level]
+	, isnull(c2.Name,'missing') As [Level]
 
 	,a.[FunctionalAreaId]
 	, isnull(b.name,'missing') As FunctionalArea
@@ -94,13 +94,13 @@ SELECT
 	,d.RowId as ReferenceType
 	--,a.[Work_Element_Type]
 
-	,a.Description
+	,a.Description as RatingTask
 	,a.TaskApplicabilityId
-	, isnull(e.Label,'missing') As TaskApplicability
+	, isnull(e.Name,'missing') As TaskApplicability
 	--,a.[Task_Applicability]
 	,e.RowId as ApplicabilityType
 	,a.FormalTrainingGapId
-	, isnull(f.Label,'missing') As FormalTrainingGap
+	, isnull(f.Name,'missing') As FormalTrainingGap
 	,f.RowId as TrainingGapType
 	--,a.[Formal_Training_Gap]
 	,h.CIN

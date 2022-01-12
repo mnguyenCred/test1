@@ -140,6 +140,9 @@
     <Compile Include="Tables\RatingTask_HasRating.cs">
       <DependentUpon>NavyRRLTables.tt</DependentUpon>
     </Compile>
+    <Compile Include="Tables\ReferenceResource.cs">
+      <DependentUpon>NavyRRLTables.tt</DependentUpon>
+    </Compile>
     <Compile Include="Tables\RMTLProject.cs">
       <DependentUpon>NavyRRLTables.tt</DependentUpon>
     </Compile>
@@ -189,9 +192,6 @@
       <DependentUpon>NavyViews.tt</DependentUpon>
     </Compile>
     <Compile Include="Views\RmtlSummary.cs">
-      <DependentUpon>NavyViews.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Views\SubscriptionEntities.cs">
       <DependentUpon>NavyViews.tt</DependentUpon>
     </Compile>
   </ItemGroup>
