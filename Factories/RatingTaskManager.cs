@@ -132,15 +132,15 @@ namespace Factories
 						item.CodedNotation = GetRowPossibleColumn( dr, "CodedNotation", "" );
 						item.Rank = GetRowPossibleColumn( dr, "Rank", "" );
 						item.Level = GetRowPossibleColumn( dr, "Level", "" );
-						item.FunctionalArea = GetRowPossibleColumn( dr, "FunctionalArea", "" );
-						item.Source = GetRowPossibleColumn( dr, "Source", "" );
-						item.SourceDate = GetRowPossibleColumn( dr, "SourceDate", "" );
+						item.FunctionalArea = GetRowColumn( dr, "FunctionalArea", "" );
+						item.Source = GetRowColumn( dr, "Source", "" );
+						item.SourceDate = GetRowColumn( dr, "SourceDate", "" );
 						item.WorkElementType = GetRowPossibleColumn( dr, "WorkElementType", "" );
 						item.TaskApplicability = GetRowPossibleColumn( dr, "TaskApplicability", "" );
 						item.FormalTrainingGap = GetRowPossibleColumn( dr, "FormalTrainingGap", "" );
 
-						item.CIN = GetRowPossibleColumn( dr, "CIN", "" );
-						item.CourseName = GetRowPossibleColumn( dr, "CourseName", "" );
+						item.CIN = GetRowColumn( dr, "CIN", "" );
+						item.CourseName = GetRowColumn( dr, "CourseName", "" );
 						item.CourseType = GetRowPossibleColumn( dr, "CourseType", "" );
 						item.CurrentAssessmentApproach = GetRowPossibleColumn( dr, "CurrentAssessmentApproach", "" );
 						item.TrainingTask = GetRowPossibleColumn( dr, "TrainingTask", "" );
@@ -168,14 +168,6 @@ namespace Factories
 			}
 		} //
 
-		public static Guid GetGuidType( DataRow dr, string property)
-		{
-			string guid = GetRowColumn( dr, property );
-			if ( !string.IsNullOrEmpty( guid ) )
-				return new Guid( guid );
-			else
-				return new Guid();
-		} //
 
 		public static void MapFromDB( DBEntity input, AppEntity output )
         {

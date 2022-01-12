@@ -99,6 +99,9 @@ namespace Models.Schema
 		//Warning - these cause a lot of extra/duplicate data to be passed around between client and server!
 		public Concept TaskApplicabilityType { get; set; } = new Concept();
 		public Concept TaskTrainingGap { get; set; } = new Concept();
+	}
+	public class RatingTaskFull : RatingTask
+	{
 
 	}
 }

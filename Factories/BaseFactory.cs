@@ -183,25 +183,18 @@ namespace Factories
 
 			return mappingWasSuccessful;
 		}
-		//
-
-		//This seems to have been moved to ConceptSchemeManager?
-        public static Concept MapConcept( ConceptScheme_Concept input )
-        {
-            var output = new Concept();
-            if ( input != null && input.Id > 0)
-            {
-                output.Id = input.Id;
-                output.Label = input.Label;
-                output.Description = input.Description;
-                output.CTID = input.CTID;
-            }
-
-            return output; 
-        }
+	
 
         #region data retrieval     
 
+        public static Guid GetGuidType( DataRow dr, string property )
+        {
+            string guid = GetRowColumn( dr, property );
+            if ( !string.IsNullOrEmpty( guid ) )
+                return new Guid( guid );
+            else
+                return new Guid();
+        } //
         public static string GetRowColumn( DataRow row, string column, string defaultValue = "" )
         {
             string colValue = "";

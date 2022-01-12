@@ -52,6 +52,16 @@ namespace Models.Schema
 		/// Embedded Training Task data for this Course
 		/// </summary>
 		public List<TrainingTask> TrainingTasks { get; set; } = new List<TrainingTask>();
-
+	}
+	public class CourseFull : Course
+	{
+		public string CurrentAssessmentApproach { get; set; }
+		public int AssessmentMethodId { get; set; }
+		public string Course_Type { get; set; }
+		public int CourseTypeId { get; set; }
+		public string Curriculum_Control_Authority { get; set; }
+		public int CurriculumControlAuthorityId { get; set; }
+		public string LifeCycleControlDocument { get; set; }
+		public int LifeCycleControlDocumentId { get; set; }
 	}
 }

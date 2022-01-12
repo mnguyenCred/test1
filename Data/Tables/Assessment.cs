@@ -17,9 +17,9 @@ namespace Data.Tables
         public int Id { get; set; }
         public string Name { get; set; }
         public string Description { get; set; }
-        public Nullable<System.DateTime> Created { get; set; }
+        public System.DateTime Created { get; set; }
         public Nullable<int> CreatedById { get; set; }
-        public Nullable<System.DateTime> LastUpdated { get; set; }
+        public System.DateTime LastUpdated { get; set; }
         public Nullable<int> LastUpdatedById { get; set; }
         public string CTID { get; set; }
         public System.Guid RowId { get; set; }
