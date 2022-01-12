@@ -18,7 +18,12 @@ namespace Models.Schema
 		public string Note { get; set; }
 		public List<Guid> HasRating { get; set; } //List of GUIDs for the Ratings that this Rating Task is associated with
 		public Guid HasTrainingTask { get; set; } //GUID for the Training Task for this Rating Task
-		public Guid HasReferenceResource { get; set; } //GUID for the Reference Resource that this Rating Task came from (e.g. a reference to "NAVPERS 18068F Vol. II")
+		/// <summary>
+		/// ReferenceResource
+		/// GUID for the Reference Resource that this Rating Task came from (e.g. a reference to "NAVPERS 18068F Vol. II")
+		/// AKA Source
+		/// </summary>
+		public Guid HasReferenceResource { get; set; } //
 		public Guid PayGradeType { get; set; } //GUID for the Concept for the Pay Grade Type (aka Rank) for this Rating Task
 		/// <summary>
 		/// GUID for the Concept for the Applicability Type for this Rating Task
@@ -48,7 +53,7 @@ namespace Models.Schema
 		public string CIN { get; set; }
 		public string CourseName { get; set; }
 		public string CourseType { get; set; }
-		public string TaskStatement { get; set; }
+		public string TrainingTask { get; set; }
 		public string CurrentAssessmentApproach { get; set; }
 		public string CurriculumControlAuthority { get; set; }
 		public string LifeCycleControlDocument { get; set; }

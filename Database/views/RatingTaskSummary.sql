@@ -107,7 +107,7 @@ SELECT
 	,h.Name as CourseName
 	,h.CourseType
 	,a.TrainingTaskId
-	,g.TaskStatement
+	,g.Description as TrainingTask
 	,b.RowId as HasTrainingTask
 	,h.CurrentAssessmentApproach
 	,h.CurriculumControlAuthority

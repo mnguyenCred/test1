@@ -24,7 +24,7 @@ set @SortOrder = 'Id'
 set @Filter = '  Rating = ''abf'' '
 
 set @Filter = ' base.id in (select a.[RatingTaskId] from [RatingTask.HasRating] a inner join Rating b on a.ratingId = b.Id where b.CodedNotation = ''qm'' )	'
-
+set @Filter = 'base.id in (select a.[RatingTaskId] from [RatingTask.HasRating] a inner join Rating b on a.ratingId = b.Id where b.CodedNotation = ''Aviation Boatswain''''s Mate (Fuels)'' OR b.name = ''Aviation Boatswain''''s Mate (Fuels)'' )'
 --set @Filter = ''
 
 set @StartPageIndex = 1
@@ -187,7 +187,7 @@ SELECT
       ,[CourseName]
       ,[CourseType]
       ,[TrainingTaskId]
-      ,[TaskStatement]
+      ,TrainingTask
       ,[HasTrainingTask]
       ,[CurrentAssessmentApproach]
       ,[CurriculumControlAuthority]

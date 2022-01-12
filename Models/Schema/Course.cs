@@ -13,5 +13,9 @@ namespace Models.Schema
 		public Guid HasReferenceResource { get; set; } //GUID for the Reference Resource for this Course
 		public Guid CourseType { get; set; } //GUID for the Concept for the Course Type for this Course
 		public Guid AssessmentMethodType { get; set; } //GUID for the Concept for the Assessment Method Type for this Course
+
+
+		public List<TrainingTask> TrainingTasks { get; set; } = new List<TrainingTask>();
+
 	}
 }

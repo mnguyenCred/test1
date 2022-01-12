@@ -314,11 +314,11 @@ inner join course b on a.CIN = b.CIN
 --
 
 INSERT INTO [dbo].[Course.Task]
-           ([CourseId] ,[TaskStatement]  )
+           ([CourseId] ,[Description]  )
 
 SELECT distinct a.CourseId ,[Task_Statement]
 from [dbo].ImportRMTL a
-left join [Course.Task] b on a.Task_Statement = b.TaskStatement
+left join [Course.Task] b on a.Task_Statement = b.[Description]
 where a.CIN <> 'N/A' 
 AND a.Task_Statement is not null
 AND a.Task_Statement <> 'N/A'
@@ -335,7 +335,7 @@ UPDATE [dbo].ImportRMTL
 --	select distinct a.CourseId,CourseTaskId, [Task_Statement]      
 from [dbo].ImportRMTL a
 inner join [Course.Task] b on a.CourseId = b.CourseId 
-and a.[Task_Statement]= b.TaskStatement
+and a.[Task_Statement]= b.Description
 and a.CourseTaskId is null 
 -- =================================
 

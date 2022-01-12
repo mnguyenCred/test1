@@ -10,6 +10,7 @@ namespace AppTestProject
     [TestClass]
     public class DataTesting
     {
+        #region RatingTask
         [TestMethod]
         public void RatingTaskGet()
         {
@@ -62,7 +63,44 @@ namespace AppTestProject
                 Assert.Fail( ex.Message );
             }
         }
+        #endregion
 
+        #region Source
+        [TestMethod]
+        public void SourceGet()
+        {
+            var recordId = 1;
+            try
+            {
+                var record = ReferenceResourceManager.Get( recordId );
+                record = ReferenceResourceManager.Get( 119 );
+            }
+            catch ( Exception ex )
+            {
+                Assert.Fail( ex.Message );
+            }
+
+            //
+            SourceGetAll();
+        }
+        [TestMethod]
+        public void SourceGetAll()
+        {
+            try
+            {
+                var list = ReferenceResourceManager.GetAll();
+                foreach ( var item in list )
+                {
+
+                }
+            }
+            catch ( Exception ex )
+            {
+                Assert.Fail( ex.Message );
+            }
+        }
+        #endregion
+        #region Concept Schemes
         [TestMethod]
         public void ConceptSchemeGet()
         {
@@ -84,5 +122,24 @@ namespace AppTestProject
 
 
         }
+
+        [TestMethod]
+        public void ConceptSchemeGetAll()
+        {
+            try
+            {
+                var list = ConceptSchemeManager.GetAll();
+                foreach( var item in list )
+                {
+
+                }
+            }
+            catch ( Exception ex )
+            {
+                Assert.Fail( ex.Message );
+            }
+        }
+
+        #endregion
     }
 }

@@ -34,7 +34,6 @@ namespace Data.Views
         public string CourseName { get; set; }
         public string CourseType { get; set; }
         public Nullable<int> TrainingTaskId { get; set; }
-        public string TaskStatement { get; set; }
         public string CurrentAssessmentApproach { get; set; }
         public string CurriculumControlAuthority { get; set; }
         public string LifeCycleControlDocument { get; set; }
@@ -47,5 +46,10 @@ namespace Data.Views
         public Nullable<System.Guid> ApplicabilityType { get; set; }
         public Nullable<System.Guid> TrainingGapType { get; set; }
         public Nullable<System.Guid> HasTrainingTask { get; set; }
+        public string CTID { get; set; }
+        public System.Guid RowId { get; set; }
+        public System.DateTime created { get; set; }
+        public System.DateTime LastUpdated { get; set; }
+        public string TrainingTask { get; set; }
     }
 }

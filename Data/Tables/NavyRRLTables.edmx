@@ -177,7 +177,7 @@
           <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
           <Property Name="RowId" Type="uniqueidentifier" Nullable="false" />
           <Property Name="CourseId" Type="int" Nullable="false" />
-          <Property Name="TaskStatement" Type="nvarchar(max)" Nullable="false" />
+          <Property Name="Description" Type="nvarchar(max)" Nullable="false" />
           <Property Name="CTID" Type="varchar" MaxLength="50" />
           <Property Name="Created" Type="datetime" />
           <Property Name="CreatedById" Type="int" />
@@ -413,9 +413,9 @@
           <Property Name="Name" Type="nvarchar" MaxLength="200" Nullable="false" />
           <Property Name="SourceDate" Type="nvarchar" MaxLength="50" />
           <Property Name="Description" Type="varchar(max)" />
-          <Property Name="Created" Type="datetime" />
+          <Property Name="Created" Type="datetime" Nullable="false" />
           <Property Name="CreatedById" Type="int" />
-          <Property Name="LastUpdated" Type="datetime" />
+          <Property Name="LastUpdated" Type="datetime" Nullable="false" />
           <Property Name="LastUpdatedById" Type="int" />
           <Property Name="CTID" Type="varchar" MaxLength="50" />
         </EntityType>
@@ -1063,7 +1063,6 @@
           </Key>
           <Property Name="Id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
           <Property Name="CourseId" Type="Int32" Nullable="false" />
-          <Property Name="TaskStatement" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" Nullable="false" />
           <Property Name="CTID" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
           <Property Name="Created" Type="DateTime" Precision="3" />
           <Property Name="CreatedById" Type="Int32" />
@@ -1072,6 +1071,7 @@
           <NavigationProperty Name="Course" Relationship="Self.FK_Course_Task_Course" FromRole="Course_Task" ToRole="Course" />
           <NavigationProperty Name="RatingTask" Relationship="NavyRRLModel.FK_RatingLevelTask_Course_Task1" FromRole="Course_Task" ToRole="RatingTask" />
           <Property Name="RowId" Type="Guid" Nullable="false" />
+          <Property Name="Description" Type="String" Nullable="false" MaxLength="Max" FixedLength="false" Unicode="true" />
         </EntityType>
         <EntityType Name="CurriculumControlAuthority">
           <Key>
@@ -1222,8 +1222,8 @@
           <Property Name="CTID" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
           <NavigationProperty Name="RatingTask" Relationship="NavyRRLModel.FK_RatingLevelTask_Source1" FromRole="Source" ToRole="RatingTask" />
           <Property Name="RowId" Type="Guid" Nullable="false" />
-          <Property Name="Created" Type="DateTime" Precision="3" />
-          <Property Name="LastUpdated" Type="DateTime" Precision="3" />
+          <Property Name="Created" Type="DateTime" Precision="3" Nullable="false" />
+          <Property Name="LastUpdated" Type="DateTime" Precision="3" Nullable="false" />
         </EntityType>
         <EntityType Name="WorkElementType">
           <Key>
@@ -2018,10 +2018,10 @@
           <EntitySetMapping Name="Course_Task">
             <EntityTypeMapping TypeName="NavyRRLModel.Course_Task">
               <MappingFragment StoreEntitySet="Course_Task">
+                <ScalarProperty Name="Description" ColumnName="Description" />
                 <ScalarProperty Name="RowId" ColumnName="RowId" />
                 <ScalarProperty Name="Id" ColumnName="Id" />
                 <ScalarProperty Name="CourseId" ColumnName="CourseId" />
-                <ScalarProperty Name="TaskStatement" ColumnName="TaskStatement" />
                 <ScalarProperty Name="CTID" ColumnName="CTID" />
                 <ScalarProperty Name="Created" ColumnName="Created" />
                 <ScalarProperty Name="CreatedById" ColumnName="CreatedById" />

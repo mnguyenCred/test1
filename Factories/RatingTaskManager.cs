@@ -143,7 +143,7 @@ namespace Factories
 						item.CourseName = GetRowPossibleColumn( dr, "CourseName", "" );
 						item.CourseType = GetRowPossibleColumn( dr, "CourseType", "" );
 						item.CurrentAssessmentApproach = GetRowPossibleColumn( dr, "CurrentAssessmentApproach", "" );
-						item.TaskStatement = GetRowPossibleColumn( dr, "TaskStatement", "" );
+						item.TrainingTask = GetRowPossibleColumn( dr, "TrainingTask", "" );
 						item.CurriculumControlAuthority = GetRowPossibleColumn( dr, "CurriculumControlAuthority", "" );
 						item.LifeCycleControlDocument = GetRowPossibleColumn( dr, "LifeCycleControlDocument", "" );
 
