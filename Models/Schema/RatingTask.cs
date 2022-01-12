@@ -43,6 +43,12 @@ namespace Models.Schema
 		public Guid HasReferenceResource { get; set; }
 
 		/// <summary>
+		/// List of GUIDs for the Work Role(s) (aka Functional Area(s)) for this Rating Task<br />
+		/// From Column: Functional Area
+		/// </summary>
+		public List<Guid> HasWorkRole { get; set; }
+
+		/// <summary>
 		/// GUID for the Concept for the Pay Grade Type (aka Rank) for this Rating Task<br />
 		/// From Column: Rank
 		/// </summary>
@@ -53,12 +59,6 @@ namespace Models.Schema
 		/// From Column: Task Applicability
 		/// </summary>
 		public Guid ApplicabilityType { get; set; }
-
-		/// <summary>
-		/// List of GUIDs for the Work Role(s) (aka Functional Area(s)) for this Rating Task<br />
-		/// From Column: Functional Area
-		/// </summary>
-		public List<Guid> HasWorkRole { get; set; }
 
 		/// <summary>
 		/// GUID for the Concept for the Training Gap Type for this Rating Task<br />
@@ -73,7 +73,7 @@ namespace Models.Schema
 		public Guid ReferenceType { get; set; }
 
 
-		//These are redundant now - see Models.Curation.UploadableTable (in Models.Curation.UploadableData.cs)
+		//These are likely redundant now - see Models.Curation.UploadableTable (in Models.Curation.UploadableData.cs)
 		//Derived
 		public string FormalTrainingGap { get; set; }
 		public string FunctionalArea { get; set; }
@@ -95,8 +95,8 @@ namespace Models.Schema
 		public string LifeCycleControlDocument { get; set; }
 
 
-		//Embedded
-		//Warning - these cause a lot of extra/duplicate data to be passed around between client and server!
+		//Embedded data
+		//Consider moving these to a separate class so they don't result in a lot of extra data being sent between client and server
 		public Concept TaskApplicabilityType { get; set; } = new Concept();
 		public Concept TaskTrainingGap { get; set; } = new Concept();
 
