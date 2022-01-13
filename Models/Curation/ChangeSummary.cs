@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.Text;
 
+using System.Linq;
+
 namespace Models.Curation
 {
 	public class ChangeSummary
@@ -14,8 +16,7 @@ namespace Models.Curation
 			UploadedInnerListsForCopiesOfItems = new UploadableData();
 			RemovedItemsFromInnerListsForCopiesOfItems = new UploadableData();
 			UnchangedCount = new ItemCounts();
-			ChangeNote = new List<string>();
-			Errors = new List<string>();
+			Messages = new Messages();
 		}
 		public UploadableData ItemsToBeCreated { get; set; }
 		public UploadableData ItemsToBeChanged { get; set; }
@@ -23,8 +24,14 @@ namespace Models.Curation
 		public UploadableData RemovedItemsFromInnerListsForCopiesOfItems { get; set; }
 		public UploadableData ItemsToBeDeleted { get; set; }
 		public ItemCounts UnchangedCount { get; set; }
-		public List<string> ChangeNote { get; set; }
-		public List<string> Errors { get; set; }
+		public Messages Messages { get; set; }
+
+		/// <summary>
+		/// Used to easily retrieve this object from the cache
+		/// </summary>
+		public Guid RowId { get; set; }
+
+
 	}
 	//
 
@@ -40,4 +47,24 @@ namespace Models.Curation
 	}
 	//
 
+	public class Messages
+	{
+		public Messages()
+		{
+			foreach( var list in typeof(Messages).GetProperties().Where( m => m.PropertyType == typeof( List<string> ) ).ToList() )
+			{
+				list.SetValue( this, new List<string>() );
+			}
+		}
+
+		public List<string> Error { get; set; }
+		public List<string> Create { get; set; }
+		public List<string> Delete { get; set; }
+		public List<string> AddItem { get; set; }
+		public List<string> RemoveItems { get; set; }
+		public List<string> Warning { get; set; }
+		public List<string> Duplicate { get; set; }
+		public List<string> Note { get; set; }
+	}
+	//
 }

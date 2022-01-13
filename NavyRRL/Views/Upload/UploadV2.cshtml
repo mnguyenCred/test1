@@ -168,18 +168,27 @@
 
 	function renderResults() {
 		UI.SummaryBox.html("");
-		renderTextSet("Errors", Data.Response.Data.Errors, UI.SummaryBox, "changeNote");
-		renderTextSet("Change Notes", Data.Response.Data.ChangeNote, UI.SummaryBox, "error");
-
+		renderTextSet("Errors", Data.Response.Data.Messages.Error, UI.SummaryBox, false, "Please correct the errors and try again.");
+		renderTextSet("Warnings", Data.Response.Data.Messages.Warning, UI.SummaryBox, false, "Please review the warnings carefully before confirming the update.");
+		renderTextSet("Possible Duplicates", Data.Response.Data.Messages.Duplicate, UI.SummaryBox, false, "Found multiple instances of one or more items. This may be caused by inconsistent capitalization on different rows. Please carefully review the data before confirming the update.");
+		renderTextSet("Items to be Deleted", Data.Response.Data.Messages.Delete, UI.SummaryBox, true, "Warning: The following items were not detected in the uploaded data, and will be deleted if you confirm the changes!");
+		renderTextSet("Items to be Created", Data.Response.Data.Messages.Create, UI.SummaryBox, true, "The following items will be created if you confirm the changes.");
+		renderTextSet("Additional References for Existing Items", Data.Response.Data.Messages.AddItem, UI.SummaryBox, true, "New references have been detected for the following existing items.");
+		renderTextSet("References to be Removed from Existing Items", Data.Response.Data.Messages.RemoveItem, UI.SummaryBox, true, "These references will be remvoed from the following existing items.");
+		renderTextSet("Notes", Data.Response.Data.Messages.Note, UI.SummaryBox, false, "Miscellaneous notes.");
 	}
 	//
 
-	function renderTextSet(header, items, container, cssClass) {
+	function renderTextSet(header, items, container, sortItems, explanation, cssClass) {
 		if (items?.length > 0) {
 			container.append("<h3>" + header + "</h3>");
+			explanation && container.append("<p>" + explanation + "</p>");
 			var list = $("<ul></ul>").appendTo(container);
+			if (sortItems) {
+				items.sort((a, b) => { return a > b ? 1 : -1 });
+			}
 			items.forEach((item) => {
-				list.append("<li class=\"" + cssClass + "\">" + item + "</li>");
+				list.append("<li class=\"" + (cssClass || "") + "\">" + item + "</li>");
 			});
 		}
 	}

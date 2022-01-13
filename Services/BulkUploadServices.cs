@@ -26,7 +26,7 @@ namespace Services
 			var currentRating = Factories.RatingManager.Get( ratingRowID );
 			if( currentRating == null )
 			{
-				result.Errors.Add( "Error: Unable to find Rating for identifier: " + ratingRowID );
+				result.Messages.Error.Add( "Error: Unable to find Rating for identifier: " + ratingRowID );
 				return result;
 			}
 
@@ -66,22 +66,31 @@ namespace Services
 				//Look in the "graph" data (which is the combination of existing data and data from earlier rows in this upload)
 				//If no match is found, create a new object and put it into the graph
 
+				//Pre-cleaning
+				row.Course_CourseType_Label = NullifyNotApplicable( row.Course_CourseType_Label );
+				row.Course_CodedNotation = NullifyNotApplicable( row.Course_CodedNotation );
+				row.Course_Name = NullifyNotApplicable( row.Course_Name );
+				row.Course_CourseType_Label = NullifyNotApplicable( row.Course_CourseType_Label );
+				row.Course_CurriculumControlAuthority_Name = NullifyNotApplicable( row.Course_CourseType_Label );
+				row.Course_HasReferenceResource_Name = NullifyNotApplicable( row.Course_HasReferenceResource_Name );
+				row.Course_AssessmentMethodType_Label = NullifyNotApplicable( row.Course_AssessmentMethodType_Label );
+
 				//Concepts from Concept Schemes
-				var payGradeType = FindConceptOrError( payGradeTypeConcepts, row.PayGradeType_Notation, true, "Pay Grade (Rank)", result.Errors );
-				var trainingGapType = FindConceptOrError( trainingGapTypeConcepts, row.RatingTask_TrainingGapType_Label, false, "Training Gap Type", result.Errors );
-				var applicabilityType = FindConceptOrError( applicabilityTypeConcepts, row.RatingTask_ApplicabilityType_Label, false, "Applicability Type", result.Errors );
-				var sharedSourceType = FindConceptOrError( sourceTypeConcepts, row.Shared_ReferenceType, false, "Reference Resource Type (for Rating-Level Task)", result.Errors );
+				var payGradeType = FindConceptOrError( payGradeTypeConcepts, new Concept() { CodedNotation = row.PayGradeType_Notation }, "Pay Grade (Rank)", row.PayGradeType_Notation, result.Messages.Error );
+				var trainingGapType = FindConceptOrError( trainingGapTypeConcepts, new Concept() { Name = row.RatingTask_TrainingGapType_Label }, "Training Gap Type", row.RatingTask_TrainingGapType_Label, result.Messages.Error );
+				var applicabilityType = FindConceptOrError( applicabilityTypeConcepts, new Concept() { Name = row.RatingTask_ApplicabilityType_Label }, "Applicability Type", row.RatingTask_ApplicabilityType_Label, result.Messages.Error );
+				var sharedSourceType = FindConceptOrError( sourceTypeConcepts, new Concept() { WorkElementType = row.Shared_ReferenceType }, "Reference Resource Type (for Rating-Level Task)", row.Shared_ReferenceType, result.Messages.Error );
 				//var courseSourceType = FindConceptOrError( sourceTypeConcepts, row.Course_HasReferenceResource_Name, false, "Reference Resource Type (for Course)", result.Errors );
 				var courseSourceType = sourceTypeConcepts.FirstOrDefault( m => m.CodedNotation == "LCCD" ); //Course Reference Resource Type is always a Life-Cycle Control Document
 				var courseType = string.IsNullOrWhiteSpace( row.Course_CourseType_Label ) ?
 					null : //It's okay if this is null, since only some rows have course types
-					FindConceptOrError( courseTypeConcepts, row.Course_CourseType_Label, false, "Course Type", result.Errors );
-				var assessmentMethodType = string.IsNullOrWhiteSpace( row.Course_AssessmentMethodType_Label) ? 
+					FindConceptOrError( courseTypeConcepts, new Concept() { Name = row.Course_CourseType_Label }, "Course Type", row.Course_CourseType_Label, result.Messages.Error );
+				var assessmentMethodType = string.IsNullOrWhiteSpace( row.Course_AssessmentMethodType_Label ) ? 
 					null : //It's okay if this is null, since only some rows have assessment methods
-					FindConceptOrError( assessmentMethodTypeConcepts, row.Course_AssessmentMethodType_Label, false, "Pay Grade (Rank)", result.Errors );
+					FindConceptOrError( assessmentMethodTypeConcepts, new Concept() { Name = row.Course_AssessmentMethodType_Label }, "Assessment Method Type", row.Course_AssessmentMethodType_Label, result.Messages.Error );
 
 				//Stop processing if one or more unknown concepts were detected
-				if( result.Errors.Count() > 0 )
+				if( result.Messages.Error.Count() > 0 )
 				{
 					break;
 				}
@@ -101,7 +110,7 @@ namespace Services
 					};
 					graph.BilletTitle.Add( billetTitle );
 					result.ItemsToBeCreated.BilletTitle.Add( billetTitle );
-					result.ChangeNote.Add( "Created new Billet Title: " + billetTitle.Name );
+					result.Messages.Create.Add( "Billet Title: " + billetTitle.Name );
 				}
 				else
 				{
@@ -121,7 +130,7 @@ namespace Services
 					};
 					graph.WorkRole.Add( workRole );
 					result.ItemsToBeCreated.WorkRole.Add( workRole );
-					result.ChangeNote.Add( "Created new Functional Area: " + workRole.Name );
+					result.Messages.Create.Add( "Functional Area: " + workRole.Name );
 				}
 				else
 				{
@@ -143,7 +152,7 @@ namespace Services
 					};
 					graph.ReferenceResource.Add( taskSource );
 					result.ItemsToBeCreated.ReferenceResource.Add( taskSource );
-					result.ChangeNote.Add( "Created new Reference Resource for a Task: " + taskSource.Name );
+					result.Messages.Create.Add( "Reference Resource for a Task: " + taskSource.Name );
 				}
 				else
 				{
@@ -202,7 +211,7 @@ namespace Services
 						};
 						graph.TrainingTask.Add( trainingTask );
 						result.ItemsToBeCreated.TrainingTask.Add( trainingTask );
-						result.ChangeNote.Add( "Created new Training Task: " + trainingTask.Description );
+						result.Messages.Create.Add( "Training Task: " + trainingTask.Description );
 					}
 				}
 				else
@@ -226,7 +235,7 @@ namespace Services
 						};
 						graph.ReferenceResource.Add( courseSource );
 						result.ItemsToBeCreated.ReferenceResource.Add( courseSource );
-						result.ChangeNote.Add( "Created new Reference Resource for a Course: " + courseSource.Name );
+						result.Messages.Create.Add( "Reference Resource for a Course: " + courseSource.Name );
 					}
 				}
 				else
@@ -244,7 +253,7 @@ namespace Services
 						m.CodedNotation == row.Course_CodedNotation &&
 						assessmentMethodType?.Name == row.Course_AssessmentMethodType_Label
 					);
-					if(course == null )
+					if( course == null )
 					{
 						course = new Course() 
 						{ 
@@ -256,7 +265,7 @@ namespace Services
 						};
 						graph.Course.Add( course );
 						result.ItemsToBeCreated.Course.Add( course );
-						result.ChangeNote.Add( "Created new Course: " + course.CodedNotation + " - " + course.Name );
+						result.Messages.Create.Add( "Course: " + course.CodedNotation + " - " + course.Name );
 					}
 				}
 				else
@@ -272,7 +281,7 @@ namespace Services
 					cca = graph.Organization.FirstOrDefault( m =>
 						 m.Name == row.Course_CurriculumControlAuthority_Name
 					);
-					if(cca == null )
+					if( cca == null )
 					{
 						cca = new Organization() 
 						{ 
@@ -281,7 +290,7 @@ namespace Services
 						};
 						graph.Organization.Add( cca );
 						result.ItemsToBeCreated.Organization.Add( cca );
-						result.ChangeNote.Add( "Created new Curriculum Control Authority: " + cca.Name );
+						result.Messages.Create.Add( "Curriculum Control Authority: " + cca.Name );
 					}
 				}
 				else
@@ -309,7 +318,7 @@ namespace Services
 							result.UploadedInnerListsForCopiesOfItems.BilletTitle.Add( tracked );
 						}
 						tracked.HasRatingTask.Add( ratingTask.RowId );
-						result.ChangeNote.Add( "Updated Billet Title: " + billetTitle.Name + " with new Rating Task: " + ratingTask.Description );
+						result.Messages.AddItem.Add( "Update Billet Title: " + billetTitle.Name + " with new Rating Task: " + ratingTask.Description );
 					}
 				}
 				//Otherwise just update the new Billet Title
@@ -334,39 +343,42 @@ namespace Services
 				debug[ latestStepFlag ] = "Processed Existing/New Rating Task data for row " + rowCount;
 
 				//If the Course already exists, and needs to be modified, then handle it
-				if ( Find( existing.Course, course.RowId ) != null )
+				if( course != null )
 				{
-					//Assign Training Tasks to Course if it doesn't already reference them
-					if ( trainingTask != null && !course.HasTrainingTask.Contains( trainingTask.RowId ) )
+					if ( Find( existing.Course, course.RowId ) != null )
 					{
-						//Use a temporary copy of the object to keep track of which items get added to it
-						var tracked = Find( result.UploadedInnerListsForCopiesOfItems.Course, course.RowId );
-						if ( tracked == null )
+						//Assign Training Tasks to Course if it doesn't already reference them
+						if ( trainingTask != null && !course.HasTrainingTask.Contains( trainingTask.RowId ) )
 						{
-							tracked = new Course() { RowId = course.RowId };
-							result.UploadedInnerListsForCopiesOfItems.Course.Add( tracked );
+							//Use a temporary copy of the object to keep track of which items get added to it
+							var tracked = Find( result.UploadedInnerListsForCopiesOfItems.Course, course.RowId );
+							if ( tracked == null )
+							{
+								tracked = new Course() { RowId = course.RowId };
+								result.UploadedInnerListsForCopiesOfItems.Course.Add( tracked );
+							}
+							tracked.HasTrainingTask.Add( trainingTask.RowId );
 						}
-						tracked.HasTrainingTask.Add( trainingTask.RowId );
-					}
 
-					//Assign CCA to Course if it doesn't already reference them
-					if( cca != null && !course.CurriculumControlAuthority.Contains( cca.RowId ) )
-					{
-						//Use a temporary copy of the object to keep track of which items get added to it
-						var tracked = Find( result.UploadedInnerListsForCopiesOfItems.Course, course.RowId );
-						if ( tracked == null )
+						//Assign CCA to Course if it doesn't already reference them
+						if ( cca != null && !course.CurriculumControlAuthority.Contains( cca.RowId ) )
 						{
-							tracked = new Course() { RowId = course.RowId };
-							result.UploadedInnerListsForCopiesOfItems.Course.Add( tracked );
+							//Use a temporary copy of the object to keep track of which items get added to it
+							var tracked = Find( result.UploadedInnerListsForCopiesOfItems.Course, course.RowId );
+							if ( tracked == null )
+							{
+								tracked = new Course() { RowId = course.RowId };
+								result.UploadedInnerListsForCopiesOfItems.Course.Add( tracked );
+							}
+							tracked.CurriculumControlAuthority.Add( cca.RowId );
 						}
-						tracked.CurriculumControlAuthority.Add( cca.RowId );
 					}
-				}
-				//Otherwise, just treat it like a new Course
-				else
-				{
-					Append( course.CurriculumControlAuthority, cca.RowId );
-					Append( course.HasTrainingTask, trainingTask.RowId );
+					//Otherwise, just treat it like a new Course
+					else
+					{
+						Append( course.CurriculumControlAuthority, cca.RowId );
+						Append( course.HasTrainingTask, trainingTask.RowId );
+					}
 				}
 				debug[ latestStepFlag ] = "Processed Existing/New Course data for row " + rowCount;
 
@@ -394,32 +406,35 @@ namespace Services
 				debug[ latestStepFlag ] = "Processed Reference Type for Reference Resource (for Task)";
 
 				//If the ReferenceResource for the task already exists, and needs to be modified, then handle it
-				if ( Find( existing.ReferenceResource, courseSource.RowId ) != null )
+				if( courseSource != null )
 				{
-					//Assign reference types to reference if it doesn't already reference them
-					if ( courseSourceType != null && !courseSource.ReferenceType.Contains( courseSourceType.RowId ) )
+					if ( Find( existing.ReferenceResource, courseSource.RowId ) != null )
 					{
-						//Use a temporary copy of the object to keep track of which items get added to it
-						var tracked = Find( result.UploadedInnerListsForCopiesOfItems.ReferenceResource, courseSource.RowId );
-						if ( tracked == null )
+						//Assign reference types to reference if it doesn't already reference them
+						if ( courseSourceType != null && !courseSource.ReferenceType.Contains( courseSourceType.RowId ) )
 						{
-							tracked = new ReferenceResource() { RowId = courseSource.RowId };
-							result.UploadedInnerListsForCopiesOfItems.ReferenceResource.Add( tracked );
+							//Use a temporary copy of the object to keep track of which items get added to it
+							var tracked = Find( result.UploadedInnerListsForCopiesOfItems.ReferenceResource, courseSource.RowId );
+							if ( tracked == null )
+							{
+								tracked = new ReferenceResource() { RowId = courseSource.RowId };
+								result.UploadedInnerListsForCopiesOfItems.ReferenceResource.Add( tracked );
+							}
+							tracked.ReferenceType.Add( courseSourceType.RowId );
 						}
-						tracked.ReferenceType.Add( courseSourceType.RowId );
 					}
-				}
-				//Otherwise, just treat it like a new ReferenceResource
-				else
-				{
-					Append( courseSource.ReferenceType, courseSourceType.RowId );
+					//Otherwise, just treat it like a new ReferenceResource
+					else
+					{
+						Append( courseSource.ReferenceType, courseSourceType.RowId );
+					}
 				}
 				debug[ latestStepFlag ] = "Processed Reference Type for Reference Resource (for Course)";
 
 			}
-			if ( result.Errors.Count() > 0 )
+			if ( result.Messages.Error.Count() > 0 )
 			{
-				result.Errors.Add( "One or more errors found. Processing cancelled. Please resolve the errors and try again." );
+				result.Messages.Error.Add( "One or more errors found. Processing cancelled. Please resolve the errors and try again." );
 				return result;
 			}
 			debug[ latestStepFlag ] = "Finished processing spreadsheet data";
@@ -439,7 +454,7 @@ namespace Services
 				);
 				if ( match == null )
 				{
-					result.Errors.Add( "Error: This task seems to exist already, but a match wasn't able to be found: " + otherRatingTask.Description );
+					result.Messages.Error.Add( "Error: This task seems to exist already, but a match wasn't able to be found: " + otherRatingTask.Description );
 				}
 				else
 				{
@@ -455,7 +470,7 @@ namespace Services
 					if ( !otherRatingTask.HasRating.Contains( ratingRowID ) )
 					{
 						Append( tracked.HasRating, ratingRowID );
-						result.ChangeNote.Add( "Added Rating association: " + currentRating.Name + " to Rating Task: " + otherRatingTask.Description );
+						result.Messages.AddItem.Add( "Add Rating association: " + currentRating.Name + " to Rating Task: " + otherRatingTask.Description );
 					}
 
 					//Add Work Role association
@@ -464,7 +479,7 @@ namespace Services
 						if ( !otherRatingTask.HasWorkRole.Contains( roleRowID ) )
 						{
 							Append( tracked.HasWorkRole, roleRowID );
-							result.ChangeNote.Add( "Added Functional Area association: " + Find( graph.WorkRole, roleRowID )?.Name + " to Rating Task: " + otherRatingTask.Description );
+							result.Messages.AddItem.Add( "Add Functional Area association: " + Find( graph.WorkRole, roleRowID )?.Name + " to Rating Task: " + otherRatingTask.Description );
 						}
 					}
 
@@ -478,20 +493,20 @@ namespace Services
 			//Now add creation notes for the truly new tasks
 			foreach( var ratingTask in result.ItemsToBeCreated.RatingTask )
 			{
-				result.ChangeNote.Add( "Created new Rating Task: " + ratingTask.Description );
+				result.Messages.Create.Add( "Rating Task: " + ratingTask.Description );
 			}
 			debug[ latestStepFlag ] = "Created change notes for new tasks";
 
 			//Process existing data to see if anything was missing from the uploaded data (attempt to detect deletes)
-			FlagItemsForDeletion( existing.BilletTitle, referencedItems.BilletTitle, result.ItemsToBeDeleted.BilletTitle, result.ChangeNote, "Billet Title", ( BilletTitle m ) => { return m.CTID + " - " + m.Name; } );
-			FlagItemsForDeletion( existing.Course, referencedItems.Course, result.ItemsToBeDeleted.Course, result.ChangeNote, "Course", ( Course m ) => { return m.CTID + " - " + m.Name; } );
-			FlagItemsForDeletion( existing.Organization, referencedItems.Organization, result.ItemsToBeDeleted.Organization, result.ChangeNote, "Organization (CCA)", ( Organization m ) => { return m.CTID + " - " + m.Name; } );
-			FlagItemsForDeletion( existing.TrainingTask, referencedItems.TrainingTask, result.ItemsToBeDeleted.TrainingTask, result.ChangeNote, "Training Task", ( TrainingTask m ) => { return m.CTID + " - " + m.Description; } );
-			FlagItemsForDeletion( existing.WorkRole, referencedItems.WorkRole, result.ItemsToBeDeleted.WorkRole, result.ChangeNote, "Functional Area", ( WorkRole m ) => { return m.CTID + " - " + m.Name; } );
+			FlagItemsForDeletion( existing.BilletTitle, referencedItems.BilletTitle, result.ItemsToBeDeleted.BilletTitle, result.Messages.Delete, "Billet Title", ( BilletTitle m ) => { return m.CTID + " - " + m.Name; } );
+			FlagItemsForDeletion( existing.Course, referencedItems.Course, result.ItemsToBeDeleted.Course, result.Messages.Delete, "Course", ( Course m ) => { return m.CTID + " - " + m.Name; } );
+			FlagItemsForDeletion( existing.Organization, referencedItems.Organization, result.ItemsToBeDeleted.Organization, result.Messages.Delete, "Organization (CCA)", ( Organization m ) => { return m.CTID + " - " + m.Name; } );
+			FlagItemsForDeletion( existing.TrainingTask, referencedItems.TrainingTask, result.ItemsToBeDeleted.TrainingTask, result.Messages.Delete, "Training Task", ( TrainingTask m ) => { return m.CTID + " - " + m.Description; } );
+			FlagItemsForDeletion( existing.WorkRole, referencedItems.WorkRole, result.ItemsToBeDeleted.WorkRole, result.Messages.Delete, "Functional Area", ( WorkRole m ) => { return m.CTID + " - " + m.Name; } );
 			debug[ latestStepFlag ] = "Flagged normal items for deletion";
 
 			//Only flag the task if it isn't associated with any other rating
-			FlagItemsForDeletion( existing.RatingTask.Where( m => m.HasRating.Count() == 1 && m.HasRating.FirstOrDefault() == ratingRowID ).ToList(), referencedItems.RatingTask, result.ItemsToBeDeleted.RatingTask, result.ChangeNote, "Rating Task", ( RatingTask m ) => { return m.CTID + " - " + m.Description; } );
+			FlagItemsForDeletion( existing.RatingTask.Where( m => m.HasRating.Count() == 1 && m.HasRating.FirstOrDefault() == ratingRowID ).ToList(), referencedItems.RatingTask, result.ItemsToBeDeleted.RatingTask, result.Messages.Delete, "Rating Task", ( RatingTask m ) => { return m.CTID + " - " + m.Description; } );
 
 			//Probably shouldn't ever delete reference resources(?)
 			//FlagItemsForDeletion( existing.ReferenceResource, referencedItems.ReferenceResource, result.ItemsToBeDeleted.ReferenceResource, result.ChangeNote, "Reference Resource", ( ReferenceResource m ) => { return m.CTID + " - " + m.Name; } );
@@ -508,7 +523,7 @@ namespace Services
 					foreach ( var item in originalBilletTitle.HasRatingTask.Where( m => !uploadedMatch.HasRatingTask.Contains( m ) ).ToList() ) 
 					{
 						removalTracker.HasRatingTask.Add( item );
-						result.ChangeNote.Add( "Removed Rating Task reference from Billet Title: " + uploadedMatch.Name + " - " + Find( existing.RatingTask, item )?.Description );
+						result.Messages.RemoveItems.Add( "Remove Rating Task reference from Billet Title: " + uploadedMatch.Name + " - " + Find( existing.RatingTask, item )?.Description );
 					}
 				}
 
@@ -529,13 +544,13 @@ namespace Services
 					foreach( var item in originalCourse.CurriculumControlAuthority.Where( m => !uploadedMatch.CurriculumControlAuthority.Contains( m ) ).ToList() )
 					{
 						removalTracker.CurriculumControlAuthority.Add( item );
-						result.ChangeNote.Add( "Removed Curriculum Control Authority reference from Course: " + uploadedMatch.Name + " - " + Find( existing.Organization, item )?.Name );
+						result.Messages.RemoveItems.Add( "Remove Curriculum Control Authority reference from Course: " + uploadedMatch.Name + " - " + Find( existing.Organization, item )?.Name );
 					}
 
 					foreach ( var item in originalCourse.HasTrainingTask.Where( m => !uploadedMatch.HasTrainingTask.Contains( m ) ).ToList() ) 
 					{
 						removalTracker.HasTrainingTask.Add( item );
-						result.ChangeNote.Add( "Removed Training Task reference from Course: " + uploadedMatch.Name + " - " + Find( existing.TrainingTask, item )?.Description );
+						result.Messages.RemoveItems.Add( "Remove Training Task reference from Course: " + uploadedMatch.Name + " - " + Find( existing.TrainingTask, item )?.Description );
 					}
 				}
 
@@ -555,7 +570,7 @@ namespace Services
 					foreach( var item in originalTask.HasWorkRole.Where( m => !uploadedMatch.HasWorkRole.Contains( m ) ).ToList() )
 					{
 						removalTracker.HasWorkRole.Add( item );
-						result.ChangeNote.Add( "Removed Functional Area reference from Rating Task: " + Find( existing.WorkRole, item )?.Name + " - " + uploadedMatch.Description );
+						result.Messages.RemoveItems.Add( "Remove Functional Area reference from Rating Task: " + Find( existing.WorkRole, item )?.Name + " - " + uploadedMatch.Description );
 					}
 				}
 
@@ -564,7 +579,7 @@ namespace Services
 				if ( Find( referencedItems.RatingTask, originalTask.RowId ) == null && originalTask.HasRating.Count() > 1 ) 
 				{
 					removalTracker.HasRating.Add( ratingRowID );
-					result.ChangeNote.Add( "Removed Rating reference from Rating Task: " + currentRating.CodedNotation + " - " + originalTask.Description );
+					result.Messages.RemoveItems.Add( "Remove Rating reference from Rating Task: " + currentRating.CodedNotation + " - " + originalTask.Description );
 				}
 
 				if( removalTracker.HasWorkRole.Count() > 0 || removalTracker.HasRating.Count() > 0 )
@@ -584,8 +599,29 @@ namespace Services
 			result.UnchangedCount.WorkRole = GetUnchangedCount( nameof( existing.WorkRole ), existing.WorkRole, result );
 			debug[ latestStepFlag ] = "Figured out unchanged item counts";
 
+			//Look for potential duplicates
+			HandlePossibleDuplicates( "Billet Title(s)", graph.BilletTitle.GroupBy( m => m.Name, StringComparer.OrdinalIgnoreCase ), existing.BilletTitle, result.ItemsToBeCreated.BilletTitle, result.Messages.Duplicate );
+			HandlePossibleDuplicates( "Course(s)", graph.Course.GroupBy( m => m.Name, StringComparer.OrdinalIgnoreCase ), existing.Course, result.ItemsToBeCreated.Course, result.Messages.Duplicate );
+			HandlePossibleDuplicates( "Organization(s)", graph.Organization.GroupBy( m => m.Name, StringComparer.OrdinalIgnoreCase ), existing.Organization, result.ItemsToBeCreated.Organization, result.Messages.Duplicate );
+			HandlePossibleDuplicates( "Rating Task(s)", graph.RatingTask.GroupBy( m => m.Description, StringComparer.OrdinalIgnoreCase ), existing.RatingTask, result.ItemsToBeCreated.RatingTask, result.Messages.Duplicate );
+			HandlePossibleDuplicates( "Reference Resource(s)", graph.ReferenceResource.GroupBy( m => m.Name, StringComparer.OrdinalIgnoreCase ), existing.ReferenceResource, result.ItemsToBeCreated.ReferenceResource, result.Messages.Duplicate );
+			HandlePossibleDuplicates( "Training Task(s)", graph.TrainingTask.GroupBy( m => m.Description, StringComparer.OrdinalIgnoreCase ), existing.TrainingTask, result.ItemsToBeCreated.TrainingTask, result.Messages.Duplicate );
+			HandlePossibleDuplicates( "Functional Area(s)", graph.WorkRole.GroupBy( m => m.Name, StringComparer.OrdinalIgnoreCase ), existing.WorkRole, result.ItemsToBeCreated.WorkRole, result.Messages.Duplicate );
+
 			debug[ latestStepFlag ] = "Finished processing upload.";
 			return result;
+		}
+		//
+
+		private static void HandlePossibleDuplicates<T>( string typeLabel, IEnumerable<IGrouping<string, T>> groupings, List<T> existingItems, List<T> newItems, List<string> duplicateMessages ) where T : BaseObject
+		{
+			foreach( var maybeDuplicates in groupings.Where(m => m.Count() > 1 ).ToList() )
+			{
+				var itemRowIDs = maybeDuplicates.Select( m => m.RowId ).ToList();
+				var existingCount = existingItems.Where( m => itemRowIDs.Contains( m.RowId ) ).Count();
+				var newCount = newItems.Where( m => itemRowIDs.Contains( m.RowId ) ).Count();
+				duplicateMessages.Add( "Found " + existingCount + " existing and " + newCount + " new instances of " + typeLabel + ": " + maybeDuplicates.Key );
+			}
 		}
 		//
 
@@ -596,15 +632,21 @@ namespace Services
 		}
 		//
 
-		private static Concept FindConceptOrError( List<Concept> haystack, string searchFor, bool useNotation, string warningLabel, List<string> warningMessages )
+		private static Concept FindConceptOrError( List<Concept> haystack, Concept needle, string warningLabel, string warningValue, List<string> warningMessages )
 		{
-			var match = haystack?.FirstOrDefault( m => useNotation ? ( m.CodedNotation?.ToLower() == searchFor?.ToLower() ) : ( m.Name?.ToLower() == searchFor?.ToLower() ) );
+			var match = haystack?.FirstOrDefault( m => matchString( m.Name, needle.Name ) || matchString( m.CodedNotation, needle.CodedNotation ) || matchString( m.WorkElementType, needle.WorkElementType ) );
 			if( match == null )
 			{
-				warningMessages.Add( "Error: Found unrecognized " + warningLabel + ": " + searchFor );
-				return new Concept() { RowId = Guid.NewGuid(), Name = useNotation ? null : searchFor, CodedNotation = useNotation ? searchFor : null };
+				warningMessages.Add( "Error: Found unrecognized " + warningLabel + ": " + warningValue );
+				return new Concept() { RowId = Guid.NewGuid(), Name = needle?.Name, CodedNotation = needle?.CodedNotation, WorkElementType = needle?.WorkElementType };
 			}
 			return match;
+		}
+		private static bool matchString( string haystackCheck, string needleCheck )
+		{
+			return string.IsNullOrWhiteSpace( needleCheck ) ? false :
+				string.IsNullOrWhiteSpace( haystackCheck ) ? false :
+				haystackCheck.ToLower() == needleCheck.ToLower();
 		}
 		//
 
@@ -613,7 +655,7 @@ namespace Services
 			foreach( var item in existingItems.Where( m => !referencedItems.Contains( m ) ).ToList() )
 			{
 				itemsToBeDeleted.Add( item );
-				changeNotes.Add( "Warning: The following " + typeLabel + " was not detected in the uploaded data and will be deleted: " + getItemLabel( item ) );
+				changeNotes.Add( typeLabel + ": " + getItemLabel( item ) );
 			}
 		}
 		//
@@ -651,6 +693,13 @@ namespace Services
 			}
 		}
 		//
+
+		private static string NullifyNotApplicable( string test )
+		{
+			return string.IsNullOrWhiteSpace( test ) ? null :
+				test.ToLower() == "n/a" ? null :
+				test;
+		}
 
 		public static T Find<T>( List<T> haystack, Guid needleRowID ) where T : BaseObject
 		{

@@ -31,7 +31,7 @@ namespace Factories
         public static string ConceptScheme_TrainingGap = "navy:TrainingGap";
 
         #region Retrieval
-        public static AppEntity GetbyName( string name )
+        public static AppEntity GetByName( string name )
         {
             var entity = new AppEntity();
             if ( string.IsNullOrWhiteSpace(name))
