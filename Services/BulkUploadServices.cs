@@ -23,8 +23,7 @@ namespace Services
 			var latestStepFlag = "LatestStep";
 			debug[ latestStepFlag ] = "Initial Setup";
 
-			var ratings = new List<Rating>(); //Get from database
-			var currentRating = Find( ratings, ratingRowID );
+			var currentRating = Factories.RatingManager.Get( ratingRowID );
 			if( currentRating == null )
 			{
 				result.Errors.Add( "Error: Unable to find Rating for identifier: " + ratingRowID );
@@ -32,7 +31,13 @@ namespace Services
 			}
 
 			var existing = new UploadableData(); //Get from database for the selected rating
-			var concepts = new List<Concept>(); //Get from database, possibly as separate variables for each scheme
+			//var concepts = new List<Concept>(); //Get from database, possibly as separate variables for each scheme
+			var payGradeTypeConcepts = Factories.ConceptSchemeManager.GetbyShortUri( Factories.ConceptSchemeManager.ConceptScheme_Pay_Grade ).Concepts;
+			var trainingGapTypeConcepts = Factories.ConceptSchemeManager.GetbyShortUri( Factories.ConceptSchemeManager.ConceptScheme_TrainingGap ).Concepts;
+			var applicabilityTypeConcepts = Factories.ConceptSchemeManager.GetbyShortUri( Factories.ConceptSchemeManager.ConceptScheme_TaskApplicability ).Concepts;
+			var sourceTypeConcepts = Factories.ConceptSchemeManager.GetbyShortUri( Factories.ConceptSchemeManager.ConceptScheme_ReferenceResource ).Concepts;
+			var courseTypeConcepts = Factories.ConceptSchemeManager.GetbyShortUri( Factories.ConceptSchemeManager.ConceptScheme_CourseType ).Concepts;
+			var assessmentMethodTypeConcepts = Factories.ConceptSchemeManager.GetbyShortUri( Factories.ConceptSchemeManager.ConceptScheme_CurrentAssessmentApproach ).Concepts;
 			debug[ latestStepFlag ] = "Got data from the Database";
 
 			//Create a graph that will be used for searching for matching data
@@ -62,17 +67,18 @@ namespace Services
 				//If no match is found, create a new object and put it into the graph
 
 				//Concepts from Concept Schemes
-				var payGradeType = FindConceptOrError( concepts, row.PayGradeType_Notation, true, "Pay Grade (Rank)", result.Errors );
-				var trainingGapType = FindConceptOrError( concepts, row.RatingTask_TrainingGapType_Label, false, "Training Gap Type", result.Errors );
-				var applicabilityType = FindConceptOrError( concepts, row.RatingTask_ApplicabilityType_Label, false, "Applicability Type", result.Errors );
-				var sharedSourceType = FindConceptOrError( concepts, row.Shared_ReferenceType, false, "Reference Resource Type (for Rating-Level Task)", result.Errors );
-				var courseSourceType = FindConceptOrError( concepts, row.Course_HasReferenceResource_Name, false, "Reference Resource Type (for Course)", result.Errors );
+				var payGradeType = FindConceptOrError( payGradeTypeConcepts, row.PayGradeType_Notation, true, "Pay Grade (Rank)", result.Errors );
+				var trainingGapType = FindConceptOrError( trainingGapTypeConcepts, row.RatingTask_TrainingGapType_Label, false, "Training Gap Type", result.Errors );
+				var applicabilityType = FindConceptOrError( applicabilityTypeConcepts, row.RatingTask_ApplicabilityType_Label, false, "Applicability Type", result.Errors );
+				var sharedSourceType = FindConceptOrError( sourceTypeConcepts, row.Shared_ReferenceType, false, "Reference Resource Type (for Rating-Level Task)", result.Errors );
+				//var courseSourceType = FindConceptOrError( sourceTypeConcepts, row.Course_HasReferenceResource_Name, false, "Reference Resource Type (for Course)", result.Errors );
+				var courseSourceType = sourceTypeConcepts.FirstOrDefault( m => m.CodedNotation == "LCCD" ); //Course Reference Resource Type is always a Life-Cycle Control Document
 				var courseType = string.IsNullOrWhiteSpace( row.Course_CourseType_Label ) ?
 					null : //It's okay if this is null, since only some rows have course types
-					FindConceptOrError( concepts, row.Course_CourseType_Label, false, "Course Type", result.Errors );
+					FindConceptOrError( courseTypeConcepts, row.Course_CourseType_Label, false, "Course Type", result.Errors );
 				var assessmentMethodType = string.IsNullOrWhiteSpace( row.Course_AssessmentMethodType_Label) ? 
 					null : //It's okay if this is null, since only some rows have assessment methods
-					FindConceptOrError( concepts, row.Course_AssessmentMethodType_Label, false, "Pay Grade (Rank)", result.Errors );
+					FindConceptOrError( assessmentMethodTypeConcepts, row.Course_AssessmentMethodType_Label, false, "Pay Grade (Rank)", result.Errors );
 
 				//Stop processing if one or more unknown concepts were detected
 				if( result.Errors.Count() > 0 )
@@ -592,7 +598,7 @@ namespace Services
 
 		private static Concept FindConceptOrError( List<Concept> haystack, string searchFor, bool useNotation, string warningLabel, List<string> warningMessages )
 		{
-			var match = haystack.FirstOrDefault( m => useNotation ? ( m.CodedNotation.ToLower() == searchFor.ToLower() ) : ( m.Name.ToLower() == searchFor.ToLower() ) );
+			var match = haystack?.FirstOrDefault( m => useNotation ? ( m.CodedNotation?.ToLower() == searchFor?.ToLower() ) : ( m.Name?.ToLower() == searchFor?.ToLower() ) );
 			if( match == null )
 			{
 				warningMessages.Add( "Error: Found unrecognized " + warningLabel + ": " + searchFor );

@@ -1,6 +1,7 @@
 ﻿
 @{
-    ViewBag.Title = "UploadV2";
+    ViewBag.Title = "Upload V2";
+	var allRatings = Factories.RatingManager.GetAll();
 }
 
 <script type="text/javascript">
@@ -17,6 +18,7 @@
 		UI.FileInput = $(".mainFileUpload");
 		UI.ProcessButton = $(".processButton");
 		UI.StatusBox = $(".status");
+		UI.SummaryBox = $(".uploadSummary");
 
 		UI.ProcessButton.on("click", function () {
 			processFile();
@@ -28,6 +30,7 @@
 		var file = UI.FileInput[0].files[0];
 		if (!file) {
 			setStatus("Please select a file.");
+			alert("Please seelct a file.");
 		}
 		else {
 			setStatus("Reading File...");
@@ -133,7 +136,17 @@
 	//
 
 	function submitData() {
-		var data = { RawData: Data.MappedTable, RatingRowID: UI.RatingSelector.val() };
+		var data = {
+			rawData: Data.MappedTable,
+			ratingRowID: UI.RatingSelector.val()
+		};
+
+		if (!data.ratingRowID) {
+			setStatus("Please select a Rating.");
+			alert("Please select a Rating.");
+			return;
+		}
+
 		setStatus("Sending data, check console for details");
 		console.log("Submitting data", data);
 		fetch("@Url.Content("~/upload/processupload")", {
@@ -146,9 +159,29 @@
 			return response.text()
 		}).then((text) => {
 			console.log("Received text", text);
-			var finished = JSON.parse(text);
-			console.log("Parsed Data", finished);
+			Data.Response = JSON.parse(text);
+			console.log("Parsed Data", Data.Response);
+			renderResults();
 		});
+	}
+	//
+
+	function renderResults() {
+		UI.SummaryBox.html("");
+		renderTextSet("Errors", Data.Response.Data.Errors, UI.SummaryBox, "changeNote");
+		renderTextSet("Change Notes", Data.Response.Data.ChangeNote, UI.SummaryBox, "error");
+
+	}
+	//
+
+	function renderTextSet(header, items, container, cssClass) {
+		if (items?.length > 0) {
+			container.append("<h3>" + header + "</h3>");
+			var list = $("<ul></ul>").appendTo(container);
+			items.forEach((item) => {
+				list.append("<li class=\"" + cssClass + "\">" + item + "</li>");
+			});
+		}
 	}
 	//
 
@@ -158,13 +191,30 @@
 	//
 </script>
 <style type="text/css">
-
+	.uploadHeader { }
+	.uploadHeader .uploadItem { display: block; max-width: none; }
+	.uploadHeader .ratingSelector { display: block; width: 100%; height: 30px; margin-bottom: 5px; cursor: pointer; }
+	.uploadHeader .uploadBox { display: flex; flex-wrap: wrap; align-items: center; margin-bottom: 5px; }
+	.uploadHeader .uploadBox .mainFileUpload { flex: 33% 1 1; padding: 4px 5px; cursor: pointer; background-color: #EEE; }
+	.uploadHeader .uploadBox .mainFileUpload:hover, .uploadHeader .uploadBox .mainFileUpload:focus { background-color: #DDD; }
+	.uploadHeader .uploadBox .processButton { flex: 200px 0 0; height: 30px; }
+	.uploadHeader .status { padding: 4px 5px; }
 </style>
 
-<h2>UploadV2</h2>
+<h2>Upload RMTL Data</h2>
 
-<select class="ratingSelector">
-	<option value="00000000-0000-0000-0000-000000000000">Select a Rating...</option>
-</select>
-<input class="mainFileUpload" type="file" /><button class="processButton" data-action="process">Process</button>
-<div class="status"></div>
+<div class="uploadHeader">
+	<select class="uploadItem ratingSelector">
+		<option value="" disabled="disabled" selected="selected">Select a Rating...</option>
+		@foreach( var rating in allRatings )
+		{
+			<option value="@rating.RowId.ToString()">@rating.CodedNotation - @rating.Name</option>
+		}
+	</select>
+	<div class="uploadBox">
+		<input class="uploadItem mainFileUpload" type="file" />
+		<button class="uploadItem processButton" data-action="process">Process</button>
+	</div>
+	<div class="uploadItem status"></div>
+</div>
+<div class="uploadSummary"></div>

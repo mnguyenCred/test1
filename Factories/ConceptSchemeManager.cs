@@ -31,7 +31,7 @@ namespace Factories
         public static string ConceptScheme_TrainingGap = "navy:TrainingGap";
 
         #region Retrieval
-        public static AppEntity Get( string name )
+        public static AppEntity GetbyName( string name )
         {
             var entity = new AppEntity();
             if ( string.IsNullOrWhiteSpace(name))
@@ -49,7 +49,33 @@ namespace Factories
             }
             return entity;
         }
-        public static AppEntity Get( Guid rowId )
+
+		/// <summary>
+		/// Use this with the static strings at the top of this class beginning with "ConceptScheme_"
+		/// </summary>
+		/// <param name="shortURI"></param>
+		/// <returns></returns>
+		public static AppEntity GetbyShortUri( string shortURI )
+		{
+			var entity = new AppEntity();
+			if ( string.IsNullOrWhiteSpace( shortURI ) )
+				return null;
+
+			using ( var context = new DataEntities() )
+			{
+				var item = context.ConceptScheme
+							.FirstOrDefault( s => s.SchemaUri.ToLower() == shortURI.ToLower() );
+
+				if ( item != null && item.Id > 0 )
+				{
+					MapFromDB( item, entity );
+				}
+			}
+			return entity;
+		}
+		//
+
+		public static AppEntity Get( Guid rowId )
         {
             var entity = new AppEntity();
 
