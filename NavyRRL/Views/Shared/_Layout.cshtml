@@ -1,4 +1,11 @@
-﻿<!DOCTYPE html>
+﻿@using Navy.Utilities;
+@using Services;
+@{
+	var env = UtilityManager.GetAppKeyValue( "environment", "production" );
+	var user = AccountServices.GetCurrentUser();
+	var url = Request.Url.PathAndQuery.ToLower();
+}
+<!DOCTYPE html>
 <html>
 <head>
 	<meta charset="utf-8" />
@@ -21,39 +28,64 @@
 	@*<link rel="stylesheet" type="text/css" href="~/Content/DataTables/DataTables-1.11.3/css/dataTables.bootstrap.min.css" />*@
 
 	@*<script type="text/javascript" src="~/Content/DataTables/datatables.min.js"></script>*@
-
+	<style>
+		.navbar-right { float: right !important; margin-right: -5px; }
+	</style>
 </head>
 <body>
-	@*@Html.Partial( "~/Views/Shared/_Header.cshtml" )*@
-	<div class="navbar navbar-inverse navbar-fixed-top">
-		<div class="container">
-			<div class="navbar-header">
-				<button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
-					<span class="icon-bar"></span>
-					<span class="icon-bar"></span>
-					<span class="icon-bar"></span>
-				</button>
-				@Html.ActionLink( "Navy RCDC RRL", "Index", "Home", new { area = "" }, new { @class = "navbar-brand" } )
-			</div>
-			<div class="navbar-collapse collapse">
-				<ul class="nav navbar-nav">
-					@*<li>@Html.ActionLink( "Home", "Index", "Home" )</li>*@
-					<li>@Html.ActionLink( "Upload", "Index", "Upload" )</li>
-					<li>@Html.ActionLink( "Review", "ImportSummary", "Demo" )</li>
-					@*<li>@Html.ActionLink( "About", "About", "Home" )</li>
-						<li>@Html.ActionLink( "Contact", "Contact", "Home" )</li>*@
-				</ul>
-				@Html.Partial( "_LoginPartial" )
+	<div id="mainSiteDiv" class="defaultTheme">
+		@*@Html.Partial( "~/Views/Shared/_Header.cshtml" )*@
+		<div class="navbar navbar-inverse navbar-fixed-top">
+			<div class="container">
+				<div class="navbar-header">
+					<button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+						<span class="icon-bar"></span>
+						<span class="icon-bar"></span>
+						<span class="icon-bar"></span>
+					</button>
+					@Html.ActionLink( "Navy RCDC RRL", "Index", "Home", new { area = "" }, new { @class = "navbar-brand" } )
+				</div>
+				<div class="navbar-collapse collapse">
+					<ul class="nav navbar-nav">
+						<li>@Html.ActionLink( "Home", "Index", "Home" )</li>
+					</ul>
+					<ul class="nav navbar-nav">
+						<li>@Html.ActionLink( "Finder Home Page", "FinderHome", "Home" )</li>
+					</ul>
+					@if ( Request.IsAuthenticated || ( user != null && user.Id > 0 ) || env == "development" )
+					{
+						<ul class="nav navbar-nav">
+						<li>@Html.ActionLink( "Upload", "Index", "Upload" )</li>
+						<li>@Html.ActionLink( "Review", "ImportSummary", "Demo" )</li>
+						</ul>
+					}
+					@if ( AccountServices.IsUserAnAdmin() )
+					{
+						<ul class="nav navbar-nav">
+							<li class="dropdown">
+								<a href="#" class="dropdown-toggle" data-toggle="dropdown">Admin<b class="caret"></b></a>
+								<ul class="dropdown-menu">
+									<li><a href="@Url.Content( "~/Admin/User/ResetPassword" )">Reset User Password</a></li>
+									<li><a href="@Url.Content( "~/Admin/User/AddUser" )">Add Account</a></li>
+								</ul>
+							</li>
+					
+						</ul>
+					}
+
+								
+								@Html.Partial( "_LoginPartial" )
+							</div>
 			</div>
 		</div>
+		<div class="container body-content">
+			@RenderBody()
+			<hr />
+			<footer>
+				<p>&copy; @DateTime.Now.Year - Navy RCDC RRL</p>
+			</footer>
+		</div>
+		@Html.Partial( "~/Views/Shared/_ConsoleMessage.cshtml" )
 	</div>
-	<div class="container body-content">
-		@RenderBody()
-		<hr />
-		<footer>
-			<p>&copy; @DateTime.Now.Year - Navy RCDC RRL</p>
-		</footer>
-	</div>
-	@Html.Partial( "~/Views/Shared/_ConsoleMessage.cshtml" )
 </body>
 </html>

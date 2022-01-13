@@ -64,5 +64,12 @@ namespace Models.Schema
 		/// From Column: TBD
 		/// </summary>
 		public Guid StatusType { get; set; }
+
+
+		//maybe needed for import
+		//Derived
+		public string StatusTypeId { get; set; }
+		//will not be used later as ReferenceType is a list. Using for initial playing.
+		public string ReferenceTypeId { get; set; }
 	}
 }

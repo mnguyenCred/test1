@@ -372,9 +372,9 @@
           <Property Name="CodedNotation" Type="varchar" MaxLength="100" />
           <Property Name="PublicationDate" Type="nvarchar" MaxLength="50" />
           <Property Name="SubjectWebpage" Type="varchar" MaxLength="500" />
-          <Property Name="StatusType" Type="int" />
+          <Property Name="StatusTypeId" Type="int" />
           <Property Name="VersionIdentifier" Type="varchar" MaxLength="100" />
-          <Property Name="ReferenceType" Type="int" />
+          <Property Name="ReferenceTypeId" Type="int" />
           <Property Name="Note" Type="nvarchar(max)" />
           <Property Name="Created" Type="datetime" Nullable="false" />
           <Property Name="CreatedById" Type="int" />
@@ -1968,9 +1968,7 @@
           <Property Name="CodedNotation" Type="String" MaxLength="100" FixedLength="false" Unicode="false" />
           <Property Name="PublicationDate" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
           <Property Name="SubjectWebpage" Type="String" MaxLength="500" FixedLength="false" Unicode="false" />
-          <Property Name="StatusType" Type="Int32" />
           <Property Name="VersionIdentifier" Type="String" MaxLength="100" FixedLength="false" Unicode="false" />
-          <Property Name="ReferenceType" Type="Int32" />
           <Property Name="Note" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
           <Property Name="Created" Type="DateTime" Nullable="false" Precision="3" />
           <Property Name="CreatedById" Type="Int32" />
@@ -1978,6 +1976,8 @@
           <Property Name="LastUpdatedById" Type="Int32" />
           <Property Name="CTID" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
           <NavigationProperty Name="ReferenceResource_ReferenceType" Relationship="NavyRRLModel.FK_ReferenceResource_ReferenceType_ReferenceResource" FromRole="ReferenceResource" ToRole="ReferenceResource_ReferenceType" />
+          <Property Name="StatusTypeId" Type="Int32" />
+          <Property Name="ReferenceTypeId" Type="Int32" />
         </EntityType>
         <EntityType Name="ReferenceResource_ReferenceType">
           <Key>
@@ -2497,15 +2497,15 @@
           <EntitySetMapping Name="ReferenceResource">
             <EntityTypeMapping TypeName="NavyRRLModel.ReferenceResource">
               <MappingFragment StoreEntitySet="ReferenceResource">
+                <ScalarProperty Name="ReferenceTypeId" ColumnName="ReferenceTypeId" />
+                <ScalarProperty Name="StatusTypeId" ColumnName="StatusTypeId" />
                 <ScalarProperty Name="CTID" ColumnName="CTID" />
                 <ScalarProperty Name="LastUpdatedById" ColumnName="LastUpdatedById" />
                 <ScalarProperty Name="LastUpdated" ColumnName="LastUpdated" />
                 <ScalarProperty Name="CreatedById" ColumnName="CreatedById" />
                 <ScalarProperty Name="Created" ColumnName="Created" />
                 <ScalarProperty Name="Note" ColumnName="Note" />
-                <ScalarProperty Name="ReferenceType" ColumnName="ReferenceType" />
                 <ScalarProperty Name="VersionIdentifier" ColumnName="VersionIdentifier" />
-                <ScalarProperty Name="StatusType" ColumnName="StatusType" />
                 <ScalarProperty Name="SubjectWebpage" ColumnName="SubjectWebpage" />
                 <ScalarProperty Name="PublicationDate" ColumnName="PublicationDate" />
                 <ScalarProperty Name="CodedNotation" ColumnName="CodedNotation" />

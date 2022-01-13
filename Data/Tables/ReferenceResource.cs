@@ -27,15 +27,15 @@ namespace Data.Tables
         public string CodedNotation { get; set; }
         public string PublicationDate { get; set; }
         public string SubjectWebpage { get; set; }
-        public Nullable<int> StatusType { get; set; }
         public string VersionIdentifier { get; set; }
-        public Nullable<int> ReferenceType { get; set; }
         public string Note { get; set; }
         public System.DateTime Created { get; set; }
         public Nullable<int> CreatedById { get; set; }
         public System.DateTime LastUpdated { get; set; }
         public Nullable<int> LastUpdatedById { get; set; }
         public string CTID { get; set; }
+        public Nullable<int> StatusTypeId { get; set; }
+        public Nullable<int> ReferenceTypeId { get; set; }
     
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<ReferenceResource_ReferenceType> ReferenceResource_ReferenceType { get; set; }

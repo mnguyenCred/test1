@@ -172,6 +172,8 @@
     <Compile Include="App_Start\IdentityConfig.cs" />
     <Compile Include="App_Start\RouteConfig.cs" />
     <Compile Include="App_Start\Startup.Auth.cs" />
+    <Compile Include="Areas\Admin\AdminAreaRegistration.cs" />
+    <Compile Include="Areas\Admin\Controllers\UserController.cs" />
     <Compile Include="Controllers\AccountController.cs" />
     <Compile Include="Controllers\DemoController.cs" />
     <Compile Include="Controllers\DetailController.cs" />
@@ -417,6 +419,10 @@
     <Content Include="Content\bootstrap-theme.css.map" />
     <Content Include="Content\DataTables\Buttons-2.0.1\css\common.scss" />
     <Content Include="Content\DataTables\Buttons-2.0.1\css\mixins.scss" />
+    <Content Include="Areas\Admin\Views\web.config" />
+    <Content Include="Areas\Admin\Views\_ViewStart.cshtml" />
+    <Content Include="Areas\Admin\Views\Shared\_Layout.cshtml" />
+    <Content Include="Areas\Admin\Views\User\Index.cshtml" />
     <None Include="Properties\PublishProfiles\Sandbox.pubxml" />
     <None Include="Scripts\jquery-3.6.0.intellisense.js" />
     <Content Include="Scripts\jquery-3.6.0.js" />
@@ -556,11 +562,14 @@
     <Content Include="Views\Shared\_Header.cshtml" />
     <Content Include="Views\Upload\PreProcess.cshtml" />
     <Content Include="Views\Upload\UploadV2.cshtml" />
+    <Content Include="Views\Account\RegisterConfirmation.cshtml" />
     <None Include="Web.Sandbox.config">
       <DependentUpon>Web.config</DependentUpon>
     </None>
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <Folder Include="Areas\Admin\Data\" />
+  </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
   </ItemGroup>

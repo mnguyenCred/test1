@@ -1,17 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+
+using Models.Application;
+
+using Navy.Utilities;
 
 using AppEntity = Models.Schema.Assessment;
-using DBEntity = Data.Tables.Assessment;
-
 using DataEntities = Data.Tables.NavyRRLEntities;
-using ViewContext = Data.Views.ceNavyViewEntities;
-using Data.Tables;
-using Models.Application;
-using Navy.Utilities;
+using DBEntity = Data.Tables.Assessment;
 namespace Factories
 {
     public class AssessmentManager : BaseFactory

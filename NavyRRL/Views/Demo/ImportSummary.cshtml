@@ -20,7 +20,6 @@
 
 		/*	show pager on the left*/
 		#results_paginate { margin: 0; white-space: nowrap; text-align: left; }
-
 		@@media (min-width: 1200px) {
 			.container { width: 150%; }
 		}
@@ -30,7 +29,7 @@
 
 <div style="width:100%">
 	<table id="results" class="table"></table>
-	<div id="jqGridPager"></div>
+	<div id="resultsPager"></div>
 	<br />
 </div>
 
@@ -61,7 +60,7 @@
                 filter: true,
                 orderMulti: false,
                 iDisplayLength: 500,
-				aLengthMenu: [[10, 25, 50, 100, 500, 1000, 1600, 2000, 5000], [10, 25, 50, 100, 500, 1000, 1600, 2000, 5000]],
+				aLengthMenu: [[10, 25, 50, 100, 250, 500, 1000, 1600, 2000, 5000], [10, 25, 50, 100, 250, 500, 1000, 1600, 2000, 5000]],
                 ajax: {
                     url: '@Html.Raw(Url.Action( "ImportSummarySearch", "Demo"))',
                     type: 'POST',
@@ -70,32 +69,32 @@
                 //order: [[0, "desc"]],
                 //columnDefs: [{ targets: [0, 1, 2, 3], orderable: true }, { targets: 4, orderable: false, searchable: false }],
                 columns: [
-                    { data: "Id", name: "Id", title: 'Id', width: "5%", filter: true },
+					{ data: "Id", name: "Id", title: 'Id', width: "15px" , filter: true },
 					{ data: 'IndexIdentifier', name: "IndexIdentifier", title: "Index Identifier", filter: true, width: "50px" },
                 /*    { data: 'Unique_Identifier', name: "Unique_Identifier", title: "Unique Identifier", filter: true, width: "50px" },*/
 				/*	{ data: 'Message', name: "Message", title: "Message", filter: true },*/
-					{ data: 'Rating', name: "Rating", title: "Rating", filter: true },
-					{ data: 'Rank', name: "Rank", title: "Rank", filter: true },
-					{ data: 'RankLevel', name: "RankLevel", title: "Level", filter: true },
-					{ data: 'Billet_Title', name: "Billet_Title", title: "Billet Title", filter: true, width: "400px" },
+					{ data: 'Rating', name: "Rating", title: "Rating", filter: true, width: "25px"  },
+					{ data: 'Rank', name: "Rank", title: "Rank", filter: true, width: "25px"  },
+					{ data: 'RankLevel', name: "RankLevel", title: "Level", filter: true, width: "25px"  },
+					{ data: 'Billet_Title', name: "Billet_Title", title: "Billet Title", filter: true, width: "200px" },
 
-					{ data: 'Functional_Area', name: "Functional_Area", title: "Functional Area", filter: true },
+					{ data: 'Functional_Area', name: "Functional_Area", title: "Functional Area", filter: true, width: "25px"  },
 					{ data: 'Source', name: "Source", title: "Source", filter: true, width: "200px" },
 
 					{ data: 'Date_of_Source', name: "Date_of_Source", title: "Source Date", filter: true },
-					{ data: 'Work_Element_Type', name: "Work_Element_Type", title: "Work Element Type", filter: true, width: "200px" },
+					{ data: 'Work_Element_Type', name: "Work_Element_Type", title: "Work Element Type", filter: true, width: "50px" },
 					{ data: 'Work_Element_Task', name: "Work_Element_Task", title: "Rating Task", filter: true, width: "500px" },
 					{ data: 'Task_Applicability', name: "Task_Applicability", title: "Task Applicability", filter: true },
 					{ data: 'Formal_Training_Gap', name: "Formal_Training_Gap", title: "Formal Training Gap", filter: true },
 
-					{ data: 'CIN', name: "CIN", title: "CIN", filter: true, width: "200px" },
-					{ data: 'Course_Name', name: "Course_Name", title: "Course Name", filter: true, width: "400px" },
-					{ data: 'Course_Type', name: "Course_Type", title: "Course Type", filter: true },
+					{ data: 'CIN', name: "CIN", title: "CIN", filter: true, width: "25px" },
+					{ data: 'Course_Name', name: "Course_Name", title: "Course Name", filter: true, width: "100px" },
+					{ data: 'Course_Type', name: "Course_Type", title: "Course Type", filter: true, width: "25px" },
 					{ data: 'Curriculum_Control_Authority', name: "Curriculum_Control_Authority", title: "CCA", filter: true, width: "80px" },
 					{ data: 'Life_Cycle_Control_Document', name: "Life_Cycle_Control_Document", title: "Life Cycle Control Document", filter: true },
 
 					{ data: 'Task_Statement', name: "Task_Statement", title: "Training Task", filter: true, width: "400px" },
-					{ data: 'Current_Assessment_Approach', name: "Current_Assessment_Approach", title: "Current Assessment Approach", filter: true },
+					{ data: 'Current_Assessment_Approach', name: "Current_Assessment_Approach", title: "Current Assessment Approach", filter: true, width: "25px" },
 					{ data: 'TaskNotes', name: "TaskNotes", title: "Task Notes", filter: true, width: "400px", bSortable: false }
                 ],
 				//columnDefs: [

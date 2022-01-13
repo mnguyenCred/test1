@@ -40,7 +40,7 @@
         <AssociationConnector Association="NavyRRLModel.FK_RmtlProjectBilletTask_RmtlProject_Billet" />
         <EntityTypeShape EntityType="NavyRRLModel.Comment" Width="1.5" PointX="9" PointY="4.625" />
         <EntityTypeShape EntityType="NavyRRLModel.Job_HasRating" Width="1.5" PointX="15.75" PointY="0.5" />
-        <EntityTypeShape EntityType="NavyRRLModel.RatingTask" Width="3" PointX="10" PointY="10.25" />
+        <EntityTypeShape EntityType="NavyRRLModel.RatingTask" Width="3" PointX="10" PointY="10.25" FillColor="Purple" />
         <EntityTypeShape EntityType="NavyRRLModel.RatingTask_HasRating" Width="1.5" PointX="21.375" PointY="3.125" />
         <AssociationConnector Association="NavyRRLModel.FK_Comment_RMTLProject" />
         <AssociationConnector Association="NavyRRLModel.FK_RatingLevelTask_ConceptScheme_Concept4" />
@@ -56,8 +56,8 @@
         <AssociationConnector Association="NavyRRLModel.FK_RatingTask_HasRatingTask_Task" />
         <AssociationConnector Association="NavyRRLModel.FK_RmtlProjectBilletTask_RatingTask" />
         <EntityTypeShape EntityType="NavyRRLModel.ImportRMTL" Width="3" PointX="18.375" PointY="5.75" />
-        <EntityTypeShape EntityType="NavyRRLModel.ReferenceResource" Width="2.125" PointX="0.5" PointY="10.875" />
-        <EntityTypeShape EntityType="NavyRRLModel.ReferenceResource_ReferenceType" Width="1.5" PointX="3.625" PointY="12.75" />
+        <EntityTypeShape EntityType="NavyRRLModel.ReferenceResource" Width="2.125" PointX="0.5" PointY="10.875" FillColor="Yellow" />
+        <EntityTypeShape EntityType="NavyRRLModel.ReferenceResource_ReferenceType" Width="1.5" PointX="3.625" PointY="12.75" FillColor="Yellow" />
         <AssociationConnector Association="NavyRRLModel.FK_ReferenceResource_ReferenceType_ConceptScheme_Concept" />
         <AssociationConnector Association="NavyRRLModel.FK_ReferenceResource_ReferenceType_ReferenceResource" />
       </Diagram>

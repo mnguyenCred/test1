@@ -157,7 +157,55 @@ namespace NavyRRL.Controllers
                     return View(model);
             }
         }
+        [HttpPost]
+        //[RequireHttps]
+        [ValidateAntiForgeryToken]
+        public async Task<ActionResult> AddUser( RegisterViewModel model )
+        {
+            int currentUserId = AccountServices.GetCurrentUserId();
+            if ( ModelState.IsValid )
+            {
+                string statusMessage = "";
+                var user = new ApplicationUser
+                {
+                    UserName = model.Email.Trim(),
+                    Email = model.Email.Trim(),
+                    FirstName = model.FirstName.Trim(),
+                    LastName = model.LastName.Trim()
+                };
+                var result = await UserManager.CreateAsync( user, model.Password );
 
+                if ( result.Succeeded )
+                {
+                    int id = new AccountServices().AddAccount( model.Email,
+                        model.FirstName, model.LastName,
+                        model.Email, user.Id,
+                        model.Password, ref statusMessage );
+                    if ( id > 0 )
+                    {
+                        string msg = "Successfully created account for {0}. ";
+
+                        ConsoleMessageHelper.SetConsoleSuccessMessage( string.Format( msg, user.FirstName ) );
+                        //return View( "ConfirmationRequired" );
+                        ModelState.Clear();
+                        return View();
+                    }
+                    else
+                    {
+                        ConsoleMessageHelper.SetConsoleErrorMessage( "Error - " + statusMessage );
+                        return View();
+                    }
+
+
+                    //return RedirectToAction( "Index", "Home" );
+                }
+                AddErrors( result );
+            }
+
+            // If we got this far, something failed, redisplay form
+
+            return View();
+        }
         //
         // GET: /Account/Register
         [AllowAnonymous]
@@ -220,7 +268,8 @@ namespace NavyRRL.Controllers
                     // var callbackUrl = Url.Action("ConfirmEmail", "Account", new { userId = user.Id, code = code }, protocol: Request.Url.Scheme);
                     // await UserManager.SendEmailAsync(user.Id, "Confirm your account", "Please confirm your account by clicking <a href=\"" + callbackUrl + "\">here</a>");
 
-                    return RedirectToAction("Index", "Home");
+                    //return RedirectToAction("Index", "Home");
+                    return RedirectToAction( "RegisterConfirmation", "Account" );
                 }
                 AddErrors(result);
             }
@@ -228,7 +277,11 @@ namespace NavyRRL.Controllers
             // If we got this far, something failed, redisplay form
             return View(model);
         }
-
+        [AllowAnonymous]
+        public ActionResult RegisterConfirmation()
+        {
+            return View();
+        }
         //
         // GET: /Account/ConfirmEmail
         [AllowAnonymous]
@@ -337,10 +390,11 @@ namespace NavyRRL.Controllers
                 }
                 // For more information on how to enable account confirmation and password reset please visit https://go.microsoft.com/fwlink/?LinkID=320771
                 // Send an email with this link
-                // string code = await UserManager.GeneratePasswordResetTokenAsync(user.Id);
-                // var callbackUrl = Url.Action("ResetPassword", "Account", new { userId = user.Id, code = code }, protocol: Request.Url.Scheme);		
-                // await UserManager.SendEmailAsync(user.Id, "Reset Password", "Please reset your password by clicking <a href=\"" + callbackUrl + "\">here</a>");
-                // return RedirectToAction("ForgotPasswordConfirmation", "Account");
+                string code = await UserManager.GeneratePasswordResetTokenAsync( user.Id );
+                var callbackUrl = Url.Action( "ResetPassword", "Account", new { userId = user.Id, code = code }, protocol: Request.Url.Scheme );
+                //await UserManager.SendEmailAsync( user.Id, "Reset Password", "Please reset your password by clicking <a href=\"" + callbackUrl + "\">here</a>" );
+                AccountServices.SendEmail_ResetPassword( user.Email, callbackUrl );
+                return RedirectToAction( "ForgotPasswordConfirmation", "Account" );
             }
 
             // If we got this far, something failed, redisplay form
@@ -517,7 +571,16 @@ namespace NavyRRL.Controllers
         [ValidateAntiForgeryToken]
         public ActionResult LogOff()
         {
-            AuthenticationManager.SignOut(DefaultAuthenticationTypes.ApplicationCookie);
+            try
+            {
+                AuthenticationManager.SignOut( DefaultAuthenticationTypes.ApplicationCookie );
+            }
+            catch { }
+            finally
+            {
+                Session.Abandon();
+                AccountServices.RemoveUserFromSession();
+            }
             return RedirectToAction("Index", "Home");
         }
 
