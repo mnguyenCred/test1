@@ -71,7 +71,8 @@ namespace Services
 				var trainingGapType = FindConceptOrError( trainingGapTypeConcepts, row.RatingTask_TrainingGapType_Label, false, "Training Gap Type", result.Errors );
 				var applicabilityType = FindConceptOrError( applicabilityTypeConcepts, row.RatingTask_ApplicabilityType_Label, false, "Applicability Type", result.Errors );
 				var sharedSourceType = FindConceptOrError( sourceTypeConcepts, row.Shared_ReferenceType, false, "Reference Resource Type (for Rating-Level Task)", result.Errors );
-				var courseSourceType = FindConceptOrError( sourceTypeConcepts, row.Course_HasReferenceResource_Name, false, "Reference Resource Type (for Course)", result.Errors );
+				//var courseSourceType = FindConceptOrError( sourceTypeConcepts, row.Course_HasReferenceResource_Name, false, "Reference Resource Type (for Course)", result.Errors );
+				var courseSourceType = sourceTypeConcepts.FirstOrDefault( m => m.CodedNotation == "LCCD" ); //Course Reference Resource Type is always a Life-Cycle Control Document
 				var courseType = string.IsNullOrWhiteSpace( row.Course_CourseType_Label ) ?
 					null : //It's okay if this is null, since only some rows have course types
 					FindConceptOrError( courseTypeConcepts, row.Course_CourseType_Label, false, "Course Type", result.Errors );
