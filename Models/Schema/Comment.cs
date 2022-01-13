@@ -19,7 +19,7 @@ namespace Models.Schema
 		/// <summary>
 		/// Reference to RMTL Project by ID (?)
 		/// </summary>
-		public int RMTLProject { get; set; }
+		public int RMTLProjectId { get; set; }
 
 		/// <summary>
 		/// Description for this RMTL Project
