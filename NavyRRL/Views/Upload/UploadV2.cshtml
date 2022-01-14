@@ -1,7 +1,7 @@
 ﻿
 @{
-    ViewBag.Title = "Upload V2";
-	var allRatings = Factories.RatingManager.GetAll();
+	ViewBag.Title = "Upload V2";
+	var allRatings = Factories.RatingManager.GetAll().OrderBy( m => m.CodedNotation.ToLower() == "all" ).ToList();
 }
 
 <script type="text/javascript">

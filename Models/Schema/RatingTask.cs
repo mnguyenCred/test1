@@ -6,6 +6,12 @@ namespace Models.Schema
 {
 	public class RatingTask : BaseObject
 	{
+		public RatingTask()
+		{
+			HasRating = new List<Guid>();
+			HasWorkRole = new List<Guid>();
+		}
+
 		/// <summary>
 		/// Actual text of the Rating Task<br />
 		/// From Column: Work Element (Task)

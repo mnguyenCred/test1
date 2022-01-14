@@ -6,6 +6,12 @@ namespace Models.Schema
 {
 	public class RMTLProject : BaseObject
 	{
+		public RMTLProject()
+		{
+			HasChangeProposal = new List<Guid>();
+			HasComment = new List<Guid>();
+		}
+
 		/// <summary>
 		/// Name of this RMTL Project
 		/// </summary>

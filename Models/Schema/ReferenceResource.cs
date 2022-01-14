@@ -8,6 +8,7 @@ namespace Models.Schema
 	{
 		public ReferenceResource()
 		{
+			ReferenceType = new List<Guid>();
 			SubjectWebpage = new List<string>();
 		}
 
