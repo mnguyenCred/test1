@@ -1,58 +1,60 @@
 ﻿
 @{
 	ViewBag.Title = "Upload V2";
-	var allRatings = Factories.RatingManager.GetAll().OrderBy( m => m.CodedNotation.ToLower() == "all" ).ToList();
+	var allRatings = Factories.RatingManager.GetAll().OrderByDescending( m => m.CodedNotation.ToLower() == "all" ).ToList();
 }
 
 <script type="text/javascript">
-	var UI = {};
-	var Data = {};
+	var Upload = {
+		UI: {}
+	};
+	//
 
 	$(document).ready(function () {
-		setupUI();
+		setupUploadUI();
 	});
 	//
 
-	function setupUI() {
-		UI.RatingSelector = $(".ratingSelector");
-		UI.FileInput = $(".mainFileUpload");
-		UI.ProcessButton = $(".processButton");
-		UI.StatusBox = $(".status");
-		UI.UploadSummaryBox = $(".uploadSummary");
-		UI.ConfirmationButton = $(".confirmationButton");
-		UI.ConfirmationSummaryBox = $(".confirmationSummary");
+	function setupUploadUI() {
+		Upload.UI.RatingSelector = $(".ratingSelector");
+		Upload.UI.FileInput = $(".mainFileUpload");
+		Upload.UI.ProcessButton = $(".processButton");
+		Upload.UI.StatusBox = $(".status");
+		Upload.UI.UploadSummaryBox = $(".uploadSummary");
+		Upload.UI.ConfirmationButton = $(".confirmationButton");
+		Upload.UI.ConfirmationSummaryBox = $(".confirmationSummary");
 
-		UI.ProcessButton.on("click", function () {
+		Upload.UI.ProcessButton.on("click", function () {
 			processFile();
 		});
 
-		UI.ConfirmationButton.on("click", function () {
+		Upload.UI.ConfirmationButton.on("click", function () {
 			confirmChanges();
 		});
 	}
 	//
 
 	function processFile() {
-		var file = UI.FileInput[0].files[0];
+		var file = Upload.UI.FileInput[0].files[0];
 		if (!file) {
-			setStatus("Please select a file.");
+			setUploadStatus("Please select a file.");
 			alert("Please seelct a file.");
 		}
 		else {
-			setStatus("Reading File...");
+			setUploadStatus("Reading File...");
 			var reader = new FileReader();
 			reader.onload = function () {
-				setStatus("Processing File...");
+				setUploadStatus("Processing File...");
 				parseCSV(reader.result);
 
-				setStatus("Mapping Data...");
+				setUploadStatus("Mapping Data...");
 				mapCSVJSON();
 
-				setStatus("Sending Data...");
+				setUploadStatus("Sending Data...");
 				submitData();
 			};
 			reader.onerror = function () {
-				setStatus("Error reading file: " + reader.error);
+				setUploadStatus("Error reading file: " + reader.error);
 			}
 			reader.readAsText(file);
 		}
@@ -61,14 +63,14 @@
 
 	function parseCSV(rawText) {
 		//Normalize the text
-		Data.RawCSV = rawText.replace(/\r\n/g, "\n").replace(/""/g, "<INSERTQUOTE>");
+		Upload.RawCSV = rawText.replace(/\r\n/g, "\n").replace(/""/g, "<INSERTQUOTE>");
 		var rows = [];
 		var currentRow = [];
 		var currentCell = [];
 		var isInQuotes = false;
 
 		//Process each character
-		Data.RawCSV.split("").forEach(function (character) {
+		Upload.RawCSV.split("").forEach(function (character) {
 			if (character == '"') {
 				isInQuotes = !isInQuotes;
 			}
@@ -96,26 +98,26 @@
 
 		//Set data
 		rows.shift(); //Discard first row, since it is not a true header row
-		Data.CSVColumns = rows.shift();
-		Data.CSVRows = rows;
+		Upload.CSVColumns = rows.shift();
+		Upload.CSVRows = rows;
 
 		//Create flat JSON
-		Data.CSVJSON = [];
-		Data.CSVRows.forEach(function (row) {
+		Upload.CSVJSON = [];
+		Upload.CSVRows.forEach(function (row) {
 			var temp = {};
-			Data.CSVColumns.forEach(function (column, index) {
+			Upload.CSVColumns.forEach(function (column, index) {
 				temp[column] = row[index];
 			});
-			Data.CSVJSON.push(temp);
+			Upload.CSVJSON.push(temp);
 		});
 
-		console.log("CSV Processed", Data);
+		console.log("CSV Processed", Upload);
 	}
 	//
 
 	function mapCSVJSON() {
-		Data.MappedTable = {
-			Rows: Data.CSVJSON.map(row => {
+		Upload.MappedTable = {
+			Rows: Upload.CSVJSON.map(row => {
 				return {
 					Rating_CodedNotation: row[ "Rating" ],
 					PayGradeType_Notation: row[ "Rank" ],
@@ -144,29 +146,29 @@
 	function submitData() {
 		hideConfirmationButton();
 		var data = {
-			rawData: Data.MappedTable,
-			ratingRowID: UI.RatingSelector.val()
+			rawData: Upload.MappedTable,
+			ratingRowID: Upload.UI.RatingSelector.val()
 		};
 
 		if (!data.ratingRowID) {
-			setStatus("Please select a Rating.");
+			setUploadStatus("Please select a Rating.");
 			alert("Please select a Rating.");
 			return;
 		}
 
-		setStatus("Sending data, check console for details");
+		setUploadStatus("Sending data, check console for details");
 		console.log("Submitting data", data);
 		
 		postData("@Url.Content("~/upload/processupload")", data).then((response) => {
-			setStatus("Received Response, check console for details");
+			setUploadStatus("Received Response, check console for details");
 			console.log("Received response", response);
 			return response.text()
 		}).then((text) => {
-			Data.Summary = JSON.parse(text);
-			console.log("Parsed Data", Data.Summary);
+			Upload.Summary = JSON.parse(text);
+			console.log("Parsed Data", Upload.Summary);
 			renderResults();
 
-			if (Data.Summary.Valid && Data.Summary.Data.Messages.Error?.length == 0) {
+			if (Upload.Summary.Valid && Upload.Summary.Data.Messages.Error?.length == 0) {
 				showConfirmationButton();
 			}
 			else {
@@ -177,15 +179,15 @@
 	//
 
 	function renderResults() {
-		UI.UploadSummaryBox.html("");
-		renderTextSet("Errors", Data.Summary.Data.Messages.Error, UI.UploadSummaryBox, false, "Please correct the errors and try again.");
-		renderTextSet("Warnings", Data.Summary.Data.Messages.Warning, UI.UploadSummaryBox, false, "Please review the warnings carefully before confirming the update.");
-		renderTextSet("Possible Duplicates", Data.Summary.Data.Messages.Duplicate, UI.UploadSummaryBox, false, "Found multiple instances of one or more items. This may be caused by inconsistent capitalization on different rows. Please carefully review the data before confirming the update.");
-		renderTextSet("Items to be Deleted", Data.Summary.Data.Messages.Delete, UI.UploadSummaryBox, true, "Warning: The following items were not detected in the uploaded data, and will be deleted if you confirm the changes!");
-		renderTextSet("Items to be Created", Data.Summary.Data.Messages.Create, UI.UploadSummaryBox, true, "The following items will be created if you confirm the changes.");
-		renderTextSet("Additional References for Existing Items", Data.Summary.Data.Messages.AddItem, UI.UploadSummaryBox, true, "New references have been detected for the following existing items.");
-		renderTextSet("References to be Removed from Existing Items", Data.Summary.Data.Messages.RemoveItem, UI.UploadSummaryBox, true, "These references will be remvoed from the following existing items.");
-		renderTextSet("Notes", Data.Summary.Data.Messages.Note, UI.UploadSummaryBox, false, "Miscellaneous notes.");
+		Upload.UI.UploadSummaryBox.html("");
+		renderTextSet("Errors", Upload.Summary.Data.Messages.Error, Upload.UI.UploadSummaryBox, false, "Please correct the errors and try again.");
+		renderTextSet("Warnings", Upload.Summary.Data.Messages.Warning, Upload.UI.UploadSummaryBox, false, "Please review the warnings carefully before confirming the update.");
+		renderTextSet("Possible Duplicates", Upload.Summary.Data.Messages.Duplicate, Upload.UI.UploadSummaryBox, false, "Found multiple instances of one or more items. This may be caused by inconsistent capitalization on different rows. Please carefully review the data before confirming the update.");
+		renderTextSet("Items to be Deleted", Upload.Summary.Data.Messages.Delete, Upload.UI.UploadSummaryBox, true, "Warning: The following items were not detected in the uploaded data, and will be deleted if you confirm the changes!");
+		renderTextSet("Items to be Created", Upload.Summary.Data.Messages.Create, Upload.UI.UploadSummaryBox, true, "The following items will be created if you confirm the changes.");
+		renderTextSet("Additional References for Existing Items", Upload.Summary.Data.Messages.AddItem, Upload.UI.UploadSummaryBox, true, "New references have been detected for the following existing items.");
+		renderTextSet("References to be Removed from Existing Items", Upload.Summary.Data.Messages.RemoveItem, Upload.UI.UploadSummaryBox, true, "These references will be remvoed from the following existing items.");
+		renderTextSet("Notes", Upload.Summary.Data.Messages.Note, Upload.UI.UploadSummaryBox, false, "Miscellaneous notes.");
 	}
 	//
 
@@ -205,7 +207,7 @@
 	//
 
 	function confirmChanges() {
-		if (!Data.Summary.Data.RowId) {
+		if (!Upload.Summary.Data.RowId) {
 			alert("Error: No summary data found. Please re-process the spreadsheet and try again.");
 			return;
 		}
@@ -216,46 +218,46 @@
 
 		hideConfirmationButton();
 		window.scrollTo(0, 0); //Ensure the user can see the status box
-		setStatus("Confirming changes, please wait...");
+		setUploadStatus("Confirming changes, please wait...");
 
-		postData("@Url.Content("~/upload/confirmchanges")", { changeSummaryRowID: Data.Summary.Data.RowId }).then((response) => {
-			setStatus("Received response, check console for details");
+		postData("@Url.Content("~/upload/confirmchanges")", { changeSummaryRowID: Upload.Summary.Data.RowId }).then((response) => {
+			setUploadStatus("Received response, check console for details");
 			console.log("Received response", response);
 			return response.text();
 		}).then((text) => {
-			Data.Confirmation = JSON.parse(text);
-			console.log("Parsed Confirmation", Data.Confirmation);
+			Upload.Confirmation = JSON.parse(text);
+			console.log("Parsed Confirmation", Upload.Confirmation);
 			renderConfirmation();
 		});
 	}
 	//
 
 	function renderConfirmation() {
-		UI.UploadSummaryBox.html("");
-		UI.ConfirmationSummaryBox.html("");
+		Upload.UI.UploadSummaryBox.html("");
+		Upload.UI.ConfirmationSummaryBox.html("");
 
-		if (Data.Confirmation.Valid) {
-			UI.ConfirmationSummaryBox.append("<h3>Finished.</h3>");
-			UI.ConfirmationSummaryBox.append("<p>Your changes have been saved to the database.</p>");
+		if (Upload.Confirmation.Valid) {
+			Upload.UI.ConfirmationSummaryBox.append("<h3>Finished.</h3>");
+			Upload.UI.ConfirmationSummaryBox.append("<p>Your changes have been saved to the database.</p>");
 		}
 		else {
-			renderTextSet("Error", Data.Confirmation.Status || [], UI.ConfirmationSummaryBox, false, "One or more errors were encountered while trying to confirm the changes.");
+			renderTextSet("Error", Upload.Confirmation.Status || [], Upload.UI.ConfirmationSummaryBox, false, "One or more errors were encountered while trying to confirm the changes.");
 		}
 	}
 	//
 
-	function setStatus(text) {
-		UI.StatusBox.html(text);
+	function setUploadStatus(text) {
+		Upload.UI.StatusBox.html(text);
 	}
 	//
 
 	function showConfirmationButton() {
-		UI.ConfirmationButton.addClass("visible");
+		Upload.UI.ConfirmationButton.addClass("visible");
 	}
 	//
 
 	function hideConfirmationButton() {
-		UI.ConfirmationButton.removeClass("visible");
+		Upload.UI.ConfirmationButton.removeClass("visible");
 	}
 	//
 
