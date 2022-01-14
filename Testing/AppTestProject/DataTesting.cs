@@ -126,7 +126,7 @@ namespace AppTestProject
                 var record = ConceptSchemeManager.Get( recordId );
 
 
-                record = ConceptSchemeManager.Get( "Paygrade" );
+                record = ConceptSchemeManager.GetByName( "Paygrade" );
 
                 var rowId = new Guid( "B70C175E-B486-42C3-A647-2D964769C0CA" );
                 record = ConceptSchemeManager.Get( rowId );

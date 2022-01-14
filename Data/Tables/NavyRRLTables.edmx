@@ -146,6 +146,7 @@
           <Property Name="ListId" Type="int" />
           <Property Name="Created" Type="datetime" Nullable="false" />
           <Property Name="LastUpdated" Type="datetime" Nullable="false" />
+          <Property Name="WorkElementType" Type="varchar" MaxLength="200" />
         </EntityType>
         <EntityType Name="Course">
           <Key>
@@ -1105,6 +1106,7 @@
           <Property Name="RowId" Type="Guid" Nullable="false" />
           <Property Name="Name" Type="String" Nullable="false" MaxLength="1000" FixedLength="false" Unicode="false" />
           <NavigationProperty Name="ReferenceResource_ReferenceType" Relationship="NavyRRLModel.FK_ReferenceResource_ReferenceType_ConceptScheme_Concept" FromRole="ConceptScheme_Concept" ToRole="ReferenceResource_ReferenceType" />
+          <Property Name="WorkElementType" Type="String" MaxLength="200" FixedLength="false" Unicode="false" />
         </EntityType>
         <EntityType Name="Course">
           <Key>
@@ -2125,6 +2127,7 @@
           <EntitySetMapping Name="ConceptScheme_Concept">
             <EntityTypeMapping TypeName="NavyRRLModel.ConceptScheme_Concept">
               <MappingFragment StoreEntitySet="ConceptScheme_Concept">
+                <ScalarProperty Name="WorkElementType" ColumnName="WorkElementType" />
                 <ScalarProperty Name="Name" ColumnName="Name" />
                 <ScalarProperty Name="RowId" ColumnName="RowId" />
                 <ScalarProperty Name="Id" ColumnName="Id" />

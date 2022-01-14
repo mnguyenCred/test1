@@ -7,6 +7,7 @@ using SM = Models.Schema;
 namespace Models.Curation
 {
 	//Data initially sent to the server for preprocessing
+	[Serializable]
 	public class UploadableData
 	{
 		public UploadableData()

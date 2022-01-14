@@ -49,6 +49,11 @@ namespace Models.Schema
 		/// AKA skos:inScheme
 		/// </summary>
 		public Guid InScheme { get; set; }
+
+		/// <summary>
+		/// Helps figure out which value from the spreadsheet this Concept aligns to
+		/// </summary>
+		public string WorkElementType { get; set; }
 	}
 	//
 }
