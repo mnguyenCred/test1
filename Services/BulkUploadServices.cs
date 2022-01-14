@@ -4,8 +4,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-using System.Reflection;
-using System.Linq.Expressions;
+
+using System.Runtime.Caching;
 using Newtonsoft.Json.Linq;
 
 using Models.Schema;
@@ -18,7 +18,7 @@ namespace Services
 		public static ChangeSummary ProcessUpload( UploadableTable uploaded, Guid ratingRowID, JObject debug = null )
 		{
 			debug = debug ?? new JObject();
-			var result = new ChangeSummary();
+			var result = new ChangeSummary() { RowId = Guid.NewGuid() };
 			var referencedItems = new UploadableData();
 			var latestStepFlag = "LatestStep";
 			debug[ latestStepFlag ] = "Initial Setup";
@@ -607,6 +607,7 @@ namespace Services
 			HandlePossibleDuplicates( "Reference Resource(s)", graph.ReferenceResource.GroupBy( m => m.Name, StringComparer.OrdinalIgnoreCase ), existing.ReferenceResource, result.ItemsToBeCreated.ReferenceResource, result.Messages.Duplicate );
 			HandlePossibleDuplicates( "Training Task(s)", graph.TrainingTask.GroupBy( m => m.Description, StringComparer.OrdinalIgnoreCase ), existing.TrainingTask, result.ItemsToBeCreated.TrainingTask, result.Messages.Duplicate );
 			HandlePossibleDuplicates( "Functional Area(s)", graph.WorkRole.GroupBy( m => m.Name, StringComparer.OrdinalIgnoreCase ), existing.WorkRole, result.ItemsToBeCreated.WorkRole, result.Messages.Duplicate );
+			debug[ latestStepFlag ] = "Handled possible duplicates";
 
 			debug[ latestStepFlag ] = "Finished processing upload.";
 			return result;
@@ -713,6 +714,18 @@ namespace Services
 		}
 		//
 
+		public static void CacheChangeSummary( ChangeSummary summary )
+		{
+			summary.RowId = summary.RowId == Guid.Empty ? Guid.NewGuid() : summary.RowId;
+			MemoryCache.Default.Remove( summary.RowId.ToString() );
+			MemoryCache.Default.Add( summary.RowId.ToString(), summary, new DateTimeOffset( DateTime.Now.AddHours( 1 ) ) );
+		}
+		//
 
+		public static ChangeSummary GetCachedChangeSummary( Guid rowID )
+		{
+			return ( ChangeSummary ) MemoryCache.Default.Get( rowID.ToString() );
+		}
+		//
 	}
 }

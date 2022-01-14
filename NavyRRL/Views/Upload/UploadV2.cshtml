@@ -18,10 +18,16 @@
 		UI.FileInput = $(".mainFileUpload");
 		UI.ProcessButton = $(".processButton");
 		UI.StatusBox = $(".status");
-		UI.SummaryBox = $(".uploadSummary");
+		UI.UploadSummaryBox = $(".uploadSummary");
+		UI.ConfirmationButton = $(".confirmationButton");
+		UI.ConfirmationSummaryBox = $(".confirmationSummary");
 
 		UI.ProcessButton.on("click", function () {
 			processFile();
+		});
+
+		UI.ConfirmationButton.on("click", function () {
+			confirmChanges();
 		});
 	}
 	//
@@ -136,6 +142,7 @@
 	//
 
 	function submitData() {
+		hideConfirmationButton();
 		var data = {
 			rawData: Data.MappedTable,
 			ratingRowID: UI.RatingSelector.val()
@@ -149,33 +156,36 @@
 
 		setStatus("Sending data, check console for details");
 		console.log("Submitting data", data);
-		fetch("@Url.Content("~/upload/processupload")", {
-			method: "POST",
-			headers: { 'Accept': 'application/json', 'Content-Type': 'application/json' },
-			body: JSON.stringify(data)
-		}).then((response) => {
+		
+		postData("@Url.Content("~/upload/processupload")", data).then((response) => {
 			setStatus("Received Response, check console for details");
 			console.log("Received response", response);
 			return response.text()
 		}).then((text) => {
-			console.log("Received text", text);
-			Data.Response = JSON.parse(text);
-			console.log("Parsed Data", Data.Response);
+			Data.Summary = JSON.parse(text);
+			console.log("Parsed Data", Data.Summary);
 			renderResults();
+
+			if (Data.Summary.Valid && Data.Summary.Data.Messages.Error?.length == 0) {
+				showConfirmationButton();
+			}
+			else {
+				hideConfirmationButton();
+			}
 		});
 	}
 	//
 
 	function renderResults() {
-		UI.SummaryBox.html("");
-		renderTextSet("Errors", Data.Response.Data.Messages.Error, UI.SummaryBox, false, "Please correct the errors and try again.");
-		renderTextSet("Warnings", Data.Response.Data.Messages.Warning, UI.SummaryBox, false, "Please review the warnings carefully before confirming the update.");
-		renderTextSet("Possible Duplicates", Data.Response.Data.Messages.Duplicate, UI.SummaryBox, false, "Found multiple instances of one or more items. This may be caused by inconsistent capitalization on different rows. Please carefully review the data before confirming the update.");
-		renderTextSet("Items to be Deleted", Data.Response.Data.Messages.Delete, UI.SummaryBox, true, "Warning: The following items were not detected in the uploaded data, and will be deleted if you confirm the changes!");
-		renderTextSet("Items to be Created", Data.Response.Data.Messages.Create, UI.SummaryBox, true, "The following items will be created if you confirm the changes.");
-		renderTextSet("Additional References for Existing Items", Data.Response.Data.Messages.AddItem, UI.SummaryBox, true, "New references have been detected for the following existing items.");
-		renderTextSet("References to be Removed from Existing Items", Data.Response.Data.Messages.RemoveItem, UI.SummaryBox, true, "These references will be remvoed from the following existing items.");
-		renderTextSet("Notes", Data.Response.Data.Messages.Note, UI.SummaryBox, false, "Miscellaneous notes.");
+		UI.UploadSummaryBox.html("");
+		renderTextSet("Errors", Data.Summary.Data.Messages.Error, UI.UploadSummaryBox, false, "Please correct the errors and try again.");
+		renderTextSet("Warnings", Data.Summary.Data.Messages.Warning, UI.UploadSummaryBox, false, "Please review the warnings carefully before confirming the update.");
+		renderTextSet("Possible Duplicates", Data.Summary.Data.Messages.Duplicate, UI.UploadSummaryBox, false, "Found multiple instances of one or more items. This may be caused by inconsistent capitalization on different rows. Please carefully review the data before confirming the update.");
+		renderTextSet("Items to be Deleted", Data.Summary.Data.Messages.Delete, UI.UploadSummaryBox, true, "Warning: The following items were not detected in the uploaded data, and will be deleted if you confirm the changes!");
+		renderTextSet("Items to be Created", Data.Summary.Data.Messages.Create, UI.UploadSummaryBox, true, "The following items will be created if you confirm the changes.");
+		renderTextSet("Additional References for Existing Items", Data.Summary.Data.Messages.AddItem, UI.UploadSummaryBox, true, "New references have been detected for the following existing items.");
+		renderTextSet("References to be Removed from Existing Items", Data.Summary.Data.Messages.RemoveItem, UI.UploadSummaryBox, true, "These references will be remvoed from the following existing items.");
+		renderTextSet("Notes", Data.Summary.Data.Messages.Note, UI.UploadSummaryBox, false, "Miscellaneous notes.");
 	}
 	//
 
@@ -194,8 +204,67 @@
 	}
 	//
 
+	function confirmChanges() {
+		if (!Data.Summary.Data.RowId) {
+			alert("Error: No summary data found. Please re-process the spreadsheet and try again.");
+			return;
+		}
+
+		if (!confirm("Are you sure you want to commit all of the changes to the database?")) {
+			return;
+		}
+
+		hideConfirmationButton();
+		window.scrollTo(0, 0); //Ensure the user can see the status box
+		setStatus("Confirming changes, please wait...");
+
+		postData("@Url.Content("~/upload/confirmchanges")", { changeSummaryRowID: Data.Summary.Data.RowId }).then((response) => {
+			setStatus("Received response, check console for details");
+			console.log("Received response", response);
+			return response.text();
+		}).then((text) => {
+			Data.Confirmation = JSON.parse(text);
+			console.log("Parsed Confirmation", Data.Confirmation);
+			renderConfirmation();
+		});
+	}
+	//
+
+	function renderConfirmation() {
+		UI.UploadSummaryBox.html("");
+		UI.ConfirmationSummaryBox.html("");
+
+		if (Data.Confirmation.Valid) {
+			UI.ConfirmationSummaryBox.append("<h3>Finished.</h3>");
+			UI.ConfirmationSummaryBox.append("<p>Your changes have been saved to the database.</p>");
+		}
+		else {
+			renderTextSet("Error", Data.Confirmation.Status || [], UI.ConfirmationSummaryBox, false, "One or more errors were encountered while trying to confirm the changes.");
+		}
+	}
+	//
+
 	function setStatus(text) {
 		UI.StatusBox.html(text);
+	}
+	//
+
+	function showConfirmationButton() {
+		UI.ConfirmationButton.addClass("visible");
+	}
+	//
+
+	function hideConfirmationButton() {
+		UI.ConfirmationButton.removeClass("visible");
+	}
+	//
+
+	async function postData(url, data) {
+		return fetch(url, {
+			method: "POST",
+			headers: { 'Accept': 'application/json', 'Content-Type': 'application/json' },
+			body: JSON.stringify(data)
+		});
 	}
 	//
 </script>
@@ -208,6 +277,10 @@
 	.uploadHeader .uploadBox .mainFileUpload:hover, .uploadHeader .uploadBox .mainFileUpload:focus { background-color: #DDD; }
 	.uploadHeader .uploadBox .processButton { flex: 200px 0 0; height: 30px; }
 	.uploadHeader .status { padding: 4px 5px; }
+
+	.buttons { text-align: right; }
+	.buttons .confirmationButton { padding: 5px 10px; }
+	.buttons .confirmationButton:not(.visible) { display: none; }
 </style>
 
 <h2>Upload RMTL Data</h2>
@@ -227,3 +300,7 @@
 	<div class="uploadItem status"></div>
 </div>
 <div class="uploadSummary"></div>
+<div class="confirmationSummary"></div>
+<div class="buttons">
+	<button class="confirmationButton">Confirm All Changes and Update the Source Data in the Database</button>
+</div>

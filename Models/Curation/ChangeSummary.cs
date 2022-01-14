@@ -6,6 +6,7 @@ using System.Linq;
 
 namespace Models.Curation
 {
+	[Serializable]
 	public class ChangeSummary
 	{
 		public ChangeSummary()
@@ -18,23 +19,55 @@ namespace Models.Curation
 			UnchangedCount = new ItemCounts();
 			Messages = new Messages();
 		}
+
+		/// <summary>
+		/// Set of items that don't exist and will be created.
+		/// </summary>
 		public UploadableData ItemsToBeCreated { get; set; }
+
+		/// <summary>
+		/// Set of items that do exist but have some modification.<br />
+		/// This object is intended to capture modifications to the item itself (e.g. a change in a text field or a change in a single-value reference<br />
+		/// For changes to the List<>s of existing items, see the UploadedInnerListsForCopiesOfItems and RemovedItemsFromInnerListsForCopiesOfItems properties.
+		/// </summary>
 		public UploadableData ItemsToBeChanged { get; set; }
+
+		/// <summary>
+		/// Set of copies of existing items (the copy will have the same RowId as the original).<br />
+		/// For each such item, any populated List&lt;&gt;s indicate new values to be added to the equivalent list for the original item.
+		/// </summary>
 		public UploadableData UploadedInnerListsForCopiesOfItems { get; set; }
+
+		/// <summary>
+		/// Set of copies of existing items (the copy will have the same RowId as the original).<br />
+		/// For each such item, any populated List&lt;&gt;s indicate values to be removed from the equivalent list for the original item.
+		/// </summary>
 		public UploadableData RemovedItemsFromInnerListsForCopiesOfItems { get; set; }
+
+		/// <summary>
+		/// Set of items that were not found in the uploaded data and should be deleted.
+		/// </summary>
 		public UploadableData ItemsToBeDeleted { get; set; }
+
+		/// <summary>
+		/// Set of counts of items where no changes were detected.
+		/// </summary>
 		public ItemCounts UnchangedCount { get; set; }
+
+		/// <summary>
+		/// Container for a variety of messages.
+		/// </summary>
 		public Messages Messages { get; set; }
 
 		/// <summary>
-		/// Used to easily retrieve this object from the cache
+		/// Used to easily retrieve this object from the cache.
 		/// </summary>
 		public Guid RowId { get; set; }
-
 
 	}
 	//
 
+	[Serializable]
 	public class ItemCounts
 	{
 		public int BilletTitle { get; set; }
@@ -47,6 +80,7 @@ namespace Models.Curation
 	}
 	//
 
+	[Serializable]
 	public class Messages
 	{
 		public Messages()
