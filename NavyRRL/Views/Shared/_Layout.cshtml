@@ -49,9 +49,7 @@
 					<ul class="nav navbar-nav">
 						<li>@Html.ActionLink( "Home", "Index", "Home" )</li>
 					</ul>
-					<ul class="nav navbar-nav">
-						<li>@Html.ActionLink( "Finder Home Page", "FinderHome", "Home" )</li>
-					</ul>
+
 					@if ( Request.IsAuthenticated || ( user != null && user.Id > 0 ) || env == "development" )
 					{
 						<ul class="nav navbar-nav">

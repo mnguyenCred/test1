@@ -17,8 +17,8 @@ namespace AppTestProject
             var recordId = 1;
             try
             {
-                var record = RatingTaskManager.Get( recordId );
-                record = RatingTaskManager.Get( 10 );
+                var record = RatingTaskManager.Get( recordId, true );
+                record = RatingTaskManager.Get( 10, true );
             } catch ( Exception ex )
             {
                 Assert.Fail( ex.Message );
