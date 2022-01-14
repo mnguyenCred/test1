@@ -6,6 +6,11 @@ namespace Models.Schema
 {
 	public class BilletTitle : BaseObject
 	{
+		public BilletTitle()
+		{
+			HasRatingTask = new List<Guid>();
+		}
+
 		/// <summary>
 		/// Name of the Billet Title<br />
 		/// From Column: Billet Title

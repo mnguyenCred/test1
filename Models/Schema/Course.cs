@@ -6,6 +6,12 @@ namespace Models.Schema
 {
 	public class Course : BaseObject
 	{
+		public Course()
+		{
+			CurriculumControlAuthority = new List<Guid>();
+			HasTrainingTask = new List<Guid>();
+		}
+
 		/// <summary>
 		/// Name of the Course<br />
 		/// From Column: Course Name
