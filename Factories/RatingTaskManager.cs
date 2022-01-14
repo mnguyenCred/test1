@@ -7,6 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 using AppEntity = Models.Schema.RatingTask;
+using EntitySummary = Models.Schema.RatingTaskSummary;
 using DataEntities = Data.Tables.NavyRRLEntities;
 using ViewContext = Data.Views.ceNavyViewEntities;
 using DBEntity = Data.Tables.RatingTask;
@@ -21,7 +22,7 @@ namespace Factories
         public static string thisClassName = "RatingTaskManager";
 
         #region Retrieval
-        public static AppEntity Get( int id )
+        public static AppEntity Get( int id, bool includingConcepts )
         {
             var entity = new AppEntity();
             if ( id < 1 )
@@ -34,12 +35,30 @@ namespace Factories
 
                 if ( item != null && item.Id > 0 )
                 {
-                    MapFromDB( item, entity );
+                    MapFromDB( item, entity, includingConcepts );
                 }
             }
 
             return entity;
 		}
+
+		public static AppEntity Get( Guid rowId, bool includingConcepts = false )
+		{
+			var entity = new AppEntity();
+
+			using ( var context = new DataEntities() )
+			{
+				var item = context.RatingTask
+							.FirstOrDefault( s => s.RowId == rowId );
+
+				if ( item != null && item.Id > 0 )
+				{
+					MapFromDB( item, entity, includingConcepts );
+				}
+			}
+			return entity;
+		}
+
 
 		/// <summary>
 		/// assuming the rating code
@@ -52,7 +71,7 @@ namespace Factories
 		/// <param name="userId"></param>
 		/// <param name="pTotalRows"></param>
 		/// <returns></returns>
-		public static List<AppEntity> SearchForRating( string rating, string pOrderBy, int pageNumber, int pageSize, int userId, ref int pTotalRows )
+		public static List<EntitySummary> SearchForRating( string rating, string pOrderBy, int pageNumber, int pageSize, int userId, ref int pTotalRows )
 		{
 			var keyword = HandleApostrophes( rating );
 			string filter = String.Format( "base.id in (select a.[RatingTaskId] from [RatingTask.HasRating] a inner join Rating b on a.ratingId = b.Id where b.CodedNotation = '{0}' OR b.name = '{0}' )", keyword );
@@ -63,11 +82,11 @@ namespace Factories
 			
 		}
 
-		public static List<AppEntity> Search( string pFilter, string pOrderBy, int pageNumber, int pageSize, int userId, ref int pTotalRows, bool autocomplete = false )
+		public static List<EntitySummary> Search( string pFilter, string pOrderBy, int pageNumber, int pageSize, int userId, ref int pTotalRows, bool autocomplete = false )
 		{
 			string connectionString = DBConnectionRO();
-			AppEntity item = new AppEntity();
-			List<AppEntity> list = new List<AppEntity>();
+			EntitySummary item = new EntitySummary();
+			List<EntitySummary> list = new List<EntitySummary>();
 			var result = new DataTable();
 
 
@@ -107,7 +126,7 @@ namespace Factories
 						pTotalRows = 0;
 						LoggingHelper.LogError( ex, thisClassName + string.Format( ".Search() - Execute proc, Message: {0} \r\n Filter: {1} \r\n", ex.Message, pFilter ) );
 
-						item = new AppEntity();
+						item = new EntitySummary();
 						item.Description = "Unexpected error encountered. System administration has been notified. Please try again later. ";
 						item.Description = ex.Message;
 
@@ -120,7 +139,7 @@ namespace Factories
 				{
 					foreach ( DataRow dr in result.Rows )
 					{
-						item = new AppEntity();
+						item = new EntitySummary();
 
 						item.Id = GetRowColumn( dr, "Id", 0 );
 						item.RowId = GetGuidType( dr, "RowId" );
@@ -169,7 +188,7 @@ namespace Factories
 		} //
 
 
-		public static void MapFromDB( DBEntity input, AppEntity output )
+		public static void MapFromDB( DBEntity input, AppEntity output, bool includingConcepts )
         {
             //test automap
             List<string> errors = new List<string>();

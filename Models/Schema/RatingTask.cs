@@ -72,7 +72,17 @@ namespace Models.Schema
 		/// </summary>
 		public Guid ReferenceType { get; set; }
 
+		//Embedded data
+		//Consider moving these to a separate class so they don't result in a lot of extra data being sent between client and server
+		public Concept TaskApplicabilityType { get; set; } = new Concept();
+		public Concept TaskTrainingGap { get; set; } = new Concept();
+	}
+	public class RatingTaskFull : RatingTask
+	{
 
+	}
+	public class RatingTaskSummary : RatingTask
+	{
 		//These are likely redundant now - see Models.Curation.UploadableTable (in Models.Curation.UploadableData.cs)
 		//Derived
 		public string FormalTrainingGap { get; set; }
@@ -84,7 +94,6 @@ namespace Models.Schema
 		public string TaskApplicability { get; set; }
 		public string WorkElementType { get; set; }
 
-
 		//Course Related
 		public string CIN { get; set; }
 		public string CourseName { get; set; }
@@ -93,15 +102,5 @@ namespace Models.Schema
 		public string CurrentAssessmentApproach { get; set; }
 		public string CurriculumControlAuthority { get; set; }
 		public string LifeCycleControlDocument { get; set; }
-
-
-		//Embedded data
-		//Consider moving these to a separate class so they don't result in a lot of extra data being sent between client and server
-		public Concept TaskApplicabilityType { get; set; } = new Concept();
-		public Concept TaskTrainingGap { get; set; } = new Concept();
-	}
-	public class RatingTaskFull : RatingTask
-	{
-
 	}
 }

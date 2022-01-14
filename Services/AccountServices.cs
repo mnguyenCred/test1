@@ -36,26 +36,7 @@ namespace Services
 			else
 				return false;
 		}
-		public static bool IsUserAnExternalAdmin( AppUser user )
-		{
-			if ( user == null || user.Id == 0 )
-				return false;
 
-			if ( user.UserRoles.Contains( "External Admin" ) )
-				return true;
-			else
-				return false;
-		}
-		public static bool CanUserPublish( AppUser user )
-		{
-			if ( user == null || user.Id == 0 )
-				return false;
-
-			if ( user.UserRoles.Contains( "CanPublishForOrg" ) )
-				return true;
-			else
-				return false;
-		}
 		public static bool IsUserSiteStaff()
 		{
 			AppUser user = GetUserFromSession();
@@ -108,10 +89,6 @@ namespace Services
 		{
 			//this method will not expect a status message
 			string status = "";
-			//if ( UtilityManager.GetAppKeyValue( "isSiteInBeta", true ) == false )
-			//{
-			//	return true;
-			//}
 
 			AppUser user = GetUserFromSession();
 			if ( user == null || user.Id == 0 )
@@ -671,7 +648,7 @@ namespace Services
 			{
 				eMessage = string.Format( email, user.FullName(), user.Email, user.Created );
 
-				//////////////////EmailServices.SendEmail( toEmail, fromEmail, subject, eMessage, "", "" );
+				EmailServices.SendEmail( toEmail, fromEmail, subject, eMessage, "", "" );
 			}
 			catch ( Exception ex )
 			{
