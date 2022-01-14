@@ -105,21 +105,22 @@
 		Search.UI.ResultsHeadersWrapper = $(".searchResults .headersWrapper");
 		Search.UI.ResultsHeadersTable = $(".searchResults .resultsHeaders tbody");
 		Search.UI.ResultsWrapper = $(".searchResults .resultsWrapper");
-		Search.UI.ResultsTable = $(".searchResults .resultsTable");
+		Search.UI.ResultsTable = $(".searchResults .resultsTable tbody");
 		Search.UI.ResultsTableWidthForcer = $(".searchResults .widthForcer");
 	}
 	//
 
 	function setupResultsTables() {
 		Search.UI.ResultsWrapper.on("scroll", () => {
-			Search.UI.HeadersWrapper[0].scrollTo(this.scrollX, 0);
+			Search.UI.ResultsHeadersWrapper[0].scrollTo(Search.UI.ResultsWrapper[0].scrollLeft, 0);
 		});
 
 		var headerRow = $("<tr></tr>").appendTo(Search.UI.ResultsHeadersTable);
-		Search.Columns.forEach((column) => {
-			headerRow.append("<th class=\"" + column.Category + "\">" + column.Label + "</th>");
-			Search.UI.ResultsTableWidthForcer.append("<td></td>");
+		Search.Columns.forEach((Column) => {
+			headerRow.append("<th class=\"" + Column.Category + " " + Column.CssClass + "\">" + Column.Label + "</th>");
+			Search.UI.ResultsTableWidthForcer.append("<td class=\"" + Column.CssClass + "\"></td>");
 		});
+		Search.UI.ResultsTableResetContent = Search.UI.ResultsTable.html();
 	}
 	//
 
@@ -294,6 +295,42 @@
 		};
 
 		console.log("Sending Query...", query);
+		setSearchStatus("Searching...");
+		fetch("@Url.Content("~/search/mainsearch")", {
+			method: "POST",
+			headers: { 'Accept': 'application/json', 'Content-Type': 'application/json' },
+			body: JSON.stringify(query)
+		}).then((response) => {
+			console.log("Received response", response);
+			return response.text();
+		}).then((text) => {
+			Search.Results = JSON.parse(text);
+			console.log("Parsed JSON", Search.Results);
+			renderResults();
+		});
+	}
+	//
+
+	function renderResults() {
+		console.log("Rendering results", Search.Results);
+		if (Search.Results.Valid) {
+			setSearchStatus("Found " + Search.Results.Data.TotalResults + " Rows");
+
+			Search.UI.ResultsTable.html(Search.UI.ResultsTableResetContent);
+			Search.Results.Data.Results.forEach(Result => {
+				console.log("Rendering result", Result);
+				var resultBox = $("<tr></tr>").appendTo(Search.UI.ResultsTable);
+				//Additional rendering TBD
+			});
+		}
+		else {
+			setSearchStatus(Search.Results.Status.join("<br />"));
+		}
+	}
+	//
+
+	function setSearchStatus(message) {
+		Search.UI.SearchStatusBox.html(message);
 	}
 	//
 
@@ -333,9 +370,9 @@
 
 	.searchBox .searchResults { }
 	.searchBox .searchResults .headersWrapper { overflow-x: hidden; }
-	.searchBox .searchResults .resultsWrapper { overflow: scroll; }
-	.searchBox .searchResults .headersWrapper th { min-width: 100px; padding: 5px 10px; border: 1px solid #777; border-width: 0 1px; }
-	.searchBox .searchResults .resultsWrapper td { min-width: 100px; padding: 5px 10px; border: 1px solid #CCC; }
+	.searchBox .searchResults .resultsWrapper { overflow-x: scroll; }
+	.searchBox .searchResults .headersWrapper th { padding: 5px 10px; border: 1px solid #777; border-width: 0 1px; }
+	.searchBox .searchResults .resultsWrapper td { padding: 5px 10px; border: 1px solid #CCC; }
 	.searchBox .searchResults .headersWrapper th.overall { background-color: #CCF; }
 	.searchBox .searchResults .headersWrapper th.ratingTask { background-color: #FC5; }
 	.searchBox .searchResults .headersWrapper th.course { background-color: #FEA; }
@@ -348,23 +385,24 @@
 	}
 
 	/* Table Column widths */
-	table .rating {  }
-	table .payGrade {  }
-	table .billetTitle {  }
-	table .workRole {  }
-	table .source {  }
-	table .sourceDate {  }
-	table .sourceType {  }
-	table .ratingTaskDescription {  }
-	table .applicabilityType {  }
-	table .trainingGapType {  }
-	table .trainingTaskDescription {  }
-	table .courseID {  }
-	table .courseName {  }
-	table .courseType {  }
-	table .cca {  }
-	table .lccd {  }
-	table .assessmentMethodType {  }
+	/* Have to hard-set these so that the headers stay synched up with the results */
+	table .rating { min-width: 100px; max-width: 100px; }
+	table .payGrade { min-width: 100px; max-width: 100px; }
+	table .billetTitle { min-width: 200px; max-width: 200px; }
+	table .workRole { min-width: 200px; max-width: 200px; }
+	table .source { min-width: 200px; max-width: 200px; }
+	table .sourceDate { min-width: 100px; max-width: 100px; }
+	table .sourceType { min-width: 150px; max-width: 150px; }
+	table .ratingTaskDescription { min-width: 300px; max-width: 300px; }
+	table .applicabilityType { min-width: 150px; max-width: 150px; }
+	table .trainingGapType { min-width: 100px; max-width: 100px; }
+	table .trainingTaskDescription { min-width: 300px; max-width: 300px; }
+	table .courseID { min-width: 100px; max-width: 100px; }
+	table .courseName { min-width: 150px; max-width: 150px; }
+	table .courseType { min-width: 100px; max-width: 100px; }
+	table .cca { min-width: 100px; max-width: 100px; }
+	table .lccd { min-width: 100px; max-width: 100px; }
+	table .assessmentMethodType { min-width: 150px; max-width: 150px; }
 </style>
 <style class="searchTableStyles"></style>
 

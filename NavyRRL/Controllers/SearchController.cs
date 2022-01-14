@@ -4,6 +4,8 @@ using System.Linq;
 using System.Web;
 using System.Web.Mvc;
 
+using SM = Models.Search;
+
 namespace NavyRRL.Controllers
 {
     public class SearchController : BaseController
@@ -21,5 +23,15 @@ namespace NavyRRL.Controllers
 		}
 		//
 
+		public ActionResult MainSearch( SM.SearchQuery query )
+		{
+			//Handle the query
+			//Need to get data + total results
+			var results = new SM.SearchResultSet();
+
+			//Return results
+			return JsonResponse( results, true, null, null );
+		}
+		//
     }
 }
