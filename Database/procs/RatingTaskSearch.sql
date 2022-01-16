@@ -17,9 +17,9 @@ GO
 DECLARE @RC int, @Filter varchar(5000)
 DECLARE @StartPageIndex int, @PageSize int, @TotalRows int,@SortOrder varchar(500),@CurrentUserId	int
 
-set @SortOrder = 'Rating'
-set @SortOrder = 'Id'
 
+set @SortOrder = 'newest'
+set @SortOrder = 'relevance'
 --set @CurrentUserId = 108
 set @Filter = '  Rating = ''abf'' '
 
@@ -77,16 +77,22 @@ DECLARE
       ,@debugLevel      int
       ,@SQL             varchar(5000)
 	   ,@HasSitePrivileges bit
-  --    ,@SortOrder         varchar(100)
+      ,@OrderBy         varchar(100)
 
 -- =================================
---		,@GroupingByDay   bit = 0
-declare @gbd varchar(100)
-set @gbd = ''
-if len(@SortOrder) > 0
-      set @SortOrder = ' Order by ' + @SortOrder
+
+
+if @SortOrder = 'relevance' set @SortOrder = 'base.Ratings, base.Rank, base.FunctionalArea, base.Source '
+else if @SortOrder = 'alpha' set @SortOrder = 'base.RatingTask '
+else if @SortOrder = 'oldest' set @SortOrder = 'base.Created '
+else if @SortOrder = 'newest' set @SortOrder = 'base.LastUpdated Desc, base.Ratings, base.Rank, base.FunctionalArea, base.Source  '
+else if @SortOrder = 'id_lowest' set @SortOrder = 'base.Id'
+else set @SortOrder = 'base.Ratings, base.Rank, base.FunctionalArea, base.Source '
+
+if len(@SortOrder) > 0 
+      set @OrderBy = ' Order by ' + @SortOrder
 else
-      set @SortOrder = ' Order by Id '
+      set @OrderBy = ' Order by base.Created '
 
 Set @debugLevel = 4
 set @HasSitePrivileges= 0
@@ -124,7 +130,7 @@ CREATE TABLE #tempWorkTable(
 
 
 if charindex( 'order by', lower(@Filter) ) = 0
-    set @SQL = @SQL + ' ' + @SortOrder
+    set @SQL = @SQL + ' ' + @OrderBy
 
   print '@SQL len: '  +  convert(varchar,len(@SQL))
   print @SQL
@@ -195,7 +201,11 @@ SELECT
       ,b.[CurriculumControlAuthority]
       ,b.[LifeCycleControlDocument]
       ,b.[Notes]
-
+	  --
+      ,[CreatedById]
+      ,[CreatedBy],CreatedByUID
+      ,[LastUpdatedById]
+      ,[ModifiedBy],ModifiedByUID
 From #tempWorkTable a
 Inner Join RatingTaskSummary b on a.Id = b.Id
 WHERE RowNumber > @first_id

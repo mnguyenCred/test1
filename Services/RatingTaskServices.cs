@@ -14,7 +14,7 @@ namespace Services
     public class RatingTaskServices
     {
         public static string thisClassName = "RatingTaskServices";
-        public static List<EntitySummary> Search( SearchQuery data, ref int pTotalRows )
+        public static List<EntitySummary> Search( SearchQuery data, ref int totalRows )
         {
             string where = "";
             DateTime start = DateTime.Now;
@@ -46,8 +46,8 @@ namespace Services
 
             SetPropertiesFilter( data, ref where );
             */
-            List<EntitySummary> list = RatingTaskManager.Search( where, data.SortOrder, data.StartPage, data.PageSize, userId , ref pTotalRows);
-
+            List<EntitySummary> list = RatingTaskManager.Search( where, data.SortOrder, data.PageNumber, data.PageSize, userId , ref totalRows);
+            data.TotalResults = totalRows;
             //stopwatch.Stop();
             //timeDifference = start.Subtract( DateTime.Now );
             //LoggingHelper.DoTrace( 6, string.Format( "===CredentialServices.Search === Ended: {0}, Elapsed: {1}", DateTime.Now, timeDifference.TotalSeconds ) );

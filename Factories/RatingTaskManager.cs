@@ -137,42 +137,63 @@ namespace Factories
 
 				try
 				{
+					var resultNumber = 0;
 					foreach ( DataRow dr in result.Rows )
 					{
 						item = new EntitySummary();
-
+						resultNumber++;
+						item.ResultNumber = resultNumber;
 						item.Id = GetRowColumn( dr, "Id", 0 );
 						item.RowId = GetGuidType( dr, "RowId" );
+						item.Ratings = GetRowColumn( dr, "Ratings", "" );
+						//do we need to populate HasRating (if so, could include in the pipe separated list of Ratings
+						item.BilletTitles = GetRowColumn( dr, "BilletTitles", "" );
+						//similarly, do we need a list of billet guids?
+
 						item.Description = GetRowColumn( dr, "RatingTask", "" );
 						item.Note = GetRowColumn( dr, "Notes", "" );
 						item.CTID = GetRowPossibleColumn( dr, "CTID", "" );
+						//
 						item.Created = GetRowColumn( dr, "Created", DateTime.MinValue );
+						item.Creator = GetRowPossibleColumn( dr, "CreatedBy","" );
+						item.CreatedBy = GetGuidType( dr, "CreatedByUID" );
 						item.LastUpdated = GetRowColumn( dr, "LastUpdated", DateTime.MinValue );
+						item.ModifiedBy = GetRowPossibleColumn( dr, "ModifiedBy", "" );
+						item.LastUpdatedBy = GetGuidType( dr, "ModifiedByUID" );
+
 						item.CodedNotation = GetRowPossibleColumn( dr, "CodedNotation", "" );
+						//
 						item.Rank = GetRowPossibleColumn( dr, "Rank", "" );
+						item.PayGradeType = GetGuidType( dr, "PayGradeType" );
+						//
 						item.Level = GetRowPossibleColumn( dr, "Level", "" );
+						//
 						item.FunctionalArea = GetRowColumn( dr, "FunctionalArea", "" );
+						item.ReferenceType = GetGuidType( dr, "ReferenceType" );
+						//
 						item.Source = GetRowColumn( dr, "Source", "" );
 						item.SourceDate = GetRowColumn( dr, "SourceDate", "" );
+						item.HasReferenceResource = GetGuidType( dr, "HasReferenceResource" );
+						//
 						item.WorkElementType = GetRowPossibleColumn( dr, "WorkElementType", "" );
+						item.ReferenceType = GetGuidType( dr, "ReferenceType" );
+						//
 						item.TaskApplicability = GetRowPossibleColumn( dr, "TaskApplicability", "" );
+						item.ApplicabilityType = GetGuidType( dr, "ApplicabilityType" );
+						//
 						item.FormalTrainingGap = GetRowPossibleColumn( dr, "FormalTrainingGap", "" );
+						item.TrainingGapType = GetGuidType( dr, "TrainingGapType" );
 
 						item.CIN = GetRowColumn( dr, "CIN", "" );
 						item.CourseName = GetRowColumn( dr, "CourseName", "" );
 						item.CourseType = GetRowPossibleColumn( dr, "CourseType", "" );
 						item.CurrentAssessmentApproach = GetRowPossibleColumn( dr, "CurrentAssessmentApproach", "" );
+						//
 						item.TrainingTask = GetRowPossibleColumn( dr, "TrainingTask", "" );
+						item.HasTrainingTask = GetGuidType( dr, "HasTrainingTask" );
+						//
 						item.CurriculumControlAuthority = GetRowPossibleColumn( dr, "CurriculumControlAuthority", "" );
 						item.LifeCycleControlDocument = GetRowPossibleColumn( dr, "LifeCycleControlDocument", "" );
-
-						item.PayGradeType = GetGuidType( dr, "PayGradeType" );
-						item.ReferenceType = GetGuidType( dr, "ReferenceType" );
-						item.TrainingGapType = GetGuidType( dr, "TrainingGapType" );
-						item.ReferenceType = GetGuidType( dr, "ReferenceType" );
-						item.HasReferenceResource = GetGuidType( dr, "HasReferenceResource" );
-						item.ApplicabilityType = GetGuidType( dr, "ApplicabilityType" );
-						item.HasTrainingTask = GetGuidType( dr, "HasTrainingTask" );
 
 
 						list.Add( item );

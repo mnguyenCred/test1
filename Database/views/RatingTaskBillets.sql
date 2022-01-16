@@ -23,7 +23,7 @@ SELECT [Id]
   FROM [dbo].[RatingTask.HasJob] base
 
   CROSS APPLY (
-    SELECT distinct b.Name + ', '
+    SELECT distinct b.Name + '| '
     FROM dbo.[RatingTask.HasJob]  a
 		inner join Job b on a.JobId = b.Id
     WHERE  base.[RatingTaskId] = a.[RatingTaskId]

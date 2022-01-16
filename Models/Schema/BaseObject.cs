@@ -11,9 +11,11 @@ namespace Models.Schema
 		public string CTID { get; set; }
 		public DateTime Created { get; set; }
 		public int CreatedById { get; set; }
+		public string Creator { get; set; }
 		public Guid CreatedBy { get; set; }
 		public DateTime LastUpdated { get; set; }
 		public int LastUpdatedById { get; set; }
+		public string ModifiedBy { get; set; }
 		public Guid LastUpdatedBy { get; set; }
 	}
 }

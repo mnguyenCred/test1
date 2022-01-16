@@ -11,8 +11,29 @@ namespace Models.Search
 		public SearchQuery()
 		{
 			Filters = new List<SearchFilter>();
+			SearchType = "ratingtask";
+			PageNumber = 1;
+			PageSize = 50;
+			Keywords = "";
+			//relevance is not implemented yet, so latest?
+			SortOrder = "relevance";
 		}
+		/// <summary>
+		/// While starting with RatingTask search, could be other searches in the future
+		/// </summary>
+		public string SearchType { get; set; }
 
+		/// <summary>
+		/// General Keywords
+		/// For the main RatingTask search, there will be different keyword types. Including here for future localized searches (course, or training task, etc.)
+		/// </summary>
+		public string Keywords { get; set; }
+		//
+		public int PageNumber { get; set; }
+
+		public int PageSize { get; set; }
+
+		public int TotalResults { get; set; }
 		/// <summary>
 		/// TBD
 		/// </summary>
@@ -60,7 +81,7 @@ namespace Models.Search
 		{
 			Results = new List<SearchResult>();
 		}
-
+		public string SearchType { get; set; }
 		public int TotalResults { get; set; }
 		public List<SearchResult> Results { get; set; }
 	}
@@ -69,6 +90,35 @@ namespace Models.Search
 	public class SearchResult
 	{
 		//TBD
+		public string Name { get; set; }
+		public string FriendlyName { get; set; }
+		public string Description { get; set; }
+		public int RecordId { get; set; }
+		public Dictionary<string, object> Properties { get; set; } = new Dictionary<string, object>();
+		public List<TagSet> Tags { get; set; } = new List<TagSet>();
 	}
 	//
+
+	public class TagSet
+	{
+		public TagSet()
+		{
+			Items = new List<TagItem>();
+		}
+		public string Schema { get; set; } //
+		public string Method { get; set; } //embedded, ajax, link
+		public string Label { get; set; }
+		public int CategoryId { get; set; }
+		public List<TagItem> Items { get; set; }
+		public int Count { get; set; }
+	}
+	//
+
+	public class TagItem
+	{
+		public int CodeId { get; set; } //Should be the record integer ID from the code table itself
+		public string Schema { get; set; }  //Used when CodeId is not viable
+		public string Label { get; set; } //Used when all else fails
+		public string Description { get; set; }
+	}
 }

@@ -91,6 +91,9 @@ namespace Models.Schema
 	{
 		//These are likely redundant now - see Models.Curation.UploadableTable (in Models.Curation.UploadableData.cs)
 		//Derived
+		public int ResultNumber { get; set; }
+		public string Ratings { get; set; }
+		public string BilletTitles { get; set; }
 		public string FormalTrainingGap { get; set; }
 		public string FunctionalArea { get; set; }
 		public string Level { get; set; }

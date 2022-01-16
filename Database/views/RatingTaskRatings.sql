@@ -1,3 +1,5 @@
+use NavyRRL
+go
 
 /*
 select count(*) from ImportHistory
@@ -9,7 +11,7 @@ select count(*) from [RatingTask.HasRating]
 --2617
 
 */
-Create  VIEW [dbo].RatingTaskRatings
+Alter  VIEW [dbo].RatingTaskRatings
 AS
 SELECT [Id]
   
@@ -23,7 +25,7 @@ SELECT [Id]
   FROM [dbo].[RatingTask.HasRating] base
 
   CROSS APPLY (
-    SELECT distinct b.CodedNotation + ', '
+    SELECT distinct b.CodedNotation + '| '
     FROM dbo.[RatingTask.HasRating]  a
 		inner join Rating b on a.RatingId = b.Id
     WHERE  base.[RatingTaskId] = a.[RatingTaskId]

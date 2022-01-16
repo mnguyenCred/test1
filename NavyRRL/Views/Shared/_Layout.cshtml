@@ -53,6 +53,7 @@
 					@if ( Request.IsAuthenticated || ( user != null && user.Id > 0 ) || env == "development" )
 					{
 						<ul class="nav navbar-nav">
+								<li>@Html.ActionLink( "Search", "SearchV2", "Search" )</li>
 						<li>@Html.ActionLink( "Upload", "Index", "Upload" )</li>
 						<li>@Html.ActionLink( "Review", "ImportSummary", "Demo" )</li>
 						</ul>
