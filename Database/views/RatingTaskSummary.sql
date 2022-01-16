@@ -19,6 +19,8 @@ UUSE [NavyRRL]
 GO
 
 SELECT [Id]
+,Ratings
+,BilletTitles
       ,[CodedNotation]
       ,[RankId]
       ,[Rank]
@@ -51,11 +53,17 @@ SELECT [Id]
       ,[CurriculumControlAuthority]
       ,[LifeCycleControlDocument]
       ,[Notes]
+	        ,[Created]
+      ,[CreatedById]
+      ,[CreatedBy]
+      ,[LastUpdated]
+      ,[LastUpdatedById]
+      ,[ModifiedBy]
   FROM [dbo].[RatingTaskSummary]
     where 
 	id in (select a.[RatingTaskId] from [RatingTask.HasRating] a inner join Rating b on a.ratingId = b.Id where b.CodedNotation = 'qm' )
 
-	[TaskApplicabilityId]= 77
+	--[TaskApplicabilityId]= 77
 GO
 
 
@@ -72,8 +80,8 @@ SELECT
 	a.Id,
 	a.CTID,
 	a.RowId,
-	a.created, --as TaskCreated,
-	a.LastUpdated, --as TaskLastUpdated,
+	isnull(rtr.Ratings,'') as Ratings,
+	isnull(rtb.BilletTitles,'') as BilletTitles,
 	a.CodedNotation 
 	,a.[RankId]
 	, isnull(c1.Name,'missing') As [Rank]
@@ -114,13 +122,15 @@ SELECT
 	,h.LifeCycleControlDocument
 	,a.Notes
 
-	--     ,a.[RatingId]
-
-   --   ,a.[BilletTitleId]  
-
+      ,a.[Created] --as TaskCreated,
+      ,a.[CreatedById], ac.FullName as CreatedBy
+      ,a.[LastUpdated]--as TaskLastUpdated,
+      ,a.[LastUpdatedById], am.FullName as ModifiedBy
 
    
   FROM [dbo].[RatingTask] a
+  left join RatingTaskRatings rtr on a.Id = rtr.[RatingTaskId]
+  left Join RatingTaskBillets rtb on a.Id = rtb.RatingTaskId
 left join [ConceptScheme.Concept]	c1 on a.[RankId] = c1.Id
 left join [ConceptScheme.Concept]	c2 on a.[LevelId] = c2.Id
 left join FunctionalArea			b on a.FunctionalAreaId = b.Id
@@ -130,7 +140,8 @@ left join [ConceptScheme.Concept]	e on a.TaskApplicabilityId = e.Id
 left join [ConceptScheme.Concept]	f on a.FormalTrainingGapId = f.Id
 Left Join [Course.Task]				g on a.TrainingTaskId = g.Id
 Left Join [Course]				h on g.CourseId = h.Id
-
+  Left Join Account_Summary ac on a.CreatedById = ac.Id
+  Left Join Account_Summary am on a.LastUpdatedById = am.Id
 go
 
 grant select on RatingTaskSummary to public

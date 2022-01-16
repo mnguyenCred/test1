@@ -635,7 +635,7 @@ namespace Services
 
 		private static Concept FindConceptOrError( List<Concept> haystack, Concept needle, string warningLabel, string warningValue, List<string> warningMessages )
 		{
-			var match = haystack?.FirstOrDefault( m => matchString( m.Name, needle.Name ) || matchString( m.CodedNotation, needle.CodedNotation ) || matchString( m.WorkElementType, needle.WorkElementType ) );
+			var match = haystack?.FirstOrDefault( m => MatchString( m.Name, needle.Name ) || MatchString( m.CodedNotation, needle.CodedNotation ) || MatchString( m.WorkElementType, needle.WorkElementType ) );
 			if( match == null )
 			{
 				warningMessages.Add( "Error: Found unrecognized " + warningLabel + ": " + warningValue );
@@ -643,7 +643,7 @@ namespace Services
 			}
 			return match;
 		}
-		private static bool matchString( string haystackCheck, string needleCheck )
+		private static bool MatchString( string haystackCheck, string needleCheck )
 		{
 			return string.IsNullOrWhiteSpace( needleCheck ) ? false :
 				string.IsNullOrWhiteSpace( haystackCheck ) ? false :

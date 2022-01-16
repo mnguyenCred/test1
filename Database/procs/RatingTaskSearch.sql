@@ -25,7 +25,7 @@ set @Filter = '  Rating = ''abf'' '
 
 set @Filter = ' base.id in (select a.[RatingTaskId] from [RatingTask.HasRating] a inner join Rating b on a.ratingId = b.Id where b.CodedNotation = ''qm'' )	'
 set @Filter = 'base.id in (select a.[RatingTaskId] from [RatingTask.HasRating] a inner join Rating b on a.ratingId = b.Id where b.CodedNotation = ''Aviation Boatswain''''s Mate (Fuels)'' OR b.name = ''Aviation Boatswain''''s Mate (Fuels)'' )'
---set @Filter = ''
+set @Filter = ''
 
 set @StartPageIndex = 1
 set @PageSize = 100
@@ -119,7 +119,7 @@ CREATE TABLE #tempWorkTable(
 
   print '@Filter len: '  +  convert(varchar,len(@Filter))
 
-  set @SQL = 'SELECT Id, Description  FROM [dbo].[RatingTaskSummary] base '
+  set @SQL = 'SELECT Id, RatingTask  FROM [dbo].[RatingTaskSummary] base '
 		+ @Filter
 
 
@@ -160,39 +160,41 @@ SELECT
 	,b.RowId
 	,b.Created
 	,b.LastUpdated
-      ,[CodedNotation]
-      ,[RankId]
-      ,[Rank]
-      ,[PayGradeType]
-      ,[LevelId]
-      ,[Level]
-      ,[FunctionalAreaId]
-      ,[FunctionalArea]
-      ,[SourceId]
-      ,[Source]
-      ,[SourceDate]
-      ,[HasReferenceResource]
-      ,[WorkElementTypeId]
-      ,[WorkElementType]
-      ,[ReferenceType]
-	  ,CTID
-      ,[Description]
-      ,[TaskApplicabilityId]
-      ,[TaskApplicability]
-      ,[ApplicabilityType]
-      ,[FormalTrainingGapId]
-      ,[FormalTrainingGap]
-      ,[TrainingGapType]
-      ,[CIN]
-      ,[CourseName]
-      ,[CourseType]
-      ,[TrainingTaskId]
+	,b.Ratings
+	,b.BilletTitles
+      ,b.[CodedNotation]
+      ,b.[RankId]
+      ,b.[Rank]
+      ,b.[PayGradeType]
+      ,b.[LevelId]
+      ,b.[Level]
+      ,b.[FunctionalAreaId]
+      ,b.[FunctionalArea]
+      ,b.[SourceId]
+      ,b.[Source]
+      ,b.[SourceDate]
+      ,b.[HasReferenceResource]
+      ,b.[WorkElementTypeId]
+      ,b.[WorkElementType]
+      ,b.[ReferenceType]
+	  ,b.CTID
+      ,b.[RatingTask]
+      ,b.[TaskApplicabilityId]
+      ,b.[TaskApplicability]
+      ,b.[ApplicabilityType]
+      ,b.[FormalTrainingGapId]
+      ,b.[FormalTrainingGap]
+      ,b.[TrainingGapType]
+      ,b.[CIN]
+      ,b.[CourseName]
+      ,b.[CourseType]
+      ,b.[TrainingTaskId]
       ,TrainingTask
-      ,[HasTrainingTask]
-      ,[CurrentAssessmentApproach]
-      ,[CurriculumControlAuthority]
-      ,[LifeCycleControlDocument]
-      ,[Notes]
+      ,b.[HasTrainingTask]
+      ,b.[CurrentAssessmentApproach]
+      ,b.[CurriculumControlAuthority]
+      ,b.[LifeCycleControlDocument]
+      ,b.[Notes]
 
 From #tempWorkTable a
 Inner Join RatingTaskSummary b on a.Id = b.Id
