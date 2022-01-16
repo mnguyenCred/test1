@@ -25,7 +25,11 @@ namespace NavyRRL.Controllers
 						Status = status,
 						Extra = extra
 					},
-					Formatting.None
+					Formatting.None,
+					new JsonSerializerSettings()
+					{
+						NullValueHandling = NullValueHandling.Ignore
+					}
 				),
 				ContentEncoding = Encoding.UTF8,
 				ContentType = "application/json"

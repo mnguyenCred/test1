@@ -564,16 +564,16 @@
     <Content Include="Views\Upload\PreProcess.cshtml" />
     <Content Include="Views\Upload\UploadV2.cshtml" />
     <Content Include="Views\Account\RegisterConfirmation.cshtml" />
+    <Content Include="Views\Search\SearchV2.cshtml" />
     <None Include="Web.Sandbox.config">
       <DependentUpon>Web.config</DependentUpon>
     </None>
   </ItemGroup>
   <ItemGroup>
+    <Folder Include="Areas\Admin\Data\" />
     <Folder Include="Views\Base\" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Areas\Admin\Data\" />
-  </ItemGroup>
+  <ItemGroup />
   <ItemGroup>
     <None Include="packages.config" />
   </ItemGroup>

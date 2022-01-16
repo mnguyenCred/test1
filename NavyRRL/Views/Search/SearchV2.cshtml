@@ -1,0 +1,436 @@
+﻿@using Newtonsoft.Json;
+@using Models.Schema;
+@{
+	ViewBag.Title = "Search V2";
+
+	var ratings = Factories.RatingManager.GetAll().OrderByDescending( m => m.CodedNotation.ToLower() == "all" ).ToList();
+	var ratingFilter = new SimpleFilter()
+	{
+		Name = "navy:Rating",
+		Items = ratings.Select( m => { return new SimpleFilterItem() { Label = m.CodedNotation + " - " + m.Name, Id = m.Id }; } ).ToList()
+	};
+
+	var payGradeTypeFilter = SchemeToFilter( Factories.ConceptSchemeManager.ConceptScheme_Pay_Grade );
+	var trainingGapTypeFilter = SchemeToFilter( Factories.ConceptSchemeManager.ConceptScheme_TrainingGap );
+	var applicabilityTypeFilter = SchemeToFilter( Factories.ConceptSchemeManager.ConceptScheme_TaskApplicability );
+	var referenceTypeFilter = SchemeToFilter( Factories.ConceptSchemeManager.ConceptScheme_ReferenceResource );
+	var courseTypeFilter = SchemeToFilter( Factories.ConceptSchemeManager.ConceptScheme_CourseType );
+	var assessmentMethodTypeFilter = SchemeToFilter( Factories.ConceptSchemeManager.ConceptScheme_CurrentAssessmentApproach );
+}
+@functions {
+	public class SimpleFilter
+	{
+		public SimpleFilter()
+		{
+			Items = new List<SimpleFilterItem>();
+		}
+
+		public string Name { get; set; }
+		public int Id { get; set; }
+		public List<SimpleFilterItem> Items { get; set; }
+	}
+
+	public class SimpleFilterItem
+	{
+		public string Label { get; set; }
+		public int Id { get; set; }
+	}
+
+	public SimpleFilter SchemeToFilter( string shortURI )
+	{
+		var scheme = Factories.ConceptSchemeManager.GetbyShortUri( shortURI ) ?? new ConceptScheme();
+
+		return new SimpleFilter()
+		{
+			Name = shortURI,
+			Id = scheme.Id,
+			Items = scheme.Concepts.Select( m =>
+			{
+				return new SimpleFilterItem()
+				{
+					Label = string.Join( " - ", new List<string>() { m.CodedNotation, m.Name }.Where( n => !string.IsNullOrWhiteSpace( n ) ).ToList() ),
+					Id = m.Id
+				};
+			} ).ToList()
+		};
+	}
+}
+
+<script type="text/javascript">
+	var Search = {
+		UI: {},
+		Columns: [
+			{ Label: "Rating", Category: "overall", CssClass: "rating" },
+			{ Label: "Pay Grade", Category: "overall", CssClass: "payGrade" },
+			{ Label: "Billet Title", Category: "overall", CssClass: "billetTitle" },
+			{ Label: "Functional Area", Category: "ratingTask", CssClass: "workRole" },
+			{ Label: "Source", Category: "ratingTask", CssClass: "source" },
+			{ Label: "Source Date", Category: "ratingTask", CssClass: "sourceDate" },
+			{ Label: "Source Type", Category: "ratingTask", CssClass: "sourceType" },
+			{ Label: "Rating Task Description", Category: "ratingTask", CssClass: "ratingTaskDescription" },
+			{ Label: "Rating Task Applicability", Category: "ratingTask", CssClass: "applicabilityType" },
+			{ Label: "Training Gap", Category: "course", CssClass: "trainingGapType" },
+			{ Label: "Training Task Description", Category: "course", CssClass: "trainingTaskDescription" },
+			{ Label: "Course Identification Number", Category: "course", CssClass: "courseID" },
+			{ Label: "Course Name", Category: "course", CssClass: "courseName" },
+			{ Label: "Course Type", Category: "course", CssClass: "courseType" },
+			{ Label: "Curriculum Control Authority", Category: "course", CssClass: "cca" },
+			{ Label: "Life-Cycle Control Document", Category: "course", CssClass: "lccd" },
+			{ Label: "Course Assessment Approach", Category: "course", CssClass: "assessmentMethodType" }
+		],
+		Prefilled: {
+			Rating: @Html.Raw(JsonConvert.SerializeObject(ratingFilter, Formatting.None)),
+			PayGradeType: @Html.Raw(JsonConvert.SerializeObject(payGradeTypeFilter, Formatting.None)),
+			TrainingGapType: @Html.Raw(JsonConvert.SerializeObject(trainingGapTypeFilter, Formatting.None)),
+			ApplicabilityType: @Html.Raw(JsonConvert.SerializeObject(applicabilityTypeFilter, Formatting.None)),
+			ReferenceType: @Html.Raw(JsonConvert.SerializeObject(referenceTypeFilter, Formatting.None)),
+			CourseType: @Html.Raw(JsonConvert.SerializeObject(courseTypeFilter, Formatting.None)),
+			AssessmentMethodType: @Html.Raw(JsonConvert.SerializeObject(assessmentMethodTypeFilter, Formatting.None))
+		},
+		Filters: []
+	};
+	//
+
+	$(document).ready(function () {
+		setupSearchUI();
+		setupResultsTables();
+		setupFilters();
+	});
+	//
+
+	function setupSearchUI() {
+		Search.UI.StyleBox = $(".searchTableStyles");
+		Search.UI.FiltersBox = $(".filtersBox");
+		Search.UI.SearchStatusBox = $(".searchStatus");
+		Search.UI.ResultsHeadersWrapper = $(".searchResults .headersWrapper");
+		Search.UI.ResultsHeadersTable = $(".searchResults .resultsHeaders tbody");
+		Search.UI.ResultsWrapper = $(".searchResults .resultsWrapper");
+		Search.UI.ResultsTable = $(".searchResults .resultsTable tbody");
+		Search.UI.ResultsTableWidthForcer = $(".searchResults .widthForcer");
+	}
+	//
+
+	function setupResultsTables() {
+		Search.UI.ResultsWrapper.on("scroll", () => {
+			Search.UI.ResultsHeadersWrapper[0].scrollTo(Search.UI.ResultsWrapper[0].scrollLeft, 0);
+		});
+
+		var headerRow = $("<tr></tr>").appendTo(Search.UI.ResultsHeadersTable);
+		Search.Columns.forEach((Column) => {
+			headerRow.append("<th class=\"" + Column.Category + " " + Column.CssClass + "\">" + Column.Label + "</th>");
+			Search.UI.ResultsTableWidthForcer.append("<td class=\"" + Column.CssClass + "\"></td>");
+		});
+		Search.UI.ResultsTableResetContent = Search.UI.ResultsTable.html();
+	}
+	//
+
+	function setupFilters() {
+		//Show/hide columns
+		var columnSelectorBox = Search.UI.FiltersBox.find(".columnSelector");
+		var ColumnFilter = createFilter_CheckBox("Column", 0, columnSelectorBox, "Show/Hide Columns", Search.Columns, (Filter, Changed) => {
+			Search.UI.StyleBox.html("");
+			Filter.Items.forEach((Item, index) => {
+				if (Item.CheckBox.prop("checked") == false) {
+					Search.UI.StyleBox.append(".searchBox .searchResults .headersWrapper th:nth-child(" + (index + 1) + ") { display: none; }");
+					Search.UI.StyleBox.append(".searchBox .searchResults .resultsWrapper td:nth-child(" + (index + 1) + ") { display: none; }");
+				}
+			})
+		}, true);
+		ColumnFilter.Items.forEach(Item => { Item.CheckBox.prop("checked", true); });
+
+		//Text Filters
+		var textFilterBox = Search.UI.FiltersBox.find(".textFilters");
+		createFilter_Text("search:RatingTaskKeyword", 0, textFilterBox, "Rating Task Keywords");
+		createFilter_Text("search:TrainingTaskKeyword", 0, textFilterBox, "Training Task Keywords");
+		createFilter_Text("search:BilletTitleKeyword", 0, textFilterBox, "Billet Title Keywords");
+		createFilter_Autofill("navy:Rating", 0, textFilterBox, "Rating", (Filter, text) => { return findSimpleFilterItem(Search.Prefilled.Rating.Items, Filter.Items, text); });
+
+		//Checkbox Filters
+		var checkBoxFilterBox = Search.UI.FiltersBox.find(".checkBoxFilters");
+		createFilter_CheckBox(Search.Prefilled.PayGradeType.Name, Search.Prefilled.PayGradeType.Id, checkBoxFilterBox, "Pay Grade Type", Search.Prefilled.PayGradeType.Items);
+		createFilter_CheckBox(Search.Prefilled.ReferenceType.Name, Search.Prefilled.ReferenceType.Id, checkBoxFilterBox, "Source Type", Search.Prefilled.ReferenceType.Items);
+		createFilter_CheckBox(Search.Prefilled.ApplicabilityType.Name, Search.Prefilled.ApplicabilityType.Id, checkBoxFilterBox, "Applicability Type", Search.Prefilled.ApplicabilityType.Items);
+		createFilter_CheckBox(Search.Prefilled.TrainingGapType.Name, Search.Prefilled.TrainingGapType.Id, checkBoxFilterBox, "Training Gap Type", Search.Prefilled.TrainingGapType.Items);
+		createFilter_CheckBox(Search.Prefilled.CourseType.Name, Search.Prefilled.CourseType.Id, checkBoxFilterBox, "Course Type", Search.Prefilled.CourseType.Items);
+		createFilter_CheckBox(Search.Prefilled.AssessmentMethodType.Name, Search.Prefilled.AssessmentMethodType.Id, checkBoxFilterBox, "Assessment Method Type", Search.Prefilled.AssessmentMethodType.Items);
+	}
+	//
+
+	function createFilter(name, id, container, label, cssClass, init) {
+		var Filter = {
+			Name: name,
+			Id: id,
+			Box: $("<div class=\"filter " + cssClass + "\"></div>").appendTo(container),
+			Label: label,
+			Timeout: 0,
+			...(init || {})
+		};
+
+		Filter.Box.append("<div class=\"filterLabel\">" + Filter.Label + "</div>");
+		
+		Search.Filters.push(Filter);
+		return Filter;
+	}
+	//
+
+	function createFilter_Text(name, id, container, label) {
+		var Filter = createFilter(name, id, container, label, "text");
+		Filter.Input = $("<input type=\"text\" />").appendTo(Filter.Box);
+
+		Filter.Input.on("keyup change", () => {
+			handleTimeout(Filter, 800, doSearch);
+		});
+
+		Filter.readValue = function () {
+			return { Text: Filter.Input.val().trim() };
+		};
+
+		return Filter;
+	}
+	//
+
+	function createFilter_CheckBox(name, id, container, label, Items, onChange, isClientSideOnly) {
+		var Filter = createFilter(name, id, container, label, "checkBox", { Items: Items, onChange: onChange });
+
+		Filter.Items.forEach((Item) => {
+			var wrapper = $("<label></label>").appendTo(Filter.Box);
+			Item.CheckBox = $("<input type=\"checkbox\" />").appendTo(wrapper);
+			var itemLabel = $("<span>" + Item.Label + "</span>").appendTo(wrapper);
+			Item.CheckBox.on("change", () => {
+				onChange?.(Filter, Item);
+				!isClientSideOnly && handleTimeout(Filter, 500, doSearch);
+			});
+		});
+
+		Filter.readValue = function () {
+			return { ItemIds: Filter.Items.filter(Item => Item.CheckBox.prop("checked")).map(Item => Item.Id) };
+		};
+
+		return Filter;
+	}
+	//
+
+	function createFilter_Autofill(name, id, container, label, findItems) {
+		var Filter = createFilter(name, id, container, label, "autofill", { Items: [], findItems: findItems });
+
+		Filter.Input = $("<input type=\"text\" placeholder=\"Search...\" />").appendTo(Filter.Box);
+		Filter.OptionsBox = $("<div class=\"filterOptions\"></div>").appendTo(Filter.Box);
+		Filter.ItemsBox = $("<div class=\"filterItems\"></div>").appendTo(Filter.Box);
+
+		Filter.Input.on("focus keyup", (e) => {
+			Filter.OptionsBox.html("");
+			Filter.OptionsBox.addClass("visible");
+			var options = Filter.findItems(Filter, Filter.Input.val().trim());
+			options.forEach(option => {
+				var button = $("<button>" + option.Label + "</button>").appendTo(Filter.OptionsBox);
+				button.on("click", function () {
+					!Filter.Items.includes(option) && Filter.Items.push(option);
+					Filter.Input.val("");
+					Filter.OptionsBox.removeClass("visible");
+					Filter.renderItems();
+					handleTimeout(Filter, 500, doSearch);
+				});
+			});
+		});
+
+		Filter.Input.on("blur", () => {
+			handleTimeout(Filter, 100, () => {
+				if (!Filter.OptionsBox.is(":hover") && !Filter.OptionsBox.find("button").is(":focus")) {
+					Filter.OptionsBox.removeClass("visible");
+				}
+			});
+		});
+
+		Filter.renderItems = function () {
+			Filter.ItemsBox.html("");
+			Filter.Items.forEach(Item => {
+				var itemBox = $("<div class=\"filterItem\"></div>").appendTo(Filter.ItemsBox);
+				itemBox.append("<span>" + Item.Label + "</span>");
+				var removeButton = $("<button class=\"removeButton\">X</button>").appendTo(itemBox);
+				removeButton.on("click", function () {
+					Filter.Items = Filter.Items.filter(m => m != Item);
+					Filter.renderItems();
+					handleTimeout(Filter, 500, doSearch);
+				});
+			});
+		};
+
+		Filter.readValue = function () {
+			return { ItemIds: Filter.Items.map(Item => Item.Id) };
+		};
+
+		return Filter;
+	}
+	//
+
+	function findSimpleFilterItem(searchIn, notIn, text, limit) {
+		text = (text || "").toLowerCase();
+		return searchIn.filter(Item => { return !notIn.includes(Item) && Item.Label.toLowerCase().includes(text) }).sort((a, b) => { return a.Label.toLowerCase().indexOf(text) < b.Label.toLowerCase().indexOf(text) ? -1 : 1 }).slice(0, limit || 10);
+	}
+	//
+
+	function handleTimeout(Filter, delay, onTimeout) {
+		clearTimeout(Filter.Timeout);
+		Filter.Timeout = setTimeout(() => {
+			onTimeout?.();
+		}, delay);
+	}
+	//
+
+	function doSearch() {
+		var currentFilters = Search.Filters
+			.filter(Filter => Filter.Name != "Column")
+			.map(Filter => {
+				return {
+					Name: Filter.Name,
+					Id: Filter.Id,
+                    ...Filter.readValue()
+				};
+			})
+			.filter(Filter => { return (Filter.Text && Filter.Text.length > 0) || (Filter.ItemIds && Filter.ItemIds.length > 0) });
+
+		var query = {
+			SortOrder: "TBD",
+			Filters: currentFilters
+		};
+
+		console.log("Sending Query...", query);
+		setSearchStatus("Searching...");
+		fetch("@Url.Content("~/search/mainsearch")", {
+			method: "POST",
+			headers: { 'Accept': 'application/json', 'Content-Type': 'application/json' },
+			body: JSON.stringify(query)
+		}).then((response) => {
+			console.log("Received response", response);
+			return response.text();
+		}).then((text) => {
+			Search.Results = JSON.parse(text);
+			console.log("Parsed JSON", Search.Results);
+			renderResults();
+		});
+	}
+	//
+
+	function renderResults() {
+		console.log("Rendering results", Search.Results);
+		if (Search.Results.Valid) {
+			setSearchStatus("Found " + Search.Results.Data.TotalResults + " Rows");
+
+			Search.UI.ResultsTable.html(Search.UI.ResultsTableResetContent);
+			Search.Results.Data.Results.forEach(Result => {
+				console.log("Rendering result", Result);
+				var resultBox = $("<tr></tr>").appendTo(Search.UI.ResultsTable);
+				//Additional rendering TBD
+			});
+		}
+		else {
+			setSearchStatus(Search.Results.Status.join("<br />"));
+		}
+	}
+	//
+
+	function setSearchStatus(message) {
+		Search.UI.SearchStatusBox.html(message);
+	}
+	//
+
+</script>
+<style type="text/css">
+	html body .container { width: 98vw; }
+	.searchBox { }
+	.searchBox .searchHeader { }
+	.searchBox .searchHeader .filtersBox { display: flex; }
+	.searchBox .searchHeader .filtersBox .topSection { flex: 0 0 650px; display: flex; }
+	.searchBox .searchHeader .filtersBox .filter { padding: 5px; }
+	.searchBox .searchHeader .filtersBox .filter .filterLabel { font-weight: bold; border-bottom: 1px solid #CCC; }
+	.searchBox .searchHeader .filtersBox .columnSelector { flex: 1 1 50%; }
+	.searchBox .searchHeader .filtersBox .textFilters { flex: 1 1 50%; }
+	.searchBox .searchHeader .filtersBox .checkBoxFilters { flex: 1 1 auto; display: grid; grid-template-columns: repeat(auto-fill, minmax(325px, 1fr)); }
+
+	.searchBox .searchHeader .filtersBox .filter.text {  }
+	.searchBox .searchHeader .filtersBox .filter.text input { display: block; width: 100%; max-width: none; }
+
+	.searchBox .searchHeader .filtersBox .filter.checkBox {  }
+	.searchBox .searchHeader .filtersBox .filter.checkBox label { display: flex; padding: 2.5px 5px; width: 100%; font-weight: normal; margin-bottom: 0; }
+	.searchBox .searchHeader .filtersBox .filter.checkBox label:hover, .searchBox .searchHeader .filtersBox .filter.checkBox label:focus { cursor: pointer; background-color: rgba(0,0,0,0.05); }
+	.searchBox .searchHeader .filtersBox .filter.checkBox label input { margin-right: 5px; }
+	
+	.searchBox .searchHeader .filtersBox .filter.autofill { position: relative; }
+	.searchBox .searchHeader .filtersBox .filter.autofill input { display: block; width: 100%; max-width: none; }
+	.searchBox .searchHeader .filtersBox .filter.autofill .filterOptions { position: absolute; background-color: #FFF; border: 1px solid #CCC; width: 100%; }
+	.searchBox .searchHeader .filtersBox .filter.autofill .filterOptions:not(.visible) { display: none; }
+	.searchBox .searchHeader .filtersBox .filter.autofill .filterOptions button { display: block; width: 100%; padding: 5px 10px; background-color: #FFF; border: none; }
+	.searchBox .searchHeader .filtersBox .filter.autofill .filterOptions button:hover, .searchBox .searchHeader .filtersBox .filter.autofill .filterOptions button:focus { background-color: rgba(0,0,0,0.05); }
+	.searchBox .searchHeader .filtersBox .filter.autofill .filterItems { }
+	.searchBox .searchHeader .filtersBox .filter.autofill .filterItems .filterItem { display: flex; width: 100%; padding: 2.5px 5px; }
+	.searchBox .searchHeader .filtersBox .filter.autofill .filterItems .filterItem:not(:last-child) { border-bottom: 1px dashed #CCC; }
+	.searchBox .searchHeader .filtersBox .filter.autofill .filterItems .filterItem span { flex: 1 1 auto; }
+	.searchBox .searchHeader .filtersBox .filter.autofill .filterItems .filterItem button { margin-left: 10px; background-color: #F55; border: none; color: #FFF; font-weight: bold; height: 22px; width: 22px; }
+	.searchBox .searchHeader .filtersBox .filter.autofill .filterItems .filterItem button:hover, .searchBox .searchHeader .filtersBox .filter.autofill .filterItems .filterItem button:focus { background-color: #F77; }
+
+	.searchBox .searchResults { }
+	.searchBox .searchResults .headersWrapper { overflow-x: hidden; }
+	.searchBox .searchResults .resultsWrapper { overflow-x: scroll; }
+	.searchBox .searchResults .headersWrapper th { padding: 5px 10px; border: 1px solid #777; border-width: 0 1px; }
+	.searchBox .searchResults .resultsWrapper td { padding: 5px 10px; border: 1px solid #CCC; }
+	.searchBox .searchResults .headersWrapper th.overall { background-color: #CCF; }
+	.searchBox .searchResults .headersWrapper th.ratingTask { background-color: #FC5; }
+	.searchBox .searchResults .headersWrapper th.course { background-color: #FEA; }
+
+	@@media(max-width: 1300px){
+		.searchBox .searchHeader .filtersBox { display: block; }
+	}
+	@@media(max-width: 650px){
+		.searchBox .searchHeader .filtersBox .topSection { display: block; }
+	}
+
+	/* Table Column widths */
+	/* Have to hard-set these so that the headers stay synched up with the results */
+	table .rating { min-width: 100px; max-width: 100px; }
+	table .payGrade { min-width: 100px; max-width: 100px; }
+	table .billetTitle { min-width: 200px; max-width: 200px; }
+	table .workRole { min-width: 200px; max-width: 200px; }
+	table .source { min-width: 200px; max-width: 200px; }
+	table .sourceDate { min-width: 100px; max-width: 100px; }
+	table .sourceType { min-width: 150px; max-width: 150px; }
+	table .ratingTaskDescription { min-width: 300px; max-width: 300px; }
+	table .applicabilityType { min-width: 150px; max-width: 150px; }
+	table .trainingGapType { min-width: 100px; max-width: 100px; }
+	table .trainingTaskDescription { min-width: 300px; max-width: 300px; }
+	table .courseID { min-width: 100px; max-width: 100px; }
+	table .courseName { min-width: 150px; max-width: 150px; }
+	table .courseType { min-width: 100px; max-width: 100px; }
+	table .cca { min-width: 100px; max-width: 100px; }
+	table .lccd { min-width: 100px; max-width: 100px; }
+	table .assessmentMethodType { min-width: 150px; max-width: 150px; }
+</style>
+<style class="searchTableStyles"></style>
+
+<h2>Search</h2>
+
+<div class="searchBox">
+	<div class="searchHeader">
+		<div class="filtersBox">
+			<div class="topSection">
+				<div class="columnSelector"></div>
+				<div class="textFilters"></div>
+			</div>
+			<div class="checkBoxFilters"></div>
+		</div>
+	</div>
+	<div class="searchResults">
+		<div class="searchStatus"></div>
+		<div class="headersWrapper">
+			<table class="resultsHeaders">
+				<tbody></tbody>
+			</table>
+		</div>
+		<div class="resultsWrapper">
+			<table class="resultsTable">
+				<tbody>
+					<tr class="widthForcer"></tr>
+				</tbody>
+			</table>
+		</div>
+	</div>
+</div>
