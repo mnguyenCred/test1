@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
+using Models.Application;
 using AppEntity = Models.Schema.ConceptScheme;
 using Concept = Models.Schema.Concept;
 using DBEntity = Data.Tables.ConceptScheme;
@@ -30,7 +31,108 @@ namespace Factories
         public static string ConceptScheme_TaskApplicability = "navy:TaskApplicability";
         public static string ConceptScheme_TrainingGap = "navy:TrainingGap";
 
-        #region Retrieval
+        #region ConceptScheme
+        #region ConceptScheme - Persistance
+        //unlikely
+        public bool Save( AppEntity entity, ref SaveStatus status )
+        {
+            bool isValid = true;
+            int count = 0;
+
+            try
+            {
+                using ( var context = new DataEntities() )
+                {
+                    //look up if no id
+                    if ( entity.Id == 0 )
+                    {
+                        //add
+                        int newId = Add( entity, ref status );
+                        if ( newId == 0 || status.HasErrors )
+                            isValid = false;
+
+                        return isValid;
+
+                    }
+                    //update
+                    //TODO - consider if necessary, or interferes with anything
+                    //      - don't really want to include all training tasks
+                    context.Configuration.LazyLoadingEnabled = false;
+                    var efEntity = context.ConceptScheme
+                            .SingleOrDefault( s => s.Id == entity.Id );
+
+                    if ( efEntity != null && efEntity.Id > 0 )
+                    {
+                        //fill in fields that may not be in entity
+                        entity.RowId = efEntity.RowId;
+                        entity.Created = efEntity.Created;
+                        entity.CreatedById = efEntity.CreatedById;
+                        entity.Id = efEntity.Id;
+
+                        MapToDB( entity, efEntity );
+
+                        if ( HasStateChanged( context ) )
+                        {
+                            efEntity.LastUpdated = DateTime.Now;
+                            count = context.SaveChanges();
+                            //can be zero if no data changed
+                            if ( count >= 0 )
+                            {
+                                entity.LastUpdated = ( DateTime ) efEntity.LastUpdated;
+                                isValid = true;
+                            }
+                            else
+                            {
+                                //?no info on error
+
+                                isValid = false;
+                                string message = string.Format( thisClassName + ".Save Failed", "Attempted to update a Course. The process appeared to not work, but was not an exception, so we have no message, or no clue. Course: {0}, Id: {1}", entity.Name, entity.Id );
+                                status.AddError( "Error - the update was not successful. " + message );
+                                EmailManager.NotifyAdmin( thisClassName + ".Save Failed Failed", message );
+                            }
+
+                        }
+
+                        if ( isValid )
+                        {
+                            SiteActivity sa = new SiteActivity()
+                            {
+                                ActivityType = "Course",
+                                Activity = "Import",
+                                Event = "Update",
+                                Comment = string.Format( "Concept was updated by the import. Name: {0}", entity.Name ),
+                                ActivityObjectId = entity.Id
+                            };
+                            new ActivityManager().SiteActivityAdd( sa );
+                        }
+                    }
+                    else
+                    {
+                        status.AddError( "Error - update failed, as record was not found." );
+                    }
+
+
+                }
+            }
+            catch ( Exception ex )
+            {
+                string message = FormatExceptions( ex );
+                LoggingHelper.LogError( ex, thisClassName + string.Format( ".Save. id: {0}, Name: {1}", entity.Id, entity.Name ), true );
+                status.AddError( thisClassName + ".Save(). Error - the save was not successful. " + message );
+                isValid = false;
+            }
+
+
+            return isValid;
+        }
+        //placeholder, as can't (yet) add a new concept scheme
+        private int Add( AppEntity entity, ref SaveStatus status )
+        {
+            var efEntity = new Data.Tables.ConceptScheme_Concept();
+           
+            return 0;
+        }
+        #endregion
         public static AppEntity GetByName( string name )
         {
             var entity = new AppEntity();
@@ -73,7 +175,6 @@ namespace Factories
 			}
 			return entity;
 		}
-		//
 
 		public static AppEntity Get( Guid rowId )
         {
@@ -144,45 +245,6 @@ namespace Factories
             return list;
         }
 
-        public static Concept GetConcept( string conceptSchemeUri, string concept )
-        {
-            var entity = new Concept();
-            if ( string.IsNullOrWhiteSpace( conceptSchemeUri ) ||
-                string.IsNullOrWhiteSpace (concept ))
-                return entity;
-
-            using ( var context = new DataEntities() )
-            {
-                var item = context.ConceptScheme_Concept
-                            .SingleOrDefault( s => s.Name.ToLower() == concept.ToLower() && s.ConceptScheme.SchemaUri.ToLower() == conceptSchemeUri.ToLower() );
-
-                if ( item != null && item.Id > 0 )
-                {
-                    MapFromDB( item, entity );
-                }
-            }
-
-            return entity;
-        }
-        public static Concept GetConcept( int id )
-        {
-            var entity = new Concept();
-            if ( id < 1 )
-                return entity;
-
-            using ( var context = new DataEntities() )
-            {
-                var item = context.ConceptScheme_Concept
-                            .SingleOrDefault( s => s.Id == id );
-
-                if ( item != null && item.Id > 0 )
-                {
-                    MapFromDB( item, entity );
-                }
-            }
-
-            return entity;
-        }
         public static void MapFromDB( DBEntity input, AppEntity output )
         {
             //should include list of concepts
@@ -208,6 +270,295 @@ namespace Factories
             //
 
         }
+        public static void MapToDB( AppEntity input, DBEntity output )
+        {
+            //watch for missing properties like rowId
+            List<string> errors = new List<string>();
+            BaseFactory.AutoMap( input, output, errors );
+            //
+        }
+        #endregion
+
+
+        #region Concept
+        #region Concept - Persistance
+        //need alternate to handle workElementType
+        public int SaveConcept( int conceptSchemeId, string conceptName, ref SaveStatus status )
+        {
+            //check if exists
+            var concept = GetConcept( conceptSchemeId, conceptName );
+            if ( concept?.Id > 0 )
+                return concept.Id;
+            //
+            concept = new Concept()
+            {
+                ConceptSchemeId = conceptSchemeId,
+                Name = conceptName,
+                CodedNotation = conceptName
+            };
+            if ( SaveConcept( conceptSchemeId, concept, ref status ) )
+            {
+                return concept.Id;
+            }
+            else
+            {
+                //caller needs to handle errors
+                return 0;
+            }
+
+        }
+        public bool SaveConcept( int conceptSchemeId, Concept entity, ref SaveStatus status )
+        {
+            bool isValid = true;
+            int count = 0;
+            //check if exists
+            var concept = GetConcept( conceptSchemeId, entity.Name );
+            if ( concept?.Id > 0 )
+            {
+                //or set and fall thru - not clear if any updates at this time! Might depend on type
+                entity.Id = concept.Id;
+                //return true;    
+            }
+            entity.ConceptSchemeId = conceptSchemeId;
+            try
+            {
+                using ( var context = new DataEntities() )
+                {
+                    //look up if no id
+                    if ( entity.Id == 0 )
+                    {
+                        //add
+                        int newId = AddConcept( entity, ref status );
+                        if ( newId == 0 || status.HasErrors )
+                            isValid = false;
+
+                        return isValid;
+
+                    }
+                    //update
+                    //TODO - consider if necessary, or interferes with anything
+                    //      - don't really want to include all training tasks
+                    context.Configuration.LazyLoadingEnabled = false;
+                    var efEntity = context.ConceptScheme_Concept
+                            .SingleOrDefault( s => s.Id == entity.Id );
+
+                    if ( efEntity != null && efEntity.Id > 0 )
+                    {
+                        //fill in fields that may not be in entity
+                        entity.RowId = efEntity.RowId;
+                        entity.Created = efEntity.Created;
+                        entity.CreatedById = ( efEntity.CreatedById ?? 0 );
+                        entity.Id = efEntity.Id;
+
+                        MapToDB( entity, efEntity );
+
+                        if ( HasStateChanged( context ) )
+                        {
+                            efEntity.LastUpdated = DateTime.Now;
+                            count = context.SaveChanges();
+                            //can be zero if no data changed
+                            if ( count >= 0 )
+                            {
+                                entity.LastUpdated = ( DateTime ) efEntity.LastUpdated;
+                                isValid = true;
+                            }
+                            else
+                            {
+                                //?no info on error
+
+                                isValid = false;
+                                string message = string.Format( thisClassName + ".Save Failed", "Attempted to update a Course. The process appeared to not work, but was not an exception, so we have no message, or no clue. Course: {0}, Id: {1}", entity.Name, entity.Id );
+                                status.AddError( "Error - the update was not successful. " + message );
+                                EmailManager.NotifyAdmin( thisClassName + ".Save Failed Failed", message );
+                            }
+
+                        }
+
+                        if ( isValid )
+                        {
+                            SiteActivity sa = new SiteActivity()
+                            {
+                                ActivityType = "Course",
+                                Activity = "Import",
+                                Event = "Update",
+                                Comment = string.Format( "Concept was updated by the import. Name: {0}", entity.Name ),
+                                ActivityObjectId = entity.Id
+                            };
+                            new ActivityManager().SiteActivityAdd( sa );
+                        }
+                    }
+                    else
+                    {
+                        status.AddError( "Error - update failed, as record was not found." );
+                    }
+
+
+                }
+            }
+            catch ( System.Data.Entity.Validation.DbEntityValidationException dbex )
+            {
+                string message = HandleDBValidationError( dbex, thisClassName + string.Format( ".Save. id: {0}, Name: {1}", entity.Id, entity.Name ), "Course" );
+                status.AddError( thisClassName + ".Save(). Error - the save was not successful. " + message );
+            }
+            catch ( Exception ex )
+            {
+                string message = FormatExceptions( ex );
+                LoggingHelper.LogError( ex, thisClassName + string.Format( ".Save. id: {0}, Name: {1}", entity.Id, entity.Name ), true );
+                status.AddError( thisClassName + ".Save(). Error - the save was not successful. " + message );
+                isValid = false;
+            }
+
+
+            return isValid;
+        }
+        private int AddConcept( Concept entity, ref SaveStatus status )
+        {
+            var efEntity = new Data.Tables.ConceptScheme_Concept();
+            int conceptId = 0;
+            //assume lookup has been done
+            using ( var context = new DataEntities() )
+            {
+                try
+                {
+                    efEntity.ConceptSchemeId = entity.ConceptSchemeId;
+                    //require caller to set the codedNotation as needed
+                    MapToDB( entity, efEntity );
+                    efEntity.RowId = Guid.NewGuid();
+                    efEntity.CTID = "ce-" + efEntity.RowId.ToString().ToLower();
+                    efEntity.Created = DateTime.Now;
+
+
+                    context.ConceptScheme_Concept.Add( efEntity );
+
+                    // submit the change to database
+                    int count = context.SaveChanges();
+                    if ( count > 0 )
+                    {
+                        //
+                        //add log entry
+                        SiteActivity sa = new SiteActivity()
+                        {
+                            ActivityType = "ConceptScheme",
+                            Activity = "Import",
+                            Event = "Add Concept",
+                            Comment = string.Format( "Concept was added by the import. Name: {0}", entity.Name ),
+                            ActivityObjectId = entity.Id
+                        };
+                        new ActivityManager().SiteActivityAdd( sa );
+
+
+                        return efEntity.Id;
+                    }
+                    else
+                    {
+                        //?no info on error
+
+                        string message = thisClassName + string.Format( ". Add Failed", "Attempted to add a Course. The process appeared to not work, but was not an exception, so we have no message, or no clue. Course: {0}, ctid: {1}", entity.Name, entity.CTID );
+                        status.AddError( thisClassName + ". Error - the add was not successful. " + message );
+                        EmailManager.NotifyAdmin( thisClassName + ". Add Failed", message );
+                    }
+                }
+                catch ( System.Data.Entity.Validation.DbEntityValidationException dbex )
+                {
+                    string message = HandleDBValidationError( dbex, thisClassName + ".Add() ", "Course" );
+                    status.AddError( thisClassName + ".Add(). Error - the save was not successful. " + message );
+
+                    LoggingHelper.LogError( message, true );
+                }
+                catch ( Exception ex )
+                {
+                    string message = FormatExceptions( ex );
+                    LoggingHelper.LogError( ex, thisClassName + string.Format( ".Add(), Name: {0}, CTID: {1}", efEntity.Name, efEntity.CTID ) );
+                    status.AddError( thisClassName + ".Add(). Error - the save was not successful. \r\n" + message );
+                }
+            }
+            return 0;
+        }
+        public static void MapToDB( Concept input, ConceptScheme_Concept output )
+        {
+            //watch for missing properties like rowId
+            List<string> errors = new List<string>();
+            BaseFactory.AutoMap( input, output, errors );
+            //
+        }
+        #endregion
+        /// <summary>
+        /// Get a concept using the ConceptSchemaURI and concept Name or concept coded notation
+        /// </summary>
+        /// <param name="conceptSchemeUri"></param>
+        /// <param name="concept"></param>
+        /// <returns></returns>
+        public static Concept GetConcept( string conceptSchemeUri, string concept )
+        {
+            var entity = new Concept();
+            if ( string.IsNullOrWhiteSpace( conceptSchemeUri ) ||
+                string.IsNullOrWhiteSpace( concept ) )
+                return entity;
+            concept = concept.Trim();
+            using ( var context = new DataEntities() )
+            {
+                var item = context.ConceptScheme_Concept
+                            .FirstOrDefault( s => s.ConceptScheme.SchemaUri.ToLower() == conceptSchemeUri.ToLower()
+                            && ( s.Name.ToLower() == concept.ToLower() || s.CodedNotation.ToLower() == concept.ToLower() )
+                            );
+
+                if ( item != null && item.Id > 0 )
+                {
+                    MapFromDB( item, entity );
+                }
+            }
+
+            return entity;
+        }
+        /// <summary>
+        /// Get a concept using the ConceptSchema Id and concept Name or concept coded notation
+        /// </summary>
+        /// <param name="conceptSchemeId"></param>
+        /// <param name="concept"></param>
+        /// <returns></returns>
+        public static Concept GetConcept( int conceptSchemeId, string concept )
+        {
+            var entity = new Concept();
+            if ( conceptSchemeId == 0 || string.IsNullOrWhiteSpace( concept ) )
+                return entity;
+            concept = concept.Trim();
+            using ( var context = new DataEntities() )
+            {
+                var item = context.ConceptScheme_Concept
+                            .FirstOrDefault( s => s.ConceptScheme.Id == conceptSchemeId
+                            && ( s.Name.ToLower() == concept.ToLower() )
+                                || s.CodedNotation.ToLower() == concept.ToLower() );
+
+                if ( item != null && item.Id > 0 )
+                {
+                    MapFromDB( item, entity );
+                }
+            }
+
+            return entity;
+
+        }
+
+        public static Concept GetConcept( int id )
+        {
+            var entity = new Concept();
+            if ( id < 1 )
+                return entity;
+
+            using ( var context = new DataEntities() )
+            {
+                var item = context.ConceptScheme_Concept
+                            .SingleOrDefault( s => s.Id == id );
+
+                if ( item != null && item.Id > 0 )
+                {
+                    MapFromDB( item, entity );
+                }
+            }
+
+            return entity;
+        }
+
         public static void MapFromDB( ConceptScheme_Concept input, Concept output )
         {
             List<string> errors = new List<string>();
@@ -247,5 +598,6 @@ namespace Factories
             return output;
         }
         #endregion
+
     }
 }

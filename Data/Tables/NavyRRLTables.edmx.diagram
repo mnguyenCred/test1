@@ -4,24 +4,21 @@
   <edmx:Designer xmlns="http://schemas.microsoft.com/ado/2009/11/edmx">
     <!-- Diagram content (shape and connector positions) -->
     <edmx:Diagrams>
-      <Diagram DiagramId="1cbd21b9a0474d02b074dae2db684a6a" Name="Diagram1" ZoomLevel="66">
+      <Diagram DiagramId="1cbd21b9a0474d02b074dae2db684a6a" Name="Diagram1" ZoomLevel="85">
         <EntityTypeShape EntityType="NavyRRLModel.Account" Width="1.5" PointX="6" PointY="21.125" IsExpanded="true" />
         <EntityTypeShape EntityType="NavyRRLModel.ActivityLog" Width="1.5" PointX="23.25" PointY="7" IsExpanded="true" />
         <EntityTypeShape EntityType="NavyRRLModel.AspNetUsers" Width="1.5" PointX="10.625" PointY="21.375" IsExpanded="true" />
-        <EntityTypeShape EntityType="NavyRRLModel.Assessment" Width="1.5" PointX="0.875" PointY="7.875" IsExpanded="true" />
-        <EntityTypeShape EntityType="NavyRRLModel.ConceptScheme" Width="1.5" PointX="0.5" PointY="16.125" IsExpanded="true" />
-        <EntityTypeShape EntityType="NavyRRLModel.ConceptScheme_Concept" Width="2.25" PointX="6.125" PointY="13.125" IsExpanded="true" />
-        <EntityTypeShape EntityType="NavyRRLModel.Course" Width="1.5" PointX="3.875" PointY="4.5" IsExpanded="true" />
-        <EntityTypeShape EntityType="NavyRRLModel.Course_Task" Width="1.5" PointX="6.875" PointY="8.25" IsExpanded="true" />
-        <EntityTypeShape EntityType="NavyRRLModel.CurriculumControlAuthority" Width="1.5" PointX="0.5" PointY="5.125" IsExpanded="true" />
+        <EntityTypeShape EntityType="NavyRRLModel.Assessment" Width="1.5" PointX="3.5" PointY="0.5" IsExpanded="true" />
+        <EntityTypeShape EntityType="NavyRRLModel.ConceptScheme" Width="1.5" PointX="1.625" PointY="18.125" IsExpanded="true" />
+        <EntityTypeShape EntityType="NavyRRLModel.ConceptScheme_Concept" Width="2.25" PointX="8.5" PointY="14.5" IsExpanded="true" />
+        <EntityTypeShape EntityType="NavyRRLModel.Course" Width="2.375" PointX="4.375" PointY="5.875" IsExpanded="true" />
+        <EntityTypeShape EntityType="NavyRRLModel.Course_Task" Width="1.5" PointX="9.25" PointY="9.375" IsExpanded="true" />
         <EntityTypeShape EntityType="NavyRRLModel.Job" Width="2.125" PointX="12.75" PointY="0.5" IsExpanded="true" />
-        <EntityTypeShape EntityType="NavyRRLModel.Organization" Width="1.5" PointX="23.125" PointY="13.375" IsExpanded="true" />
+        <EntityTypeShape EntityType="NavyRRLModel.Organization" Width="2.5" PointX="0.5" PointY="5.625" IsExpanded="true" />
         <EntityTypeShape EntityType="NavyRRLModel.Rating" Width="2" PointX="19" PointY="0.625" IsExpanded="true" />
         <EntityTypeShape EntityType="NavyRRLModel.RMTLProject" Width="1.5" PointX="6.625" PointY="0.5" IsExpanded="true" />
         <EntityTypeShape EntityType="NavyRRLModel.RmtlProject_Billet" Width="1.5" PointX="10.25" PointY="0.875" IsExpanded="true" />
         <EntityTypeShape EntityType="NavyRRLModel.RmtlProjectBilletTask" Width="2.5" PointX="11.375" PointY="5.625" IsExpanded="true" />
-        <EntityTypeShape EntityType="NavyRRLModel.Source" Width="2.125" PointX="15.375" PointY="9.875" IsExpanded="true" />
-        <EntityTypeShape EntityType="NavyRRLModel.WorkElementType" Width="1.5" PointX="17.125" PointY="17.125" IsExpanded="true" />
         <AssociationConnector Association="NavyRRLModel.FK_Account_AspNetUsers" ManuallyRouted="false" />
         <AssociationConnector Association="NavyRRLModel.FK_ConceptScheme__AccountCreatedBy" ManuallyRouted="false" />
         <AssociationConnector Association="NavyRRLModel.FK_ConceptScheme_AccountApprovedBy" ManuallyRouted="false" />
@@ -40,8 +37,8 @@
         <AssociationConnector Association="NavyRRLModel.FK_RmtlProjectBilletTask_RmtlProject_Billet" />
         <EntityTypeShape EntityType="NavyRRLModel.Comment" Width="1.5" PointX="9" PointY="4.625" />
         <EntityTypeShape EntityType="NavyRRLModel.Job_HasRating" Width="1.5" PointX="15.75" PointY="0.5" />
-        <EntityTypeShape EntityType="NavyRRLModel.RatingTask" Width="3" PointX="10" PointY="10.25" FillColor="Purple" />
-        <EntityTypeShape EntityType="NavyRRLModel.RatingTask_HasRating" Width="1.5" PointX="21.375" PointY="3.125" />
+        <EntityTypeShape EntityType="NavyRRLModel.RatingTask" Width="3" PointX="12" PointY="10.875" FillColor="Purple" />
+        <EntityTypeShape EntityType="NavyRRLModel.RatingTask_HasRating" Width="1.5" PointX="20.625" PointY="9.25" />
         <AssociationConnector Association="NavyRRLModel.FK_Comment_RMTLProject" />
         <AssociationConnector Association="NavyRRLModel.FK_RatingLevelTask_ConceptScheme_Concept4" />
         <AssociationConnector Association="NavyRRLModel.FK_RatingLevelTask_ConceptScheme_Concept11" />
@@ -51,15 +48,24 @@
         <AssociationConnector Association="NavyRRLModel.FK_Job_HasRating_Job" />
         <AssociationConnector Association="NavyRRLModel.FK_Job_HasRating_Rating" />
         <AssociationConnector Association="NavyRRLModel.FK_RatingTask_HasRating_Rating" />
-        <AssociationConnector Association="NavyRRLModel.FK_RatingLevelTask_Source1" />
-        <AssociationConnector Association="NavyRRLModel.FK_RatingLevelTask_WorkElementType1" />
         <AssociationConnector Association="NavyRRLModel.FK_RatingTask_HasRatingTask_Task" />
         <AssociationConnector Association="NavyRRLModel.FK_RmtlProjectBilletTask_RatingTask" />
-        <EntityTypeShape EntityType="NavyRRLModel.ImportRMTL" Width="3" PointX="18.375" PointY="5.75" />
-        <EntityTypeShape EntityType="NavyRRLModel.ReferenceResource" Width="2.125" PointX="0.5" PointY="10.875" FillColor="Yellow" />
-        <EntityTypeShape EntityType="NavyRRLModel.ReferenceResource_ReferenceType" Width="1.5" PointX="3.625" PointY="12.75" FillColor="Yellow" />
+        <EntityTypeShape EntityType="NavyRRLModel.ImportRMTL" Width="3" PointX="25.875" PointY="6.625" />
+        <EntityTypeShape EntityType="NavyRRLModel.ReferenceResource" Width="2.125" PointX="0.5" PointY="13.125" FillColor="Yellow" />
+        <EntityTypeShape EntityType="NavyRRLModel.ReferenceResource_ReferenceType" Width="1.5" PointX="5.25" PointY="14.375" FillColor="Yellow" />
         <AssociationConnector Association="NavyRRLModel.FK_ReferenceResource_ReferenceType_ConceptScheme_Concept" />
         <AssociationConnector Association="NavyRRLModel.FK_ReferenceResource_ReferenceType_ReferenceResource" />
+        <EntityTypeShape EntityType="NavyRRLModel.Codes_EntityType" Width="1.5" PointX="0.75" PointY="0.75" />
+        <EntityTypeShape EntityType="NavyRRLModel.Course_Concept" Width="1.5" PointX="7.125" PointY="11.375" />
+        <EntityTypeShape EntityType="NavyRRLModel.FunctionalArea" Width="1.5" PointX="16.125" PointY="15.75" />
+        <EntityTypeShape EntityType="NavyRRLModel.ImportHistory" Width="1.5" PointX="31" PointY="8.25" />
+        <EntityTypeShape EntityType="NavyRRLModel.RatingTask_HasJob" Width="2.25" PointX="16.625" PointY="5.375" />
+        <AssociationConnector Association="NavyRRLModel.FK_Course_Concept_ConceptScheme_Concept" />
+        <AssociationConnector Association="NavyRRLModel.FK_Course_Concept_Course" />
+        <AssociationConnector Association="NavyRRLModel.FK_RatingLevelTask_FunctionalArea" />
+        <AssociationConnector Association="NavyRRLModel.FK_RatingTask_HasJob_Job" />
+        <AssociationConnector Association="NavyRRLModel.FK_RatingTask_HasJob_RatingTask" />
+        <AssociationConnector Association="NavyRRLModel.FK_Course_Organization" />
       </Diagram>
     </edmx:Diagrams>
   </edmx:Designer>

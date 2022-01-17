@@ -24,8 +24,13 @@ set @SortOrder = 'relevance'
 set @Filter = '  Rating = ''abf'' '
 
 set @Filter = ' base.id in (select a.[RatingTaskId] from [RatingTask.HasRating] a inner join Rating b on a.ratingId = b.Id where b.CodedNotation = ''qm'' )	'
+
 set @Filter = 'base.id in (select a.[RatingTaskId] from [RatingTask.HasRating] a inner join Rating b on a.ratingId = b.Id where b.CodedNotation = ''Aviation Boatswain''''s Mate (Fuels)'' OR b.name = ''Aviation Boatswain''''s Mate (Fuels)'' )'
-set @Filter = ''
+
+set @Filter = ' base.Rank in (''e3'', ''e4'')'
+set @Filter = ' base.RankId in (69, 70,71)'
+set @Filter = ' base.LevelId in (89) AND FunctionalAreaId in(2,5)'
+--set @Filter = ''
 
 set @StartPageIndex = 1
 set @PageSize = 100
@@ -82,12 +87,12 @@ DECLARE
 -- =================================
 
 
-if @SortOrder = 'relevance' set @SortOrder = 'base.Ratings, base.Rank, base.FunctionalArea, base.Source '
+if @SortOrder = 'relevance' set @SortOrder = 'base.Ratings, base.Rank, base.FunctionalArea, base.ReferenceResource '
 else if @SortOrder = 'alpha' set @SortOrder = 'base.RatingTask '
 else if @SortOrder = 'oldest' set @SortOrder = 'base.Created '
-else if @SortOrder = 'newest' set @SortOrder = 'base.LastUpdated Desc, base.Ratings, base.Rank, base.FunctionalArea, base.Source  '
+else if @SortOrder = 'newest' set @SortOrder = 'base.LastUpdated Desc, base.Ratings, base.Rank, base.FunctionalArea, base.ReferenceResource  '
 else if @SortOrder = 'id_lowest' set @SortOrder = 'base.Id'
-else set @SortOrder = 'base.Ratings, base.Rank, base.FunctionalArea, base.Source '
+else set @SortOrder = 'base.Ratings, base.Rank, base.FunctionalArea, base.ReferenceResource '
 
 if len(@SortOrder) > 0 
       set @OrderBy = ' Order by ' + @SortOrder
@@ -176,8 +181,8 @@ SELECT
       ,b.[Level]
       ,b.[FunctionalAreaId]
       ,b.[FunctionalArea]
-      ,b.[SourceId]
-      ,b.[Source]
+      ,b.ReferenceResourceId
+      ,b.ReferenceResource
       ,b.[SourceDate]
       ,b.[HasReferenceResource]
       ,b.[WorkElementTypeId]
@@ -191,15 +196,19 @@ SELECT
       ,b.[FormalTrainingGapId]
       ,b.[FormalTrainingGap]
       ,b.[TrainingGapType]
+	  --
+	  ,b.CourseId
       ,b.[CIN]
       ,b.[CourseName]
-      ,b.[CourseType]
+      ,b.[CourseTypes]
       ,b.[TrainingTaskId]
       ,TrainingTask
       ,b.[HasTrainingTask]
-      ,b.[CurrentAssessmentApproach]
+	  --multiple
+      ,b.AssessmentMethodTypes
       ,b.[CurriculumControlAuthority]
       ,b.[LifeCycleControlDocument]
+	  --
       ,b.[Notes]
 	  --
       ,[CreatedById]

@@ -21,7 +21,7 @@ SELECT [Id]
       ,[LastUpdated]
       ,[LastUpdatedById]
       ,[ModifiedBy]
-  FROM [dbo].[ReferenceResouceSummary]
+  FROM [dbo].[ReferenceResourceSummary]
 
   where ReferenceType like '%pqs%'
 GO
@@ -30,7 +30,7 @@ GO
 
 
 */
-Create  VIEW [dbo].ReferenceResouceSummary
+Create  VIEW [dbo].ReferenceResourceSummary
 AS
 SELECT 
 a.[Id]
@@ -61,5 +61,5 @@ a.[Id]
 
   --where a.name = 'cttl'
   go
-  grant select on ReferenceResouceSummary to public
+  grant select on ReferenceResourceSummary to public
   go

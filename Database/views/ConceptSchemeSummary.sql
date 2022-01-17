@@ -14,10 +14,17 @@ GO
 USE [ceNavy]
 GO
 
+USE [NavyRRL]
+GO
+
 SELECT [ConceptSchemeId]
       ,[Name]
       ,[conceptid]
+      ,[ListId]
       ,[Concept]
+      ,[CodedNotation],AlternateLabel
+      ,[Description]
+      ,[ConceptUID]
   FROM [dbo].[ConceptSchemeSummary]
 
 ORDER BY Name, ListId, Concept
@@ -35,7 +42,9 @@ SELECT        TOP (100) PERCENT
 	, b.ListId
 	, b.Name AS Concept
 	, b.CodedNotation
+	, b.AlternateLabel
 	, b.Description
+	, b.RowId as ConceptUID
 FROM dbo.ConceptScheme a 
 INNER JOIN dbo.[ConceptScheme.Concept] b ON a.Id = b.ConceptSchemeId
 GO

@@ -8,6 +8,7 @@ using AppEntity = Models.Schema.Course;
 using AppFullEntity = Models.Schema.CourseFull;
 using CourseTask = Models.Schema.TrainingTask;
 using DBEntity = Data.Tables.Course;
+using MSc = Models.Schema;
 
 using DataEntities = Data.Tables.NavyRRLEntities;
 using ViewContext = Data.Views.ceNavyViewEntities;
@@ -32,6 +33,7 @@ namespace Factories
         {
             bool isValid = true;
             int count = 0;
+            
             try
             {
                 using ( var context = new DataEntities() )
@@ -54,7 +56,9 @@ namespace Factories
                             int newId = Add( entity, ref status );
                             if ( newId == 0 || status.HasErrors )
                                 isValid = false;
-
+                            //just in case 
+                            if ( newId > 0 )
+                                UpdateParts( entity, status );
                             return isValid;
                         }
                     }
@@ -99,6 +103,10 @@ namespace Factories
 
                         if ( isValid )
                         {
+                            //just in case 
+                            if ( entity.Id > 0 )
+                                UpdateParts( entity, status );
+
                             SiteActivity sa = new SiteActivity()
                             {
                                 ActivityType = "Course",
@@ -214,24 +222,36 @@ namespace Factories
         {
             //watch for missing properties like rowId
             List<string> errors = new List<string>();
+            //this will include the extra props (like LifeCycleControlDocument, etc. for now)
             BaseFactory.AutoMap( input, output, errors );
             //
-            if ( !string.IsNullOrWhiteSpace( input.CurrentAssessmentApproach ) )
-            {
-                output.AssessmentApproachId = ConceptSchemeManager.GetConcept( input.CurrentAssessmentApproach, ConceptSchemeManager.ConceptScheme_CurrentAssessmentApproach )?.Id;
-            }
-            if ( !string.IsNullOrWhiteSpace( input.Curriculum_Control_Authority ) )
-            {
-                output.CurriculumControlAuthorityId = ConceptSchemeManager.GetConcept( input.Curriculum_Control_Authority, ConceptSchemeManager.ConceptScheme_CurrentAssessmentApproach )?.Id;
-            }
-            if ( !string.IsNullOrWhiteSpace( input.Course_Type ) )
-            {
-                output.CourseTypeId = ConceptSchemeManager.GetConcept( input.Course_Type, ConceptSchemeManager.ConceptScheme_CourseType )?.Id;
-            }
             if ( !string.IsNullOrWhiteSpace( input.LifeCycleControlDocument ) )
-            {
+            {               
                 //can this be a concept scheme??
                 output.LifeCycleControlDocumentId = ConceptSchemeManager.GetConcept( input.LifeCycleControlDocument, ConceptSchemeManager.ConceptScheme_LifeCycleControlDocument )?.Id;
+            }
+            //
+
+            if ( !string.IsNullOrWhiteSpace( input.Curriculum_Control_Authority ) )
+            {
+                var org = OrganizationManager.Get( input.Curriculum_Control_Authority , true);
+                if ( org != null && org.Id > 0 )
+                {
+                    output.CurriculumControlAuthorityId = org.Id;
+                } else
+                {
+                    SaveStatus status = new SaveStatus();
+                    org = new MSc.Organization()
+                    {
+                        Name = input.Curriculum_Control_Authority,
+                        AlternateName = input.Curriculum_Control_Authority
+                    };
+                    var isValid = new OrganizationManager().Save( org, ref status );
+                    if ( isValid )
+                    {
+                        output.CurriculumControlAuthorityId = org.Id;
+                    }
+                }
             }
         }
         #endregion
@@ -360,8 +380,212 @@ namespace Factories
 
         #endregion
 
+        /// <summary>
+        /// Update:
+        /// - training task
+        /// - course types
+        /// - CurrentAssessmentApproach
+        /// </summary>
+        /// <param name="input"></param>
+        /// <param name="status"></param>
+        public void UpdateParts( AppFullEntity input, SaveStatus status )
+        {
+            try
+            {
+                if ( !string.IsNullOrWhiteSpace( input.Course_Type ) )
+                {
+                    var parts = input.Course_Type.Split( '-' ).ToList();
+                    if ( parts.Count > 0 )
+                    {
+                        foreach(var item in parts )
+                        {
+                            var concept = ConceptSchemeManager.GetConcept( item, ConceptSchemeManager.ConceptScheme_CourseType );
+                            if( concept?.Id > 0)
+                            {
+                                if (AddCourseConcept( input, concept.Id, input.LastUpdatedById, ref status ))
+                                {
+                                    //add log entry
+                                    SiteActivity sa = new SiteActivity()
+                                    {
+                                        ActivityType = "Course",
+                                        Activity = "Import",
+                                        Event = "Add Course_Concept",
+                                        Comment = string.Format( "CourseType of: '{0}' for conceptScheme: '{1}', was added for Course: '{2}' by the import.", item, ConceptSchemeManager.ConceptScheme_CourseType, input.Name ),
+                                    };
+                                    new ActivityManager().SiteActivityAdd( sa );
+                                }
+                            } else
+                            {
+                                //add new
+                            }
+                        }
+                    }
+                    //
+                }
+
+                if ( !string.IsNullOrWhiteSpace( input.CurrentAssessmentApproach ) )
+                {
+                   //output.AssessmentApproachId = ConceptSchemeManager.GetConcept( input.CurrentAssessmentApproach, ConceptSchemeManager.ConceptScheme_CurrentAssessmentApproach )?.Id;
+                    var parts = input.CurrentAssessmentApproach.Split( '-' ).ToList();
+                    if ( parts.Count > 0 )
+                    {
+                        foreach ( var item in parts )
+                        {
+                            var concept = ConceptSchemeManager.GetConcept( item, ConceptSchemeManager.ConceptScheme_CurrentAssessmentApproach );
+                            if ( concept?.Id > 0 )
+                            {
+                                if ( AddCourseConcept( input, concept.Id, input.LastUpdatedById, ref status ) )
+                                {
+                                    //add log entry
+                                    SiteActivity sa = new SiteActivity()
+                                    {
+                                        ActivityType = "Course",
+                                        Activity = "Import",
+                                        Event = "Add Course_Concept",
+                                        Comment = string.Format( "AssessmentApproach of: '{0}' for conceptScheme: '{1}', was added for Course: '{2}' by the import.", item, ConceptSchemeManager.ConceptScheme_CurrentAssessmentApproach, input.Name ),
+                                    };
+                                    new ActivityManager().SiteActivityAdd( sa );
+                                }
+                            }
+                            else
+                            {
+                                //add new
+                            }
+                        }
+                    }
+                    //
+                }
+
+            } catch ( Exception ex )
+            {
+                LoggingHelper.LogError( ex, thisClassName + "UpdateParts" );
+            }
+        }
+
+
         #region TrainingTask
 
         #endregion
+
+
+        #region Course-Concept
+        public bool AddCourseConcept( AppFullEntity input, int conceptId, int userId, ref SaveStatus status )
+        {
+            ConceptSchemeManager csMgr = new ConceptSchemeManager();
+            var efEntity = new Data.Tables.Course_Concept();
+
+            using ( var context = new DataEntities() )
+            {
+                try
+                {
+                    efEntity.CourseId = input.Id;
+                    efEntity.ConceptId = conceptId;
+                    efEntity.RowId = Guid.NewGuid();
+                    efEntity.CreatedById = userId;
+                    //efEntity.CTID = "ce-" + efEntity.RowId.ToString().ToLower();
+                    efEntity.Created = DateTime.Now;
+
+                    context.Course_Concept.Add( efEntity );
+
+                    // submit the change to database
+                    int count = context.SaveChanges();
+                    if ( count > 0 )
+                    {
+                        //
+                        return true;
+                    }
+                    else
+                    {
+                        //?no info on error
+
+                        string message = thisClassName + string.Format( ". Add Failed", "Attempted to add a Course_Concept. The process appeared to not work, but was not an exception, so we have no message, or no clue. CourseId of: '{0}' for conceptId: {1}, was added for Course: '{2}' by the import.", input.Id, conceptId, input.Name );
+                        status.AddError( thisClassName + ". Error - the add Course_Concept was not successful. " + message );
+                        EmailManager.NotifyAdmin( thisClassName + ". Add Failed", message );
+                    }
+                }
+                catch ( Exception ex )
+                {
+                    string message = FormatExceptions( ex );
+                    LoggingHelper.LogError( ex, thisClassName + string.Format( ".AddCourseConcept(), CourseId of: '{0}' for conceptId: {1}, for Course: '{2}'.", input.Id, conceptId, input.Name ) );
+                    status.AddError( thisClassName + ".Add(). Error - the save was not successful. \r\n" + message );
+                }
+            }
+            return false;
+        }
+        //public void AddCourseConcept( AppFullEntity input, int conceptSchemeId, string concept, ref SaveStatus status )
+        //{
+        //    ConceptSchemeManager csMgr = new ConceptSchemeManager();
+        //    var efEntity = new Data.Tables.Course_Concept();
+        //    int conceptId = 0;
+        //    //lookup - need to check name or CodedNotation
+        //    var c = ConceptSchemeManager.GetConcept( conceptSchemeId, concept );
+        //    if ( c != null && c.Id > 0)
+        //        conceptId = c.Id;
+        //    else
+        //    {
+        //        //add
+        //        status.HasSectionErrors = false;
+        //        conceptId = csMgr.SaveConcept( conceptSchemeId, concept, ref status );
+        //        if ( conceptId == 0 )
+        //        {
+        //            LoggingHelper.DoTrace( 1, thisClassName + String.Format( ".AddCourseConcept. Failed to add Course_Concept of: '{0}' for conceptSchemeId: {1}, was added for Course: '{2}' by the import.", concept, conceptSchemeId, input.Name ) );
+        //            return;
+        //        }
+        //    }
+        //    using ( var context = new DataEntities() )
+        //    {
+        //        try
+        //        {
+        //            efEntity.CourseId = input.Id;
+        //            efEntity.ConceptId = conceptId;
+        //            efEntity.RowId = Guid.NewGuid();
+        //            //efEntity.CTID = "ce-" + efEntity.RowId.ToString().ToLower();
+        //            efEntity.Created = DateTime.Now;
+
+        //            context.Course_Concept.Add( efEntity );
+
+        //            // submit the change to database
+        //            int count = context.SaveChanges();
+        //            if ( count > 0 )
+        //            {
+        //                //
+        //                //add log entry
+        //                SiteActivity sa = new SiteActivity()
+        //                {
+        //                    ActivityType = "Course",
+        //                    Activity = "Import",
+        //                    Event = "Add Course_Concept",
+        //                    Comment = string.Format( "Course_Concept of: '{0}' for conceptSchemeId: {1}, was added for Course: '{2}' by the import.", concept, conceptSchemeId, input.Name ),
+        //                    ActivityObjectId = efEntity.Id
+        //                };
+        //                new ActivityManager().SiteActivityAdd( sa );
+        //           }
+        //            else
+        //            {
+        //                //?no info on error
+
+        //                string message = thisClassName + string.Format( ". Add Failed", "Attempted to add a Course_Concept. The process appeared to not work, but was not an exception, so we have no message, or no clue. Course_Concept of: '{0}' for conceptSchemeId: {1}, was added for Course: '{2}' by the import.", concept, conceptSchemeId, input.Name );
+        //                status.AddError( thisClassName + ". Error - the add Course_Concept was not successful. " + message );
+        //                EmailManager.NotifyAdmin( thisClassName + ". Add Failed", message );
+        //            }
+        //        }
+        //        catch ( System.Data.Entity.Validation.DbEntityValidationException dbex )
+        //        {
+        //            string message = HandleDBValidationError( dbex, thisClassName + ".AddCourseConcept() ", "Course" );
+        //            status.AddError( thisClassName + ".Add(). Error - the save was not successful. " + message );
+
+        //            LoggingHelper.LogError( message, true );
+        //        }
+        //        catch ( Exception ex )
+        //        {
+        //            string message = FormatExceptions( ex );
+        //            LoggingHelper.LogError( ex, thisClassName + string.Format( ".AddCourseConcept(), Course_Concept of: '{0}' for conceptSchemeId: {1}, was added for Course: '{2}' by the import.", concept, conceptSchemeId, input.Name ) );
+        //            status.AddError( thisClassName + ".Add(). Error - the save was not successful. \r\n" + message );
+        //        }
+        //    }
+        //}
+        #endregion
+
     }
+
 }

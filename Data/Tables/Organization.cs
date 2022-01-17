@@ -14,6 +14,12 @@ namespace Data.Tables
     
     public partial class Organization
     {
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2214:DoNotCallOverridableMethodsInConstructors")]
+        public Organization()
+        {
+            this.Course = new HashSet<Course>();
+        }
+    
         public int Id { get; set; }
         public System.Guid RowId { get; set; }
         public string Name { get; set; }
@@ -23,9 +29,9 @@ namespace Data.Tables
         public Nullable<int> StatusId { get; set; }
         public string CredentialRegistryId { get; set; }
         public string ImageURL { get; set; }
-        public Nullable<System.DateTime> Created { get; set; }
+        public System.DateTime Created { get; set; }
         public Nullable<int> CreatedById { get; set; }
-        public Nullable<System.DateTime> LastUpdated { get; set; }
+        public System.DateTime LastUpdated { get; set; }
         public Nullable<int> LastUpdatedById { get; set; }
         public string FoundingDate { get; set; }
         public string AvailabilityListing { get; set; }
@@ -34,7 +40,10 @@ namespace Data.Tables
         public string MissionAndGoalsStatement { get; set; }
         public string MissionAndGoalsStatementDescription { get; set; }
         public Nullable<bool> ISQAOrganization { get; set; }
-        public string AlternativeIdentifier { get; set; }
         public Nullable<bool> IsThirdPartyOrganization { get; set; }
+        public string AlternateName { get; set; }
+    
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<Course> Course { get; set; }
     }
 }

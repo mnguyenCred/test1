@@ -33,15 +33,12 @@ namespace Data.Tables
         public virtual DbSet<ConceptScheme_Concept> ConceptScheme_Concept { get; set; }
         public virtual DbSet<Course> Course { get; set; }
         public virtual DbSet<Course_Task> Course_Task { get; set; }
-        public virtual DbSet<CurriculumControlAuthority> CurriculumControlAuthority { get; set; }
         public virtual DbSet<Job> Job { get; set; }
         public virtual DbSet<Organization> Organization { get; set; }
         public virtual DbSet<Rating> Rating { get; set; }
         public virtual DbSet<RMTLProject> RMTLProject { get; set; }
         public virtual DbSet<RmtlProject_Billet> RmtlProject_Billet { get; set; }
         public virtual DbSet<RmtlProjectBilletTask> RmtlProjectBilletTask { get; set; }
-        public virtual DbSet<Source> Source { get; set; }
-        public virtual DbSet<WorkElementType> WorkElementType { get; set; }
         public virtual DbSet<AspNetUserRoles> AspNetUserRoles { get; set; }
         public virtual DbSet<AspNetRoles> AspNetRoles { get; set; }
         public virtual DbSet<System_ProxyCodes> System_ProxyCodes { get; set; }
@@ -52,5 +49,10 @@ namespace Data.Tables
         public virtual DbSet<ImportRMTL> ImportRMTL { get; set; }
         public virtual DbSet<ReferenceResource> ReferenceResource { get; set; }
         public virtual DbSet<ReferenceResource_ReferenceType> ReferenceResource_ReferenceType { get; set; }
+        public virtual DbSet<Codes_EntityType> Codes_EntityType { get; set; }
+        public virtual DbSet<Course_Concept> Course_Concept { get; set; }
+        public virtual DbSet<FunctionalArea> FunctionalArea { get; set; }
+        public virtual DbSet<ImportHistory> ImportHistory { get; set; }
+        public virtual DbSet<RatingTask_HasJob> RatingTask_HasJob { get; set; }
     }
 }

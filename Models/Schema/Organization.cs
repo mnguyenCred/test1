@@ -17,5 +17,7 @@ namespace Models.Schema
 		/// From Column: TBD
 		/// </summary>
 		public string Description { get; set; }
+
+		public string AlternateName { get; set; }
 	}
 }

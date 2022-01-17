@@ -13,7 +13,7 @@ namespace Models.Application
 		/// </summary>
 		public bool HasErrors { get; set; }
 		/// <summary>
-		/// Reset HasSectionErrors to false at the start of a new section of validation. Then check at th end of the section for any errors in the section
+		/// Reset HasSectionErrors to false at the start of a new section of validation. Then check at the end of the section for any errors in the section
 		/// </summary>
 		public bool HasSectionErrors { get; set; }
 		//TBD

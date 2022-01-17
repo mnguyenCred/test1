@@ -7,21 +7,21 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace Data.Views
+namespace Data.Tables
 {
     using System;
     using System.Collections.Generic;
     
-    public partial class ConceptSchemeSummary
+    public partial class RatingTask_HasJob
     {
-        public int ConceptSchemeId { get; set; }
-        public string Name { get; set; }
-        public int conceptid { get; set; }
-        public Nullable<int> ListId { get; set; }
-        public string Concept { get; set; }
-        public string CodedNotation { get; set; }
-        public string Description { get; set; }
-        public string AlternateLabel { get; set; }
-        public System.Guid ConceptUID { get; set; }
+        public int Id { get; set; }
+        public System.Guid RowId { get; set; }
+        public int RatingTaskId { get; set; }
+        public int JobId { get; set; }
+        public System.DateTime Created { get; set; }
+        public Nullable<int> CreatedById { get; set; }
+    
+        public virtual Job Job { get; set; }
+        public virtual RatingTask RatingTask { get; set; }
     }
 }

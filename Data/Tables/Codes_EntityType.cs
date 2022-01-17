@@ -7,21 +7,20 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace Data.Views
+namespace Data.Tables
 {
     using System;
     using System.Collections.Generic;
     
-    public partial class ConceptSchemeSummary
+    public partial class Codes_EntityType
     {
-        public int ConceptSchemeId { get; set; }
-        public string Name { get; set; }
-        public int conceptid { get; set; }
-        public Nullable<int> ListId { get; set; }
-        public string Concept { get; set; }
-        public string CodedNotation { get; set; }
+        public int Id { get; set; }
+        public string Title { get; set; }
         public string Description { get; set; }
-        public string AlternateLabel { get; set; }
-        public System.Guid ConceptUID { get; set; }
+        public Nullable<bool> IsActive { get; set; }
+        public string SchemaUrl { get; set; }
+        public Nullable<System.DateTime> Created { get; set; }
+        public Nullable<int> Totals { get; set; }
+        public string RegistryResourceType { get; set; }
     }
 }

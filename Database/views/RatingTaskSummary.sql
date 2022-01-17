@@ -29,8 +29,8 @@ SELECT [Id]
       ,[Level]
       ,[FunctionalAreaId]
       ,[FunctionalArea]
-      ,[SourceId]
-      ,[Source]
+      ,[ReferenceResourceId]
+      ,[ReferenceResource]
       ,[SourceDate]
       ,[HasReferenceResource]
       ,[WorkElementTypeId]
@@ -92,12 +92,13 @@ SELECT
 
 	,a.[FunctionalAreaId]
 	, isnull(b.name,'missing') As FunctionalArea
-	,a.[SourceId]
-	, isnull(c.name,'missing') As Source
-	,c.SourceDate
+	--		
+	--,a.[SourceId]
+	,a.ReferenceResourceId
+	, isnull(c.name,'missing') As ReferenceResource
+	,c.PublicationDate as SourceDate
 	,c.RowId as HasReferenceResource
-	--,a.[Source] as origSource
-	-- ,a.[Date_of_Source]
+	--
 	--	WorkElementType. Now a concept
 	,a.[WorkElementTypeId]
 	, isnull(wet.name,'missing') As WorkElementType
@@ -115,16 +116,38 @@ SELECT
 	,a.FormalTrainingGapId
 	, isnull(f.Name,'missing') As FormalTrainingGap
 	,f.RowId as TrainingGapType
-	--
-	,h.CIN
-	,h.Name as CourseName
-	,h.CourseType
-	,a.TrainingTaskId
-	,g.Description as TrainingTask
-	,g.RowId as HasTrainingTask
-	,h.CurrentAssessmentApproach
-	,h.CurriculumControlAuthority
-	,h.LifeCycleControlDocument
+	-- individual course parts
+	/*
+		,h.CIN
+		,h.Name as CourseName
+		--can be multiple
+		,h.CourseType
+		,a.TrainingTaskId
+		,g.Description as TrainingTask
+		,g.RowId as HasTrainingTask
+		--can be multiple
+		,h.CurrentAssessmentApproach
+		--single or multiple?
+		,h.CurriculumControlAuthority
+		--can be multiple
+		,h.LifeCycleControlDocument
+		*/
+	--or used the view
+		,g.CourseId, g.CourseUID
+		,g.CIN
+		,g.CourseName
+		--can be multiple
+		,g.CourseTypes
+		,a.TrainingTaskId
+		,g.TrainingTask
+		,g.TrainingTaskUID as HasTrainingTask
+		--can be multiple
+		,g.AssessmentMethodTypes
+		--single or multiple?
+		,g.CurriculumControlAuthority
+		--comfirm if can be multiple
+		,g.LifeCycleControlDocument
+
 	,a.Notes
 
       ,a.[Created] --as TaskCreated,
@@ -141,13 +164,16 @@ SELECT
 left join [ConceptScheme.Concept]	c1 on a.[RankId] = c1.Id
 left join [ConceptScheme.Concept]	c2 on a.[LevelId] = c2.Id
 left join FunctionalArea			b on a.FunctionalAreaId = b.Id
-left join Source					c on a.SourceId = c.Id
+left join ReferenceResource			c on a.ReferenceResourceId = c.Id
+--left join Source					c on a.SourceId = c.Id
 left join [ConceptScheme.Concept]	wet on a.WorkElementTypeId = wet.Id
 --left join WorkElementType			d on a.WorkElementTypeId = d.Id
 left join [ConceptScheme.Concept]	e on a.TaskApplicabilityId = e.Id
 left join [ConceptScheme.Concept]	f on a.FormalTrainingGapId = f.Id
-Left Join [Course.Task]				g on a.TrainingTaskId = g.Id
-Left Join [Course]				h on g.CourseId = h.Id
+
+Left Join TrainingTaskSummary		g on a.TrainingTaskId = g.TrainingTaskId
+--Left Join [Course.Task]				g on a.TrainingTaskId = g.Id
+--Left Join [Course]				h on g.CourseId = h.Id
   Left Join Account_Summary ac on a.CreatedById = ac.Id
   Left Join Account_Summary am on a.LastUpdatedById = am.Id
 go

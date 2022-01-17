@@ -61,12 +61,16 @@ namespace Models.Schema
 	}
 	public class CourseFull : Course
 	{
+		//this can be plural (pipe separated)
 		public string CurrentAssessmentApproach { get; set; }
 		public int AssessmentMethodId { get; set; }
+		//this can be plural (pipe separated)
 		public string Course_Type { get; set; }
 		public int CourseTypeId { get; set; }
 		public string Curriculum_Control_Authority { get; set; }
 		public int CurriculumControlAuthorityId { get; set; }
+
+		//TBD: this can be plural (pipe separated)
 		public string LifeCycleControlDocument { get; set; }
 		public int LifeCycleControlDocumentId { get; set; }
 	}

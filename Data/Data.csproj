@@ -86,6 +86,9 @@
     <Compile Include="Tables\Assessment.cs">
       <DependentUpon>NavyRRLTables.tt</DependentUpon>
     </Compile>
+    <Compile Include="Tables\Codes_EntityType.cs">
+      <DependentUpon>NavyRRLTables.tt</DependentUpon>
+    </Compile>
     <Compile Include="Tables\Comment.cs">
       <DependentUpon>NavyRRLTables.tt</DependentUpon>
     </Compile>
@@ -98,10 +101,16 @@
     <Compile Include="Tables\Course.cs">
       <DependentUpon>NavyRRLTables.tt</DependentUpon>
     </Compile>
+    <Compile Include="Tables\Course_Concept.cs">
+      <DependentUpon>NavyRRLTables.tt</DependentUpon>
+    </Compile>
     <Compile Include="Tables\Course_Task.cs">
       <DependentUpon>NavyRRLTables.tt</DependentUpon>
     </Compile>
-    <Compile Include="Tables\CurriculumControlAuthority.cs">
+    <Compile Include="Tables\FunctionalArea.cs">
+      <DependentUpon>NavyRRLTables.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Tables\ImportHistory.cs">
       <DependentUpon>NavyRRLTables.tt</DependentUpon>
     </Compile>
     <Compile Include="Tables\ImportRMTL.cs">
@@ -137,6 +146,9 @@
     <Compile Include="Tables\RatingTask.cs">
       <DependentUpon>NavyRRLTables.tt</DependentUpon>
     </Compile>
+    <Compile Include="Tables\RatingTask_HasJob.cs">
+      <DependentUpon>NavyRRLTables.tt</DependentUpon>
+    </Compile>
     <Compile Include="Tables\RatingTask_HasRating.cs">
       <DependentUpon>NavyRRLTables.tt</DependentUpon>
     </Compile>
@@ -155,13 +167,7 @@
     <Compile Include="Tables\RmtlProject_Billet.cs">
       <DependentUpon>NavyRRLTables.tt</DependentUpon>
     </Compile>
-    <Compile Include="Tables\Source.cs">
-      <DependentUpon>NavyRRLTables.tt</DependentUpon>
-    </Compile>
     <Compile Include="Tables\System_ProxyCodes.cs">
-      <DependentUpon>NavyRRLTables.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Tables\WorkElementType.cs">
       <DependentUpon>NavyRRLTables.tt</DependentUpon>
     </Compile>
     <Compile Include="Views\Account_Summary.cs">
@@ -174,6 +180,9 @@
       <DependentUpon>NavyViews.tt</DependentUpon>
     </Compile>
     <Compile Include="Views\ConceptSchemeSummary.cs">
+      <DependentUpon>NavyViews.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Views\CourseSummary.cs">
       <DependentUpon>NavyViews.tt</DependentUpon>
     </Compile>
     <Compile Include="Views\NavyViews.Context.cs">
@@ -194,7 +203,13 @@
     <Compile Include="Views\RatingTaskSummary.cs">
       <DependentUpon>NavyViews.tt</DependentUpon>
     </Compile>
+    <Compile Include="Views\ReferenceResourceSummary.cs">
+      <DependentUpon>NavyViews.tt</DependentUpon>
+    </Compile>
     <Compile Include="Views\RmtlSummary.cs">
+      <DependentUpon>NavyViews.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Views\TrainingTaskSummary.cs">
       <DependentUpon>NavyViews.tt</DependentUpon>
     </Compile>
   </ItemGroup>

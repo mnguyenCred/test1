@@ -7,30 +7,29 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace Data.Tables
+namespace Data.Views
 {
     using System;
     using System.Collections.Generic;
     
-    public partial class WorkElementType
+    public partial class ReferenceResourceSummary
     {
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2214:DoNotCallOverridableMethodsInConstructors")]
-        public WorkElementType()
-        {
-            this.RatingTask = new HashSet<RatingTask>();
-        }
-    
         public int Id { get; set; }
-        public string Name { get; set; }
-        public string CTID { get; set; }
         public System.Guid RowId { get; set; }
+        public string Name { get; set; }
+        public int ReferenceTypeId { get; set; }
+        public string ReferenceType { get; set; }
+        public string ReferenceTypeCodedNotation { get; set; }
         public string Description { get; set; }
-        public Nullable<System.DateTime> Created { get; set; }
+        public string CodedNotation { get; set; }
+        public string PublicationDate { get; set; }
+        public Nullable<int> StatusTypeId { get; set; }
+        public string VersionIdentifier { get; set; }
+        public System.DateTime Created { get; set; }
         public Nullable<int> CreatedById { get; set; }
-        public Nullable<System.DateTime> LastUpdated { get; set; }
+        public string CreatedBy { get; set; }
+        public System.DateTime LastUpdated { get; set; }
         public Nullable<int> LastUpdatedById { get; set; }
-    
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<RatingTask> RatingTask { get; set; }
+        public string ModifiedBy { get; set; }
     }
 }

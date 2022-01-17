@@ -21,8 +21,6 @@ namespace Data.Views
         public string Level { get; set; }
         public int FunctionalAreaId { get; set; }
         public string FunctionalArea { get; set; }
-        public Nullable<int> SourceId { get; set; }
-        public string Source { get; set; }
         public string SourceDate { get; set; }
         public Nullable<int> WorkElementTypeId { get; set; }
         public string WorkElementType { get; set; }
@@ -32,9 +30,7 @@ namespace Data.Views
         public string FormalTrainingGap { get; set; }
         public string CIN { get; set; }
         public string CourseName { get; set; }
-        public string CourseType { get; set; }
         public Nullable<int> TrainingTaskId { get; set; }
-        public string CurrentAssessmentApproach { get; set; }
         public string CurriculumControlAuthority { get; set; }
         public string LifeCycleControlDocument { get; set; }
         public string Notes { get; set; }
@@ -47,9 +43,23 @@ namespace Data.Views
         public Nullable<System.Guid> HasTrainingTask { get; set; }
         public string CTID { get; set; }
         public System.Guid RowId { get; set; }
-        public System.DateTime created { get; set; }
         public System.DateTime LastUpdated { get; set; }
         public string TrainingTask { get; set; }
         public string RatingTask { get; set; }
+        public string Ratings { get; set; }
+        public string BilletTitles { get; set; }
+        public Nullable<int> ReferenceResourceId { get; set; }
+        public string ReferenceResource { get; set; }
+        public Nullable<int> CourseId { get; set; }
+        public Nullable<System.Guid> CourseUID { get; set; }
+        public string CourseTypes { get; set; }
+        public string AssessmentMethodTypes { get; set; }
+        public System.DateTime Created { get; set; }
+        public Nullable<int> CreatedById { get; set; }
+        public string CreatedBy { get; set; }
+        public Nullable<System.Guid> CreatedByUID { get; set; }
+        public Nullable<int> LastUpdatedById { get; set; }
+        public string ModifiedBy { get; set; }
+        public Nullable<System.Guid> ModifiedByUID { get; set; }
     }
 }

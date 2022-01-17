@@ -18,15 +18,14 @@ namespace Data.Tables
         public Course()
         {
             this.Course_Task = new HashSet<Course_Task>();
+            this.Course_Concept = new HashSet<Course_Concept>();
         }
     
         public int Id { get; set; }
         public string CIN { get; set; }
         public string Name { get; set; }
         public string Description { get; set; }
-        public Nullable<int> CourseTypeId { get; set; }
         public Nullable<int> LifeCycleControlDocumentId { get; set; }
-        public Nullable<int> AssessmentApproachId { get; set; }
         public Nullable<int> CurriculumControlAuthorityId { get; set; }
         public string CTID { get; set; }
         public System.DateTime Created { get; set; }
@@ -41,5 +40,8 @@ namespace Data.Tables
     
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<Course_Task> Course_Task { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<Course_Concept> Course_Concept { get; set; }
+        public virtual Organization Organization { get; set; }
     }
 }

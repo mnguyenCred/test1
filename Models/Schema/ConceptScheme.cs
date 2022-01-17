@@ -26,6 +26,7 @@ namespace Models.Schema
 
 	public class Concept : BaseObject
 	{
+		public int ConceptSchemeId { get; set; }
 		/// <summary>
 		/// Preferred Label for this Concept<br />
 		/// AKA skos:prefLabel

@@ -31,5 +31,8 @@ namespace Data.Views
         public virtual DbSet<ConceptSchemeSummary> ConceptSchemeSummary { get; set; }
         public virtual DbSet<RmtlSummary> RmtlSummary { get; set; }
         public virtual DbSet<RatingTaskSummary> RatingTaskSummary { get; set; }
+        public virtual DbSet<CourseSummary> CourseSummary { get; set; }
+        public virtual DbSet<TrainingTaskSummary> TrainingTaskSummary { get; set; }
+        public virtual DbSet<ReferenceResourceSummary> ReferenceResourceSummary { get; set; }
     }
 }

@@ -7,21 +7,21 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace Data.Views
+namespace Data.Tables
 {
     using System;
     using System.Collections.Generic;
     
-    public partial class ConceptSchemeSummary
+    public partial class Course_Concept
     {
-        public int ConceptSchemeId { get; set; }
-        public string Name { get; set; }
-        public int conceptid { get; set; }
-        public Nullable<int> ListId { get; set; }
-        public string Concept { get; set; }
-        public string CodedNotation { get; set; }
-        public string Description { get; set; }
-        public string AlternateLabel { get; set; }
-        public System.Guid ConceptUID { get; set; }
+        public int Id { get; set; }
+        public System.Guid RowId { get; set; }
+        public int CourseId { get; set; }
+        public int ConceptId { get; set; }
+        public System.DateTime Created { get; set; }
+        public Nullable<int> CreatedById { get; set; }
+    
+        public virtual ConceptScheme_Concept ConceptScheme_Concept { get; set; }
+        public virtual Course Course { get; set; }
     }
 }
