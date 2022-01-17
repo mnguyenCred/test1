@@ -109,6 +109,7 @@ warning 6002: The table/view 'NavyRRL.dbo.CourseSummary' does not have a primary
             <PropertyRef Name="RowId" />
             <PropertyRef Name="CIN" />
             <PropertyRef Name="Name" />
+            
             <PropertyRef Name="LifeCycleControlDocument" />
             <PropertyRef Name="LifeCycleControlDocumentUID" />
             <PropertyRef Name="Created" />
@@ -120,7 +121,7 @@ warning 6002: The table/view 'NavyRRL.dbo.CourseSummary' does not have a primary
           <Property Name="Name" Type="nvarchar" MaxLength="300" Nullable="false" />
           <Property Name="Description" Type="nvarchar(max)" />
           <Property Name="CurriculumControlAuthorityId" Type="int" />
-          <Property Name="CurriculumControlAuthority" Type="nvarchar" MaxLength="300" />
+          <Property Name="CurriculumControlAuthority" Type="nvarchar" MaxLength="300" Nullable="false" />
           <Property Name="LifeCycleControlDocumentId" Type="int" />
           <Property Name="LifeCycleControlDocument" Type="varchar" MaxLength="1000" Nullable="false" />
           <Property Name="LifeCycleControlDocumentUID" Type="uniqueidentifier" Nullable="false" />
@@ -167,6 +168,7 @@ warning 6002: The table/view 'NavyRRL.dbo.RatingTaskSummary' does not have a pri
           <Property Name="Level" Type="varchar" MaxLength="1000" Nullable="false" />
           <Property Name="FunctionalAreaId" Type="int" Nullable="false" />
           <Property Name="FunctionalArea" Type="nvarchar" MaxLength="300" Nullable="false" />
+          <Property Name="FunctionalAreaUID" Type="uniqueidentifier" />
           <Property Name="ReferenceResourceId" Type="int" />
           <Property Name="ReferenceResource" Type="nvarchar" MaxLength="300" Nullable="false" />
           <Property Name="SourceDate" Type="nvarchar" MaxLength="50" />
@@ -280,6 +282,7 @@ warning 6002: The table/view 'NavyRRL.dbo.TrainingTaskSummary' does not have a p
             <PropertyRef Name="TrainingTaskId" />
             <PropertyRef Name="TrainingTask" />
             <PropertyRef Name="TrainingTaskUID" />
+            
             <PropertyRef Name="LifeCycleControlDocument" />
             <PropertyRef Name="LifeCycleControlDocumentUID" />
             <PropertyRef Name="Created" />
@@ -293,7 +296,7 @@ warning 6002: The table/view 'NavyRRL.dbo.TrainingTaskSummary' does not have a p
           <Property Name="TrainingTask" Type="nvarchar(max)" Nullable="false" />
           <Property Name="TrainingTaskUID" Type="uniqueidentifier" Nullable="false" />
           <Property Name="CurriculumControlAuthorityId" Type="int" />
-          <Property Name="CurriculumControlAuthority" Type="nvarchar" MaxLength="300" />
+          <Property Name="CurriculumControlAuthority" Type="nvarchar" MaxLength="300" Nullable="false" />
           <Property Name="LifeCycleControlDocumentId" Type="int" />
           <Property Name="LifeCycleControlDocument" Type="varchar" MaxLength="1000" Nullable="false" />
           <Property Name="LifeCycleControlDocumentUID" Type="uniqueidentifier" Nullable="false" />
@@ -407,6 +410,7 @@ warning 6002: The table/view 'NavyRRL.dbo.TrainingTaskSummary' does not have a p
     [RatingTaskSummary].[Level] AS [Level], 
     [RatingTaskSummary].[FunctionalAreaId] AS [FunctionalAreaId], 
     [RatingTaskSummary].[FunctionalArea] AS [FunctionalArea], 
+    [RatingTaskSummary].[FunctionalAreaUID] AS [FunctionalAreaUID], 
     [RatingTaskSummary].[ReferenceResourceId] AS [ReferenceResourceId], 
     [RatingTaskSummary].[ReferenceResource] AS [ReferenceResource], 
     [RatingTaskSummary].[SourceDate] AS [SourceDate], 
@@ -716,6 +720,7 @@ warning 6002: The table/view 'NavyRRL.dbo.TrainingTaskSummary' does not have a p
           <Property Name="LastUpdatedById" Type="Int32" />
           <Property Name="ModifiedBy" Type="String" MaxLength="101" FixedLength="false" Unicode="false" />
           <Property Name="ModifiedByUID" Type="Guid" />
+          <Property Name="FunctionalAreaUID" Type="Guid" />
         </EntityType>
         <EntityType Name="CourseSummary">
           <Key>
@@ -734,7 +739,7 @@ warning 6002: The table/view 'NavyRRL.dbo.TrainingTaskSummary' does not have a p
           <Property Name="Name" Type="String" Nullable="false" MaxLength="300" FixedLength="false" Unicode="true" />
           <Property Name="Description" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
           <Property Name="CurriculumControlAuthorityId" Type="Int32" />
-          <Property Name="CurriculumControlAuthority" Type="String" MaxLength="300" FixedLength="false" Unicode="true" />
+          <Property Name="CurriculumControlAuthority" Type="String" MaxLength="300" FixedLength="false" Unicode="true" Nullable="false" />
           <Property Name="LifeCycleControlDocumentId" Type="Int32" />
           <Property Name="LifeCycleControlDocument" Type="String" Nullable="false" MaxLength="1000" FixedLength="false" Unicode="false" />
           <Property Name="LifeCycleControlDocumentUID" Type="Guid" Nullable="false" />
@@ -768,7 +773,7 @@ warning 6002: The table/view 'NavyRRL.dbo.TrainingTaskSummary' does not have a p
           <Property Name="TrainingTask" Type="String" Nullable="false" MaxLength="Max" FixedLength="false" Unicode="true" />
           <Property Name="TrainingTaskUID" Type="Guid" Nullable="false" />
           <Property Name="CurriculumControlAuthorityId" Type="Int32" />
-          <Property Name="CurriculumControlAuthority" Type="String" MaxLength="300" FixedLength="false" Unicode="true" />
+          <Property Name="CurriculumControlAuthority" Type="String" MaxLength="300" FixedLength="false" Unicode="true" Nullable="false" />
           <Property Name="LifeCycleControlDocumentId" Type="Int32" />
           <Property Name="LifeCycleControlDocument" Type="String" Nullable="false" MaxLength="1000" FixedLength="false" Unicode="false" />
           <Property Name="LifeCycleControlDocumentUID" Type="Guid" Nullable="false" />
@@ -915,6 +920,7 @@ warning 6002: The table/view 'NavyRRL.dbo.TrainingTaskSummary' does not have a p
           <EntitySetMapping Name="RatingTaskSummary">
             <EntityTypeMapping TypeName="ceNavyViewModel.RatingTaskSummary">
               <MappingFragment StoreEntitySet="RatingTaskSummary">
+                <ScalarProperty Name="FunctionalAreaUID" ColumnName="FunctionalAreaUID" />
                 <ScalarProperty Name="ModifiedByUID" ColumnName="ModifiedByUID" />
                 <ScalarProperty Name="ModifiedBy" ColumnName="ModifiedBy" />
                 <ScalarProperty Name="LastUpdatedById" ColumnName="LastUpdatedById" />

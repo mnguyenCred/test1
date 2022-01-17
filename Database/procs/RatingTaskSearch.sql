@@ -179,7 +179,7 @@ SELECT
       ,b.[PayGradeType]
       ,b.[LevelId]
       ,b.[Level]
-      ,b.[FunctionalAreaId]
+      ,b.[FunctionalAreaId], FunctionalAreaUID
       ,b.[FunctionalArea]
       ,b.ReferenceResourceId
       ,b.ReferenceResource

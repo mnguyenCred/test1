@@ -43,7 +43,6 @@ namespace Data.Tables
         public virtual DbSet<AspNetRoles> AspNetRoles { get; set; }
         public virtual DbSet<System_ProxyCodes> System_ProxyCodes { get; set; }
         public virtual DbSet<Comment> Comment { get; set; }
-        public virtual DbSet<Job_HasRating> Job_HasRating { get; set; }
         public virtual DbSet<RatingTask> RatingTask { get; set; }
         public virtual DbSet<RatingTask_HasRating> RatingTask_HasRating { get; set; }
         public virtual DbSet<ImportRMTL> ImportRMTL { get; set; }

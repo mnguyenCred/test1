@@ -61,5 +61,6 @@ namespace Data.Views
         public Nullable<int> LastUpdatedById { get; set; }
         public string ModifiedBy { get; set; }
         public Nullable<System.Guid> ModifiedByUID { get; set; }
+        public Nullable<System.Guid> FunctionalAreaUID { get; set; }
     }
 }

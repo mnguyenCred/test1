@@ -1298,7 +1298,6 @@
           <Property Name="LastUpdated" Type="DateTime" Precision="3" Nullable="false" />
           <Property Name="RowId" Type="Guid" Nullable="false" />
           <Property Name="MainEntityOfPage" Type="String" MaxLength="600" FixedLength="false" Unicode="false" />
-          <NavigationProperty Name="Job_HasRating" Relationship="NavyRRLModel.FK_Job_HasRating_Rating" FromRole="Rating" ToRole="Job_HasRating" />
           <NavigationProperty Name="RatingTask_HasRating" Relationship="NavyRRLModel.FK_RatingTask_HasRating_Rating" FromRole="Rating" ToRole="RatingTask_HasRating" />
           <Property Name="CreatedById" Type="Int32" />
           <Property Name="LastUpdatedById" Type="Int32" />
@@ -1559,7 +1558,6 @@
             <End Role="RmtlProjectBilletTask" EntitySet="RmtlProjectBilletTask" />
           </AssociationSet>
           <EntitySet Name="Comment" EntityType="NavyRRLModel.Comment" />
-          <EntitySet Name="Job_HasRating" EntityType="NavyRRLModel.Job_HasRating" />
           <EntitySet Name="RatingTask" EntityType="NavyRRLModel.RatingTask" />
           <EntitySet Name="RatingTask_HasRating" EntityType="NavyRRLModel.RatingTask_HasRating" />
           <AssociationSet Name="FK_Comment_RMTLProject" Association="NavyRRLModel.FK_Comment_RMTLProject">
@@ -1585,14 +1583,6 @@
           <AssociationSet Name="FK_RatingLevelTask_Course_Task1" Association="NavyRRLModel.FK_RatingLevelTask_Course_Task1">
             <End Role="Course_Task" EntitySet="Course_Task" />
             <End Role="RatingTask" EntitySet="RatingTask" />
-          </AssociationSet>
-          <AssociationSet Name="FK_Job_HasRating_Job" Association="NavyRRLModel.FK_Job_HasRating_Job">
-            <End Role="Job" EntitySet="Job" />
-            <End Role="Job_HasRating" EntitySet="Job_HasRating" />
-          </AssociationSet>
-          <AssociationSet Name="FK_Job_HasRating_Rating" Association="NavyRRLModel.FK_Job_HasRating_Rating">
-            <End Role="Rating" EntitySet="Rating" />
-            <End Role="Job_HasRating" EntitySet="Job_HasRating" />
           </AssociationSet>
           <AssociationSet Name="FK_RatingTask_HasRating_Rating" Association="NavyRRLModel.FK_RatingTask_HasRating_Rating">
             <End Role="Rating" EntitySet="Rating" />
@@ -1739,19 +1729,6 @@
           <Property Name="Description" Type="String" Nullable="false" MaxLength="Max" FixedLength="false" Unicode="false" />
           <Property Name="StatusTypeId" Type="Int32" />
         </EntityType>
-        <EntityType Name="Job_HasRating">
-          <Key>
-            <PropertyRef Name="Id" />
-          </Key>
-          <Property Name="Id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
-          <Property Name="JobId" Type="Int32" Nullable="false" />
-          <Property Name="HasRatingId" Type="Int32" Nullable="false" />
-          <Property Name="Created" Type="DateTime" Nullable="false" Precision="3" />
-          <Property Name="CreatedById" Type="Int32" />
-          <NavigationProperty Name="Job" Relationship="NavyRRLModel.FK_Job_HasRating_Job" FromRole="Job_HasRating" ToRole="Job" />
-          <NavigationProperty Name="Rating" Relationship="NavyRRLModel.FK_Job_HasRating_Rating" FromRole="Job_HasRating" ToRole="Rating" />
-          <Property Name="RowId" Type="Guid" Nullable="false" />
-        </EntityType>
         <EntityType Name="RatingTask">
           <Key>
             <PropertyRef Name="Id" />
@@ -1869,34 +1846,6 @@
             </Principal>
             <Dependent Role="RatingTask">
               <PropertyRef Name="TrainingTaskId" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
-        <Association Name="FK_Job_HasRating_Job">
-          <End Type="NavyRRLModel.Job" Role="Job" Multiplicity="1">
-            <OnDelete Action="Cascade" />
-          </End>
-          <End Type="NavyRRLModel.Job_HasRating" Role="Job_HasRating" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="Job">
-              <PropertyRef Name="Id" />
-            </Principal>
-            <Dependent Role="Job_HasRating">
-              <PropertyRef Name="JobId" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
-        <Association Name="FK_Job_HasRating_Rating">
-          <End Type="NavyRRLModel.Rating" Role="Rating" Multiplicity="1">
-            <OnDelete Action="Cascade" />
-          </End>
-          <End Type="NavyRRLModel.Job_HasRating" Role="Job_HasRating" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="Rating">
-              <PropertyRef Name="Id" />
-            </Principal>
-            <Dependent Role="Job_HasRating">
-              <PropertyRef Name="HasRatingId" />
             </Dependent>
           </ReferentialConstraint>
         </Association>

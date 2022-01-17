@@ -119,9 +119,6 @@
     <Compile Include="Tables\Job.cs">
       <DependentUpon>NavyRRLTables.tt</DependentUpon>
     </Compile>
-    <Compile Include="Tables\Job_HasRating.cs">
-      <DependentUpon>NavyRRLTables.tt</DependentUpon>
-    </Compile>
     <Compile Include="Tables\NavyRRLTables.Context.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>

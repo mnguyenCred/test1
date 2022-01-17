@@ -92,6 +92,7 @@ SELECT
 
 	,a.[FunctionalAreaId]
 	, isnull(b.name,'missing') As FunctionalArea
+	,b.RowId as FunctionalAreaUID
 	--		
 	--,a.[SourceId]
 	,a.ReferenceResourceId

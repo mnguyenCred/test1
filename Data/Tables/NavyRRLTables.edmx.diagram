@@ -36,7 +36,6 @@
         <EntityTypeShape EntityType="NavyRRLModel.System_ProxyCodes" Width="1.5" PointX="23.5" PointY="0.875" />
         <AssociationConnector Association="NavyRRLModel.FK_RmtlProjectBilletTask_RmtlProject_Billet" />
         <EntityTypeShape EntityType="NavyRRLModel.Comment" Width="1.5" PointX="9" PointY="4.625" />
-        <EntityTypeShape EntityType="NavyRRLModel.Job_HasRating" Width="1.5" PointX="15.75" PointY="0.5" />
         <EntityTypeShape EntityType="NavyRRLModel.RatingTask" Width="3" PointX="12" PointY="10.875" FillColor="Purple" />
         <EntityTypeShape EntityType="NavyRRLModel.RatingTask_HasRating" Width="1.5" PointX="20.625" PointY="9.25" />
         <AssociationConnector Association="NavyRRLModel.FK_Comment_RMTLProject" />
@@ -45,8 +44,6 @@
         <AssociationConnector Association="NavyRRLModel.FK_RatingLevelTask_ConceptScheme_Concept21" />
         <AssociationConnector Association="NavyRRLModel.FK_RatingLevelTask_ConceptScheme_Concept31" />
         <AssociationConnector Association="NavyRRLModel.FK_RatingLevelTask_Course_Task1" />
-        <AssociationConnector Association="NavyRRLModel.FK_Job_HasRating_Job" />
-        <AssociationConnector Association="NavyRRLModel.FK_Job_HasRating_Rating" />
         <AssociationConnector Association="NavyRRLModel.FK_RatingTask_HasRating_Rating" />
         <AssociationConnector Association="NavyRRLModel.FK_RatingTask_HasRatingTask_Task" />
         <AssociationConnector Association="NavyRRLModel.FK_RmtlProjectBilletTask_RatingTask" />
