@@ -82,7 +82,7 @@ DECLARE
       ,@debugLevel      int
       ,@SQL             varchar(5000)
 	   ,@HasSitePrivileges bit
-      ,@OrderBy         varchar(100)
+      ,@OrderBy         varchar(500)
 
 -- =================================
 

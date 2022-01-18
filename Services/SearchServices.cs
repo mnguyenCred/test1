@@ -143,7 +143,7 @@ namespace Services
 						{ "FormalTrainingGap", item.FormalTrainingGap },
 						//{ "CanEditRecord", item.CanEditRecord },
 						{ "CodedNotation", item.CodedNotation },
-						{ "CIN", item.CIN },
+						{ "CIN", item.CIN }, //same as CodedNotation, so will remove
 						{ "CourseName", item.CourseName },
 						{ "TrainingTask", item.TrainingTask },
 						{ "CurrentAssessmentApproach", item.CurrentAssessmentApproach },

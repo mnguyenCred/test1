@@ -31,7 +31,97 @@ namespace Services
 
             //only target records with ?????
             where = "";
+            string AND = "";
+            if ( where.Length > 0 )
+                AND = " AND ";
 
+            if (data != null)
+            {
+                if (data.Filters?.Count > 0)
+                {
+                    foreach (var item in data.Filters)
+                    {
+                        if (item.Name == "navy:CourseType" && item.ItemIds?.Count > 0 )
+                        {
+                            var template = "( base.CourseId in ( select a.id from Course a Inner join [dbo].[Course.Concept] c on a.Id = c.CourseId and c.ConceptId in ({0})) ) ";
+                            var itemList = "";
+                            var comma = "";
+                            foreach (var t in item.ItemIds)
+                            {
+                                itemList += comma + t.ToString();
+                                comma = ",";
+                            }
+                            where += AND + String.Format( template, itemList );
+                            AND = " AND ";
+                        } else if ( item.Name == "navy:Paygrade" )
+                        {
+                            var template = "( base.RankId in ( {0} ) ) ";
+                            var itemList = "";
+                            var comma = "";
+                            foreach ( var t in item.ItemIds )
+                            {
+                                itemList += comma + t.ToString();
+                                comma = ",";
+                            }
+                            where += AND + String.Format( template, itemList );
+                            AND = " AND ";
+                        }
+                        else if ( item.Name == "navy:TrainingGap" )
+                        {
+                            var template = " ( base.FormalTrainingGapId in ( {0} ) ) ";
+                            var itemList = "";
+                            var comma = "";
+                            foreach ( var t in item.ItemIds )
+                            {
+                                itemList += comma + t.ToString();
+                                comma = ",";
+                            }
+                            where += AND + String.Format( template, itemList );
+                            AND = " AND ";
+                        }
+                        else if ( item.Name == "navy:CurrentAssessmentApproach" )
+                        {
+                            //NOTE this seems like it could be combined with courseType (and LCCD)
+                            var template = "( base.CourseId in ( select a.id from Course a Inner join [dbo].[Course.Concept] c on a.Id = c.CourseId and c.ConceptId in ({0})) ) ";
+                            var itemList = "";
+                            var comma = "";
+                            foreach ( var t in item.ItemIds )
+                            {
+                                itemList += comma + t.ToString();
+                                comma = ",";
+                            }
+                            where += AND + String.Format( template, itemList );
+                            AND = " AND ";
+                        }
+                        else if ( item.Name == "navy:TaskApplicability" )
+                        {
+                            var template = " ( base.TaskApplicabilityId in ( {0} ) ) ";
+                            var itemList = "";
+                            var comma = "";
+                            foreach ( var t in item.ItemIds )
+                            {
+                                itemList += comma + t.ToString();
+                                comma = ",";
+                            }
+                            where += AND + String.Format( template, itemList );
+                            AND = " AND ";
+                        }
+                        else if ( item.Name == "navy:ReferenceResource" )
+                        {
+                            var template = " ( base.ReferenceResourceId in ( {0} ) ) ";
+                            var itemList = "";
+                            var comma = "";
+                            foreach ( var t in item.ItemIds )
+                            {
+                                itemList += comma + t.ToString();
+                                comma = ",";
+                            }
+                            where += AND + String.Format( template, itemList );
+                            AND = " AND ";
+                        }
+                    }
+                }
+            }
             /*
             SetKeywordFilter( data.Keywords, false, ref where );
             where = where.Replace( "[USERID]", user.Id.ToString() );
