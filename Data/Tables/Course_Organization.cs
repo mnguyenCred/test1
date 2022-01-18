@@ -12,24 +12,16 @@ namespace Data.Tables
     using System;
     using System.Collections.Generic;
     
-    public partial class Course_Concept
+    public partial class Course_Organization
     {
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2214:DoNotCallOverridableMethodsInConstructors")]
-        public Course_Concept()
-        {
-            this.Course_Organization = new HashSet<Course_Organization>();
-        }
-    
         public int Id { get; set; }
         public System.Guid RowId { get; set; }
         public int CourseId { get; set; }
-        public int ConceptId { get; set; }
+        public int OrganizationId { get; set; }
         public System.DateTime Created { get; set; }
         public Nullable<int> CreatedById { get; set; }
     
-        public virtual ConceptScheme_Concept ConceptScheme_Concept { get; set; }
-        public virtual Course Course { get; set; }
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<Course_Organization> Course_Organization { get; set; }
+        public virtual Course_Concept Course_Concept { get; set; }
+        public virtual Organization Organization { get; set; }
     }
 }

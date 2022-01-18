@@ -53,5 +53,7 @@ namespace Data.Tables
         public virtual DbSet<FunctionalArea> FunctionalArea { get; set; }
         public virtual DbSet<ImportHistory> ImportHistory { get; set; }
         public virtual DbSet<RatingTask_HasJob> RatingTask_HasJob { get; set; }
+        public virtual DbSet<WorkRole> WorkRole { get; set; }
+        public virtual DbSet<Course_Organization> Course_Organization { get; set; }
     }
 }

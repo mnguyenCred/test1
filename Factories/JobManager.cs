@@ -6,36 +6,35 @@ using Models.Application;
 
 using Navy.Utilities;
 
-using AppEntity = Models.Schema.Organization;
+using AppEntity = Models.Schema.BilletTitle;
 using DataEntities = Data.Tables.NavyRRLEntities;
-using DBEntity = Data.Tables.Organization;
+using DBEntity = Data.Tables.Job;
 namespace Factories
 {
-    public class OrganizationManager : BaseFactory
+    public class JobManager : BaseFactory
     {
-        public static string thisClassName = "OrganizationManager";
+        public static string thisClassName = "JobManager";
 
-        #region Organization - persistance ==================
+        #region === persistance ==================
         /// <summary>
-        /// Update a Organization
+        /// Update a Job
         /// </summary>
         /// <param name="entity"></param>
         /// <param name="status"></param>
         /// <returns></returns>
-        public bool Save( AppEntity entity, int userId, ref SaveStatus status )
+        public bool Save( AppEntity entity, ref SaveStatus status )
         {
             bool isValid = true;
             int count = 0;
+
             try
             {
                 using ( var context = new DataEntities() )
                 {
-                    //if ( ValidateProfile( entity, ref status ) == false )
-                    //    return false;
                     //look up if no id
                     if ( entity.Id == 0 )
                     {
-                        var record = Get( entity.Name, true );
+                        var record = Get( entity.Name );
                         if ( record?.Id > 0 )
                         {
                             //currently no description, so can just return
@@ -54,7 +53,7 @@ namespace Factories
                     {
                         //TODO - consider if necessary, or interferes with anything
                         context.Configuration.LazyLoadingEnabled = false;
-                        DBEntity efEntity = context.Organization
+                        DBEntity efEntity = context.Job
                                 .SingleOrDefault( s => s.Id == entity.Id );
 
                         if ( efEntity != null && efEntity.Id > 0 )
@@ -82,7 +81,7 @@ namespace Factories
                                     //?no info on error
 
                                     isValid = false;
-                                    string message = string.Format( thisClassName + ".Save Failed", "Attempted to update a Organization. The process appeared to not work, but was not an exception, so we have no message, or no clue. Organization: {0}, Id: {1}", entity.Name, entity.Id );
+                                    string message = string.Format( thisClassName + ".Save Failed", "Attempted to update a Job. The process appeared to not work, but was not an exception, so we have no message, or no clue. Job: {0}, Id: {1}", entity.Name, entity.Id );
                                     status.AddError( "Error - the update was not successful. " + message );
                                     EmailManager.NotifyAdmin( thisClassName + ".Save Failed Failed", message );
                                 }
@@ -93,10 +92,10 @@ namespace Factories
                             {
                                 SiteActivity sa = new SiteActivity()
                                 {
-                                    ActivityType = "Organization",
+                                    ActivityType = "Job",
                                     Activity = "Import",
                                     Event = "Update",
-                                    Comment = string.Format( "Organization was updated by the import. Name: {0}", entity.Name ),
+                                    Comment = string.Format( "Job was updated by the import. Name: {0}", entity.Name ),
                                     ActivityObjectId = entity.Id
                                 };
                                 new ActivityManager().SiteActivityAdd( sa );
@@ -112,7 +111,7 @@ namespace Factories
             }
             catch ( System.Data.Entity.Validation.DbEntityValidationException dbex )
             {
-                string message = HandleDBValidationError( dbex, thisClassName + string.Format( ".Save. id: {0}, Name: {1}", entity.Id, entity.Name ), "Organization" );
+                string message = HandleDBValidationError( dbex, thisClassName + string.Format( ".Save. id: {0}, Name: {1}", entity.Id, entity.Name ), "Job" );
                 status.AddError( thisClassName + ".Save(). Error - the save was not successful. " + message );
             }
             catch ( Exception ex )
@@ -128,7 +127,7 @@ namespace Factories
         }
 
         /// <summary>
-        /// add a Organization
+        /// add a Job
         /// </summary>
         /// <param name="entity"></param>
         /// <param name="status"></param>
@@ -140,6 +139,7 @@ namespace Factories
             {
                 try
                 {
+                    entity.CreatedById = entity.LastUpdatedById;
                     MapToDB( entity, efEntity );
 
                     if ( IsValidGuid( entity.RowId ) )
@@ -153,7 +153,7 @@ namespace Factories
                     entity.Created = efEntity.Created = DateTime.Now;
                     entity.LastUpdated = efEntity.LastUpdated = DateTime.Now;
 
-                    context.Organization.Add( efEntity );
+                    context.Job.Add( efEntity );
 
                     // submit the change to database
                     int count = context.SaveChanges();
@@ -165,37 +165,28 @@ namespace Factories
                         //add log entry
                         SiteActivity sa = new SiteActivity()
                         {
-                            ActivityType = "Organization",
+                            ActivityType = "Job",
                             Activity = "Import",
                             Event = "Add",
-                            Comment = string.Format( "Full Organization was added by the import. Name: {0}", entity.Name ),
+                            Comment = string.Format( "Job was added by the import. Name: {0}", entity.Name ),
                             ActivityObjectId = entity.Id
                         };
                         new ActivityManager().SiteActivityAdd( sa );
-
-
                         return efEntity.Id;
                     }
                     else
                     {
                         //?no info on error
 
-                        string message = thisClassName + string.Format( ". Add Failed", "Attempted to add a Organization. The process appeared to not work, but was not an exception, so we have no message, or no clue. Organization: {0}, ctid: {1}", entity.Name, entity.CTID );
+                        string message = thisClassName + string.Format( ". Add Failed", "Attempted to add a Job. The process appeared to not work, but was not an exception, so we have no message, or no clue. Job: {0}, ctid: {1}", entity.Name, entity.CTID );
                         status.AddError( thisClassName + ". Error - the add was not successful. " + message );
-                        EmailManager.NotifyAdmin( "OrganizationManager. Add Failed", message );
+                        EmailManager.NotifyAdmin( "JobManager. Add Failed", message );
                     }
-                }
-                catch ( System.Data.Entity.Validation.DbEntityValidationException dbex )
-                {
-                    string message = HandleDBValidationError( dbex, thisClassName + ".Add() ", "Organization" );
-                    status.AddError( thisClassName + ".Add(). Error - the save was not successful. " + message );
-
-                    LoggingHelper.LogError( message, true );
                 }
                 catch ( Exception ex )
                 {
                     string message = FormatExceptions( ex );
-                    LoggingHelper.LogError( ex, thisClassName + string.Format( ".Add(), Name: {0}, CTID: {1}", efEntity.Name, efEntity.CTID ) );
+                    LoggingHelper.LogError( ex, thisClassName + string.Format( ".Add(), Name: {0}", efEntity.Name ) );
                     status.AddError( thisClassName + ".Add(). Error - the save was not successful. \r\n" + message );
                 }
             }
@@ -212,13 +203,8 @@ namespace Factories
         #endregion
 
         #region Retrieval
-        /// <summary>
-        /// Get by name
-        /// TBD - should we always check altername name
-        /// </summary>
-        /// <param name="name"></param>
-        /// <returns></returns>
-        public static AppEntity Get( string name, bool checkingAlternateName )
+        //unlikely?
+        public static AppEntity Get( string name )
         {
             var entity = new AppEntity();
             if ( string.IsNullOrWhiteSpace( name ) )
@@ -226,9 +212,8 @@ namespace Factories
 
             using ( var context = new DataEntities() )
             {
-                var item = context.Organization
-                            .FirstOrDefault( s => s.Name.ToLower() == name.ToLower() 
-                            || ( checkingAlternateName && s.AlternateName.ToLower() == name.ToLower()) );
+                var item = context.Job
+                            .FirstOrDefault( s => s.Name.ToLower() == name.ToLower() );
 
                 if ( item != null && item.Id > 0 )
                 {
@@ -237,31 +222,14 @@ namespace Factories
             }
             return entity;
         }
-        public static AppEntity GetByAlternateName( string alternameName )
-        {
-            var entity = new AppEntity();
-            if ( string.IsNullOrWhiteSpace( alternameName ) )
-                return null;
 
-            using ( var context = new DataEntities() )
-            {
-                var item = context.Organization
-                            .FirstOrDefault( s => s.AlternateName.ToLower() == alternameName.ToLower() );
-
-                if ( item != null && item.Id > 0 )
-                {
-                    MapFromDB( item, entity );
-                }
-            }
-            return entity;
-        }
         public static AppEntity Get( Guid rowId )
         {
             var entity = new AppEntity();
 
             using ( var context = new DataEntities() )
             {
-                var item = context.Organization
+                var item = context.Job
                             .FirstOrDefault( s => s.RowId == rowId );
 
                 if ( item != null && item.Id > 0 )
@@ -279,7 +247,7 @@ namespace Factories
 
             using ( var context = new DataEntities() )
             {
-                var item = context.Organization
+                var item = context.Job
                             .SingleOrDefault( s => s.Id == id );
 
                 if ( item != null && item.Id > 0 )
@@ -302,7 +270,7 @@ namespace Factories
 
             using ( var context = new DataEntities() )
             {
-                var results = context.Organization
+                var results = context.Job
                         .OrderBy( s => s.Name )
                         .ToList();
                 if ( results?.Count > 0 )

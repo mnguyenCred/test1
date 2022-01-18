@@ -8,6 +8,7 @@ using Newtonsoft.Json.Linq;
 
 using SM = Models.Schema;
 using CM = Models.Curation;
+using Models.Application;
 
 namespace NavyRRL.Controllers
 {
@@ -49,8 +50,9 @@ namespace NavyRRL.Controllers
 			{
 				//Update the database
 				var debug = new JObject();
-
-
+				SaveStatus status = new SaveStatus();
+				Services.BulkUploadServices.ApplyChangeSummary( summary, ref status );
+				//check for messages
 
 
 				//For now, return the summary object (for testing purposes)

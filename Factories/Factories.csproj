@@ -63,6 +63,8 @@
     <Compile Include="ConceptSchemeManager.cs" />
     <Compile Include="CourseManager.cs" />
     <Compile Include="CurriculumControlAuthorityManager.cs" />
+    <Compile Include="JobManager.cs" />
+    <Compile Include="WorkRoleManager.cs" />
     <Compile Include="ImportManager.cs" />
     <Compile Include="OrganizationManager.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

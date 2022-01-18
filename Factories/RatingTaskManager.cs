@@ -327,6 +327,9 @@ namespace Factories
                         {
                             //
                             input.Id = record.Id;
+                            //could be course updates etc. 
+                            UpdateParts( input, status );
+
                             return true;
                         }
                         else
@@ -374,6 +377,8 @@ namespace Factories
 
                             if ( isValid )
                             {
+                                UpdateParts( input, status );
+
                                 SiteActivity sa = new SiteActivity()
                                 {
                                     ActivityType = "RatingTask",
@@ -435,6 +440,8 @@ namespace Factories
                         {
                             //
                             input.Id = record.Id;
+                            UpdateParts( input, status );
+                            //??
                             return true;
                         }
                         else
@@ -486,6 +493,7 @@ namespace Factories
 
                             if ( isValid )
                             {
+                                UpdateParts( input, status );
                                 SiteActivity sa = new SiteActivity()
                                 {
                                     ActivityType = "RatingTask",
@@ -679,7 +687,9 @@ namespace Factories
         {
             try
             {
-                
+                //RatingTask.HasRating
+
+                //RatingTask.HasJob
 
             }
             catch ( Exception ex )

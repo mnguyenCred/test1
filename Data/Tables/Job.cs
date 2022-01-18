@@ -29,10 +29,8 @@ namespace Data.Tables
         public string Description { get; set; }
         public string ShortName30 { get; set; }
         public string ShortName14 { get; set; }
-        public string CredentialRegistryId { get; set; }
-        public Nullable<System.DateTime> Created { get; set; }
-        public Nullable<System.DateTime> LastUpdated { get; set; }
-        public Nullable<System.DateTime> LastPublished { get; set; }
+        public System.DateTime Created { get; set; }
+        public System.DateTime LastUpdated { get; set; }
         public System.Guid RowId { get; set; }
         public Nullable<int> CreatedById { get; set; }
         public Nullable<int> LastUpdatedById { get; set; }

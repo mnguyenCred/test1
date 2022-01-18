@@ -164,7 +164,8 @@ SELECT
   left Join RatingTaskBillets rtb on a.Id = rtb.RatingTaskId
 left join [ConceptScheme.Concept]	c1 on a.[RankId] = c1.Id
 left join [ConceptScheme.Concept]	c2 on a.[LevelId] = c2.Id
-left join FunctionalArea			b on a.FunctionalAreaId = b.Id
+left join WorkRole					b on a.FunctionalAreaId = b.Id
+--left join FunctionalArea			b on a.FunctionalAreaId = b.Id
 left join ReferenceResource			c on a.ReferenceResourceId = c.Id
 --left join Source					c on a.SourceId = c.Id
 left join [ConceptScheme.Concept]	wet on a.WorkElementTypeId = wet.Id

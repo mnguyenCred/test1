@@ -29,11 +29,11 @@ namespace Factories
         /// <param name="entity"></param>
         /// <param name="status"></param>
         /// <returns></returns>
-        public bool Save( AppFullEntity entity, ref SaveStatus status )
+        public bool Save( AppEntity entity, ref SaveStatus status )
         {
             bool isValid = true;
             int count = 0;
-            
+            entity.LastUpdatedById = entity.CreatedById;
             try
             {
                 using ( var context = new DataEntities() )
@@ -149,7 +149,7 @@ namespace Factories
         /// <param name="entity"></param>
         /// <param name="status"></param>
         /// <returns></returns>
-        private int Add( AppFullEntity entity, ref SaveStatus status )
+        private int Add( AppEntity entity, ref SaveStatus status )
         {
             DBEntity efEntity = new DBEntity();
             using ( var context = new DataEntities() )
@@ -218,6 +218,51 @@ namespace Factories
 
             return efEntity.Id;
         }
+        public static void MapToDB( AppEntity input, DBEntity output )
+        {
+            //watch for missing properties like rowId
+            List<string> errors = new List<string>();
+            //this will include the extra props (like LifeCycleControlDocument, etc. for now)
+            BaseFactory.AutoMap( input, output, errors );
+            //
+            if ( input.HasReferenceResource != null ) 
+            {
+                //
+                output.LifeCycleControlDocumentId = ConceptSchemeManager.GetConcept( input.HasReferenceResource)?.Id;
+            }
+            //
+
+            if ( input.CurriculumControlAuthority?.Count > 0 ) 
+            {
+                foreach( var item in input.CurriculumControlAuthority )
+                {
+                    //all org adds will occur before here
+                    var org = OrganizationManager.Get( item );
+                    if ( org != null && org.Id > 0 )
+                    {
+                        //TODO - now using Course.Organization
+                        output.CurriculumControlAuthorityId = org.Id;
+                    }
+                    else
+                    {
+                        //should not have a new org here
+
+                        //SaveStatus status = new SaveStatus();
+                        //org = new MSc.Organization()
+                        //{
+                        //    Name = input.Curriculum_Control_Authority,
+                        //    AlternateName = input.Curriculum_Control_Authority
+                        //};
+                        //var isValid = new OrganizationManager().Save( org, ref status );
+                        //if ( isValid )
+                        //{
+                        //    output.CurriculumControlAuthorityId = org.Id;
+                        //}
+                    }
+                }
+
+            }
+        }
         public static void MapToDB( AppFullEntity input, DBEntity output )
         {
             //watch for missing properties like rowId
@@ -246,9 +291,9 @@ namespace Factories
                         Name = input.Curriculum_Control_Authority,
                         AlternateName = input.Curriculum_Control_Authority
                     };
-                    var isValid = new OrganizationManager().Save( org, ref status );
+                    var isValid = new OrganizationManager().Save( org, input.LastUpdatedById, ref status );
                     if ( isValid )
-                    {
+                    { 
                         output.CurriculumControlAuthorityId = org.Id;
                     }
                 }
@@ -388,21 +433,77 @@ namespace Factories
         /// </summary>
         /// <param name="input"></param>
         /// <param name="status"></param>
+        public void UpdateParts( AppEntity input, SaveStatus status )
+        {
+            try
+            {
+                if ( input.TrainingTasks != null)
+                {
+
+                }
+                //this needs to be multiple
+                if ( input.CourseType != null )
+                {
+                    //var parts = input.Course_Type.Split( '-' ).ToList();
+                    //if ( parts.Count > 0 )
+                    //{
+                    //    foreach(var item in parts )
+                    //    {
+                    //        var concept = ConceptSchemeManager.GetConcept( item, ConceptSchemeManager.ConceptScheme_CourseType );
+                    //        if( concept?.Id > 0)
+                    //        {
+                    //            if (AddCourseConcept( input, concept.Id, input.LastUpdatedById, ref status ))
+                    //            {
+                    //                //add log entry
+                    //                SiteActivity sa = new SiteActivity()
+                    //                {
+                    //                    ActivityType = "Course",
+                    //                    Activity = "Import",
+                    //                    Event = "Add Course_Concept",
+                    //                    Comment = string.Format( "CourseType of: '{0}' for conceptScheme: '{1}', was added for Course: '{2}' by the import.", item, ConceptSchemeManager.ConceptScheme_CourseType, input.Name ),
+                    //                };
+                    //                new ActivityManager().SiteActivityAdd( sa );
+                    //            }
+                    //        } else
+                    //        {
+                    //            //add new
+                    //        }
+                    //    }
+                    //}
+                    //
+                }
+
+                if ( input.AssessmentMethodType != null )
+                {
+                    //this needs to be multiple
+
+                }
+
+            } catch ( Exception ex )
+            {
+                LoggingHelper.LogError( ex, thisClassName + "UpdateParts" );
+            }
+        }
+
         public void UpdateParts( AppFullEntity input, SaveStatus status )
         {
             try
             {
+                if ( input.TrainingTasks != null )
+                {
+
+                }
                 if ( !string.IsNullOrWhiteSpace( input.Course_Type ) )
                 {
                     var parts = input.Course_Type.Split( '-' ).ToList();
                     if ( parts.Count > 0 )
                     {
-                        foreach(var item in parts )
+                        foreach ( var item in parts )
                         {
                             var concept = ConceptSchemeManager.GetConcept( item, ConceptSchemeManager.ConceptScheme_CourseType );
-                            if( concept?.Id > 0)
+                            if ( concept?.Id > 0 )
                             {
-                                if (AddCourseConcept( input, concept.Id, input.LastUpdatedById, ref status ))
+                                if ( AddCourseConcept( input, concept.Id, input.LastUpdatedById, ref status ) )
                                 {
                                     //add log entry
                                     SiteActivity sa = new SiteActivity()
@@ -414,7 +515,8 @@ namespace Factories
                                     };
                                     new ActivityManager().SiteActivityAdd( sa );
                                 }
-                            } else
+                            }
+                            else
                             {
                                 //add new
                             }
@@ -425,7 +527,7 @@ namespace Factories
 
                 if ( !string.IsNullOrWhiteSpace( input.CurrentAssessmentApproach ) )
                 {
-                   //output.AssessmentApproachId = ConceptSchemeManager.GetConcept( input.CurrentAssessmentApproach, ConceptSchemeManager.ConceptScheme_CurrentAssessmentApproach )?.Id;
+                    //output.AssessmentApproachId = ConceptSchemeManager.GetConcept( input.CurrentAssessmentApproach, ConceptSchemeManager.ConceptScheme_CurrentAssessmentApproach )?.Id;
                     var parts = input.CurrentAssessmentApproach.Split( '-' ).ToList();
                     if ( parts.Count > 0 )
                     {
@@ -456,19 +558,19 @@ namespace Factories
                     //
                 }
 
-            } catch ( Exception ex )
+            }
+            catch ( Exception ex )
             {
                 LoggingHelper.LogError( ex, thisClassName + "UpdateParts" );
             }
         }
-
 
         #region TrainingTask
 
         #endregion
 
 
-        #region Course-Concept
+        #region Course-Related
         public bool AddCourseConcept( AppFullEntity input, int conceptId, int userId, ref SaveStatus status )
         {
             ConceptSchemeManager csMgr = new ConceptSchemeManager();
@@ -584,6 +686,48 @@ namespace Factories
         //        }
         //    }
         //}
+        public bool AddCourseOrganization( AppEntity input, int orgId, int userId, ref SaveStatus status )
+        {
+            var efEntity = new Data.Tables.Course_Organization();
+
+            using ( var context = new DataEntities() )
+            {
+                try
+                {
+                    efEntity.CourseId = input.Id;
+                    efEntity.OrganizationId = orgId;
+                    efEntity.RowId = Guid.NewGuid();
+                    efEntity.CreatedById = userId;
+                    //efEntity.CTID = "ce-" + efEntity.RowId.ToString().ToLower();
+                    efEntity.Created = DateTime.Now;
+
+                    context.Course_Organization.Add( efEntity );
+
+                    // submit the change to database
+                    int count = context.SaveChanges();
+                    if ( count > 0 )
+                    {
+                        //
+                        return true;
+                    }
+                    else
+                    {
+                        //?no info on error
+
+                        string message = thisClassName + string.Format( ". Add Failed", "Attempted to add a Course_Concept. The process appeared to not work, but was not an exception, so we have no message, or no clue. CourseId of: '{0}' for orgId: {1}, was added for Course: '{2}' by the import.", input.Id, orgId, input.Name );
+                        status.AddError( thisClassName + ". Error - the add Course_Concept was not successful. " + message );
+                        EmailManager.NotifyAdmin( thisClassName + ". Add Failed", message );
+                    }
+                }
+                catch ( Exception ex )
+                {
+                    string message = FormatExceptions( ex );
+                    LoggingHelper.LogError( ex, thisClassName + string.Format( ".AddCourseConcept(), CourseId of: '{0}' for orgId: {1}, for Course: '{2}'.", input.Id, orgId, input.Name ) );
+                    status.AddError( thisClassName + ".Add(). Error - the save was not successful. \r\n" + message );
+                }
+            }
+            return false;
+        }
         #endregion
 
     }

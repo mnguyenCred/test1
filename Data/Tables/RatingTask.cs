@@ -42,6 +42,7 @@ namespace Data.Tables
         public System.Guid RowId { get; set; }
         public string Description { get; set; }
         public Nullable<int> ReferenceResourceId { get; set; }
+        public byte[] RowVersion { get; set; }
     
         public virtual ConceptScheme_Concept ConceptScheme_Rank { get; set; }
         public virtual ConceptScheme_Concept ConceptScheme_Level { get; set; }
@@ -55,5 +56,6 @@ namespace Data.Tables
         public virtual FunctionalArea FunctionalArea { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<RatingTask_HasJob> RatingTask_HasJob { get; set; }
+        public virtual WorkRole WorkRole { get; set; }
     }
 }

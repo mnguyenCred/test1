@@ -104,6 +104,9 @@
     <Compile Include="Tables\Course_Concept.cs">
       <DependentUpon>NavyRRLTables.tt</DependentUpon>
     </Compile>
+    <Compile Include="Tables\Course_Organization.cs">
+      <DependentUpon>NavyRRLTables.tt</DependentUpon>
+    </Compile>
     <Compile Include="Tables\Course_Task.cs">
       <DependentUpon>NavyRRLTables.tt</DependentUpon>
     </Compile>
@@ -165,6 +168,9 @@
       <DependentUpon>NavyRRLTables.tt</DependentUpon>
     </Compile>
     <Compile Include="Tables\System_ProxyCodes.cs">
+      <DependentUpon>NavyRRLTables.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Tables\WorkRole.cs">
       <DependentUpon>NavyRRLTables.tt</DependentUpon>
     </Compile>
     <Compile Include="Views\Account_Summary.cs">

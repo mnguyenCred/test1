@@ -37,6 +37,7 @@ namespace Data.Tables
         public string CurriculumControlAuthority { get; set; }
         public string CurrentAssessmentApproach { get; set; }
         public System.Guid RowId { get; set; }
+        public byte[] RowVersion { get; set; }
     
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<Course_Task> Course_Task { get; set; }

@@ -21,6 +21,7 @@ namespace Factories
         #region Rating - persistance - NOT Likely? ==================
         /// <summary>
         /// Update a Rating
+        /// At this time all we will have is the code
         /// </summary>
         /// <param name="entity"></param>
         /// <param name="status"></param>
@@ -33,11 +34,10 @@ namespace Factories
             {
                 using ( var context = new DataEntities() )
                 {
-                    //if ( ValidateProfile( entity, ref status ) == false )
-                    //    return false;
                     //look up if no id
                     if ( entity.Id == 0 )
                     {
+                        //this needs to check by name or codedNotation
                         var record = Get( entity.Name );
                         if ( record?.Id > 0 )
                         {
@@ -215,6 +215,24 @@ namespace Factories
         #endregion
 
         #region Retrieval
+        public static AppEntity GetByCode( string ratingCode )
+        {
+            var entity = new AppEntity();
+            if ( string.IsNullOrWhiteSpace( ratingCode ) )
+                return null;
+
+            using ( var context = new DataEntities() )
+            {
+                var item = context.Rating
+                            .FirstOrDefault( s => s.CodedNotation.ToLower() == ratingCode.ToLower() );
+
+                if ( item != null && item.Id > 0 )
+                {
+                    MapFromDB( item, entity );
+                }
+            }
+            return entity;
+        }
         //unlikely?
         public static AppEntity Get( string name )
         {

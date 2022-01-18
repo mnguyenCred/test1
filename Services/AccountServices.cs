@@ -587,7 +587,7 @@ namespace Services
 				eMessage = string.Format( email, user.FirstName, url );
 
 
-				////EmailServices.SendEmail( toEmail, fromEmail, subject, eMessage, "", bcc );
+				EmailServices.SendEmail( toEmail, fromEmail, subject, eMessage, "", bcc );
 			}
 			catch ( Exception ex )
 			{

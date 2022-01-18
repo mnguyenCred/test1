@@ -7,9 +7,10 @@ using System.Threading.Tasks;
 
 using System.Runtime.Caching;
 using Newtonsoft.Json.Linq;
-
+using Models.Application;
 using Models.Schema;
 using Models.Curation;
+using Factories;
 
 namespace Services
 {
@@ -725,6 +726,86 @@ namespace Services
 		public static ChangeSummary GetCachedChangeSummary( Guid rowID )
 		{
 			return ( ChangeSummary ) MemoryCache.Default.Get( rowID.ToString() );
+		}
+		//
+		public static void ApplyChangeSummary( ChangeSummary summary, ref SaveStatus status )
+		{
+			if ( summary == null )
+				return;
+
+			AppUser user = AccountServices.GetCurrentUser();
+			if (user?.Id == 0 )
+            {
+				status.AddError( "Error - a current user was not found. You must authenticated and authorized to use this function!" );
+				return;
+            }
+			//now what
+			//go thru all non-rating task
+			if (summary.ItemsToBeCreated != null)
+            {
+				if ( summary.ItemsToBeCreated.Organization?.Count > 0 )
+                {
+					var orgMgr = new OrganizationManager();
+					foreach (var item in summary.ItemsToBeCreated.Organization )
+                    {
+						orgMgr.Save( item, user.Id, ref status );
+                    }
+                }
+				if ( summary.ItemsToBeCreated.Course?.Count > 0 )
+				{
+					//is training task part of course, see there is a separate TrainingTask in UploadableData. the latter has no course Id/RowId to make an association?
+					var courseMgr = new CourseManager();
+					foreach ( var item in summary.ItemsToBeCreated.Course )
+					{
+						item.CreatedById = item.LastUpdatedById = user.Id;
+						courseMgr.Save( item,  ref status );
+					}
+				}
+				if ( summary.ItemsToBeCreated.ReferenceResource?.Count > 0 )
+				{
+					var mgr = new ReferenceResourceManager();
+					foreach ( var item in summary.ItemsToBeCreated.ReferenceResource )
+					{
+						item.CreatedById = item.LastUpdatedById = user.Id;
+						mgr.Save( item, ref status );
+					}
+				}
+
+				if ( summary.ItemsToBeCreated.WorkRole?.Count > 0 )
+				{
+					var mgr = new WorkRoleManager();
+					foreach ( var item in summary.ItemsToBeCreated.WorkRole )
+					{
+						item.CreatedById = item.LastUpdatedById = user.Id;
+						mgr.Save( item, ref status );
+					}
+				}
+
+				if ( summary.ItemsToBeCreated.BilletTitle?.Count > 0 )
+				{
+					var mgr = new JobManager();
+					foreach ( var item in summary.ItemsToBeCreated.BilletTitle )
+					{
+						item.CreatedById = item.LastUpdatedById = user.Id;
+						mgr.Save( item, ref status );
+					}
+				}
+
+				if ( summary.ItemsToBeCreated.TrainingTask?.Count > 0 )
+				{
+					//????
+				}
+
+				if ( summary.ItemsToBeCreated.RatingTask?.Count > 0 )
+				{
+					var mgr = new WorkRoleManager();
+					foreach ( var item in summary.ItemsToBeCreated.WorkRole )
+					{
+						item.CreatedById = item.LastUpdatedById = user.Id;
+						mgr.Save( item, ref status );
+					}
+				}
+			}
 		}
 		//
 	}

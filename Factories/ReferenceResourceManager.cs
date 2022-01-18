@@ -30,12 +30,12 @@ namespace Factories
         {
             bool isValid = true;
             int count = 0;
+            //if ( entity.LastUpdatedById == 0 )
+            //    entity.LastUpdatedById = userId;
             try
             {
                 using ( var context = new DataEntities() )
                 {
-                    //if ( ValidateProfile( entity, ref status ) == false )
-                    //    return false;
                     //look up if no id
                     if ( entity.Id == 0 )
                     {
@@ -43,9 +43,10 @@ namespace Factories
                         var record = Get( entity.Name );
                         if ( record?.Id > 0 )
                         {
-                            //currently no description, so can just return
+                            //currently no description, so can just return -what about an updated date
                             entity.Id = record.Id;
-                            return true;
+                            //fall for future use
+                            //return true;
                         }
                         else
                         {
@@ -53,65 +54,67 @@ namespace Factories
                             int newId = Add( entity, ref status );
                             if ( newId == 0 || status.HasErrors )
                                 isValid = false;
+
+                            return isValid;
+                        }
+                    }
+                    
+                    
+                    //TODO - consider if necessary, or interferes with anything
+                    context.Configuration.LazyLoadingEnabled = false;
+                    DBEntity efEntity = context.ReferenceResource
+                            .SingleOrDefault( s => s.Id == entity.Id );
+
+                    if ( efEntity != null && efEntity.Id > 0 )
+                    {
+                        //fill in fields that may not be in entity
+                        entity.RowId = efEntity.RowId;
+                        entity.Created = efEntity.Created;
+                        entity.CreatedById = ( efEntity.CreatedById ?? 0 );
+                        entity.Id = efEntity.Id;
+
+                        MapToDB( entity, efEntity );
+
+                        if ( HasStateChanged( context ) )
+                        {
+                            efEntity.LastUpdated = DateTime.Now;
+                            count = context.SaveChanges();
+                            //can be zero if no data changed
+                            if ( count >= 0 )
+                            {
+                                entity.LastUpdated = ( DateTime ) efEntity.LastUpdated;
+                                isValid = true;
+                            }
+                            else
+                            {
+                                //?no info on error
+
+                                isValid = false;
+                                string message = string.Format( thisClassName + ".Save Failed", "Attempted to update a ReferenceResource. The process appeared to not work, but was not an exception, so we have no message, or no clue. ReferenceResource: {0}, Id: {1}", entity.Name, entity.Id );
+                                status.AddError( "Error - the update was not successful. " + message );
+                                EmailManager.NotifyAdmin( thisClassName + ".Save Failed Failed", message );
+                            }
+
+                        }
+
+                        if ( isValid )
+                        {
+                            SiteActivity sa = new SiteActivity()
+                            {
+                                ActivityType = "ReferenceResource",
+                                Activity = "Import",
+                                Event = "Update",
+                                Comment = string.Format( "ReferenceResource was updated by the import. Name: {0}", entity.Name ),
+                                ActivityObjectId = entity.Id
+                            };
+                            new ActivityManager().SiteActivityAdd( sa );
                         }
                     }
                     else
                     {
-                        //TODO - consider if necessary, or interferes with anything
-                        context.Configuration.LazyLoadingEnabled = false;
-                        DBEntity efEntity = context.ReferenceResource
-                                .SingleOrDefault( s => s.Id == entity.Id );
-
-                        if ( efEntity != null && efEntity.Id > 0 )
-                        {
-                            //fill in fields that may not be in entity
-                            entity.RowId = efEntity.RowId;
-                            entity.Created = efEntity.Created;
-                            entity.CreatedById = ( efEntity.CreatedById ?? 0 );
-                            entity.Id = efEntity.Id;
-
-                            MapToDB( entity, efEntity );
-
-                            if ( HasStateChanged( context ) )
-                            {
-                                efEntity.LastUpdated = DateTime.Now;
-                                count = context.SaveChanges();
-                                //can be zero if no data changed
-                                if ( count >= 0 )
-                                {
-                                    entity.LastUpdated = ( DateTime ) efEntity.LastUpdated;
-                                    isValid = true;
-                                }
-                                else
-                                {
-                                    //?no info on error
-
-                                    isValid = false;
-                                    string message = string.Format( thisClassName + ".Save Failed", "Attempted to update a ReferenceResource. The process appeared to not work, but was not an exception, so we have no message, or no clue. ReferenceResource: {0}, Id: {1}", entity.Name, entity.Id );
-                                    status.AddError( "Error - the update was not successful. " + message );
-                                    EmailManager.NotifyAdmin( thisClassName + ".Save Failed Failed", message );
-                                }
-
-                            }
-
-                            if ( isValid )
-                            {
-                                SiteActivity sa = new SiteActivity()
-                                {
-                                    ActivityType = "ReferenceResource",
-                                    Activity = "Import",
-                                    Event = "Update",
-                                    Comment = string.Format( "ReferenceResource was updated by the import. Name: {0}", entity.Name ),
-                                    ActivityObjectId = entity.Id
-                                };
-                                new ActivityManager().SiteActivityAdd( sa );
-                            }
-                        }
-                        else
-                        {
-                            status.AddError( "Error - update failed, as record was not found." );
-                        }
+                        status.AddError( "Error - update failed, as record was not found." );
                     }
+                    
 
                 }
             }
@@ -145,6 +148,7 @@ namespace Factories
             {
                 try
                 {
+                    entity.CreatedById = entity.LastUpdatedById;
                     MapToDB( entity, efEntity );
 
                     if ( IsValidGuid( entity.RowId ) )
@@ -189,13 +193,6 @@ namespace Factories
                         status.AddError( thisClassName + ". Error - the add was not successful. " + message );
                         EmailManager.NotifyAdmin( "AssessmentManager. Add Failed", message );
                     }
-                }
-                catch ( System.Data.Entity.Validation.DbEntityValidationException dbex )
-                {
-                    string message = HandleDBValidationError( dbex, thisClassName + ".Add() ", "ReferenceResource" );
-                    status.AddError( thisClassName + ".Add(). Error - the save was not successful. " + message );
-
-                    LoggingHelper.LogError( message, true );
                 }
                 catch ( Exception ex )
                 {

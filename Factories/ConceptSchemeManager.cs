@@ -538,7 +538,23 @@ namespace Factories
             return entity;
 
         }
+        public static Concept GetConcept( Guid id )
+        {
+            var entity = new Concept();
 
+            using ( var context = new DataEntities() )
+            {
+                var item = context.ConceptScheme_Concept
+                            .SingleOrDefault( s => s.RowId == id );
+
+                if ( item != null && item.Id > 0 )
+                {
+                    MapFromDB( item, entity );
+                }
+            }
+
+            return entity;
+        }
         public static Concept GetConcept( int id )
         {
             var entity = new Concept();
