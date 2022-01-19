@@ -11,7 +11,7 @@ namespace Factories
 {
     public class ImportManager : BaseFactory
 	{
-		public static string thisClassName = "ImportManager";
+		public static new string thisClassName = "ImportManager";
 		public static List<ThisEntity> ImportSearch( string pFilter, string sortOrder, int pageNumber, int pageSize, ref int pTotalRows )
 		{
 			string connectionString = DBConnectionRO();

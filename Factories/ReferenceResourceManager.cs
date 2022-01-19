@@ -17,7 +17,7 @@ namespace Factories
 {
     public class ReferenceResourceManager : BaseFactory
     {
-        public static string thisClassName = "ReferenceResourceManager";
+        public static new string thisClassName = "ReferenceResourceManager";
 
         #region ===  Persistance ==================
         /// <summary>

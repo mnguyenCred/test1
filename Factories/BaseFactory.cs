@@ -12,10 +12,11 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Web;
 using System.Web.Configuration;
+using System.Runtime.Caching;
 
 using DataEntities = Data.Tables.NavyRRLEntities;
 using Data.Tables;
-using Models.Schema;
+using MSc= Models.Schema;
 using Navy.Utilities;
 
 using Newtonsoft.Json;
@@ -28,6 +29,7 @@ namespace Factories
 	/// </summary>
     public class BaseFactory
     {
+        public static string thisClassName = "BaseFactory";
         public List<string> warnings = new List<string>();
 
         public static string commonStatusMessage = "";
@@ -195,6 +197,166 @@ namespace Factories
             else
                 return new Guid();
         } //
+        public static List<Guid> GetRatingGuids( string property )
+        {
+            if ( string.IsNullOrEmpty( property ) )
+                return null;
+            var output = new List<Guid>();
+            string[] parts = property.Split( '|' );
+            foreach(var item in parts)
+            {
+                var rating = GetRatingFromCache( item );
+                if ( rating?.Id > 0 )
+                    output.Add( rating.RowId );
+                       
+            }
+
+            return output;
+        } //
+        public static MSc.Rating GetRatingFromCache( string rating )
+        {
+            var cache = new CachedRatings();  
+            var output = new MSc.Rating();
+            var ratings = new List<MSc.Rating>();
+            string key = "RatingsCache";
+            int cacheMinutes = 1440;
+            DateTime maxTime = DateTime.Now.AddMinutes( cacheMinutes * -1 );
+            if ( HttpRuntime.Cache[key] != null && cacheMinutes > 0 )
+            {
+                //may want to use application cache
+                cache = ( CachedRatings ) HttpRuntime.Cache[key];
+                try
+                {
+                    if ( cache.LastUpdated > maxTime )
+                    {
+                        LoggingHelper.DoTrace( 6, string.Format( thisClassName + ".GetRatingFromCache. Using cached version of Ratings" ) );
+
+                        ratings = cache.Ratings;
+                        output = ratings.FirstOrDefault( s => s.CodedNotation == rating );
+                        return output;
+                    }
+                }
+                catch ( Exception ex )
+                {
+                    LoggingHelper.DoTrace( 5, thisClassName + ".GetRatingFromCache === exception " + ex.Message );
+                    //just fall thru and retrieve
+                }
+            } 
+
+            {
+                ratings = RatingManager.GetAll();
+            }
+            output = ratings.FirstOrDefault( s => s.CodedNotation == rating );
+            //
+            //add to cache
+            if ( key.Length > 0 && cacheMinutes > 0 )
+            {
+                var newCache = new CachedRatings()
+                {
+                    Ratings = ratings,
+                    LastUpdated = DateTime.Now
+                };
+                if ( HttpContext.Current != null )
+                {
+                    if ( HttpContext.Current.Cache[key] != null )
+                    {
+                        HttpRuntime.Cache.Remove( key );
+                        HttpRuntime.Cache.Insert( key, newCache, null, DateTime.Now.AddMinutes( cacheMinutes ), TimeSpan.Zero );
+
+                        LoggingHelper.DoTrace( 5, thisClassName + ".GetRatingFromCache $$$ Updating cached version " );
+                    }
+                    else
+                    {
+                        LoggingHelper.DoTrace( 6, string.Format( thisClassName + ".GetRatingFromCache ****** Inserting new cached version : no cached record found" ) );
+
+                        System.Web.HttpRuntime.Cache.Insert( key, newCache, null, DateTime.Now.AddMinutes( cacheMinutes ), TimeSpan.Zero );
+                    }
+                }
+            }
+            //
+            //
+            return output;
+        }
+        //
+        public static List<Guid> GetBilletTitleGuids( string property )
+        {
+            if ( string.IsNullOrEmpty( property ) )
+                return null;
+            var output = new List<Guid>();
+            string[] parts = property.Split( '|' );
+            foreach ( var item in parts )
+            {
+                var billet = GetBilletsFromCache( item );
+                if ( billet?.Id > 0 )
+                    output.Add( billet.RowId );
+            }
+
+            return output;
+        } //
+        public static MSc.BilletTitle GetBilletsFromCache( string billetTitle )
+        {
+            var cache = new CachedBillets();
+            var output = new MSc.BilletTitle();
+            var list = new List<MSc.BilletTitle>();
+            string key = "BilletsCache";
+            int cacheMinutes = 1440;
+            DateTime maxTime = DateTime.Now.AddMinutes( cacheMinutes * -1 );
+            if ( HttpRuntime.Cache[key] != null && cacheMinutes > 0 )
+            {
+                //may want to use application cache
+                cache = ( CachedBillets ) HttpRuntime.Cache[key];
+                try
+                {
+                    if ( cache.LastUpdated > maxTime )
+                    {
+                        LoggingHelper.DoTrace( 6, string.Format( thisClassName + ".GetBilletsFromCache. Using cached version of BilletTitle" ) );
+
+                        list = cache.Ratings;
+                        output = list.FirstOrDefault( s => s.Name.ToLower() == billetTitle.ToLower());
+                        return output;
+                    }
+                }
+                catch ( Exception ex )
+                {
+                    LoggingHelper.DoTrace( 5, thisClassName + ".GetRatingFromCache === exception " + ex.Message );
+                    //just fall thru and retrieve
+                }
+            }
+
+            {
+                list = JobManager.GetAll();
+            }
+            output = list.FirstOrDefault( s => s.Name.ToLower() == billetTitle.ToLower() );
+            //
+            //add to cache
+            if ( key.Length > 0 && cacheMinutes > 0 )
+            {
+                var newCache = new CachedBillets()
+                {
+                    Ratings = list,
+                    LastUpdated = DateTime.Now
+                };
+                if ( HttpContext.Current != null )
+                {
+                    if ( HttpContext.Current.Cache[key] != null )
+                    {
+                        HttpRuntime.Cache.Remove( key );
+                        HttpRuntime.Cache.Insert( key, newCache, null, DateTime.Now.AddMinutes( cacheMinutes ), TimeSpan.Zero );
+
+                        LoggingHelper.DoTrace( 5, thisClassName + ".GetBilletsFromCache $$$ Updating cached version " );
+                    }
+                    else
+                    {
+                        LoggingHelper.DoTrace( 6, string.Format( thisClassName + ".GetBilletsFromCache ****** Inserting new cached version : no cached record found" ) );
+
+                        System.Web.HttpRuntime.Cache.Insert( key, newCache, null, DateTime.Now.AddMinutes( cacheMinutes ), TimeSpan.Zero );
+                    }
+                }
+            }
+            //
+            //
+            return output;
+        }
         public static string GetRowColumn( DataRow row, string column, string defaultValue = "" )
         {
             string colValue = "";
@@ -1679,4 +1841,27 @@ namespace Factories
         public string Suggestion { get; set; }
     }
     //
+    [Serializable]
+    public class CachedRatings
+    {
+        public CachedRatings()
+        {
+            LastUpdated = DateTime.Now;
+        }
+        public DateTime LastUpdated { get; set; }
+        public List<MSc.Rating> Ratings { get; set; }
+
+    }
+    //
+    [Serializable]
+    public class CachedBillets
+    {
+        public CachedBillets()
+        {
+            LastUpdated = DateTime.Now;
+        }
+        public DateTime LastUpdated { get; set; }
+        public List<MSc.BilletTitle> Ratings { get; set; }
+
+    }
 }

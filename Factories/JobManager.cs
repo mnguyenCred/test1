@@ -13,7 +13,7 @@ namespace Factories
 {
     public class JobManager : BaseFactory
     {
-        public static string thisClassName = "JobManager";
+        public static new string thisClassName = "JobManager";
 
         #region === persistance ==================
         /// <summary>

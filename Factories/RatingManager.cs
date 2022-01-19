@@ -16,7 +16,7 @@ namespace Factories
 {
     public class RatingManager : BaseFactory
     {
-        public static string thisClassName = "RatingManager";
+        public static new string thisClassName = "RatingManager";
 
         #region Rating - persistance - NOT Likely? ==================
         /// <summary>

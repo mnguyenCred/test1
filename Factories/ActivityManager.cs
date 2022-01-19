@@ -25,7 +25,7 @@ namespace Factories
 {
 	public class ActivityManager : BaseFactory
 	{
-		private static string thisClassName = "ActivityManager";
+		private static new string thisClassName = "ActivityManager";
 
 		public static string ASSESSMENT_ACTIVITY = "AssessmentProfile";
 		public static string CREDENTIAL_ACTIVITY = "Credential";

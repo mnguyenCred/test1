@@ -1,7 +1,8 @@
-﻿
+﻿@using Services;
 @{
 	ViewBag.Title = "Upload V2";
-	var allRatings = Factories.RatingManager.GetAll().OrderByDescending( m => m.CodedNotation.ToLower() == "all" ).ToList();
+	var allRatings = RatingServices.GetAll().OrderByDescending( m => m.CodedNotation.ToLower() == "all" ).ToList();
+
 }
 
 <script type="text/javascript">

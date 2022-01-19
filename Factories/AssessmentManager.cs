@@ -13,7 +13,7 @@ namespace Factories
 {
     public class AssessmentManager : BaseFactory
     {
-        public static string thisClassName = "AssessmentManager";
+        public static new string thisClassName = "AssessmentManager";
 
         #region Assessment - persistance ==================
         /// <summary>

@@ -20,7 +20,7 @@ namespace Factories
 {
     public class CourseManager : BaseFactory
     {
-        public static string thisClassName = "CourseManager";
+        public static new string thisClassName = "CourseManager";
         //public List<MSc.TrainingTask> AllNewtrainingTasks = new List<MSc.TrainingTask>();
         //public List<MSc.TrainingTask> AllUpdatedtrainingTasks = new List<MSc.TrainingTask>();
         #region Course - persistance ==================

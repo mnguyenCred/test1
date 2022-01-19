@@ -17,7 +17,7 @@ namespace Factories
 {
     public class TrainingTaskManager : BaseFactory
     {
-        public static string thisClassName = "TrainingTaskManager";
+        public static new string thisClassName = "TrainingTaskManager";
 
         #region Retrieval
         
@@ -62,7 +62,7 @@ namespace Factories
         /// May need a get all for a rating? Should not matter as this is external data?
         /// </summary>
         /// <returns></returns>
-        public static List<AppEntity> GetAll( bool includingTrainingTasks = false )
+        public static List<AppEntity> GetAll()
         {
             var entity = new AppEntity();
             var list = new List<AppEntity>();
