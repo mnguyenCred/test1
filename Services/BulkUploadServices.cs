@@ -196,7 +196,7 @@ namespace Services
 				debug[ latestStepFlag ] = "Got Rating Task data for row " + rowCount;
 
 				//The last few may or may not be present in some rows, hence the extra special handling for nulls
-				//Course Source (The Reference Resource for the course, distinct from the Reference Resource for the task in another column)
+				//Training Task
 				TrainingTask trainingTask = null;
 				if ( !string.IsNullOrWhiteSpace( row.TrainingTask_Description ) )
 				{
@@ -221,6 +221,7 @@ namespace Services
 				}
 				debug[ latestStepFlag ] = "Got Training Task data for row " + rowCount;
 
+				//Course Source (The Reference Resource for the course, distinct from the Reference Resource for the task in another column)
 				ReferenceResource courseSource = null;
 				if ( !string.IsNullOrWhiteSpace( row.Course_HasReferenceResource_Name ) )
 				{
@@ -524,7 +525,7 @@ namespace Services
 					foreach ( var item in originalBilletTitle.HasRatingTask.Where( m => !uploadedMatch.HasRatingTask.Contains( m ) ).ToList() ) 
 					{
 						removalTracker.HasRatingTask.Add( item );
-						result.Messages.RemoveItems.Add( "Remove Rating Task reference from Billet Title: " + uploadedMatch.Name + " - " + Find( existing.RatingTask, item )?.Description );
+						result.Messages.RemoveItem.Add( "Remove Rating Task reference from Billet Title: " + uploadedMatch.Name + " - " + Find( existing.RatingTask, item )?.Description );
 					}
 				}
 
@@ -545,13 +546,13 @@ namespace Services
 					foreach( var item in originalCourse.CurriculumControlAuthority.Where( m => !uploadedMatch.CurriculumControlAuthority.Contains( m ) ).ToList() )
 					{
 						removalTracker.CurriculumControlAuthority.Add( item );
-						result.Messages.RemoveItems.Add( "Remove Curriculum Control Authority reference from Course: " + uploadedMatch.Name + " - " + Find( existing.Organization, item )?.Name );
+						result.Messages.RemoveItem.Add( "Remove Curriculum Control Authority reference from Course: " + uploadedMatch.Name + " - " + Find( existing.Organization, item )?.Name );
 					}
 
 					foreach ( var item in originalCourse.HasTrainingTask.Where( m => !uploadedMatch.HasTrainingTask.Contains( m ) ).ToList() ) 
 					{
 						removalTracker.HasTrainingTask.Add( item );
-						result.Messages.RemoveItems.Add( "Remove Training Task reference from Course: " + uploadedMatch.Name + " - " + Find( existing.TrainingTask, item )?.Description );
+						result.Messages.RemoveItem.Add( "Remove Training Task reference from Course: " + uploadedMatch.Name + " - " + Find( existing.TrainingTask, item )?.Description );
 					}
 				}
 
@@ -571,7 +572,7 @@ namespace Services
 					foreach( var item in originalTask.HasWorkRole.Where( m => !uploadedMatch.HasWorkRole.Contains( m ) ).ToList() )
 					{
 						removalTracker.HasWorkRole.Add( item );
-						result.Messages.RemoveItems.Add( "Remove Functional Area reference from Rating Task: " + Find( existing.WorkRole, item )?.Name + " - " + uploadedMatch.Description );
+						result.Messages.RemoveItem.Add( "Remove Functional Area reference from Rating Task: " + Find( existing.WorkRole, item )?.Name + " - " + uploadedMatch.Description );
 					}
 				}
 
@@ -580,7 +581,7 @@ namespace Services
 				if ( Find( referencedItems.RatingTask, originalTask.RowId ) == null && originalTask.HasRating.Count() > 1 ) 
 				{
 					removalTracker.HasRating.Add( ratingRowID );
-					result.Messages.RemoveItems.Add( "Remove Rating reference from Rating Task: " + currentRating.CodedNotation + " - " + originalTask.Description );
+					result.Messages.RemoveItem.Add( "Remove Rating reference from Rating Task: " + currentRating.CodedNotation + " - " + originalTask.Description );
 				}
 
 				if( removalTracker.HasWorkRole.Count() > 0 || removalTracker.HasRating.Count() > 0 )

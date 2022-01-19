@@ -95,7 +95,7 @@ namespace Models.Curation
 		public List<string> Create { get; set; }
 		public List<string> Delete { get; set; }
 		public List<string> AddItem { get; set; }
-		public List<string> RemoveItems { get; set; }
+		public List<string> RemoveItem { get; set; }
 		public List<string> Warning { get; set; }
 		public List<string> Duplicate { get; set; }
 		public List<string> Note { get; set; }
