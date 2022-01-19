@@ -15,7 +15,7 @@ namespace Factories
 {
     public class AccountManager : BaseFactory
 	{
-		static string thisClassName = "AccountManager";
+		static new string thisClassName = "AccountManager";
 
 		static int Administrator = 1;
 		static int SiteManager = 2;

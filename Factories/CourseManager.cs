@@ -20,8 +20,9 @@ namespace Factories
 {
     public class CourseManager : BaseFactory
     {
-        public static string thisClassName = "CourseManager";
-
+        public static new string thisClassName = "CourseManager";
+        //public List<MSc.TrainingTask> AllNewtrainingTasks = new List<MSc.TrainingTask>();
+        //public List<MSc.TrainingTask> AllUpdatedtrainingTasks = new List<MSc.TrainingTask>();
         #region Course - persistance ==================
         /// <summary>
         /// Update a Course
@@ -33,6 +34,10 @@ namespace Factories
         {
             bool isValid = true;
             int count = 0;
+            //if (allNewtrainingTasks != null)
+            //{
+            //    AllNewtrainingTasks = allNewtrainingTasks;
+            //}
             entity.LastUpdatedById = entity.CreatedById;
             try
             {
@@ -77,7 +82,7 @@ namespace Factories
                         entity.CreatedById = ( efEntity.CreatedById ?? 0 );
                         entity.Id = efEntity.Id;
 
-                        MapToDB( entity, efEntity );
+                        MapToDB( entity, efEntity, status );
 
                         if ( HasStateChanged( context ) )
                         {
@@ -156,7 +161,7 @@ namespace Factories
             {
                 try
                 {
-                    MapToDB( entity, efEntity );
+                    MapToDB( entity, efEntity, status );
 
                     if ( IsValidGuid( entity.RowId ) )
                         efEntity.RowId = entity.RowId;
@@ -182,21 +187,20 @@ namespace Factories
                         SiteActivity sa = new SiteActivity()
                         {
                             ActivityType = "Course",
-                            Activity = "Import",
+                            Activity = "Import",//in the future there could be a different process.
                             Event = "Add",
-                            Comment = string.Format( "Full Course was added by the import. Name: {0}", entity.Name ),
-                            ActivityObjectId = entity.Id
+                            Comment = string.Format( "Course: '{0} was added.", entity.Name ),
+                            ActivityObjectId = entity.Id, 
+                            ActionByUserId = entity.LastUpdatedById
                         };
                         new ActivityManager().SiteActivityAdd( sa );
-
-
                         return efEntity.Id;
                     }
                     else
                     {
                         //?no info on error
 
-                        string message = thisClassName + string.Format( ". Add Failed", "Attempted to add a Course. The process appeared to not work, but was not an exception, so we have no message, or no clue. Course: {0}, ctid: {1}", entity.Name, entity.CTID );
+                        string message = thisClassName + string.Format( ". Add Failed", "Attempted to add a Course. The process appeared to not work, but was not an exception, so we have no message, or no clue. Course: {0}, CIN: {1}", entity.Name, entity.CodedNotation );
                         status.AddError( thisClassName + ". Error - the add was not successful. " + message );
                         EmailManager.NotifyAdmin( thisClassName + ". Add Failed", message );
                     }
@@ -211,15 +215,16 @@ namespace Factories
                 catch ( Exception ex )
                 {
                     string message = FormatExceptions( ex );
-                    LoggingHelper.LogError( ex, thisClassName + string.Format( ".Add(), Name: {0}, CTID: {1}", efEntity.Name, efEntity.CTID ) );
+                    LoggingHelper.LogError( ex, thisClassName + string.Format( ".Add(), Name: {0}, CIN: {1}", entity.Name, entity.CodedNotation ) );
                     status.AddError( thisClassName + ".Add(). Error - the save was not successful. \r\n" + message );
                 }
             }
 
             return efEntity.Id;
         }
-        public static void MapToDB( AppEntity input, DBEntity output )
+        public static void MapToDB( AppEntity input, DBEntity output, SaveStatus status )
         {
+            status.HasSectionErrors = false;
             //watch for missing properties like rowId
             List<string> errors = new List<string>();
             //this will include the extra props (like LifeCycleControlDocument, etc. for now)
@@ -231,7 +236,7 @@ namespace Factories
                 output.LifeCycleControlDocumentId = ConceptSchemeManager.GetConcept( input.HasReferenceResource)?.Id;
             }
             //
-
+            //this may be removed if there can be multiple CCA
             if ( input.CurriculumControlAuthority?.Count > 0 ) 
             {
                 foreach( var item in input.CurriculumControlAuthority )
@@ -242,22 +247,12 @@ namespace Factories
                     {
                         //TODO - now using Course.Organization
                         output.CurriculumControlAuthorityId = org.Id;
+                        //only can handle one here
                     }
                     else
                     {
                         //should not have a new org here
-
-                        //SaveStatus status = new SaveStatus();
-                        //org = new MSc.Organization()
-                        //{
-                        //    Name = input.Curriculum_Control_Authority,
-                        //    AlternateName = input.Curriculum_Control_Authority
-                        //};
-                        //var isValid = new OrganizationManager().Save( org, ref status );
-                        //if ( isValid )
-                        //{
-                        //    output.CurriculumControlAuthorityId = org.Id;
-                        //}
+                        //NO, all new orgs will have been added first, so this would be an error
                     }
                 }
 
@@ -439,44 +434,60 @@ namespace Factories
             {
                 if ( input.TrainingTasks != null)
                 {
-
+                    foreach(var item in input.TrainingTasks)
+                    {
+                        CourseTaskSave( input, item, ref status );
+                    }
                 }
+                //else if ( input.HasTrainingTask?.Count > 0 && AllNewtrainingTasks?.Count > 0)
+                //{
+                //    //get all tasks for the current course from the general list
+                //    //for a new course, can just focus on new training. 
+                //    //what if an existing course has a new task but doesn't exist in the updated courses?
+                //    var result = AllNewtrainingTasks.Where( p => input.HasTrainingTask.Any( p2 => p2 == p.RowId ) );
+                //    foreach( var item in result )
+                //    {
+
+                //    }
+                //}
                 //this needs to be multiple
                 if ( input.CourseType != null )
                 {
-                    //var parts = input.Course_Type.Split( '-' ).ToList();
-                    //if ( parts.Count > 0 )
-                    //{
-                    //    foreach(var item in parts )
-                    //    {
-                    //        var concept = ConceptSchemeManager.GetConcept( item, ConceptSchemeManager.ConceptScheme_CourseType );
-                    //        if( concept?.Id > 0)
-                    //        {
-                    //            if (AddCourseConcept( input, concept.Id, input.LastUpdatedById, ref status ))
-                    //            {
-                    //                //add log entry
-                    //                SiteActivity sa = new SiteActivity()
-                    //                {
-                    //                    ActivityType = "Course",
-                    //                    Activity = "Import",
-                    //                    Event = "Add Course_Concept",
-                    //                    Comment = string.Format( "CourseType of: '{0}' for conceptScheme: '{1}', was added for Course: '{2}' by the import.", item, ConceptSchemeManager.ConceptScheme_CourseType, input.Name ),
-                    //                };
-                    //                new ActivityManager().SiteActivityAdd( sa );
-                    //            }
-                    //        } else
-                    //        {
-                    //            //add new
-                    //        }
-                    //    }
-                    //}
-                    //
+                    //this needs to be multiple
+                    var concept = ConceptSchemeManager.GetConcept( input.CourseType );
+                    if ( concept?.Id > 0 )
+                        CourseConceptAdd( input, concept.Id, input.LastUpdatedById, ref status );
+                    else
+                    {
+                        status.AddError( String.Format( "Error. For Course: '{0}' ({1}) a CourseType concept was not found for Identifier: {3}", input.Name, input.Id, input.CourseType ) );
+                    }
                 }
-
+                if ( input.CurriculumControlAuthority?.Count > 0 )
+                {
+                    foreach( var item in input.CurriculumControlAuthority)
+                    {
+                        var org = OrganizationManager.Get( item );
+                        if ( org != null && org.Id > 0 )
+                        {
+                            CourseOrganizationAdd( input, org.Id, input.LastUpdatedById, ref status );
+                        }
+                        else
+                        {
+                            status.AddError( String.Format( "Error. For Course: '{0}' ({1}) an assessment method concept was not found for Identifier: {3}", input.Name, input.Id, input.AssessmentMethodType ) );
+                        }
+                    }
+                }
+                //
                 if ( input.AssessmentMethodType != null )
                 {
                     //this needs to be multiple
-
+                    var concept = ConceptSchemeManager.GetConcept( input.AssessmentMethodType );
+                    if (concept?.Id > 0)
+                        CourseConceptAdd( input, concept.Id, input.LastUpdatedById, ref status );
+                    else
+                    {
+                        status.AddError( String.Format( "Error. For Course: '{0}' ({1}) an assessment method concept was not found for Identifier: {3}", input.Name, input.Id, input.AssessmentMethodType) );
+                    }
                 }
 
             } catch ( Exception ex )
@@ -484,7 +495,7 @@ namespace Factories
                 LoggingHelper.LogError( ex, thisClassName + "UpdateParts" );
             }
         }
-
+        /*
         public void UpdateParts( AppFullEntity input, SaveStatus status )
         {
             try
@@ -564,22 +575,28 @@ namespace Factories
                 LoggingHelper.LogError( ex, thisClassName + "UpdateParts" );
             }
         }
-
+        */
         #region TrainingTask
 
         #endregion
 
 
         #region Course-Related
-        public bool AddCourseConcept( AppFullEntity input, int conceptId, int userId, ref SaveStatus status )
+        public bool CourseConceptAdd( AppEntity input, int conceptId, int userId, ref SaveStatus status )
         {
             ConceptSchemeManager csMgr = new ConceptSchemeManager();
             var efEntity = new Data.Tables.Course_Concept();
-
+            var entityType = "CourseConcept";
             using ( var context = new DataEntities() )
             {
                 try
                 {
+                    //check existance
+                    var item = context.Course_Concept
+                            .FirstOrDefault( s => s.CourseId == input.Id && s.ConceptId == conceptId);
+                    if ( item?.Id > 0 )
+                        return true;
+                    //
                     efEntity.CourseId = input.Id;
                     efEntity.ConceptId = conceptId;
                     efEntity.RowId = Guid.NewGuid();
@@ -599,16 +616,15 @@ namespace Factories
                     else
                     {
                         //?no info on error
-
-                        string message = thisClassName + string.Format( ". Add Failed", "Attempted to add a Course_Concept. The process appeared to not work, but was not an exception, so we have no message, or no clue. CourseId of: '{0}' for conceptId: {1}, was added for Course: '{2}' by the import.", input.Id, conceptId, input.Name );
-                        status.AddError( thisClassName + ". Error - the add Course_Concept was not successful. " + message );
+                        string message = thisClassName + string.Format( ". Add Failed", "Attempted to add a {0}. The process appeared to not work, but was not an exception, so we have no message, or no clue. Course: '{2}' ({3}) for conceptId: {4}, was added for by the import.", entityType, input.Name, input.Id, conceptId );
+                        status.AddError( thisClassName + String.Format( ".Add-'{0}' Error - the add was not successful. ", entityType ) + message );
                         EmailManager.NotifyAdmin( thisClassName + ". Add Failed", message );
                     }
                 }
                 catch ( Exception ex )
                 {
                     string message = FormatExceptions( ex );
-                    LoggingHelper.LogError( ex, thisClassName + string.Format( ".AddCourseConcept(), CourseId of: '{0}' for conceptId: {1}, for Course: '{2}'.", input.Id, conceptId, input.Name ) );
+                    LoggingHelper.LogError( ex, thisClassName + string.Format( ".Add-'{0}', Course: '{1}' ({2}) for conceptId: '{3}'", entityType, input.Name, input.Id, conceptId ) );
                     status.AddError( thisClassName + ".Add(). Error - the save was not successful. \r\n" + message );
                 }
             }
@@ -686,14 +702,20 @@ namespace Factories
         //        }
         //    }
         //}
-        public bool AddCourseOrganization( AppEntity input, int orgId, int userId, ref SaveStatus status )
+        public bool CourseOrganizationAdd( AppEntity input, int orgId, int userId, ref SaveStatus status )
         {
             var efEntity = new Data.Tables.Course_Organization();
-
+            var entityType = "CourseOrganization";
             using ( var context = new DataEntities() )
             {
                 try
                 {
+                    //check existance
+                    var item = context.Course_Organization
+                            .FirstOrDefault( s => s.CourseId == input.Id && s.OrganizationId == orgId );
+                    if ( item?.Id > 0 )
+                        return true;
+
                     efEntity.CourseId = input.Id;
                     efEntity.OrganizationId = orgId;
                     efEntity.RowId = Guid.NewGuid();
@@ -714,15 +736,86 @@ namespace Factories
                     {
                         //?no info on error
 
-                        string message = thisClassName + string.Format( ". Add Failed", "Attempted to add a Course_Concept. The process appeared to not work, but was not an exception, so we have no message, or no clue. CourseId of: '{0}' for orgId: {1}, was added for Course: '{2}' by the import.", input.Id, orgId, input.Name );
-                        status.AddError( thisClassName + ". Error - the add Course_Concept was not successful. " + message );
+                        string message = thisClassName + string.Format( ". Add Failed", "Attempted to add a {0}. The process appeared to not work, but was not an exception, so we have no message, or no clue. Course: '{2}'  ({3}) for orgId: {4}, was added for by the import.", entityType, input.Name, input.Id, orgId );
+                        status.AddError( thisClassName + String.Format( ".Add-'{0}' Error - the add was not successful. ", entityType ) + message );
                         EmailManager.NotifyAdmin( thisClassName + ". Add Failed", message );
                     }
                 }
                 catch ( Exception ex )
                 {
                     string message = FormatExceptions( ex );
-                    LoggingHelper.LogError( ex, thisClassName + string.Format( ".AddCourseConcept(), CourseId of: '{0}' for orgId: {1}, for Course: '{2}'.", input.Id, orgId, input.Name ) );
+                    LoggingHelper.LogError( ex, thisClassName + string.Format( ".Add-'{0}', Course: '{1}' ({2}) for orgId: '{3}'", entityType, input.Name, input.Id, orgId ) );
+                    status.AddError( thisClassName + ".Add(). Error - the save was not successful. \r\n" + message );
+                }
+            }
+            return false;
+        }
+
+        public void CourseTaskSave( AppEntity input, MSc.TrainingTask task, ref SaveStatus status )
+        {
+
+            using ( var context = new DataEntities() )
+            {
+                //check existance
+                //or may want to assign and check for change (could be legit case change). 
+                //  use rowId if present - although the upload may have no way to determine if an existing task is being updated - 
+                var item = context.Course_Task
+                    .FirstOrDefault( s => s.CourseId == input.Id && s.Description.ToLower() == task.Description.ToLower() );
+                if ( item?.Id > 0 )
+                {
+                    return;
+                }
+
+        }
+        }
+
+        public bool CourseTaskAdd( AppEntity input, MSc.TrainingTask task, ref SaveStatus status )
+        {
+            var entityType = "CourseTask";
+            var efEntity = new Data.Tables.Course_Task();
+            //need to do a look up
+
+            using ( var context = new DataEntities() )
+            {
+                try
+                {
+                    if ( IsValidGuid( task.RowId ) )
+                        efEntity.RowId = task.RowId;
+                    else
+                        efEntity.RowId = Guid.NewGuid();
+                    if ( IsValidCtid( task.CTID ) )
+                        efEntity.CTID = task.CTID;
+                    else
+                        efEntity.CTID = "ce-" + efEntity.RowId.ToString().ToLower();
+
+                    efEntity.CourseId = input.Id;
+                    efEntity.Description = task.Description;
+                    efEntity.RowId = Guid.NewGuid();
+                    efEntity.CreatedById = input.LastUpdatedById;
+                    //efEntity.CTID = "ce-" + efEntity.RowId.ToString().ToLower();
+                    efEntity.Created = DateTime.Now;
+
+                    context.Course_Task.Add( efEntity );
+
+                    // submit the change to database
+                    int count = context.SaveChanges();
+                    if ( count > 0 )
+                    {
+                        //
+                        return true;
+                    }
+                    else
+                    {
+                        //?no info on error
+                        string message = thisClassName + string.Format( ". Add Failed", "Attempted to add a {0}. The process appeared to not work, but was not an exception, so we have no message, or no clue. Course: '{2}' ({3}) for task: '{4}', was added for by the import.", entityType, input.Name, input.Id, task.Description );
+                        status.AddError( thisClassName + String.Format( ".Add-'{0}' Error - the add was not successful. ", entityType) + message );
+                        EmailManager.NotifyAdmin( thisClassName + ". Add Failed", message );
+                    }
+                }
+                catch ( Exception ex )
+                {
+                    string message = FormatExceptions( ex );
+                    LoggingHelper.LogError( ex, thisClassName + string.Format( ".Add-'{0}', Course: '{1}' ({2}) for task: '{3}'", entityType, input.Name, input.Id, task.Description ) );
                     status.AddError( thisClassName + ".Add(). Error - the save was not successful. \r\n" + message );
                 }
             }

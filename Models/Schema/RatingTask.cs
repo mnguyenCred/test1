@@ -93,7 +93,9 @@ namespace Models.Schema
 		//Derived
 		public int ResultNumber { get; set; }
 		public string Ratings { get; set; }
+		public List<Guid> HasRatings { get; set; } = new List<Guid>();
 		public string BilletTitles { get; set; }
+		public List<Guid> HasBilletTitles { get; set; } = new List<Guid>();
 		public string FormalTrainingGap { get; set; }
 		public string FunctionalArea { get; set; }
 		public string Level { get; set; }

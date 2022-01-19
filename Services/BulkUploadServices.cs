@@ -749,6 +749,7 @@ namespace Services
 					var orgMgr = new OrganizationManager();
 					foreach (var item in summary.ItemsToBeCreated.Organization )
                     {
+						item.CreatedById = item.LastUpdatedById = user.Id;
 						orgMgr.Save( item, user.Id, ref status );
                     }
                 }
@@ -758,6 +759,13 @@ namespace Services
 					var courseMgr = new CourseManager();
 					foreach ( var item in summary.ItemsToBeCreated.Course )
 					{
+						//get all tasks for this course
+						if (summary.ItemsToBeCreated.TrainingTask?.Count > 0 )
+                        {
+							var results = summary.ItemsToBeCreated.TrainingTask.Where( p => item.HasTrainingTask.Any( p2 => p2 == p.RowId ) );
+							item.TrainingTasks.AddRange( results );
+						}
+
 						item.CreatedById = item.LastUpdatedById = user.Id;
 						courseMgr.Save( item,  ref status );
 					}
@@ -792,15 +800,10 @@ namespace Services
 					}
 				}
 
-				if ( summary.ItemsToBeCreated.TrainingTask?.Count > 0 )
-				{
-					//????
-				}
-
 				if ( summary.ItemsToBeCreated.RatingTask?.Count > 0 )
 				{
-					var mgr = new WorkRoleManager();
-					foreach ( var item in summary.ItemsToBeCreated.WorkRole )
+					var mgr = new RatingTaskManager();
+					foreach ( var item in summary.ItemsToBeCreated.RatingTask )
 					{
 						item.CreatedById = item.LastUpdatedById = user.Id;
 						mgr.Save( item, ref status );

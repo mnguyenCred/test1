@@ -46,6 +46,7 @@
     <Reference Include="System.ComponentModel.DataAnnotations" />
     <Reference Include="System.Configuration" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Runtime.Caching" />
     <Reference Include="System.Web" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
@@ -62,7 +63,6 @@
     <Compile Include="CodesManager.cs" />
     <Compile Include="ConceptSchemeManager.cs" />
     <Compile Include="CourseManager.cs" />
-    <Compile Include="CurriculumControlAuthorityManager.cs" />
     <Compile Include="JobManager.cs" />
     <Compile Include="WorkRoleManager.cs" />
     <Compile Include="ImportManager.cs" />

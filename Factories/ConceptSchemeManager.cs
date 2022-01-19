@@ -18,7 +18,7 @@ namespace Factories
 {
     public class ConceptSchemeManager : BaseFactory
     {
-        public static string thisClassName = "ConceptSchemeManager";
+        public static new string thisClassName = "ConceptSchemeManager";
         //
         public static string ConceptScheme_CommentStatus = "navy:CommentStatus";
         public static string ConceptScheme_CourseType = "navy:CourseType";

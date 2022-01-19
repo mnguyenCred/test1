@@ -21,7 +21,7 @@ namespace Factories
 {
     public class RatingTaskManager : BaseFactory
     {
-        public static string thisClassName = "RatingTaskManager";
+        public static new string thisClassName = "RatingTaskManager";
 
         #region Retrieval
         /// <summary>
@@ -123,19 +123,78 @@ namespace Factories
 			return entity;
 		}
 
+        /// <summary>
+        /// It is not clear that we want a get all - tens of thousands
+        /// </summary>
+        /// <returns></returns>
+        public static List<AppEntity> GetAll()
+        {
+            var entity = new AppEntity();
+            var list = new List<AppEntity>();
 
-		/// <summary>
-		/// assuming the rating code
-		/// could use an or to also handle name
-		/// </summary>
-		/// <param name="rating"></param>
-		/// <param name="pOrderBy"></param>
-		/// <param name="pageNumber"></param>
-		/// <param name="pageSize"></param>
-		/// <param name="userId"></param>
-		/// <param name="pTotalRows"></param>
-		/// <returns></returns>
-		public static List<EntitySummary> SearchForRating( string rating, string pOrderBy, int pageNumber, int pageSize, int userId, ref int pTotalRows )
+            using ( var context = new DataEntities() )
+            {
+                var results = context.RatingTask
+                        .OrderBy( s => s.Id )
+                        .ToList();
+                if ( results?.Count > 0 )
+                {
+                    foreach ( var item in results )
+                    {
+                        if ( item != null && item.Id > 0 )
+                        {
+                            entity = new AppEntity();
+                            MapFromDB( item, entity, false );
+                            list.Add( ( entity ) );
+                        }
+                    }
+                }
+
+            }
+            return list;
+        }
+
+        public static List<AppEntity> GetAll( string rating )
+        {
+            var entity = new AppEntity();
+            var list = new List<AppEntity>();
+            string filter = "";
+            string orderBy = "";
+            int pageNumber = 1;
+            int pageSize = 50;
+            int userId = 0;
+            int pTotalRows = 0;
+
+            filter = string.Format( "base.id in (select a.[RatingTaskId] from [RatingTask.HasRating] a inner join Rating b on a.ratingId = b.Id where b.CodedNotation = '{0}' )", rating);
+            var results = Search( filter, orderBy, pageNumber, pageSize, userId, ref pTotalRows );
+
+            results.ConvertAll( m => new AppEntity() 
+            { 
+                ApplicabilityType=m.ApplicabilityType,
+                HasReferenceResource = m.HasReferenceResource,
+                Description = m.Description,
+                ReferenceType=m.ReferenceType,
+                HasWorkRole=m.HasWorkRole,
+                HasTrainingTask=m.HasTrainingTask,
+                PayGradeType=m.PayGradeType,
+                TaskTrainingGap=m.TaskTrainingGap,
+                CodedNotation=m.CodedNotation,
+                HasRating=m.HasRating,      //not available
+            } ).ToList();
+            return list;
+        }
+        /// <summary>
+        /// assuming the rating code
+        /// could use an or to also handle name
+        /// </summary>
+        /// <param name="rating"></param>
+        /// <param name="pOrderBy"></param>
+        /// <param name="pageNumber"></param>
+        /// <param name="pageSize"></param>
+        /// <param name="userId"></param>
+        /// <param name="pTotalRows"></param>
+        /// <returns></returns>
+        public static List<EntitySummary> SearchForRating( string rating, string pOrderBy, int pageNumber, int pageSize, int userId, ref int pTotalRows )
 		{
 			var keyword = HandleApostrophes( rating );
 			string filter = String.Format( "base.id in (select a.[RatingTaskId] from [RatingTask.HasRating] a inner join Rating b on a.ratingId = b.Id where b.CodedNotation = '{0}' OR b.name = '{0}' )", keyword );
@@ -210,11 +269,13 @@ namespace Factories
 						item.Id = GetRowColumn( dr, "Id", 0 );
 						item.RowId = GetGuidType( dr, "RowId" );
 						item.Ratings = GetRowColumn( dr, "Ratings", "" );
-						//do we need to populate HasRating (if so, could include in the pipe separated list of Ratings
-						item.BilletTitles = GetRowColumn( dr, "BilletTitles", "" );
-						//similarly, do we need a list of billet guids?
+                        item.HasRatings = GetRatingGuids( item.Ratings );
+                        //do we need to populate HasRating (if so, could include in the pipe separated list of Ratings
+                        item.BilletTitles = GetRowColumn( dr, "BilletTitles", "" );
+                        item.HasBilletTitles = GetBilletTitleGuids( item.BilletTitles );
+                        //similarly, do we need a list of billet guids?
 
-						item.Description = GetRowColumn( dr, "RatingTask", "" );
+                        item.Description = GetRowColumn( dr, "RatingTask", "" );
 						item.Note = GetRowColumn( dr, "Notes", "" );
 						item.CTID = GetRowPossibleColumn( dr, "CTID", "" );
 						//
