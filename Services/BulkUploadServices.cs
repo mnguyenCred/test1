@@ -232,7 +232,7 @@ namespace Services
 				if (!string.IsNullOrEmpty( row.Row_CodedNotation))
                 {
 					ratingTask = graph.RatingTask.FirstOrDefault( m =>
-						m.CodedNotation.ToLower() == row.Row_CodedNotation.ToLower() );
+						m.CodedNotation?.ToLower() == row.Row_CodedNotation?.ToLower() );
 					//make sure found
 					if ( string.IsNullOrWhiteSpace(ratingTask?.CodedNotation) )
 						ratingTask = null;
