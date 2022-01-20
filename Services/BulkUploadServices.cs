@@ -381,7 +381,7 @@ namespace Services
 						course = graph.Course.FirstOrDefault( m =>
 								m.Name == row.Course_Name
 								//&& m.CodedNotation == row.Course_CodedNotation
-								&& assessmentMethodType?.Name == row.Course_AssessmentMethodType_Label
+								&& assessmentMethodTypes.Select( n => n.Name ).Where( n => row.Course_AssessmentMethodType_Label?.Contains(n) ?? false ).Count() > 0
 							);
 					}
 					if ( course == null )
@@ -720,7 +720,7 @@ namespace Services
 				if ( Find( referencedItems.RatingTask, originalTask.RowId ) == null && originalTask.HasRating.Count() > 1 ) 
 				{
 					removalTracker.HasRating.Add( currentRatingRowID );
-					result.Messages.RemoveItems.Add( "Remove Rating reference from Rating Task: " + currentRating.CodedNotation + " - " + originalTask.Description );
+					result.Messages.RemoveItem.Add( "Remove Rating reference from Rating Task: " + currentRating.CodedNotation + " - " + originalTask.Description );
 				}
 
 				if( removalTracker.HasWorkRole.Count() > 0 || removalTracker.HasRating.Count() > 0 )
@@ -1058,7 +1058,7 @@ namespace Services
 
 
 			var existingReferenceResources = ReferenceResourceManager.GetAll();
-			var existingRatingTasks = RatingTaskManager.GetAllForRating( rating.CodedNotation );
+			var existingRatingTasks = RatingTaskManager.GetAll( rating.CodedNotation );
 			var existingBilletTitles = new List<BilletTitle>(); //Need a method to get these from the database
 			var existingTrainingTasks = TrainingTaskManager.GetAll();
 			var existingWorkRoles = WorkRoleManager.GetAll();
