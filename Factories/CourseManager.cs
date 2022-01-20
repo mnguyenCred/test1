@@ -577,7 +577,55 @@ namespace Factories
         }
         */
         #region TrainingTask
+        /// <summary>
+        /// Not sure if we want to get thousands of tasks
+        /// </summary>
+        /// <returns></returns>
+        public static List<CourseTask> TrainingTaskGetAll()
+        {
+            var entity = new CourseTask();
+            var list = new List<CourseTask>();
 
+            using ( var context = new DataEntities() )
+            {
+                var results = context.Course_Task
+                        .OrderBy( s => s.Id )
+                        .ToList();
+                if ( results?.Count > 0 )
+                {
+                    foreach ( var item in results )
+                    {
+                        if ( item != null && item.Id > 0 )
+                        {
+                            entity = new CourseTask();
+                            MapFromDB( item, entity, true );
+                            list.Add( ( entity ) );
+                        }
+                    }
+                }
+
+            }
+            return list;
+        }
+        public static void MapFromDB( Course_Task input, CourseTask output, bool includingCourseId = false )
+        {
+            //should include list of concepts
+            List<string> errors = new List<string>();
+            BaseFactory.AutoMap( input, output, errors );
+            if ( input.RowId != output.RowId )
+            {
+                output.RowId = input.RowId;
+            }
+            //
+            if ( includingCourseId )
+            {
+                if (input.Course?.Id > 0)
+                {
+                    output.Course = input.Course.RowId;
+                }
+            }
+         
+        }
         #endregion
 
 

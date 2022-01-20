@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.Caching;
 
 using Models.Application;
 
@@ -14,6 +15,7 @@ namespace Factories
     public class JobManager : BaseFactory
     {
         public static new string thisClassName = "JobManager";
+        public static string cacheKey = "JobCache";
 
         #region === persistance ==================
         /// <summary>
@@ -222,7 +224,13 @@ namespace Factories
             }
             return entity;
         }
-
+        public static AppEntity GetByName( string billetTitle )
+        {
+            var output = new AppEntity();
+            var list = GetAll();
+            output = list.FirstOrDefault( s => s.Name.ToLower() == billetTitle.ToLower() );
+            return output;
+        } //
         public static AppEntity Get( Guid rowId )
         {
             var entity = new AppEntity();
@@ -267,7 +275,11 @@ namespace Factories
         {
             var entity = new AppEntity();
             var list = new List<AppEntity>();
+            list = CheckCache();
+            if (list?.Count > 0)
+                return list;
 
+            list = new List<AppEntity>();
             using ( var context = new DataEntities() )
             {
                 var results = context.Job
@@ -284,10 +296,59 @@ namespace Factories
                             list.Add( ( entity ) );
                         }
                     }
+                    AddToCache( list );
                 }
-
+               
             }
             return list;
+        }
+        public static List<AppEntity> CheckCache()
+        {
+            var cache = new CachedBillets();
+            var list = new List<AppEntity>();
+            int cacheHours = 8;
+            DateTime maxTime = DateTime.Now.AddHours( cacheHours * -1 );
+            if ( MemoryCache.Default.Get( cacheKey ) != null && cacheHours > 0 )
+            {
+                cache = ( CachedBillets ) MemoryCache.Default.Get( cacheKey );
+                try
+                {
+                    if ( cache.LastUpdated > maxTime )
+                    {
+                        LoggingHelper.DoTrace( 6, string.Format( thisClassName + ".CheckCache. Using cached version of BilletTitle" ) );
+                        list = cache.Billets;
+                        return list;
+                    }
+                }
+                catch ( Exception ex )
+                {
+                    LoggingHelper.DoTrace( 5, thisClassName + ".CheckCache === exception " + ex.Message );
+                }
+            }
+            //get
+            return null;
+
+        }
+        public static void AddToCache( List<AppEntity> input)
+        {
+            int cacheHours = 8;
+            //add to cache
+            if ( cacheKey.Length > 0 && cacheHours > 0 )
+            {
+                var newCache = new CachedBillets()
+                {
+                    Billets = input,
+                    LastUpdated = DateTime.Now
+                };
+                if ( MemoryCache.Default.Get( cacheKey ) != null )
+                {
+                    MemoryCache.Default.Remove( cacheKey );
+                }
+                //
+                MemoryCache.Default.Add( cacheKey, newCache, new DateTimeOffset( DateTime.Now.AddHours( cacheHours ) ) );
+                LoggingHelper.DoTrace( 5, thisClassName + ".AddToCache $$$ Updating cached version " );
+
+            }
         }
         public static void MapFromDB( DBEntity input, AppEntity output )
         {

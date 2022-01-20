@@ -21,6 +21,7 @@ using Navy.Utilities;
 
 using Newtonsoft.Json;
 using System.Reflection;
+using System.Collections.Specialized;
 
 namespace Factories
 {
@@ -219,12 +220,12 @@ namespace Factories
             var output = new MSc.Rating();
             var ratings = new List<MSc.Rating>();
             string key = "RatingsCache";
-            int cacheMinutes = 1440;
-            DateTime maxTime = DateTime.Now.AddMinutes( cacheMinutes * -1 );
-            if ( HttpRuntime.Cache[key] != null && cacheMinutes > 0 )
+            int cacheHours = 8;
+            DateTime maxTime = DateTime.Now.AddHours( cacheHours * -1 );
+            if ( MemoryCache.Default.Get( key ) != null && cacheHours > 0 )
             {
                 //may want to use application cache
-                cache = ( CachedRatings ) HttpRuntime.Cache[key];
+                cache = ( CachedRatings ) MemoryCache.Default.Get( key );
                 try
                 {
                     if ( cache.LastUpdated > maxTime )
@@ -249,29 +250,20 @@ namespace Factories
             output = ratings.FirstOrDefault( s => s.CodedNotation == rating );
             //
             //add to cache
-            if ( key.Length > 0 && cacheMinutes > 0 )
+            if ( key.Length > 0 && cacheHours > 0 )
             {
                 var newCache = new CachedRatings()
                 {
                     Ratings = ratings,
                     LastUpdated = DateTime.Now
                 };
-                if ( HttpContext.Current != null )
+                if ( MemoryCache.Default.Get( key ) != null )
                 {
-                    if ( HttpContext.Current.Cache[key] != null )
-                    {
-                        HttpRuntime.Cache.Remove( key );
-                        HttpRuntime.Cache.Insert( key, newCache, null, DateTime.Now.AddMinutes( cacheMinutes ), TimeSpan.Zero );
-
-                        LoggingHelper.DoTrace( 5, thisClassName + ".GetRatingFromCache $$$ Updating cached version " );
-                    }
-                    else
-                    {
-                        LoggingHelper.DoTrace( 6, string.Format( thisClassName + ".GetRatingFromCache ****** Inserting new cached version : no cached record found" ) );
-
-                        System.Web.HttpRuntime.Cache.Insert( key, newCache, null, DateTime.Now.AddMinutes( cacheMinutes ), TimeSpan.Zero );
-                    }
+                    MemoryCache.Default.Remove( key );
                 }
+
+                //
+                MemoryCache.Default.Add( key, newCache, new DateTimeOffset( DateTime.Now.AddHours( cacheHours ) ) );
             }
             //
             //
@@ -286,77 +278,74 @@ namespace Factories
             string[] parts = property.Split( '|' );
             foreach ( var item in parts )
             {
-                var billet = GetBilletsFromCache( item );
+                //var billet = GetBilletTitleFromCache( item );
+                var billet = JobManager.GetByName( item ); ;
                 if ( billet?.Id > 0 )
                     output.Add( billet.RowId );
             }
 
             return output;
         } //
-        public static MSc.BilletTitle GetBilletsFromCache( string billetTitle )
+        public static MSc.BilletTitle GetBilletTitleFromCache( string billetTitle )
         {
-            var cache = new CachedBillets();
-            var output = new MSc.BilletTitle();
-            var list = new List<MSc.BilletTitle>();
-            string key = "BilletsCache";
-            int cacheMinutes = 1440;
-            DateTime maxTime = DateTime.Now.AddMinutes( cacheMinutes * -1 );
-            if ( HttpRuntime.Cache[key] != null && cacheMinutes > 0 )
-            {
-                //may want to use application cache
-                cache = ( CachedBillets ) HttpRuntime.Cache[key];
-                try
-                {
-                    if ( cache.LastUpdated > maxTime )
-                    {
-                        LoggingHelper.DoTrace( 6, string.Format( thisClassName + ".GetBilletsFromCache. Using cached version of BilletTitle" ) );
-
-                        list = cache.Ratings;
-                        output = list.FirstOrDefault( s => s.Name.ToLower() == billetTitle.ToLower());
-                        return output;
-                    }
-                }
-                catch ( Exception ex )
-                {
-                    LoggingHelper.DoTrace( 5, thisClassName + ".GetRatingFromCache === exception " + ex.Message );
-                    //just fall thru and retrieve
-                }
-            }
-
-            {
-                list = JobManager.GetAll();
-            }
-            output = list.FirstOrDefault( s => s.Name.ToLower() == billetTitle.ToLower() );
-            //
-            //add to cache
-            if ( key.Length > 0 && cacheMinutes > 0 )
-            {
-                var newCache = new CachedBillets()
-                {
-                    Ratings = list,
-                    LastUpdated = DateTime.Now
-                };
-                if ( HttpContext.Current != null )
-                {
-                    if ( HttpContext.Current.Cache[key] != null )
-                    {
-                        HttpRuntime.Cache.Remove( key );
-                        HttpRuntime.Cache.Insert( key, newCache, null, DateTime.Now.AddMinutes( cacheMinutes ), TimeSpan.Zero );
-
-                        LoggingHelper.DoTrace( 5, thisClassName + ".GetBilletsFromCache $$$ Updating cached version " );
-                    }
-                    else
-                    {
-                        LoggingHelper.DoTrace( 6, string.Format( thisClassName + ".GetBilletsFromCache ****** Inserting new cached version : no cached record found" ) );
-
-                        System.Web.HttpRuntime.Cache.Insert( key, newCache, null, DateTime.Now.AddMinutes( cacheMinutes ), TimeSpan.Zero );
-                    }
-                }
-            }
-            //
-            //
+            var output = JobManager.GetByName(billetTitle);
             return output;
-        }
+        } //
+        //public static List<MSc.BilletTitle> GetAllBilletsFromCache( string billetTitle )
+        //{
+        //    var cache = new CachedBillets();
+        //    var output = new MSc.BilletTitle();
+        //    var list = new List<MSc.BilletTitle>();
+        //    string key = "BilletsCache";
+        //    int cacheHours = 8;
+        //    DateTime maxTime = DateTime.Now.AddHours( cacheHours * -1 );
+        //    if ( MemoryCache.Default.Get( key ) != null && cacheHours > 0 )
+        //    {
+        //        cache = ( CachedBillets ) MemoryCache.Default.Get( key );
+        //        try
+        //        {
+        //            if ( cache.LastUpdated > maxTime )
+        //            {
+        //                LoggingHelper.DoTrace( 6, string.Format( thisClassName + ".GetBilletsFromCache. Using cached version of BilletTitle" ) );
+        //                //**** change to Billets
+        //                list = cache.Billets;
+        //                output = list.FirstOrDefault( s => s.Name.ToLower() == billetTitle.ToLower());
+        //                //what if not found? Probably need to log and get?
+        //                return output;
+        //            }
+        //        }
+        //        catch ( Exception ex )
+        //        {
+        //            LoggingHelper.DoTrace( 5, thisClassName + ".GetBilletsFromCache === exception " + ex.Message );
+        //            //just fall thru and retrieve
+        //        }
+        //    }
+        //    //get
+        //    list = JobManager.GetAll();
+     
+        //    output = list.FirstOrDefault( s => s.Name.ToLower() == billetTitle.ToLower() );
+        //    //
+        //    //add to cache
+        //    if ( key.Length > 0 && cacheHours > 0 )
+        //    {
+        //        var newCache = new CachedBillets()
+        //        {
+        //            Billets = list,
+        //            LastUpdated = DateTime.Now
+        //        };
+        //        if ( MemoryCache.Default.Get( key ) != null )
+        //        {
+        //            MemoryCache.Default.Remove( key );
+        //        }
+                
+        //        //
+        //        MemoryCache.Default.Add( key, newCache, new DateTimeOffset( DateTime.Now.AddHours( cacheHours ) ) );
+        //        LoggingHelper.DoTrace( 5, thisClassName + ".GetBilletsFromCache $$$ Updating cached version " );
+
+        //    }
+        //    //
+        //    return output;
+        //}
         public static string GetRowColumn( DataRow row, string column, string defaultValue = "" )
         {
             string colValue = "";
@@ -1841,6 +1830,8 @@ namespace Factories
         public string Suggestion { get; set; }
     }
     //
+
+    //
     [Serializable]
     public class CachedRatings
     {
@@ -1861,7 +1852,7 @@ namespace Factories
             LastUpdated = DateTime.Now;
         }
         public DateTime LastUpdated { get; set; }
-        public List<MSc.BilletTitle> Ratings { get; set; }
+        public List<MSc.BilletTitle> Billets { get; set; }
 
     }
 }

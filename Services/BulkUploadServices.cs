@@ -41,6 +41,17 @@ namespace Services
 			var assessmentMethodTypeConcepts = Factories.ConceptSchemeManager.GetbyShortUri( Factories.ConceptSchemeManager.ConceptScheme_CurrentAssessmentApproach ).Concepts;
 			debug[ latestStepFlag ] = "Got data from the Database";
 
+			//mp - should add caching for these
+			existing.BilletTitle = Factories.JobManager.GetAll();
+			existing.Course = Factories.CourseManager.GetAll();
+			existing.Organization = Factories.OrganizationManager.GetAll();
+			existing.ReferenceResource = Factories.ReferenceResourceManager.GetAll();
+			existing.WorkRole = Factories.WorkRoleManager.GetAll();
+			//training task - really all?
+			existing.TrainingTask = Factories.CourseManager.TrainingTaskGetAll();
+			//should not get all rating task once have many rmtls
+			int totalRows = 0;
+			existing.RatingTask = Factories.RatingTaskManager.GetAll( currentRating.CodedNotation , true, ref totalRows);
 			//Create a graph that will be used for searching for matching data
 			//The data in this graph needs to be a hybrid of known/existing data and freshly added data so that the correct connections are made in a later step
 			//So the List<>s need to be new entities (hence Concat()) but the existing entity references inside them should still be the originals (passed by reference)

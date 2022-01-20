@@ -15,14 +15,15 @@ using ViewContext = Data.Views.ceNavyViewEntities;
 using DBEntity = Data.Tables.RatingTask;
 
 using Navy.Utilities;
-
+using System.Runtime.Caching;
 
 namespace Factories
 {
     public class RatingTaskManager : BaseFactory
     {
         public static new string thisClassName = "RatingTaskManager";
-
+        public static string cacheKey = "RatingTaskCache";
+        public static string cacheKeySummary = "RatingTaskSummaryCache";
         #region Retrieval
         /// <summary>
         /// Don't know the input for sure. Could be ImportRMTL
@@ -154,34 +155,151 @@ namespace Factories
             return list;
         }
 
-        public static List<AppEntity> GetAll( string rating )
+        public static List<AppEntity> GetAll( string rating, bool includingAllSailorsTasks, ref int totalRows )
+        {
+            int pageNumber = 1;
+            //what is a reasonable max number for all tasks for a rating?
+            int pageSize = 2000;
+            if ( includingAllSailorsTasks )
+                pageSize = 0;
+            int userId = 0;
+            return GetAll( rating, includingAllSailorsTasks, pageNumber, pageSize, ref totalRows );
+        }
+
+        /// <summary>
+        /// Get all rating tasks for the provided rating
+        /// </summary>
+        /// <param name="rating"></param>
+        /// <param name="includingAllSailorsTasks">If true, include All Sailor tasks</param>
+        /// <param name="pageNumber"></param>
+        /// <param name="pageSize">Consider: if zero, return all records</param>
+        /// <param name="totalRows"></param>
+        /// <returns></returns>
+        public static List<AppEntity> GetAll( string rating, bool includingAllSailorsTasks, int pageNumber, int pageSize, ref int totalRows  )
         {
             var entity = new AppEntity();
             var list = new List<AppEntity>();
+            //caching will have to be specific to the request
+            //-no caching if not getting all? That is if pageSize > 0
+            if ( pageSize == 0 || pageSize > 1700 )
+            {
+                list = CheckCache( rating, includingAllSailorsTasks );
+                if ( list?.Count > 0 )
+                    return list;
+            }
+
+            list = new List<AppEntity>();
+
             string filter = "";
             string orderBy = "";
-            int pageNumber = 1;
-            int pageSize = 50;
+            //int pageNumber = 1;
+            //what is a reasonable max number for all tasks for a rating?
+           //int pageSize = 2000;
             int userId = 0;
-            int pTotalRows = 0;
+            //int pTotalRows = 0;
+            if (string.IsNullOrWhiteSpace(rating))
+            {
+                //don't want to return all, 
+            }
+            var template = string.Format("'{0}'", rating.Trim());
+            if (includingAllSailorsTasks)
+            {
+                template += ",'ALL'";
+            }
+            filter = string.Format( "base.id in (select a.[RatingTaskId] from [RatingTask.HasRating] a inner join Rating b on a.ratingId = b.Id where b.CodedNotation in ({0}) )", template );
+            var results = Search( filter, orderBy, pageNumber, pageSize, userId, ref totalRows );
 
-            filter = string.Format( "base.id in (select a.[RatingTaskId] from [RatingTask.HasRating] a inner join Rating b on a.ratingId = b.Id where b.CodedNotation = '{0}' )", rating);
-            var results = Search( filter, orderBy, pageNumber, pageSize, userId, ref pTotalRows );
-
-            results.ConvertAll( m => new AppEntity() 
+            //no clear difference between the convert and select?
+            list = results.ConvertAll( m => new AppEntity() 
             { 
-                ApplicabilityType=m.ApplicabilityType,
+                CTID = m.CTID,
+                RowId = m.RowId,
+                HasRating = m.HasRatings,      //not available-adding
+                PayGradeType = m.PayGradeType,
+                HasBillet = m.HasBilletTitles,
+                HasWorkRole = m.HasWorkRole,
                 HasReferenceResource = m.HasReferenceResource,
+                ReferenceType = m.ReferenceType,
                 Description = m.Description,
-                ReferenceType=m.ReferenceType,
-                HasWorkRole=m.HasWorkRole,
-                HasTrainingTask=m.HasTrainingTask,
-                PayGradeType=m.PayGradeType,
-                TaskTrainingGap=m.TaskTrainingGap,
-                CodedNotation=m.CodedNotation,
-                HasRating=m.HasRating,      //not available
+                CodedNotation = m.CodedNotation,
+                ApplicabilityType = m.ApplicabilityType,
+                TaskTrainingGap = m.TaskTrainingGap,
+                HasTrainingTask =m.HasTrainingTask,
+                
             } ).ToList();
+
+            AddToCache( list, rating, includingAllSailorsTasks );
+            //var r2 = results.Select( s => new AppEntity() 
+            //{
+            //    CTID=s.CTID,
+            //    RowId=s.RowId,
+            //    HasRating = s.HasRatings,
+            //    HasBillet = s.HasBilletTitles,
+            //    PayGradeType = s.PayGradeType,
+            //    HasWorkRole = s.HasWorkRole,
+            //    HasReferenceResource = s.HasReferenceResource,
+            //    ReferenceType=s.ReferenceType, 
+            //    Description=s.Description,
+            //    CodedNotation = s.CodedNotation,
+            //    ApplicabilityType = s.ApplicabilityType,
+            //    TrainingGapType = s.TrainingGapType,
+            //    HasTrainingTask = s.HasTrainingTask,
+            //} );
+
+
             return list;
+        }
+
+        public static List<AppEntity> CheckCache( string rating, bool includingAllSailorsTasks )
+        {
+            var cache = new CachedRatingTask();
+            var list = new List<AppEntity>();
+            var key = cacheKey + String.Format( "_{0}_{1}", rating, includingAllSailorsTasks );
+            int cacheHours = 8;
+            DateTime maxTime = DateTime.Now.AddHours( cacheHours * -1 );
+            if ( MemoryCache.Default.Get( cacheKey ) != null && cacheHours > 0 )
+            {
+                cache = ( CachedRatingTask ) MemoryCache.Default.Get( cacheKey );
+                try
+                {
+                    if ( cache.LastUpdated > maxTime )
+                    {
+                        LoggingHelper.DoTrace( 6, string.Format( thisClassName + ".CheckCache. Using cached version." ) );
+                        list = cache.Objects;
+                        return list;
+                    }
+                }
+                catch ( Exception ex )
+                {
+                    LoggingHelper.DoTrace( 5, thisClassName + ".CheckCache === exception " + ex.Message );
+                }
+            }
+            //get
+            return null;
+
+        }
+        public static void AddToCache( List<AppEntity> input, string rating, bool includingAllSailorsTasks )
+        {
+            var key = cacheKey + String.Format( "_{0}_{1}", rating, includingAllSailorsTasks );
+
+            int cacheHours = 8;
+            //add to cache
+            if ( key.Length > 0 && cacheHours > 0 )
+            {
+                var newCache = new CachedRatingTask()
+                {
+                    Objects = input,
+                    LastUpdated = DateTime.Now
+                };
+                if ( MemoryCache.Default.Get( key ) != null )
+                {
+                    MemoryCache.Default.Remove( key );
+                }
+                //
+                MemoryCache.Default.Add( key, newCache, new DateTimeOffset( DateTime.Now.AddHours( cacheHours ) ) );
+                LoggingHelper.DoTrace( 5, thisClassName + ".AddToCache $$$ Updating cached version " );
+
+            }
         }
         /// <summary>
         /// assuming the rating code
@@ -212,8 +330,19 @@ namespace Factories
 			List<EntitySummary> list = new List<EntitySummary>();
 			var result = new DataTable();
 
+            if ( pageNumber < 1 )
+                pageNumber = 1;
+            if ( pageSize < 1 )
+            {
+                //if there is a filter, could allow getting all
+                if ( !string.IsNullOrWhiteSpace( pFilter ) )
+                {
+                    //ensure stored proc can handle this - it can
+                    pageSize = 0;
+                }
+            }
 
-			using ( SqlConnection c = new SqlConnection( connectionString ) )
+            using ( SqlConnection c = new SqlConnection( connectionString ) )
 			{
 				c.Open();
 
@@ -272,6 +401,7 @@ namespace Factories
                         item.HasRatings = GetRatingGuids( item.Ratings );
                         //do we need to populate HasRating (if so, could include in the pipe separated list of Ratings
                         item.BilletTitles = GetRowColumn( dr, "BilletTitles", "" );
+                        //could save previous and then first check the previous
                         item.HasBilletTitles = GetBilletTitleGuids( item.BilletTitles );
                         //similarly, do we need a list of billet guids?
 
@@ -312,7 +442,7 @@ namespace Factories
 						item.CIN = GetRowColumn( dr, "CIN", "" );
 						item.CourseName = GetRowColumn( dr, "CourseName", "" );
 						item.CourseType = GetRowPossibleColumn( dr, "CourseType", "" );
-						item.CurrentAssessmentApproach = GetRowPossibleColumn( dr, "CurrentAssessmentApproach", "" );
+						item.CurrentAssessmentApproach = GetRowPossibleColumn( dr, "AssessmentMethodTypes", "" );
 						//
 						item.TrainingTask = GetRowPossibleColumn( dr, "TrainingTask", "" );
 						item.HasTrainingTask = GetGuidType( dr, "HasTrainingTask" );
@@ -777,6 +907,17 @@ namespace Factories
 
         }
         #endregion
+
+    }
+    [Serializable]
+    public class CachedRatingTask
+    {
+        public CachedRatingTask()
+        {
+            LastUpdated = DateTime.Now;
+        }
+        public DateTime LastUpdated { get; set; }
+        public List<AppEntity> Objects { get; set; }
 
     }
 }

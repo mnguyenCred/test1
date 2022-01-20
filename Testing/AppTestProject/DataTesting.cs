@@ -27,6 +27,23 @@ namespace AppTestProject
 
         }
         [TestMethod]
+        public void RatingTaskGetAll()
+        {
+            var totalRows = 0;
+            try
+            {
+                var results = RatingTaskManager.GetAll( "qm", true, ref totalRows );
+
+                results = RatingTaskManager.GetAll( "abf", false, 1, 200, ref totalRows );
+            }
+            catch ( Exception ex )
+            {
+                Assert.Fail( ex.Message );
+            }
+
+
+        }
+        [TestMethod]
         public void RatingTaskSearch()
         {
             var recordId = 1;
@@ -65,6 +82,7 @@ namespace AppTestProject
         }
         #endregion
 
+        #region Rating
         [TestMethod]
         public void RatingGetAll()
         {
@@ -81,6 +99,8 @@ namespace AppTestProject
                 Assert.Fail( ex.Message );
             }
         }
+        #endregion
+
         #region Source
         [TestMethod]
         public void ReferenceResourceGet()
