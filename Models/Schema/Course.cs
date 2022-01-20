@@ -52,7 +52,7 @@ namespace Models.Schema
 		/// GUID for the Concept for the Assessment Method Type for this Course<br />
 		/// From Column: Current Assessment Approach
 		/// </summary>
-		public Guid AssessmentMethodType { get; set; }
+		public List<Guid> AssessmentMethodType { get; set; }
 
 		/// <summary>
 		/// Embedded Training Task data for this Course

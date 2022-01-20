@@ -154,7 +154,7 @@ namespace Factories
             return list;
         }
 
-        public static List<AppEntity> GetAll( string rating )
+        public static List<AppEntity> GetAllForRating( string rating )
         {
             var entity = new AppEntity();
             var list = new List<AppEntity>();

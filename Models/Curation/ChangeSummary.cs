@@ -14,7 +14,7 @@ namespace Models.Curation
 			ItemsToBeCreated = new UploadableData();
 			ItemsToBeChanged = new UploadableData();
 			ItemsToBeDeleted = new UploadableData();
-			UploadedInnerListsForCopiesOfItems = new UploadableData();
+			AddedItemsToInnerListsForCopiesOfItems = new UploadableData();
 			RemovedItemsFromInnerListsForCopiesOfItems = new UploadableData();
 			UnchangedCount = new ItemCounts();
 			Messages = new Messages();
@@ -36,7 +36,7 @@ namespace Models.Curation
 		/// Set of copies of existing items (the copy will have the same RowId as the original).<br />
 		/// For each such item, any populated List&lt;&gt;s indicate new values to be added to the equivalent list for the original item.
 		/// </summary>
-		public UploadableData UploadedInnerListsForCopiesOfItems { get; set; }
+		public UploadableData AddedItemsToInnerListsForCopiesOfItems { get; set; }
 
 		/// <summary>
 		/// Set of copies of existing items (the copy will have the same RowId as the original).<br />
@@ -101,4 +101,5 @@ namespace Models.Curation
 		public List<string> Note { get; set; }
 	}
 	//
+
 }
