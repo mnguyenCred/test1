@@ -931,7 +931,7 @@ namespace Factories
             return isValid;
         }
 
-        protected bool IsValidGuid( Guid field )
+        public static bool IsValidGuid( Guid field )
         {
             if ( ( field == null || field.ToString() == Guid.Empty.ToString() ) )
                 return false;

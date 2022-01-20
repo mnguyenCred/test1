@@ -30,6 +30,12 @@ namespace Services
 				result.Messages.Error.Add( "Error: Unable to find Rating for identifier: " + ratingRowID );
 				return result;
 			}
+			if ( uploaded.Rows.Count == 0)
+			{
+				result.Messages.Error.Add( "Error: No rows were found to process." );
+				return result;
+			}
+			var alternateRating = new Rating();
 
 			var existing = new UploadableData(); //Get from database for the selected rating
 			//var concepts = new List<Concept>(); //Get from database, possibly as separate variables for each scheme
@@ -66,14 +72,39 @@ namespace Services
 				WorkRole = new List<WorkRole>().Concat( existing.WorkRole ).ToList()
 			};
 			debug[ latestStepFlag ] = "Created Graph holder";
-
+			Guid currentRatingRowID = ratingRowID;
 			//For each row...
 			var rowCount = 0;
+			bool foundDifferentRating = false; 
 			foreach( var row in uploaded.Rows )
 			{
 				debug[ "Current Row" ] = (rowCount + 1);
 				rowCount++;
+				//check for All 
+				row.Rating_CodedNotation = NullifyNotApplicable( row.Rating_CodedNotation );
+				if ( row.Rating_CodedNotation != currentRating.CodedNotation)
+                {
+					alternateRating = Factories.RatingManager.GetByCode( row.Rating_CodedNotation );
+					currentRatingRowID = alternateRating.RowId;
+					//should be All
+					//make configurable, but could ignore
+					//produce a message 
+					if (!foundDifferentRating )
+                    {
+						//actually adding an error will stop process
+						result.Messages.Error.Add( String.Format("While processing: '{0}' a different rating was found: '{1}'. Only one rating may uploaded at a time. All other ratings will be ignored.", currentRating.CodedNotation, row.Rating_CodedNotation) );
+					}
+					foundDifferentRating=true;
+					continue;
+				} else
+                {
+					//assuming only 2
+                }
 
+				//how to handle identifier
+				//this would be coded notation for the rating task, as well as the row. So second upload, the related training task can be accessed by an id
+				row.Row_CodedNotation = NullifyNotApplicable( row.Row_CodedNotation );
+				row.Row_Identifier = NullifyNotApplicable( row.Row_Identifier );
 				//First, get a reference (as in RAM pointer) to each uploadable object in the current row of the spreadsheet
 				//Look in the "graph" data (which is the combination of existing data and data from earlier rows in this upload)
 				//If no match is found, create a new object and put it into the graph
@@ -86,10 +117,11 @@ namespace Services
 				row.Course_CurriculumControlAuthority_Name = NullifyNotApplicable( row.Course_CurriculumControlAuthority_Name );
 				row.Course_HasReferenceResource_Name = NullifyNotApplicable( row.Course_HasReferenceResource_Name );
 				row.Course_AssessmentMethodType_Label = NullifyNotApplicable( row.Course_AssessmentMethodType_Label );
+
 				row.ReferenceResource_PublicationDate = NullifyNotApplicable( row.ReferenceResource_PublicationDate );
 				if ( BaseFactory.IsValidDate( row.ReferenceResource_PublicationDate ) )
 				{
-					//normalize
+					//normalize - may want to make this an app key to allow flexiblig
 					row.ReferenceResource_PublicationDate = DateTime.Parse( row.ReferenceResource_PublicationDate ).ToString( "yyyy-MM-dd" );
 				}
 
@@ -124,7 +156,7 @@ namespace Services
 					{ 
 						RowId = Guid.NewGuid(), 
 						Name = row.BilletTitle_Name,
-						HasRating = ratingRowID
+						HasRating = currentRatingRowID
 					};
 					graph.BilletTitle.Add( billetTitle );
 					result.ItemsToBeCreated.BilletTitle.Add( billetTitle );
@@ -191,21 +223,38 @@ namespace Services
 				}
 				debug[ latestStepFlag ] = "Got Task Source data for row " + rowCount;
 
-				//Rating Task
+				//Rating Task 
+				//not matching existing?
+				//if have an identifier, use it
 				//why use the Note in the check?
-				var ratingTask = graph.RatingTask.FirstOrDefault( m =>
-					 m.Description == row.RatingTask_Description &&
-					 //m.Note == row.Note &&
-					 Find( graph.WorkRole, m.HasWorkRole ).Select( n => n.Name ).Contains( row.WorkRole_Name ) 
-					 && Find( graph.ReferenceResource, m.HasReferenceResource )?.Name == row.ReferenceResource_Name
-					 //&& Find( graph.ReferenceResource, m.HasReferenceResource )?.PublicationDate == ParseDateOrEmpty( row.ReferenceResource_PublicationDate ) 
-					 //.need codedNotation here
-					 && sharedSourceType?.CodedNotation == row.Shared_ReferenceType
-					 && trainingGapType?.Name == row.RatingTask_TrainingGapType_Label 
-					 && applicabilityType?.Name == row.RatingTask_ApplicabilityType_Label 
-					 && payGradeType?.CodedNotation == row.PayGradeType_Notation 
-					 && ( Find( graph.TrainingTask, m.HasTrainingTask )?.Description ?? "" ) == ( row.TrainingTask_Description ?? "" )
-				);
+				RatingTask ratingTask = null;
+				if (!string.IsNullOrEmpty( row.Row_CodedNotation))
+                {
+					ratingTask = graph.RatingTask.FirstOrDefault( m =>
+						m.CodedNotation.ToLower() == row.Row_CodedNotation.ToLower() );
+					//make sure found
+					if ( string.IsNullOrWhiteSpace(ratingTask?.CodedNotation) )
+						ratingTask = null;
+				}
+
+				if ( ratingTask == null )
+				{
+
+					ratingTask = graph.RatingTask.FirstOrDefault( m =>
+						m.Description == row.RatingTask_Description &&
+						//m.Note == row.Note &&
+						Find( graph.WorkRole, m.HasWorkRole ).Select( n => n.Name ).Contains( row.WorkRole_Name )
+						&& Find( graph.ReferenceResource, m.HasReferenceResource )?.Name == row.ReferenceResource_Name
+						//&& Find( graph.ReferenceResource, m.HasReferenceResource )?.PublicationDate == ParseDateOrEmpty( row.ReferenceResource_PublicationDate ) 
+						//.need codedNotation here
+						&& sharedSourceType?.CodedNotation == row.Shared_ReferenceType
+						&& trainingGapType?.Name == row.RatingTask_TrainingGapType_Label
+						&& applicabilityType?.Name == row.RatingTask_ApplicabilityType_Label
+						&& payGradeType?.CodedNotation == row.PayGradeType_Notation
+						&& ( Find( graph.TrainingTask, m.HasTrainingTask )?.Description ?? "" ) == ( row.TrainingTask_Description ?? "" )
+					);
+				}
+
 				//
 				var ratingTask2 = graph.RatingTask.FirstOrDefault( m =>
 					 m.Description == row.RatingTask_Description 
@@ -228,6 +277,7 @@ namespace Services
 					{ 
 						RowId = Guid.NewGuid(), 
 						Description = row.RatingTask_Description, 
+						CodedNotation = row.Row_CodedNotation,
 						Note = row.Note,
 						HasReferenceResource = taskSource.RowId,
 						PayGradeType = payGradeType.RowId,
@@ -240,6 +290,7 @@ namespace Services
 				}
 				else
 				{
+					//needs to check for valid data
 					Append( referencedItems.RatingTask, ratingTask );
 				}
 				debug[ latestStepFlag ] = "Got Rating Task data for row " + rowCount;
@@ -247,11 +298,22 @@ namespace Services
 				//The last few may or may not be present in some rows, hence the extra special handling for nulls
 				//Course Source (The Reference Resource for the course, distinct from the Reference Resource for the task in another column)
 				TrainingTask trainingTask = null;
+				//if the same row as before, ...
 				if ( !string.IsNullOrWhiteSpace( row.TrainingTask_Description ) )
 				{
-					trainingTask = graph.TrainingTask.FirstOrDefault( m =>
-						m.Description == row.TrainingTask_Description
-					);
+					if ( BaseFactory.IsValidGuid( ratingTask.HasTrainingTask ) )
+					{
+						trainingTask = graph.TrainingTask.FirstOrDefault( m => m.RowId == ratingTask.HasTrainingTask );
+					}
+
+					if ( trainingTask == null )
+					{
+						//risky
+						//should be able to get the training task that was originally connected to the rating task. 
+						trainingTask = graph.TrainingTask.FirstOrDefault( m =>
+							m.Description == row.TrainingTask_Description
+						);
+					}
 					if(trainingTask == null )
 					{
 						trainingTask = new TrainingTask() 
@@ -307,12 +369,20 @@ namespace Services
 				Course course = null;
 				if ( !string.IsNullOrWhiteSpace( row.Course_CodedNotation ) && row.Course_CodedNotation.ToLower() != "n/a" )
 				{
+					//CodedNotation should be unique? Don't want to get caught up with a name change
 					course = graph.Course.FirstOrDefault( m =>
-						m.Name == row.Course_Name &&
-						m.CodedNotation == row.Course_CodedNotation &&
-						assessmentMethodType?.Name == row.Course_AssessmentMethodType_Label
+						m.CodedNotation.ToLower() == row.Course_CodedNotation.ToLower()
 					);
-					if( course == null )
+
+					if ( course == null )
+					{
+						course = graph.Course.FirstOrDefault( m =>
+								m.Name == row.Course_Name
+								//&& m.CodedNotation == row.Course_CodedNotation
+								&& assessmentMethodType?.Name == row.Course_AssessmentMethodType_Label
+							);
+					}
+					if ( course == null )
 					{
 						course = new Course() 
 						{ 
@@ -341,8 +411,9 @@ namespace Services
 				Organization cca = null;
 				if ( !string.IsNullOrWhiteSpace( row.Course_CurriculumControlAuthority_Name ) )
 				{
+					//should ignore case here. Note that current data has a coded notation for the org name. 
 					cca = graph.Organization.FirstOrDefault( m =>
-						 m.Name == row.Course_CurriculumControlAuthority_Name
+						 m.Name.ToLower() == row.Course_CurriculumControlAuthority_Name.ToLower()
 					);
 					if( cca == null )
 					{
@@ -404,7 +475,7 @@ namespace Services
 				//Otherwise, just treat it like a new Rating Task for now (we will check for it under another Rating later so we can process those in bulk)
 				else
 				{
-					Append( ratingTask.HasRating, ratingRowID );
+					Append( ratingTask.HasRating, currentRatingRowID );
 					Append( ratingTask.HasWorkRole, workRole.RowId );
 					ratingTask.HasTrainingTask = trainingTask?.RowId ?? Guid.Empty; //Training Task gets determined after a new Rating Task is initialized, so it isn't available at that time
 				}
@@ -535,9 +606,9 @@ namespace Services
 					}
 
 					//Add Rating association
-					if ( !otherRatingTask.HasRating.Contains( ratingRowID ) )
+					if ( !otherRatingTask.HasRating.Contains( currentRatingRowID ) )
 					{
-						Append( tracked.HasRating, ratingRowID );
+						Append( tracked.HasRating, currentRatingRowID );
 						result.Messages.AddItem.Add( "Add Rating association: " + currentRating.Name + " to Rating Task: " + otherRatingTask.Description );
 					}
 
@@ -574,7 +645,7 @@ namespace Services
 			debug[ latestStepFlag ] = "Flagged normal items for deletion";
 
 			//Only flag the task if it isn't associated with any other rating
-			FlagItemsForDeletion( existing.RatingTask.Where( m => m.HasRating.Count() == 1 && m.HasRating.FirstOrDefault() == ratingRowID ).ToList(), referencedItems.RatingTask, result.ItemsToBeDeleted.RatingTask, result.Messages.Delete, "Rating Task", ( RatingTask m ) => { return m.CTID + " - " + m.Description; } );
+			FlagItemsForDeletion( existing.RatingTask.Where( m => m.HasRating.Count() == 1 && m.HasRating.FirstOrDefault() == currentRatingRowID ).ToList(), referencedItems.RatingTask, result.ItemsToBeDeleted.RatingTask, result.Messages.Delete, "Rating Task", ( RatingTask m ) => { return m.CTID + " - " + m.Description; } );
 
 			//Probably shouldn't ever delete reference resources(?)
 			//FlagItemsForDeletion( existing.ReferenceResource, referencedItems.ReferenceResource, result.ItemsToBeDeleted.ReferenceResource, result.ChangeNote, "Reference Resource", ( ReferenceResource m ) => { return m.CTID + " - " + m.Name; } );
@@ -646,7 +717,7 @@ namespace Services
 				//If the original existing task was not referenced (ie was not in the spreadsheet) and references more than one rating, process it
 				if ( Find( referencedItems.RatingTask, originalTask.RowId ) == null && originalTask.HasRating.Count() > 1 ) 
 				{
-					removalTracker.HasRating.Add( ratingRowID );
+					removalTracker.HasRating.Add( currentRatingRowID );
 					result.Messages.RemoveItems.Add( "Remove Rating reference from Rating Task: " + currentRating.CodedNotation + " - " + originalTask.Description );
 				}
 
@@ -870,6 +941,83 @@ namespace Services
 				{
 					var mgr = new RatingTaskManager();
 					foreach ( var item in summary.ItemsToBeCreated.RatingTask )
+					{
+						item.CreatedById = item.LastUpdatedById = user.Id;
+						mgr.Save( item, ref status );
+					}
+				}
+			}
+
+
+			//changes
+			//not sure how different
+			if ( summary.ItemsToBeChanged != null )
+			{
+				if ( summary.ItemsToBeChanged.Organization?.Count > 0 )
+				{
+					var orgMgr = new OrganizationManager();
+					foreach ( var item in summary.ItemsToBeChanged.Organization )
+					{
+						item.CreatedById = item.LastUpdatedById = user.Id;
+						orgMgr.Save( item, user.Id, ref status );
+					}
+				}
+				if ( summary.ItemsToBeChanged.Course?.Count > 0 )
+				{
+					//is training task part of course, see there is a separate TrainingTask in UploadableData. the latter has no course Id/RowId to make an association?
+					var courseMgr = new CourseManager();
+					foreach ( var item in summary.ItemsToBeChanged.Course )
+					{
+						//get all tasks for this course
+						if ( summary.ItemsToBeChanged.TrainingTask?.Count > 0 )
+						{
+							var results = summary.ItemsToBeChanged.TrainingTask.Where( p => item.HasTrainingTask.Any( p2 => p2 == p.RowId ) );
+							item.TrainingTasks.AddRange( results );
+						}
+						//just in case, do we need to also get created?
+						if ( summary.ItemsToBeCreated.TrainingTask?.Count > 0 )
+						{
+							var results = summary.ItemsToBeCreated.TrainingTask.Where( p => item.HasTrainingTask.Any( p2 => p2 == p.RowId ) );
+							item.TrainingTasks.AddRange( results );
+						}
+						item.CreatedById = item.LastUpdatedById = user.Id;
+						courseMgr.Save( item, ref status );
+					}
+				}
+				if ( summary.ItemsToBeChanged.ReferenceResource?.Count > 0 )
+				{
+					var mgr = new ReferenceResourceManager();
+					foreach ( var item in summary.ItemsToBeChanged.ReferenceResource )
+					{
+						item.CreatedById = item.LastUpdatedById = user.Id;
+						mgr.Save( item, ref status );
+					}
+				}
+
+				if ( summary.ItemsToBeChanged.WorkRole?.Count > 0 )
+				{
+					var mgr = new WorkRoleManager();
+					foreach ( var item in summary.ItemsToBeChanged.WorkRole )
+					{
+						item.CreatedById = item.LastUpdatedById = user.Id;
+						mgr.Save( item, ref status );
+					}
+				}
+
+				if ( summary.ItemsToBeChanged.BilletTitle?.Count > 0 )
+				{
+					var mgr = new JobManager();
+					foreach ( var item in summary.ItemsToBeChanged.BilletTitle )
+					{
+						item.CreatedById = item.LastUpdatedById = user.Id;
+						mgr.Save( item, ref status );
+					}
+				}
+
+				if ( summary.ItemsToBeChanged.RatingTask?.Count > 0 )
+				{
+					var mgr = new RatingTaskManager();
+					foreach ( var item in summary.ItemsToBeChanged.RatingTask )
 					{
 						item.CreatedById = item.LastUpdatedById = user.Id;
 						mgr.Save( item, ref status );
