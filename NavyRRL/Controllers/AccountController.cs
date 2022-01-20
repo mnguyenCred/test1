@@ -213,6 +213,12 @@ namespace NavyRRL.Controllers
         [AllowAnonymous]
         public ActionResult Register()
         {
+            var env = UtilityManager.GetAppKeyValue( "environment" );
+            //or check IP
+            if ( env != "development")
+            {
+                return View( "~/Views/Home/PageNotFound.cshtml" );
+            }
             return View();
         }
 

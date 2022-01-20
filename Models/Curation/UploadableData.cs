@@ -43,6 +43,8 @@ namespace Models.Curation
 	}
 	public class UploadableRow
 	{
+		public string Row_CodedNotation { get; set; }
+		public string Row_Identifier { get; set; }
 		public string Rating_CodedNotation { get; set; }
 		public string PayGradeType_Notation { get; set; }
 		public string BilletTitle_Name { get; set; }
