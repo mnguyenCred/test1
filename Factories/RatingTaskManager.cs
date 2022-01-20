@@ -155,15 +155,16 @@ namespace Factories
             return list;
         }
 
-        public static List<AppEntity> GetAll( string rating )
+        public static List<AppEntity> GetAllForRating( string rating, bool includingAllSailorsTasks, ref int totalRows )
         {
             int pageNumber = 1;
             //what is a reasonable max number for all tasks for a rating?
             int pageSize = 2000;
+            //int totalRows = 0;
             if ( includingAllSailorsTasks )
                 pageSize = 0;
             int userId = 0;
-            return GetAll( rating, includingAllSailorsTasks, pageNumber, pageSize, ref totalRows );
+            return GetAllForRating( rating, includingAllSailorsTasks, pageNumber, pageSize, ref totalRows );
         }
 
         /// <summary>
@@ -175,7 +176,7 @@ namespace Factories
         /// <param name="pageSize">Consider: if zero, return all records</param>
         /// <param name="totalRows"></param>
         /// <returns></returns>
-        public static List<AppEntity> GetAll( string rating, bool includingAllSailorsTasks, int pageNumber, int pageSize, ref int totalRows  )
+        public static List<AppEntity> GetAllForRating( string rating, bool includingAllSailorsTasks, int pageNumber, int pageSize, ref int totalRows  )
         {
             //!!! this is very slow when getting 1600+ . Could have an async task to pre-cache
             var entity = new AppEntity();

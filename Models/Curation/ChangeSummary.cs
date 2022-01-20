@@ -44,6 +44,7 @@ namespace Models.Curation
 		/// </summary>
 		public UploadableData RemovedItemsFromInnerListsForCopiesOfItems { get; set; }
 
+		public UploadableData UploadedInnerListsForCopiesOfItems { get; set; }
 		/// <summary>
 		/// Set of items that were not found in the uploaded data and should be deleted.
 		/// </summary>

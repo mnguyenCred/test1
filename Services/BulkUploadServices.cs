@@ -55,9 +55,9 @@ namespace Services
 			existing.WorkRole = Factories.WorkRoleManager.GetAll();
 			//training task - really all?
 			existing.TrainingTask = Factories.CourseManager.TrainingTaskGetAll();
-			//should not get all rating task once have many rmtls
+			//should not get all rating task once have many rmtls (thousandds
 			int totalRows = 0;
-			existing.RatingTask = Factories.RatingTaskManager.GetAll( currentRating.CodedNotation , true, ref totalRows);
+			existing.RatingTask = Factories.RatingTaskManager.GetAllForRating( currentRating.CodedNotation , true, ref totalRows);
 			//Create a graph that will be used for searching for matching data
 			//The data in this graph needs to be a hybrid of known/existing data and freshly added data so that the correct connections are made in a later step
 			//So the List<>s need to be new entities (hence Concat()) but the existing entity references inside them should still be the originals (passed by reference)
@@ -381,7 +381,7 @@ namespace Services
 						course = graph.Course.FirstOrDefault( m =>
 								m.Name == row.Course_Name
 								//&& m.CodedNotation == row.Course_CodedNotation
-								&& assessmentMethodType?.Name == row.Course_AssessmentMethodType_Label
+								//&& assessmentMethodTypes?.Name == row.Course_AssessmentMethodType_Label
 							);
 					}
 					if ( course == null )
@@ -720,7 +720,7 @@ namespace Services
 				if ( Find( referencedItems.RatingTask, originalTask.RowId ) == null && originalTask.HasRating.Count() > 1 ) 
 				{
 					removalTracker.HasRating.Add( currentRatingRowID );
-					result.Messages.RemoveItems.Add( "Remove Rating reference from Rating Task: " + currentRating.CodedNotation + " - " + originalTask.Description );
+					result.Messages.RemoveItem.Add( "Remove Rating reference from Rating Task: " + currentRating.CodedNotation + " - " + originalTask.Description );
 				}
 
 				if( removalTracker.HasWorkRole.Count() > 0 || removalTracker.HasRating.Count() > 0 )
@@ -1058,7 +1058,8 @@ namespace Services
 
 
 			var existingReferenceResources = ReferenceResourceManager.GetAll();
-			var existingRatingTasks = RatingTaskManager.GetAllForRating( rating.CodedNotation );
+			int totalRows = 0;
+			var existingRatingTasks = Factories.RatingTaskManager.GetAllForRating( rating.CodedNotation, true, ref totalRows );
 			var existingBilletTitles = new List<BilletTitle>(); //Need a method to get these from the database
 			var existingTrainingTasks = TrainingTaskManager.GetAll();
 			var existingWorkRoles = WorkRoleManager.GetAll();

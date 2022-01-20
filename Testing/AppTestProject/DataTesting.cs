@@ -23,7 +23,7 @@ namespace AppTestProject
             var trainingTask = Factories.CourseManager.TrainingTaskGetAll();
 
                 int totalRows = 0;
-            var ratingTask = Factories.RatingTaskManager.GetAll( "q", true, ref totalRows );
+            var ratingTask = Factories.RatingTaskManager.GetAllForRating( "q", true, ref totalRows );
         }
         #region RatingTask
         [TestMethod]
@@ -47,9 +47,9 @@ namespace AppTestProject
             var totalRows = 0;
             try
             {
-                var results = RatingTaskManager.GetAll( "qm", true, ref totalRows );
+                var results = RatingTaskManager.GetAllForRating( "qm", true, ref totalRows );
 
-                results = RatingTaskManager.GetAll( "abf", false, 1, 200, ref totalRows );
+                results = RatingTaskManager.GetAllForRating( "abf", false, 1, 200, ref totalRows );
             }
             catch ( Exception ex )
             {

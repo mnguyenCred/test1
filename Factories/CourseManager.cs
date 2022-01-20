@@ -473,7 +473,7 @@ namespace Factories
                         }
                         else
                         {
-                            status.AddError( String.Format( "Error. For Course: '{0}' ({1}) an assessment method concept was not found for Identifier: {3}", input.Name, input.Id, input.AssessmentMethodType ) );
+                            status.AddError( String.Format( "Error. For Course: '{0}' ({1}) an organization was not found for Identifier: {3}", input.Name, input.Id, item.ToString() ) );
                         }
                     }
                 }
