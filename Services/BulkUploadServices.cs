@@ -452,7 +452,7 @@ namespace Services
 					{
 						//Use a temporary copy of the object to keep track of which items get added to it
 						//TODO - UploadedInnerListsForCopiesOfItems is NOT populated
-						var tracked = Find( result.UploadedInnerListsForCopiesOfItems.BilletTitle, billetTitle.RowId );
+						var tracked = Find( result.AddedItemsToInnerListsForCopiesOfItems.BilletTitle, billetTitle.RowId );
 						if( tracked == null )
 						{
 							tracked = new BilletTitle() { RowId = billetTitle.RowId };
