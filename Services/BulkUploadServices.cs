@@ -1088,11 +1088,8 @@ namespace Services
 			var existingRatingTaskMatchers = new List<SheetMatcher<RatingTask, MatchableRatingTask>>();
 			foreach( var existing in existingRatingTasks )
 			{
-				var matcher = new SheetMatcher<RatingTask, MatchableRatingTask>() 
-				{ 
-					Data = existing, 
-					Flattened = ( MatchableRatingTask ) existing 
-				};
+				var matcher = new SheetMatcher<RatingTask, MatchableRatingTask>() { Data = existing };
+				BaseFactory.AutoMap( existing, matcher.Flattened );
 
 				matcher.Flattened.HasRating_CodedNotation = allRatings.Where( m => existing.HasRating.Contains( m.RowId ) ).Select( m => m.CodedNotation ).ToList();
 				matcher.Flattened.HasTrainingTask_Description = existingTrainingTasks.FirstOrDefault( m => m.RowId == existing.HasTrainingTask )?.Description;
@@ -1177,7 +1174,7 @@ namespace Services
 					ApplicabilityType = FindConceptOrError( applicabilityTypeConcepts, new Concept() { Name = item.Flattened.ApplicabilityType_Name }, "Applicability Type", item.Flattened.ApplicabilityType_Name, summary.Messages.Error ).RowId,
 					TrainingGapType = FindConceptOrError( trainingGapTypeConcepts, new Concept() { Name = item.Flattened.TrainingGapType_Name }, "Training Gap Type", item.Flattened.TrainingGapType_Name, summary.Messages.Error ).RowId,
 					PayGradeType = FindConceptOrError( payGradeTypeConcepts, new Concept() { CodedNotation = item.Flattened.PayGradeType_CodedNotation }, "Pay Grade Type", item.Flattened.PayGradeType_CodedNotation, summary.Messages.Error ).RowId,
-					ReferenceType = FindConceptOrError( sourceTypeConcepts, new Concept() { CodedNotation = item.Flattened.ReferenceType_Name }, "Reference Resource Type", item.Flattened.PayGradeType_CodedNotation, summary.Messages.Error ).RowId,
+					ReferenceType = FindConceptOrError( sourceTypeConcepts, new Concept() { WorkElementType = item.Flattened.ReferenceType_Name }, "Reference Resource Type", item.Flattened.ReferenceType_Name, summary.Messages.Error ).RowId,
 					HasRating = new List<Guid>() { rating.RowId },
 
 

@@ -79,11 +79,11 @@
 				currentCell.push(character);
 			}
 			else if (character == ",") {
-				currentRow.push(currentCell.join("").replace(/<INSERTQUOTE>/g, '"').trim());
+				currentRow.push(joinCSVCellData(currentCell));
 				currentCell = [];
 			}
 			else if (character == "\n") {
-				currentRow.push(currentCell.join("").replace(/<INSERTQUOTE>/g, '"').trim());
+				currentRow.push(joinCSVCellData(currentCell));
 				currentCell = [];
 				rows.push(currentRow);
 				currentRow = [];
@@ -94,7 +94,7 @@
 		});
 
 		//Don't forget stragglers at the end
-		currentRow.push(currentCell.join("").replace(/<INSERTQUOTE>/g, '"').trim());
+		currentRow.push(joinCSVCellData(currentCell));
 		rows.push(currentRow);
 
 		//Set data
@@ -113,6 +113,11 @@
 		});
 
 		console.log("CSV Processed", Upload);
+	}
+	//
+
+	function joinCSVCellData(cell) {
+		return cell.join("").replace(/<INSERTQUOTE>/g, '"').trim().replace(/^N\/A$/g, "");
 	}
 	//
 
@@ -163,10 +168,10 @@
 		console.log("Submitting data", data);
 		
 		postData("@Url.Content("~/upload/processupload")", data).then((response) => {
-			setUploadStatus("Received Response, check console for details");
 			console.log("Received response", response);
 			return response.text()
 		}).then((text) => {
+			setUploadStatus("Received Response, check console for details");
 			Upload.Summary = JSON.parse(text);
 			console.log("Parsed Data", Upload.Summary);
 			renderResults();

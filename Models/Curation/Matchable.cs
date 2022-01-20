@@ -8,6 +8,11 @@ namespace Models.Curation
 {
 	public class SheetMatcher<T1, T2> where T1: new() where T2 : new()
 	{
+		public SheetMatcher()
+		{
+			Flattened = new T2();
+		}
+
 		public T1 Data { get; set; }
 		public T2 Flattened { get; set; }
 		public List<UploadableRow> Rows { get; set; }
