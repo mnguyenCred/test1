@@ -177,6 +177,7 @@ namespace Factories
         /// <returns></returns>
         public static List<AppEntity> GetAll( string rating, bool includingAllSailorsTasks, int pageNumber, int pageSize, ref int totalRows  )
         {
+            //!!! this is very slow when getting 1600+ . Could have an async task to pre-cache
             var entity = new AppEntity();
             var list = new List<AppEntity>();
             //caching will have to be specific to the request
@@ -257,9 +258,9 @@ namespace Factories
             var key = cacheKey + String.Format( "_{0}_{1}", rating, includingAllSailorsTasks );
             int cacheHours = 8;
             DateTime maxTime = DateTime.Now.AddHours( cacheHours * -1 );
-            if ( MemoryCache.Default.Get( cacheKey ) != null && cacheHours > 0 )
+            if ( MemoryCache.Default.Get( key ) != null && cacheHours > 0 )
             {
-                cache = ( CachedRatingTask ) MemoryCache.Default.Get( cacheKey );
+                cache = ( CachedRatingTask ) MemoryCache.Default.Get( key );
                 try
                 {
                     if ( cache.LastUpdated > maxTime )
@@ -397,61 +398,63 @@ namespace Factories
 						item.ResultNumber = resultNumber;
 						item.Id = GetRowColumn( dr, "Id", 0 );
 						item.RowId = GetGuidType( dr, "RowId" );
-						item.Ratings = GetRowColumn( dr, "Ratings", "" );
+						item.Ratings = dr["Ratings"].ToString();// GetRowColumn( dr, "Ratings", "" );
+                        
                         item.HasRatings = GetRatingGuids( item.Ratings );
                         //do we need to populate HasRating (if so, could include in the pipe separated list of Ratings
-                        item.BilletTitles = GetRowColumn( dr, "BilletTitles", "" );
+                        item.BilletTitles = dr["BilletTitles"].ToString();// GetRowColumn( dr, "BilletTitles", "" );
+                        var bt= GetRowColumn( dr, "BilletTitles", "" );
                         //could save previous and then first check the previous
                         item.HasBilletTitles = GetBilletTitleGuids( item.BilletTitles );
                         //similarly, do we need a list of billet guids?
 
-                        item.Description = GetRowColumn( dr, "RatingTask", "" );
-						item.Note = GetRowColumn( dr, "Notes", "" );
-						item.CTID = GetRowPossibleColumn( dr, "CTID", "" );
-						//
-						item.Created = GetRowColumn( dr, "Created", DateTime.MinValue );
+                        item.Description = dr["RatingTask"].ToString();// GetRowColumn( dr, "RatingTask", "" );
+                        item.Note = dr["Notes"].ToString();// GetRowColumn( dr, "Notes", "" );
+                        item.CTID = dr["CTID"].ToString();// GetRowPossibleColumn( dr, "CTID", "" );
+                                                           //
+                        item.Created = GetRowColumn( dr, "Created", DateTime.MinValue );
 						item.Creator = GetRowPossibleColumn( dr, "CreatedBy","" );
 						item.CreatedBy = GetGuidType( dr, "CreatedByUID" );
 						item.LastUpdated = GetRowColumn( dr, "LastUpdated", DateTime.MinValue );
 						item.ModifiedBy = GetRowPossibleColumn( dr, "ModifiedBy", "" );
 						item.LastUpdatedBy = GetGuidType( dr, "ModifiedByUID" );
 
-						item.CodedNotation = GetRowPossibleColumn( dr, "CodedNotation", "" );
+						item.CodedNotation = dr["CodedNotation"].ToString();// GetRowPossibleColumn( dr, "CodedNotation", "" );
+                                          //
+                        item.Rank = dr["Rank"].ToString();// GetRowPossibleColumn( dr, "Rank", "" );
+                        item.PayGradeType = GetGuidType( dr, "PayGradeType" );
+                                                                           //
+                        item.Level = dr["Level"].ToString();// GetRowPossibleColumn( dr, "Level", "" );
+                                                                    //
+                        item.FunctionalArea = dr["FunctionalArea"].ToString();// GetRowColumn( dr, "FunctionalArea", "" );
+                        item.ReferenceType = GetGuidType( dr, "ReferenceType" );
 						//
-						item.Rank = GetRowPossibleColumn( dr, "Rank", "" );
-						item.PayGradeType = GetGuidType( dr, "PayGradeType" );
+						item.Source = dr["Source"].ToString();// GetRowColumn( dr, "Source", "" );
+                        item.SourceDate = dr["SourceDate"].ToString();// GetRowColumn( dr, "SourceDate", "" );
+                        item.HasReferenceResource = GetGuidType( dr, "HasReferenceResource" );
 						//
-						item.Level = GetRowPossibleColumn( dr, "Level", "" );
+						item.WorkElementType = dr["WorkElementType"].ToString();// GetRowPossibleColumn( dr, "WorkElementType", "" );
+                        item.ReferenceType = GetGuidType( dr, "ReferenceType" );
 						//
-						item.FunctionalArea = GetRowColumn( dr, "FunctionalArea", "" );
-						item.ReferenceType = GetGuidType( dr, "ReferenceType" );
+						item.TaskApplicability = dr["TaskApplicability"].ToString();// GetRowPossibleColumn( dr, "TaskApplicability", "" );
+                        item.ApplicabilityType = GetGuidType( dr, "ApplicabilityType" );
 						//
-						item.Source = GetRowColumn( dr, "Source", "" );
-						item.SourceDate = GetRowColumn( dr, "SourceDate", "" );
-						item.HasReferenceResource = GetGuidType( dr, "HasReferenceResource" );
-						//
-						item.WorkElementType = GetRowPossibleColumn( dr, "WorkElementType", "" );
-						item.ReferenceType = GetGuidType( dr, "ReferenceType" );
-						//
-						item.TaskApplicability = GetRowPossibleColumn( dr, "TaskApplicability", "" );
-						item.ApplicabilityType = GetGuidType( dr, "ApplicabilityType" );
-						//
-						item.FormalTrainingGap = GetRowPossibleColumn( dr, "FormalTrainingGap", "" );
-						item.TrainingGapType = GetGuidType( dr, "TrainingGapType" );
+						item.FormalTrainingGap = dr["FormalTrainingGap"].ToString();// GetRowPossibleColumn( dr, "FormalTrainingGap", "" );
+                        item.TrainingGapType = GetGuidType( dr, "TrainingGapType" );
 
-						item.CIN = GetRowColumn( dr, "CIN", "" );
-						item.CourseName = GetRowColumn( dr, "CourseName", "" );
-						item.CourseType = GetRowPossibleColumn( dr, "CourseType", "" );
-						item.CurrentAssessmentApproach = GetRowPossibleColumn( dr, "AssessmentMethodTypes", "" );
+						item.CIN = dr["CIN"].ToString();// GetRowColumn( dr, "CIN", "" );
+                        item.CourseName = dr["CourseName"].ToString();// GetRowColumn( dr, "CourseName", "" );
+                        item.CourseType = dr["CourseType"].ToString();// GetRowPossibleColumn( dr, "CourseType", "" );
+                        item.CurrentAssessmentApproach = dr["AssessmentMethodTypes"].ToString();// GetRowPossibleColumn( dr, "AssessmentMethodTypes", "" );
+                                                                                     //
+                        item.TrainingTask = dr["TrainingTask"].ToString();// GetRowPossibleColumn( dr, "TrainingTask", "" );
+                        item.HasTrainingTask = GetGuidType( dr, "HasTrainingTask" );
 						//
-						item.TrainingTask = GetRowPossibleColumn( dr, "TrainingTask", "" );
-						item.HasTrainingTask = GetGuidType( dr, "HasTrainingTask" );
-						//
-						item.CurriculumControlAuthority = GetRowPossibleColumn( dr, "CurriculumControlAuthority", "" );
-						item.LifeCycleControlDocument = GetRowPossibleColumn( dr, "LifeCycleControlDocument", "" );
+						item.CurriculumControlAuthority = dr["CurriculumControlAuthority"].ToString();// GetRowPossibleColumn( dr, "CurriculumControlAuthority", "" );
+                        item.LifeCycleControlDocument = dr["LifeCycleControlDocument"].ToString();// GetRowPossibleColumn( dr, "LifeCycleControlDocument", "" );
 
 
-						list.Add( item );
+                        list.Add( item );
 					}
 				}
 				catch ( Exception ex )
@@ -891,6 +894,8 @@ namespace Factories
 
         public static void MapToDB( AppEntity input, DBEntity output )
         {
+            if ( input.Note?.ToLower() == "n/a" )
+                input.Note = "";
             //watch for missing properties like rowId
             List<string> errors = new List<string>();
             BaseFactory.AutoMap( input, output, errors );

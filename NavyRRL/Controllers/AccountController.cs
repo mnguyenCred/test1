@@ -103,6 +103,8 @@ namespace NavyRRL.Controllers
             switch (result)
             {
                 case SignInStatus.Success:
+                    var appUser = AccountServices.SetUserByEmail( model.Email );
+                    ActivityServices.UserAuthentication( appUser );
                     return RedirectToLocal(returnUrl);
                 case SignInStatus.LockedOut:
                     return View("Lockout");

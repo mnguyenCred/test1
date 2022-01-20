@@ -169,7 +169,7 @@
           </Key>
           <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
           <Property Name="RowId" Type="uniqueidentifier" Nullable="false" />
-          <Property Name="CIN" Type="nvarchar" MaxLength="50" Nullable="false" />
+          <Property Name="CodedNotation" Type="nvarchar" MaxLength="50" Nullable="false" />
           <Property Name="Name" Type="nvarchar" MaxLength="300" Nullable="false" />
           <Property Name="Description" Type="nvarchar(max)" />
           <Property Name="CurriculumControlAuthorityId" Type="int" />
@@ -1260,7 +1260,6 @@
             <PropertyRef Name="Id" />
           </Key>
           <Property Name="Id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
-          <Property Name="CIN" Type="String" MaxLength="50" FixedLength="false" Unicode="true" Nullable="false" />
           <Property Name="Name" Type="String" MaxLength="300" FixedLength="false" Unicode="true" Nullable="false" />
           <Property Name="Description" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
           <Property Name="LifeCycleControlDocumentId" Type="Int32" />
@@ -1279,6 +1278,7 @@
           <NavigationProperty Name="Course_Concept" Relationship="NavyRRLModel.FK_Course_Concept_Course" FromRole="Course" ToRole="Course_Concept" />
           <NavigationProperty Name="Organization" Relationship="NavyRRLModel.FK_Course_Organization" FromRole="Course" ToRole="Organization" />
           <Property Name="RowVersion" Type="Binary" Nullable="false" MaxLength="8" FixedLength="true" annotation:StoreGeneratedPattern="Computed" />
+          <Property Name="CodedNotation" Type="String" Nullable="false" MaxLength="50" FixedLength="false" Unicode="true" />
         </EntityType>
         <EntityType Name="Course_Task">
           <Key>
@@ -2461,10 +2461,10 @@
           <EntitySetMapping Name="Course">
             <EntityTypeMapping TypeName="NavyRRLModel.Course">
               <MappingFragment StoreEntitySet="Course">
+                <ScalarProperty Name="CodedNotation" ColumnName="CodedNotation" />
                 <ScalarProperty Name="RowVersion" ColumnName="RowVersion" />
                 <ScalarProperty Name="RowId" ColumnName="RowId" />
                 <ScalarProperty Name="Id" ColumnName="Id" />
-                <ScalarProperty Name="CIN" ColumnName="CIN" />
                 <ScalarProperty Name="Name" ColumnName="Name" />
                 <ScalarProperty Name="Description" ColumnName="Description" />
                 <ScalarProperty Name="LifeCycleControlDocumentId" ColumnName="LifeCycleControlDocumentId" />

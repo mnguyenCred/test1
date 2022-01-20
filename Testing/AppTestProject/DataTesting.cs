@@ -10,6 +10,21 @@ namespace AppTestProject
     [TestClass]
     public class DataTesting
     {
+
+        [TestMethod]
+        public void GetAllTesting()
+        {
+            var billetTitle = Factories.JobManager.GetAll();
+            var course = Factories.CourseManager.GetAll();
+            var organization = Factories.OrganizationManager.GetAll();
+            var referenceResource = Factories.ReferenceResourceManager.GetAll();
+            var workRole = Factories.WorkRoleManager.GetAll();
+            //training task - really all?
+            var trainingTask = Factories.CourseManager.TrainingTaskGetAll();
+
+                int totalRows = 0;
+            var ratingTask = Factories.RatingTaskManager.GetAll( "q", true, ref totalRows );
+        }
         #region RatingTask
         [TestMethod]
         public void RatingTaskGet()

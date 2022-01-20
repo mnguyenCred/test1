@@ -17,7 +17,7 @@ namespace Models.Application
 		/// </summary>
 		public bool HasSectionErrors { get; set; }
 		//TBD
-		public List<StatusMessage> Messages { get; set; }
+		public List<StatusMessage> Messages { get; set; } = new List<StatusMessage>();
 		public void AddError( string message )
 		{
 			Messages.Add( new StatusMessage() { Message = message } );

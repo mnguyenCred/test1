@@ -23,7 +23,7 @@ GO
 
 SELECT [Id]
       ,[RowId]
-      ,[CIN]
+      ,CodedNotation
       ,[Name]
       ,[TrainingTask]
 	  ,TrainingTaskUID
@@ -54,7 +54,7 @@ AS
 
 SELECT base.[Id] as CourseId
 	,base.[RowId] as CourseUID
-	,base.[CIN]
+	,base.CodedNotation
 	,base.[Name] as CourseName
 	,task.Id as TrainingTaskId
 	,task.Description as TrainingTask

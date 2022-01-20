@@ -15,12 +15,14 @@ from [QM_RMTL_11232021]
 group by Unique_Identifier having count(*) > 1
 go
 
-UUSE [NavyRRL]
+USE [NavyRRL]
 GO
 
 SELECT [Id]
-,Ratings
-,BilletTitles
+      ,[CTID]
+      ,[RowId]
+      ,[Ratings]
+      ,[BilletTitles]
       ,[CodedNotation]
       ,[RankId]
       ,[Rank]
@@ -29,6 +31,7 @@ SELECT [Id]
       ,[Level]
       ,[FunctionalAreaId]
       ,[FunctionalArea]
+      ,[FunctionalAreaUID]
       ,[ReferenceResourceId]
       ,[ReferenceResource]
       ,[SourceDate]
@@ -43,22 +46,26 @@ SELECT [Id]
       ,[FormalTrainingGapId]
       ,[FormalTrainingGap]
       ,[TrainingGapType]
+      ,[CourseId]
+      ,[CourseUID]
       ,[CIN]
       ,[CourseName]
-      ,[CourseType]
+      ,[CourseTypes]
       ,[TrainingTaskId]
       ,[TrainingTask]
       ,[HasTrainingTask]
-      ,[CurrentAssessmentApproach]
+      ,[AssessmentMethodTypes]
       ,[CurriculumControlAuthority]
       ,[LifeCycleControlDocument]
       ,[Notes]
-	        ,[Created]
+      ,[Created]
       ,[CreatedById]
       ,[CreatedBy]
+      ,[CreatedByUID]
       ,[LastUpdated]
       ,[LastUpdatedById]
       ,[ModifiedBy]
+      ,[ModifiedByUID]
   FROM [dbo].[RatingTaskSummary]
     where taskApplicabilityId=77
 	and isnull(ratings,'') = ''
@@ -119,7 +126,7 @@ SELECT
 	,f.RowId as TrainingGapType
 	-- individual course parts
 	/*
-		,h.CIN
+		,h.CodedNotation
 		,h.Name as CourseName
 		--can be multiple
 		,h.CourseType
@@ -135,7 +142,7 @@ SELECT
 		*/
 	--or used the view
 		,g.CourseId, g.CourseUID
-		,g.CIN
+		,g.CodedNotation as CIN
 		,g.CourseName
 		--can be multiple
 		,g.CourseTypes
