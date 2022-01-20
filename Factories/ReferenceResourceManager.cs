@@ -209,7 +209,11 @@ namespace Factories
             //watch for missing properties like rowId
             List<string> errors = new List<string>();
             BaseFactory.AutoMap( input, output, errors );
-
+            //the publication date format can be inconsistant
+            if ( IsValidDate(output.PublicationDate))
+            {
+                output.PublicationDate = DateTime.Parse( output.PublicationDate ).ToString("yyyy-MM-dd");
+            }
         }
         #endregion
         #region Retrieval
@@ -302,6 +306,11 @@ namespace Factories
             //should include list of concepts
             List<string> errors = new List<string>();
             BaseFactory.AutoMap( input, output, errors );
+            //the publication date format can be inconsistant
+            if ( IsValidDate( output.PublicationDate ) )
+            {
+                output.PublicationDate = DateTime.Parse( output.PublicationDate ).ToString( "yyyy-MM-dd" );
+            }
             //related
             if ( (input.StatusTypeId ?? 0) > 0 )
             {

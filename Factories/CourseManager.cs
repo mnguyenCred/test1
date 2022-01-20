@@ -48,7 +48,7 @@ namespace Factories
                     //look up if no id
                     if ( entity.Id == 0 )
                     {
-                        var record = GetByCIN( entity.CodedNotation );
+                        var record = GetByCodedNotation( entity.CodedNotation );
                         if ( record?.Id > 0 )
                         {
                             entity.Id = record.Id;
@@ -200,7 +200,7 @@ namespace Factories
                     {
                         //?no info on error
 
-                        string message = thisClassName + string.Format( ". Add Failed", "Attempted to add a Course. The process appeared to not work, but was not an exception, so we have no message, or no clue. Course: {0}, CIN: {1}", entity.Name, entity.CodedNotation );
+                        string message = thisClassName + string.Format( ". Add Failed", "Attempted to add a Course. The process appeared to not work, but was not an exception, so we have no message, or no clue. Course: {0}, CodedNotation: {1}", entity.Name, entity.CodedNotation );
                         status.AddError( thisClassName + ". Error - the add was not successful. " + message );
                         EmailManager.NotifyAdmin( thisClassName + ". Add Failed", message );
                     }
@@ -215,7 +215,7 @@ namespace Factories
                 catch ( Exception ex )
                 {
                     string message = FormatExceptions( ex );
-                    LoggingHelper.LogError( ex, thisClassName + string.Format( ".Add(), Name: {0}, CIN: {1}", entity.Name, entity.CodedNotation ) );
+                    LoggingHelper.LogError( ex, thisClassName + string.Format( ".Add(), Name: {0}, CodedNotation: {1}", entity.Name, entity.CodedNotation ) );
                     status.AddError( thisClassName + ".Add(). Error - the save was not successful. \r\n" + message );
                 }
             }
@@ -315,16 +315,16 @@ namespace Factories
             }
             return entity;
         }
-        public static AppEntity GetByCIN( string CIN, bool includingTrainingTasks = false )
+        public static AppEntity GetByCodedNotation( string codedNotation, bool includingTrainingTasks = false )
         {
             var entity = new AppEntity();
-            if ( string.IsNullOrWhiteSpace( CIN ) )
+            if ( string.IsNullOrWhiteSpace( codedNotation ) )
                 return null;
 
             using ( var context = new DataEntities() )
             {
                 var item = context.Course
-                            .FirstOrDefault( s => s.CIN.ToLower() == CIN.ToLower() );
+                            .FirstOrDefault( s => s.CodedNotation.ToLower() == codedNotation.ToLower() );
 
                 if ( item != null && item.Id > 0 )
                 {
@@ -413,7 +413,7 @@ namespace Factories
             {
                 foreach( var item in input.Course_Task)
                 {
-
+                    output.HasTrainingTask.Add( item.RowId );
                 }
             }
         }
@@ -580,7 +580,55 @@ namespace Factories
         }
         */
         #region TrainingTask
+        /// <summary>
+        /// Not sure if we want to get thousands of tasks
+        /// </summary>
+        /// <returns></returns>
+        public static List<CourseTask> TrainingTaskGetAll()
+        {
+            var entity = new CourseTask();
+            var list = new List<CourseTask>();
 
+            using ( var context = new DataEntities() )
+            {
+                var results = context.Course_Task
+                        .OrderBy( s => s.Id )
+                        .ToList();
+                if ( results?.Count > 0 )
+                {
+                    foreach ( var item in results )
+                    {
+                        if ( item != null && item.Id > 0 )
+                        {
+                            entity = new CourseTask();
+                            MapFromDB( item, entity, true );
+                            list.Add( ( entity ) );
+                        }
+                    }
+                }
+
+            }
+            return list;
+        }
+        public static void MapFromDB( Course_Task input, CourseTask output, bool includingCourseId = false )
+        {
+            //should include list of concepts
+            List<string> errors = new List<string>();
+            BaseFactory.AutoMap( input, output, errors );
+            if ( input.RowId != output.RowId )
+            {
+                output.RowId = input.RowId;
+            }
+            //
+            if ( includingCourseId )
+            {
+                if (input.Course?.Id > 0)
+                {
+                    output.Course = input.Course.RowId;
+                }
+            }
+         
+        }
         #endregion
 
 

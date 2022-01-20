@@ -24,7 +24,7 @@ SELECT [RMTLProejct]
       ,[WorkElementTask]
       ,[TaskApplicability]
       ,[FormalTrainingGap]
-      ,[CIN]
+      ,[CodedNotation]
       ,[CourseName]
       ,[CourseType]
       ,[TaskStatement]
@@ -46,22 +46,24 @@ SELECT
 	, f.Rank, f.[Level]
 	, d.Name AS BilletTitle
 	, f.FunctionalArea
-	, f.Source, f.SourceDate
+	, f.ReferenceResource
+	, f.SourceDate
 	, f.WorkElementType
 	, f.RatingTask
 	, f.TaskApplicability
 	, f.FormalTrainingGap
 	, f.CIN, f.CourseName
-    , f.CourseType
+    , f.CourseTypes
 	, f.TrainingTask
-,f.CurrentAssessmentApproach
+,f.AssessmentMethodTypes
 ,f.CurriculumControlAuthority
 ,f.LifeCycleControlDocument
 FROM            dbo.RmtlProjectBilletTask AS e 
-INNER JOIN dbo.RatingTaskSummary AS f ON e.RatingTaskId = f.Id 
-INNER JOIN dbo.RMTLProject AS a 
+INNER JOIN dbo.RatingTaskSummary	AS f ON e.RatingTaskId = f.Id 
+INNER JOIN dbo.RMTLProject			AS a on e.ProjectBilletId = a.Id
 INNER JOIN dbo.[RmtlProject.Billet] AS c ON a.Id = c.RmtlProjectId 
-INNER JOIN dbo.Job AS d ON c.JobId = d.Id 
-INNER JOIN dbo.Rating AS b ON a.RatingId = b.Id ON e.ProjectBilletId = c.Id
+INNER JOIN dbo.Job				AS d ON c.JobId = d.Id 
+INNER JOIN dbo.Rating			AS b ON a.RatingId = b.Id 
+--ON e.ProjectBilletId = c.Id
 GO
 

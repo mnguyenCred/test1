@@ -41,6 +41,17 @@ namespace Services
 			var assessmentMethodTypeConcepts = Factories.ConceptSchemeManager.GetbyShortUri( Factories.ConceptSchemeManager.ConceptScheme_CurrentAssessmentApproach ).Concepts;
 			debug[ latestStepFlag ] = "Got data from the Database";
 
+			//mp - should add caching for these
+			existing.BilletTitle = Factories.JobManager.GetAll();
+			existing.Course = Factories.CourseManager.GetAll(true);
+			existing.Organization = Factories.OrganizationManager.GetAll();
+			existing.ReferenceResource = Factories.ReferenceResourceManager.GetAll();
+			existing.WorkRole = Factories.WorkRoleManager.GetAll();
+			//training task - really all?
+			existing.TrainingTask = Factories.CourseManager.TrainingTaskGetAll();
+			//should not get all rating task once have many rmtls
+			int totalRows = 0;
+			existing.RatingTask = Factories.RatingTaskManager.GetAll( currentRating.CodedNotation , true, ref totalRows);
 			//Create a graph that will be used for searching for matching data
 			//The data in this graph needs to be a hybrid of known/existing data and freshly added data so that the correct connections are made in a later step
 			//So the List<>s need to be new entities (hence Concat()) but the existing entity references inside them should still be the originals (passed by reference)
@@ -72,9 +83,15 @@ namespace Services
 				row.Course_CodedNotation = NullifyNotApplicable( row.Course_CodedNotation );
 				row.Course_Name = NullifyNotApplicable( row.Course_Name );
 				row.Course_CourseType_Label = NullifyNotApplicable( row.Course_CourseType_Label );
-				row.Course_CurriculumControlAuthority_Name = NullifyNotApplicable( row.Course_CourseType_Label );
+				row.Course_CurriculumControlAuthority_Name = NullifyNotApplicable( row.Course_CurriculumControlAuthority_Name );
 				row.Course_HasReferenceResource_Name = NullifyNotApplicable( row.Course_HasReferenceResource_Name );
 				row.Course_AssessmentMethodType_Label = NullifyNotApplicable( row.Course_AssessmentMethodType_Label );
+				row.ReferenceResource_PublicationDate = NullifyNotApplicable( row.ReferenceResource_PublicationDate );
+				if ( BaseFactory.IsValidDate( row.ReferenceResource_PublicationDate ) )
+				{
+					//normalize
+					row.ReferenceResource_PublicationDate = DateTime.Parse( row.ReferenceResource_PublicationDate ).ToString( "yyyy-MM-dd" );
+				}
 
 				//Concepts from Concept Schemes
 				var payGradeType = FindConceptOrError( payGradeTypeConcepts, new Concept() { CodedNotation = row.PayGradeType_Notation }, "Pay Grade (Rank)", row.PayGradeType_Notation, result.Messages.Error );
@@ -124,7 +141,8 @@ namespace Services
 				var workRole = graph.WorkRole.FirstOrDefault( m =>
 					 m.Name == row.WorkRole_Name
 				);
-				if ( workRole == null ) {
+				if ( workRole == null ) 
+				{
 					workRole = new WorkRole() 
 					{ 
 						RowId = Guid.NewGuid(), 
@@ -141,17 +159,29 @@ namespace Services
 				debug[ latestStepFlag ] = "Got Work Role data for row " + rowCount;
 
 				//Task Source (The Reference Resource for the task, distinct from the Reference Resource for the Course in another column)
+				//mp-skip publication date
 				var taskSource = graph.ReferenceResource.FirstOrDefault( m =>
-					 m.Name == row.ReferenceResource_Name &&
-					 m.PublicationDate == ParseDateOrEmpty( row.ReferenceResource_PublicationDate )
+					 m.Name == row.ReferenceResource_Name 
+					 //&& m.PublicationDate ==  (row.ReferenceResource_PublicationDate ?? "")
+					 //&& m.PublicationDate == ParseDateOrEmpty( row.ReferenceResource_PublicationDate )
 				);
-				if ( taskSource == null ) {
+				//var taskSource2 = graph.ReferenceResource.FirstOrDefault( m =>
+				//	 m.Name == row.ReferenceResource_Name 
+				//);
+				if ( taskSource == null ) 
+				{
 					taskSource = new ReferenceResource() 
 					{ 
 						RowId = Guid.NewGuid(), 
 						Name = row.ReferenceResource_Name, 
-						PublicationDate = ParseDateOrEmpty( row.ReferenceResource_PublicationDate ) 
+						PublicationDate = ( row.ReferenceResource_PublicationDate ?? "" )
+						//PublicationDate = ParseDateOrEmpty( row.ReferenceResource_PublicationDate )
 					};
+					if ( BaseFactory.IsValidDate( taskSource.PublicationDate ) )
+					{
+						//normalize
+						taskSource.PublicationDate = DateTime.Parse( taskSource.PublicationDate ).ToString( "yyyy-MM-dd" );
+					}
 					graph.ReferenceResource.Add( taskSource );
 					result.ItemsToBeCreated.ReferenceResource.Add( taskSource );
 					result.Messages.Create.Add( "Reference Resource for a Task: " + taskSource.Name );
@@ -163,19 +193,38 @@ namespace Services
 				debug[ latestStepFlag ] = "Got Task Source data for row " + rowCount;
 
 				//Rating Task
+				//why use the Note in the check?
 				var ratingTask = graph.RatingTask.FirstOrDefault( m =>
 					 m.Description == row.RatingTask_Description &&
-					 m.Note == row.Note &&
-					 Find( graph.WorkRole, m.HasWorkRole ).Select( n => n.Name ).Contains( row.WorkRole_Name ) &&
-					 Find( graph.ReferenceResource, m.HasReferenceResource )?.Name == row.ReferenceResource_Name &&
-					 Find( graph.ReferenceResource, m.HasReferenceResource )?.PublicationDate == ParseDateOrEmpty( row.ReferenceResource_PublicationDate ) &&
-					 sharedSourceType?.Name == row.Shared_ReferenceType &&
-					 trainingGapType?.Name == row.RatingTask_TrainingGapType_Label &&
-					 applicabilityType?.Name == row.RatingTask_ApplicabilityType_Label &&
-					 payGradeType?.CodedNotation == row.PayGradeType_Notation &&
-					 ( Find( graph.TrainingTask, m.HasTrainingTask )?.Description ?? "" ) == ( row.TrainingTask_Description ?? "" )
+					 //m.Note == row.Note &&
+					 Find( graph.WorkRole, m.HasWorkRole ).Select( n => n.Name ).Contains( row.WorkRole_Name ) 
+					 && Find( graph.ReferenceResource, m.HasReferenceResource )?.Name == row.ReferenceResource_Name
+					 //&& Find( graph.ReferenceResource, m.HasReferenceResource )?.PublicationDate == ParseDateOrEmpty( row.ReferenceResource_PublicationDate ) 
+					 //.need codedNotation here
+					 && sharedSourceType?.CodedNotation == row.Shared_ReferenceType
+					 && trainingGapType?.Name == row.RatingTask_TrainingGapType_Label 
+					 && applicabilityType?.Name == row.RatingTask_ApplicabilityType_Label 
+					 && payGradeType?.CodedNotation == row.PayGradeType_Notation 
+					 && ( Find( graph.TrainingTask, m.HasTrainingTask )?.Description ?? "" ) == ( row.TrainingTask_Description ?? "" )
 				);
-				if ( ratingTask == null ) {
+				//
+				var ratingTask2 = graph.RatingTask.FirstOrDefault( m =>
+					 m.Description == row.RatingTask_Description 
+					// && m.Note == row.Note 
+					 && Find( graph.WorkRole, m.HasWorkRole ).Select( n => n.Name ).Contains( row.WorkRole_Name ) 
+					 && Find( graph.ReferenceResource, m.HasReferenceResource )?.Name == row.ReferenceResource_Name 
+
+					 //&& Find( graph.ReferenceResource, m.HasReferenceResource )?.PublicationDate == ParseDateOrEmpty( row.ReferenceResource_PublicationDate ) 
+					 //.need codedNotation here
+					 && sharedSourceType?.CodedNotation == row.Shared_ReferenceType 
+					 && trainingGapType?.Name == row.RatingTask_TrainingGapType_Label 
+					 && applicabilityType?.Name == row.RatingTask_ApplicabilityType_Label 
+					 && payGradeType?.CodedNotation == row.PayGradeType_Notation 
+					 //&& ( Find( graph.TrainingTask, m.HasTrainingTask )?.Description ?? "" ) == ( row.TrainingTask_Description ?? "" )
+				);
+
+				if ( ratingTask == null ) 
+				{
 					ratingTask = new RatingTask() 
 					{ 
 						RowId = Guid.NewGuid(), 
@@ -215,11 +264,16 @@ namespace Services
 						result.ItemsToBeCreated.TrainingTask.Add( trainingTask );
 						result.Messages.Create.Add( "Training Task: " + trainingTask.Description );
 					}
+					//moved up to here
+					else
+					{
+						Append( referencedItems.TrainingTask, trainingTask );
+					}
 				}
-				else
-				{
-					Append( referencedItems.TrainingTask, trainingTask );
-				}
+				//else
+				//{
+				//	Append( referencedItems.TrainingTask, trainingTask );
+				//}
 				debug[ latestStepFlag ] = "Got Training Task data for row " + rowCount;
 
 				//Course Source (The Reference Resource for the course, distinct from the Reference Resource for the task in another column)
@@ -240,16 +294,20 @@ namespace Services
 						result.ItemsToBeCreated.ReferenceResource.Add( courseSource );
 						result.Messages.Create.Add( "Reference Resource for a Course: " + courseSource.Name );
 					}
+					else
+					{
+						Append( referencedItems.ReferenceResource, courseSource );
+					}
 				}
-				else
-				{
-					Append( referencedItems.ReferenceResource, courseSource );
-				}
+				//else
+				//{
+				//	Append( referencedItems.ReferenceResource, courseSource );
+				//}
 				debug[ latestStepFlag ] = "Got Reference Resource data for row " + rowCount;
 
 				//Course
 				Course course = null;
-				if ( !string.IsNullOrWhiteSpace( row.Course_CodedNotation ) )
+				if ( !string.IsNullOrWhiteSpace( row.Course_CodedNotation ) && row.Course_CodedNotation.ToLower() != "n/a" )
 				{
 					course = graph.Course.FirstOrDefault( m =>
 						m.Name == row.Course_Name &&
@@ -270,11 +328,15 @@ namespace Services
 						result.ItemsToBeCreated.Course.Add( course );
 						result.Messages.Create.Add( "Course: " + course.CodedNotation + " - " + course.Name );
 					}
+					else
+					{
+						Append( referencedItems.Course, course );
+					}
 				}
-				else
-				{
-					Append( referencedItems.Course, course );
-				}
+				//else
+				//{
+				//	Append( referencedItems.Course, course );
+				//}
 				debug[ latestStepFlag ] = "Got Course data for row " + rowCount;
 
 				//Organization
@@ -295,11 +357,15 @@ namespace Services
 						result.ItemsToBeCreated.Organization.Add( cca );
 						result.Messages.Create.Add( "Curriculum Control Authority: " + cca.Name );
 					}
+					else
+					{
+						Append( referencedItems.Organization, cca );
+					}
 				}
-				else
-				{
-					Append( referencedItems.Organization, cca );
-				}
+				//else
+				//{
+				//	Append( referencedItems.Organization, cca );
+				//}
 				debug[ latestStepFlag ] = "Got Organization data for row " + rowCount;
 
 				//Now that the objects have been retrieved and/or created, attach them to each other
@@ -314,7 +380,8 @@ namespace Services
 					if ( !billetTitle.HasRatingTask.Contains( ratingTask.RowId ) )
 					{
 						//Use a temporary copy of the object to keep track of which items get added to it
-						var tracked = Find( result.AddedItemsToInnerListsForCopiesOfItems.BilletTitle, billetTitle.RowId );
+						//TODO - UploadedInnerListsForCopiesOfItems is NOT populated
+						var tracked = Find( result.UploadedInnerListsForCopiesOfItems.BilletTitle, billetTitle.RowId );
 						if( tracked == null )
 						{
 							tracked = new BilletTitle() { RowId = billetTitle.RowId };

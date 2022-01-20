@@ -11,5 +11,7 @@ namespace Models.Schema
 		/// From Column: CTTL/PPP/TCCD Statement
 		/// </summary>
 		public string Description { get; set; }
+
+		public Guid Course { get; set; }
 	}
 }

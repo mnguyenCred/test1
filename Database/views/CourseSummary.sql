@@ -14,7 +14,7 @@ GO
 
 SELECT [Id]
       ,[RowId]
-      ,[CIN]
+      ,[CodedNotation]
       ,[Name]
       ,[Description]
       ,[CurriculumControlAuthorityId]
@@ -44,7 +44,7 @@ AS
 
 SELECT base.[Id]
 	,base.[RowId]
-	,base.[CIN]
+	,base.[CodedNotation]
 	,base.[Name]
 	,base.[Description]
 	,base.[CurriculumControlAuthorityId]

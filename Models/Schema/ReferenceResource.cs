@@ -46,7 +46,7 @@ namespace Models.Schema
 		/// Publication Date for this Reference Resource<br />
 		/// From Column: Date of Source
 		/// </summary>
-		public DateTime PublicationDate { get; set; }
+		public string PublicationDate { get; set; }
 
 		/// <summary>
 		/// Subject Webpage for this Reference Resource<br />

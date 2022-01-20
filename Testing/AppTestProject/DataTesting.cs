@@ -10,6 +10,21 @@ namespace AppTestProject
     [TestClass]
     public class DataTesting
     {
+
+        [TestMethod]
+        public void GetAllTesting()
+        {
+            var billetTitle = Factories.JobManager.GetAll();
+            var course = Factories.CourseManager.GetAll();
+            var organization = Factories.OrganizationManager.GetAll();
+            var referenceResource = Factories.ReferenceResourceManager.GetAll();
+            var workRole = Factories.WorkRoleManager.GetAll();
+            //training task - really all?
+            var trainingTask = Factories.CourseManager.TrainingTaskGetAll();
+
+                int totalRows = 0;
+            var ratingTask = Factories.RatingTaskManager.GetAll( "q", true, ref totalRows );
+        }
         #region RatingTask
         [TestMethod]
         public void RatingTaskGet()
@@ -20,6 +35,23 @@ namespace AppTestProject
                 var record = RatingTaskManager.Get( recordId, true );
                 record = RatingTaskManager.Get( 10, true );
             } catch ( Exception ex )
+            {
+                Assert.Fail( ex.Message );
+            }
+
+
+        }
+        [TestMethod]
+        public void RatingTaskGetAll()
+        {
+            var totalRows = 0;
+            try
+            {
+                var results = RatingTaskManager.GetAll( "qm", true, ref totalRows );
+
+                results = RatingTaskManager.GetAll( "abf", false, 1, 200, ref totalRows );
+            }
+            catch ( Exception ex )
             {
                 Assert.Fail( ex.Message );
             }
@@ -65,6 +97,7 @@ namespace AppTestProject
         }
         #endregion
 
+        #region Rating
         [TestMethod]
         public void RatingGetAll()
         {
@@ -81,6 +114,8 @@ namespace AppTestProject
                 Assert.Fail( ex.Message );
             }
         }
+        #endregion
+
         #region Source
         [TestMethod]
         public void ReferenceResourceGet()

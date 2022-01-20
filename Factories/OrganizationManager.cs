@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.Caching;
 
 using Models.Application;
 
@@ -14,7 +15,7 @@ namespace Factories
     public class OrganizationManager : BaseFactory
     {
         public static new string thisClassName = "OrganizationManager";
-
+        public static string cacheKey = "OrganizationCache";
         #region Organization - persistance ==================
         /// <summary>
         /// Update a Organization
@@ -299,7 +300,11 @@ namespace Factories
         {
             var entity = new AppEntity();
             var list = new List<AppEntity>();
+            list = CheckCache();
+            if ( list?.Count > 0 )
+                return list;
 
+            list = new List<AppEntity>();
             using ( var context = new DataEntities() )
             {
                 var results = context.Organization
@@ -316,10 +321,60 @@ namespace Factories
                             list.Add( ( entity ) );
                         }
                     }
+                    AddToCache( list );
                 }
-
+                
             }
             return list;
+        }
+        public static List<AppEntity> CheckCache()
+        {
+            var cache = new CachedObjects();
+            var list = new List<AppEntity>();
+            
+            int cacheHours = 8;
+            DateTime maxTime = DateTime.Now.AddHours( cacheHours * -1 );
+            if ( MemoryCache.Default.Get( cacheKey ) != null && cacheHours > 0 )
+            {
+                cache = ( CachedObjects ) MemoryCache.Default.Get( cacheKey );
+                try
+                {
+                    if ( cache.LastUpdated > maxTime )
+                    {
+                        LoggingHelper.DoTrace( 6, string.Format( thisClassName + ".CheckCache. Using cached version." ) );
+                        list = cache.Objects;
+                        return list;
+                    }
+                }
+                catch ( Exception ex )
+                {
+                    LoggingHelper.DoTrace( 5, thisClassName + ".CheckCache === exception " + ex.Message );
+                }
+            }
+            //get
+            return null;
+
+        }
+        public static void AddToCache( List<AppEntity> input )
+        {
+            int cacheHours = 8;
+            //add to cache
+            if ( cacheKey.Length > 0 && cacheHours > 0 )
+            {
+                var newCache = new CachedObjects()
+                {
+                    Objects = input,
+                    LastUpdated = DateTime.Now
+                };
+                if ( MemoryCache.Default.Get( cacheKey ) != null )
+                {
+                    MemoryCache.Default.Remove( cacheKey );
+                }
+                //
+                MemoryCache.Default.Add( cacheKey, newCache, new DateTimeOffset( DateTime.Now.AddHours( cacheHours ) ) );
+                LoggingHelper.DoTrace( 5, thisClassName + ".AddToCache $$$ Updating cached version " );
+
+            }
         }
         public static void MapFromDB( DBEntity input, AppEntity output )
         {
@@ -336,6 +391,17 @@ namespace Factories
 
 
         #endregion
+
+    }
+    [Serializable]
+    public class CachedObjects
+    {
+        public CachedObjects()
+        {
+            LastUpdated = DateTime.Now;
+        }
+        public DateTime LastUpdated { get; set; }
+        public List<AppEntity> Objects { get; set; }
 
     }
 }
