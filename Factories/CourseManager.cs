@@ -481,13 +481,16 @@ namespace Factories
                 if ( input.AssessmentMethodType != null )
                 {
                     //this needs to be multiple
-                    var concept = ConceptSchemeManager.GetConcept( input.AssessmentMethodType );
-                    if (concept?.Id > 0)
-                        CourseConceptAdd( input, concept.Id, input.LastUpdatedById, ref status );
-                    else
-                    {
-                        status.AddError( String.Format( "Error. For Course: '{0}' ({1}) an assessment method concept was not found for Identifier: {3}", input.Name, input.Id, input.AssessmentMethodType) );
-                    }
+                    //var concept = ConceptSchemeManager.GetConcept( input.AssessmentMethodType );
+					foreach( var concept in input.AssessmentMethodType.Select(m => ConceptSchemeManager.GetConcept( m ) ).ToList() )
+					{
+						if (concept?.Id > 0)
+							CourseConceptAdd( input, concept.Id, input.LastUpdatedById, ref status );
+						else
+						{
+							status.AddError( String.Format( "Error. For Course: '{0}' ({1}) an assessment method concept was not found for Identifier: {3}", input.Name, input.Id, input.AssessmentMethodType) );
+						}
+					}
                 }
 
             } catch ( Exception ex )

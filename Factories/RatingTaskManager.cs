@@ -155,7 +155,7 @@ namespace Factories
             return list;
         }
 
-        public static List<AppEntity> GetAll( string rating, bool includingAllSailorsTasks, ref int totalRows )
+        public static List<AppEntity> GetAll( string rating )
         {
             int pageNumber = 1;
             //what is a reasonable max number for all tasks for a rating?
