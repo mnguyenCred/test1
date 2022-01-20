@@ -155,7 +155,7 @@ namespace Factories
             return list;
         }
 
-        public static List<AppEntity> GetAllForRating( string rating, bool includingAllSailorsTasks, ref int totalRows )
+        public static List<AppEntity> GetAllForRating( string ratingCodedNotation, bool includingAllSailorsTasks, ref int totalRows )
         {
             int pageNumber = 1;
             //what is a reasonable max number for all tasks for a rating?
@@ -164,19 +164,19 @@ namespace Factories
             if ( includingAllSailorsTasks )
                 pageSize = 0;
             int userId = 0;
-            return GetAllForRating( rating, includingAllSailorsTasks, pageNumber, pageSize, ref totalRows );
+            return GetAll( ratingCodedNotation, includingAllSailorsTasks, pageNumber, pageSize, ref totalRows );
         }
 
         /// <summary>
         /// Get all rating tasks for the provided rating
         /// </summary>
-        /// <param name="rating"></param>
+        /// <param name="ratingCodedNotation"></param>
         /// <param name="includingAllSailorsTasks">If true, include All Sailor tasks</param>
         /// <param name="pageNumber"></param>
         /// <param name="pageSize">Consider: if zero, return all records</param>
         /// <param name="totalRows"></param>
         /// <returns></returns>
-        public static List<AppEntity> GetAllForRating( string rating, bool includingAllSailorsTasks, int pageNumber, int pageSize, ref int totalRows  )
+        public static List<AppEntity> GetAll( string ratingCodedNotation, bool includingAllSailorsTasks, int pageNumber, int pageSize, ref int totalRows  )
         {
             //!!! this is very slow when getting 1600+ . Could have an async task to pre-cache
             var entity = new AppEntity();
@@ -185,7 +185,7 @@ namespace Factories
             //-no caching if not getting all? That is if pageSize > 0
             if ( pageSize == 0 || pageSize > 1700 )
             {
-                list = CheckCache( rating, includingAllSailorsTasks );
+                list = CheckCache( ratingCodedNotation, includingAllSailorsTasks );
                 if ( list?.Count > 0 )
                     return list;
             }
@@ -199,11 +199,11 @@ namespace Factories
            //int pageSize = 2000;
             int userId = 0;
             //int pTotalRows = 0;
-            if (string.IsNullOrWhiteSpace(rating))
+            if (string.IsNullOrWhiteSpace( ratingCodedNotation ) )
             {
                 //don't want to return all, 
             }
-            var template = string.Format("'{0}'", rating.Trim());
+            var template = string.Format("'{0}'", ratingCodedNotation.Trim());
             if (includingAllSailorsTasks)
             {
                 template += ",'ALL'";
@@ -230,7 +230,7 @@ namespace Factories
                 
             } ).ToList();
 
-            AddToCache( list, rating, includingAllSailorsTasks );
+            AddToCache( list, ratingCodedNotation, includingAllSailorsTasks );
             //var r2 = results.Select( s => new AppEntity() 
             //{
             //    CTID=s.CTID,

@@ -49,7 +49,7 @@ namespace AppTestProject
             {
                 var results = RatingTaskManager.GetAllForRating( "qm", true, ref totalRows );
 
-                results = RatingTaskManager.GetAllForRating( "abf", false, 1, 200, ref totalRows );
+                results = RatingTaskManager.GetAll( "abf", false, 1, 200, ref totalRows );
             }
             catch ( Exception ex )
             {
