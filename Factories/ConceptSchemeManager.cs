@@ -48,7 +48,7 @@ namespace Factories
                     {
                         //add
                         int newId = Add( entity, ref status );
-                        if ( newId == 0 || status.HasErrors )
+                        if ( newId == 0 || status.HasSectionErrors )
                             isValid = false;
 
                         return isValid;
@@ -74,6 +74,7 @@ namespace Factories
                         if ( HasStateChanged( context ) )
                         {
                             efEntity.LastUpdated = DateTime.Now;
+                            efEntity.LastUpdatedById = entity.LastUpdatedById;
                             count = context.SaveChanges();
                             //can be zero if no data changed
                             if ( count >= 0 )
@@ -329,7 +330,7 @@ namespace Factories
                     {
                         //add
                         int newId = AddConcept( entity, ref status );
-                        if ( newId == 0 || status.HasErrors )
+                        if ( newId == 0 || status.HasSectionErrors )
                             isValid = false;
 
                         return isValid;
@@ -355,6 +356,7 @@ namespace Factories
                         if ( HasStateChanged( context ) )
                         {
                             efEntity.LastUpdated = DateTime.Now;
+                            efEntity.LastUpdatedById = entity.LastUpdatedById;
                             count = context.SaveChanges();
                             //can be zero if no data changed
                             if ( count >= 0 )
@@ -414,6 +416,7 @@ namespace Factories
         private int AddConcept( Concept entity, ref SaveStatus status )
         {
             var efEntity = new Data.Tables.ConceptScheme_Concept();
+            status.HasSectionErrors = false;
             int conceptId = 0;
             //assume lookup has been done
             using ( var context = new DataEntities() )

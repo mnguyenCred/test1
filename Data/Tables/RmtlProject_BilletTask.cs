@@ -12,18 +12,18 @@ namespace Data.Tables
     using System;
     using System.Collections.Generic;
     
-    public partial class RmtlProjectBilletTask
+    public partial class RmtlProject_BilletTask
     {
         public int Id { get; set; }
-        public int ProjectBilletId { get; set; }
-        public System.DateTime Created { get; set; }
-        public System.DateTime LastUpdated { get; set; }
-        public int RatingTaskId { get; set; }
-        public Nullable<int> CreatedById { get; set; }
-        public Nullable<int> LastUpdatedById { get; set; }
         public System.Guid RowId { get; set; }
+        public int ProjectBilletId { get; set; }
+        public int RatingTaskId { get; set; }
+        public System.DateTime Created { get; set; }
+        public Nullable<int> CreatedById { get; set; }
+        public System.DateTime LastUpdated { get; set; }
+        public Nullable<int> LastUpdatedById { get; set; }
     
-        public virtual RmtlProject_Billet RmtlProject_Billet { get; set; }
         public virtual RatingTask RatingTask { get; set; }
+        public virtual RmtlProject_Billet RmtlProject_Billet { get; set; }
     }
 }

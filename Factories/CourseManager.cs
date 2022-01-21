@@ -59,7 +59,7 @@ namespace Factories
                         {
                             //add
                             int newId = Add( entity, ref status );
-                            if ( newId == 0 || status.HasErrors )
+                            if ( newId == 0 || status.HasSectionErrors )
                                 isValid = false;
                             //just in case 
                             if ( newId > 0 )
@@ -87,6 +87,7 @@ namespace Factories
                         if ( HasStateChanged( context ) )
                         {
                             efEntity.LastUpdated = DateTime.Now;
+                            efEntity.LastUpdatedById = entity.LastUpdatedById;
                             count = context.SaveChanges();
                             //can be zero if no data changed
                             if ( count >= 0 )
@@ -157,6 +158,7 @@ namespace Factories
         private int Add( AppEntity entity, ref SaveStatus status )
         {
             DBEntity efEntity = new DBEntity();
+            status.HasSectionErrors = false;
             using ( var context = new DataEntities() )
             {
                 try
@@ -172,6 +174,7 @@ namespace Factories
                     else
                         efEntity.CTID = "ce-" + efEntity.RowId.ToString().ToLower();
                     entity.Created = efEntity.Created = DateTime.Now;
+                    efEntity.CreatedById = efEntity.LastUpdatedById = entity.LastUpdatedById;
                     entity.LastUpdated = efEntity.LastUpdated = DateTime.Now;
 
                     context.Course.Add( efEntity );
@@ -230,9 +233,8 @@ namespace Factories
             //this will include the extra props (like LifeCycleControlDocument, etc. for now)
             BaseFactory.AutoMap( input, output, errors );
             //
-            if ( input.HasReferenceResource != null ) 
+            if ( IsValidGuid(input.HasReferenceResource ) ) 
             {
-                //
                 output.LifeCycleControlDocumentId = ConceptSchemeManager.GetConcept( input.HasReferenceResource)?.Id;
             }
             //
@@ -459,11 +461,27 @@ namespace Factories
                         CourseConceptAdd( input, concept.Id, input.LastUpdatedById, ref status );
                     else
                     {
-                        status.AddError( String.Format( "Error. For Course: '{0}' ({1}) a CourseType concept was not found for Identifier: {3}", input.Name, input.Id, input.CourseType ) );
+                        status.AddError( String.Format( "Error. For Course: '{0}' ({1}) a CourseType concept was not found for Identifier: {2}", input.Name, input.Id, input.CourseType ) );
                     }
+                }
+                //TBD
+                if ( input.CourseTypes?.Count > 0 )
+                {
+                    foreach(var item in input.CourseTypes)
+                    {
+                        var concept = ConceptSchemeManager.GetConcept( item );
+                        if ( concept?.Id > 0 )
+                            CourseConceptAdd( input, concept.Id, input.LastUpdatedById, ref status );
+                        else
+                        {
+                            status.AddError( String.Format( "Error. For Course: '{0}' ({1}) a CourseType concept was not found for Identifier: {2}", input.Name, input.Id, item ) );
+                        }
+                    }
+                    
                 }
                 if ( input.CurriculumControlAuthority?.Count > 0 )
                 {
+                    //TODO - needs to be updated to handle deletes (depending on the delete handling from the upload).
                     foreach( var item in input.CurriculumControlAuthority)
                     {
                         var org = OrganizationManager.Get( item );
@@ -473,7 +491,7 @@ namespace Factories
                         }
                         else
                         {
-                            status.AddError( String.Format( "Error. For Course: '{0}' ({1}) an organization was not found for Identifier: {3}", input.Name, input.Id, item.ToString() ) );
+                            status.AddError( String.Format( "Error. For Course: '{0}' ({1}) an organization was not found for Identifier: {2}", input.Name, input.Id, item.ToString() ) );
                         }
                     }
                 }
@@ -488,7 +506,7 @@ namespace Factories
 							CourseConceptAdd( input, concept.Id, input.LastUpdatedById, ref status );
 						else
 						{
-							status.AddError( String.Format( "Error. For Course: '{0}' ({1}) an assessment method concept was not found for Identifier: {3}", input.Name, input.Id, input.AssessmentMethodType) );
+							status.AddError( String.Format( "Error. For Course: '{0}' ({1}) an assessment method concept was not found for Identifier: {2}", input.Name, input.Id, input.AssessmentMethodType) );
 						}
 					}
                 }
@@ -636,6 +654,7 @@ namespace Factories
         public bool CourseConceptAdd( AppEntity input, int conceptId, int userId, ref SaveStatus status )
         {
             ConceptSchemeManager csMgr = new ConceptSchemeManager();
+            status.HasSectionErrors = false;
             var efEntity = new Data.Tables.Course_Concept();
             var entityType = "CourseConcept";
             using ( var context = new DataEntities() )
@@ -757,6 +776,7 @@ namespace Factories
         {
             var efEntity = new Data.Tables.Course_Organization();
             var entityType = "CourseOrganization";
+            status.HasSectionErrors = false;
             using ( var context = new DataEntities() )
             {
                 try
@@ -810,20 +830,56 @@ namespace Factories
                 //check existance
                 //or may want to assign and check for change (could be legit case change). 
                 //  use rowId if present - although the upload may have no way to determine if an existing task is being updated - 
-                var item = context.Course_Task
-                    .FirstOrDefault( s => s.CourseId == input.Id && s.Description.ToLower() == task.Description.ToLower() );
-                if ( item?.Id > 0 )
+                Course_Task efEntity = new Course_Task();
+                if ( IsValidGuid( task.RowId ) )
                 {
-                    return;
+                    efEntity = context.Course_Task.FirstOrDefault( s => s.RowId == task.RowId );
                 }
 
-        }
+                if ( efEntity == null )
+                {
+                    efEntity = context.Course_Task
+                        .FirstOrDefault( s => s.CourseId == input.Id && s.Description.ToLower() == task.Description.ToLower() );
+                }
+                if ( efEntity?.Id > 0 )
+                {
+                    //update
+                    List<string> errors = new List<string>();
+                    //this will include the extra props (like LifeCycleControlDocument, etc. for now)
+                    BaseFactory.AutoMap( task, efEntity, errors );
+                    if ( HasStateChanged( context ) )
+                    {
+                        efEntity.LastUpdatedById = input.LastUpdatedById;
+                        efEntity.LastUpdated = DateTime.Now;
+                        var count = context.SaveChanges();
+                        //can be zero if no data changed
+                        if ( count >= 0 )
+                        {
+                            task.LastUpdated = ( DateTime ) efEntity.LastUpdated;
+                        }
+                        else
+                        {
+                            //?no info on error
+
+                            string message = string.Format( thisClassName + ".Save Failed", "Attempted to update a CourseTask. The process appeared to not work, but was not an exception, so we have no message, or no clue. Course: {0}, Id: {1}, Task: '{2}'", input.Name, input.Id, task.Description );
+                            status.AddError( "Error - the update was not successful. " + message );
+                            EmailManager.NotifyAdmin( thisClassName + ".CourseTaskSave Failed Failed", message );
+                        }
+
+                    }
+                } else
+                {
+                    var result = CourseTaskAdd( input, task, ref status );
+                }
+
+            }
         }
 
         public bool CourseTaskAdd( AppEntity input, MSc.TrainingTask task, ref SaveStatus status )
         {
             var entityType = "CourseTask";
             var efEntity = new Data.Tables.Course_Task();
+            status.HasSectionErrors = false;
             //need to do a look up
 
             using ( var context = new DataEntities() )
@@ -841,10 +897,8 @@ namespace Factories
 
                     efEntity.CourseId = input.Id;
                     efEntity.Description = task.Description;
-                    efEntity.RowId = Guid.NewGuid();
-                    efEntity.CreatedById = input.LastUpdatedById;
-                    //efEntity.CTID = "ce-" + efEntity.RowId.ToString().ToLower();
-                    efEntity.Created = DateTime.Now;
+                    efEntity.CreatedById = efEntity.LastUpdatedById = input.LastUpdatedById;
+                    efEntity.Created = efEntity.LastUpdated = DateTime.Now;
 
                     context.Course_Task.Add( efEntity );
 

@@ -101,25 +101,29 @@ namespace Navy.Utilities
 
             try
             {
-				string exceptions = FormatExceptions( ex );
-                string errMsg = message +
-                    "\r\nType: " + ex.GetType().ToString() + ";" + 
-                    "\r\nSession Id - " + sessionId + "____IP - " + remoteIP +
-                    "\r\rReferrer: " + lRefererPage + ";" +
-                    "\r\nException: " + exceptions + ";" + 
-                    "\r\nStack Trace: " + ex.StackTrace.ToString() +
-                    "\r\nServer\\Template: " + path +
-                    "\r\nUrl: " + url;
+				string errMsg = "";
+				if ( ex != null )
+				{
+					string exceptions = FormatExceptions( ex );
+					errMsg = message +
+						"\r\nType: " + ex.GetType().ToString() + ";" +
+						"\r\nSession Id - " + sessionId + "____IP - " + remoteIP +
+						"\r\rReferrer: " + lRefererPage + ";" +
+						"\r\nException: " + exceptions + ";" +
+						"\r\nStack Trace: " + ex.StackTrace.ToString() +
+						"\r\nServer\\Template: " + path +
+						"\r\nUrl: " + url;
+				} else
+                {
+					errMsg = message +
+						"\r\nException: No exception message was provided;" +
+						"\r\nSession Id - " + sessionId + "____IP - " + remoteIP +
+						"\r\rReferrer: " + lRefererPage + ";" +
+						"\r\nServer\\Template: " + path +
+						"\r\nUrl: " + url; }
 
-				//if ( ex.InnerException != null && ex.InnerException.Message != null )
-				//{
-				//	errMsg += "\r\n****Inner exception: " + ex.InnerException.Message;
 
-				//	if ( ex.InnerException.InnerException != null && ex.InnerException.InnerException.Message != null )
-				//		errMsg += "\r\n@@@@@@Inner-Inner exception: " + ex.InnerException.InnerException.Message;
-				//}
-
-                if ( parmsString.Length > 0 )
+				if ( parmsString.Length > 0 )
                     errMsg += "\r\nParameters: " + parmsString;
 
                 LoggingHelper.LogError( errMsg, notifyAdmin, subject );
@@ -253,7 +257,9 @@ namespace Navy.Utilities
 		/// <returns></returns>
 		public static string FormatExceptions( Exception ex )
 		{
-			string message = ex.Message;
+			if ( ex == null )
+				return "No exception message was provided. ";
+			string message = ex?.Message;
 
 			if ( ex.InnerException != null )
 			{

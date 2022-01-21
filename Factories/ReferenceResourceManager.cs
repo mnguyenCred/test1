@@ -52,9 +52,10 @@ namespace Factories
                         {
                             //add
                             int newId = Add( entity, ref status );
-                            if ( newId == 0 || status.HasErrors )
+                            if ( newId == 0 || status.HasSectionErrors )
                                 isValid = false;
-
+                            if ( newId > 0 )
+                                UpdateParts( entity, status );
                             return isValid;
                         }
                     }
@@ -78,6 +79,8 @@ namespace Factories
                         if ( HasStateChanged( context ) )
                         {
                             efEntity.LastUpdated = DateTime.Now;
+                            //this should have been handled in mapping (actually probably an issue with nullable
+                            efEntity.LastUpdatedById = entity.LastUpdatedById;
                             count = context.SaveChanges();
                             //can be zero if no data changed
                             if ( count >= 0 )
@@ -99,6 +102,9 @@ namespace Factories
 
                         if ( isValid )
                         {
+                            //just in case 
+                            if ( entity.Id > 0 )
+                                UpdateParts( entity, status );
                             SiteActivity sa = new SiteActivity()
                             {
                                 ActivityType = "ReferenceResource",
@@ -144,6 +150,7 @@ namespace Factories
         private int Add( AppEntity entity, ref SaveStatus status )
         {
             DBEntity efEntity = new DBEntity();
+            status.HasSectionErrors= false;
             using ( var context = new DataEntities() )
             {
                 try
@@ -161,6 +168,7 @@ namespace Factories
                         efEntity.CTID = "ce-" + efEntity.RowId.ToString().ToLower();
                     entity.Created = efEntity.Created = DateTime.Now;
                     entity.LastUpdated = efEntity.LastUpdated = DateTime.Now;
+                    efEntity.CreatedById = efEntity.LastUpdatedById = entity.LastUpdatedById;
 
                     context.ReferenceResource.Add( efEntity );
 
@@ -204,6 +212,116 @@ namespace Factories
 
             return efEntity.Id;
         }
+        public void UpdateParts( AppEntity input, SaveStatus status )
+        {
+            try
+            {
+                ReferenceTypeUpdate( input, ref status );
+                //
+                //if ( input.ReferenceType != null )
+                //{
+                //    foreach ( var item in input.ReferenceType )
+                //    {
+                //        var concept = ConceptSchemeManager.GetConcept( item );
+                //        if ( concept?.Id > 0 )
+                //            ReferenceConceptAdd( input, concept.Id, input.LastUpdatedById, ref status );
+                //        else
+                //        {
+                //            status.AddError( String.Format( "Error. For ReferenceResource: '{0}' ({1}) a ReferenceResource referenceType concept was not found for Identifier: {2}", input.Name, input.Id, item ) );
+                //        }
+                //    }
+                //}
+
+            }
+            catch ( Exception ex )
+            {
+                LoggingHelper.LogError( ex, thisClassName + "UpdateParts" );
+            }
+        }
+        /// <summary>
+        /// Do add/update/delete of ReferenceTypes
+        /// </summary>
+        /// <param name="input"></param>
+        /// <param name="status"></param>
+        /// <returns></returns>
+        public bool ReferenceTypeUpdate( AppEntity input, ref SaveStatus status )
+        {
+            ConceptSchemeManager csMgr = new ConceptSchemeManager();
+            status.HasSectionErrors = false;
+            var efEntity = new Data.Tables.ReferenceResource_ReferenceType();
+            var entityType = "ReferenceResource_ReferenceType";
+            using ( var context = new DataEntities() )
+            {
+                try
+                {
+                    if ( input.ReferenceType?.Count == 0 )
+                        input.ReferenceType = new List<Guid>();
+                    //check existance
+                    var existing = context.ReferenceResource_ReferenceType
+                        .Where( s => s.ReferenceResourceId == input.Id )
+                        .ToList();
+
+                    #region deletes check
+                    if ( existing.Any() )
+                    {
+                        //if exists not in input, delete it
+                        foreach(var e in existing)
+                        {
+                            var key = e?.ConceptScheme_Concept?.RowId; 
+                            if (IsValidGuid(key))
+                            {
+                                if (!input.ReferenceType.Contains( (Guid)key ))
+                                {
+                                    context.ReferenceResource_ReferenceType.Remove( e );
+                                    int dcount = context.SaveChanges();
+                                }
+                            }
+                        }
+                    }
+                    #endregion
+                    //adds
+                    if ( input.ReferenceType != null )
+                    {
+                        foreach ( var child in input.ReferenceType )
+                        {
+                            //if not in existing, then add
+                            var isfound = existing.Select( s => s.ConceptScheme_Concept.RowId == child ).ToList();
+                            if ( !isfound.Any() )
+                            {
+                                var concept = ConceptSchemeManager.GetConcept( child );
+                                if ( concept?.Id > 0 )
+                                {
+                                    //ReferenceConceptAdd( input, concept.Id, input.LastUpdatedById, ref status );
+                                    efEntity.ReferenceResourceId = input.Id;
+                                    efEntity.ReferenceTypeId = concept.Id;
+                                    efEntity.RowId = Guid.NewGuid();
+                                    efEntity.CreatedById = input.LastUpdatedById;
+                                    //efEntity.CTID = "ce-" + efEntity.RowId.ToString().ToLower();
+                                    efEntity.Created = DateTime.Now;
+
+                                    context.ReferenceResource_ReferenceType.Add( efEntity );
+
+                                    // submit the change to database
+                                    int count = context.SaveChanges();
+                                }
+                                else
+                                {
+                                    status.AddError( String.Format( "Error. For ReferenceResource: '{0}' ({1}) a ReferenceResource referenceType concept was not found for Identifier: {2}", input.Name, input.Id, child ) );
+                                }
+                            }
+                        }
+                    }
+                }
+                catch ( Exception ex )
+                {
+                    string message = FormatExceptions( ex );
+                    LoggingHelper.LogError( ex, thisClassName + string.Format( ".ReferenceTypeUpdate-'{0}', Course: '{1}' ({2})", entityType, input.Name, input.Id ) );
+                    status.AddError( thisClassName + ".ReferenceTypeUpdate(). Error - the save was not successful. \r\n" + message );
+                }
+            }
+            return false;
+        }
+
         public static void MapToDB( AppEntity input, DBEntity output )
         {
             //watch for missing properties like rowId
@@ -309,6 +427,7 @@ namespace Factories
             //the publication date format can be inconsistant
             if ( IsValidDate( output.PublicationDate ) )
             {
+                //should be in the proper format, but maybe useful if there is a change in the default
                 output.PublicationDate = DateTime.Parse( output.PublicationDate ).ToString( "yyyy-MM-dd" );
             }
             //related
