@@ -241,7 +241,7 @@ namespace Services
 				if (!string.IsNullOrEmpty( row.Row_CodedNotation))
                 {
 					ratingTask = graph.RatingTask.FirstOrDefault( m =>
-						m.CodedNotation.ToLower() == row.Row_CodedNotation.ToLower() );
+						m.CodedNotation?.ToLower() == row.Row_CodedNotation?.ToLower() );
 					//make sure found
 					if ( string.IsNullOrWhiteSpace(ratingTask?.CodedNotation) )
 						ratingTask = null;
@@ -1090,35 +1090,526 @@ namespace Services
 		//
 
 
-		public static ChangeSummary ProcessUpload2( UploadableTable uploadedData, Guid ratingRowID, JObject debug = null )
+		public static ChangeSummary ProcessUploadV2( UploadableTable uploadedData, Guid ratingRowID, JObject debug = null )
 		{
-			var summary = new ChangeSummary();
+			debug = debug ?? new JObject();
+			var latestStepFlag = "FarthestStep";
+			var summary = new ChangeSummary() { RowId = Guid.NewGuid() };
+			int totalRows = 0;
+			debug[ latestStepFlag ] = "Initial Setup";
 
-			var rating = RatingManager.Get( ratingRowID );
-			var allRatings = RatingManager.GetAll();
+			var currentRating = RatingManager.Get( ratingRowID );
+			var existingRatings = RatingManager.GetAll();
 			var payGradeTypeConcepts = Factories.ConceptSchemeManager.GetbyShortUri( Factories.ConceptSchemeManager.ConceptScheme_Pay_Grade ).Concepts;
 			var trainingGapTypeConcepts = Factories.ConceptSchemeManager.GetbyShortUri( Factories.ConceptSchemeManager.ConceptScheme_TrainingGap ).Concepts;
 			var applicabilityTypeConcepts = Factories.ConceptSchemeManager.GetbyShortUri( Factories.ConceptSchemeManager.ConceptScheme_TaskApplicability ).Concepts;
 			var sourceTypeConcepts = Factories.ConceptSchemeManager.GetbyShortUri( Factories.ConceptSchemeManager.ConceptScheme_ReferenceResource ).Concepts;
 			var courseTypeConcepts = Factories.ConceptSchemeManager.GetbyShortUri( Factories.ConceptSchemeManager.ConceptScheme_CourseType ).Concepts;
 			var assessmentMethodTypeConcepts = Factories.ConceptSchemeManager.GetbyShortUri( Factories.ConceptSchemeManager.ConceptScheme_CurrentAssessmentApproach ).Concepts;
-
+			debug[ latestStepFlag ] = "Got Concept Scheme data";
 
 			var existingReferenceResources = ReferenceResourceManager.GetAll();
-			int totalRows = 0;
-			var existingRatingTasks = Factories.RatingTaskManager.GetAllForRating( rating.CodedNotation, true, ref totalRows );
+			var existingRatingTasks = Factories.RatingTaskManager.GetAllForRating( currentRating.CodedNotation, true, ref totalRows );
 			var existingBilletTitles = new List<BilletTitle>(); //Need a method to get these from the database
 			var existingTrainingTasks = TrainingTaskManager.GetAll();
+			var existingCourses = CourseManager.GetAll();
 			var existingWorkRoles = WorkRoleManager.GetAll();
+			var existingOrganizations = OrganizationManager.GetAll();
+			debug[ latestStepFlag ] = "Got Existing data";
 
 			//In order to facilitate a correct comparison, it must be done apples-to-apples
 			//This approach attempts to achieve that by mapping both the uploaded data and the existing data into a common structure that can then easily be compared
+			//Note: The order in which these methods are called is very important, since later methods rely on data determined by earlier methods!
+			HandleUploadSheet_Organization( uploadedData.Rows, summary, existingOrganizations );
+			HandleUploadSheet_WorkRole( uploadedData.Rows, summary, existingWorkRoles );
+			HandleUploadSheet_ReferenceResource( uploadedData.Rows, summary, existingReferenceResources, sourceTypeConcepts );
+			HandleUploadSheet_TrainingTask( uploadedData.Rows, summary, existingTrainingTasks );
+			HandleUploadSheet_Course( uploadedData.Rows, summary, existingCourses, existingOrganizations, existingReferenceResources, existingTrainingTasks, courseTypeConcepts, assessmentMethodTypeConcepts );
+			HandleUploadSheet_RatingTask( uploadedData.Rows, summary, currentRating, existingRatings, existingRatingTasks, existingTrainingTasks, existingReferenceResources, existingWorkRoles, payGradeTypeConcepts, applicabilityTypeConcepts, trainingGapTypeConcepts, sourceTypeConcepts );
+			HandleUploadSheet_BilletTitle( uploadedData.Rows, summary, currentRating, existingBilletTitles, existingRatingTasks, existingReferenceResources, payGradeTypeConcepts, sourceTypeConcepts, applicabilityTypeConcepts, trainingGapTypeConcepts );
+			debug[ latestStepFlag ] = "Handled all upload data";
 
+			//Clean up the summary object
+			summary.LookupGraph = summary.LookupGraph.Distinct().Where( m =>
+				!summary.ItemsToBeCreated.BilletTitle.Contains( m ) &&
+				!summary.ItemsToBeCreated.Course.Contains( m ) &&
+				!summary.ItemsToBeCreated.Organization.Contains( m ) &&
+				!summary.ItemsToBeCreated.RatingTask.Contains( m ) &&
+				!summary.ItemsToBeCreated.ReferenceResource.Contains( m ) &&
+				!summary.ItemsToBeCreated.TrainingTask.Contains( m ) &&
+				!summary.ItemsToBeCreated.WorkRole.Contains( m ) &&
+				!summary.ItemsToBeDeleted.BilletTitle.Contains( m ) &&
+				!summary.ItemsToBeDeleted.Course.Contains( m ) &&
+				!summary.ItemsToBeDeleted.Organization.Contains( m ) &&
+				!summary.ItemsToBeDeleted.RatingTask.Contains( m ) &&
+				!summary.ItemsToBeDeleted.ReferenceResource.Contains( m ) &&
+				!summary.ItemsToBeDeleted.TrainingTask.Contains( m ) &&
+				!summary.ItemsToBeDeleted.WorkRole.Contains( m )
+			).ToList();
+			debug[ latestStepFlag ] = "Cleaned up summary Lookup Graph";
 
-			//Rating Tasks
-			//convert the uploaded data
-			var uploadedRatingTaskMatchers = GetSheetMatchers<RatingTask, MatchableRatingTask>( uploadedData.Rows, GetRowMatchHelper_RatingTask );
-			foreach( var matcher in uploadedRatingTaskMatchers )
+			return summary;
+		}
+		//
+
+		//Organization
+		public static void HandleUploadSheet_Organization( List<UploadableRow> uploadedRows, ChangeSummary summary, List<Organization> existingOrganizations = null )
+		{
+			//Get existing data
+			existingOrganizations = existingOrganizations ?? OrganizationManager.GetAll();
+
+			//Convert the uploaded data
+			var uploadedOrganizationMatchers = GetSheetMatchers<Organization, MatchableOrganization>( uploadedRows, GetRowMatchHelper_Organization );
+			foreach ( var matcher in uploadedOrganizationMatchers )
+			{
+				matcher.Flattened.Name = matcher.Rows.Select( m => m.Course_CurriculumControlAuthority_Name ).FirstOrDefault();
+			}
+
+			//Remove empty rows
+			uploadedOrganizationMatchers = uploadedOrganizationMatchers.Where( m => !string.IsNullOrWhiteSpace( m.Flattened.Name ) ).ToList();
+
+			//Convert the existing data
+			var existingOrganizationMatchers = GetSheetMatchersFromExisting<Organization, MatchableOrganization>( existingOrganizations );
+
+			//Get loose matches
+			var looseMatchingOrganizationMatchers = new List<SheetMatcher<Organization, MatchableOrganization>>();
+			foreach ( var uploaded in uploadedOrganizationMatchers )
+			{
+				var matches = existingOrganizationMatchers.Where( m =>
+					uploaded.Flattened.Name == m.Flattened.Name
+				).ToList();
+
+				HandleLooseMatchesFound( matches, uploaded, looseMatchingOrganizationMatchers, summary, "Curriculum Control Authority", m => m?.Name );
+			}
+
+			//Items that are completely identical (unchanged)
+			var identicalOrganizationMatchers = looseMatchingOrganizationMatchers.Where( m =>
+				 existingOrganizationMatchers.Where( n =>
+					  m.Flattened.Name == n.Flattened.Name
+				 ).Count() > 0
+			).ToList();
+			summary.UnchangedCount.Organization = identicalOrganizationMatchers.Count();
+
+			//Items that match, but have a change (i.e., a different value for one or more List<>s)
+			//Not applicable at this time for organizations
+
+			//Items that were not found in the existing data (brand new items)
+			var newOrganizationMatchers = uploadedOrganizationMatchers.Where( m => !looseMatchingOrganizationMatchers.Contains( m ) ).ToList();
+			foreach ( var item in newOrganizationMatchers )
+			{
+				CreateNewItem( summary.ItemsToBeCreated.Organization, m => m.Name = item.Flattened.Name );
+			}
+
+			//Items that were not found in the uploaded data (deleted items)
+			//Not applicable for Organizations
+		}
+		//
+
+		//Work Role
+		public static void HandleUploadSheet_WorkRole( List<UploadableRow> uploadedRows, ChangeSummary summary, List<WorkRole> existingWorkRoles = null )
+		{
+			//Get existing data
+			existingWorkRoles = existingWorkRoles ?? WorkRoleManager.GetAll();
+
+			//Convert the uploaded data
+			var uploadedWorkRoleMatchers = GetSheetMatchers<WorkRole, MatchableWorkRole>( uploadedRows, GetRowMatchHelper_WorkRole );
+			foreach( var matcher in uploadedWorkRoleMatchers )
+			{
+				matcher.Flattened.Name = matcher.Rows.Select( m => m.WorkRole_Name ).FirstOrDefault();
+			}
+
+			//Convert the existing data
+			var existingWorkRoleMatchers = GetSheetMatchersFromExisting<WorkRole, MatchableWorkRole>( existingWorkRoles );
+
+			//Get loose matches
+			var looseMatchingWorkRoleMatchers = new List<SheetMatcher<WorkRole, MatchableWorkRole>>();
+			foreach( var uploaded in uploadedWorkRoleMatchers )
+			{
+				var matches = existingWorkRoleMatchers.Where( m =>
+					uploaded.Flattened.Name == m.Flattened.Name
+				).ToList();
+
+				HandleLooseMatchesFound( matches, uploaded, looseMatchingWorkRoleMatchers, summary, "Work Role", m => m?.Name );
+			}
+
+			//Items that are completely identical (unchanged)
+			var identicalWorkRoleMatchers = looseMatchingWorkRoleMatchers.Where(m =>
+				existingWorkRoleMatchers.Where( n =>
+					m.Flattened.Name == n.Flattened.Name
+				).Count() > 0
+			).ToList();
+			summary.UnchangedCount.WorkRole = identicalWorkRoleMatchers.Count();
+
+			//Items that match, but have a change (i.e., a different value for one or more List<>s)
+			//Not applicable at this time for Work Roles
+
+			//Items that were not found in the existing data (brand new items)
+			var newWorkRoleMatchers = uploadedWorkRoleMatchers.Where( m => !looseMatchingWorkRoleMatchers.Contains( m ) ).ToList();
+			foreach(var item in newWorkRoleMatchers )
+			{
+				CreateNewItem( summary.ItemsToBeCreated.WorkRole, m => m.Name = item.Flattened.Name );
+			}
+
+			//Items that were not found in the uploaded data (deleted items)
+			//Not applicable for Work Roles at this time (tends to lead to a lot of false positives since we're getting all work roles)
+			/*
+			var missingWorkRoleMatchers = existingWorkRoleMatchers.Where( m => !looseMatchingWorkRoleMatchers.Contains( m ) ).ToList();
+			foreach ( var item in missingWorkRoleMatchers )
+			{
+				summary.ItemsToBeDeleted.WorkRole.Add( item.Data );
+			}
+			*/
+		}
+		//
+
+		//Reference Resource
+		public static void HandleUploadSheet_ReferenceResource( List<UploadableRow> uploadedRows, ChangeSummary summary, List<ReferenceResource> existingReferenceResources = null, List<Concept> sourceTypeConcepts = null )
+		{
+			//Get existing data
+			existingReferenceResources = existingReferenceResources ?? ReferenceResourceManager.GetAll();
+			sourceTypeConcepts = sourceTypeConcepts ?? ConceptSchemeManager.GetbyShortUri( ConceptSchemeManager.ConceptScheme_ReferenceResource ).Concepts;
+
+			//Convert the uploaded data
+			var uploadedReferenceResourceMatchers_Task = GetSheetMatchers<ReferenceResource, MatchableReferenceResource>( uploadedRows, GetRowMatchHelper_ReferenceResource_Task );
+			foreach( var matcher in uploadedReferenceResourceMatchers_Task )
+			{
+				matcher.Flattened.Name = matcher.Rows.Select( m => m.ReferenceResource_Name ).FirstOrDefault();
+				matcher.Flattened.PublicationDate = matcher.Rows.Select( m => m.ReferenceResource_PublicationDate ).FirstOrDefault();
+				matcher.Flattened.ReferenceType_WorkElementType = matcher.Rows.Select( m => m.Shared_ReferenceType ).Distinct().ToList();
+			}
+
+			var uploadedReferenceResourceMatchers_Course = GetSheetMatchers<ReferenceResource, MatchableReferenceResource>( uploadedRows, GetRowMatchHelper_ReferenceResource_Course );
+			foreach( var matcher in uploadedReferenceResourceMatchers_Course )
+			{
+				matcher.Flattened.Name = matcher.Rows.Select( m => m.Course_HasReferenceResource_Name ).FirstOrDefault();
+			}
+
+			//Remove empty rows
+			uploadedReferenceResourceMatchers_Task = uploadedReferenceResourceMatchers_Task.Where( m => !string.IsNullOrWhiteSpace( m.Flattened.Name ) ).ToList();
+			uploadedReferenceResourceMatchers_Course = uploadedReferenceResourceMatchers_Course.Where( m => !string.IsNullOrWhiteSpace( m.Flattened.Name ) ).ToList();
+
+			//Convert the existing data
+			var existingReferenceResourceMatchers = GetSheetMatchersFromExisting<ReferenceResource, MatchableReferenceResource>( existingReferenceResources );
+			foreach( var matcher in existingReferenceResourceMatchers )
+			{
+				matcher.Flattened.ReferenceType_WorkElementType = sourceTypeConcepts.Where( m => matcher.Data.ReferenceType.Contains( m.RowId ) ).Select( m => m.WorkElementType ).ToList();
+			}
+
+			//Get loose matches
+			var looseMatchReferenceResourceMatchers_Task = new List<SheetMatcher<ReferenceResource, MatchableReferenceResource>>();
+			foreach( var uploaded in uploadedReferenceResourceMatchers_Task )
+			{
+				var matches = existingReferenceResourceMatchers.Where( m =>
+					uploaded.Flattened.Name == m.Flattened.Name &&
+					ParseDateOrEmpty( uploaded.Flattened.PublicationDate ) == ParseDateOrEmpty( m.Flattened.PublicationDate ) 
+				).ToList();
+
+				HandleLooseMatchesFound( matches, uploaded, looseMatchReferenceResourceMatchers_Task, summary, "Reference Resource (for Rating Task)", m => m?.Name );
+			}
+
+			var looseMatchReferenceResourceMatchers_Course = new List<SheetMatcher<ReferenceResource, MatchableReferenceResource>>();
+			foreach (var uploaded in uploadedReferenceResourceMatchers_Course )
+			{
+				var matches = existingReferenceResourceMatchers.Where( m => 
+					uploaded.Flattened.Name == m.Flattened.Name
+				).ToList();
+
+				HandleLooseMatchesFound( matches, uploaded, looseMatchReferenceResourceMatchers_Course, summary, "Reference Resource (for Course)", m => m?.Name );
+			}
+
+			//Items that are completely identical (unchanged)
+			var identicalReferenceResourceMatchers_Task = looseMatchReferenceResourceMatchers_Task.Where( m =>
+				existingReferenceResourceMatchers.Where( n =>
+					AllMatch( m.Flattened.ReferenceType_WorkElementType, n.Flattened.ReferenceType_WorkElementType )
+				).Count() > 0
+			).ToList();
+			summary.UnchangedCount.ReferenceResource += identicalReferenceResourceMatchers_Task.Count();
+
+			var identicalReferenceResourceMatchers_Course = looseMatchReferenceResourceMatchers_Course.Where( m =>
+				existingReferenceResourceMatchers.Where( n =>
+					m.Flattened.Name == n.Flattened.Name
+				).Count() > 0
+			).ToList();
+			summary.UnchangedCount.ReferenceResource += identicalReferenceResourceMatchers_Course.Count();
+
+			//Items that match, but have a change (i.e., a different value for one or more List<>s)
+			var updatedReferenceResourceMatchers_Task = looseMatchReferenceResourceMatchers_Task.Where( m => !identicalReferenceResourceMatchers_Task.Contains( m ) ).ToList();
+			foreach( var item in updatedReferenceResourceMatchers_Task )
+			{
+				var existingMatcher = existingReferenceResourceMatchers.FirstOrDefault( m => m.Data == item.Data );
+				AppendLookup( summary, existingMatcher.Data );
+
+				//Handle added items
+				var newSourceTypes = sourceTypeConcepts.Where( n => item.Flattened.ReferenceType_WorkElementType.Except( existingMatcher.Flattened.ReferenceType_WorkElementType ).Contains( n.WorkElementType ) ).ToList();
+				HandleInnerItemChanges(
+					existingMatcher.Data.RowId,
+					m => m.ReferenceType = newSourceTypes.Select( n => n.RowId ).ToList(),
+					m => m.ReferenceType.Count() > 0,
+					summary.AddedItemsToInnerListsForCopiesOfItems.ReferenceResource
+				);
+
+				//Handle removed items
+				var removedSourceTypes = sourceTypeConcepts.Where( n => existingMatcher.Flattened.ReferenceType_WorkElementType.Except( item.Flattened.ReferenceType_WorkElementType ).Contains( n.WorkElementType ) ).ToList();
+				HandleInnerItemChanges(
+					existingMatcher.Data.RowId,
+					m => m.ReferenceType = removedSourceTypes.Select(n => n.RowId).ToList(),
+					m => m.ReferenceType.Count() > 0,
+					summary.RemovedItemsFromInnerListsForCopiesOfItems.ReferenceResource
+				);
+
+			}
+
+			//Items that were not found in the existing data (brand new items)
+			var newReferenceResourceMatchers_Task = uploadedReferenceResourceMatchers_Task.Where( m => !looseMatchReferenceResourceMatchers_Task.Contains( m ) ).ToList();
+			foreach( var item in newReferenceResourceMatchers_Task )
+			{
+				CreateNewItem( summary.ItemsToBeCreated.ReferenceResource, m => 
+				{ 
+					m.Name = item.Flattened.Name;
+					m.PublicationDate = item.Flattened.PublicationDate;
+					m.ReferenceType = sourceTypeConcepts.Where( n => item.Flattened.ReferenceType_WorkElementType.Contains( n.WorkElementType ) ).Select( n => n.RowId ).ToList();
+				} );
+			}
+
+			var newReferenceResourceMatchers_Course = uploadedReferenceResourceMatchers_Course.Where( m => !looseMatchReferenceResourceMatchers_Course.Contains( m ) ).ToList();
+			foreach( var item in newReferenceResourceMatchers_Course )
+			{
+				CreateNewItem( summary.ItemsToBeCreated.ReferenceResource, m =>
+				{
+					m.Name = item.Flattened.Name;
+					m.ReferenceType = sourceTypeConcepts.Where( n => n.CodedNotation == "LCCD" ).Select( n => n.RowId ).ToList(); //Course Reference Resource Type is always a Life-Cycle Control Document
+				} );
+			}
+
+			//Items that were not found in the uploaded data (deleted items)
+			//Not applicable for Reference Resources
+		}
+		//
+
+		//Training Task
+		public static void HandleUploadSheet_TrainingTask( List<UploadableRow> uploadedRows, ChangeSummary summary, List<TrainingTask> existingTrainingTasks = null )
+		{
+			//Get the existing data
+			existingTrainingTasks = existingTrainingTasks ?? TrainingTaskManager.GetAll();
+
+			//Convert the uploaded data
+			var uploadedTrainingTaskMatchers = GetSheetMatchers<TrainingTask, MatchableTrainingTask>( uploadedRows, GetRowMatchHelper_TrainingTask );
+			foreach ( var matcher in uploadedTrainingTaskMatchers )
+			{
+				matcher.Flattened.Description = matcher.Rows.Select( m => m.TrainingTask_Description ).FirstOrDefault();
+			}
+
+			//Remove empty rows
+			uploadedTrainingTaskMatchers = uploadedTrainingTaskMatchers.Where( m => !string.IsNullOrWhiteSpace( m.Flattened.Description ) ).ToList();
+
+			//Convert the existing data
+			var existingTrainingTaskMatchers = GetSheetMatchersFromExisting<TrainingTask, MatchableTrainingTask>( existingTrainingTasks );
+
+			//Get loose matches
+			var looseMatchingTrainingTaskMatchers = new List<SheetMatcher<TrainingTask, MatchableTrainingTask>>();
+			foreach ( var uploaded in uploadedTrainingTaskMatchers )
+			{
+				var matches = existingTrainingTaskMatchers.Where( m =>
+					uploaded.Flattened.Description == m.Flattened.Description
+				).ToList();
+
+				HandleLooseMatchesFound( matches, uploaded, looseMatchingTrainingTaskMatchers, summary, "Training Task", m => m?.Description );
+			}
+
+			//Items that are completely identical (unchanged)
+			var identicalTrainingTaskMatchers = looseMatchingTrainingTaskMatchers.Where( m =>
+				 existingTrainingTaskMatchers.Where( n =>
+					 m.Flattened.Description == n.Flattened.Description
+				 ).Count() > 0
+			).ToList();
+			summary.UnchangedCount.TrainingTask = identicalTrainingTaskMatchers.Count();
+
+			//Items that match, but have a change (i.e., a different value for one or more List<>s)
+			//Not applicable at this time for Training Tasks
+
+			//Items that were not found in the existing data (brand new items)
+			var newTrainingTaskMatchers = uploadedTrainingTaskMatchers.Where( m => !looseMatchingTrainingTaskMatchers.Contains( m ) ).ToList();
+			foreach ( var item in newTrainingTaskMatchers )
+			{
+				CreateNewItem( summary.ItemsToBeCreated.TrainingTask, m => m.Description = item.Flattened.Description );
+			}
+
+			//Items that were not found in the uploaded data (deleted items)
+			//Not applicable for Training Tasks at this time (tends to lead to a lot of false positives since we're getting all training tasks)
+			/*
+			var missingTrainingTaskMatchers = existingTrainingTaskMatchers.Where( m => !looseMatchingTrainingTaskMatchers.Contains( m ) ).ToList();
+			foreach ( var item in missingTrainingTaskMatchers )
+			{
+				summary.ItemsToBeDeleted.TrainingTask.Add( item.Data );
+			}
+			*/
+
+		}
+		//
+
+		//Course
+		public static void HandleUploadSheet_Course( List<UploadableRow> uploadedRows, ChangeSummary summary, List<Course> existingCourses = null, List<Organization> existingOrganizations = null, List<ReferenceResource> existingReferenceResources = null, List<TrainingTask> existingTrainingTasks = null, List<Concept> courseTypeConcepts = null, List<Concept> assessmentMethodTypeConcepts = null )
+		{
+			//Get the existing data
+			existingCourses = existingCourses ?? CourseManager.GetAll();
+			existingOrganizations = existingOrganizations ?? OrganizationManager.GetAll();
+			existingTrainingTasks = existingTrainingTasks ?? TrainingTaskManager.GetAll();
+			courseTypeConcepts = courseTypeConcepts ?? ConceptSchemeManager.GetbyShortUri( ConceptSchemeManager.ConceptScheme_CourseType ).Concepts;
+			assessmentMethodTypeConcepts = assessmentMethodTypeConcepts ?? ConceptSchemeManager.GetbyShortUri( ConceptSchemeManager.ConceptScheme_CurrentAssessmentApproach ).Concepts;
+
+			//Convert the uploaded data
+			var uploadedCourseMatchers = GetSheetMatchers<Course, MatchableCourse>( uploadedRows, GetRowMatchHelper_Course );
+			foreach ( var matcher in uploadedCourseMatchers )
+			{
+				matcher.Flattened.Name = matcher.Rows.Select( m => m.Course_Name ).FirstOrDefault();
+				matcher.Flattened.CodedNotation = matcher.Rows.Select( m => m.Course_CodedNotation ).FirstOrDefault();
+				matcher.Flattened.HasReferenceResource_Name = matcher.Rows.Select( m => m.Course_HasReferenceResource_Name ).FirstOrDefault();
+				matcher.Flattened.CourseType_Name = matcher.Rows.Select( m => m.Course_CourseType_Label ).FirstOrDefault();
+				matcher.Flattened.CurriculumControlAuthority_Name = matcher.Rows.Select( m => m.Course_CurriculumControlAuthority_Name ).Distinct().ToList();
+				matcher.Flattened.HasTrainingTask_Description = matcher.Rows.Select( m => m.TrainingTask_Description ).Distinct().ToList();
+				matcher.Flattened.AssessmentMethodType_Name = matcher.Rows.Select( m => m.Course_AssessmentMethodType_Label ).Distinct().ToList();
+			}
+
+			//Remove empty rows
+			uploadedCourseMatchers = uploadedCourseMatchers.Where( m => !string.IsNullOrWhiteSpace( m.Flattened.Name ) ).ToList();
+
+			//Convert the existing data
+			var existingCourseMatchers = GetSheetMatchersFromExisting<Course, MatchableCourse>( existingCourses );
+			foreach( var matcher in existingCourseMatchers )
+			{
+				matcher.Flattened.HasReferenceResource_Name = existingReferenceResources.Where( m => matcher.Data.HasReferenceResource == m.RowId ).Select( m => m.Name ).FirstOrDefault();
+				matcher.Flattened.CourseType_Name = courseTypeConcepts.Where( m => matcher.Data.CourseType == m.RowId ).Select( m => m.Name ).FirstOrDefault();
+				matcher.Flattened.CurriculumControlAuthority_Name = existingOrganizations.Where( m => matcher.Data.CurriculumControlAuthority.Contains( m.RowId ) ).Select( m => m.Name ).ToList();
+				matcher.Flattened.HasTrainingTask_Description = existingTrainingTasks.Where( m => matcher.Data.HasTrainingTask.Contains( m.RowId ) ).Select( m => m.Description ).ToList();
+				matcher.Flattened.AssessmentMethodType_Name = assessmentMethodTypeConcepts.Where( m => matcher.Data.AssessmentMethodType.Contains( m.RowId ) ).Select( m => m.Name ).ToList();
+			}
+
+			//Get loose matches
+			var looseMatchingCourseMatchers = new List<SheetMatcher<Course, MatchableCourse>>();
+			foreach ( var uploaded in uploadedCourseMatchers )
+			{
+				var matches = existingCourseMatchers.Where( m =>
+					uploaded.Flattened.Name == m.Flattened.Name &&
+					uploaded.Flattened.CodedNotation == m.Flattened.CodedNotation &&
+					uploaded.Flattened.HasReferenceResource_Name == m.Flattened.HasReferenceResource_Name &&
+					uploaded.Flattened.CourseType_Name == m.Flattened.CourseType_Name
+				).ToList();
+
+				HandleLooseMatchesFound( matches, uploaded, looseMatchingCourseMatchers, summary, "Course", m => m?.CodedNotation + " - " + m?.Name );
+			}
+
+			//Items that are completely identical (unchanged)
+			var identicalCourseMatchers = looseMatchingCourseMatchers.Where( m =>
+				 existingCourseMatchers.Where( n =>
+					AllMatch(m.Flattened.CurriculumControlAuthority_Name, n.Flattened.CurriculumControlAuthority_Name) &&
+					AllMatch(m.Flattened.HasTrainingTask_Description, n.Flattened.HasTrainingTask_Description) &&
+					AllMatch(m.Flattened.AssessmentMethodType_Name, n.Flattened.AssessmentMethodType_Name)
+				 ).Count() > 0
+			).ToList();
+			summary.UnchangedCount.Course = identicalCourseMatchers.Count();
+
+			//Items that match, but have a change (i.e., a different value for one or more List<>s)
+			var updatedCourseMatchers = looseMatchingCourseMatchers.Where( m => !identicalCourseMatchers.Contains( m ) ).ToList();
+			foreach ( var item in updatedCourseMatchers )
+			{
+				var existingMatcher = existingCourseMatchers.FirstOrDefault( m => m.Data == item.Data );
+				AppendLookup( summary, existingMatcher.Data );
+
+				//Handle added items
+				var newCCAs = existingOrganizations.Concat( summary.ItemsToBeCreated.Organization ).Where( n => item.Flattened.CurriculumControlAuthority_Name.Except( existingMatcher.Flattened.CurriculumControlAuthority_Name ).Contains( n.Name ) ).ToList();
+				var newTrainingTasks = existingTrainingTasks.Concat( summary.ItemsToBeCreated.TrainingTask ).Where( n => item.Flattened.HasTrainingTask_Description.Except( existingMatcher.Flattened.HasTrainingTask_Description ).Contains( n.Description ) ).ToList();
+				var newAssessmentMethods = assessmentMethodTypeConcepts.Where( n => item.Flattened.AssessmentMethodType_Name.Except( existingMatcher.Flattened.AssessmentMethodType_Name ).Contains( n.Name ) ).ToList();
+				AppendLookup( summary, newCCAs );
+				AppendLookup( summary, newTrainingTasks );
+				HandleInnerItemChanges(
+					existingMatcher.Data.RowId,
+					m => {
+						m.CurriculumControlAuthority = newCCAs.Select( n => n.RowId ).ToList();
+						m.HasTrainingTask = newTrainingTasks.Select( n => n.RowId ).ToList();
+						m.AssessmentMethodType = newAssessmentMethods.Select( n => n.RowId ).ToList();
+					},
+					m => m.CurriculumControlAuthority.Count() > 0 || m.HasTrainingTask.Count() > 0 || m.AssessmentMethodType.Count() > 0,
+					summary.AddedItemsToInnerListsForCopiesOfItems.Course
+				);
+
+				//Handle removed items
+				var removedCCAs = existingOrganizations.Where( n => existingMatcher.Flattened.CurriculumControlAuthority_Name.Except( item.Flattened.CurriculumControlAuthority_Name ).Contains( n.Name ) ).ToList();
+				var removedTrainingTasks = existingTrainingTasks.Where( n => existingMatcher.Flattened.HasTrainingTask_Description.Except( item.Flattened.HasTrainingTask_Description ).Contains( n.Description ) ).ToList();
+				var removedAssessmentMethods = assessmentMethodTypeConcepts.Where( n => existingMatcher.Flattened.AssessmentMethodType_Name.Except( item.Flattened.AssessmentMethodType_Name ).Contains( n.Name ) ).ToList();
+				AppendLookup( summary, removedCCAs );
+				AppendLookup( summary, removedTrainingTasks );
+				HandleInnerItemChanges(
+					existingMatcher.Data.RowId,
+					m => {
+						m.CurriculumControlAuthority = removedCCAs.Select( n => n.RowId ).ToList();
+						m.HasTrainingTask = removedTrainingTasks.Select( n => n.RowId ).ToList();
+						m.AssessmentMethodType = removedAssessmentMethods.Select( n => n.RowId ).ToList();
+					},
+					m => m.CurriculumControlAuthority.Count() > 0 || m.HasTrainingTask.Count() > 0 || m.AssessmentMethodType.Count() > 0,
+					summary.RemovedItemsFromInnerListsForCopiesOfItems.Course
+				);
+
+			}
+
+			//Items that were not found in the existing data (brand new items)
+			var newCourseMatchers = uploadedCourseMatchers.Where( m => !looseMatchingCourseMatchers.Contains( m ) ).ToList();
+			foreach ( var item in newCourseMatchers )
+			{
+				CreateNewItem( summary.ItemsToBeCreated.Course, m => {
+					m.Name = item.Flattened.Name;
+					m.CodedNotation = item.Flattened.CodedNotation;
+					m.HasReferenceResource = existingReferenceResources.Concat( summary.ItemsToBeCreated.ReferenceResource ).Where( n => item.Flattened.HasReferenceResource_Name == n.Name ).Select( n => n.RowId ).FirstOrDefault();
+					m.CourseType = courseTypeConcepts.Where( n => item.Flattened.CourseType_Name == n.Name ).Select( n => n.RowId ).FirstOrDefault();
+					m.CurriculumControlAuthority = existingOrganizations.Concat( summary.ItemsToBeCreated.Organization ).Where( n => item.Flattened.CurriculumControlAuthority_Name.Contains( n.Name ) ).Select( n => n.RowId ).ToList();
+					m.HasTrainingTask = existingTrainingTasks.Concat( summary.ItemsToBeCreated.TrainingTask ).Where( n => item.Flattened.HasTrainingTask_Description.Contains( n.Description ) ).Select( n => n.RowId ).ToList();
+					m.AssessmentMethodType = assessmentMethodTypeConcepts.Where( n => item.Flattened.AssessmentMethodType_Name.Contains( n.Name ) ).Select( n => n.RowId ).ToList();
+				} );
+			}
+
+			//Items that were not found in the uploaded data (deleted items)
+			//Not applicable to Course at this time (tends to lead to a lot of false positives since we're getting all courses)
+			/*
+			var missingCourseMatchers = existingCourseMatchers.Where( m => !looseMatchingCourseMatchers.Contains( m ) ).ToList();
+			foreach ( var item in missingCourseMatchers )
+			{
+				summary.ItemsToBeDeleted.Course.Add( item.Data );
+			}
+			*/
+
+		}
+		//
+
+		//Rating Task
+		public static void HandleUploadSheet_RatingTask( 
+			List<UploadableRow> uploadedRows, 
+			ChangeSummary summary, 
+			Rating currentRating, 
+			List<Rating> existingRatings = null, 
+			List<RatingTask> existingRatingTasks = null, 
+			List<TrainingTask> existingTrainingTasks = null, 
+			List<ReferenceResource> existingReferenceResources = null, 
+			List<WorkRole> existingWorkRoles = null, 
+			List<Concept> payGradeTypeConcepts = null, 
+			List<Concept> applicabilityTypeConcepts = null, 
+			List<Concept> trainingGapTypeConcepts = null, 
+			List<Concept> sourceTypeConcepts = null 
+		)
+		{
+			//Get the existing data
+			var totalRows = 0;
+			existingRatings = existingRatings ?? Factories.RatingManager.GetAll();
+			existingRatingTasks = existingRatingTasks ?? Factories.RatingTaskManager.GetAllForRating( currentRating.CodedNotation, true, ref totalRows );
+			existingTrainingTasks = existingTrainingTasks ?? Factories.TrainingTaskManager.GetAll();
+			existingReferenceResources = existingReferenceResources ?? Factories.ReferenceResourceManager.GetAll();
+			existingWorkRoles = existingWorkRoles ?? Factories.WorkRoleManager.GetAll();
+			payGradeTypeConcepts = payGradeTypeConcepts ?? Factories.ConceptSchemeManager.GetbyShortUri( Factories.ConceptSchemeManager.ConceptScheme_Pay_Grade ).Concepts;
+			applicabilityTypeConcepts = applicabilityTypeConcepts ?? Factories.ConceptSchemeManager.GetbyShortUri( Factories.ConceptSchemeManager.ConceptScheme_TaskApplicability ).Concepts;
+			trainingGapTypeConcepts = trainingGapTypeConcepts ?? Factories.ConceptSchemeManager.GetbyShortUri( Factories.ConceptSchemeManager.ConceptScheme_TrainingGap ).Concepts;
+			sourceTypeConcepts = sourceTypeConcepts ?? Factories.ConceptSchemeManager.GetbyShortUri( Factories.ConceptSchemeManager.ConceptScheme_ReferenceResource ).Concepts;
+
+			//Convert the uploaded data
+			var uploadedRatingTaskMatchers = GetSheetMatchers<RatingTask, MatchableRatingTask>( uploadedRows, GetRowMatchHelper_RatingTask );
+			foreach ( var matcher in uploadedRatingTaskMatchers )
 			{
 				matcher.Flattened.Description = matcher.Rows.Select( m => m.RatingTask_Description ).FirstOrDefault();
 				matcher.Flattened.HasRating_CodedNotation = matcher.Rows.Select( m => m.Rating_CodedNotation ).Distinct().ToList();
@@ -1128,49 +1619,41 @@ namespace Services
 				matcher.Flattened.PayGradeType_CodedNotation = matcher.Rows.Select( m => m.PayGradeType_Notation ).FirstOrDefault();
 				matcher.Flattened.ApplicabilityType_Name = matcher.Rows.Select( m => m.RatingTask_ApplicabilityType_Label ).FirstOrDefault();
 				matcher.Flattened.TrainingGapType_Name = matcher.Rows.Select( m => m.RatingTask_TrainingGapType_Label ).FirstOrDefault();
-				matcher.Flattened.ReferenceType_Name = matcher.Rows.Select( m => m.Shared_ReferenceType ).FirstOrDefault();
+				matcher.Flattened.ReferenceType_WorkElementType = matcher.Rows.Select( m => m.Shared_ReferenceType ).FirstOrDefault();
+				matcher.Flattened.HasReferenceResource_PublicationDate = matcher.Rows.Select( m => m.ReferenceResource_PublicationDate ).FirstOrDefault();
 			}
 
-			//Convert the existing data
-			var existingRatingTaskMatchers = new List<SheetMatcher<RatingTask, MatchableRatingTask>>();
-			foreach( var existing in existingRatingTasks )
-			{
-				var matcher = new SheetMatcher<RatingTask, MatchableRatingTask>() 
-				{ 
-					Data = existing, 
-					Flattened = ( MatchableRatingTask ) existing 
-				};
+			//Remove empty rows
+			uploadedRatingTaskMatchers = uploadedRatingTaskMatchers.Where( m => !string.IsNullOrWhiteSpace( m.Flattened.Description ) ).ToList();
 
-				matcher.Flattened.HasRating_CodedNotation = allRatings.Where( m => existing.HasRating.Contains( m.RowId ) ).Select( m => m.CodedNotation ).ToList();
-				matcher.Flattened.HasTrainingTask_Description = existingTrainingTasks.FirstOrDefault( m => m.RowId == existing.HasTrainingTask )?.Description;
-				matcher.Flattened.HasReferenceResource_Name = existingReferenceResources.FirstOrDefault( m => m.RowId == existing.HasReferenceResource )?.Name;
-				matcher.Flattened.HasWorkRole_Name = existingWorkRoles.Where( m => existing.HasWorkRole.Contains( m.RowId ) ).Select( m => m.Name ).ToList();
-				matcher.Flattened.PayGradeType_CodedNotation = payGradeTypeConcepts.FirstOrDefault( m => m.RowId == existing.PayGradeType )?.CodedNotation;
-				matcher.Flattened.ApplicabilityType_Name = applicabilityTypeConcepts.FirstOrDefault( m => m.RowId == existing.ApplicabilityType )?.Name;
-				matcher.Flattened.TrainingGapType_Name = trainingGapTypeConcepts.FirstOrDefault( m => m.RowId == existing.TrainingGapType )?.Name;
-				matcher.Flattened.ReferenceType_Name = sourceTypeConcepts.FirstOrDefault( m => m.RowId == existing.ReferenceType )?.Name;
+			//Convert the existing data
+			var existingRatingTaskMatchers = GetSheetMatchersFromExisting<RatingTask, MatchableRatingTask>( existingRatingTasks );
+			foreach ( var matcher in existingRatingTaskMatchers )
+			{
+				matcher.Flattened.HasRating_CodedNotation = existingRatings.Where( m => matcher.Data.HasRating.Contains( m.RowId ) ).Select( m => m.CodedNotation ).ToList();
+				matcher.Flattened.HasTrainingTask_Description = existingTrainingTasks.FirstOrDefault( m => m.RowId == matcher.Data.HasTrainingTask )?.Description;
+				matcher.Flattened.HasReferenceResource_Name = existingReferenceResources.FirstOrDefault( m => m.RowId == matcher.Data.HasReferenceResource )?.Name;
+				matcher.Flattened.HasWorkRole_Name = existingWorkRoles.Where( m => matcher.Data.HasWorkRole.Contains( m.RowId ) ).Select( m => m.Name ).ToList();
+				matcher.Flattened.PayGradeType_CodedNotation = payGradeTypeConcepts.FirstOrDefault( m => m.RowId == matcher.Data.PayGradeType )?.CodedNotation;
+				matcher.Flattened.ApplicabilityType_Name = applicabilityTypeConcepts.FirstOrDefault( m => m.RowId == matcher.Data.ApplicabilityType )?.Name;
+				matcher.Flattened.TrainingGapType_Name = trainingGapTypeConcepts.FirstOrDefault( m => m.RowId == matcher.Data.TrainingGapType )?.Name;
+				matcher.Flattened.ReferenceType_WorkElementType = sourceTypeConcepts.FirstOrDefault( m => m.RowId == matcher.Data.ReferenceType )?.WorkElementType;
+				matcher.Flattened.HasReferenceResource_PublicationDate = existingReferenceResources.FirstOrDefault( m => m.RowId == matcher.Data.HasReferenceResource )?.PublicationDate;
 			}
 
 			//Get loose matches
 			var looseMatchingRatingTaskMatchers = new List<SheetMatcher<RatingTask, MatchableRatingTask>>();
-			foreach( var uploaded in uploadedRatingTaskMatchers )
+			foreach ( var uploaded in uploadedRatingTaskMatchers )
 			{
 				var matches = existingRatingTaskMatchers.Where( n =>
 					uploaded.Flattened.HasTrainingTask_Description == n.Flattened.HasTrainingTask_Description &&
 					uploaded.Flattened.HasReferenceResource_Name == n.Flattened.HasReferenceResource_Name &&
 					uploaded.Flattened.ApplicabilityType_Name == n.Flattened.ApplicabilityType_Name &&
 					uploaded.Flattened.TrainingGapType_Name == n.Flattened.TrainingGapType_Name &&
-					uploaded.Flattened.ReferenceType_Name == n.Flattened.ReferenceType_Name
+					uploaded.Flattened.ReferenceType_WorkElementType == n.Flattened.ReferenceType_WorkElementType
 				).ToList();
-				if( matches.Count() > 0 )
-				{
-					uploaded.Data = matches.FirstOrDefault()?.Data;
-					looseMatchingRatingTaskMatchers.Add( uploaded );
-				}
-				if( matches.Count() > 1 )
-				{
-					summary.Messages.Warning.Add( "Found more than one existing match for Rating Task (only the first existing match will be updated): " + string.Join( ", ", matches.Select( m => m.Data?.RowId.ToString() ) ) + " match: " + uploaded.Flattened.Description );
-				}
+
+				HandleLooseMatchesFound( matches, uploaded, looseMatchingRatingTaskMatchers, summary, "Rating Task", m => m?.Description );
 			}
 
 			//Items that are completely identical (unchanged)
@@ -1187,99 +1670,273 @@ namespace Services
 
 			//Items that match, but have a change (i.e., a different value for one or more List<>s)
 			var updatedRatingTaskMatchers = looseMatchingRatingTaskMatchers.Where( m => !identicalRatingTaskMatchers.Contains( m ) ).ToList();
-			foreach( var item in updatedRatingTaskMatchers )
+			foreach ( var item in updatedRatingTaskMatchers )
 			{
 				var existingMatcher = existingRatingTaskMatchers.FirstOrDefault( m => m.Data == item.Data );
+				AppendLookup( summary, existingMatcher.Data );
 
 				//Handle added items
-				var newRatingCodes = item.Flattened.HasRating_CodedNotation.Except( existingMatcher.Flattened.HasRating_CodedNotation ).ToList();
-				var newWorkRoles = item.Flattened.HasWorkRole_Name.Except( existingMatcher.Flattened.HasWorkRole_Name ).ToList();
-				var innerItemsAdditions = new RatingTask()
-				{
-					RowId = existingMatcher.Data.RowId,
-					HasRating = allRatings.Where( m => newRatingCodes.Contains( m.CodedNotation ) ).Select( m => m.RowId ).ToList()//,
+				var newRatings = existingRatings.Where( n => item.Flattened.HasRating_CodedNotation.Except( existingMatcher.Flattened.HasRating_CodedNotation ).Contains( n.CodedNotation ) ).ToList();
+				var newWorkRoles = existingWorkRoles.Concat( summary.ItemsToBeCreated.WorkRole ).Where( n => item.Flattened.HasWorkRole_Name.Except( existingMatcher.Flattened.HasWorkRole_Name ).Contains( n.Name ) ).ToList();
+				AppendLookup( summary, newWorkRoles );
+				HandleInnerItemChanges(
+					existingMatcher.Data.RowId,
+					m => {
+						m.HasRating = newRatings.Select( n => n.RowId ).ToList();
+						m.HasWorkRole = newWorkRoles.Select( n => n.RowId ).ToList();
+					},
+					m => m.HasRating.Count() > 0 || m.HasWorkRole.Count > 0,
+					summary.AddedItemsToInnerListsForCopiesOfItems.RatingTask
+				);
 
-
-					//Fix me
-					//HasWorkRole = existingOrNewWorkRoles.Where( m => newWorkRoles.Contains( m.Name ) ).Select( m => m.RowId ).ToList()
-
-				};
-				if( innerItemsAdditions.HasRating.Count() > 0 || innerItemsAdditions.HasWorkRole.Count() > 0 )
-				{
-					summary.AddedItemsToInnerListsForCopiesOfItems.RatingTask.Add( innerItemsAdditions );
-				}
-
-				//No deletes based on RatingTask input data
+				//Handle removed items
+				//Not applicable for Rating Tasks at this time
 			}
 
 			//Items that were not found in the existing data (brand new items)
 			var newRatingTaskMatchers = uploadedRatingTaskMatchers.Where( m => !looseMatchingRatingTaskMatchers.Contains( m ) ).ToList();
-			foreach( var item in newRatingTaskMatchers )
+			foreach ( var item in newRatingTaskMatchers )
 			{
-				var newItem = new RatingTask()
+				CreateNewItem( summary.ItemsToBeCreated.RatingTask, m =>
 				{
-					RowId = Guid.NewGuid(),
-					CTID = "ce-" + Guid.NewGuid().ToString().ToLower(),
-					Description = item.Flattened.Description,
-					ApplicabilityType = FindConceptOrError( applicabilityTypeConcepts, new Concept() { Name = item.Flattened.ApplicabilityType_Name }, "Applicability Type", item.Flattened.ApplicabilityType_Name, summary.Messages.Error ).RowId,
-					TrainingGapType = FindConceptOrError( trainingGapTypeConcepts, new Concept() { Name = item.Flattened.TrainingGapType_Name }, "Training Gap Type", item.Flattened.TrainingGapType_Name, summary.Messages.Error ).RowId,
-					PayGradeType = FindConceptOrError( payGradeTypeConcepts, new Concept() { CodedNotation = item.Flattened.PayGradeType_CodedNotation }, "Pay Grade Type", item.Flattened.PayGradeType_CodedNotation, summary.Messages.Error ).RowId,
-					ReferenceType = FindConceptOrError( sourceTypeConcepts, new Concept() { CodedNotation = item.Flattened.ReferenceType_Name }, "Reference Resource Type", item.Flattened.PayGradeType_CodedNotation, summary.Messages.Error ).RowId,
-					HasRating = new List<Guid>() { rating.RowId },
-
-
-					//Fix me
-					//HasWorkRole = existingOrNewWorkRoles.Where( m => item.Flattened.HasWorkRole_Name.Contains( m.Name ) ).Select( m => m.RowId ).ToList(),
-					//HasReferenceResource = FindGuidOrEmpty( existingOrNewReferenceResources, m => item.Flattened.HasReferenceResource_Name == m.Name ),
-					//HasTrainingTask = FindGuidOrEmpty( existingOrNewTrainingTasks, m => item.Flattened.HasTrainingTask_Description == m.Description ),
-					Note = item.Flattened.Note
-				};
-				summary.ItemsToBeCreated.RatingTask.Add( newItem );
+					m.Description = item.Flattened.Description;
+					m.ApplicabilityType = FindConceptOrError( applicabilityTypeConcepts, new Concept() { Name = item.Flattened.ApplicabilityType_Name }, "Applicability Type", item.Flattened.ApplicabilityType_Name, summary.Messages.Error ).RowId;
+					m.TrainingGapType = FindConceptOrError( trainingGapTypeConcepts, new Concept() { Name = item.Flattened.TrainingGapType_Name }, "Training Gap Type", item.Flattened.TrainingGapType_Name, summary.Messages.Error ).RowId;
+					m.PayGradeType = FindConceptOrError( payGradeTypeConcepts, new Concept() { CodedNotation = item.Flattened.PayGradeType_CodedNotation }, "Pay Grade Type", item.Flattened.PayGradeType_CodedNotation, summary.Messages.Error ).RowId;
+					m.ReferenceType = FindConceptOrError( sourceTypeConcepts, new Concept() { WorkElementType = item.Flattened.ReferenceType_WorkElementType }, "Reference Resource Type", item.Flattened.ReferenceType_WorkElementType, summary.Messages.Error ).RowId;
+					m.HasRating = new List<Guid>() { currentRating.RowId };
+					m.HasWorkRole = existingWorkRoles.Concat( summary.ItemsToBeCreated.WorkRole ).Where( n => item.Flattened.HasWorkRole_Name.Contains( n.Name ) ).Select( n => n.RowId ).ToList();
+					m.HasReferenceResource = existingReferenceResources.Concat( summary.ItemsToBeCreated.ReferenceResource ).Where( n =>
+						item.Flattened.HasReferenceResource_Name == n.Name &&
+						ParseDateOrEmpty( item.Flattened.HasReferenceResource_PublicationDate ) == ParseDateOrEmpty( n.PublicationDate ) &&
+						sourceTypeConcepts.Where( o => n.ReferenceType.Contains( o.RowId ) ).Select( o => o.WorkElementType ).ToList().Contains( item.Flattened.ReferenceType_WorkElementType )
+					).Select( n => n.RowId ).FirstOrDefault();
+					m.HasTrainingTask = existingTrainingTasks.Concat( summary.ItemsToBeCreated.TrainingTask ).Where( n =>
+						item.Flattened.HasTrainingTask_Description == n.Description
+					).Select( n => n.RowId ).FirstOrDefault();
+					m.Note = item.Flattened.Note;
+				} );
 			}
 
 			//Items that were not found in the uploaded data (deleted items)
 			var missingRatingTaskMatchers = existingRatingTaskMatchers.Where( m => !looseMatchingRatingTaskMatchers.Contains( m ) ).ToList();
-			foreach( var item in missingRatingTaskMatchers )
+			foreach ( var item in missingRatingTaskMatchers )
 			{
 				summary.ItemsToBeDeleted.RatingTask.Add( item.Data );
 			}
 
-			
-
-			/*
-			var uploadedBilletTitleMatchers = GetSheetMatchers<BilletTitle>( uploadedData.Rows, GetRowMatchHelper_BilletTitle );
-
-			var uploadedOrganizationMatchers = GetSheetMatchers<Organization>( uploadedData.Rows, GetRowMatchHelper_Organization );
-
-			var uploadedTaskReferenceResourceMatchers = GetSheetMatchers<ReferenceResource>( uploadedData.Rows, GetRowMatchHelper_ReferenceResource_Task );
-
-			var uploadedCourseReferenceResourceMatchers = GetSheetMatchers<ReferenceResource>( uploadedData.Rows, GetRowMatchHelper_ReferenceResource_Course );
-
-			var uploadedWorkRoleMatchers = GetSheetMatchers<WorkRole>( uploadedData.Rows, GetRowMatchHelper_WorkRole );
-
-			var uploadedCourseMatchers = GetSheetMatchers<Course>( uploadedData.Rows, GetRowMatchHelper_Course );
-
-			var uploadedTrainingTaskMatchers = GetSheetMatchers<TrainingTask>( uploadedData.Rows, GetRowMatchHelper_TrainingTask );
-			*/
-
-			return summary;
+			//Special handling for Rating Tasks that may appear in other ratings
+			var ratingTasksThatMayExistUnderOtherRatings = summary.ItemsToBeCreated.RatingTask.Select( m => new RatingTaskComparisonHelper() { PossiblyNewRatingTask = m } );
+			//TODO: Implement this
+			//RatingTaskManager.FindMatchingExistingRatingTasksInBulk( ratingTasksThatMayExistUnderOtherRatings ); //Should modify the contents of the list and return void
+			foreach( var foundTask in ratingTasksThatMayExistUnderOtherRatings.Where( m => m.MatchingExistingRatingTask != null && m.MatchingExistingRatingTask.Id > 0 ).ToList() )
+			{
+				summary.ItemsToBeCreated.RatingTask.Remove( foundTask.PossiblyNewRatingTask );
+				AppendLookup( summary, foundTask.MatchingExistingRatingTask );
+				summary.AddedItemsToInnerListsForCopiesOfItems.RatingTask.Add( new RatingTask()
+				{
+					RowId = foundTask.MatchingExistingRatingTask.RowId,
+					HasRating = new List<Guid>() { currentRating.RowId }
+				} );
+			}
 		}
-		private static Guid FindGuidOrEmpty<T>( List<T> haystack, Func<T, bool> findBy ) where T : BaseObject
+		//
+
+		//Billet Title
+		public static void HandleUploadSheet_BilletTitle( List<UploadableRow> uploadedRows, ChangeSummary summary, Rating currentRating, List<BilletTitle> existingBilletTitles = null, List<RatingTask> existingRatingTasks = null, List<ReferenceResource> existingReferenceResources = null, List<Concept> payGradeConcepts = null, List<Concept> sourceTypeConcepts = null, List<Concept> applicabilityTypeConcepts = null, List<Concept> trainingGapTypeConcepts = null )
 		{
-			var match = haystack.FirstOrDefault( m => findBy( m ) );
-			return match == null ? Guid.Empty : match.RowId;
+			//Get the existing data
+			existingBilletTitles = existingBilletTitles ?? new List<BilletTitle>();// BilletTitleManager.GetAll(); //Need this get method
+			existingReferenceResources = existingReferenceResources ?? ReferenceResourceManager.GetAll();
+			payGradeConcepts = payGradeConcepts ?? ConceptSchemeManager.GetbyShortUri( ConceptSchemeManager.ConceptScheme_Pay_Grade ).Concepts;
+			sourceTypeConcepts = sourceTypeConcepts ?? ConceptSchemeManager.GetbyShortUri( ConceptSchemeManager.ConceptScheme_ReferenceResource ).Concepts;
+			applicabilityTypeConcepts = applicabilityTypeConcepts ?? ConceptSchemeManager.GetbyShortUri( ConceptSchemeManager.ConceptScheme_TaskApplicability ).Concepts;
+			trainingGapTypeConcepts = trainingGapTypeConcepts ?? ConceptSchemeManager.GetbyShortUri( ConceptSchemeManager.ConceptScheme_TrainingGap ).Concepts;
+
+			//Convert the uploaded data
+			var uploadedBilletTitleMatchers = GetSheetMatchers<BilletTitle, MatchableBilletTitle>( uploadedRows, GetRowMatchHelper_BilletTitle );
+			foreach ( var matcher in uploadedBilletTitleMatchers )
+			{
+				matcher.Flattened.HasRating_CodedNotation = currentRating.CodedNotation;
+				matcher.Flattened.Name = matcher.Rows.Select( m => m.BilletTitle_Name ).FirstOrDefault();
+				matcher.Flattened.HasRatingTask_MatchHelper = matcher.Rows.Select( m => GetRowMatchHelper_RatingTask( m ) ).Distinct().ToList();
+			}
+
+			//Remove empty rows
+			uploadedBilletTitleMatchers = uploadedBilletTitleMatchers.Where( m => !string.IsNullOrWhiteSpace( m.Flattened.Name ) ).ToList();
+
+			//Convert the existing data
+			var existingBilletTitleMatchers = GetSheetMatchersFromExisting<BilletTitle, MatchableBilletTitle>( existingBilletTitles );
+			foreach(var matcher in existingBilletTitleMatchers )
+			{
+				matcher.Flattened.HasRating_CodedNotation = currentRating.CodedNotation;
+				matcher.Flattened.HasRatingTask_MatchHelper = existingRatingTasks.Where( m => matcher.Data.HasRatingTask.Contains( m.RowId ) ).Select( m =>
+					GetExistingMatchHelper_RatingTask(m, payGradeConcepts, existingReferenceResources, sourceTypeConcepts, applicabilityTypeConcepts, trainingGapTypeConcepts )
+				).ToList();
+			}
+
+			//Get loose matches
+			var looseMatchingBilletTitleMatchers = new List<SheetMatcher<BilletTitle, MatchableBilletTitle>>();
+			foreach ( var uploaded in uploadedBilletTitleMatchers )
+			{
+				var matches = existingBilletTitleMatchers.Where( m =>
+					uploaded.Flattened.HasRating_CodedNotation == m.Flattened.HasRating_CodedNotation &&
+					uploaded.Flattened.Name == m.Flattened.Name
+				).ToList();
+
+				HandleLooseMatchesFound( matches, uploaded, looseMatchingBilletTitleMatchers, summary, "Billet Title", m => m?.Name );
+			}
+
+			//Items that are completely identical (unchanged)
+			var identicalBilletTitleMatchers = looseMatchingBilletTitleMatchers.Where( m =>
+				 existingBilletTitleMatchers.Where( n =>
+					m.Flattened.HasRatingTask_MatchHelper == n.Flattened.HasRatingTask_MatchHelper
+				 ).Count() > 0
+			).ToList();
+			summary.UnchangedCount.BilletTitle = identicalBilletTitleMatchers.Count();
+
+			//Special helper to save processing time on Rating Tasks that are existing/new
+			var combinedTaskMatchHelpers = existingRatingTasks.Concat( summary.ItemsToBeCreated.RatingTask ).Select( m => new MergedMatchHelper<RatingTask>()
+			{
+				Data = m,
+				MatchHelper = GetExistingMatchHelper_RatingTask( m, payGradeConcepts, existingReferenceResources, sourceTypeConcepts, applicabilityTypeConcepts, trainingGapTypeConcepts )
+			} );
+
+			//Items that match, but have a change (i.e., a different value for one or more List<>s)
+			var updatedBilletTitleMatchers = looseMatchingBilletTitleMatchers.Where( m => !identicalBilletTitleMatchers.Contains( m ) ).ToList();
+			foreach ( var item in updatedBilletTitleMatchers )
+			{
+				var existingMatcher = existingBilletTitleMatchers.FirstOrDefault( m => m.Data == item.Data );
+
+				//Handle added items
+				var newRatingTasks = combinedTaskMatchHelpers.Where( n => item.Flattened.HasRatingTask_MatchHelper.Except( existingMatcher.Flattened.HasRatingTask_MatchHelper ).Contains( n.MatchHelper ) ).ToList();
+				AppendLookup( summary, newRatingTasks );
+				HandleInnerItemChanges(
+					existingMatcher.Data.RowId,
+					m => m.HasRatingTask = newRatingTasks.Select( n => n.Data.RowId ).ToList(),
+					m => m.HasRatingTask.Count() > 0,
+					summary.AddedItemsToInnerListsForCopiesOfItems.BilletTitle
+				);
+
+				//Handle removed items
+				var removedRatingTasks = combinedTaskMatchHelpers.Where( n => existingMatcher.Flattened.HasRatingTask_MatchHelper.Except( item.Flattened.HasRatingTask_MatchHelper ).Contains( n.MatchHelper ) ).ToList();
+				AppendLookup( summary, removedRatingTasks );
+				HandleInnerItemChanges(
+					existingMatcher.Data.RowId,
+					m => m.HasRatingTask = removedRatingTasks.Select( n => n.Data.RowId ).ToList(),
+					m => m.HasRatingTask.Count() > 0,
+					summary.RemovedItemsFromInnerListsForCopiesOfItems.BilletTitle
+				);
+
+			}
+
+			//Items that were not found in the existing data (brand new items)
+			var newBilletTitleMatchers = uploadedBilletTitleMatchers.Where( m => !looseMatchingBilletTitleMatchers.Contains( m ) ).ToList();
+			foreach ( var item in newBilletTitleMatchers )
+			{
+				CreateNewItem( summary.ItemsToBeCreated.BilletTitle, m => {
+					m.Name = item.Flattened.Name;
+					m.HasRating = currentRating.RowId;
+					m.HasRatingTask = combinedTaskMatchHelpers.Where( n =>
+						 item.Flattened.HasRatingTask_MatchHelper.Contains( n.MatchHelper )
+					).Select( n => n.Data.RowId ).ToList();
+				} );
+			}
+
+			//Items that were not found in the uploaded data (deleted items)
+			var missingBilletTitleMatchers = existingBilletTitleMatchers.Where( m => !looseMatchingBilletTitleMatchers.Contains( m ) ).ToList();
+			foreach ( var item in missingBilletTitleMatchers )
+			{
+				summary.ItemsToBeDeleted.BilletTitle.Add( item.Data );
+			}
 		}
+		//
+
+		private static void AppendLookup<T>( ChangeSummary summary, List<T> items )
+		{
+			summary.LookupGraph.AddRange( items.Where( m => !summary.LookupGraph.Contains( m ) ).Select( m => ( object ) m ).ToList() );
+		}
+		//
+
+		private static void AppendLookup<T>( ChangeSummary summary, T item )
+		{
+			AppendLookup( summary, new List<T>() { item } );
+		}
+		//
+
+		private static string GetExistingMatchHelper_RatingTask(RatingTask task, List<Concept> payGradeConcepts, List<ReferenceResource> existingReferenceResources, List<Concept> sourceTypeConcepts, List<Concept> applicabilityTypeConcepts, List<Concept> trainingGapTypeConcepts )
+		{
+			return GetMergedRowMatchHelper( new List<string>()
+			{
+				payGradeConcepts.Where(n => task.PayGradeType == n.RowId).Select(n => n.CodedNotation).FirstOrDefault(),
+				existingReferenceResources.Where(n => task.HasReferenceResource == n.RowId).Select(n => n.Name).FirstOrDefault(),
+				existingReferenceResources.Where(n => task.HasReferenceResource == n.RowId).Select(n => n.PublicationDate).FirstOrDefault(),
+				sourceTypeConcepts.Where(n => task.ReferenceType == n.RowId).Select(n => n.Name).FirstOrDefault(),
+				task.Description,
+				applicabilityTypeConcepts.Where(n => task.ApplicabilityType == n.RowId).Select(n => n.Name).FirstOrDefault(),
+				trainingGapTypeConcepts.Where(n => task.TrainingGapType == n.RowId).Select(n => n.Name).FirstOrDefault()
+			} );
+		}
+		//
+
+		private static void HandleInnerItemChanges<T>( Guid existingItemRowId, Action<T> appendData, Func<T, bool> changeCheck, List<T> summaryContainer ) where T : BaseObject, new()
+		{
+			var innerChanges = new T() { RowId = existingItemRowId };
+			appendData( innerChanges );
+			if ( changeCheck( innerChanges ) )
+			{
+				summaryContainer.Add( innerChanges );
+			}
+		}
+		//
+
 		private static bool AllMatch<T>( List<T> list1, List<T> list2 )
 		{
 			return list1.Except( list2 ).Count() == 0 && list2.Except( list1 ).Count() == 0;
 		}
-		private static List<UploadableRow> FindRowsInRows( List<UploadableRow> findRows, List<UploadableRow> inRows, Func<UploadableRow, string> matchFunction )
+		//
+
+		private static void CreateNewItem<T>( List<T> summaryContainerForItemsToBeCreated, Action<T> appendData ) where T : BaseObject, new()
 		{
-			return findRows.Where( m => inRows
-				.Select( n => matchFunction( n ) )
-				.Contains( matchFunction( m ) )
-			).ToList();
+			var item = new T()
+			{
+				RowId = Guid.NewGuid(),
+				CTID = "ce-" + Guid.NewGuid().ToString().ToLower()
+			};
+			appendData( item );
+			summaryContainerForItemsToBeCreated.Add( item );
 		}
+		//
+
+		public static List<SheetMatcher<T1, T2>> GetSheetMatchersFromExisting<T1, T2>( List<T1> existingItems ) where T1 : new() where T2 : new()
+		{
+			var matchers = new List<SheetMatcher<T1, T2>>();
+			foreach( var existing in existingItems )
+			{
+				var matcher = new SheetMatcher<T1, T2>() { Data = existing };
+				BaseFactory.AutoMap( existing, matcher.Flattened );
+				matchers.Add( matcher );
+			}
+
+			return matchers;
+		}
+		//
+
+		public static void HandleLooseMatchesFound<T1, T2>( List<SheetMatcher<T1, T2>> matchesForUploadedItem, SheetMatcher<T1, T2> uploadedItem, List<SheetMatcher<T1, T2>> looseMatchingMatchersForType, ChangeSummary summary, string warningTypeLabel, Func<T2, string> getWarningItemLabel ) where T1 : BaseObject, new() where T2 : new()
+		{
+			if( matchesForUploadedItem.Count() > 0 )
+			{
+				uploadedItem.Data = matchesForUploadedItem.FirstOrDefault()?.Data;
+				looseMatchingMatchersForType.Add( uploadedItem );
+			}
+			if( matchesForUploadedItem.Count() > 1 )
+			{
+				summary.Messages.Warning.Add( "Found more than one existing match for " + warningTypeLabel + " (only the first existing match will be updated): " + string.Join( ", ", matchesForUploadedItem.Select( m => m.Data?.RowId.ToString() ) ) + " match: " + getWarningItemLabel( uploadedItem.Flattened ) );
+				summary.PossibleDuplicates.Add( new PossibleDuplicateSet() { Type = typeof( T1 ).Name, Items = matchesForUploadedItem.Select( m => (object) m.Data ).ToList() } );
+			}
+		}
+		//
+
 		private static List<SheetMatcher<T1, T2>> GetSheetMatchers<T1, T2>( List<UploadableRow> rows, Func<UploadableRow, string> matchFunction ) where T1: new() where T2: new()
 		{
 			var keys = rows.GroupBy( m => matchFunction( m ) ).Select( m => m.Key ).Distinct().ToList();
@@ -1289,6 +1946,8 @@ namespace Services
 				Rows = rows.Where( n => matchFunction( n ) == m ).ToList()
 			} ).ToList();
 		}
+		//
+
 		private static string GetMergedRowMatchHelper( List<string> items )
 		{
 			var merged = items?.Where( m => !string.IsNullOrWhiteSpace( m ) ).ToList();

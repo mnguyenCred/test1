@@ -18,6 +18,8 @@ namespace Models.Curation
 			RemovedItemsFromInnerListsForCopiesOfItems = new UploadableData();
 			UnchangedCount = new ItemCounts();
 			Messages = new Messages();
+			LookupGraph = new List<object>();
+			PossibleDuplicates = new List<PossibleDuplicateSet>();
 		}
 
 		/// <summary>
@@ -28,7 +30,7 @@ namespace Models.Curation
 		/// <summary>
 		/// Set of items that do exist but have some modification.<br />
 		/// This object is intended to capture modifications to the item itself (e.g. a change in a text field or a change in a single-value reference<br />
-		/// For changes to the List<>s of existing items, see the UploadedInnerListsForCopiesOfItems and RemovedItemsFromInnerListsForCopiesOfItems properties.
+		/// For changes to the List<>s of existing items, see the AddedItemsToInnerListsForCopiesOfItems and RemovedItemsFromInnerListsForCopiesOfItems properties.
 		/// </summary>
 		public UploadableData ItemsToBeChanged { get; set; }
 
@@ -44,7 +46,6 @@ namespace Models.Curation
 		/// </summary>
 		public UploadableData RemovedItemsFromInnerListsForCopiesOfItems { get; set; }
 
-		public UploadableData UploadedInnerListsForCopiesOfItems { get; set; }
 		/// <summary>
 		/// Set of items that were not found in the uploaded data and should be deleted.
 		/// </summary>
@@ -64,6 +65,13 @@ namespace Models.Curation
 		/// Used to easily retrieve this object from the cache.
 		/// </summary>
 		public Guid RowId { get; set; }
+
+		/// <summary>
+		/// Generic list of other items used to help display the data in the Change Summary
+		/// </summary>
+		public List<object> LookupGraph { get; set; }
+
+		public List<PossibleDuplicateSet> PossibleDuplicates { get; set; }
 
 	}
 	//
@@ -100,6 +108,14 @@ namespace Models.Curation
 		public List<string> Warning { get; set; }
 		public List<string> Duplicate { get; set; }
 		public List<string> Note { get; set; }
+	}
+	//
+
+	[Serializable]
+	public class PossibleDuplicateSet
+	{
+		public string Type { get; set; }
+		public List<object> Items { get; set; }
 	}
 	//
 

@@ -1,13 +1,28 @@
 ﻿@using Services;
+@using Newtonsoft.Json;
 @{
 	ViewBag.Title = "Upload V2";
 	var allRatings = RatingServices.GetAll().OrderByDescending( m => m.CodedNotation.ToLower() == "all" ).ToList();
-
+	var payGradeTypeConcepts = Factories.ConceptSchemeManager.GetbyShortUri( Factories.ConceptSchemeManager.ConceptScheme_Pay_Grade ).Concepts;
+	var trainingGapTypeConcepts = Factories.ConceptSchemeManager.GetbyShortUri( Factories.ConceptSchemeManager.ConceptScheme_TrainingGap ).Concepts;
+	var applicabilityTypeConcepts = Factories.ConceptSchemeManager.GetbyShortUri( Factories.ConceptSchemeManager.ConceptScheme_TaskApplicability ).Concepts;
+	var sourceTypeConcepts = Factories.ConceptSchemeManager.GetbyShortUri( Factories.ConceptSchemeManager.ConceptScheme_ReferenceResource ).Concepts;
+	var courseTypeConcepts = Factories.ConceptSchemeManager.GetbyShortUri( Factories.ConceptSchemeManager.ConceptScheme_CourseType ).Concepts;
+	var assessmentMethodTypeConcepts = Factories.ConceptSchemeManager.GetbyShortUri( Factories.ConceptSchemeManager.ConceptScheme_CurrentAssessmentApproach ).Concepts;
 }
 
 <script type="text/javascript">
 	var Upload = {
-		UI: {}
+		UI: {},
+		StaticData: {
+			Ratings: @Html.Raw(JsonConvert.SerializeObject(allRatings)),
+			PayGradeTypeConcepts: @Html.Raw(JsonConvert.SerializeObject(payGradeTypeConcepts)),
+			TrainingGapTypeConcepts: @Html.Raw(JsonConvert.SerializeObject(trainingGapTypeConcepts)),
+			ApplicabilityTypeConcepts: @Html.Raw(JsonConvert.SerializeObject(applicabilityTypeConcepts)),
+			SourceTypeConcepts: @Html.Raw(JsonConvert.SerializeObject(sourceTypeConcepts)),
+			CourseTypeConcepts: @Html.Raw(JsonConvert.SerializeObject(courseTypeConcepts)),
+			AssessmentMethodTypeConcepts: @Html.Raw(JsonConvert.SerializeObject(assessmentMethodTypeConcepts))
+		}
 	};
 	//
 
@@ -79,11 +94,11 @@
 				currentCell.push(character);
 			}
 			else if (character == ",") {
-				currentRow.push(currentCell.join("").replace(/<INSERTQUOTE>/g, '"').trim());
+				currentRow.push(joinCSVCellData(currentCell));
 				currentCell = [];
 			}
 			else if (character == "\n") {
-				currentRow.push(currentCell.join("").replace(/<INSERTQUOTE>/g, '"').trim());
+				currentRow.push(joinCSVCellData(currentCell));
 				currentCell = [];
 				rows.push(currentRow);
 				currentRow = [];
@@ -94,7 +109,7 @@
 		});
 
 		//Don't forget stragglers at the end
-		currentRow.push(currentCell.join("").replace(/<INSERTQUOTE>/g, '"').trim());
+		currentRow.push(joinCSVCellData(currentCell));
 		rows.push(currentRow);
 
 		//Set data
@@ -113,6 +128,11 @@
 		});
 
 		console.log("CSV Processed", Upload);
+	}
+	//
+
+	function joinCSVCellData(cell) {
+		return cell.join("").replace(/<INSERTQUOTE>/g, '"').trim().replace(/^N\/A$/g, "");
 	}
 	//
 
@@ -161,15 +181,17 @@
 
 		setUploadStatus("Sending data, check console for details");
 		console.log("Submitting data", data);
+		Upload.UI.UploadSummaryBox.html("");
 		
 		postData("@Url.Content("~/upload/processupload")", data).then((response) => {
-			setUploadStatus("Received Response, check console for details");
 			console.log("Received response", response);
 			return response.text()
 		}).then((text) => {
+			setUploadStatus("Received Response, check console for details");
 			Upload.Summary = JSON.parse(text);
 			console.log("Parsed Data", Upload.Summary);
-			renderResults();
+			//renderResults();
+			renderRichResults();
 
 			if (Upload.Summary.Valid && Upload.Summary.Data.Messages.Error?.length == 0) {
 				showConfirmationButton();
@@ -194,18 +216,136 @@
 	}
 	//
 
+	function renderRichResults() {
+		Upload.UI.UploadSummaryBox.html("");
+		collapseSummaryGraph(Upload.StaticData);
+		collapseSummaryGraph(Upload.Summary.Data.ItemsToBeCreated);
+		collapseSummaryGraph(Upload.Summary.Data.ItemsToBeDeleted);
+		renderTextSet("Errors", Upload.Summary.Data.Messages.Error, Upload.UI.UploadSummaryBox, false, "Please correct the errors and try again.");
+		renderTextSet("Warnings", Upload.Summary.Data.Messages.Warning, Upload.UI.UploadSummaryBox, false, "Please review the warnings carefully before confirming the update.");
+		renderRichSet("Possible Duplicates", { PossibleDuplicates: Upload.Summary.Data.PossibleDuplicates }, Upload.Summary.Data.Messages.Duplicate, Upload.UI.UploadSummaryBox, false, "Found multiple instances of one or more items. This may be caused by inconsistent capitalization on different rows. Please carefully review the data before confirming the update.")
+		renderRichSet("Items to be Deleted", Upload.Summary.Data.ItemsToBeDeleted, Upload.Summary.Data.Messages.Delete, Upload.UI.UploadSummaryBox, true, "Warning: The following items were not detected in the uploaded data, and will be deleted if you confirm the changes!");
+		renderRichSet("Items to be Created", Upload.Summary.Data.ItemsToBeCreated, Upload.Summary.Data.Messages.Create, Upload.UI.UploadSummaryBox, true, "The following items will be created if you confirm the changes.");
+		renderRichSet("Additional References for Existing Items", Upload.Summary.Data.AddedItemsToInnerListsForCopiesOfItems, Upload.Summary.Data.Messages.AddItem, Upload.UI.UploadSummaryBox, true, "New references have been detected for the following existing items.");
+		renderRichSet("References to be Removed from Existing Items", Upload.Summary.Data.RemovedItemsFromInnerListsForCopiesOfItems, Upload.Summary.Data.Messages.RemoveItem, Upload.UI.UploadSummaryBox, true, "These references will be remvoed from the following existing items.");
+		renderTextSet("Notes", Upload.Summary.Data.Messages.Note, Upload.UI.UploadSummaryBox, false, "Miscellaneous notes.");
+	}
+	//
+
 	function renderTextSet(header, items, container, sortItems, explanation, cssClass) {
 		if (items?.length > 0) {
 			container.append("<h3>" + header + "</h3>");
 			explanation && container.append("<p>" + explanation + "</p>");
-			var list = $("<ul></ul>").appendTo(container);
-			if (sortItems) {
-				items.sort((a, b) => { return a > b ? 1 : -1 });
-			}
+			var list = $("<ul class=\"textItems " + (cssClass || "") + "\"></ul>").appendTo(container);
+			sortItems && items.sort((a, b) => { return a > b ? 1 : -1 });
 			items.forEach((item) => {
-				list.append("<li class=\"" + (cssClass || "") + "\">" + item + "</li>");
+				list.append("<li>" + item + "</li>");
 			});
 		}
+	}
+	//
+
+	function renderRichSet(header, items, messages, container, sortItems, explanation, cssClass) {
+		var hasAnyItems = false;
+		Object.keys(items).forEach(key => {
+			if (Array.isArray(items[key]) && items[key].length > 0) {
+				sortItems && items[key].sort((a, b) => { return (a.Name || a.CodedNotation || a.Description || "") > (b.Name || b.CodedNotation || b.Description || "") ? 1 : -1 });
+				hasAnyItems = true;
+			}
+		});
+
+		if (hasAnyItems || messages.length > 0) {
+			container.append("<h3>" + header + "</h3>");
+			explanation && container.append("<p>" + explanation + "</p>");
+			if (hasAnyItems) {
+				var itemList = $("<div class=\"richItemSet " + (cssClass || "") + "\"\"></div>").appendTo(container);
+				renderRichItemList("Reference Resource", items.ReferenceResource, itemList);
+				renderRichItemList("Curriculum Control Authority", items.Organization, itemList);
+				renderRichItemList("Billet Title", items.BilletTitle, itemList);
+				renderRichItemList("Functional Area", items.WorkRole, itemList);
+				renderRichItemList("Rating Task", items.RatingTask, itemList);
+				renderRichItemList("Course", items.Course, itemList);
+				renderRichItemList("Training Task", items.TrainingTask, itemList);
+				renderRichItemList("", items.PossibleDuplicates, itemList);
+			}
+			if (messages.length > 0) {
+				sortItems && messages.sort((a, b) => { return a > b ? 1 : -1 });
+				hasAnyItems && container.append("<p class=\"midExplanation\">Additionally, the following messages were returned from the server:</p>");
+				var messageList = $("<ul class=\"textItems " + (cssClass || "") + "\"></ul>").appendTo(container);
+				messages.forEach((message) => {
+					messageList.append("<li>" + message + "</li>");
+				});
+			}
+		}
+	}
+	//
+
+	function renderRichItemList(type, list, container) {
+		if (list?.length > 0) {
+			var listBox = $("<div class=\"richItemList\"></div>").appendTo(container);
+			list.forEach(item => {
+				item.Type = type || item.Type;
+				var itemBox = $("<div class=\"richItem\"><i>Loading...</i></div>").appendTo(listBox);
+				setTimeout(() => {
+					itemBox.html("");
+					appendProperty(itemBox, "Type", item, "Type");
+					appendProperty(itemBox, "Name", item, "Name");
+					appendProperty(itemBox, "Code", item, "CodedNotation");
+					appendProperty(itemBox, "Description", item, "Description");
+					appendProperty(itemBox, "Related Rating", item, "HasRating", getLookupList);
+					appendProperty(itemBox, "Pay Grade", item, "PayGradeType", getLookupList);
+					appendProperty(itemBox, "Applicability Type", item, "ApplicabilityType", getLookupList);
+					appendProperty(itemBox, "TrainingGapType", item, "TrainingGapType", getLookupList);
+					appendProperty(itemBox, "Functional Area", item, "HasWorkRole", getLookupList);
+					appendProperty(itemBox, "Course Type", item, "CourseType", getLookupList);
+					appendProperty(itemBox, "Assessment Method Type", item, "AssessmentMethodType", getLookupList);
+					appendProperty(itemBox, "Reference Type", item, "ReferenceType", getLookupList);
+					appendProperty(itemBox, "Has Reference Resource", item, "HasReferenceResource", getLookupList);
+					appendProperty(itemBox, "Curriculum Control Authority", item, "CurriculumControlAuthority", getLookupList);
+					appendProperty(itemBox, "Rating Tasks", item, "HasRatingTask", getLookupList);
+					appendProperty(itemBox, "Has " + (item.HasTrainingTask?.length) + " Training Task(s)", item, "HasTrainingTask", getLookupList);
+					appendProperty(itemBox, item.Items?.length + " Item(s)", item, "Items", (m) => { return getItemList(m, true); });
+				}, 0)
+			});
+		}
+	}
+	//
+
+	function appendProperty(container, label, data, property, displayValue, cssClass) {
+		if (data[property] && (Array.isArray(data[property]) ? data[property].length > 0 : true)) {
+			var propertyBox = $("<div class=\"property " + (cssClass || "") + "\" data-property=\"" + property + "\"></div>").appendTo(container);
+			propertyBox.append("<div class=\"propertyLabel\">" + label + "</div>");
+			var valueBox = $("<div class=\"propertyValue\"><i>Loading...</i></div>").appendTo(propertyBox);
+			displayValue && setTimeout(() => { valueBox.html(displayValue(data[property])); }, 0);
+			!displayValue && valueBox.html(data[property]);
+		}
+	}
+	//
+
+	function getLookupList(rowIDs) {
+		rowIDs = rowIDs || [];
+		rowIDs = Array.isArray(rowIDs) ? rowIDs : [rowIDs];
+		return getItemList(rowIDs.map(rowID => {
+			return Upload.Summary.Data.LookupGraph.filter(m => m?.RowId == rowID)[0] || { FallbackRowID: rowID };
+		}));
+	}
+	//
+
+	function getItemList(Items, showRowIDs) {
+		if (Items?.length > 0) {
+			var list = $("<div class=\"innerItemList\"></div>");
+			Items.forEach(Item => {
+				var box = $("<div class=\"richItem innerItem\"></div>").appendTo(list);
+				showRowIDs && appendProperty(box, "Row ID", Item, "RowId", null, "monospace");
+				Item.Name ? appendProperty(box, "Name", Item, "Name") :
+				Item.CodedNotation ? appendProperty(box, "Code", Item, "CodedNotation") :
+				Item.Description ? appendProperty(box, "Description", Item, "Description") :
+				Item.FallbackRowID ? appendProperty(box, "Item Row ID", Item, "FallbackRowID", null, "monospace") :
+				null;
+			});
+			return list[0].outerHTML;
+		}
+		return "";
 	}
 	//
 
@@ -272,6 +412,13 @@
 		});
 	}
 	//
+
+	function collapseSummaryGraph(Source) {
+		Object.keys(Source).forEach(key => {
+			Upload.Summary.Data.LookupGraph = Upload.Summary.Data.LookupGraph.concat(Source[key]);
+		});
+	}
+	//
 </script>
 <style type="text/css">
 	.uploadHeader { }
@@ -286,6 +433,19 @@
 	.buttons { text-align: right; }
 	.buttons .confirmationButton { padding: 5px 10px; }
 	.buttons .confirmationButton:not(.visible) { display: none; }
+
+	.uploadSummary .midExplanation { margin-top: 20px; }
+	.richItemSet { }
+	.richItemSet .richItemList { }
+	.richItemSet .richItemList .richItem { display: flex; flex-wrap: wrap; padding: 5px 0; border-bottom: 1px solid #CCC; }
+	.richItemSet .richItemList .richItem .property { padding: 2.5px 10px; min-width: 150px; }
+	.richItemSet .richItemList .richItem .property .propertyLabel { font-size: 10px; }
+	.richItemSet .richItemList .richItem .property .propertyValue { font-size: 14px; }
+	.richItemSet .richItemList .richItem .property.monospace .propertyValue { font-family: Consolas, 'Courier New', monospace; }
+
+	.richItemSet .richItemList .richItem .property .propertyValue .innerItemList {  }
+	.richItemSet .richItemList .richItem .property .propertyValue .innerItemList .innerItem { border-bottom: 1px dashed #CCC; }
+	.richItemSet .richItemList .richItem .property .propertyValue .innerItemList .innerItem:last-child { border-bottom: none; }
 </style>
 
 <h2>Upload RMTL Data</h2>
