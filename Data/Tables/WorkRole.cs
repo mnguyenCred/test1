@@ -18,6 +18,7 @@ namespace Data.Tables
         public WorkRole()
         {
             this.RatingTask = new HashSet<RatingTask>();
+            this.RatingTask_WorkRole = new HashSet<RatingTask_WorkRole>();
         }
     
         public int Id { get; set; }
@@ -34,5 +35,7 @@ namespace Data.Tables
     
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<RatingTask> RatingTask { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<RatingTask_WorkRole> RatingTask_WorkRole { get; set; }
     }
 }

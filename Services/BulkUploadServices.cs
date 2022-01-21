@@ -80,21 +80,29 @@ namespace Services
 			{
 				debug[ "Current Row" ] = (rowCount + 1);
 				rowCount++;
+				if ( rowCount  == 100)
+                {
+					//break;
+                }
+				if ( row.Rating_CodedNotation == null )
+					continue;
+
 				//check for All 
 				row.Rating_CodedNotation = NullifyNotApplicable( row.Rating_CodedNotation );
 				if ( row.Rating_CodedNotation != currentRating.CodedNotation)
                 {
 					alternateRating = Factories.RatingManager.GetByCode( row.Rating_CodedNotation );
 					currentRatingRowID = alternateRating.RowId;
-					//should be All
-					//make configurable, but could ignore
-					//produce a message 
-					if (!foundDifferentRating )
+                    //should be All
+                    //make configurable, but could ignore
+                    //produce a message 
+                    if ( !foundDifferentRating )
                     {
-						//actually adding an error will stop process
-						result.Messages.Error.Add( String.Format("While processing: '{0}' a different rating was found: '{1}'. Only one rating may uploaded at a time. All other ratings will be ignored.", currentRating.CodedNotation, row.Rating_CodedNotation) );
-					}
-					foundDifferentRating=true;
+                        //actually adding an error will stop process
+                        result.Messages.Warning.Add( String.Format( "While processing: '{0}' a different rating was found: '{1}'. Only one rating may uploaded at a time. All other ratings will be ignored.", currentRating.CodedNotation, row.Rating_CodedNotation ) );
+                    }
+                    foundDifferentRating =true;
+					//break;
 					continue;
 				} else
                 {
@@ -116,6 +124,7 @@ namespace Services
 				row.Course_CourseType_Label = NullifyNotApplicable( row.Course_CourseType_Label );
 				row.Course_CurriculumControlAuthority_Name = NullifyNotApplicable( row.Course_CurriculumControlAuthority_Name );
 				row.Course_HasReferenceResource_Name = NullifyNotApplicable( row.Course_HasReferenceResource_Name );
+				//this can be multiple now - check
 				row.Course_AssessmentMethodType_Label = NullifyNotApplicable( row.Course_AssessmentMethodType_Label );
 
 				row.ReferenceResource_PublicationDate = NullifyNotApplicable( row.ReferenceResource_PublicationDate );
@@ -787,9 +796,9 @@ namespace Services
 		private static List<Concept> FindConceptListOrError( List<Concept> haystack, Concept needle, string warningLabel, string warningValue, List<string> warningMessages )
 		{
 			var matches = haystack?.Where( m => 
-				(needle?.Name ?? "").ToLower().Contains( (m?.Name ?? "" ).ToLower() ) || 
-				(needle?.CodedNotation ?? "").ToLower().Contains( (m?.CodedNotation ?? "" ).ToLower() ) || 
-				(needle?.WorkElementType ?? "" ).ToLower().Contains(( m?.WorkElementType ?? "" ).ToLower() ) 
+				(needle?.Name ?? "").ToLower().Contains( (m?.Name ?? "" ).ToLower() ) 
+				|| ( needle.CodedNotation != null && ( needle?.CodedNotation ?? "").ToLower().Contains( (m?.CodedNotation ?? "" ).ToLower()) ) 
+				|| ( needle.WorkElementType != null && ( needle?.WorkElementType ?? "" ).ToLower().Contains(( m?.WorkElementType ?? "" ).ToLower()) ) 
 			).ToList();
 			if( matches.Count() == 0 )
 			{
@@ -889,7 +898,8 @@ namespace Services
 			AppUser user = AccountServices.GetCurrentUser();
 			if (user?.Id == 0 )
             {
-				status.AddError( "Error - a current user was not found. You must authenticated and authorized to use this function!" );
+
+				summary.Messages.Error.Add( "Error - a current user was not found. You must authenticated and authorized to use this function!" );
 				return;
             }
 			//now what
@@ -907,6 +917,8 @@ namespace Services
                 }
 				if ( summary.ItemsToBeCreated.Course?.Count > 0 )
 				{
+					//all dependent data has to be done first
+
 					//is training task part of course, see there is a separate TrainingTask in UploadableData. the latter has no course Id/RowId to make an association?
 					var courseMgr = new CourseManager();
 					foreach ( var item in summary.ItemsToBeCreated.Course )
@@ -957,6 +969,18 @@ namespace Services
 					var mgr = new RatingTaskManager();
 					foreach ( var item in summary.ItemsToBeCreated.RatingTask )
 					{
+						//get all billets for this task
+						if ( item.HasBillet == null )
+							item.HasBillet = new List<Guid>();
+						if ( summary.ItemsToBeCreated.BilletTitle?.Count > 0 )
+						{
+							//get billets that reference this task
+							var results = summary.ItemsToBeCreated.BilletTitle.Where( p => p.HasRatingTask.Contains(item.RowId) ).ToList();	
+
+							//var results = summary.ItemsToBeCreated.BilletTitle.Where( p => item.HasBillet.Any( p2 => p2 == p.RowId ) );
+							//var results2 = item.Where( p => summary.ItemsToBeCreated.BilletTitle.Any( p2 => p2 == p.RowId ) );
+							item.HasBillet.AddRange( results.Select( p => p.RowId) );
+						}
 						item.CreatedById = item.LastUpdatedById = user.Id;
 						mgr.Save( item, ref status );
 					}
@@ -1034,10 +1058,33 @@ namespace Services
 					var mgr = new RatingTaskManager();
 					foreach ( var item in summary.ItemsToBeChanged.RatingTask )
 					{
+						//not sure what to do for billets here?
+						//get all billets for this task
+						if ( summary.ItemsToBeChanged.BilletTitle?.Count > 0 )
+						{
+							//get billets that reference this task
+							var results = summary.ItemsToBeChanged.BilletTitle.Where( p => p.HasRatingTask.Contains( item.RowId ) ).ToList();
+							item.HasBillet.AddRange( results.Select( p => p.RowId ) );
+						}
+						//do we need to check the created as well?
+						if ( summary.ItemsToBeCreated.BilletTitle?.Count > 0 )
+						{
+							//get billets that reference this task
+							var results = summary.ItemsToBeCreated.BilletTitle.Where( p => p.HasRatingTask.Contains( item.RowId ) ).ToList();
+							item.HasBillet.AddRange( results.Select( p => p.RowId ) );
+						}
 						item.CreatedById = item.LastUpdatedById = user.Id;
 						mgr.Save( item, ref status );
 					}
 				}
+			}
+
+
+			//changes
+			//not sure how different
+			if ( summary.ItemsToBeDeleted != null )
+			{
+
 			}
 		}
 		//

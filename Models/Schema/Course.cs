@@ -48,7 +48,8 @@ namespace Models.Schema
 		/// From Column: Course Type (A/C/G/F/T)
 		/// </summary>
 		public Guid CourseType { get; set; }
-
+		//TBD must be a list
+		public List<Guid> CourseTypes { get; set; }
 		/// <summary>
 		/// GUID for the Concept for the Assessment Method Type for this Course<br />
 		/// From Column: Current Assessment Approach

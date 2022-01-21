@@ -12,16 +12,16 @@ namespace Data.Tables
     using System;
     using System.Collections.Generic;
     
-    public partial class Assessment
+    public partial class RatingTask_WorkRole
     {
         public int Id { get; set; }
-        public string Name { get; set; }
-        public string Description { get; set; }
+        public System.Guid RowId { get; set; }
+        public int RatingTaskId { get; set; }
+        public int WorkRoled { get; set; }
         public System.DateTime Created { get; set; }
         public Nullable<int> CreatedById { get; set; }
-        public System.DateTime LastUpdated { get; set; }
-        public Nullable<int> LastUpdatedById { get; set; }
-        public string CTID { get; set; }
-        public System.Guid RowId { get; set; }
+    
+        public virtual RatingTask RatingTask { get; set; }
+        public virtual WorkRole WorkRole { get; set; }
     }
 }

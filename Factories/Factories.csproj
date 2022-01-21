@@ -58,7 +58,6 @@
   <ItemGroup>
     <Compile Include="AccountManager.cs" />
     <Compile Include="ActivityManager.cs" />
-    <Compile Include="AssessmentManager.cs" />
     <Compile Include="BaseFactory.cs" />
     <Compile Include="CodesManager.cs" />
     <Compile Include="ConceptSchemeManager.cs" />

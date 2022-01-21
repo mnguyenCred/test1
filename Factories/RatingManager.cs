@@ -49,7 +49,7 @@ namespace Factories
                         {
                             //add
                             int newId = Add( entity, ref status );
-                            if ( newId == 0 || status.HasErrors )
+                            if ( newId == 0 || status.HasSectionErrors )
                                 isValid = false;
                         }
                     }
@@ -73,6 +73,7 @@ namespace Factories
                             if ( HasStateChanged( context ) )
                             {
                                 efEntity.LastUpdated = DateTime.Now;
+                                efEntity.LastUpdatedById = entity.LastUpdatedById;
                                 count = context.SaveChanges();
                                 //can be zero if no data changed
                                 if ( count >= 0 )
@@ -139,6 +140,7 @@ namespace Factories
         private int Add( AppEntity entity, ref SaveStatus status )
         {
             DBEntity efEntity = new DBEntity();
+            status.HasSectionErrors = false;
             using ( var context = new DataEntities() )
             {
                 try
