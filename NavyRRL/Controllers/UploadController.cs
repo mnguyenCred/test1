@@ -34,17 +34,17 @@ namespace NavyRRL.Controllers
 			var debug = new JObject();
 
 			//Temp
-			//var temp = Services.BulkUploadServices.ProcessUpload2( rawData, ratingRowID, debug );
+			var changeSummaryNew = Services.BulkUploadServices.ProcessUpload2( rawData, ratingRowID, debug );
 			//End Temp
 
-			var changeSummary = Services.BulkUploadServices.ProcessUpload( rawData, ratingRowID, debug );
+			var changeSummaryOld = Services.BulkUploadServices.ProcessUpload( rawData, ratingRowID, debug );
 
 			//TODO: Replace the "Services.BulkUploadServices.SomeMethodThatFindsRatingTasksInBulkIrrespectiveOfTheirRating()" placeholder method (referenced inside of the ProcessUpload method) with a call to a real method (probably in Factories) that actually does that
 
 			//Store Change Summary in the Application Cache
-			Services.BulkUploadServices.CacheChangeSummary( changeSummary );
+			Services.BulkUploadServices.CacheChangeSummary( changeSummaryOld );
 
-			return JsonResponse( changeSummary, true, null, debug );
+			return JsonResponse( changeSummaryOld, true, null, new { Debug = debug, ChangeSummaryNew = changeSummaryNew } );
         }
 		//
 

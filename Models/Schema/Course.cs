@@ -10,6 +10,7 @@ namespace Models.Schema
 		{
 			CurriculumControlAuthority = new List<Guid>();
 			HasTrainingTask = new List<Guid>();
+			AssessmentMethodType = new List<Guid>();
 		}
 
 		/// <summary>
