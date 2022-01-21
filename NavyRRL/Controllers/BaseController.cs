@@ -28,7 +28,8 @@ namespace NavyRRL.Controllers
 					Formatting.None,
 					new JsonSerializerSettings()
 					{
-						NullValueHandling = NullValueHandling.Ignore
+						NullValueHandling = NullValueHandling.Ignore,
+						DefaultValueHandling = DefaultValueHandling.Ignore
 					}
 				),
 				ContentEncoding = Encoding.UTF8,

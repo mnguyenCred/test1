@@ -89,9 +89,10 @@ namespace Models.Curation
 		public Schema.RatingTask PossiblyNewRatingTask { get; set; }
 
 		/// <summary>
-		/// If a matching Rating Task is found, set the value of this property to be the matching Rating Task's RowId.
+		/// If a matching Rating Task is found, set the value of this property to be the matching Rating Task.<br />
+		/// Otherwise, leave this property null.
 		/// </summary>
-		public Guid MatchingExistingRatingTaskRowId { get; set; }
+		public Schema.RatingTask MatchingExistingRatingTask { get; set; }
 	}
 	//
 }
