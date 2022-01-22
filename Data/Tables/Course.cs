@@ -31,10 +31,6 @@ namespace Data.Tables
         public Nullable<int> CreatedById { get; set; }
         public System.DateTime LastUpdated { get; set; }
         public Nullable<int> LastUpdatedById { get; set; }
-        public string CourseType { get; set; }
-        public string LifeCycleControlDocument { get; set; }
-        public string CurriculumControlAuthority { get; set; }
-        public string CurrentAssessmentApproach { get; set; }
         public System.Guid RowId { get; set; }
         public byte[] RowVersion { get; set; }
         public string CodedNotation { get; set; }

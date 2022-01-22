@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 
 using AppEntity = Models.Schema.Rating;
 using DBEntity = Data.Tables.Rating;
+using Models.Curation;
 
 using DataEntities = Data.Tables.NavyRRLEntities;
 using ViewContext = Data.Views.ceNavyViewEntities;
@@ -26,7 +27,7 @@ namespace Factories
         /// <param name="entity"></param>
         /// <param name="status"></param>
         /// <returns></returns>
-        public bool Save( AppEntity entity, ref SaveStatus status )
+        public bool Save( AppEntity entity, ref ChangeSummary status )
         {
             bool isValid = true;
             int count = 0;
@@ -137,7 +138,7 @@ namespace Factories
         /// <param name="entity"></param>
         /// <param name="status"></param>
         /// <returns></returns>
-        private int Add( AppEntity entity, ref SaveStatus status )
+        private int Add( AppEntity entity, ref ChangeSummary status )
         {
             DBEntity efEntity = new DBEntity();
             status.HasSectionErrors = false;

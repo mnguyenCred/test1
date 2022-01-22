@@ -56,7 +56,7 @@ namespace Services
 			existing.ReferenceResource = Factories.ReferenceResourceManager.GetAll();
 			existing.WorkRole = Factories.WorkRoleManager.GetAll();
 			//training task - really all?
-			existing.TrainingTask = Factories.CourseManager.TrainingTaskGetAll();
+			existing.TrainingTask = Factories.TrainingTaskManager.GetAll();
 			//should not get all rating task once have many rmtls (thousandds
 			int totalRows = 0;
 			existing.RatingTask = Factories.RatingTaskManager.GetAllForRating( currentRating.CodedNotation , true, ref totalRows);
@@ -924,7 +924,7 @@ namespace Services
 					foreach (var item in summary.ItemsToBeCreated.Organization )
                     {
 						item.CreatedById = item.LastUpdatedById = user.Id;
-						orgMgr.Save( item, user.Id, ref status );
+						orgMgr.Save( item, user.Id, ref summary );
                     }
                 }
 				if ( summary.ItemsToBeCreated.Course?.Count > 0 )
@@ -943,13 +943,13 @@ namespace Services
 						}
 
 						item.CreatedById = item.LastUpdatedById = user.Id;
-						courseMgr.Save( item,  ref status );
+						courseMgr.Save( item,  ref summary );
 					}
 					if ( UtilityManager.GetAppKeyValue( "listingInputRecords", false ) || UtilityManager.GetAppKeyValue( "environment" ) == "development" )
 					{
 						foreach ( var item in summary.ItemsToBeCreated.Course )
 						{
-							LoggingHelper.DoTrace( 6, String.Format("Course: {0}, CIN: {1}.",item.Name, item.CodedNotation ));
+							LoggingHelper.DoTrace( 6, String.Format("Course: {0}, CIN: {1}.",item.Name, item.CodedNotation ), false);
 						}
 					}
 				}
@@ -959,7 +959,7 @@ namespace Services
 					foreach ( var item in summary.ItemsToBeCreated.ReferenceResource )
 					{
 						item.CreatedById = item.LastUpdatedById = user.Id;
-						mgr.Save( item, ref status );
+						mgr.Save( item, ref summary );
 					}
 					//foreach ( var item in summary.ItemsToBeCreated.ReferenceResource )
 					//{
@@ -974,14 +974,14 @@ namespace Services
 					{
 						
 						item.CreatedById = item.LastUpdatedById = user.Id;
-						mgr.Save( item, ref status );
+						mgr.Save( item, ref summary );
 					}
 					if ( UtilityManager.GetAppKeyValue( "listingInputRecords", false ) || UtilityManager.GetAppKeyValue( "environment" ) == "development" )
 					{
 						//make configurable
 						foreach ( var item in summary.ItemsToBeCreated.WorkRole )
 						{
-							LoggingHelper.DoTrace( 6, "WorkRole: " + item.Name );
+							LoggingHelper.DoTrace( 6, "WorkRole: " + item.Name, false );
 						}
 					}
 				}
@@ -989,17 +989,17 @@ namespace Services
 				if ( summary.ItemsToBeCreated.BilletTitle?.Count > 0 )
 				{
 					var mgr = new JobManager();
-					foreach ( var item in summary.ItemsToBeCreated.BilletTitle )
+					foreach ( BilletTitle item in summary.ItemsToBeCreated.BilletTitle )
 					{
 						item.CreatedById = item.LastUpdatedById = user.Id;
-						mgr.Save( item, ref status );
-					}
+						mgr.Save( item, ref summary );
+                    }
 					if ( UtilityManager.GetAppKeyValue( "listingInputRecords", false ) || UtilityManager.GetAppKeyValue( "environment" ) == "development" )
 					{
 						//make configurable
 						foreach ( var item in summary.ItemsToBeCreated.BilletTitle )
 						{
-							LoggingHelper.DoTrace( 6, "BilletTitle: " + item.Name );
+							LoggingHelper.DoTrace( 6, "BilletTitle: " + item.Name, false );
 						}
 					}
 				}
@@ -1022,7 +1022,7 @@ namespace Services
 							item.HasBillet.AddRange( results.Select( p => p.RowId) );
 						}
 						item.CreatedById = item.LastUpdatedById = user.Id;
-						mgr.Save( item, ref status );
+						mgr.Save( item, ref summary );
 					}
 				}
 			}
@@ -1038,7 +1038,7 @@ namespace Services
 					foreach ( var item in summary.ItemsToBeChanged.Organization )
 					{
 						item.CreatedById = item.LastUpdatedById = user.Id;
-						orgMgr.Save( item, user.Id, ref status );
+						orgMgr.Save( item, user.Id, ref summary );
 					}
 				}
 				if ( summary.ItemsToBeChanged.Course?.Count > 0 )
@@ -1060,7 +1060,7 @@ namespace Services
 							item.TrainingTasks.AddRange( results );
 						}
 						item.CreatedById = item.LastUpdatedById = user.Id;
-						courseMgr.Save( item, ref status );
+						courseMgr.Save( item, ref summary );
 					}
 				} else
                 {
@@ -1072,7 +1072,7 @@ namespace Services
 					foreach ( var item in summary.ItemsToBeChanged.ReferenceResource )
 					{
 						item.CreatedById = item.LastUpdatedById = user.Id;
-						mgr.Save( item, ref status );
+						mgr.Save( item, ref summary );
 					}
 				}
 
@@ -1082,7 +1082,7 @@ namespace Services
 					foreach ( var item in summary.ItemsToBeChanged.WorkRole )
 					{
 						item.CreatedById = item.LastUpdatedById = user.Id;
-						mgr.Save( item, ref status );
+						mgr.Save( item, ref summary );
 					}
 				}
 
@@ -1092,7 +1092,7 @@ namespace Services
 					foreach ( var item in summary.ItemsToBeChanged.BilletTitle )
 					{
 						item.CreatedById = item.LastUpdatedById = user.Id;
-						mgr.Save( item, ref status );
+						mgr.Save( item, ref summary );
 					}
 				}
 
@@ -1117,7 +1117,7 @@ namespace Services
 							item.HasBillet.AddRange( results.Select( p => p.RowId ) );
 						}
 						item.CreatedById = item.LastUpdatedById = user.Id;
-						mgr.Save( item, ref status );
+						mgr.Save( item, ref summary );
 					}
 				}
 			}
@@ -1129,6 +1129,8 @@ namespace Services
 			{
 
 			}
+
+			//copy messages
 		}
         //
 
@@ -1665,6 +1667,8 @@ namespace Services
 			foreach ( var matcher in uploadedRatingTaskMatchers )
 			{
 				matcher.Flattened.Description = matcher.Rows.Select( m => m.RatingTask_Description ).FirstOrDefault();
+				matcher.Flattened.HasCodedNotation = matcher.Rows.Select( m => m.Row_CodedNotation ).FirstOrDefault();
+				matcher.Flattened.HasIdentifier = matcher.Rows.Select( m => m.Row_Identifier ).FirstOrDefault();
 				matcher.Flattened.HasRating_CodedNotation = matcher.Rows.Select( m => m.Rating_CodedNotation ).Distinct().ToList();
 				//?????
 				//matcher.Flattened.CodedNotation = matcher.Rows.FirstOrDefault( m => m.Row_CodedNotation );

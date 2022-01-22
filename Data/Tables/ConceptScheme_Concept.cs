@@ -23,6 +23,7 @@ namespace Data.Tables
             this.RatingTask3 = new HashSet<RatingTask>();
             this.ReferenceResource_ReferenceType = new HashSet<ReferenceResource_ReferenceType>();
             this.Course_Concept = new HashSet<Course_Concept>();
+            this.RatingTask4 = new HashSet<RatingTask>();
         }
     
         public int Id { get; set; }
@@ -53,5 +54,7 @@ namespace Data.Tables
         public virtual ICollection<ReferenceResource_ReferenceType> ReferenceResource_ReferenceType { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<Course_Concept> Course_Concept { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<RatingTask> RatingTask4 { get; set; }
     }
 }

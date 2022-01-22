@@ -11,6 +11,8 @@ using DataEntities = Data.Tables.NavyRRLEntities;
 using ViewContext = Data.Views.ceNavyViewEntities;
 using Data.Tables;
 using Models.Application;
+using Models.Curation;
+
 using Navy.Utilities;
 
 namespace Factories
@@ -26,7 +28,7 @@ namespace Factories
         /// <param name="entity"></param>
         /// <param name="status"></param>
         /// <returns></returns>
-        public bool Save( AppEntity entity, ref SaveStatus status )
+        public bool Save( AppEntity entity, ref ChangeSummary status )
         {
             bool isValid = true;
             int count = 0;
@@ -147,7 +149,7 @@ namespace Factories
         /// <param name="entity"></param>
         /// <param name="status"></param>
         /// <returns></returns>
-        private int Add( AppEntity entity, ref SaveStatus status )
+        private int Add( AppEntity entity, ref ChangeSummary status )
         {
             DBEntity efEntity = new DBEntity();
             status.HasSectionErrors= false;
@@ -212,7 +214,7 @@ namespace Factories
 
             return efEntity.Id;
         }
-        public void UpdateParts( AppEntity input, SaveStatus status )
+        public void UpdateParts( AppEntity input, ChangeSummary status )
         {
             try
             {
@@ -244,7 +246,7 @@ namespace Factories
         /// <param name="input"></param>
         /// <param name="status"></param>
         /// <returns></returns>
-        public bool ReferenceTypeUpdate( AppEntity input, ref SaveStatus status )
+        public bool ReferenceTypeUpdate( AppEntity input, ref ChangeSummary status )
         {
             ConceptSchemeManager csMgr = new ConceptSchemeManager();
             status.HasSectionErrors = false;

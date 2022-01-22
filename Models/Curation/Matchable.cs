@@ -28,6 +28,8 @@ namespace Models.Curation
 
 	public class MatchableRatingTask : Schema.RatingTask
 	{
+		public string HasCodedNotation { get; set; }
+		public string HasIdentifier { get; set; }
 		public List<string> HasRating_CodedNotation { get; set; }
 		public string HasTrainingTask_Description { get; set; }
 		public string HasReferenceResource_Name { get; set; }

@@ -73,6 +73,30 @@ namespace Models.Curation
 
 		public List<PossibleDuplicateSet> PossibleDuplicates { get; set; }
 
+		//temp helpers while converting to use ChangeSummary instead of SaveStatus?
+		public void AddError( string message )
+		{
+			//Messages.Add( new StatusMessage() { Message = message } );
+			Messages.Error.Add( message );
+			HasErrors = true;
+			HasSectionErrors = true;
+		}
+		public void AddWarning( string message )
+		{
+			Messages.Warning.Add( message );
+		}
+		public void AddNote( string message )
+		{
+			Messages.Note.Add( message );
+		}
+		/// <summary>
+		/// If true, error encountered somewhere during workflow
+		/// </summary>
+		public bool HasErrors { get; set; }
+		/// <summary>
+		/// Reset HasSectionErrors to false at the start of a new section of validation. Then check at the end of the section for any errors in the section
+		/// </summary>
+		public bool HasSectionErrors { get; set; }
 	}
 	//
 

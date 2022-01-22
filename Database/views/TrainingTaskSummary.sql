@@ -21,11 +21,12 @@ GO
 USE [NavyRRL]
 GO
 
-SELECT [Id]
-      ,[RowId]
+SELECT [CourseId]
+      ,[CourseUID]
       ,CodedNotation
-      ,[Name]
+      ,[CourseName]
       ,[TrainingTask]
+	  TrainingTaskId
 	  ,TrainingTaskUID
       ,[CurriculumControlAuthorityId]
       ,[CurriculumControlAuthority]
@@ -41,7 +42,7 @@ SELECT [Id]
       ,[LastUpdatedById]
   FROM [dbo].[TrainingTaskSummary]
 
-  order by name, TrainingTask
+  order by CourseName, TrainingTask
 GO
 
 
@@ -81,18 +82,18 @@ SELECT base.[Id] as CourseId
 
   FROM [dbo].[Course] base
   inner join [Course.Task] task on base.Id  = task.CourseId
-  inner join Organization b on base.CurriculumControlAuthorityId = b.Id
+  Left join Organization b on base.CurriculumControlAuthorityId = b.Id
   left join [dbo].[Course.Concept]	c on base.Id = c.courseId
 	--LCCD
-	inner join [ConceptSchemeSummary] d on c.ConceptId = d.conceptid and d.ConceptSchemeId=17
+	Left join [ConceptSchemeSummary] d on c.ConceptId = d.conceptid and d.ConceptSchemeId=17
 
 
     CROSS APPLY (
     --SELECT distinct d.Name + '~' + convert(varchar(50), d.RowId) + ' | '
 	SELECT distinct d.Name + ' | '
     FROM dbo.[Course]  a
-		Inner join [dbo].[Course.Concept]	c on a.Id = c.CourseId
-		inner join [ConceptScheme.Concept] d on c.ConceptId = d.Id and d.ConceptSchemeId=16
+		Inner join [dbo].[Course.CourseType]	c on a.Id = c.CourseId
+		inner join [ConceptScheme.Concept] d on c.CourseTypeConceptId = d.Id 
     WHERE  base.Id = a.Id
     FOR XML Path('') 
 ) CT (CourseTypes)
@@ -100,8 +101,8 @@ SELECT base.[Id] as CourseId
     CROSS APPLY (
     SELECT distinct d.Name + ' | '
     FROM dbo.[Course]  a
-		Inner join [dbo].[Course.Concept]	c on a.Id = c.CourseId
-		inner join [ConceptScheme.Concept] d on c.ConceptId = d.Id and d.ConceptSchemeId=13
+		Inner join [dbo].[Course.AssessmentType]	c on a.Id = c.CourseId
+		inner join [ConceptScheme.Concept] d on c.AssessmentMethodConceptId = d.Id 
     WHERE  base.Id = a.Id
     FOR XML Path('') 
 ) AMT (AssessmentMethodTypes)

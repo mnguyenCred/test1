@@ -165,10 +165,6 @@
           <Property Name="CreatedById" Type="int" />
           <Property Name="LastUpdated" Type="datetime" Nullable="false" />
           <Property Name="LastUpdatedById" Type="int" />
-          <Property Name="CourseType" Type="nvarchar" MaxLength="50" />
-          <Property Name="LifeCycleControlDocument" Type="nvarchar" MaxLength="100" />
-          <Property Name="CurriculumControlAuthority" Type="nvarchar" MaxLength="200" />
-          <Property Name="CurrentAssessmentApproach" Type="nvarchar" MaxLength="200" />
           <Property Name="RowVersion" Type="timestamp" StoreGeneratedPattern="Computed" Nullable="false" />
         </EntityType>
         <EntityType Name="Course_Concept">
@@ -448,13 +444,13 @@
           <Property Name="SubjectWebpage" Type="varchar" MaxLength="500" />
           <Property Name="StatusTypeId" Type="int" />
           <Property Name="VersionIdentifier" Type="varchar" MaxLength="100" />
-          <Property Name="ReferenceTypeId" Type="int" />
           <Property Name="Note" Type="nvarchar(max)" />
           <Property Name="Created" Type="datetime" Nullable="false" />
           <Property Name="CreatedById" Type="int" />
           <Property Name="LastUpdated" Type="datetime" Nullable="false" />
           <Property Name="LastUpdatedById" Type="int" />
           <Property Name="CTID" Type="varchar" MaxLength="50" />
+          <Property Name="ReferenceTypeId" Type="int" />
         </EntityType>
         <EntityType Name="ReferenceResource_ReferenceType">
           <Key>
@@ -891,6 +887,18 @@
             </Dependent>
           </ReferentialConstraint>
         </Association>
+        <Association Name="FK_RatingTask_ConceptWorkElelment">
+          <End Role="ConceptScheme_Concept" Type="Self.ConceptScheme_Concept" Multiplicity="0..1" />
+          <End Role="RatingTask" Type="Self.RatingTask" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="ConceptScheme_Concept">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="RatingTask">
+              <PropertyRef Name="WorkElementTypeId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
         <Association Name="FK_RatingTask_ReferenceResource">
           <End Role="ReferenceResource" Type="Self.ReferenceResource" Multiplicity="0..1" />
           <End Role="RatingTask" Type="Self.RatingTask" Multiplicity="*" />
@@ -1135,6 +1143,10 @@
             <End Role="WorkRole" EntitySet="WorkRole" />
             <End Role="RatingTask_WorkRole" EntitySet="RatingTask_WorkRole" />
           </AssociationSet>
+          <AssociationSet Name="FK_RatingTask_ConceptWorkElelment" Association="Self.FK_RatingTask_ConceptWorkElelment">
+            <End Role="ConceptScheme_Concept" EntitySet="ConceptScheme_Concept" />
+            <End Role="RatingTask" EntitySet="RatingTask" />
+          </AssociationSet>
           <AssociationSet Name="FK_RatingTask_ReferenceResource" Association="Self.FK_RatingTask_ReferenceResource">
             <End Role="ReferenceResource" EntitySet="ReferenceResource" />
             <End Role="RatingTask" EntitySet="RatingTask" />
@@ -1291,6 +1303,7 @@
           <NavigationProperty Name="Course_Concept" Relationship="NavyRRLModel.FK_Course_Concept_ConceptScheme_Concept" FromRole="ConceptScheme_Concept" ToRole="Course_Concept" />
           <Property Name="CreatedById" Type="Int32" />
           <Property Name="LastUpdatedById" Type="Int32" />
+          <NavigationProperty Name="RatingTask4" Relationship="NavyRRLModel.FK_RatingTask_ConceptWorkElelment" FromRole="ConceptScheme_Concept" ToRole="RatingTask" />
         </EntityType>
         <EntityType Name="Course">
           <Key>
@@ -1306,10 +1319,6 @@
           <Property Name="CreatedById" Type="Int32" />
           <Property Name="LastUpdated" Type="DateTime" Precision="3" Nullable="false" />
           <Property Name="LastUpdatedById" Type="Int32" />
-          <Property Name="CourseType" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
-          <Property Name="LifeCycleControlDocument" Type="String" MaxLength="100" FixedLength="false" Unicode="true" />
-          <Property Name="CurriculumControlAuthority" Type="String" MaxLength="200" FixedLength="false" Unicode="true" />
-          <Property Name="CurrentAssessmentApproach" Type="String" MaxLength="200" FixedLength="false" Unicode="true" />
           <NavigationProperty Name="Course_Task" Relationship="Self.FK_Course_Task_Course" FromRole="Course" ToRole="Course_Task" />
           <Property Name="RowId" Type="Guid" Nullable="false" />
           <NavigationProperty Name="Course_Concept" Relationship="NavyRRLModel.FK_Course_Concept_Course" FromRole="Course" ToRole="Course_Concept" />
@@ -1751,6 +1760,10 @@
             <End Role="RmtlProject_Billet" EntitySet="RmtlProject_Billet" />
             <End Role="RmtlProject_BilletTask" EntitySet="RmtlProject_BilletTask" />
           </AssociationSet>
+          <AssociationSet Name="FK_RatingTask_ConceptWorkElelment" Association="NavyRRLModel.FK_RatingTask_ConceptWorkElelment">
+            <End Role="ConceptScheme_Concept" EntitySet="ConceptScheme_Concept" />
+            <End Role="RatingTask" EntitySet="RatingTask" />
+          </AssociationSet>
         </EntityContainer>
         <EntityType Name="AspNetUserRoles">
           <Key>
@@ -1866,6 +1879,7 @@
           <NavigationProperty Name="RatingTask_WorkRole" Relationship="NavyRRLModel.FK_RatingTask_WorkRole_RatingTask" FromRole="RatingTask" ToRole="RatingTask_WorkRole" />
           <NavigationProperty Name="ReferenceResource" Relationship="NavyRRLModel.FK_RatingTask_ReferenceResource" FromRole="RatingTask" ToRole="ReferenceResource" />
           <NavigationProperty Name="RmtlProject_BilletTask" Relationship="NavyRRLModel.FK_RmtlProject_BilletTask_RatingTask" FromRole="RatingTask" ToRole="RmtlProject_BilletTask" />
+          <NavigationProperty Name="ConceptScheme_WorkElementType" Relationship="NavyRRLModel.FK_RatingTask_ConceptWorkElelment" FromRole="RatingTask" ToRole="ConceptScheme_Concept" />
         </EntityType>
         <EntityType Name="RatingTask_HasRating">
           <Key>
@@ -2425,6 +2439,18 @@
             </Dependent>
           </ReferentialConstraint>
         </Association>
+        <Association Name="FK_RatingTask_ConceptWorkElelment">
+          <End Type="NavyRRLModel.ConceptScheme_Concept" Role="ConceptScheme_Concept" Multiplicity="0..1" />
+          <End Type="NavyRRLModel.RatingTask" Role="RatingTask" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="ConceptScheme_Concept">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="RatingTask">
+              <PropertyRef Name="WorkElementTypeId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
       </Schema>
     </edmx:ConceptualModels>
     <!-- C-S mapping content -->
@@ -2551,11 +2577,7 @@
                 <ScalarProperty Name="CreatedById" ColumnName="CreatedById" />
                 <ScalarProperty Name="LastUpdated" ColumnName="LastUpdated" />
                 <ScalarProperty Name="LastUpdatedById" ColumnName="LastUpdatedById" />
-                <ScalarProperty Name="CourseType" ColumnName="CourseType" />
-                <ScalarProperty Name="LifeCycleControlDocument" ColumnName="LifeCycleControlDocument" />
-                <ScalarProperty Name="CurriculumControlAuthority" ColumnName="CurriculumControlAuthority" />
-                <ScalarProperty Name="CurrentAssessmentApproach" ColumnName="CurrentAssessmentApproach" />
-              </MappingFragment>
+                </MappingFragment>
             </EntityTypeMapping>
           </EntitySetMapping>
           <EntitySetMapping Name="Course_Task">

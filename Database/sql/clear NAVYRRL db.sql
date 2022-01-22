@@ -20,7 +20,7 @@ DROP TABLE NavyRRL.dbo.[Entity.AssertionSummary]
 GO
 */
 ----==============================================
-truncate table NavyRRL.dbo.ActivityLog
+--truncate table NavyRRL.dbo.ActivityLog
 
 --DELETE FROM NavyRRL.dbo.Assessment
 
@@ -65,11 +65,13 @@ DELETE FROM NavyRRL.dbo.Job
 DELETE FROM NavyRRL.dbo.Organization
 --
 DELETE FROM NavyRRL.dbo.ReferenceResource   
-DELETE FROM NavyRRL.dbo.[ReferenceResource.ReferenceType]   
+--DELETE FROM NavyRRL.dbo.[ReferenceResource.ReferenceType]   
 
 --DELETE FROM NavyRRL.dbo.RMTLProject   
 --DELETE FROM NavyRRL.dbo.[RmtlProject.Billet]   
 --DELETE FROM NavyRRL.dbo.[RmtlProjectBilletTask]   
+DELETE FROM NavyRRL.dbo.[RegistryHistory]   
+
 --========================================================================
 --DELETE FROM NavyRRL.dbo.Source
 --
@@ -115,6 +117,7 @@ DBCC CHECKIDENT ('[ReferenceResource.ReferenceType]', RESEED, 0);
 --DBCC CHECKIDENT ('[RMTLProject]', RESEED, 0);
 --DBCC CHECKIDENT ('[RmtlProject.Billet]', RESEED, 0);
 --DBCC CHECKIDENT ('[RmtlProjectBilletTask]', RESEED, 0);
+DBCC CHECKIDENT ('[RegistryHistory]', RESEED, 0);
 
 --DBCC CHECKIDENT ('[WorkElementType]', RESEED, 0);
 DBCC CHECKIDENT ('[WorkRole]', RESEED, 0);

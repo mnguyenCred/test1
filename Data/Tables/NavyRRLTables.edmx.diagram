@@ -70,6 +70,7 @@
         <EntityTypeShape EntityType="NavyRRLModel.RmtlProject_BilletTask" Width="1.5" PointX="11.5" PointY="6" />
         <AssociationConnector Association="NavyRRLModel.FK_RmtlProject_BilletTask_RatingTask" />
         <AssociationConnector Association="NavyRRLModel.FK_RmtlProject_BilletTask_RmtlProject_Billet" />
+        <AssociationConnector Association="NavyRRLModel.FK_RatingTask_ConceptWorkElelment" />
       </Diagram>
     </edmx:Diagrams>
   </edmx:Designer>

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 
 using Models.Application;
+using Models.Curation;
 
 using Navy.Utilities;
 
@@ -22,11 +23,19 @@ namespace Factories
         /// <param name="entity"></param>
         /// <param name="status"></param>
         /// <returns></returns>
-        public bool Save( AppEntity entity, ref SaveStatus status )
+        public bool Save( AppEntity entity, ref ChangeSummary status )
         {
             bool isValid = true;
             int count = 0;
-
+            if ( entity == null )
+            {
+                return false;
+            }
+            if ( string.IsNullOrEmpty( entity.Name ) )
+            {
+                status.AddError( thisClassName + string.Format( ".Save. The WorkRole Name is required, and is missing. This could cause an issue if referenced by another entity. The name will be set to Missing, and will require followup. UID: '{0}'", entity.RowId ) );
+                entity.Name = "Missing";
+            }
             try
             {
                 using ( var context = new DataEntities() )
@@ -133,7 +142,7 @@ namespace Factories
         /// <param name="entity"></param>
         /// <param name="status"></param>
         /// <returns></returns>
-        private int Add( AppEntity entity, ref SaveStatus status )
+        private int Add( AppEntity entity, ref ChangeSummary status )
         {
             DBEntity efEntity = new DBEntity();
             status.HasSectionErrors = false;
@@ -189,7 +198,7 @@ namespace Factories
                 catch ( Exception ex )
                 {
                     string message = FormatExceptions( ex );
-                    LoggingHelper.LogError( ex, thisClassName + string.Format( ".Add(), Name: {0}", efEntity.Name) );
+                    LoggingHelper.LogError( ex, thisClassName + string.Format( ".Add(), Name: {0}", entity.Name) );
                     status.AddError( thisClassName + ".Add(). Error - the save was not successful. \r\n" + message );
                 }
             }

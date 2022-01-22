@@ -60,5 +60,6 @@ namespace Data.Tables
         public virtual ReferenceResource ReferenceResource { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<RmtlProject_BilletTask> RmtlProject_BilletTask { get; set; }
+        public virtual ConceptScheme_Concept ConceptScheme_WorkElementType { get; set; }
     }
 }

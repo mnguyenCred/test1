@@ -230,7 +230,7 @@ namespace Factories
                 {
                     if ( cache.LastUpdated > maxTime )
                     {
-                        LoggingHelper.DoTrace( 6, string.Format( thisClassName + ".GetRatingFromCache. Using cached version of Ratings" ) );
+                        LoggingHelper.DoTrace( 7, string.Format( thisClassName + ".GetRatingFromCache. Using cached version of Ratings" ) );
 
                         ratings = cache.Ratings;
                         output = ratings.FirstOrDefault( s => s.CodedNotation == rating );
@@ -1472,6 +1472,15 @@ namespace Factories
 
         #endregion
 
+        public static string FormatLongLabel( string text, int maxLength = 75 )
+        {
+            if (string.IsNullOrWhiteSpace(text))
+                return "";
+            if ( text.Length > maxLength )
+                return text.Substring( 0, maxLength ) + " ...";
+            else
+                return text;
+        }
         public static string ConvertSpecialCharacters( string text )
         {
             bool hasChanged = false;
