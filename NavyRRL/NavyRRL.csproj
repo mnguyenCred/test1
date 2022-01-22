@@ -194,6 +194,7 @@
   <ItemGroup>
     <Content Include="App_Data\email\ConfirmAccount.txt" />
     <Content Include="App_Data\email\ForgotPassword.txt" />
+    <Content Include="Areas\Admin\Style\account.css" />
     <Content Include="Content\bootstrap-multiselect.css" />
     <Content Include="Content\bootstrap-theme.css" />
     <Content Include="Content\bootstrap-theme.min.css" />
@@ -424,6 +425,10 @@
     <Content Include="Areas\Admin\Views\_ViewStart.cshtml" />
     <Content Include="Areas\Admin\Views\Shared\_Layout.cshtml" />
     <Content Include="Areas\Admin\Views\User\Index.cshtml" />
+    <Content Include="Areas\Admin\Views\User\ResetPassword.cshtml" />
+    <Content Include="Areas\Admin\Views\User\ResetPasswordConfirmation.cshtml" />
+    <Content Include="Areas\Admin\Views\User\AddUser.cshtml" />
+    <Content Include="Areas\Admin\Views\User\EditAccount.cshtml" />
     <None Include="Properties\PublishProfiles\Sandbox.pubxml" />
     <None Include="Scripts\jquery-3.6.0.intellisense.js" />
     <Content Include="Scripts\jquery-3.6.0.js" />
@@ -565,6 +570,7 @@
     <Content Include="Views\Upload\UploadV2.cshtml" />
     <Content Include="Views\Account\RegisterConfirmation.cshtml" />
     <Content Include="Views\Search\SearchV2.cshtml" />
+    <Content Include="Views\Account\AddUser.cshtml" />
     <None Include="Web.Sandbox.config">
       <DependentUpon>Web.config</DependentUpon>
     </None>

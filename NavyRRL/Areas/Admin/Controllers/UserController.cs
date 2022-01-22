@@ -8,6 +8,7 @@ using System.Web;
 using System.Web.Mvc;
 
 using Microsoft.AspNet.Identity;
+using Microsoft.AspNet.Identity.EntityFramework;
 using Microsoft.AspNet.Identity.Owin;
 using Microsoft.Owin.Security;
 
@@ -20,7 +21,9 @@ namespace NavyRRL.Areas.Admin.Controllers
 {
     public class UserController : Controller
     {
+        public static string thisClassName = "Admin.UserController";
         //HACK: UserManager works fine in the AccountController but not here. Adding the following solved the problem
+        //22-01-21 - now doesn't work
         public UserManager<ApplicationUser> UserManager { get; private set; }
 
         // GET: Admin/User
@@ -53,6 +56,7 @@ namespace NavyRRL.Areas.Admin.Controllers
                     FirstName = model.FirstName.Trim(),
                     LastName = model.LastName.Trim()
                 };
+                //See HACK at top of page
                 var result = await UserManager.CreateAsync( user, model.Password );
 
                 if ( result.Succeeded )
@@ -85,7 +89,7 @@ namespace NavyRRL.Areas.Admin.Controllers
         }
         #endregion
         public ActionResult LoadRecords()
-        {
+            {
             var result = new JsonResult();
 
             try
@@ -162,6 +166,8 @@ namespace NavyRRL.Areas.Admin.Controllers
             }
             catch ( Exception ex )
             {
+                LoggingHelper.DoTrace( 1, thisClassName + ".Search. Exception: " + ex.Message );
+
             }
 
             return result;
@@ -260,5 +266,46 @@ namespace NavyRRL.Areas.Admin.Controllers
                 ModelState.AddModelError( "", error );
             }
         }
+
+        #region Reset password
+        [Authorize( Roles = "Administrator, Site Staff" )]
+        public ActionResult ResetPassword()
+        {
+            return View();
+        }
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<ActionResult> ResetPassword( ResetPasswordViewModel model )
+        {
+            if ( !ModelState.IsValid )
+            {
+                return View( model );
+            }
+
+            var user = await UserManager.FindByEmailAsync( model.Email );
+            if ( user == null )
+            {
+                ModelState.AddModelError( "", "The requested user email was not found." );
+                return View( model );
+            }
+            string code = await UserManager.GeneratePasswordResetTokenAsync( user.Id );
+            var result = await UserManager.ResetPasswordAsync( user.Id, code, model.Password );
+            if ( result.Succeeded )
+            {
+                new AccountServices().SetUserEmailConfirmed( user.Id );
+                return RedirectToAction( "ResetPasswordConfirmation", "User" );
+            }
+            AddErrors( result );
+
+
+            return View();
+
+        }
+        public ActionResult ResetPasswordConfirmation()
+        {
+            return View();
+
+        }
+        #endregion
     }
 }

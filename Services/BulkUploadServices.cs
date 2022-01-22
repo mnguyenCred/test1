@@ -38,7 +38,7 @@ namespace Services
 				return result;
 			}
 			var alternateRating = new Rating();
-
+			var alternateRatingCode = "";
 			var existing = new UploadableData(); //Get from database for the selected rating
 			//var concepts = new List<Concept>(); //Get from database, possibly as separate variables for each scheme
 			var payGradeTypeConcepts = Factories.ConceptSchemeManager.GetbyShortUri( Factories.ConceptSchemeManager.ConceptScheme_Pay_Grade ).Concepts;
@@ -84,7 +84,7 @@ namespace Services
 				rowCount++;
 				if ( rowCount  == 101)
                 {
-					break;
+					//break;
                 }
 				if ( row.Rating_CodedNotation == null )
 					continue;
@@ -93,6 +93,9 @@ namespace Services
 				row.Rating_CodedNotation = NullifyNotApplicable( row.Rating_CodedNotation );
 				if ( row.Rating_CodedNotation != currentRating.CodedNotation)
                 {
+					if ( alternateRatingCode == row.Rating_CodedNotation )
+						continue;
+					alternateRatingCode = row.Rating_CodedNotation;
 					alternateRating = Factories.RatingManager.GetByCode( row.Rating_CodedNotation );
 					currentRatingRowID = alternateRating.RowId;
                     //should be All
@@ -246,6 +249,13 @@ namespace Services
 						m.CodedNotation?.ToLower() == row.Row_CodedNotation?.ToLower() );
 					//make sure found
 					if ( string.IsNullOrWhiteSpace(ratingTask?.CodedNotation) )
+						ratingTask = null;
+				} else if ( !string.IsNullOrEmpty( row.Row_Identifier ) )
+				{
+					ratingTask = graph.RatingTask.FirstOrDefault( m =>
+						m.RowId.ToString() == row.Row_Identifier );
+					//make sure found
+					if ( string.IsNullOrWhiteSpace( ratingTask?.CodedNotation ) )
 						ratingTask = null;
 				}
 

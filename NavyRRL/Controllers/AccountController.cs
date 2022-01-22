@@ -56,7 +56,69 @@ namespace NavyRRL.Controllers
                 _userManager = value;
             }
         }
+        #region Add User
+        [Authorize( Roles = "Administrator, Site Manager" )]
+        public ActionResult AddUser()
+        {
+            //return View();
+            return View();
+        }
 
+        [HttpPost]
+        //[RequireHttps]
+        [ValidateAntiForgeryToken]
+        public async Task<ActionResult> AddUser( RegisterViewModel model )
+        {
+            int currentUserId = AccountServices.GetCurrentUserId();
+            if ( ModelState.IsValid )
+            {
+                //check if user email aleady exists
+                var exists=AccountServices.GetUserByEmail( model.Email.Trim() );
+                if ( exists?.Id > 0 )
+                {
+                    ConsoleMessageHelper.SetConsoleErrorMessage( "Error - An account with the entered email address already exists." );
+                    return View();
+                }
+                string statusMessage = "";
+                var user = new ApplicationUser
+                {
+                    UserName = model.Email.Trim(),
+                    Email = model.Email.Trim(),
+                    FirstName = model.FirstName.Trim(),
+                    LastName = model.LastName.Trim()
+                };
+                //See HACK at top of page
+                var result = await UserManager.CreateAsync( user, model.Password );
+
+                if ( result.Succeeded )
+                {
+                    int id = new AccountServices().AddAccount( model.Email,
+                        model.FirstName, model.LastName,
+                        model.Email, user.Id,
+                        model.Password, ref statusMessage );
+                    if ( id > 0 )
+                    {
+                        string msg = "Successfully created account for {0}. ";
+
+                        ConsoleMessageHelper.SetConsoleSuccessMessage( string.Format( msg, user.FirstName ) );
+                        //return View( "ConfirmationRequired" );
+                        ModelState.Clear();
+                        return View();
+                    }
+                    else
+                    {
+                        ConsoleMessageHelper.SetConsoleErrorMessage( "Error - " + statusMessage );
+                        return View();
+                    }
+                }
+                AddErrors( result );
+            }
+
+            // If we got this far, something failed, redisplay form
+
+            return View();
+        }
+        #endregion
         //
         // GET: /Account/Login
         [AllowAnonymous]
@@ -159,55 +221,7 @@ namespace NavyRRL.Controllers
                     return View(model);
             }
         }
-        [HttpPost]
-        //[RequireHttps]
-        [ValidateAntiForgeryToken]
-        public async Task<ActionResult> AddUser( RegisterViewModel model )
-        {
-            int currentUserId = AccountServices.GetCurrentUserId();
-            if ( ModelState.IsValid )
-            {
-                string statusMessage = "";
-                var user = new ApplicationUser
-                {
-                    UserName = model.Email.Trim(),
-                    Email = model.Email.Trim(),
-                    FirstName = model.FirstName.Trim(),
-                    LastName = model.LastName.Trim()
-                };
-                var result = await UserManager.CreateAsync( user, model.Password );
-
-                if ( result.Succeeded )
-                {
-                    int id = new AccountServices().AddAccount( model.Email,
-                        model.FirstName, model.LastName,
-                        model.Email, user.Id,
-                        model.Password, ref statusMessage );
-                    if ( id > 0 )
-                    {
-                        string msg = "Successfully created account for {0}. ";
-
-                        ConsoleMessageHelper.SetConsoleSuccessMessage( string.Format( msg, user.FirstName ) );
-                        //return View( "ConfirmationRequired" );
-                        ModelState.Clear();
-                        return View();
-                    }
-                    else
-                    {
-                        ConsoleMessageHelper.SetConsoleErrorMessage( "Error - " + statusMessage );
-                        return View();
-                    }
-
-
-                    //return RedirectToAction( "Index", "Home" );
-                }
-                AddErrors( result );
-            }
-
-            // If we got this far, something failed, redisplay form
-
-            return View();
-        }
+        
         //
         // GET: /Account/Register
         [AllowAnonymous]
