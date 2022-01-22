@@ -376,7 +376,7 @@
 					appendProperty(itemBox, "Has Reference Resource", item, "HasReferenceResource", getLookupList);
 					appendProperty(itemBox, "Curriculum Control Authority", item, "CurriculumControlAuthority", getLookupList);
 					appendProperty(itemBox, "Rating Tasks", item, "HasRatingTask", getLookupList);
-					appendProperty(itemBox, "Has " + (item.HasTrainingTask?.length) + " Training Task(s)", item, "HasTrainingTask", getLookupList);
+					appendProperty(itemBox, "Has " + ((item.HasTrainingTask && Array.isArray(item.HasTrainingTask)) ? (item.HasTrainingTask.length + " ") : "") + "Training Task(s)", item, "HasTrainingTask", getLookupList);
 					appendProperty(itemBox, item.Items?.length + " Item(s)", item, "Items", (m) => { return getItemBulletedList(m, true); });
 				}, 0)
 			});
@@ -431,7 +431,7 @@
 			Items.forEach(Item => {
 				var box = $("<li></li>").appendTo(list);
 				showRowIDs && box.append("<span class=\"monospace\">" + Item.RowId + "</span>");
-				box.append("<span>" + (Item.Name || Item.CodedNotation || Item.Description || Item.FallbackRowID) + "</span>");
+				box.append("<span class=\"" + (Item.FallbackRowID ? "monospace" : "") + "\">" + (Item.Name || Item.CodedNotation || Item.Description || Item.FallbackRowID) + "</span>");
 			});
 			return list[0].outerHTML;
 		}
