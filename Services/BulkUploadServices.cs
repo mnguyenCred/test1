@@ -16,7 +16,8 @@ namespace Services
 {
 	public class BulkUploadServices
 	{
-		public static ChangeSummary ProcessUpload( UploadableTable uploaded, Guid ratingRowID, JObject debug = null )
+        #region ProcessUpload V1
+        public static ChangeSummary ProcessUpload( UploadableTable uploaded, Guid ratingRowID, JObject debug = null )
 		{
 			debug = debug ?? new JObject();
 			var result = new ChangeSummary() { RowId = Guid.NewGuid() };
@@ -80,9 +81,9 @@ namespace Services
 			{
 				debug[ "Current Row" ] = (rowCount + 1);
 				rowCount++;
-				if ( rowCount  == 100)
+				if ( rowCount  == 101)
                 {
-					//break;
+					break;
                 }
 				if ( row.Rating_CodedNotation == null )
 					continue;
@@ -875,9 +876,9 @@ namespace Services
 		{
 			return haystack?.Where( m => needleRowIDs?.Contains( m.RowId ) ?? false ).ToList();
 		}
-		//
-
-		public static void CacheChangeSummary( ChangeSummary summary )
+        //
+        #endregion
+        public static void CacheChangeSummary( ChangeSummary summary )
 		{
 			summary.RowId = summary.RowId == Guid.Empty ? Guid.NewGuid() : summary.RowId;
 			MemoryCache.Default.Remove( summary.RowId.ToString() );
@@ -1022,7 +1023,10 @@ namespace Services
 						item.CreatedById = item.LastUpdatedById = user.Id;
 						courseMgr.Save( item, ref status );
 					}
-				}
+				} else
+                {
+					//check tasks
+                }
 				if ( summary.ItemsToBeChanged.ReferenceResource?.Count > 0 )
 				{
 					var mgr = new ReferenceResourceManager();
@@ -1087,10 +1091,10 @@ namespace Services
 
 			}
 		}
-		//
+        //
 
-
-		public static ChangeSummary ProcessUploadV2( UploadableTable uploadedData, Guid ratingRowID, JObject debug = null )
+        #region ProcessUpload V2
+        public static ChangeSummary ProcessUploadV2( UploadableTable uploadedData, Guid ratingRowID, JObject debug = null )
 		{
 			debug = debug ?? new JObject();
 			var latestStepFlag = "FarthestStep";
@@ -1099,6 +1103,16 @@ namespace Services
 			debug[ latestStepFlag ] = "Initial Setup";
 
 			var currentRating = RatingManager.Get( ratingRowID );
+			if ( currentRating == null )
+			{
+				summary.Messages.Error.Add( "Error: Unable to find Rating for identifier: " + ratingRowID );
+				return summary;
+			}
+			if ( uploadedData.Rows.Count == 0 )
+			{
+				summary.Messages.Error.Add( "Error: No rows were found to process." );
+				return summary;
+			}
 			var existingRatings = RatingManager.GetAll();
 			var payGradeTypeConcepts = Factories.ConceptSchemeManager.GetbyShortUri( Factories.ConceptSchemeManager.ConceptScheme_Pay_Grade ).Concepts;
 			var trainingGapTypeConcepts = Factories.ConceptSchemeManager.GetbyShortUri( Factories.ConceptSchemeManager.ConceptScheme_TrainingGap ).Concepts;
@@ -1110,7 +1124,7 @@ namespace Services
 
 			var existingReferenceResources = ReferenceResourceManager.GetAll();
 			var existingRatingTasks = Factories.RatingTaskManager.GetAllForRating( currentRating.CodedNotation, true, ref totalRows );
-			var existingBilletTitles = new List<BilletTitle>(); //Need a method to get these from the database
+			var existingBilletTitles = Factories.JobManager.GetAll();
 			var existingTrainingTasks = TrainingTaskManager.GetAll();
 			var existingCourses = CourseManager.GetAll();
 			var existingWorkRoles = WorkRoleManager.GetAll();
@@ -2020,7 +2034,7 @@ namespace Services
 				row.WorkRole_Name
 			} );
 		}
-		//
-
-	}
+        //
+        #endregion
+    }
 }

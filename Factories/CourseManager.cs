@@ -235,7 +235,10 @@ namespace Factories
             //
             if ( IsValidGuid(input.HasReferenceResource ) ) 
             {
-                output.LifeCycleControlDocumentId = ConceptSchemeManager.GetConcept( input.HasReferenceResource)?.Id;
+                output.LifeCycleControlDocumentId = ReferenceResourceManager.Get( input.HasReferenceResource )?.Id;
+            } else
+            {
+                output.LifeCycleControlDocumentId = null;
             }
             //
             //this may be removed if there can be multiple CCA
@@ -440,18 +443,13 @@ namespace Factories
                     {
                         CourseTaskSave( input, item, ref status );
                     }
+                } 
+                else if ( input.HasTrainingTask?.Count > 0 )
+                {
+                    //these are the guids, but the task can't be created before the course, so are these for tasks that exist?
+                    //
+                    //this note came while working with the created list (although this course did already exist?)
                 }
-                //else if ( input.HasTrainingTask?.Count > 0 && AllNewtrainingTasks?.Count > 0)
-                //{
-                //    //get all tasks for the current course from the general list
-                //    //for a new course, can just focus on new training. 
-                //    //what if an existing course has a new task but doesn't exist in the updated courses?
-                //    var result = AllNewtrainingTasks.Where( p => input.HasTrainingTask.Any( p2 => p2 == p.RowId ) );
-                //    foreach( var item in result )
-                //    {
-
-                //    }
-                //}
                 //this needs to be multiple
                 if ( input.CourseType != null )
                 {
@@ -820,6 +818,16 @@ namespace Factories
                 }
             }
             return false;
+        }
+
+        public void CourseTaskSave( AppEntity input, ref SaveStatus status )
+        {
+            //need to do the check for stuff to delete - or TBD if the process step figures out the proper stuff
+
+            foreach ( var item in input.TrainingTasks )
+            {
+                CourseTaskSave( input, item, ref status );
+            }
         }
 
         public void CourseTaskSave( AppEntity input, MSc.TrainingTask task, ref SaveStatus status )

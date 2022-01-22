@@ -438,7 +438,7 @@ namespace Factories
                         item.FunctionalArea = dr["FunctionalArea"].ToString();// GetRowColumn( dr, "FunctionalArea", "" );
                         item.ReferenceType = GetGuidType( dr, "ReferenceType" );
 						//
-						item.Source = dr["Source"].ToString();// GetRowColumn( dr, "Source", "" );
+						item.Source = dr["ReferenceResource"].ToString();// GetRowColumn( dr, "Source", "" );
                         item.SourceDate = dr["SourceDate"].ToString();// GetRowColumn( dr, "SourceDate", "" );
                         item.HasReferenceResource = GetGuidType( dr, "HasReferenceResource" );
 						//
@@ -453,7 +453,7 @@ namespace Factories
 
 						item.CIN = dr["CIN"].ToString();// GetRowColumn( dr, "CIN", "" );
                         item.CourseName = dr["CourseName"].ToString();// GetRowColumn( dr, "CourseName", "" );
-                        item.CourseType = dr["CourseType"].ToString();// GetRowPossibleColumn( dr, "CourseType", "" );
+                        item.CourseType = dr["CourseTypes"].ToString();// GetRowPossibleColumn( dr, "CourseType", "" );
                         item.CurrentAssessmentApproach = dr["AssessmentMethodTypes"].ToString();// GetRowPossibleColumn( dr, "AssessmentMethodTypes", "" );
                                                                                      //
                         item.TrainingTask = dr["TrainingTask"].ToString();// GetRowPossibleColumn( dr, "TrainingTask", "" );

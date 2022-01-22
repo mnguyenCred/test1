@@ -20,7 +20,7 @@ DROP TABLE NavyRRL.dbo.[Entity.AssertionSummary]
 GO
 */
 ----==============================================
---truncate table NavyRRL.dbo.ActivityLog
+truncate table NavyRRL.dbo.ActivityLog
 
 --DELETE FROM NavyRRL.dbo.Assessment
 
@@ -31,21 +31,16 @@ truncate table NavyRRL.dbo.Comment
 --DELETE FROM NavyRRL.dbo.[ConceptScheme.Concept] 
 --DELETE FROM NavyRRL.dbo.ConceptScheme   
 --
-DELETE FROM NavyRRL.dbo.Course
 --must be done after RatingTask
---DELETE FROM NavyRRL.dbo.[Course.Task]   
-DELETE FROM NavyRRL.dbo.[Course.Concept]
-DELETE FROM NavyRRL.dbo.[Course.Organization]   
-DELETE FROM NavyRRL.dbo.[Course.SchoolType]   
+--DELETE FROM NavyRRL.dbo.Course
+
 --========================================================================
 DELETE FROM NavyRRL.dbo.Entity
 --========================================================================
 
-DELETE FROM NavyRRL.dbo.FunctionalArea
---
-DELETE FROM NavyRRL.dbo.ImportHistory
---
-
+--DELETE FROM NavyRRL.dbo.FunctionalArea
+----
+--DELETE FROM NavyRRL.dbo.ImportHistory
 
 --========================================================================
 --DELETE FROM NavyRRL.dbo.Rating
@@ -54,6 +49,13 @@ DELETE FROM NavyRRL.dbo.RatingTask
 --DELETE FROM NavyRRL.dbo.[RatingTask.HasJob]
 --DELETE FROM NavyRRL.dbo.[RatingTask.HasRating]  
 --
+--DELETE FROM NavyRRL.dbo.Course
+
+--DELETE FROM NavyRRL.dbo.[Course.Task]   
+DELETE FROM NavyRRL.dbo.[Course.Concept]
+DELETE FROM NavyRRL.dbo.[Course.Organization]   
+--DELETE FROM NavyRRL.dbo.[Course.SchoolType]   
+
 --must be done after RatingTask
 DELETE FROM NavyRRL.dbo.Job
 --should be unnecesary, deleting Job will clear this
@@ -70,7 +72,7 @@ DELETE FROM NavyRRL.dbo.RMTLProject
 DELETE FROM NavyRRL.dbo.[RmtlProject.Billet]   
 DELETE FROM NavyRRL.dbo.[RmtlProjectBilletTask]   
 --========================================================================
-DELETE FROM NavyRRL.dbo.Source
+--DELETE FROM NavyRRL.dbo.Source
 --
 DELETE FROM NavyRRL.dbo.WorkElementType
 DELETE FROM NavyRRL.dbo.WorkRole

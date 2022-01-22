@@ -41,7 +41,42 @@ namespace Services
                 {
                     foreach (var item in data.Filters)
                     {
-                        if (item.Name == "navy:CourseType" && item.ItemIds?.Count > 0 )
+                        //
+                        if ( item.Name == "search:RatingTaskKeyword" && !string.IsNullOrWhiteSpace(item.Text) )
+                        {
+                            var keyword = ServiceHelper.HandleApostrophes( item.Text );
+                            var template = "( base.RatingTask like '%{0}%' ) ";
+                            where += AND + String.Format( template, keyword );
+                            AND = " AND ";
+                        }
+                        else if ( item.Name == "navy:Rating" && item.ItemIds?.Count > 0 )
+                        {
+                            var template = "( base.id in (select a.[RatingTaskId] from [RatingTask.HasRating] a inner join Rating b on a.ratingId = b.Id where b.Id in ({0}) )) ";
+                            var itemList = "";
+                            var comma = "";
+                            foreach ( var t in item.ItemIds )
+                            {
+                                itemList += comma + t.ToString();
+                                comma = ",";
+                            }
+                            where += AND + String.Format( template, itemList );
+                            AND = " AND ";
+                        }
+                        else if ( item.Name == "search:TrainingTaskKeyword" && !string.IsNullOrWhiteSpace( item.Text ) )
+                        {
+                            var keyword = ServiceHelper.HandleApostrophes( item.Text );
+                            var template = "( base.TrainingTask like '%{0}%' ) ";
+                            where += AND + String.Format( template, keyword );
+                            AND = " AND ";
+                        }
+                        else if ( item.Name == "search:BilletTitleKeyword" && !string.IsNullOrWhiteSpace( item.Text ) )
+                        {
+                            var keyword = ServiceHelper.HandleApostrophes( item.Text );
+                            var template = "( base.BilletTitles like '%{0}%' ) ";
+                            where += AND + String.Format( template, keyword );
+                            AND = " AND ";
+                        }
+                        else if ( item.Name == "navy:CourseType" && item.ItemIds?.Count > 0 )
                         {
                             var template = "( base.CourseId in ( select a.id from Course a Inner join [dbo].[Course.Concept] c on a.Id = c.CourseId and c.ConceptId in ({0})) ) ";
                             var itemList = "";
@@ -53,7 +88,8 @@ namespace Services
                             }
                             where += AND + String.Format( template, itemList );
                             AND = " AND ";
-                        } else if ( item.Name == "navy:Paygrade" )
+                        } 
+                        else if ( item.Name == "navy:Paygrade" )
                         {
                             var template = "( base.RankId in ( {0} ) ) ";
                             var itemList = "";
