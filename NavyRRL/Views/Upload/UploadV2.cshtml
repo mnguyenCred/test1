@@ -61,8 +61,8 @@
 	function setupTabs() {
 		createTab("Summary", "Summary", $(".tab[data-tab='Summary']"));
 		createTab("ItemsToBeDeleted", "Items to be Deleted");
-		createTab("ItemsToBeCreated", "Items to be Created");
 		createTab("PossibleDuplicates", "Possible Duplicates");
+		createTab("ItemsToBeCreated", "Items to be Created");
 		createTab("AddedItemsToInnerListsForCopiesOfItems", "References to be Added to Existing Items");
 		createTab("RemovedItemsFromInnerListsForCopiesOfItems", "References to be Removed from Existing Items");
 		Upload.UI.TabBox.Tabs[0].Button.trigger("click");
@@ -268,14 +268,16 @@
 		collapseSummaryGraph(Upload.StaticData);
 		collapseSummaryGraph(Upload.Summary.Data.ItemsToBeCreated);
 		collapseSummaryGraph(Upload.Summary.Data.ItemsToBeDeleted);
+		getLabels(Upload.Summary.Data.AddedItemsToInnerListsForCopiesOfItems);
+		getLabels(Upload.Summary.Data.RemovedItemsFromInnerListsForCopiesOfItems);
 		renderTextSet("Errors", Upload.Summary.Data.Messages.Error, Upload.UI.UploadSummaryBox, false, "Please correct the errors and try again.");
 		renderTextSet("Warnings", Upload.Summary.Data.Messages.Warning, Upload.UI.UploadSummaryBox, false, "Please review the warnings carefully before confirming the update.");
 		renderTextSet("Notes", Upload.Summary.Data.Messages.Note, Upload.UI.UploadSummaryBox, false, "Miscellaneous notes.");
-		renderRichSet("Items to be Deleted", Upload.Summary.Data.ItemsToBeDeleted, Upload.Summary.Data.Messages.Delete, Upload.UI.TabBox.TabsMap.ItemsToBeDeleted.ContentBox, true, "Warning: The following items were not detected in the uploaded data, and will be deleted if you confirm the changes!");
-		renderRichSet("Possible Duplicates", { PossibleDuplicates: Upload.Summary.Data.PossibleDuplicates }, Upload.Summary.Data.Messages.Duplicate, Upload.UI.TabBox.TabsMap.PossibleDuplicates.ContentBox, false, "Found multiple instances of one or more items. This may be caused by inconsistent capitalization on different rows. Please carefully review the data before confirming the update.")
-		renderRichSet("Items to be Created", Upload.Summary.Data.ItemsToBeCreated, Upload.Summary.Data.Messages.Create, Upload.UI.TabBox.TabsMap.ItemsToBeCreated.ContentBox, true, "The following items will be created if you confirm the changes.");
-		renderRichSet("Additional References for Existing Items", Upload.Summary.Data.AddedItemsToInnerListsForCopiesOfItems, Upload.Summary.Data.Messages.AddItem, Upload.UI.TabBox.TabsMap.AddedItemsToInnerListsForCopiesOfItems.ContentBox, true, "New references have been detected for the following existing items.");
-		renderRichSet("References to be Removed from Existing Items", Upload.Summary.Data.RemovedItemsFromInnerListsForCopiesOfItems, Upload.Summary.Data.Messages.RemoveItem, Upload.UI.TabBox.TabsMap.RemovedItemsFromInnerListsForCopiesOfItems.ContentBox, true, "These references will be removed from the following existing items.");
+		renderRichSet("Items to be Deleted", Upload.Summary.Data.ItemsToBeDeleted, Upload.Summary.Data.Messages.Delete, Upload.UI.TabBox.TabsMap.ItemsToBeDeleted.ContentBox, true, true, "Warning: The following items were not detected in the uploaded data, and will be deleted if you confirm the changes!");
+		renderRichSet("Possible Duplicates", { PossibleDuplicates: Upload.Summary.Data.PossibleDuplicates }, Upload.Summary.Data.Messages.Duplicate, Upload.UI.TabBox.TabsMap.PossibleDuplicates.ContentBox, false, false, "Found multiple instances of one or more items. This may be caused by inconsistent capitalization on different rows. Please carefully review the data before confirming the update.")
+		renderRichSet("Items to be Created", Upload.Summary.Data.ItemsToBeCreated, Upload.Summary.Data.Messages.Create, Upload.UI.TabBox.TabsMap.ItemsToBeCreated.ContentBox, true, true, "The following items will be created if you confirm the changes.");
+		renderRichSet("Additional References for Existing Items", Upload.Summary.Data.AddedItemsToInnerListsForCopiesOfItems, Upload.Summary.Data.Messages.AddItem, Upload.UI.TabBox.TabsMap.AddedItemsToInnerListsForCopiesOfItems.ContentBox, true, false, "New references have been detected for the following existing items.");
+		renderRichSet("References to be Removed from Existing Items", Upload.Summary.Data.RemovedItemsFromInnerListsForCopiesOfItems, Upload.Summary.Data.Messages.RemoveItem, Upload.UI.TabBox.TabsMap.RemovedItemsFromInnerListsForCopiesOfItems.ContentBox, true, false, "These references will be removed from the following existing items.");
 	}
 	//
 
@@ -312,7 +314,7 @@
 	}
 	//
 
-	function renderRichSet(header, items, messages, container, sortItems, explanation, cssClass) {
+	function renderRichSet(header, items, messages, container, sortItems, asTabs, explanation, cssClass) {
 		var hasAnyItems = false;
 		Object.keys(items).forEach(key => {
 			if (Array.isArray(items[key]) && items[key].length > 0) {
@@ -324,16 +326,19 @@
 		if (hasAnyItems || messages.length > 0) {
 			//container.append("<h3>" + header + "</h3>");
 			explanation && container.append("<p>" + explanation + "</p>");
+			asTabs && container.addClass("tabBox");
+			asTabs && $("<div class=\"tabButtons\"></div>").appendTo(container);
 			if (hasAnyItems) {
-				var itemList = $("<div class=\"richItemSet " + (cssClass || "") + "\"\"></div>").appendTo(container);
-				renderRichItemList("Reference Resource", items.ReferenceResource, itemList);
-				renderRichItemList("Curriculum Control Authority", items.Organization, itemList);
-				renderRichItemList("Billet Title", items.BilletTitle, itemList);
-				renderRichItemList("Functional Area", items.WorkRole, itemList);
-				renderRichItemList("Rating Task", items.RatingTask, itemList);
-				renderRichItemList("Course", items.Course, itemList);
-				renderRichItemList("Training Task", items.TrainingTask, itemList);
-				renderRichItemList("", items.PossibleDuplicates, itemList);
+				var itemList = $("<div class=\"richItemSet " + (cssClass || "") + (asTabs ? "tabList" : "") +"\"\"></div>").appendTo(container);
+				renderRichItemList("Reference Resource", items.ReferenceResource, itemList, asTabs);
+				renderRichItemList("Curriculum Control Authority", items.Organization, itemList, asTabs);
+				renderRichItemList("Billet Title", items.BilletTitle, itemList, asTabs);
+				renderRichItemList("Functional Area", items.WorkRole, itemList, asTabs);
+				renderRichItemList("Rating Task", items.RatingTask, itemList, asTabs);
+				renderRichItemList("Course", items.Course, itemList, asTabs);
+				renderRichItemList("Training Task", items.TrainingTask, itemList, asTabs);
+				renderRichItemList("", items.PossibleDuplicates, itemList, asTabs);
+				asTabs && setupRichItemTabs(container);
 			}
 			if (messages.length > 0) {
 				sortItems && messages.sort((a, b) => { return a > b ? 1 : -1 });
@@ -347,10 +352,10 @@
 	}
 	//
 
-	function renderRichItemList(type, list, container) {
+	function renderRichItemList(type, list, container, asTabs) {
 		if (list?.length > 0) {
-			var listBox = $("<div class=\"richItemList\"></div>").appendTo(container);
-			listBox.append("<h4>" + type + "</h4>");
+			var listBox = $("<div class=\"richItemList " + (asTabs ? "tab" : "") + "\"></div>").appendTo(container);
+			listBox.append("<h4 class=\"richItemListHeader\">" + type + " (" + list.length + ")" + "</h4>");
 			list.forEach(item => {
 				item.Type = type || item.Type;
 				var itemBox = $("<div class=\"richItem\"><i>Loading...</i></div>").appendTo(listBox);
@@ -503,6 +508,39 @@
 		});
 	}
 	//
+
+	function getLabels(Source) {
+		Object.keys(Source).forEach(key => {
+			Source[key]?.forEach(Item => {
+				var match = Upload.Summary.Data.LookupGraph.filter(m => m.RowId == Item.RowId)[0];
+				match?.Name && (Item.Name = match.Name);
+				match?.CodedNotation && (Item.CodedNotation = match.CodedNotation);
+				match?.Description && (Item.Description = match.Description);
+			});
+		});
+	}
+	//
+
+	function setupRichItemTabs(container) {
+		var innerTabs = [];
+		container.find("> .tabList > .tab").each(function () {
+			var Tab = {
+				Box: $(this),
+				Button: $("<button class=\"richItemTabButton\">" + $(this).find(".richItemListHeader").html() + "</button>").appendTo(container.find("> .tabButtons"))
+			};
+			Tab.Button.on("click", function () {
+				innerTabs.forEach(OtherTab => {
+					OtherTab.Box.removeClass("active");
+					OtherTab.Button.removeClass("active");
+				});
+				Tab.Box.addClass("active");
+				Tab.Button.addClass("active");
+			});
+			innerTabs.push(Tab);
+		});
+		innerTabs[0]?.Button.trigger("click");
+	}
+	//
 </script>
 <style type="text/css">
 	html body .container { width: 98vw; }
@@ -510,7 +548,7 @@
 
 	.tabBox { }
 	.tabBox .tabButtons { }
-	.tabBox .tabButtons button { border: 1px solid #777; padding: 2px 5px; }
+	.tabBox .tabButtons button { border: 1px solid #777; padding: 5px 10px; min-height: 30px; }
 	.tabBox .tabButtons button.active { background-color: #555; color: #FFF; }
 	.tabBox .tabList .tab:not(.active) { display: none; }
 
@@ -532,10 +570,10 @@
 	.richItemSet .richItemList { margin-bottom: 50px; }
 	.richItemSet .richItemList .richItem { display: flex; flex-wrap: wrap; padding: 5px 0; border-bottom: 1px solid #CCC; }
 	.richItemSet .richItemList .richItem:last-child { border-bottom: none; }
-	.richItemSet .richItemList .richItem .property { padding: 5px 20px; min-width: 250px; }
+	.richItemSet .richItemList .richItem .property { padding: 5px 20px; min-width: 400px; }
 	.richItemSet .richItemList .richItem .property .propertyLabel { font-size: 10px; }
 	.richItemSet .richItemList .richItem .property .propertyValue { font-size: 14px; }
-	.richItemSet .richItemList .richItem .property[data-property='Description'] { flex: 1 0 750px; }
+	.richItemSet .richItemList .richItem .property[data-property='Description'] { flex: 1 0 800px; }
 
 	.richItemSet .richItemList .richItem .property .propertyValue .innerItemList {  }
 	.richItemSet .richItemList .richItem .property .propertyValue .innerItemList .innerItem { border-bottom: 1px dashed #CCC; }
