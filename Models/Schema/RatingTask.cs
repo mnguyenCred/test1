@@ -23,7 +23,7 @@ namespace Models.Schema
 		/// From Column: TBD
 		/// </summary>
 		public string CodedNotation { get; set; }
-
+		public string Identifier { get; set; }
 		/// <summary>
 		/// May or may not belong on Rating Task (might belong in RMTL Project data instead?)<br />
 		/// From Column: Notes

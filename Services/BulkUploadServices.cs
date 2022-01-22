@@ -82,7 +82,7 @@ namespace Services
 			{
 				debug[ "Current Row" ] = (rowCount + 1);
 				rowCount++;
-				if ( rowCount  == 101)
+				if ( rowCount  ==501)
                 {
 					//break;
                 }
@@ -1666,6 +1666,11 @@ namespace Services
 			{
 				matcher.Flattened.Description = matcher.Rows.Select( m => m.RatingTask_Description ).FirstOrDefault();
 				matcher.Flattened.HasRating_CodedNotation = matcher.Rows.Select( m => m.Rating_CodedNotation ).Distinct().ToList();
+				//?????
+				//matcher.Flattened.CodedNotation = matcher.Rows.FirstOrDefault( m => m.Row_CodedNotation );
+				//this should equate to the RowId - ideally. But only if done at the beginning.
+				//matcher.Flattened.Identifier = matcher.Rows.FirstOrDefault( m => m.Row_Identifier );
+
 				matcher.Flattened.HasTrainingTask_Description = matcher.Rows.Select( m => m.TrainingTask_Description ).FirstOrDefault();
 				matcher.Flattened.HasReferenceResource_Name = matcher.Rows.Select( m => m.ReferenceResource_Name ).FirstOrDefault();
 				matcher.Flattened.HasWorkRole_Name = matcher.Rows.Select( m => m.WorkRole_Name ).Distinct().ToList();
