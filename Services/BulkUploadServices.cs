@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
+using Navy.Utilities;
 
 using System.Runtime.Caching;
 using Newtonsoft.Json.Linq;
@@ -934,6 +935,13 @@ namespace Services
 						item.CreatedById = item.LastUpdatedById = user.Id;
 						courseMgr.Save( item,  ref status );
 					}
+					if ( UtilityManager.GetAppKeyValue( "listingInputRecords", false ) || UtilityManager.GetAppKeyValue( "environment" ) == "development" )
+					{
+						foreach ( var item in summary.ItemsToBeCreated.Course )
+						{
+							LoggingHelper.DoTrace( 6, String.Format("Course: {0}, CIN: {1}.",item.Name, item.CodedNotation ));
+						}
+					}
 				}
 				if ( summary.ItemsToBeCreated.ReferenceResource?.Count > 0 )
 				{
@@ -943,6 +951,10 @@ namespace Services
 						item.CreatedById = item.LastUpdatedById = user.Id;
 						mgr.Save( item, ref status );
 					}
+					//foreach ( var item in summary.ItemsToBeCreated.ReferenceResource )
+					//{
+					//	Navy.Utilities.LoggingHelper.DoTrace( 6, item.Name );
+					//}
 				}
 
 				if ( summary.ItemsToBeCreated.WorkRole?.Count > 0 )
@@ -950,8 +962,17 @@ namespace Services
 					var mgr = new WorkRoleManager();
 					foreach ( var item in summary.ItemsToBeCreated.WorkRole )
 					{
+						
 						item.CreatedById = item.LastUpdatedById = user.Id;
 						mgr.Save( item, ref status );
+					}
+					if ( UtilityManager.GetAppKeyValue( "listingInputRecords", false ) || UtilityManager.GetAppKeyValue( "environment" ) == "development" )
+					{
+						//make configurable
+						foreach ( var item in summary.ItemsToBeCreated.WorkRole )
+						{
+							LoggingHelper.DoTrace( 6, "WorkRole: " + item.Name );
+						}
 					}
 				}
 
@@ -962,6 +983,14 @@ namespace Services
 					{
 						item.CreatedById = item.LastUpdatedById = user.Id;
 						mgr.Save( item, ref status );
+					}
+					if ( UtilityManager.GetAppKeyValue( "listingInputRecords", false ) || UtilityManager.GetAppKeyValue( "environment" ) == "development" )
+					{
+						//make configurable
+						foreach ( var item in summary.ItemsToBeCreated.BilletTitle )
+						{
+							LoggingHelper.DoTrace( 6, "BilletTitle: " + item.Name );
+						}
 					}
 				}
 
