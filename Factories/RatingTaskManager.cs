@@ -57,7 +57,7 @@ namespace Factories
                 {
                     item = context.RatingTaskSummary
                                 .FirstOrDefault( s => s.PayGradeType == importEntity.PayGradeType
-                                && s.FunctionalAreaUID == importEntity.ReferenceType
+                                //&& s.FunctionalAreaUID == importEntity.ReferenceType //NOW a list, so not helpful
                                 && s.HasReferenceResource == importEntity.HasReferenceResource
                                 && s.RatingTask.ToLower() == importEntity.Description.ToLower()
                                 );
@@ -437,11 +437,18 @@ namespace Factories
                         item.PayGradeType = GetGuidType( dr, "PayGradeType" );
                                                                            //
                         item.Level = dr["Level"].ToString();// GetRowPossibleColumn( dr, "Level", "" );
-                                                                    //
+                        //FunctionalArea  - not a pipe separated list 
+                        //22-01-23 - what to do about the HasWorkRole list. Could include and split out here?
                         item.FunctionalArea = dr["FunctionalArea"].ToString();// GetRowColumn( dr, "FunctionalArea", "" );
-                        item.ReferenceType = GetGuidType( dr, "ReferenceType" );
-						//
-						item.Source = dr["ReferenceResource"].ToString();// GetRowColumn( dr, "Source", "" );
+                        if ( !string.IsNullOrWhiteSpace( item.FunctionalArea ) ) 
+                        {
+                            var workRoleList = "";
+                            item.HasWorkRole = GetFunctionalAreas( item.FunctionalArea, ref workRoleList );
+                            item.FunctionalArea = workRoleList;
+                        }
+                        //
+                        //
+                        item.Source = dr["ReferenceResource"].ToString();// GetRowColumn( dr, "Source", "" );
                         item.SourceDate = dr["SourceDate"].ToString();// GetRowColumn( dr, "SourceDate", "" );
                         item.HasReferenceResource = GetGuidType( dr, "HasReferenceResource" );
 						//
@@ -729,15 +736,10 @@ namespace Factories
                     var results =
                                     from entity in context.RatingTask_WorkRole
                                     join related in context.WorkRole
-                                    on entity.WorkRoled equals related.Id
+                                    on entity.WorkRoleId equals related.Id
                                     where entity.RatingTaskId == input.Id
 
-                                    select new WorkRole()
-                                    {
-                                        Id = related.Id,
-                                        Name = related.Name,
-                                        RowId = related.RowId,
-                                    };
+                                    select related;
                     var existing = results?.ToList();
                     #region deletes check
                     if ( existing.Any() )
@@ -776,7 +778,7 @@ namespace Factories
                                 {
                                     //ReferenceConceptAdd( input, concept.Id, input.LastUpdatedById, ref status );
                                     efEntity.RatingTaskId = input.Id;
-                                    efEntity.WorkRoled = related.Id;
+                                    efEntity.WorkRoleId = related.Id;
                                     efEntity.RowId = Guid.NewGuid();
                                     efEntity.CreatedById = input.LastUpdatedById;
                                     efEntity.Created = DateTime.Now;
@@ -815,7 +817,7 @@ namespace Factories
             using ( var context = new DataEntities() )
             {
                 var efEntity = context.RatingTask_WorkRole
-                                .FirstOrDefault( s => s.RatingTaskId == ratingTaskId && s.WorkRoled == workRoleId );
+                                .FirstOrDefault( s => s.RatingTaskId == ratingTaskId && s.WorkRoleId == workRoleId );
 
                 if ( efEntity != null && efEntity.Id > 0 )
                 {
@@ -853,12 +855,7 @@ namespace Factories
                                     on entity.RatingId equals related.Id
                                     where entity.RatingTaskId == input.Id
 
-                                    select new Rating()
-                                    {
-                                        Id = related.Id,
-                                        Name = related.Name,
-                                        RowId = related.RowId,
-                                    };
+                                    select related;
                     var existing = results?.ToList();
                     #region deletes check
                     if ( existing.Any() )
@@ -974,12 +971,7 @@ namespace Factories
                                     on entity.JobId equals related.Id
                                     where entity.RatingTaskId == input.Id
 
-                                    select new Rating()
-                                    {
-                                        Id = related.Id,
-                                        Name = related.Name,
-                                        RowId = related.RowId,
-                                    };
+                                    select related;
                     var existing = results?.ToList();
                     #region deletes check
                     if ( existing.Any() )
@@ -1189,7 +1181,7 @@ namespace Factories
                 output.TrainingTaskId = null;
             //FunctionalAreaId
             //NOTE this can be multiple. Setting here for current demo code. will remove once the search stuff is adjusted
-            output.FunctionalAreaId = null;
+            //output.FunctionalAreaId = null;
             //if ( input.HasWorkRole?.Count > 0 )
             //{
             //    if ( input.HasWorkRole?.Count == 1 )

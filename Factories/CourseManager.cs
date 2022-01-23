@@ -680,13 +680,7 @@ namespace Factories
                                     on entity.AssessmentMethodConceptId equals concept.Id
                                     where entity.CourseId == input.Id
 
-                                    select new MSc.Concept()
-                                    {
-                                        Id = concept.Id,
-                                        Name = concept.Name,
-                                        RowId = concept.RowId,
-                                        ConceptSchemeId = concept.ConceptSchemeId,
-                                    };
+                                    select concept;
 
                     //if ( existing == null )
                     //    existing = new List<ConceptScheme_Concept>();  
@@ -897,13 +891,7 @@ namespace Factories
                                     on entity.CourseTypeConceptId equals concept.Id
                                     where entity.CourseId == input.Id
 
-                                    select new MSc.Concept()
-                                    {
-                                        Id = concept.Id,
-                                        Name = concept.Name,
-                                        RowId = concept.RowId,
-                                        ConceptSchemeId = concept.ConceptSchemeId,
-                                    };
+                                    select concept;
                     //if ( existing == null )
                     //    existing = new List<ConceptScheme_Concept>();  
                     var existing = results?.ToList();
@@ -918,7 +906,7 @@ namespace Factories
                             {
                                 if ( !concepts.Contains( ( Guid ) key ) )
                                 {
-                                    DeleteCourseType( input.Id, e.Id, ref status );
+                                    //DeleteCourseType( input.Id, e.Id, ref status );
                                 }
                             }
                         }
@@ -1028,12 +1016,7 @@ namespace Factories
                                     on entity.OrganizationId  equals org.Id
                                     where entity.CourseId == input.Id
 
-                                    select new Organization()
-                                    {
-                                        Id = org.Id,
-                                        Name = org.Name,
-                                        RowId = org.RowId,
-                                    };
+                                    select org;
                     var existing = results?.ToList();
                     #region deletes check
                     if ( existing.Any() )
@@ -1044,9 +1027,13 @@ namespace Factories
                             var key = e.RowId;
                             if ( IsValidGuid( key ) )
                             {
+                                //issue one row could refer to one org and another row a different org - results in deleting the first one. 
+                                //also would be useful to 'know' if these were all part of the same rating upload
+                                status.AddWarning( String.Format( thisClassName + ".CurriculumControlAuthorityUpdate. Warning: the org: '{0}' was included with this course (for one or more rows) and could have been deleted (but deletes are not enabled at this time. ", e.Name) );
                                 if ( !input.CurriculumControlAuthority.Contains( ( Guid ) key ) )
                                 {
-                                    DeleteCourseOrganization( input.Id, e.Id, ref status );
+                                    //could log that a different org was found
+                                    //DeleteCourseOrganization( input.Id, e.Id, ref status );
                                 }
                             }
                         }

@@ -1178,10 +1178,46 @@ namespace Services
 			var existingOrganizations = OrganizationManager.GetAll();
 			debug[ latestStepFlag ] = "Got Existing data";
 
+			//need a check that only one rating is included
+			var uploadedRatingMatchers = GetSheetMatchers<Rating, MatchableRating>( uploadedData.Rows, GetRowMatchHelper_Rating );
+			//should only be one and must match current
+			foreach ( var matcher in uploadedRatingMatchers )
+			{
+				matcher.Flattened.CodedNotation = matcher.Rows.Select( m => m.Rating_CodedNotation ).FirstOrDefault();
+			}
+			//Remove empty rows?
+			uploadedRatingMatchers = uploadedRatingMatchers.Where( m => !string.IsNullOrWhiteSpace( m.Flattened.CodedNotation ) ).ToList();
+
+			if ( uploadedRatingMatchers != null )
+            {
+				bool foundRequestRating = false;
+				foreach( var ratingMatcher in uploadedRatingMatchers )
+                {
+					if ( ratingMatcher.Flattened.CodedNotation.ToLower() != currentRating.CodedNotation.ToLower() )
+					{
+						summary.Messages.Error.Add( String.Format( "Error: A rating code ({0}) was found that doesn't match the requested rating: '{1}'. Only one rating may be uploaded at a time.", ratingMatcher.Flattened.CodedNotation, currentRating.CodedNotation ) );
+					}
+					else
+						foundRequestRating = true;
+				}
+				if (!foundRequestRating )
+					summary.Messages.Error.Add( String.Format( "Error: The requested rating code ({0}) was NOT in the uploaded data.", currentRating.CodedNotation ) );
+
+				if ( summary.HasAnyErrors )
+					return summary;
+            } else
+            {
+				//no ratings found
+				summary.Messages.Error.Add( "Error: No rating codes were found in the data. " );
+				return summary;
+			}
+
+
+
 			//In order to facilitate a correct comparison, it must be done apples-to-apples
 			//This approach attempts to achieve that by mapping both the uploaded data and the existing data into a common structure that can then easily be compared
 			//Note: The order in which these methods are called is very important, since later methods rely on data determined by earlier methods!
-			HandleUploadSheet_Organization( uploadedData.Rows, summary, existingOrganizations );
+			HandleUploadSheet_Organization( uploadedData.Rows, summary, currentRating, existingOrganizations );
 			HandleUploadSheet_WorkRole( uploadedData.Rows, summary, existingWorkRoles );
 			HandleUploadSheet_ReferenceResource( uploadedData.Rows, summary, existingReferenceResources, sourceTypeConcepts );
 			HandleUploadSheet_TrainingTask( uploadedData.Rows, summary, existingTrainingTasks );
@@ -1219,7 +1255,11 @@ namespace Services
 		//
 
 		//Organization
-		public static void HandleUploadSheet_Organization( List<UploadableRow> uploadedRows, ChangeSummary summary, List<Organization> existingOrganizations = null )
+		public static void HandleUploadSheet_Organization( 
+			List<UploadableRow> uploadedRows, 
+			ChangeSummary summary, 
+			Rating currentRating, 
+			List<Organization> existingOrganizations = null )
 		{
 			//Get existing data
 			existingOrganizations = existingOrganizations ?? OrganizationManager.GetAll();
@@ -1845,8 +1885,11 @@ namespace Services
 			foreach ( var matcher in uploadedBilletTitleMatchers )
 			{
 				matcher.Flattened.HasRating_CodedNotation = currentRating.CodedNotation;
+				
 				matcher.Flattened.Name = matcher.Rows.Select( m => m.BilletTitle_Name ).FirstOrDefault();
 				matcher.Flattened.HasRatingTask_MatchHelper = matcher.Rows.Select( m => GetRowMatchHelper_RatingTask( m ) ).Distinct().ToList();
+				//this would be alist
+				matcher.Flattened.HasRatingTaskCodedNotation = matcher.Rows.Select( m => m.Row_CodedNotation ).Distinct().ToList();
 			}
 
 			//Remove empty rows
@@ -2039,6 +2082,13 @@ namespace Services
 		{
 			var merged = items?.Where( m => !string.IsNullOrWhiteSpace( m ) ).ToList();
 			return merged.Count() == 0 ? "" : string.Join( "__", merged );
+		}
+		private static string GetRowMatchHelper_Rating( UploadableRow row )
+		{
+			return GetMergedRowMatchHelper( new List<string>()
+			{
+				row.Rating_CodedNotation
+			} );
 		}
 		private static string GetRowMatchHelper_BilletTitle( UploadableRow row )
 		{

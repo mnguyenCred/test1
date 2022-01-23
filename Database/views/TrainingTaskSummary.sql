@@ -40,6 +40,8 @@ SELECT [CourseId]
       ,[LastUpdated]
       ,[LastUpdatedById]
   FROM [dbo].[TrainingTaskSummary]
+  where trainingtask = 'Plot plan of intended movement (PIM) tracks'
+  or codednotation = 'A-061-0070'
   order by CourseName, TrainingTask
 GO
 
@@ -87,7 +89,7 @@ SELECT base.[Id] as CourseId
 	,base.[LastUpdated]	,base.[LastUpdatedById]
 
   FROM [dbo].[Course] base
-  inner join [Course.Task] task on base.Id  = task.CourseId
+  Left join [Course.Task] task on base.Id  = task.CourseId
 
   --Left join [Course.Organization] e on base.Id = e.CourseId 
   --Left join Organization b on e.OrganizationId = b.Id

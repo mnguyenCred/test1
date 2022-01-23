@@ -16,7 +16,6 @@ namespace Data.Views
     {
         public int Id { get; set; }
         public System.Guid RowId { get; set; }
-        public string CIN { get; set; }
         public string Name { get; set; }
         public string Description { get; set; }
         public Nullable<int> CurriculumControlAuthorityId { get; set; }
@@ -31,5 +30,6 @@ namespace Data.Views
         public Nullable<int> CreatedById { get; set; }
         public System.DateTime LastUpdated { get; set; }
         public Nullable<int> LastUpdatedById { get; set; }
+        public string CodedNotation { get; set; }
     }
 }

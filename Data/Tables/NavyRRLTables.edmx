@@ -401,7 +401,6 @@
           <Property Name="RowId" Type="uniqueidentifier" Nullable="false" />
           <Property Name="RankId" Type="int" Nullable="false" />
           <Property Name="LevelId" Type="int" Nullable="false" />
-          <Property Name="FunctionalAreaId" Type="int" />
           <Property Name="ReferenceResourceId" Type="int" />
           <Property Name="WorkElementTypeId" Type="int" />
           <Property Name="Description" Type="nvarchar(max)" Nullable="false" />
@@ -447,7 +446,7 @@
           <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
           <Property Name="RowId" Type="uniqueidentifier" Nullable="false" />
           <Property Name="RatingTaskId" Type="int" Nullable="false" />
-          <Property Name="WorkRoled" Type="int" Nullable="false" />
+          <Property Name="WorkRoleId" Type="int" Nullable="false" />
           <Property Name="Created" Type="datetime" Nullable="false" />
           <Property Name="CreatedById" Type="int" />
         </EntityType>
@@ -955,7 +954,7 @@
               <PropertyRef Name="Id" />
             </Principal>
             <Dependent Role="RatingTask_WorkRole">
-              <PropertyRef Name="WorkRoled" />
+              <PropertyRef Name="WorkRoleId" />
             </Dependent>
           </ReferentialConstraint>
         </Association>
@@ -971,7 +970,7 @@
             </Dependent>
           </ReferentialConstraint>
         </Association>
-        <Association Name="FK_RatingTask_ReferenceResource">
+        <Association Name="FK_RatingTask_to_ReferenceResource">
           <End Role="ReferenceResource" Type="Self.ReferenceResource" Multiplicity="0..1" />
           <End Role="RatingTask" Type="Self.RatingTask" Multiplicity="*" />
           <ReferentialConstraint>
@@ -980,18 +979,6 @@
             </Principal>
             <Dependent Role="RatingTask">
               <PropertyRef Name="ReferenceResourceId" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
-        <Association Name="FK_RatingTask_WorkRole">
-          <End Role="WorkRole" Type="Self.WorkRole" Multiplicity="0..1" />
-          <End Role="RatingTask" Type="Self.RatingTask" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="WorkRole">
-              <PropertyRef Name="Id" />
-            </Principal>
-            <Dependent Role="RatingTask">
-              <PropertyRef Name="FunctionalAreaId" />
             </Dependent>
           </ReferentialConstraint>
         </Association>
@@ -1237,12 +1224,8 @@
             <End Role="ConceptScheme_Concept" EntitySet="ConceptScheme_Concept" />
             <End Role="RatingTask" EntitySet="RatingTask" />
           </AssociationSet>
-          <AssociationSet Name="FK_RatingTask_ReferenceResource" Association="Self.FK_RatingTask_ReferenceResource">
+          <AssociationSet Name="FK_RatingTask_to_ReferenceResource" Association="Self.FK_RatingTask_to_ReferenceResource">
             <End Role="ReferenceResource" EntitySet="ReferenceResource" />
-            <End Role="RatingTask" EntitySet="RatingTask" />
-          </AssociationSet>
-          <AssociationSet Name="FK_RatingTask_WorkRole" Association="Self.FK_RatingTask_WorkRole">
-            <End Role="WorkRole" EntitySet="WorkRole" />
             <End Role="RatingTask" EntitySet="RatingTask" />
           </AssociationSet>
           <AssociationSet Name="FK_ReferenceResource_ReferenceType_ConceptScheme_Concept" Association="Self.FK_ReferenceResource_ReferenceType_ConceptScheme_Concept">
@@ -1810,10 +1793,6 @@
             <End Role="RatingTask_HasJob" EntitySet="RatingTask_HasJob" />
           </AssociationSet>
           <EntitySet Name="WorkRole" EntityType="NavyRRLModel.WorkRole" />
-          <AssociationSet Name="FK_RatingLevelTask_FunctionalArea1" Association="NavyRRLModel.FK_RatingLevelTask_FunctionalArea1">
-            <End Role="WorkRole" EntitySet="WorkRole" />
-            <End Role="RatingTask" EntitySet="RatingTask" />
-          </AssociationSet>
           <EntitySet Name="Course_Organization" EntityType="NavyRRLModel.Course_Organization" />
           <AssociationSet Name="FK_Course_Organization_Organization" Association="NavyRRLModel.FK_Course_Organization_Organization">
             <End Role="Organization" EntitySet="Organization" />
@@ -1826,10 +1805,6 @@
           <EntitySet Name="RatingTask_WorkRole" EntityType="NavyRRLModel.RatingTask_WorkRole" />
           <AssociationSet Name="FK_RatingTask_WorkRole_RatingTask" Association="NavyRRLModel.FK_RatingTask_WorkRole_RatingTask">
             <End Role="RatingTask" EntitySet="RatingTask" />
-            <End Role="RatingTask_WorkRole" EntitySet="RatingTask_WorkRole" />
-          </AssociationSet>
-          <AssociationSet Name="FK_RatingTask_WorkRole_WorkRole" Association="NavyRRLModel.FK_RatingTask_WorkRole_WorkRole">
-            <End Role="WorkRole" EntitySet="WorkRole" />
             <End Role="RatingTask_WorkRole" EntitySet="RatingTask_WorkRole" />
           </AssociationSet>
 
@@ -1875,6 +1850,10 @@
           <AssociationSet Name="FK_RatingTask_ReferenceResource1" Association="NavyRRLModel.FK_RatingTask_ReferenceResource1">
             <End Role="ReferenceResource" EntitySet="ReferenceResource" />
             <End Role="RatingTask" EntitySet="RatingTask" />
+          </AssociationSet>
+          <AssociationSet Name="FK_RatingTask_WorkRole_WorkRole1" Association="NavyRRLModel.FK_RatingTask_WorkRole_WorkRole1">
+            <End Role="WorkRole" EntitySet="WorkRole" />
+            <End Role="RatingTask_WorkRole" EntitySet="RatingTask_WorkRole" />
           </AssociationSet>
         </EntityContainer>
         <EntityType Name="AspNetUserRoles">
@@ -1963,7 +1942,6 @@
           <Property Name="CodedNotation" Type="String" MaxLength="100" FixedLength="false" Unicode="false" />
           <Property Name="RankId" Type="Int32" Nullable="false" />
           <Property Name="LevelId" Type="Int32" Nullable="false" />
-          <Property Name="FunctionalAreaId" Type="Int32" />
           <Property Name="WorkElementTypeId" Type="Int32" />
           <Property Name="TaskApplicabilityId" Type="Int32" />
           <Property Name="TaskStatusId" Type="Int32" />
@@ -1985,9 +1963,7 @@
           <Property Name="Description" Type="String" Nullable="false" MaxLength="Max" FixedLength="false" Unicode="true" />
           <NavigationProperty Name="RatingTask_HasJob" Relationship="NavyRRLModel.FK_RatingTask_HasJob_RatingTask" FromRole="RatingTask" ToRole="RatingTask_HasJob" />
           <Property Name="ReferenceResourceId" Type="Int32" />
-          <NavigationProperty Name="WorkRole" Relationship="NavyRRLModel.FK_RatingLevelTask_FunctionalArea1" FromRole="RatingTask" ToRole="WorkRole" />
           <Property Name="RowVersion" Type="Binary" Nullable="false" MaxLength="8" FixedLength="true" annotation:StoreGeneratedPattern="Computed" />
-          <NavigationProperty Name="RatingTask_WorkRole" Relationship="NavyRRLModel.FK_RatingTask_WorkRole_RatingTask" FromRole="RatingTask" ToRole="RatingTask_WorkRole" />
 
           <NavigationProperty Name="RmtlProject_BilletTask" Relationship="NavyRRLModel.FK_RmtlProject_BilletTask_RatingTask" FromRole="RatingTask" ToRole="RmtlProject_BilletTask" />
           <NavigationProperty Name="ConceptScheme_WorkElementType" Relationship="NavyRRLModel.FK_RatingTask_ConceptWorkElelment" FromRole="RatingTask" ToRole="ConceptScheme_Concept" />
@@ -2380,21 +2356,8 @@
           <Property Name="CreatedById" Type="Int32" />
           <Property Name="LastUpdated" Type="DateTime" Nullable="false" Precision="3" />
           <Property Name="LastUpdatedById" Type="Int32" />
-          <NavigationProperty Name="RatingTask" Relationship="NavyRRLModel.FK_RatingLevelTask_FunctionalArea1" FromRole="WorkRole" ToRole="RatingTask" />
-          <NavigationProperty Name="RatingTask_WorkRole" Relationship="NavyRRLModel.FK_RatingTask_WorkRole_WorkRole" FromRole="WorkRole" ToRole="RatingTask_WorkRole" />
+          <NavigationProperty Name="RatingTask_WorkRole1" Relationship="NavyRRLModel.FK_RatingTask_WorkRole_WorkRole1" FromRole="WorkRole" ToRole="RatingTask_WorkRole" />
         </EntityType>
-        <Association Name="FK_RatingLevelTask_FunctionalArea1">
-          <End Type="NavyRRLModel.WorkRole" Role="WorkRole" Multiplicity="0..1" />
-          <End Type="NavyRRLModel.RatingTask" Role="RatingTask" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="WorkRole">
-              <PropertyRef Name="Id" />
-            </Principal>
-            <Dependent Role="RatingTask">
-              <PropertyRef Name="FunctionalAreaId" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
         <EntityType Name="Course_Organization">
           <Key>
             <PropertyRef Name="Id" />
@@ -2439,11 +2402,11 @@
           <Property Name="Id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
           <Property Name="RowId" Type="Guid" Nullable="false" />
           <Property Name="RatingTaskId" Type="Int32" Nullable="false" />
-          <Property Name="WorkRoled" Type="Int32" Nullable="false" />
           <Property Name="Created" Type="DateTime" Nullable="false" Precision="3" />
           <Property Name="CreatedById" Type="Int32" />
           <NavigationProperty Name="RatingTask" Relationship="NavyRRLModel.FK_RatingTask_WorkRole_RatingTask" FromRole="RatingTask_WorkRole" ToRole="RatingTask" />
-          <NavigationProperty Name="WorkRole" Relationship="NavyRRLModel.FK_RatingTask_WorkRole_WorkRole" FromRole="RatingTask_WorkRole" ToRole="WorkRole" />
+          <Property Name="WorkRoleId" Type="Int32" Nullable="false" />
+          <NavigationProperty Name="WorkRole1" Relationship="NavyRRLModel.FK_RatingTask_WorkRole_WorkRole1" FromRole="RatingTask_WorkRole" ToRole="WorkRole" />
         </EntityType>
         <Association Name="FK_RatingTask_WorkRole_RatingTask">
           <End Type="NavyRRLModel.RatingTask" Role="RatingTask" Multiplicity="1">
@@ -2456,18 +2419,6 @@
             </Principal>
             <Dependent Role="RatingTask_WorkRole">
               <PropertyRef Name="RatingTaskId" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
-        <Association Name="FK_RatingTask_WorkRole_WorkRole">
-          <End Type="NavyRRLModel.WorkRole" Role="WorkRole" Multiplicity="1" />
-          <End Type="NavyRRLModel.RatingTask_WorkRole" Role="RatingTask_WorkRole" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="WorkRole">
-              <PropertyRef Name="Id" />
-            </Principal>
-            <Dependent Role="RatingTask_WorkRole">
-              <PropertyRef Name="WorkRoled" />
             </Dependent>
           </ReferentialConstraint>
         </Association>
@@ -2640,6 +2591,18 @@
             </Principal>
             <Dependent Role="RatingTask">
               <PropertyRef Name="ReferenceResourceId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_RatingTask_WorkRole_WorkRole1">
+          <End Type="NavyRRLModel.WorkRole" Role="WorkRole" Multiplicity="1" />
+          <End Type="NavyRRLModel.RatingTask_WorkRole" Role="RatingTask_WorkRole" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="WorkRole">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="RatingTask_WorkRole">
+              <PropertyRef Name="WorkRoleId" />
             </Dependent>
           </ReferentialConstraint>
         </Association>
@@ -2960,7 +2923,6 @@
                 <ScalarProperty Name="TaskStatusId" ColumnName="TaskStatusId" />
                 <ScalarProperty Name="TaskApplicabilityId" ColumnName="TaskApplicabilityId" />
                 <ScalarProperty Name="WorkElementTypeId" ColumnName="WorkElementTypeId" />
-                <ScalarProperty Name="FunctionalAreaId" ColumnName="FunctionalAreaId" />
                 <ScalarProperty Name="LevelId" ColumnName="LevelId" />
                 <ScalarProperty Name="RankId" ColumnName="RankId" />
                 <ScalarProperty Name="CodedNotation" ColumnName="CodedNotation" />
@@ -3188,9 +3150,9 @@
           <EntitySetMapping Name="RatingTask_WorkRole">
             <EntityTypeMapping TypeName="NavyRRLModel.RatingTask_WorkRole">
               <MappingFragment StoreEntitySet="RatingTask_WorkRole">
+                <ScalarProperty Name="WorkRoleId" ColumnName="WorkRoleId" />
                 <ScalarProperty Name="CreatedById" ColumnName="CreatedById" />
                 <ScalarProperty Name="Created" ColumnName="Created" />
-                <ScalarProperty Name="WorkRoled" ColumnName="WorkRoled" />
                 <ScalarProperty Name="RatingTaskId" ColumnName="RatingTaskId" />
                 <ScalarProperty Name="RowId" ColumnName="RowId" />
                 <ScalarProperty Name="Id" ColumnName="Id" />

@@ -57,13 +57,11 @@
         <AssociationConnector Association="NavyRRLModel.FK_RatingTask_HasJob_Job" />
         <AssociationConnector Association="NavyRRLModel.FK_RatingTask_HasJob_RatingTask" />
         <EntityTypeShape EntityType="NavyRRLModel.WorkRole" Width="1.5" PointX="27.5" PointY="15.5" />
-        <AssociationConnector Association="NavyRRLModel.FK_RatingLevelTask_FunctionalArea1" />
         <EntityTypeShape EntityType="NavyRRLModel.Course_Organization" Width="2.625" PointX="4.875" PointY="6.375" FillColor="128, 255, 128" />
         <AssociationConnector Association="NavyRRLModel.FK_Course_Organization_Organization" />
         <AssociationConnector Association="NavyRRLModel.FK_Job_Rating1" />
-        <EntityTypeShape EntityType="NavyRRLModel.RatingTask_WorkRole" Width="2.125" PointX="23.25" PointY="13.375" FillColor="OrangeRed" />
+        <EntityTypeShape EntityType="NavyRRLModel.RatingTask_WorkRole" Width="2.125" PointX="23" PointY="13.25" FillColor="OrangeRed" />
         <AssociationConnector Association="NavyRRLModel.FK_RatingTask_WorkRole_RatingTask" />
-        <AssociationConnector Association="NavyRRLModel.FK_RatingTask_WorkRole_WorkRole" />
         <AssociationConnector Association="NavyRRLModel.FK_RatingTask_ReferenceResource" />
         <EntityTypeShape EntityType="NavyRRLModel.RmtlProject_BilletTask" Width="1.5" PointX="18.125" PointY="7.125" />
         <AssociationConnector Association="NavyRRLModel.FK_RmtlProject_BilletTask_RatingTask" />
@@ -78,6 +76,7 @@
         <AssociationConnector Association="NavyRRLModel.FK_CourseOrganization_Course" />
         <AssociationConnector Association="NavyRRLModel.FK_CourseLCCD_ReferenceResource" />
         <AssociationConnector Association="NavyRRLModel.FK_RatingTask_ReferenceResource1" />
+        <AssociationConnector Association="NavyRRLModel.FK_RatingTask_WorkRole_WorkRole1" />
       </Diagram>
     </edmx:Diagrams>
   </edmx:Designer>

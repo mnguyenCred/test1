@@ -73,6 +73,16 @@ namespace Models.Curation
 
 		public List<PossibleDuplicateSet> PossibleDuplicates { get; set; }
 
+		public bool HasAnyErrors
+        {
+			get
+            {
+				if ( Messages.Error.Any() )
+					return true;
+				else 
+					return false;
+            }
+        }
 		//temp helpers while converting to use ChangeSummary instead of SaveStatus?
 		public void AddError( string message )
 		{
