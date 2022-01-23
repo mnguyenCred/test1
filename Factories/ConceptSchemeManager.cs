@@ -104,6 +104,7 @@ namespace Factories
                                 Activity = "Import",
                                 Event = "Update",
                                 Comment = string.Format( "Concept was updated by the import. Name: {0}", entity.Name ),
+                                ActionByUserId = entity.LastUpdatedById,
                                 ActivityObjectId = entity.Id
                             };
                             new ActivityManager().SiteActivityAdd( sa );
@@ -386,6 +387,7 @@ namespace Factories
                                 Activity = "Import",
                                 Event = "Update",
                                 Comment = string.Format( "Concept was updated by the import. Name: {0}", entity.Name ),
+                                ActionByUserId = entity.LastUpdatedById,
                                 ActivityObjectId = entity.Id
                             };
                             new ActivityManager().SiteActivityAdd( sa );
@@ -447,6 +449,7 @@ namespace Factories
                             Activity = "Import",
                             Event = "Add Concept",
                             Comment = string.Format( "Concept was added by the import. Name: {0}", entity.Name ),
+                            ActionByUserId = entity.LastUpdatedById,
                             ActivityObjectId = entity.Id
                         };
                         new ActivityManager().SiteActivityAdd( sa );

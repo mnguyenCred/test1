@@ -918,6 +918,8 @@ namespace Services
 			//go thru all non-rating task
 			if (summary.ItemsToBeCreated != null)
             {
+				//all dependent data has to be done first
+
 				if ( summary.ItemsToBeCreated.Organization?.Count > 0 )
                 {
 					var orgMgr = new OrganizationManager();
@@ -927,9 +929,23 @@ namespace Services
 						orgMgr.Save( item, user.Id, ref summary );
                     }
                 }
-				if ( summary.ItemsToBeCreated.Course?.Count > 0 )
+				if ( summary.ItemsToBeCreated.ReferenceResource?.Count > 0 )
 				{
-					//all dependent data has to be done first
+					var mgr = new ReferenceResourceManager();
+					foreach ( var item in summary.ItemsToBeCreated.ReferenceResource )
+					{
+						item.CreatedById = item.LastUpdatedById = user.Id;
+						mgr.Save( item, ref summary );
+					}
+					//foreach ( var item in summary.ItemsToBeCreated.ReferenceResource )
+					//{
+					//	Navy.Utilities.LoggingHelper.DoTrace( 6, item.Name );
+					//}
+				}
+
+
+				if ( summary.ItemsToBeCreated.Course?.Count > 0 )
+				{				
 
 					//is training task part of course, see there is a separate TrainingTask in UploadableData. the latter has no course Id/RowId to make an association?
 					var courseMgr = new CourseManager();
@@ -952,19 +968,6 @@ namespace Services
 							LoggingHelper.DoTrace( 6, String.Format("Course: {0}, CIN: {1}.",item.Name, item.CodedNotation ), false);
 						}
 					}
-				}
-				if ( summary.ItemsToBeCreated.ReferenceResource?.Count > 0 )
-				{
-					var mgr = new ReferenceResourceManager();
-					foreach ( var item in summary.ItemsToBeCreated.ReferenceResource )
-					{
-						item.CreatedById = item.LastUpdatedById = user.Id;
-						mgr.Save( item, ref summary );
-					}
-					//foreach ( var item in summary.ItemsToBeCreated.ReferenceResource )
-					//{
-					//	Navy.Utilities.LoggingHelper.DoTrace( 6, item.Name );
-					//}
 				}
 
 				if ( summary.ItemsToBeCreated.WorkRole?.Count > 0 )
@@ -1041,6 +1044,17 @@ namespace Services
 						orgMgr.Save( item, user.Id, ref summary );
 					}
 				}
+				//
+				if ( summary.ItemsToBeChanged.ReferenceResource?.Count > 0 )
+				{
+					var mgr = new ReferenceResourceManager();
+					foreach ( var item in summary.ItemsToBeChanged.ReferenceResource )
+					{
+						item.CreatedById = item.LastUpdatedById = user.Id;
+						mgr.Save( item, ref summary );
+					}
+				}
+				//
 				if ( summary.ItemsToBeChanged.Course?.Count > 0 )
 				{
 					//is training task part of course, see there is a separate TrainingTask in UploadableData. the latter has no course Id/RowId to make an association?
@@ -1066,15 +1080,7 @@ namespace Services
                 {
 					//check tasks
                 }
-				if ( summary.ItemsToBeChanged.ReferenceResource?.Count > 0 )
-				{
-					var mgr = new ReferenceResourceManager();
-					foreach ( var item in summary.ItemsToBeChanged.ReferenceResource )
-					{
-						item.CreatedById = item.LastUpdatedById = user.Id;
-						mgr.Save( item, ref summary );
-					}
-				}
+
 
 				if ( summary.ItemsToBeChanged.WorkRole?.Count > 0 )
 				{

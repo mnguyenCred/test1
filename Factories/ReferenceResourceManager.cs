@@ -113,6 +113,7 @@ namespace Factories
                                 Activity = "Import",
                                 Event = "Update",
                                 Comment = string.Format( "ReferenceResource was updated by the import. Name: {0}", entity.Name ),
+                                ActionByUserId = entity.LastUpdatedById,
                                 ActivityObjectId = entity.Id
                             };
                             new ActivityManager().SiteActivityAdd( sa );
@@ -188,7 +189,8 @@ namespace Factories
                             Activity = "Import",
                             Event = "Add",
                             Comment = string.Format( "ReferenceResource was added by the import. Name: {0}", entity.Name ),
-                            ActivityObjectId = entity.Id
+                            ActivityObjectId = entity.Id,
+                            ActionByUserId = entity.LastUpdatedById
                         };
                         new ActivityManager().SiteActivityAdd( sa );
 

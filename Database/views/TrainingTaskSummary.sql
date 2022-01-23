@@ -17,23 +17,22 @@ SELECT [ConceptSchemeId]
   FROM [dbo].[ConceptSchemeSummary]
 GO
 
-
 USE [NavyRRL]
 GO
 
 SELECT [CourseId]
       ,[CourseUID]
-      ,CodedNotation
+      ,[CodedNotation]
       ,[CourseName]
+      ,[TrainingTaskId]
       ,[TrainingTask]
-	  TrainingTaskId
-	  ,TrainingTaskUID
-      ,[CurriculumControlAuthorityId]
-      ,[CurriculumControlAuthority]
+      ,[TrainingTaskUID]
       ,[LifeCycleControlDocumentId]
       ,[LifeCycleControlDocument]
       ,[LifeCycleControlDocumentUID]
       ,[CourseTypes]
+      ,[CurriculumControlAuthority]
+      ,[CurriculumControlAuthorityId]
       ,[AssessmentMethodTypes]
       ,[CTID]
       ,[Created]
@@ -41,7 +40,6 @@ SELECT [CourseId]
       ,[LastUpdated]
       ,[LastUpdatedById]
   FROM [dbo].[TrainingTaskSummary]
-
   order by CourseName, TrainingTask
 GO
 

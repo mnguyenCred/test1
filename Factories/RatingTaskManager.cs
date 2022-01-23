@@ -594,6 +594,7 @@ namespace Factories
                                     Activity = "Import",
                                     Event = "Update",
                                     Comment = string.Format( "RatingTask was updated by the import. Name: {0}", input.Description ),
+                                    ActionByUserId = input.LastUpdatedById,
                                     ActivityObjectId = input.Id
                                 };
                                 new ActivityManager().SiteActivityAdd( sa );
@@ -662,6 +663,7 @@ namespace Factories
                             Activity = "Import",
                             Event = "Add",
                             Comment = string.Format( " A RatingTask was added by the import. Desc: {0}", FormatLongLabel( entity.Description) ),
+                            ActionByUserId = entity.LastUpdatedById,
                             ActivityObjectId = entity.Id
                         };
                         new ActivityManager().SiteActivityAdd( sa );
@@ -1084,13 +1086,13 @@ namespace Factories
             }
             else
                 output.TaskApplicabilityId = null;
-            //HasReferenceResource - SourceId
+            //HasReferenceResource - ReferenceResourceId
             if ( IsValidGuid( input.HasReferenceResource ) )
             {
                 //TODO - can we get this info prior to here??
-                //output.SourceId = ReferenceResourceManager.Get( input.HasReferenceResource )?.Id;
+                //output.ReferenceResourceId = ReferenceResourceManager.Get( input.HasReferenceResource )?.Id;
 
-                if ( output.SourceId != null && output.ReferenceResource?.RowId == input.HasReferenceResource )
+                if ( output.ReferenceResourceId != null && output.ReferenceResource?.RowId == input.HasReferenceResource )
                 {
                     //no action
                 }
@@ -1098,7 +1100,7 @@ namespace Factories
                 {
                     var entity = ReferenceResourceManager.Get( input.HasReferenceResource );
                     if ( entity?.Id > 0 )
-                        output.SourceId = ( int ) entity?.Id;
+                        output.ReferenceResourceId = ( int ) entity?.Id;
                     else
                     {
                         status.AddError( thisClassName + String.Format( ".MapToDB. RatingTask: '{0}'. The related HasReferenceResource '{1}' was not found", FormatLongLabel( input.Description ), input.HasReferenceResource ) );
@@ -1106,7 +1108,7 @@ namespace Factories
                 }
             }
             else
-                output.SourceId = null;
+                output.ReferenceResourceId = null;
             //ReferenceType-WorkElementType
             if ( IsValidGuid( input.ReferenceType ) )
             {

@@ -102,6 +102,7 @@ namespace Factories
                                     Activity = "Import",
                                     Event = "Update",
                                     Comment = string.Format( "Rating was updated by the import. Name: {0}", entity.Name ),
+                                    ActionByUserId = entity.LastUpdatedById,
                                     ActivityObjectId = entity.Id
                                 };
                                 new ActivityManager().SiteActivityAdd( sa );
@@ -175,6 +176,7 @@ namespace Factories
                             Activity = "Import",
                             Event = "Add",
                             Comment = string.Format( "Full Rating was added by the import. Name: {0}", entity.Name ),
+                            ActionByUserId = entity.LastUpdatedById,
                             ActivityObjectId = entity.Id
                         };
                         new ActivityManager().SiteActivityAdd( sa );

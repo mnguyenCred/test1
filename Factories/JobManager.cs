@@ -101,6 +101,7 @@ namespace Factories
                                     Activity = "Import",
                                     Event = "Update",
                                     Comment = string.Format( "Job was updated by the import. Name: {0}", entity.Name ),
+                                    ActionByUserId = entity.LastUpdatedById,
                                     ActivityObjectId = entity.Id
                                 };
                                 new ActivityManager().SiteActivityAdd( sa );
@@ -176,6 +177,7 @@ namespace Factories
                             Activity = "Import",
                             Event = "Add",
                             Comment = string.Format( "Job was added by the import. Name: {0}", entity.Name ),
+                            ActionByUserId = entity.LastUpdatedById,
                             ActivityObjectId = entity.Id
                         };
                         new ActivityManager().SiteActivityAdd( sa );
