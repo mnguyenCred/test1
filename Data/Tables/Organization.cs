@@ -17,7 +17,6 @@ namespace Data.Tables
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2214:DoNotCallOverridableMethodsInConstructors")]
         public Organization()
         {
-            this.Course = new HashSet<Course>();
             this.Course_Organization = new HashSet<Course_Organization>();
         }
     
@@ -44,8 +43,6 @@ namespace Data.Tables
         public Nullable<bool> IsThirdPartyOrganization { get; set; }
         public string AlternateName { get; set; }
     
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<Course> Course { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<Course_Organization> Course_Organization { get; set; }
     }

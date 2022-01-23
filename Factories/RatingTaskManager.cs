@@ -463,7 +463,7 @@ namespace Factories
 						//
 						item.CurriculumControlAuthority = dr["CurriculumControlAuthority"].ToString();// GetRowPossibleColumn( dr, "CurriculumControlAuthority", "" );
                         item.LifeCycleControlDocument = dr["LifeCycleControlDocument"].ToString();// GetRowPossibleColumn( dr, "LifeCycleControlDocument", "" );
-
+                        item.Notes = dr["Notes"].ToString();
 
                         list.Add( item );
 					}
@@ -759,7 +759,7 @@ namespace Factories
                             if ( existing?.Count > 0 )
                             {
                                 var isfound = existing.Select( s => s.WorkRole.RowId == child ).ToList();
-                                if ( !isfound.Any() )
+                                if ( isfound.Any() )
                                     doingAdd = false;
                             }
                             if ( doingAdd )
@@ -842,7 +842,7 @@ namespace Factories
                             if ( existing?.Count > 0 )
                             {
                                 var isfound = existing.Select( s => s.Rating.RowId == child ).ToList();
-                                if ( !isfound.Any() )
+                                if ( isfound.Any() )
                                     doingAdd = false;
                             }
                             if ( doingAdd )
@@ -925,7 +925,7 @@ namespace Factories
                             if ( existing?.Count > 0 )
                             {
                                 var isfound = existing.Select( s => s.Job.RowId == child ).ToList();
-                                if ( !isfound.Any() )
+                                if ( isfound.Any() )
                                     doingAdd = false;
                             }
                             if ( doingAdd )
@@ -1007,7 +1007,7 @@ namespace Factories
                             if ( existing?.Count > 0 )
                             {
                                 var isfound = existing.Select( s => s.Job.RowId == child ).ToList();
-                                if ( !isfound.Any() )
+                                if ( isfound.Any() )
                                     doingAdd = false;
                             }
                             if ( doingAdd )
@@ -1088,7 +1088,22 @@ namespace Factories
             if ( IsValidGuid( input.HasReferenceResource ) )
             {
                 //TODO - can we get this info prior to here??
-                output.SourceId = ReferenceResourceManager.Get( input.HasReferenceResource )?.Id;
+                //output.SourceId = ReferenceResourceManager.Get( input.HasReferenceResource )?.Id;
+
+                if ( output.SourceId != null && output.ReferenceResource?.RowId == input.HasReferenceResource )
+                {
+                    //no action
+                }
+                else
+                {
+                    var entity = ReferenceResourceManager.Get( input.HasReferenceResource );
+                    if ( entity?.Id > 0 )
+                        output.SourceId = ( int ) entity?.Id;
+                    else
+                    {
+                        status.AddError( thisClassName + String.Format( ".MapToDB. RatingTask: '{0}'. The related HasReferenceResource '{1}' was not found", FormatLongLabel( input.Description ), input.HasReferenceResource ) );
+                    }
+                }
             }
             else
                 output.SourceId = null;

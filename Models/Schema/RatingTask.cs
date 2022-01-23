@@ -115,5 +115,6 @@ namespace Models.Schema
 		public string CurrentAssessmentApproach { get; set; }
 		public string CurriculumControlAuthority { get; set; }
 		public string LifeCycleControlDocument { get; set; }
+		public string Notes { get; set; }
 	}
 }

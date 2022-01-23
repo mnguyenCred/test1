@@ -158,7 +158,6 @@
           <Property Name="CodedNotation" Type="nvarchar" MaxLength="50" Nullable="false" />
           <Property Name="Name" Type="nvarchar" MaxLength="300" Nullable="false" />
           <Property Name="Description" Type="nvarchar(max)" />
-          <Property Name="CurriculumControlAuthorityId" Type="int" />
           <Property Name="LifeCycleControlDocumentId" Type="int" />
           <Property Name="CTID" Type="varchar" MaxLength="50" />
           <Property Name="Created" Type="datetime" Nullable="false" />
@@ -166,6 +165,17 @@
           <Property Name="LastUpdated" Type="datetime" Nullable="false" />
           <Property Name="LastUpdatedById" Type="int" />
           <Property Name="RowVersion" Type="timestamp" StoreGeneratedPattern="Computed" Nullable="false" />
+        </EntityType>
+        <EntityType Name="Course_AssessmentType">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="RowId" Type="uniqueidentifier" Nullable="false" />
+          <Property Name="CourseId" Type="int" Nullable="false" />
+          <Property Name="AssessmentMethodConceptId" Type="int" Nullable="false" />
+          <Property Name="Created" Type="datetime" Nullable="false" />
+          <Property Name="CreatedById" Type="int" />
         </EntityType>
         <EntityType Name="Course_Concept">
           <Key>
@@ -175,6 +185,17 @@
           <Property Name="RowId" Type="uniqueidentifier" Nullable="false" />
           <Property Name="CourseId" Type="int" Nullable="false" />
           <Property Name="ConceptId" Type="int" Nullable="false" />
+          <Property Name="Created" Type="datetime" Nullable="false" />
+          <Property Name="CreatedById" Type="int" />
+        </EntityType>
+        <EntityType Name="Course_CourseType">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="RowId" Type="uniqueidentifier" Nullable="false" />
+          <Property Name="CourseId" Type="int" Nullable="false" />
+          <Property Name="CourseTypeConceptId" Type="int" Nullable="false" />
           <Property Name="Created" Type="datetime" Nullable="false" />
           <Property Name="CreatedById" Type="int" />
         </EntityType>
@@ -657,6 +678,32 @@
             </Dependent>
           </ReferentialConstraint>
         </Association>
+        <Association Name="FK_Course_AssessmentType_Concept">
+          <End Role="ConceptScheme_Concept" Type="Self.ConceptScheme_Concept" Multiplicity="1" />
+          <End Role="Course_AssessmentType" Type="Self.Course_AssessmentType" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="ConceptScheme_Concept">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="Course_AssessmentType">
+              <PropertyRef Name="AssessmentMethodConceptId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_Course_AssessmentType_Course">
+          <End Role="Course" Type="Self.Course" Multiplicity="1">
+            <OnDelete Action="Cascade" />
+          </End>
+          <End Role="Course_AssessmentType" Type="Self.Course_AssessmentType" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Course">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="Course_AssessmentType">
+              <PropertyRef Name="CourseId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
         <Association Name="FK_Course_Concept_ConceptScheme_Concept">
           <End Role="ConceptScheme_Concept" Type="Self.ConceptScheme_Concept" Multiplicity="1" />
           <End Role="Course_Concept" Type="Self.Course_Concept" Multiplicity="*" />
@@ -679,20 +726,6 @@
               <PropertyRef Name="Id" />
             </Principal>
             <Dependent Role="Course_Concept">
-              <PropertyRef Name="CourseId" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
-        <Association Name="FK_Course_Organization_Course_Concept">
-          <End Role="Course_Concept" Type="Self.Course_Concept" Multiplicity="1">
-            <OnDelete Action="Cascade" />
-          </End>
-          <End Role="Course_Organization" Type="Self.Course_Organization" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="Course_Concept">
-              <PropertyRef Name="Id" />
-            </Principal>
-            <Dependent Role="Course_Organization">
               <PropertyRef Name="CourseId" />
             </Dependent>
           </ReferentialConstraint>
@@ -723,15 +756,55 @@
             </Dependent>
           </ReferentialConstraint>
         </Association>
-        <Association Name="FK_Course_Organization">
-          <End Role="Organization" Type="Self.Organization" Multiplicity="0..1" />
+        <Association Name="FK_CourseCourseType_Concept">
+          <End Role="ConceptScheme_Concept" Type="Self.ConceptScheme_Concept" Multiplicity="1" />
+          <End Role="Course_CourseType" Type="Self.Course_CourseType" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="ConceptScheme_Concept">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="Course_CourseType">
+              <PropertyRef Name="CourseTypeConceptId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_CourseCourseType_Course">
+          <End Role="Course" Type="Self.Course" Multiplicity="1">
+            <OnDelete Action="Cascade" />
+          </End>
+          <End Role="Course_CourseType" Type="Self.Course_CourseType" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Course">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="Course_CourseType">
+              <PropertyRef Name="CourseId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_CourseLCCD_ReferenceResource">
+          <End Role="ReferenceResource" Type="Self.ReferenceResource" Multiplicity="0..1" />
           <End Role="Course" Type="Self.Course" Multiplicity="*" />
           <ReferentialConstraint>
-            <Principal Role="Organization">
+            <Principal Role="ReferenceResource">
               <PropertyRef Name="Id" />
             </Principal>
             <Dependent Role="Course">
-              <PropertyRef Name="CurriculumControlAuthorityId" />
+              <PropertyRef Name="LifeCycleControlDocumentId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_CourseOrganization_Course">
+          <End Role="Course" Type="Self.Course" Multiplicity="1">
+            <OnDelete Action="Cascade" />
+          </End>
+          <End Role="Course_Organization" Type="Self.Course_Organization" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Course">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="Course_Organization">
+              <PropertyRef Name="CourseId" />
             </Dependent>
           </ReferentialConstraint>
         </Association>
@@ -1016,7 +1089,9 @@
           <EntitySet Name="ConceptScheme" EntityType="Self.ConceptScheme" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="ConceptScheme_Concept" EntityType="Self.ConceptScheme_Concept" Schema="dbo" Table="ConceptScheme.Concept" store:Type="Tables" />
           <EntitySet Name="Course" EntityType="Self.Course" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="Course_AssessmentType" EntityType="Self.Course_AssessmentType" Schema="dbo" Table="Course.AssessmentType" store:Type="Tables" />
           <EntitySet Name="Course_Concept" EntityType="Self.Course_Concept" Schema="dbo" Table="Course.Concept" store:Type="Tables" />
+          <EntitySet Name="Course_CourseType" EntityType="Self.Course_CourseType" Schema="dbo" Table="Course.CourseType" store:Type="Tables" />
           <EntitySet Name="Course_Organization" EntityType="Self.Course_Organization" Schema="dbo" Table="Course.Organization" store:Type="Tables" />
           <EntitySet Name="Course_Task" EntityType="Self.Course_Task" Schema="dbo" Table="Course.Task" store:Type="Tables" />
           <EntitySet Name="ImportHistory" EntityType="Self.ImportHistory" Schema="dbo" store:Type="Tables" />
@@ -1071,6 +1146,14 @@
             <End Role="Account" EntitySet="Account" />
             <End Role="ConceptScheme" EntitySet="ConceptScheme" />
           </AssociationSet>
+          <AssociationSet Name="FK_Course_AssessmentType_Concept" Association="Self.FK_Course_AssessmentType_Concept">
+            <End Role="ConceptScheme_Concept" EntitySet="ConceptScheme_Concept" />
+            <End Role="Course_AssessmentType" EntitySet="Course_AssessmentType" />
+          </AssociationSet>
+          <AssociationSet Name="FK_Course_AssessmentType_Course" Association="Self.FK_Course_AssessmentType_Course">
+            <End Role="Course" EntitySet="Course" />
+            <End Role="Course_AssessmentType" EntitySet="Course_AssessmentType" />
+          </AssociationSet>
           <AssociationSet Name="FK_Course_Concept_ConceptScheme_Concept" Association="Self.FK_Course_Concept_ConceptScheme_Concept">
             <End Role="ConceptScheme_Concept" EntitySet="ConceptScheme_Concept" />
             <End Role="Course_Concept" EntitySet="Course_Concept" />
@@ -1078,10 +1161,6 @@
           <AssociationSet Name="FK_Course_Concept_Course" Association="Self.FK_Course_Concept_Course">
             <End Role="Course" EntitySet="Course" />
             <End Role="Course_Concept" EntitySet="Course_Concept" />
-          </AssociationSet>
-          <AssociationSet Name="FK_Course_Organization_Course_Concept" Association="Self.FK_Course_Organization_Course_Concept">
-            <End Role="Course_Concept" EntitySet="Course_Concept" />
-            <End Role="Course_Organization" EntitySet="Course_Organization" />
           </AssociationSet>
           <AssociationSet Name="FK_Course_Organization_Organization" Association="Self.FK_Course_Organization_Organization">
             <End Role="Organization" EntitySet="Organization" />
@@ -1091,9 +1170,21 @@
             <End Role="Course" EntitySet="Course" />
             <End Role="Course_Task" EntitySet="Course_Task" />
           </AssociationSet>
-          <AssociationSet Name="FK_Course_Organization" Association="Self.FK_Course_Organization">
-            <End Role="Organization" EntitySet="Organization" />
+          <AssociationSet Name="FK_CourseCourseType_Concept" Association="Self.FK_CourseCourseType_Concept">
+            <End Role="ConceptScheme_Concept" EntitySet="ConceptScheme_Concept" />
+            <End Role="Course_CourseType" EntitySet="Course_CourseType" />
+          </AssociationSet>
+          <AssociationSet Name="FK_CourseCourseType_Course" Association="Self.FK_CourseCourseType_Course">
             <End Role="Course" EntitySet="Course" />
+            <End Role="Course_CourseType" EntitySet="Course_CourseType" />
+          </AssociationSet>
+          <AssociationSet Name="FK_CourseLCCD_ReferenceResource" Association="Self.FK_CourseLCCD_ReferenceResource">
+            <End Role="ReferenceResource" EntitySet="ReferenceResource" />
+            <End Role="Course" EntitySet="Course" />
+          </AssociationSet>
+          <AssociationSet Name="FK_CourseOrganization_Course" Association="Self.FK_CourseOrganization_Course">
+            <End Role="Course" EntitySet="Course" />
+            <End Role="Course_Organization" EntitySet="Course_Organization" />
           </AssociationSet>
           <AssociationSet Name="FK_Job_Rating1" Association="Self.FK_Job_Rating1">
             <End Role="Rating" EntitySet="Rating" />
@@ -1272,10 +1363,10 @@
           <Property Name="LastApprovedById" Type="Int32" />
           <Property Name="LastPublished" Type="DateTime" Precision="3" />
           <Property Name="LastPublishedById" Type="Int32" />
-          <NavigationProperty Name="Account" Relationship="Self.FK_ConceptScheme__AccountCreatedBy" FromRole="ConceptScheme" ToRole="Account" />
-          <NavigationProperty Name="Account1" Relationship="Self.FK_ConceptScheme_AccountApprovedBy" FromRole="ConceptScheme" ToRole="Account" />
-          <NavigationProperty Name="Account2" Relationship="Self.FK_ConceptScheme_AccountLastUpdatedBy" FromRole="ConceptScheme" ToRole="Account" />
-          <NavigationProperty Name="Account3" Relationship="Self.FK_ConceptScheme_AccountPublishedBy" FromRole="ConceptScheme" ToRole="Account" />
+          <NavigationProperty Name="Account_CreatedBy" Relationship="Self.FK_ConceptScheme__AccountCreatedBy" FromRole="ConceptScheme" ToRole="Account" />
+          <NavigationProperty Name="Account_ApprovedBy" Relationship="Self.FK_ConceptScheme_AccountApprovedBy" FromRole="ConceptScheme" ToRole="Account" />
+          <NavigationProperty Name="Account_LastUpdatedBy" Relationship="Self.FK_ConceptScheme_AccountLastUpdatedBy" FromRole="ConceptScheme" ToRole="Account" />
+          <NavigationProperty Name="Account_PublishedBy" Relationship="Self.FK_ConceptScheme_AccountPublishedBy" FromRole="ConceptScheme" ToRole="Account" />
           <NavigationProperty Name="ConceptScheme_Concept" Relationship="Self.FK_ConceptScheme_Concept_ConceptScheme" FromRole="ConceptScheme" ToRole="ConceptScheme_Concept" />
         </EntityType>
         <EntityType Name="ConceptScheme_Concept">
@@ -1304,6 +1395,8 @@
           <Property Name="CreatedById" Type="Int32" />
           <Property Name="LastUpdatedById" Type="Int32" />
           <NavigationProperty Name="RatingTask4" Relationship="NavyRRLModel.FK_RatingTask_ConceptWorkElelment" FromRole="ConceptScheme_Concept" ToRole="RatingTask" />
+          <NavigationProperty Name="Course_AssessmentType" Relationship="NavyRRLModel.FK_Course_AssessmentType_Concept" FromRole="ConceptScheme_Concept" ToRole="Course_AssessmentType" />
+          <NavigationProperty Name="Course_CourseType" Relationship="NavyRRLModel.FK_Table_1_CourseType_Concept" FromRole="ConceptScheme_Concept" ToRole="Course_CourseType" />
         </EntityType>
         <EntityType Name="Course">
           <Key>
@@ -1313,7 +1406,6 @@
           <Property Name="Name" Type="String" MaxLength="300" FixedLength="false" Unicode="true" Nullable="false" />
           <Property Name="Description" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
           <Property Name="LifeCycleControlDocumentId" Type="Int32" />
-          <Property Name="CurriculumControlAuthorityId" Type="Int32" />
           <Property Name="CTID" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
           <Property Name="Created" Type="DateTime" Precision="3" Nullable="false" />
           <Property Name="CreatedById" Type="Int32" />
@@ -1322,9 +1414,12 @@
           <NavigationProperty Name="Course_Task" Relationship="Self.FK_Course_Task_Course" FromRole="Course" ToRole="Course_Task" />
           <Property Name="RowId" Type="Guid" Nullable="false" />
           <NavigationProperty Name="Course_Concept" Relationship="NavyRRLModel.FK_Course_Concept_Course" FromRole="Course" ToRole="Course_Concept" />
-          <NavigationProperty Name="Organization" Relationship="NavyRRLModel.FK_Course_Organization" FromRole="Course" ToRole="Organization" />
           <Property Name="RowVersion" Type="Binary" Nullable="false" MaxLength="8" FixedLength="true" annotation:StoreGeneratedPattern="Computed" />
           <Property Name="CodedNotation" Type="String" Nullable="false" MaxLength="50" FixedLength="false" Unicode="true" />
+          <NavigationProperty Name="Course_AssessmentType" Relationship="NavyRRLModel.FK_Course_AssessmentType_Course" FromRole="Course" ToRole="Course_AssessmentType" />
+          <NavigationProperty Name="Course_CourseType" Relationship="NavyRRLModel.FK_Course_CourseType_Course" FromRole="Course" ToRole="Course_CourseType" />
+          <NavigationProperty Name="Course_Organization" Relationship="NavyRRLModel.FK_CourseOrganization_Course" FromRole="Course" ToRole="Course_Organization" />
+          <NavigationProperty Name="ReferenceResource" Relationship="NavyRRLModel.FK_CourseLCCD_ReferenceResource" FromRole="Course" ToRole="ReferenceResource" />
         </EntityType>
         <EntityType Name="Course_Task">
           <Key>
@@ -1391,7 +1486,6 @@
           <Property Name="ISQAOrganization" Type="Boolean" />
           <Property Name="IsThirdPartyOrganization" Type="Boolean" />
           <Property Name="AlternateName" Type="String" MaxLength="200" FixedLength="false" Unicode="false" />
-          <NavigationProperty Name="Course" Relationship="NavyRRLModel.FK_Course_Organization" FromRole="Organization" ToRole="Course" />
           <NavigationProperty Name="Course_Organization" Relationship="NavyRRLModel.FK_Course_Organization_Organization" FromRole="Organization" ToRole="Course_Organization" />
         </EntityType>
         <EntityType Name="Rating">
@@ -1716,20 +1810,12 @@
             <End Role="RatingTask" EntitySet="RatingTask" />
             <End Role="RatingTask_HasJob" EntitySet="RatingTask_HasJob" />
           </AssociationSet>
-          <AssociationSet Name="FK_Course_Organization" Association="NavyRRLModel.FK_Course_Organization">
-            <End Role="Organization" EntitySet="Organization" />
-            <End Role="Course" EntitySet="Course" />
-          </AssociationSet>
           <EntitySet Name="WorkRole" EntityType="NavyRRLModel.WorkRole" />
           <AssociationSet Name="FK_RatingLevelTask_FunctionalArea1" Association="NavyRRLModel.FK_RatingLevelTask_FunctionalArea1">
             <End Role="WorkRole" EntitySet="WorkRole" />
             <End Role="RatingTask" EntitySet="RatingTask" />
           </AssociationSet>
           <EntitySet Name="Course_Organization" EntityType="NavyRRLModel.Course_Organization" />
-          <AssociationSet Name="FK_Course_Organization_Course_Concept" Association="NavyRRLModel.FK_Course_Organization_Course_Concept">
-            <End Role="Course_Concept" EntitySet="Course_Concept" />
-            <End Role="Course_Organization" EntitySet="Course_Organization" />
-          </AssociationSet>
           <AssociationSet Name="FK_Course_Organization_Organization" Association="NavyRRLModel.FK_Course_Organization_Organization">
             <End Role="Organization" EntitySet="Organization" />
             <End Role="Course_Organization" EntitySet="Course_Organization" />
@@ -1763,6 +1849,32 @@
           <AssociationSet Name="FK_RatingTask_ConceptWorkElelment" Association="NavyRRLModel.FK_RatingTask_ConceptWorkElelment">
             <End Role="ConceptScheme_Concept" EntitySet="ConceptScheme_Concept" />
             <End Role="RatingTask" EntitySet="RatingTask" />
+          </AssociationSet>
+          <EntitySet Name="Course_AssessmentType" EntityType="NavyRRLModel.Course_AssessmentType" />
+          <EntitySet Name="Course_CourseType" EntityType="NavyRRLModel.Course_CourseType" />
+          <AssociationSet Name="FK_Course_AssessmentType_Concept" Association="NavyRRLModel.FK_Course_AssessmentType_Concept">
+            <End Role="ConceptScheme_Concept" EntitySet="ConceptScheme_Concept" />
+            <End Role="Course_AssessmentType" EntitySet="Course_AssessmentType" />
+          </AssociationSet>
+          <AssociationSet Name="FK_Table_1_CourseType_Concept" Association="NavyRRLModel.FK_Table_1_CourseType_Concept">
+            <End Role="ConceptScheme_Concept" EntitySet="ConceptScheme_Concept" />
+            <End Role="Course_CourseType" EntitySet="Course_CourseType" />
+          </AssociationSet>
+          <AssociationSet Name="FK_Course_AssessmentType_Course" Association="NavyRRLModel.FK_Course_AssessmentType_Course">
+            <End Role="Course" EntitySet="Course" />
+            <End Role="Course_AssessmentType" EntitySet="Course_AssessmentType" />
+          </AssociationSet>
+          <AssociationSet Name="FK_Course_CourseType_Course" Association="NavyRRLModel.FK_Course_CourseType_Course">
+            <End Role="Course" EntitySet="Course" />
+            <End Role="Course_CourseType" EntitySet="Course_CourseType" />
+          </AssociationSet>
+          <AssociationSet Name="FK_CourseOrganization_Course" Association="NavyRRLModel.FK_CourseOrganization_Course">
+            <End Role="Course" EntitySet="Course" />
+            <End Role="Course_Organization" EntitySet="Course_Organization" />
+          </AssociationSet>
+          <AssociationSet Name="FK_CourseLCCD_ReferenceResource" Association="NavyRRLModel.FK_CourseLCCD_ReferenceResource">
+            <End Role="ReferenceResource" EntitySet="ReferenceResource" />
+            <End Role="Course" EntitySet="Course" />
           </AssociationSet>
         </EntityContainer>
         <EntityType Name="AspNetUserRoles">
@@ -2069,6 +2181,7 @@
           <Property Name="StatusTypeId" Type="Int32" />
           <Property Name="ReferenceTypeId" Type="Int32" />
           <NavigationProperty Name="RatingTask" Relationship="NavyRRLModel.FK_RatingTask_ReferenceResource" FromRole="ReferenceResource" ToRole="RatingTask" />
+          <NavigationProperty Name="Course" Relationship="NavyRRLModel.FK_CourseLCCD_ReferenceResource" FromRole="ReferenceResource" ToRole="Course" />
         </EntityType>
         <EntityType Name="ReferenceResource_ReferenceType">
           <Key>
@@ -2134,7 +2247,6 @@
           <Property Name="CreatedById" Type="Int32" />
           <NavigationProperty Name="ConceptScheme_Concept" Relationship="NavyRRLModel.FK_Course_Concept_ConceptScheme_Concept" FromRole="Course_Concept" ToRole="ConceptScheme_Concept" />
           <NavigationProperty Name="Course" Relationship="NavyRRLModel.FK_Course_Concept_Course" FromRole="Course_Concept" ToRole="Course" />
-          <NavigationProperty Name="Course_Organization" Relationship="NavyRRLModel.FK_Course_Organization_Course_Concept" FromRole="Course_Concept" ToRole="Course_Organization" />
         </EntityType>
         <EntityType Name="ImportHistory">
           <Key>
@@ -2252,18 +2364,6 @@
             </Dependent>
           </ReferentialConstraint>
         </Association>
-        <Association Name="FK_Course_Organization">
-          <End Type="NavyRRLModel.Organization" Role="Organization" Multiplicity="0..1" />
-          <End Type="NavyRRLModel.Course" Role="Course" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="Organization">
-              <PropertyRef Name="Id" />
-            </Principal>
-            <Dependent Role="Course">
-              <PropertyRef Name="CurriculumControlAuthorityId" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
         <EntityType Name="WorkRole">
           <Key>
             <PropertyRef Name="Id" />
@@ -2304,23 +2404,9 @@
           <Property Name="OrganizationId" Type="Int32" Nullable="false" />
           <Property Name="Created" Type="DateTime" Nullable="false" Precision="0" />
           <Property Name="CreatedById" Type="Int32" />
-          <NavigationProperty Name="Course_Concept" Relationship="NavyRRLModel.FK_Course_Organization_Course_Concept" FromRole="Course_Organization" ToRole="Course_Concept" />
           <NavigationProperty Name="Organization" Relationship="NavyRRLModel.FK_Course_Organization_Organization" FromRole="Course_Organization" ToRole="Organization" />
+          <NavigationProperty Name="Course" Relationship="NavyRRLModel.FK_CourseOrganization_Course" FromRole="Course_Organization" ToRole="Course" />
         </EntityType>
-        <Association Name="FK_Course_Organization_Course_Concept">
-          <End Type="NavyRRLModel.Course_Concept" Role="Course_Concept" Multiplicity="1">
-            <OnDelete Action="Cascade" />
-          </End>
-          <End Type="NavyRRLModel.Course_Organization" Role="Course_Organization" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="Course_Concept">
-              <PropertyRef Name="Id" />
-            </Principal>
-            <Dependent Role="Course_Organization">
-              <PropertyRef Name="CourseId" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
         <Association Name="FK_Course_Organization_Organization">
           <End Type="NavyRRLModel.Organization" Role="Organization" Multiplicity="1" />
           <End Type="NavyRRLModel.Course_Organization" Role="Course_Organization" Multiplicity="*" />
@@ -2451,6 +2537,110 @@
             </Dependent>
           </ReferentialConstraint>
         </Association>
+        <EntityType Name="Course_AssessmentType">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="RowId" Type="Guid" Nullable="false" />
+          <Property Name="CourseId" Type="Int32" Nullable="false" />
+          <Property Name="AssessmentMethodConceptId" Type="Int32" Nullable="false" />
+          <Property Name="Created" Type="DateTime" Nullable="false" Precision="3" />
+          <Property Name="CreatedById" Type="Int32" />
+          <NavigationProperty Name="ConceptScheme_Concept" Relationship="NavyRRLModel.FK_Course_AssessmentType_Concept" FromRole="Course_AssessmentType" ToRole="ConceptScheme_Concept" />
+          <NavigationProperty Name="Course" Relationship="NavyRRLModel.FK_Course_AssessmentType_Course" FromRole="Course_AssessmentType" ToRole="Course" />
+        </EntityType>
+        <EntityType Name="Course_CourseType">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="RowId" Type="Guid" Nullable="false" />
+          <Property Name="CourseId" Type="Int32" Nullable="false" />
+          <Property Name="CourseTypeConceptId" Type="Int32" Nullable="false" />
+          <Property Name="Created" Type="DateTime" Nullable="false" Precision="3" />
+          <Property Name="CreatedById" Type="Int32" />
+          <NavigationProperty Name="ConceptScheme_Concept" Relationship="NavyRRLModel.FK_Table_1_CourseType_Concept" FromRole="Course_CourseType" ToRole="ConceptScheme_Concept" />
+          <NavigationProperty Name="Course" Relationship="NavyRRLModel.FK_Course_CourseType_Course" FromRole="Course_CourseType" ToRole="Course" />
+        </EntityType>
+        <Association Name="FK_Course_AssessmentType_Concept">
+          <End Type="NavyRRLModel.ConceptScheme_Concept" Role="ConceptScheme_Concept" Multiplicity="1" />
+          <End Type="NavyRRLModel.Course_AssessmentType" Role="Course_AssessmentType" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="ConceptScheme_Concept">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="Course_AssessmentType">
+              <PropertyRef Name="AssessmentMethodConceptId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_Table_1_CourseType_Concept">
+          <End Type="NavyRRLModel.ConceptScheme_Concept" Role="ConceptScheme_Concept" Multiplicity="1" />
+          <End Type="NavyRRLModel.Course_CourseType" Role="Course_CourseType" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="ConceptScheme_Concept">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="Course_CourseType">
+              <PropertyRef Name="CourseTypeConceptId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_Course_AssessmentType_Course">
+          <End Type="NavyRRLModel.Course" Role="Course" Multiplicity="1">
+            <OnDelete Action="Cascade" />
+          </End>
+          <End Type="NavyRRLModel.Course_AssessmentType" Role="Course_AssessmentType" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Course">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="Course_AssessmentType">
+              <PropertyRef Name="CourseId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_Course_CourseType_Course">
+          <End Type="NavyRRLModel.Course" Role="Course" Multiplicity="1">
+            <OnDelete Action="Cascade" />
+          </End>
+          <End Type="NavyRRLModel.Course_CourseType" Role="Course_CourseType" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Course">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="Course_CourseType">
+              <PropertyRef Name="CourseId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_CourseOrganization_Course">
+          <End Type="NavyRRLModel.Course" Role="Course" Multiplicity="1">
+            <OnDelete Action="Cascade" />
+          </End>
+          <End Type="NavyRRLModel.Course_Organization" Role="Course_Organization" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Course">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="Course_Organization">
+              <PropertyRef Name="CourseId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_CourseLCCD_ReferenceResource">
+          <End Type="NavyRRLModel.ReferenceResource" Role="ReferenceResource" Multiplicity="0..1" />
+          <End Type="NavyRRLModel.Course" Role="Course" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="ReferenceResource">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="Course">
+              <PropertyRef Name="LifeCycleControlDocumentId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
       </Schema>
     </edmx:ConceptualModels>
     <!-- C-S mapping content -->
@@ -2571,7 +2761,6 @@
                 <ScalarProperty Name="Name" ColumnName="Name" />
                 <ScalarProperty Name="Description" ColumnName="Description" />
                 <ScalarProperty Name="LifeCycleControlDocumentId" ColumnName="LifeCycleControlDocumentId" />
-                <ScalarProperty Name="CurriculumControlAuthorityId" ColumnName="CurriculumControlAuthorityId" />
                 <ScalarProperty Name="CTID" ColumnName="CTID" />
                 <ScalarProperty Name="Created" ColumnName="Created" />
                 <ScalarProperty Name="CreatedById" ColumnName="CreatedById" />
@@ -3016,6 +3205,30 @@
                 <ScalarProperty Name="Created" ColumnName="Created" />
                 <ScalarProperty Name="RatingTaskId" ColumnName="RatingTaskId" />
                 <ScalarProperty Name="ProjectBilletId" ColumnName="ProjectBilletId" />
+                <ScalarProperty Name="RowId" ColumnName="RowId" />
+                <ScalarProperty Name="Id" ColumnName="Id" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="Course_AssessmentType">
+            <EntityTypeMapping TypeName="NavyRRLModel.Course_AssessmentType">
+              <MappingFragment StoreEntitySet="Course_AssessmentType">
+                <ScalarProperty Name="CreatedById" ColumnName="CreatedById" />
+                <ScalarProperty Name="Created" ColumnName="Created" />
+                <ScalarProperty Name="AssessmentMethodConceptId" ColumnName="AssessmentMethodConceptId" />
+                <ScalarProperty Name="CourseId" ColumnName="CourseId" />
+                <ScalarProperty Name="RowId" ColumnName="RowId" />
+                <ScalarProperty Name="Id" ColumnName="Id" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="Course_CourseType">
+            <EntityTypeMapping TypeName="NavyRRLModel.Course_CourseType">
+              <MappingFragment StoreEntitySet="Course_CourseType">
+                <ScalarProperty Name="CreatedById" ColumnName="CreatedById" />
+                <ScalarProperty Name="Created" ColumnName="Created" />
+                <ScalarProperty Name="CourseTypeConceptId" ColumnName="CourseTypeConceptId" />
+                <ScalarProperty Name="CourseId" ColumnName="CourseId" />
                 <ScalarProperty Name="RowId" ColumnName="RowId" />
                 <ScalarProperty Name="Id" ColumnName="Id" />
               </MappingFragment>

@@ -49,7 +49,7 @@ namespace Models.Schema
 		/// </summary>
 		public Guid CourseType { get; set; }
 		//TBD must be a list
-		public List<Guid> CourseTypes { get; set; }
+		public List<Guid> CourseTypes { get; set; } = new List<Guid>();
 		/// <summary>
 		/// GUID for the Concept for the Assessment Method Type for this Course<br />
 		/// From Column: Current Assessment Approach
@@ -60,6 +60,13 @@ namespace Models.Schema
 		/// Embedded Training Task data for this Course
 		/// </summary>
 		public List<TrainingTask> TrainingTasks { get; set; } = new List<TrainingTask>();
+
+		public List<string> CourseTypeList { get; set; } = new List<string>();
+		public List<string> AssessmentMethods{ get; set; } = new List<string>();
+		public List<string> Organizations { get; set; } = new List<string>();
+		public string LifeCycleControlDocument { get; set; }
+		public int LifeCycleControlDocumentId { get; set; }
+
 	}
 	public class CourseFull : Course
 	{
@@ -72,8 +79,8 @@ namespace Models.Schema
 		public string Curriculum_Control_Authority { get; set; }
 		public int CurriculumControlAuthorityId { get; set; }
 
-		//TBD: this can be plural (pipe separated)
-		public string LifeCycleControlDocument { get; set; }
-		public int LifeCycleControlDocumentId { get; set; }
+		//
+		//public string LifeCycleControlDocument { get; set; }
+		//public int LifeCycleControlDocumentId { get; set; }
 	}
 }

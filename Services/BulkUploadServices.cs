@@ -1179,7 +1179,9 @@ namespace Services
 			HandleUploadSheet_WorkRole( uploadedData.Rows, summary, existingWorkRoles );
 			HandleUploadSheet_ReferenceResource( uploadedData.Rows, summary, existingReferenceResources, sourceTypeConcepts );
 			HandleUploadSheet_TrainingTask( uploadedData.Rows, summary, existingTrainingTasks );
+
 			HandleUploadSheet_Course( uploadedData.Rows, summary, existingCourses, existingOrganizations, existingReferenceResources, existingTrainingTasks, courseTypeConcepts, assessmentMethodTypeConcepts );
+
 			HandleUploadSheet_RatingTask( uploadedData.Rows, summary, currentRating, existingRatings, existingRatingTasks, existingTrainingTasks, existingReferenceResources, existingWorkRoles, payGradeTypeConcepts, applicabilityTypeConcepts, trainingGapTypeConcepts, sourceTypeConcepts );
 			HandleUploadSheet_BilletTitle( uploadedData.Rows, summary, currentRating, existingBilletTitles, existingRatingTasks, existingReferenceResources, payGradeTypeConcepts, sourceTypeConcepts, applicabilityTypeConcepts, trainingGapTypeConcepts );
 			debug[ latestStepFlag ] = "Handled all upload data";
@@ -1518,6 +1520,7 @@ namespace Services
 			{
 				matcher.Flattened.Name = matcher.Rows.Select( m => m.Course_Name ).FirstOrDefault();
 				matcher.Flattened.CodedNotation = matcher.Rows.Select( m => m.Course_CodedNotation ).FirstOrDefault();
+				//
 				matcher.Flattened.HasReferenceResource_Name = matcher.Rows.Select( m => m.Course_HasReferenceResource_Name ).FirstOrDefault();
 				matcher.Flattened.CourseType_Name = matcher.Rows.Select( m => m.Course_CourseType_Label ).FirstOrDefault();
 				matcher.Flattened.CurriculumControlAuthority_Name = matcher.Rows.Select( m => m.Course_CurriculumControlAuthority_Name ).Distinct().ToList();
@@ -1668,12 +1671,9 @@ namespace Services
 			{
 				matcher.Flattened.Description = matcher.Rows.Select( m => m.RatingTask_Description ).FirstOrDefault();
 				matcher.Flattened.HasCodedNotation = matcher.Rows.Select( m => m.Row_CodedNotation ).FirstOrDefault();
+				//this should equate to the RowId - ideally. But only if done at the beginning.
 				matcher.Flattened.HasIdentifier = matcher.Rows.Select( m => m.Row_Identifier ).FirstOrDefault();
 				matcher.Flattened.HasRating_CodedNotation = matcher.Rows.Select( m => m.Rating_CodedNotation ).Distinct().ToList();
-				//?????
-				//matcher.Flattened.CodedNotation = matcher.Rows.FirstOrDefault( m => m.Row_CodedNotation );
-				//this should equate to the RowId - ideally. But only if done at the beginning.
-				//matcher.Flattened.Identifier = matcher.Rows.FirstOrDefault( m => m.Row_Identifier );
 
 				matcher.Flattened.HasTrainingTask_Description = matcher.Rows.Select( m => m.TrainingTask_Description ).FirstOrDefault();
 				matcher.Flattened.HasReferenceResource_Name = matcher.Rows.Select( m => m.ReferenceResource_Name ).FirstOrDefault();
@@ -1762,6 +1762,9 @@ namespace Services
 				CreateNewItem( summary.ItemsToBeCreated.RatingTask, m =>
 				{
 					m.Description = item.Flattened.Description;
+					m.CodedNotation = item.Flattened.HasCodedNotation;
+					m.Identifier = item.Flattened.Identifier;
+
 					m.ApplicabilityType = FindConceptOrError( applicabilityTypeConcepts, new Concept() { Name = item.Flattened.ApplicabilityType_Name }, "Applicability Type", item.Flattened.ApplicabilityType_Name, summary.Messages.Error ).RowId;
 					m.TrainingGapType = FindConceptOrError( trainingGapTypeConcepts, new Concept() { Name = item.Flattened.TrainingGapType_Name }, "Training Gap Type", item.Flattened.TrainingGapType_Name, summary.Messages.Error ).RowId;
 					m.PayGradeType = FindConceptOrError( payGradeTypeConcepts, new Concept() { CodedNotation = item.Flattened.PayGradeType_CodedNotation }, "Pay Grade Type", item.Flattened.PayGradeType_CodedNotation, summary.Messages.Error ).RowId;
