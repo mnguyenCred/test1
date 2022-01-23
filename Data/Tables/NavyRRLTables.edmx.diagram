@@ -4,7 +4,7 @@
   <edmx:Designer xmlns="http://schemas.microsoft.com/ado/2009/11/edmx">
     <!-- Diagram content (shape and connector positions) -->
     <edmx:Diagrams>
-      <Diagram DiagramId="1cbd21b9a0474d02b074dae2db684a6a" Name="Diagram1" ZoomLevel="48">
+      <Diagram DiagramId="1cbd21b9a0474d02b074dae2db684a6a" Name="Diagram1" ZoomLevel="93">
         <EntityTypeShape EntityType="NavyRRLModel.Account" Width="2.5" PointX="12" PointY="23" IsExpanded="true" />
         <EntityTypeShape EntityType="NavyRRLModel.ActivityLog" Width="1.5" PointX="29.875" PointY="8.125" IsExpanded="true" />
         <EntityTypeShape EntityType="NavyRRLModel.AspNetUsers" Width="1.5" PointX="16.625" PointY="23.25" IsExpanded="true" />

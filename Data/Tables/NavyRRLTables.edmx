@@ -1832,10 +1832,7 @@
             <End Role="WorkRole" EntitySet="WorkRole" />
             <End Role="RatingTask_WorkRole" EntitySet="RatingTask_WorkRole" />
           </AssociationSet>
-          <AssociationSet Name="FK_RatingTask_ReferenceResource" Association="NavyRRLModel.FK_RatingTask_ReferenceResource">
-            <End Role="ReferenceResource" EntitySet="ReferenceResource" />
-            <End Role="RatingTask" EntitySet="RatingTask" />
-          </AssociationSet>
+
           <EntitySet Name="RmtlProject_BilletTask" EntityType="NavyRRLModel.RmtlProject_BilletTask" />
           <AssociationSet Name="FK_RmtlProject_BilletTask_RatingTask" Association="NavyRRLModel.FK_RmtlProject_BilletTask_RatingTask">
             <End Role="RatingTask" EntitySet="RatingTask" />
@@ -1967,7 +1964,6 @@
           <Property Name="RankId" Type="Int32" Nullable="false" />
           <Property Name="LevelId" Type="Int32" Nullable="false" />
           <Property Name="FunctionalAreaId" Type="Int32" />
-          <Property Name="SourceId" Type="Int32" />
           <Property Name="WorkElementTypeId" Type="Int32" />
           <Property Name="TaskApplicabilityId" Type="Int32" />
           <Property Name="TaskStatusId" Type="Int32" />
@@ -1992,7 +1988,7 @@
           <NavigationProperty Name="WorkRole" Relationship="NavyRRLModel.FK_RatingLevelTask_FunctionalArea1" FromRole="RatingTask" ToRole="WorkRole" />
           <Property Name="RowVersion" Type="Binary" Nullable="false" MaxLength="8" FixedLength="true" annotation:StoreGeneratedPattern="Computed" />
           <NavigationProperty Name="RatingTask_WorkRole" Relationship="NavyRRLModel.FK_RatingTask_WorkRole_RatingTask" FromRole="RatingTask" ToRole="RatingTask_WorkRole" />
-          <NavigationProperty Name="ReferenceResource" Relationship="NavyRRLModel.FK_RatingTask_ReferenceResource" FromRole="RatingTask" ToRole="ReferenceResource" />
+
           <NavigationProperty Name="RmtlProject_BilletTask" Relationship="NavyRRLModel.FK_RmtlProject_BilletTask_RatingTask" FromRole="RatingTask" ToRole="RmtlProject_BilletTask" />
           <NavigationProperty Name="ConceptScheme_WorkElementType" Relationship="NavyRRLModel.FK_RatingTask_ConceptWorkElelment" FromRole="RatingTask" ToRole="ConceptScheme_Concept" />
           <NavigationProperty Name="ReferenceResource1" Relationship="NavyRRLModel.FK_RatingTask_ReferenceResource1" FromRole="RatingTask" ToRole="ReferenceResource" />
@@ -2184,7 +2180,7 @@
           <NavigationProperty Name="ReferenceResource_ReferenceType" Relationship="NavyRRLModel.FK_ReferenceResource_ReferenceType_ReferenceResource" FromRole="ReferenceResource" ToRole="ReferenceResource_ReferenceType" />
           <Property Name="StatusTypeId" Type="Int32" />
           <Property Name="ReferenceTypeId" Type="Int32" />
-          <NavigationProperty Name="RatingTask" Relationship="NavyRRLModel.FK_RatingTask_ReferenceResource" FromRole="ReferenceResource" ToRole="RatingTask" />
+
           <NavigationProperty Name="Course" Relationship="NavyRRLModel.FK_CourseLCCD_ReferenceResource" FromRole="ReferenceResource" ToRole="Course" />
           <NavigationProperty Name="RatingTask1" Relationship="NavyRRLModel.FK_RatingTask_ReferenceResource1" FromRole="ReferenceResource" ToRole="RatingTask" />
         </EntityType>
@@ -2475,18 +2471,7 @@
             </Dependent>
           </ReferentialConstraint>
         </Association>
-        <Association Name="FK_RatingTask_ReferenceResource">
-          <End Type="NavyRRLModel.ReferenceResource" Role="ReferenceResource" Multiplicity="0..1" />
-          <End Type="NavyRRLModel.RatingTask" Role="RatingTask" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="ReferenceResource">
-              <PropertyRef Name="Id" />
-            </Principal>
-            <Dependent Role="RatingTask">
-              <PropertyRef Name="SourceId" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
+
         <EntityType Name="RmtlProject_BilletTask">
           <Key>
             <PropertyRef Name="Id" />
