@@ -1124,7 +1124,7 @@ namespace Factories
                 //TODO - can we get this info prior to here??
                 //output.ReferenceResourceId = ReferenceResourceManager.Get( input.HasReferenceResource )?.Id;
 
-                if ( output.ReferenceResourceId != null && output.ReferenceResource?.RowId == input.HasReferenceResource )
+                if ( output.ReferenceResourceId != null && output.ReferenceResource1?.RowId == input.HasReferenceResource )
                 {
                     //no action
                 }
@@ -1190,14 +1190,14 @@ namespace Factories
             //FunctionalAreaId
             //NOTE this can be multiple. Setting here for current demo code. will remove once the search stuff is adjusted
             output.FunctionalAreaId = null;
-            if ( input.HasWorkRole?.Count > 0 )
-            {
-                if ( input.HasWorkRole?.Count == 1 )
-                {
-                    var workRole = WorkRoleManager.Get( input.HasWorkRole[0] );
-                    output.FunctionalAreaId = ( int ) workRole?.Id;
-                }
-            }
+            //if ( input.HasWorkRole?.Count > 0 )
+            //{
+            //    if ( input.HasWorkRole?.Count == 1 )
+            //    {
+            //        var workRole = WorkRoleManager.Get( input.HasWorkRole[0] );
+            //        output.FunctionalAreaId = ( int ) workRole?.Id;
+            //    }
+            //}
         }
         public static string FormatMessage( string className, string method, string message )
         {
