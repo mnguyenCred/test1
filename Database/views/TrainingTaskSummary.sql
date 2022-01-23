@@ -78,7 +78,7 @@ SELECT base.[Id] as CourseId
 		WHEN len(Organizations) = 0 THEN ''
 		ELSE left(Organizations,len(Organizations)-1)
 		END AS CurriculumControlAuthority
-		,0 as [CurriculumControlAuthorityId]
+	,0 as [CurriculumControlAuthorityId]
 	,CASE
 		WHEN AssessmentMethodTypes IS NULL THEN ''
 		WHEN len(AssessmentMethodTypes) = 0 THEN ''
@@ -91,8 +91,8 @@ SELECT base.[Id] as CourseId
   FROM [dbo].[Course] base
   inner join [Course.Task] task on base.Id  = task.CourseId
 
-  Left join [Course.Organization] e on base.Id = e.CourseId 
-  Left join Organization b on e.OrganizationId = b.Id
+  --Left join [Course.Organization] e on base.Id = e.CourseId 
+  --Left join Organization b on e.OrganizationId = b.Id
   --left join [dbo].[Course.Concept]	c on base.Id = c.courseId
 	--LCCD
 	Left join ReferenceResource d on base.[LifeCycleControlDocumentId] = d.Id 
