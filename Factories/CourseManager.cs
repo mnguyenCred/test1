@@ -1022,25 +1022,31 @@ namespace Factories
                 {
                     if ( input.CurriculumControlAuthority?.Count == 0 )
                         input.CurriculumControlAuthority = new List<Guid>();
-                    //check existance
-                    var existing = context.Course_Organization
-                        .Where( s => s.CourseId == input.Id )
-                        .ToList();
-                    if ( existing == null )
-                        existing = new List<Course_Organization>();
+                    var results =
+                                    from entity in context.Course_Organization
+                                    join org in context.Organization
+                                    on entity.OrganizationId  equals org.Id
+                                    where entity.CourseId == input.Id
+
+                                    select new Organization()
+                                    {
+                                        Id = org.Id,
+                                        Name = org.Name,
+                                        RowId = org.RowId,
+                                    };
+                    var existing = results?.ToList();
                     #region deletes check
                     if ( existing.Any() )
                     {
                         //if exists not in input, delete it
                         foreach ( var e in existing )
                         {
-                            var key = e?.Organization.RowId;
+                            var key = e.RowId;
                             if ( IsValidGuid( key ) )
                             {
                                 if ( !input.CurriculumControlAuthority.Contains( ( Guid ) key ) )
                                 {
-                                    context.Course_Organization.Remove( e );
-                                    int dcount = context.SaveChanges();
+                                    DeleteCourseOrganization( input.Id, e.Id, ref status );
                                 }
                             }
                         }
@@ -1055,7 +1061,7 @@ namespace Factories
                             bool doingAdd = true;
                             if ( existing?.Count > 0 )
                             {
-                                var isfound = existing.Select( s => s.Organization.RowId == child ).ToList();
+                                var isfound = existing.Select( s => s.RowId == child ).ToList();
                                 if ( isfound.Any() )
                                     doingAdd = false;
                             }
@@ -1093,6 +1099,39 @@ namespace Factories
             }
             return false;
         }
+        public bool DeleteCourseOrganization( int courseId, int conceptId, ref ChangeSummary status )
+        {
+            bool isValid = false;
+            if ( conceptId == 0 )
+            {
+                //statusMessage = "Error - missing an identifier for the CourseConcept to remove";
+                return false;
+            }
+
+            using ( var context = new DataEntities() )
+            {
+                var efEntity = context.Course_Organization
+                                .FirstOrDefault( s => s.CourseId == courseId && s.OrganizationId == conceptId );
+
+                if ( efEntity != null && efEntity.Id > 0 )
+                {
+                    context.Course_Organization.Remove( efEntity );
+                    int count = context.SaveChanges();
+                    if ( count > 0 )
+                    {
+                        isValid = true;
+                    }
+                }
+                else
+                {
+                    //statusMessage = "Warning - the record was not found - probably because the target had been previously deleted";
+                    isValid = true;
+                }
+            }
+
+            return isValid;
+        }
+
         #endregion
 
     }

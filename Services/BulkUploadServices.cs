@@ -1188,8 +1188,11 @@ namespace Services
 
 			HandleUploadSheet_Course( uploadedData.Rows, summary, existingCourses, existingOrganizations, existingReferenceResources, existingTrainingTasks, courseTypeConcepts, assessmentMethodTypeConcepts );
 
-			HandleUploadSheet_RatingTask( uploadedData.Rows, summary, currentRating, existingRatings, existingRatingTasks, existingTrainingTasks, existingReferenceResources, existingWorkRoles, payGradeTypeConcepts, applicabilityTypeConcepts, trainingGapTypeConcepts, sourceTypeConcepts );
 			HandleUploadSheet_BilletTitle( uploadedData.Rows, summary, currentRating, existingBilletTitles, existingRatingTasks, existingReferenceResources, payGradeTypeConcepts, sourceTypeConcepts, applicabilityTypeConcepts, trainingGapTypeConcepts );
+
+			HandleUploadSheet_RatingTask( uploadedData.Rows, summary, currentRating, existingRatings, existingBilletTitles, existingRatingTasks, existingTrainingTasks, existingReferenceResources, existingWorkRoles, payGradeTypeConcepts, applicabilityTypeConcepts, trainingGapTypeConcepts, sourceTypeConcepts );
+
+
 			debug[ latestStepFlag ] = "Handled all upload data";
 
 			//Clean up the summary object
@@ -1648,7 +1651,8 @@ namespace Services
 			List<UploadableRow> uploadedRows, 
 			ChangeSummary summary, 
 			Rating currentRating, 
-			List<Rating> existingRatings = null, 
+			List<Rating> existingRatings = null,
+			List<BilletTitle> existingBilletTitles = null,
 			List<RatingTask> existingRatingTasks = null, 
 			List<TrainingTask> existingTrainingTasks = null, 
 			List<ReferenceResource> existingReferenceResources = null, 
@@ -1680,7 +1684,9 @@ namespace Services
 				//this should equate to the RowId - ideally. But only if done at the beginning.
 				matcher.Flattened.HasIdentifier = matcher.Rows.Select( m => m.Row_Identifier ).FirstOrDefault();
 				matcher.Flattened.HasRating_CodedNotation = matcher.Rows.Select( m => m.Rating_CodedNotation ).Distinct().ToList();
-
+				//
+				matcher.Flattened.HasBilletTitle_Name = matcher.Rows.Select( m => m.BilletTitle_Name ).FirstOrDefault();
+				//
 				matcher.Flattened.HasTrainingTask_Description = matcher.Rows.Select( m => m.TrainingTask_Description ).FirstOrDefault();
 				matcher.Flattened.HasReferenceResource_Name = matcher.Rows.Select( m => m.ReferenceResource_Name ).FirstOrDefault();
 				matcher.Flattened.HasWorkRole_Name = matcher.Rows.Select( m => m.WorkRole_Name ).Distinct().ToList();
@@ -1698,6 +1704,11 @@ namespace Services
 			var existingRatingTaskMatchers = GetSheetMatchersFromExisting<RatingTask, MatchableRatingTask>( existingRatingTasks );
 			foreach ( var matcher in existingRatingTaskMatchers )
 			{
+				//CodedNotation??
+				//Identifier
+				//BilletTitle
+				//matcher.Flattened.HasBillet = existingBilletTitles.Where( m => matcher.Data.HasBillet.Contains( m.RowId ) ).Select( m => m.RowId ).ToList();
+
 				matcher.Flattened.HasRating_CodedNotation = existingRatings.Where( m => matcher.Data.HasRating.Contains( m.RowId ) ).Select( m => m.CodedNotation ).ToList();
 				matcher.Flattened.HasTrainingTask_Description = existingTrainingTasks.FirstOrDefault( m => m.RowId == matcher.Data.HasTrainingTask )?.Description;
 				matcher.Flattened.HasReferenceResource_Name = existingReferenceResources.FirstOrDefault( m => m.RowId == matcher.Data.HasReferenceResource )?.Name;
@@ -1719,6 +1730,10 @@ namespace Services
 					uploaded.Flattened.ApplicabilityType_Name == n.Flattened.ApplicabilityType_Name &&
 					uploaded.Flattened.TrainingGapType_Name == n.Flattened.TrainingGapType_Name &&
 					uploaded.Flattened.ReferenceType_WorkElementType == n.Flattened.ReferenceType_WorkElementType
+				).ToList();
+				//????
+				var matches2 = existingRatingTaskMatchers.Where( n =>
+					uploaded.Flattened.CodedNotation == n.Flattened.CodedNotation
 				).ToList();
 
 				HandleLooseMatchesFound( matches, uploaded, looseMatchingRatingTaskMatchers, summary, "Rating Task", m => m?.Description );
@@ -1770,7 +1785,8 @@ namespace Services
 					m.Description = item.Flattened.Description;
 					m.CodedNotation = item.Flattened.HasCodedNotation;
 					m.Identifier = item.Flattened.Identifier;
-
+					//???
+					m.HasBillet = item.Flattened.HasBillet;
 					m.ApplicabilityType = FindConceptOrError( applicabilityTypeConcepts, new Concept() { Name = item.Flattened.ApplicabilityType_Name }, "Applicability Type", item.Flattened.ApplicabilityType_Name, summary.Messages.Error ).RowId;
 					m.TrainingGapType = FindConceptOrError( trainingGapTypeConcepts, new Concept() { Name = item.Flattened.TrainingGapType_Name }, "Training Gap Type", item.Flattened.TrainingGapType_Name, summary.Messages.Error ).RowId;
 					m.PayGradeType = FindConceptOrError( payGradeTypeConcepts, new Concept() { CodedNotation = item.Flattened.PayGradeType_CodedNotation }, "Pay Grade Type", item.Flattened.PayGradeType_CodedNotation, summary.Messages.Error ).RowId;

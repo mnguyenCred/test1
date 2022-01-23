@@ -10,6 +10,7 @@ using Models.Application;
 using Models.Curation;
 
 using Models.Import;
+using Models.Schema;
 using AppEntity = Models.Schema.RatingTask;
 using EntitySummary = Models.Schema.RatingTaskSummary;
 using DataEntities = Data.Tables.NavyRRLEntities;
@@ -714,38 +715,42 @@ namespace Factories
                 LoggingHelper.LogError( ex, thisClassName + "UpdateParts" );
             }
         }
-
-
         public bool WorkRoleUpdate( AppEntity input, ref ChangeSummary status )
         {
             status.HasSectionErrors = false;
             var efEntity = new Data.Tables.RatingTask_WorkRole();
-            var entityType = "RatingTask.WorkRole";
+            var entityType = "RatingTask_WorkRole";
             using ( var context = new DataEntities() )
             {
                 try
                 {
                     if ( input.HasWorkRole?.Count == 0 )
                         input.HasWorkRole = new List<Guid>();
-                    //check existance
-                    var existing = context.RatingTask_WorkRole
-                        .Where( s => s.RatingTaskId == input.Id )
-                        .ToList();
-                    if ( existing == null )
-                        existing = new List<Data.Tables.RatingTask_WorkRole>();
+                    var results =
+                                    from entity in context.RatingTask_WorkRole
+                                    join related in context.WorkRole
+                                    on entity.WorkRoled equals related.Id
+                                    where entity.RatingTaskId == input.Id
+
+                                    select new WorkRole()
+                                    {
+                                        Id = related.Id,
+                                        Name = related.Name,
+                                        RowId = related.RowId,
+                                    };
+                    var existing = results?.ToList();
                     #region deletes check
                     if ( existing.Any() )
                     {
                         //if exists not in input, delete it
                         foreach ( var e in existing )
                         {
-                            var key = e?.WorkRole.RowId;
+                            var key = e.RowId;
                             if ( IsValidGuid( key ) )
                             {
                                 if ( !input.HasWorkRole.Contains( ( Guid ) key ) )
                                 {
-                                    context.RatingTask_WorkRole.Remove( e );
-                                    int dcount = context.SaveChanges();
+                                    DeleteRatingTaskWorkRole( input.Id, e.Id, ref status );
                                 }
                             }
                         }
@@ -760,21 +765,20 @@ namespace Factories
                             bool doingAdd = true;
                             if ( existing?.Count > 0 )
                             {
-                                var isfound = existing.Select( s => s.WorkRole.RowId == child ).ToList();
+                                var isfound = existing.Select( s => s.RowId == child ).ToList();
                                 if ( isfound.Any() )
                                     doingAdd = false;
                             }
                             if ( doingAdd )
                             {
-                                var wr = WorkRoleManager.Get( child );
-                                if ( wr?.Id > 0 )
+                                var related = WorkRoleManager.Get( child );
+                                if ( related?.Id > 0 )
                                 {
                                     //ReferenceConceptAdd( input, concept.Id, input.LastUpdatedById, ref status );
                                     efEntity.RatingTaskId = input.Id;
-                                    efEntity.WorkRoled = wr.Id;
+                                    efEntity.WorkRoled = related.Id;
                                     efEntity.RowId = Guid.NewGuid();
                                     efEntity.CreatedById = input.LastUpdatedById;
-                                    //efEntity.CTID = "ce-" + efEntity.RowId.ToString().ToLower();
                                     efEntity.Created = DateTime.Now;
 
                                     context.RatingTask_WorkRole.Add( efEntity );
@@ -784,7 +788,7 @@ namespace Factories
                                 }
                                 else
                                 {
-                                    status.AddError( String.Format( "Error. For RatingTask: '{0}' ({1}) a RatingTask_WorkRole workRole was not found for Identifier: {2}", input.Description, input.Id, child ) );
+                                    status.AddError( String.Format( "Error. For RatingTask: '{0}' ({1}) a HasWorkRole was not found for Identifier: {2}", FormatLongLabel(input.Description), input.Id, child ) );
                                 }
                             }
                         }
@@ -793,42 +797,81 @@ namespace Factories
                 catch ( Exception ex )
                 {
                     string message = FormatExceptions( ex );
-                    LoggingHelper.LogError( ex, thisClassName + string.Format( ".WorkRoleUpdate-'{0}', RatingTask: '{1}' ({2})", entityType, input.Description, input.Id ) );
-                    status.AddError( thisClassName + ".WorkRoleUpdate(). Error - the save was not successful. \r\n" + message );
+                    LoggingHelper.LogError( ex, thisClassName + string.Format( ".HasWorkRoleUpdate-'{0}', RatingTask: '{1}' ({2})", entityType, FormatLongLabel( input.Description ), input.Id ) );
+                    status.AddError( thisClassName + ".HasWorkRoleUpdate(). Error - the save was not successful. \r\n" + message );
                 }
             }
             return false;
         }
+        public bool DeleteRatingTaskWorkRole( int ratingTaskId, int workRoleId, ref ChangeSummary status )
+        {
+            bool isValid = false;
+            if ( workRoleId == 0 )
+            {
+                //statusMessage = "Error - missing an identifier for the CourseConcept to remove";
+                return false;
+            }
+
+            using ( var context = new DataEntities() )
+            {
+                var efEntity = context.RatingTask_WorkRole
+                                .FirstOrDefault( s => s.RatingTaskId == ratingTaskId && s.WorkRoled == workRoleId );
+
+                if ( efEntity != null && efEntity.Id > 0 )
+                {
+                    context.RatingTask_WorkRole.Remove( efEntity );
+                    int count = context.SaveChanges();
+                    if ( count > 0 )
+                    {
+                        isValid = true;
+                    }
+                }
+                else
+                {
+                    //statusMessage = "Warning - the record was not found - probably because the target had been previously deleted";
+                    isValid = true;
+                }
+            }
+
+            return isValid;
+        }
+
         public bool HasRatingUpdate( AppEntity input, ref ChangeSummary status )
         {
             status.HasSectionErrors = false;
             var efEntity = new Data.Tables.RatingTask_HasRating();
-            var entityType = "RatingTask.HasRating";
+            var entityType = "RatingTask_HasRating";
             using ( var context = new DataEntities() )
             {
                 try
                 {
                     if ( input.HasRating?.Count == 0 )
                         input.HasRating = new List<Guid>();
-                    //check existance
-                    var existing = context.RatingTask_HasRating
-                        .Where( s => s.RatingTaskId == input.Id )
-                        .ToList();
-                    if ( existing == null )
-                        existing = new List<Data.Tables.RatingTask_HasRating>();
+                    var results =
+                                    from entity in context.RatingTask_HasRating
+                                    join related in context.Rating
+                                    on entity.RatingId equals related.Id
+                                    where entity.RatingTaskId == input.Id
+
+                                    select new Rating()
+                                    {
+                                        Id = related.Id,
+                                        Name = related.Name,
+                                        RowId = related.RowId,
+                                    };
+                    var existing = results?.ToList();
                     #region deletes check
                     if ( existing.Any() )
                     {
                         //if exists not in input, delete it
                         foreach ( var e in existing )
                         {
-                            var key = e?.Rating.RowId;
+                            var key = e.RowId;
                             if ( IsValidGuid( key ) )
                             {
                                 if ( !input.HasRating.Contains( ( Guid ) key ) )
                                 {
-                                    context.RatingTask_HasRating.Remove( e );
-                                    int dcount = context.SaveChanges();
+                                    DeleteRatingTaskHasRating( input.Id, e.Id, ref status );
                                 }
                             }
                         }
@@ -839,22 +882,22 @@ namespace Factories
                     {
                         foreach ( var child in input.HasRating )
                         {
-                            //if not in existing, then add                            
+                            //if not in existing, then add
                             bool doingAdd = true;
                             if ( existing?.Count > 0 )
                             {
-                                var isfound = existing.Select( s => s.Rating.RowId == child ).ToList();
+                                var isfound = existing.Select( s => s.RowId == child ).ToList();
                                 if ( isfound.Any() )
                                     doingAdd = false;
                             }
                             if ( doingAdd )
                             {
-                                var wr = RatingManager.Get( child );
-                                if ( wr?.Id > 0 )
+                                var related = RatingManager.Get( child );
+                                if ( related?.Id > 0 )
                                 {
                                     //ReferenceConceptAdd( input, concept.Id, input.LastUpdatedById, ref status );
                                     efEntity.RatingTaskId = input.Id;
-                                    efEntity.RatingId = wr.Id;
+                                    efEntity.RatingId = related.Id;
                                     efEntity.RowId = Guid.NewGuid();
                                     efEntity.CreatedById = input.LastUpdatedById;
                                     efEntity.Created = DateTime.Now;
@@ -866,7 +909,7 @@ namespace Factories
                                 }
                                 else
                                 {
-                                    status.AddError( String.Format( "Error. For RatingTask: '{0}' ({1}) a RatingTask HasRating was not found for Identifier: {2}", input.Description, input.Id, child ) );
+                                    status.AddError( String.Format( "Error. For RatingTask: '{0}' ({1}) a HasRating was not found for Identifier: {2}", FormatLongLabel( input.Description ), input.Id, child ) );
                                 }
                             }
                         }
@@ -875,11 +918,43 @@ namespace Factories
                 catch ( Exception ex )
                 {
                     string message = FormatExceptions( ex );
-                    LoggingHelper.LogError( ex, thisClassName + string.Format( ".HasRatingUpdate-'{0}', RatingTask: '{1}' ({2})", entityType, input.Description, input.Id ) );
+                    LoggingHelper.LogError( ex, thisClassName + string.Format( ".HasRatingUpdate-'{0}', RatingTask: '{1}' ({2})", entityType, FormatLongLabel( input.Description ), input.Id ) );
                     status.AddError( thisClassName + ".HasRatingUpdate(). Error - the save was not successful. \r\n" + message );
                 }
             }
             return false;
+        }
+        public bool DeleteRatingTaskHasRating( int ratingTaskId, int workRoleId, ref ChangeSummary status )
+        {
+            bool isValid = false;
+            if ( workRoleId == 0 )
+            {
+                //statusMessage = "Error - missing an identifier for the CourseConcept to remove";
+                return false;
+            }
+
+            using ( var context = new DataEntities() )
+            {
+                var efEntity = context.RatingTask_HasRating
+                                .FirstOrDefault( s => s.RatingTaskId == ratingTaskId && s.RatingId == workRoleId );
+
+                if ( efEntity != null && efEntity.Id > 0 )
+                {
+                    context.RatingTask_HasRating.Remove( efEntity );
+                    int count = context.SaveChanges();
+                    if ( count > 0 )
+                    {
+                        isValid = true;
+                    }
+                }
+                else
+                {
+                    //statusMessage = "Warning - the record was not found - probably because the target had been previously deleted";
+                    isValid = true;
+                }
+            }
+
+            return isValid;
         }
 
         public bool HasJobUpdate( AppEntity input, ref ChangeSummary status )
@@ -893,107 +968,31 @@ namespace Factories
                 {
                     if ( input.HasBillet?.Count == 0 )
                         input.HasBillet = new List<Guid>();
-                    //check existance
-                    var existing = context.RatingTask_HasJob
-                        .Where( s => s.RatingTaskId == input.Id )
-                        .ToList();
-                    if ( existing == null )
-                        existing = new List<Data.Tables.RatingTask_HasJob>();
+                    var results =
+                                    from entity in context.RatingTask_HasJob
+                                    join related in context.Job
+                                    on entity.JobId equals related.Id
+                                    where entity.RatingTaskId == input.Id
+
+                                    select new Rating()
+                                    {
+                                        Id = related.Id,
+                                        Name = related.Name,
+                                        RowId = related.RowId,
+                                    };
+                    var existing = results?.ToList();
                     #region deletes check
                     if ( existing.Any() )
                     {
                         //if exists not in input, delete it
                         foreach ( var e in existing )
                         {
-                            var key = e?.Job.RowId;
+                            var key = e.RowId;
                             if ( IsValidGuid( key ) )
                             {
                                 if ( !input.HasBillet.Contains( ( Guid ) key ) )
                                 {
-                                    context.RatingTask_HasJob.Remove( e );
-                                    int dcount = context.SaveChanges();
-                                }
-                            }
-                        }
-                    }
-                    #endregion
-                    //adds
-                    if ( input.HasBillet != null )
-                    {
-                        foreach ( var child in input.HasBillet )
-                        {
-                            //if not in existing, then add                            
-                            bool doingAdd = true;
-                            if ( existing?.Count > 0 )
-                            {
-                                var isfound = existing.Select( s => s.Job.RowId == child ).ToList();
-                                if ( isfound.Any() )
-                                    doingAdd = false;
-                            }
-                            if ( doingAdd )
-                            {
-                                var wr = JobManager.Get( child );
-                                if ( wr?.Id > 0 )
-                                {
-                                    //ReferenceConceptAdd( input, concept.Id, input.LastUpdatedById, ref status );
-                                    efEntity.RatingTaskId = input.Id;
-                                    efEntity.JobId = wr.Id;
-                                    efEntity.RowId = Guid.NewGuid();
-                                    efEntity.CreatedById = input.LastUpdatedById;
-                                    efEntity.Created = DateTime.Now;
-
-                                    context.RatingTask_HasJob.Add( efEntity );
-
-                                    // submit the change to database
-                                    int count = context.SaveChanges();
-                                }
-                                else
-                                {
-                                    status.AddError( String.Format( "Error. For RatingTask: '{0}' ({1}) a RatingTask HasJob was not found for Identifier: {2}", input.Description, input.Id, child ) );
-                                }
-                            }
-                        }
-                    }
-                }
-                catch ( Exception ex )
-                {
-                    string message = FormatExceptions( ex );
-                    LoggingHelper.LogError( ex, thisClassName + string.Format( ".HasJobUpdate-'{0}', RatingTask: '{1}' ({2})", entityType, input.Description, input.Id ) );
-                    status.AddError( thisClassName + ".HasJobUpdate(). Error - the save was not successful. \r\n" + message );
-                }
-            }
-            return false;
-        }
-        public bool HasBilletUpdate( AppEntity input, ref ChangeSummary status )
-        {
-            status.HasSectionErrors = false;
-            var efEntity = new Data.Tables.RatingTask_HasJob();
-            var entityType = "RatingTask_HasJob";
-            using ( var context = new DataEntities() )
-            {
-                try
-                {
-                    if ( input.HasBillet?.Count == 0 )
-                        input.HasBillet = new List<Guid>();
-                    //check existance
-                    var existing = context.RatingTask_HasJob
-                        .Where( s => s.RatingTaskId == input.Id )
-                        .ToList();
-                    if ( existing == null )
-                        existing = new List<Data.Tables.RatingTask_HasJob>();
-                    #region deletes check
-                    if ( existing.Any() )
-                    {
-                        //if exists not in input, delete it
-                        foreach ( var e in existing )
-                        {
-                            var key = e?.Job.RowId;
-                            if ( IsValidGuid( key ) )
-                            {
-                                if ( !input.HasBillet.Contains( ( Guid ) key ) )
-                                {
-                                    context.RatingTask_HasJob.Remove( e );
-                                    int dcount = context.SaveChanges();
+                                    DeleteRatingTaskHasJob( input.Id, e.Id, ref status );
                                 }
                             }
                         }
@@ -1008,18 +1007,18 @@ namespace Factories
                             bool doingAdd = true;
                             if ( existing?.Count > 0 )
                             {
-                                var isfound = existing.Select( s => s.Job.RowId == child ).ToList();
+                                var isfound = existing.Select( s => s.RowId == child ).ToList();
                                 if ( isfound.Any() )
                                     doingAdd = false;
                             }
                             if ( doingAdd )
                             {
-                                var wr = JobManager.Get( child );
-                                if ( wr?.Id > 0 )
+                                var related = JobManager.Get( child );
+                                if ( related?.Id > 0 )
                                 {
                                     //ReferenceConceptAdd( input, concept.Id, input.LastUpdatedById, ref status );
                                     efEntity.RatingTaskId = input.Id;
-                                    efEntity.JobId = wr.Id;
+                                    efEntity.JobId = related.Id;
                                     efEntity.RowId = Guid.NewGuid();
                                     efEntity.CreatedById = input.LastUpdatedById;
                                     efEntity.Created = DateTime.Now;
@@ -1031,7 +1030,7 @@ namespace Factories
                                 }
                                 else
                                 {
-                                    status.AddError( String.Format( "Error. For RatingTask: '{0}' ({1}) a RatingTask HasBillet was not found for Identifier: {2}", input.Description, input.Id, child ) );
+                                    status.AddError( String.Format( "Error. For RatingTask: '{0}' ({1}) a HasBillet was not found for Identifier: {2}", FormatLongLabel( input.Description ), input.Id, child ) );
                                 }
                             }
                         }
@@ -1040,12 +1039,45 @@ namespace Factories
                 catch ( Exception ex )
                 {
                     string message = FormatExceptions( ex );
-                    LoggingHelper.LogError( ex, thisClassName + string.Format( ".HasBilletUpdate-'{0}', RatingTask: '{1}' ({2})", entityType, input.Description, input.Id ) );
-                    status.AddError( thisClassName + ".HasBilletUpdate(). Error - the save was not successful. \r\n" + message );
+                    LoggingHelper.LogError( ex, thisClassName + string.Format( ".HasRatingUpdate-'{0}', RatingTask: '{1}' ({2})", entityType, FormatLongLabel( input.Description ), input.Id ) );
+                    status.AddError( thisClassName + ".HasRatingUpdate(). Error - the save was not successful. \r\n" + message );
                 }
             }
             return false;
         }
+        public bool DeleteRatingTaskHasJob( int ratingTaskId, int jobId, ref ChangeSummary status )
+        {
+            bool isValid = false;
+            if ( jobId == 0 )
+            {
+                //statusMessage = "Error - missing an identifier for the CourseConcept to remove";
+                return false;
+            }
+
+            using ( var context = new DataEntities() )
+            {
+                var efEntity = context.RatingTask_HasJob
+                                .FirstOrDefault( s => s.RatingTaskId == ratingTaskId && s.JobId == jobId );
+
+                if ( efEntity != null && efEntity.Id > 0 )
+                {
+                    context.RatingTask_HasJob.Remove( efEntity );
+                    int count = context.SaveChanges();
+                    if ( count > 0 )
+                    {
+                        isValid = true;
+                    }
+                }
+                else
+                {
+                    //statusMessage = "Warning - the record was not found - probably because the target had been previously deleted";
+                    isValid = true;
+                }
+            }
+
+            return isValid;
+        }
+
 
         public static void MapToDB( AppEntity input, DBEntity output, ref ChangeSummary status )
         {
