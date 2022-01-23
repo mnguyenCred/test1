@@ -77,6 +77,7 @@
         <AssociationConnector Association="NavyRRLModel.FK_Course_CourseType_Course" />
         <AssociationConnector Association="NavyRRLModel.FK_CourseOrganization_Course" />
         <AssociationConnector Association="NavyRRLModel.FK_CourseLCCD_ReferenceResource" />
+        <AssociationConnector Association="NavyRRLModel.FK_RatingTask_ReferenceResource1" />
       </Diagram>
     </edmx:Diagrams>
   </edmx:Designer>

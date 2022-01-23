@@ -402,7 +402,6 @@
           <Property Name="RankId" Type="int" Nullable="false" />
           <Property Name="LevelId" Type="int" Nullable="false" />
           <Property Name="FunctionalAreaId" Type="int" />
-          <Property Name="SourceId" Type="int" />
           <Property Name="ReferenceResourceId" Type="int" />
           <Property Name="WorkElementTypeId" Type="int" />
           <Property Name="Description" Type="nvarchar(max)" Nullable="false" />
@@ -980,7 +979,7 @@
               <PropertyRef Name="Id" />
             </Principal>
             <Dependent Role="RatingTask">
-              <PropertyRef Name="SourceId" />
+              <PropertyRef Name="ReferenceResourceId" />
             </Dependent>
           </ReferentialConstraint>
         </Association>
@@ -1876,6 +1875,10 @@
             <End Role="ReferenceResource" EntitySet="ReferenceResource" />
             <End Role="Course" EntitySet="Course" />
           </AssociationSet>
+          <AssociationSet Name="FK_RatingTask_ReferenceResource1" Association="NavyRRLModel.FK_RatingTask_ReferenceResource1">
+            <End Role="ReferenceResource" EntitySet="ReferenceResource" />
+            <End Role="RatingTask" EntitySet="RatingTask" />
+          </AssociationSet>
         </EntityContainer>
         <EntityType Name="AspNetUserRoles">
           <Key>
@@ -1992,6 +1995,7 @@
           <NavigationProperty Name="ReferenceResource" Relationship="NavyRRLModel.FK_RatingTask_ReferenceResource" FromRole="RatingTask" ToRole="ReferenceResource" />
           <NavigationProperty Name="RmtlProject_BilletTask" Relationship="NavyRRLModel.FK_RmtlProject_BilletTask_RatingTask" FromRole="RatingTask" ToRole="RmtlProject_BilletTask" />
           <NavigationProperty Name="ConceptScheme_WorkElementType" Relationship="NavyRRLModel.FK_RatingTask_ConceptWorkElelment" FromRole="RatingTask" ToRole="ConceptScheme_Concept" />
+          <NavigationProperty Name="ReferenceResource1" Relationship="NavyRRLModel.FK_RatingTask_ReferenceResource1" FromRole="RatingTask" ToRole="ReferenceResource" />
         </EntityType>
         <EntityType Name="RatingTask_HasRating">
           <Key>
@@ -2182,6 +2186,7 @@
           <Property Name="ReferenceTypeId" Type="Int32" />
           <NavigationProperty Name="RatingTask" Relationship="NavyRRLModel.FK_RatingTask_ReferenceResource" FromRole="ReferenceResource" ToRole="RatingTask" />
           <NavigationProperty Name="Course" Relationship="NavyRRLModel.FK_CourseLCCD_ReferenceResource" FromRole="ReferenceResource" ToRole="Course" />
+          <NavigationProperty Name="RatingTask1" Relationship="NavyRRLModel.FK_RatingTask_ReferenceResource1" FromRole="ReferenceResource" ToRole="RatingTask" />
         </EntityType>
         <EntityType Name="ReferenceResource_ReferenceType">
           <Key>
@@ -2641,6 +2646,18 @@
             </Dependent>
           </ReferentialConstraint>
         </Association>
+        <Association Name="FK_RatingTask_ReferenceResource1">
+          <End Type="NavyRRLModel.ReferenceResource" Role="ReferenceResource" Multiplicity="0..1" />
+          <End Type="NavyRRLModel.RatingTask" Role="RatingTask" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="ReferenceResource">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="RatingTask">
+              <PropertyRef Name="ReferenceResourceId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
       </Schema>
     </edmx:ConceptualModels>
     <!-- C-S mapping content -->
@@ -2958,7 +2975,6 @@
                 <ScalarProperty Name="TaskStatusId" ColumnName="TaskStatusId" />
                 <ScalarProperty Name="TaskApplicabilityId" ColumnName="TaskApplicabilityId" />
                 <ScalarProperty Name="WorkElementTypeId" ColumnName="WorkElementTypeId" />
-                <ScalarProperty Name="SourceId" ColumnName="SourceId" />
                 <ScalarProperty Name="FunctionalAreaId" ColumnName="FunctionalAreaId" />
                 <ScalarProperty Name="LevelId" ColumnName="LevelId" />
                 <ScalarProperty Name="RankId" ColumnName="RankId" />
