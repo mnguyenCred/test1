@@ -630,41 +630,54 @@ namespace Factories
 					totalRows.Direction = ParameterDirection.Output;
 					command.Parameters.Add( totalRows );
 
-					using ( SqlDataAdapter adapter = new SqlDataAdapter() )
-					{
-						adapter.SelectCommand = command;
-						adapter.Fill( result );
-					}
-					string rows = command.Parameters[5].Value.ToString();
 					try
 					{
+						using ( SqlDataAdapter adapter = new SqlDataAdapter() )
+						{
+							adapter.SelectCommand = command;
+							adapter.Fill( result );
+						}
+						string rows = command.Parameters[5].Value.ToString();
 						pTotalRows = Int32.Parse( rows );
 					}
-					catch
+					catch ( Exception ex )
 					{
 						pTotalRows = 0;
+						LoggingHelper.LogError( ex, thisClassName + string.Format( ".Search() - Execute proc, Message: {0} \r\n Filter: {1} \r\n", ex.Message, pFilter ) );
+
+						item = new AppUser();
+						item.FirstName = "Error";
+						item.LastName = "Unexpected error encountered. System administration has been notified. Please try again later. ";
+						item.Email = ex.Message;
+						list.Add( item );
+						return list;
+					}
+			}
+				try
+				{
+					foreach ( DataRow dr in result.Rows )
+					{
+						item = new AppUser();
+						item.Id = GetRowColumn( dr, "Id", 0 );
+						item.FirstName = GetRowColumn( dr, "FirstName", "missing" );
+						item.LastName = GetRowColumn( dr, "LastName", "" );
+						string rowId = GetRowColumn( dr, "RowId" );
+						item.RowId = new Guid( rowId );
+
+						item.Email = GetRowColumn( dr, "Email", "" );
+						item.Roles = GetRowColumn( dr, "Roles", "" );
+						//item.OrgMbrs = GetRowColumn( dr, "OrgMbrs", "" );
+						//item.lastLogon = GetRowColumn( dr, "lastLogon", "" );
+						//if ( IsValidDate( item.lastLogon ) )
+						//	item.lastLogon = item.lastLogon.Substring( 0, 10 );
+
+						list.Add( item );
 					}
 				}
-
-				foreach ( DataRow dr in result.Rows )
+				catch ( Exception ex )
 				{
-					item = new AppUser();
-					item.Id = GetRowColumn( dr, "Id", 0 );
-					item.FirstName = GetRowColumn( dr, "FirstName", "missing" );
-					item.LastName = GetRowColumn( dr, "LastName", "" );
-					string rowId = GetRowColumn( dr, "RowId" );
-					item.RowId = new Guid( rowId );
-
-					item.Email = GetRowColumn( dr, "Email", "" );
-					item.Roles = GetRowColumn( dr, "Roles", "" );
-					//item.OrgMbrs = GetRowColumn( dr, "OrgMbrs", "" );
-					//item.lastLogon = GetRowColumn( dr, "lastLogon", "" );
-					//if ( IsValidDate( item.lastLogon ) )
-					//	item.lastLogon = item.lastLogon.Substring( 0, 10 );
-
-					list.Add( item );
+					LoggingHelper.DoTrace( 1, thisClassName + ".Search. Exception: " + ex.Message );
 				}
-
 				return list;
 
 			}

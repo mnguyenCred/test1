@@ -17,22 +17,22 @@ SELECT [ConceptSchemeId]
   FROM [dbo].[ConceptSchemeSummary]
 GO
 
-
 USE [NavyRRL]
 GO
 
-SELECT [Id]
-      ,[RowId]
-      ,CodedNotation
-      ,[Name]
+SELECT [CourseId]
+      ,[CourseUID]
+      ,[CodedNotation]
+      ,[CourseName]
+      ,[TrainingTaskId]
       ,[TrainingTask]
-	  ,TrainingTaskUID
-      ,[CurriculumControlAuthorityId]
-      ,[CurriculumControlAuthority]
+      ,[TrainingTaskUID]
       ,[LifeCycleControlDocumentId]
       ,[LifeCycleControlDocument]
       ,[LifeCycleControlDocumentUID]
       ,[CourseTypes]
+      ,[CurriculumControlAuthority]
+      ,[CurriculumControlAuthorityId]
       ,[AssessmentMethodTypes]
       ,[CTID]
       ,[Created]
@@ -40,8 +40,9 @@ SELECT [Id]
       ,[LastUpdated]
       ,[LastUpdatedById]
   FROM [dbo].[TrainingTaskSummary]
-
-  order by name, TrainingTask
+  where trainingtask = 'Plot plan of intended movement (PIM) tracks'
+  or codednotation = 'A-061-0070'
+  order by CourseName, TrainingTask
 GO
 
 
@@ -59,17 +60,25 @@ SELECT base.[Id] as CourseId
 	,task.Id as TrainingTaskId
 	,task.Description as TrainingTask
 	,task.RowId as TrainingTaskUID
-	,base.[CurriculumControlAuthorityId]
-	, b.Name as CurriculumControlAuthority
+	-- now multiple, leaves as is until duplicate rows?
+	--,base.[CurriculumControlAuthorityId]
+	--, b.Name as CurriculumControlAuthority
 	--
 	,base.[LifeCycleControlDocumentId]
-	,d.Concept as LifeCycleControlDocument
-	,d.ConceptUID as LifeCycleControlDocumentUID
+	,d.Name as LifeCycleControlDocument
+	,d.RowId as LifeCycleControlDocumentUID
+	--
 	,CASE
 		WHEN CourseTypes IS NULL THEN ''
 		WHEN len(CourseTypes) = 0 THEN ''
 		ELSE left(CourseTypes,len(CourseTypes)-1)
 		END AS CourseTypes
+	,CASE
+		WHEN Organizations IS NULL THEN ''
+		WHEN len(Organizations) = 0 THEN ''
+		ELSE left(Organizations,len(Organizations)-1)
+		END AS CurriculumControlAuthority
+	,0 as [CurriculumControlAuthorityId]
 	,CASE
 		WHEN AssessmentMethodTypes IS NULL THEN ''
 		WHEN len(AssessmentMethodTypes) = 0 THEN ''
@@ -80,19 +89,22 @@ SELECT base.[Id] as CourseId
 	,base.[LastUpdated]	,base.[LastUpdatedById]
 
   FROM [dbo].[Course] base
-  inner join [Course.Task] task on base.Id  = task.CourseId
-  inner join Organization b on base.CurriculumControlAuthorityId = b.Id
-  left join [dbo].[Course.Concept]	c on base.Id = c.courseId
+  Left join [Course.Task] task on base.Id  = task.CourseId
+
+  --Left join [Course.Organization] e on base.Id = e.CourseId 
+  --Left join Organization b on e.OrganizationId = b.Id
+  --left join [dbo].[Course.Concept]	c on base.Id = c.courseId
 	--LCCD
-	inner join [ConceptSchemeSummary] d on c.ConceptId = d.conceptid and d.ConceptSchemeId=17
+	Left join ReferenceResource d on base.[LifeCycleControlDocumentId] = d.Id 
+	--
 
 
     CROSS APPLY (
     --SELECT distinct d.Name + '~' + convert(varchar(50), d.RowId) + ' | '
 	SELECT distinct d.Name + ' | '
     FROM dbo.[Course]  a
-		Inner join [dbo].[Course.Concept]	c on a.Id = c.CourseId
-		inner join [ConceptScheme.Concept] d on c.ConceptId = d.Id and d.ConceptSchemeId=16
+		Inner join [dbo].[Course.CourseType]	c on a.Id = c.CourseId
+		inner join [ConceptScheme.Concept] d on c.CourseTypeConceptId = d.Id 
     WHERE  base.Id = a.Id
     FOR XML Path('') 
 ) CT (CourseTypes)
@@ -100,11 +112,20 @@ SELECT base.[Id] as CourseId
     CROSS APPLY (
     SELECT distinct d.Name + ' | '
     FROM dbo.[Course]  a
-		Inner join [dbo].[Course.Concept]	c on a.Id = c.CourseId
-		inner join [ConceptScheme.Concept] d on c.ConceptId = d.Id and d.ConceptSchemeId=13
+		Inner join [dbo].[Course.AssessmentType]	c on a.Id = c.CourseId
+		inner join [ConceptScheme.Concept] d on c.AssessmentMethodConceptId = d.Id 
     WHERE  base.Id = a.Id
     FOR XML Path('') 
 ) AMT (AssessmentMethodTypes)
+-- orgs
+    CROSS APPLY (
+    SELECT distinct d.Name + ' | '
+    FROM dbo.[Course]  a
+		Inner join [dbo].[Course.Organization]	c on a.Id = c.CourseId
+		inner join Organization d on c.OrganizationId= d.Id 
+    WHERE  base.Id = a.Id
+    FOR XML Path('') 
+) ORG (Organizations)
   go
   grant select on TrainingTaskSummary to public
   go

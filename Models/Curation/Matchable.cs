@@ -18,17 +18,25 @@ namespace Models.Curation
 		public List<UploadableRow> Rows { get; set; }
 	}
 	//
-
+	public class MatchableRating : Schema.Rating
+	{
+		//No additional properties
+	}
+	//
 	public class MatchableBilletTitle : Schema.BilletTitle
 	{
 		public string HasRating_CodedNotation { get; set; }
 		public List<string> HasRatingTask_MatchHelper { get; set; }
+		public List<string> HasRatingTaskCodedNotation { get; set; } = new List<string>();
 	}
 	//
 
 	public class MatchableRatingTask : Schema.RatingTask
 	{
+		public string HasCodedNotation { get; set; }
+		public string HasIdentifier { get; set; }
 		public List<string> HasRating_CodedNotation { get; set; }
+		public string HasBilletTitle_Name { get; set; }
 		public string HasTrainingTask_Description { get; set; }
 		public string HasReferenceResource_Name { get; set; }
 		public string HasReferenceResource_PublicationDate { get; set; }

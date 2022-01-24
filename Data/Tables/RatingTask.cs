@@ -19,7 +19,6 @@ namespace Data.Tables
         {
             this.RatingTask_HasRating = new HashSet<RatingTask_HasRating>();
             this.RatingTask_HasJob = new HashSet<RatingTask_HasJob>();
-            this.RatingTask_WorkRole = new HashSet<RatingTask_WorkRole>();
             this.RmtlProject_BilletTask = new HashSet<RmtlProject_BilletTask>();
         }
     
@@ -27,8 +26,6 @@ namespace Data.Tables
         public string CodedNotation { get; set; }
         public int RankId { get; set; }
         public int LevelId { get; set; }
-        public Nullable<int> FunctionalAreaId { get; set; }
-        public Nullable<int> SourceId { get; set; }
         public Nullable<int> WorkElementTypeId { get; set; }
         public Nullable<int> TaskApplicabilityId { get; set; }
         public Nullable<int> TaskStatusId { get; set; }
@@ -54,11 +51,9 @@ namespace Data.Tables
         public virtual ICollection<RatingTask_HasRating> RatingTask_HasRating { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<RatingTask_HasJob> RatingTask_HasJob { get; set; }
-        public virtual WorkRole WorkRole { get; set; }
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<RatingTask_WorkRole> RatingTask_WorkRole { get; set; }
-        public virtual ReferenceResource ReferenceResource { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<RmtlProject_BilletTask> RmtlProject_BilletTask { get; set; }
+        public virtual ConceptScheme_Concept ConceptScheme_WorkElementType { get; set; }
+        public virtual ReferenceResource ReferenceResource1 { get; set; }
     }
 }

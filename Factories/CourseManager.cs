@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-
+using Models.Curation;
 using AppEntity = Models.Schema.Course;
 using AppFullEntity = Models.Schema.CourseFull;
 using CourseTask = Models.Schema.TrainingTask;
@@ -30,7 +30,7 @@ namespace Factories
         /// <param name="entity"></param>
         /// <param name="status"></param>
         /// <returns></returns>
-        public bool Save( AppEntity entity, ref SaveStatus status )
+        public bool Save( AppEntity entity, ref ChangeSummary status )
         {
             bool isValid = true;
             int count = 0;
@@ -119,6 +119,7 @@ namespace Factories
                                 Activity = "Import",
                                 Event = "Update",
                                 Comment = string.Format( "Course was updated by the import. Name: {0}", entity.Name ),
+                                ActionByUserId = entity.LastUpdatedById,
                                 ActivityObjectId = entity.Id
                             };
                             new ActivityManager().SiteActivityAdd( sa );
@@ -126,10 +127,10 @@ namespace Factories
                     }
                     else
                     {
-                        status.AddError( "Error - update failed, as record was not found." );
+                        status.AddError( thisClassName + " Error - update failed, as record was not found." );
                     }
-                    
-                  
+
+
                 }
             }
             catch ( System.Data.Entity.Validation.DbEntityValidationException dbex )
@@ -155,7 +156,7 @@ namespace Factories
         /// <param name="entity"></param>
         /// <param name="status"></param>
         /// <returns></returns>
-        private int Add( AppEntity entity, ref SaveStatus status )
+        private int Add( AppEntity entity, ref ChangeSummary status )
         {
             DBEntity efEntity = new DBEntity();
             status.HasSectionErrors = false;
@@ -193,7 +194,7 @@ namespace Factories
                             Activity = "Import",//in the future there could be a different process.
                             Event = "Add",
                             Comment = string.Format( "Course: '{0} was added.", entity.Name ),
-                            ActivityObjectId = entity.Id, 
+                            ActivityObjectId = entity.Id,
                             ActionByUserId = entity.LastUpdatedById
                         };
                         new ActivityManager().SiteActivityAdd( sa );
@@ -225,7 +226,7 @@ namespace Factories
 
             return efEntity.Id;
         }
-        public static void MapToDB( AppEntity input, DBEntity output, SaveStatus status )
+        public static void MapToDB( AppEntity input, DBEntity output, ChangeSummary status )
         {
             status.HasSectionErrors = false;
             //watch for missing properties like rowId
@@ -233,32 +234,48 @@ namespace Factories
             //this will include the extra props (like LifeCycleControlDocument, etc. for now)
             BaseFactory.AutoMap( input, output, errors );
             //
-            if ( IsValidGuid(input.HasReferenceResource ) ) 
+            if ( IsValidGuid( input.HasReferenceResource ) )
             {
-                output.LifeCycleControlDocumentId = ConceptSchemeManager.GetConcept( input.HasReferenceResource)?.Id;
+                if ( output.LifeCycleControlDocumentId != null && output.ReferenceResource?.RowId == input.HasReferenceResource )
+                {
+                    //no action
+                }
+                else
+                {
+                    var entity = ReferenceResourceManager.Get( input.HasReferenceResource );
+                    if ( entity?.Id > 0 )
+                        output.LifeCycleControlDocumentId = ( int ) entity?.Id;
+                    else
+                    {
+                        status.AddError( thisClassName + String.Format( ".MapToDB. Course: '{0}'. The related HasReferenceResource '{1}' was not found", input.Name, input.HasReferenceResource ) );
+                    }
+                }
+            } else
+            {
+                output.LifeCycleControlDocumentId = null;
             }
             //
             //this may be removed if there can be multiple CCA
-            if ( input.CurriculumControlAuthority?.Count > 0 ) 
-            {
-                foreach( var item in input.CurriculumControlAuthority )
-                {
-                    //all org adds will occur before here
-                    var org = OrganizationManager.Get( item );
-                    if ( org != null && org.Id > 0 )
-                    {
-                        //TODO - now using Course.Organization
-                        output.CurriculumControlAuthorityId = org.Id;
-                        //only can handle one here
-                    }
-                    else
-                    {
-                        //should not have a new org here
-                        //NO, all new orgs will have been added first, so this would be an error
-                    }
-                }
+            //if ( input.CurriculumControlAuthority?.Count > 0 )
+            //{
+            //    foreach ( var item in input.CurriculumControlAuthority )
+            //    {
+            //        //all org adds will occur before here
+            //        var org = OrganizationManager.Get( item );
+            //        if ( org != null && org.Id > 0 )
+            //        {
+            //            //TODO - now using Course.Organization
+            //            output.CurriculumControlAuthorityId = org.Id;
+            //            //only can handle one here
+            //        }
+            //        else
+            //        {
+            //            //should not have a new org here
+            //            //NO, all new orgs will have been added first, so this would be an error
+            //        }
+            //    }
 
-            }
+            //}
         }
         public static void MapToDB( AppFullEntity input, DBEntity output )
         {
@@ -268,33 +285,33 @@ namespace Factories
             BaseFactory.AutoMap( input, output, errors );
             //
             if ( !string.IsNullOrWhiteSpace( input.LifeCycleControlDocument ) )
-            {               
+            {
                 //can this be a concept scheme??
                 output.LifeCycleControlDocumentId = ConceptSchemeManager.GetConcept( input.LifeCycleControlDocument, ConceptSchemeManager.ConceptScheme_LifeCycleControlDocument )?.Id;
             }
             //
 
-            if ( !string.IsNullOrWhiteSpace( input.Curriculum_Control_Authority ) )
-            {
-                var org = OrganizationManager.Get( input.Curriculum_Control_Authority , true);
-                if ( org != null && org.Id > 0 )
-                {
-                    output.CurriculumControlAuthorityId = org.Id;
-                } else
-                {
-                    SaveStatus status = new SaveStatus();
-                    org = new MSc.Organization()
-                    {
-                        Name = input.Curriculum_Control_Authority,
-                        AlternateName = input.Curriculum_Control_Authority
-                    };
-                    var isValid = new OrganizationManager().Save( org, input.LastUpdatedById, ref status );
-                    if ( isValid )
-                    { 
-                        output.CurriculumControlAuthorityId = org.Id;
-                    }
-                }
-            }
+            //if ( !string.IsNullOrWhiteSpace( input.Curriculum_Control_Authority ) )
+            //{
+            //    var org = OrganizationManager.Get( input.Curriculum_Control_Authority, true );
+            //    if ( org != null && org.Id > 0 )
+            //    {
+            //        output.CurriculumControlAuthorityId = org.Id;
+            //    } else
+            //    {
+            //        ChangeSummary status = new ChangeSummary();
+            //        org = new MSc.Organization()
+            //        {
+            //            Name = input.Curriculum_Control_Authority,
+            //            AlternateName = input.Curriculum_Control_Authority
+            //        };
+            //        var isValid = new OrganizationManager().Save( org, input.LastUpdatedById, ref status );
+            //        if ( isValid )
+            //        {
+            //            output.CurriculumControlAuthorityId = org.Id;
+            //        }
+            //    }
+            //}
         }
         #endregion
         #region Retrieval
@@ -410,10 +427,62 @@ namespace Factories
             {
                 output.RowId = input.RowId;
             }
-            //
-            if (includingTrainingTasks && input?.Course_Task?.Count > 0)
+            if (input.Course_AssessmentType != null)
             {
-                foreach( var item in input.Course_Task)
+                foreach (var item in input.Course_AssessmentType )
+                {
+                    if ( item != null && item.ConceptScheme_Concept != null )
+                    {
+                        output.AssessmentMethodType.Add( item.ConceptScheme_Concept.RowId );
+                        output.AssessmentMethods.Add( item.ConceptScheme_Concept.Name );
+                    }
+                }
+            }
+            //
+            if ( input.Course_CourseType?.Count > 0 )
+            {
+                output.CourseTypes = new List<Guid>();
+                int cntr = 0;
+                foreach ( var item in input.Course_CourseType )
+                {
+                    cntr++;
+                    if ( item != null && item.ConceptScheme_Concept != null )
+                    {
+                        output.CourseTypes.Add( item.ConceptScheme_Concept.RowId );
+                        if ( cntr == 1 )
+                            output.CourseType = item.ConceptScheme_Concept.RowId;
+                        output.CourseTypeList.Add( item.ConceptScheme_Concept.Name );
+                    }
+                }
+            }
+            //
+            if ( input.LifeCycleControlDocumentId != null )
+            {
+                output.LifeCycleControlDocumentId = (int)input.LifeCycleControlDocumentId;
+                if ( input.ReferenceResource?.Id > 0 )
+                {
+                    output.LifeCycleControlDocument = input.ReferenceResource.Name;
+                    output.HasReferenceResource = input.ReferenceResource.RowId;
+                }
+            }
+            //
+            if ( input.Course_Organization?.Count > 0 )
+            {
+                output.Organizations = new List<string>();
+                foreach ( var item in input.Course_Organization )
+                {
+                    if ( item != null && item.Organization != null )
+                    {
+                        output.CurriculumControlAuthority.Add( item.Organization.RowId );
+                        output.Organizations.Add( item.Organization.Name );
+                    }
+                }
+            }
+
+            //
+            if ( includingTrainingTasks && input?.Course_Task?.Count > 0 )
+            {
+                foreach ( var item in input.Course_Task )
                 {
                     output.HasTrainingTask.Add( item.RowId );
                 }
@@ -430,86 +499,26 @@ namespace Factories
         /// </summary>
         /// <param name="input"></param>
         /// <param name="status"></param>
-        public void UpdateParts( AppEntity input, SaveStatus status )
+        public void UpdateParts( AppEntity input, ChangeSummary status )
         {
             try
             {
-                if ( input.TrainingTasks != null)
-                {
-                    foreach(var item in input.TrainingTasks)
-                    {
-                        CourseTaskSave( input, item, ref status );
-                    }
-                }
-                //else if ( input.HasTrainingTask?.Count > 0 && AllNewtrainingTasks?.Count > 0)
-                //{
-                //    //get all tasks for the current course from the general list
-                //    //for a new course, can just focus on new training. 
-                //    //what if an existing course has a new task but doesn't exist in the updated courses?
-                //    var result = AllNewtrainingTasks.Where( p => input.HasTrainingTask.Any( p2 => p2 == p.RowId ) );
-                //    foreach( var item in result )
-                //    {
+                //CourseTaskSave( input, ref status );
+                new TrainingTaskManager().SaveList( input, false, ref status );
 
-                //    }
-                //}
-                //this needs to be multiple
-                if ( input.CourseType != null )
-                {
-                    //this needs to be multiple
-                    var concept = ConceptSchemeManager.GetConcept( input.CourseType );
-                    if ( concept?.Id > 0 )
-                        CourseConceptAdd( input, concept.Id, input.LastUpdatedById, ref status );
-                    else
-                    {
-                        status.AddError( String.Format( "Error. For Course: '{0}' ({1}) a CourseType concept was not found for Identifier: {2}", input.Name, input.Id, input.CourseType ) );
-                    }
-                }
+                CurriculumControlAuthorityUpdate( input, ref status );
                 //TBD
-                if ( input.CourseTypes?.Count > 0 )
+                if (IsValidGuid(input.CourseType))
                 {
-                    foreach(var item in input.CourseTypes)
-                    {
-                        var concept = ConceptSchemeManager.GetConcept( item );
-                        if ( concept?.Id > 0 )
-                            CourseConceptAdd( input, concept.Id, input.LastUpdatedById, ref status );
-                        else
-                        {
-                            status.AddError( String.Format( "Error. For Course: '{0}' ({1}) a CourseType concept was not found for Identifier: {2}", input.Name, input.Id, item ) );
-                        }
-                    }
-                    
+                    if ( input.CourseTypes == null)
+                        input.CourseTypes = new List<Guid>();
+                    input.CourseTypes.Add( input.CourseType );
                 }
-                if ( input.CurriculumControlAuthority?.Count > 0 )
-                {
-                    //TODO - needs to be updated to handle deletes (depending on the delete handling from the upload).
-                    foreach( var item in input.CurriculumControlAuthority)
-                    {
-                        var org = OrganizationManager.Get( item );
-                        if ( org != null && org.Id > 0 )
-                        {
-                            CourseOrganizationAdd( input, org.Id, input.LastUpdatedById, ref status );
-                        }
-                        else
-                        {
-                            status.AddError( String.Format( "Error. For Course: '{0}' ({1}) an organization was not found for Identifier: {2}", input.Name, input.Id, item.ToString() ) );
-                        }
-                    }
-                }
-                //
-                if ( input.AssessmentMethodType != null )
-                {
-                    //this needs to be multiple
-                    //var concept = ConceptSchemeManager.GetConcept( input.AssessmentMethodType );
-					foreach( var concept in input.AssessmentMethodType.Select(m => ConceptSchemeManager.GetConcept( m ) ).ToList() )
-					{
-						if (concept?.Id > 0)
-							CourseConceptAdd( input, concept.Id, input.LastUpdatedById, ref status );
-						else
-						{
-							status.AddError( String.Format( "Error. For Course: '{0}' ({1}) an assessment method concept was not found for Identifier: {2}", input.Name, input.Id, input.AssessmentMethodType) );
-						}
-					}
-                }
+                //CourseConceptSave( input, ConceptSchemeManager.ConceptScheme_CourseType, input.CourseTypes, "CourseType", ref status );
+                //CourseConceptSave( input, ConceptSchemeManager.ConceptScheme_CurrentAssessmentApproach, input.AssessmentMethodType, "AssessmentMethodType", ref status );
+                CourseTypeSave( input, input.CourseTypes, ref status );
+                CourseAssessmentMethodSave( input, input.AssessmentMethodType, ref status );
+
 
             } catch ( Exception ex )
             {
@@ -517,7 +526,7 @@ namespace Factories
             }
         }
         /*
-        public void UpdateParts( AppFullEntity input, SaveStatus status )
+        public void UpdateParts( AppFullEntity input, ChangeSummary status )
         {
             try
             {
@@ -598,334 +607,518 @@ namespace Factories
         }
         */
         #region TrainingTask
-        /// <summary>
-        /// Not sure if we want to get thousands of tasks
-        /// </summary>
-        /// <returns></returns>
-        public static List<CourseTask> TrainingTaskGetAll()
-        {
-            var entity = new CourseTask();
-            var list = new List<CourseTask>();
+        ///// <summary>
+        ///// Not sure if we want to get thousands of tasks
+        ///// </summary>
+        ///// <returns></returns>
+        //public static List<CourseTask> TrainingTaskGetAll()
+        //{
+        //    var entity = new CourseTask();
+        //    var list = new List<CourseTask>();
 
-            using ( var context = new DataEntities() )
-            {
-                var results = context.Course_Task
-                        .OrderBy( s => s.Id )
-                        .ToList();
-                if ( results?.Count > 0 )
-                {
-                    foreach ( var item in results )
-                    {
-                        if ( item != null && item.Id > 0 )
-                        {
-                            entity = new CourseTask();
-                            MapFromDB( item, entity, true );
-                            list.Add( ( entity ) );
-                        }
-                    }
-                }
+        //    using ( var context = new DataEntities() )
+        //    {
+        //        var results = context.Course_Task
+        //                .OrderBy( s => s.Id )
+        //                .ToList();
+        //        if ( results?.Count > 0 )
+        //        {
+        //            foreach ( var item in results )
+        //            {
+        //                if ( item != null && item.Id > 0 )
+        //                {
+        //                    entity = new CourseTask();
+        //                    MapFromDB( item, entity, true );
+        //                    list.Add( ( entity ) );
+        //                }
+        //            }
+        //        }
 
-            }
-            return list;
-        }
-        public static void MapFromDB( Course_Task input, CourseTask output, bool includingCourseId = false )
-        {
-            //should include list of concepts
-            List<string> errors = new List<string>();
-            BaseFactory.AutoMap( input, output, errors );
-            if ( input.RowId != output.RowId )
-            {
-                output.RowId = input.RowId;
-            }
-            //
-            if ( includingCourseId )
-            {
-                if (input.Course?.Id > 0)
-                {
-                    output.Course = input.Course.RowId;
-                }
-            }
-         
-        }
+        //    }
+        //    return list;
+        //}
+        //public static void MapFromDB( Course_Task input, CourseTask output, bool includingCourseId = false )
+        //{
+        //    //should include list of concepts
+        //    List<string> errors = new List<string>();
+        //    BaseFactory.AutoMap( input, output, errors );
+        //    if ( input.RowId != output.RowId )
+        //    {
+        //        output.RowId = input.RowId;
+        //    }
+        //    //
+        //    if ( includingCourseId )
+        //    {
+        //        if ( input.Course?.Id > 0 )
+        //        {
+        //            output.Course = input.Course.RowId;
+        //        }
+        //    }
+
+        //}
         #endregion
 
 
-        #region Course-Related
-        public bool CourseConceptAdd( AppEntity input, int conceptId, int userId, ref SaveStatus status )
+        #region Course concepts
+        public bool CourseAssessmentMethodSave( AppEntity input, List<Guid> concepts, ref ChangeSummary status )
         {
-            ConceptSchemeManager csMgr = new ConceptSchemeManager();
+            bool success = false;
             status.HasSectionErrors = false;
-            var efEntity = new Data.Tables.Course_Concept();
-            var entityType = "CourseConcept";
+            var efEntity = new Data.Tables.Course_AssessmentType();
+            var entityType = "Course_AssessmentType";
+
             using ( var context = new DataEntities() )
             {
                 try
                 {
+                    if ( concepts?.Count == 0 )
+                        concepts = new List<Guid>();
                     //check existance
-                    var item = context.Course_Concept
-                            .FirstOrDefault( s => s.CourseId == input.Id && s.ConceptId == conceptId);
-                    if ( item?.Id > 0 )
-                        return true;
-                    //
-                    efEntity.CourseId = input.Id;
-                    efEntity.ConceptId = conceptId;
-                    efEntity.RowId = Guid.NewGuid();
-                    efEntity.CreatedById = userId;
-                    //efEntity.CTID = "ce-" + efEntity.RowId.ToString().ToLower();
-                    efEntity.Created = DateTime.Now;
+                    var results =
+                                    from entity in context.Course_AssessmentType
+                                    join concept in context.ConceptScheme_Concept
+                                    on entity.AssessmentMethodConceptId equals concept.Id
+                                    where entity.CourseId == input.Id
 
-                    context.Course_Concept.Add( efEntity );
+                                    select concept;
 
-                    // submit the change to database
-                    int count = context.SaveChanges();
-                    if ( count > 0 )
+                    //if ( existing == null )
+                    //    existing = new List<ConceptScheme_Concept>();  
+                    var existing = results?.ToList();
+
+                    #region deletes check
+                    if ( existing.Any() )
                     {
-                        //
-                        return true;
+                        //if exists not in input, delete it
+                        foreach ( var e in existing )
+                        {
+                            var key = e.RowId;
+                            if ( IsValidGuid( key ) )
+                            {
+                                if ( !concepts.Contains( ( Guid ) key ) )
+                                {
+                                    DeleteCourseAssessmentType( input.Id, e.Id, ref status );
+                                }
+                            }
+                        }
                     }
-                    else
+                    #endregion
+                    //adds
+                    if ( concepts != null )
                     {
-                        //?no info on error
-                        string message = thisClassName + string.Format( ". Add Failed", "Attempted to add a {0}. The process appeared to not work, but was not an exception, so we have no message, or no clue. Course: '{2}' ({3}) for conceptId: {4}, was added for by the import.", entityType, input.Name, input.Id, conceptId );
-                        status.AddError( thisClassName + String.Format( ".Add-'{0}' Error - the add was not successful. ", entityType ) + message );
-                        EmailManager.NotifyAdmin( thisClassName + ". Add Failed", message );
+                        foreach ( var child in concepts )
+                        {
+                            //if not in existing, then add
+                            bool doingAdd = true;
+                            if ( existing?.Count > 0 )
+                            {
+                                foreach ( var item in existing )
+                                {
+                                    if ( item.RowId == child )
+                                    {
+                                        doingAdd = false;
+                                        break;
+                                    }
+                                }
+                            }
+                            if ( doingAdd )
+                            {
+                                var concept = ConceptSchemeManager.GetConcept( child );
+                                if ( concept?.Id > 0 )
+                                {
+                                    efEntity.CourseId = input.Id;
+                                    efEntity.AssessmentMethodConceptId = concept.Id;
+                                    efEntity.RowId = Guid.NewGuid();
+                                    efEntity.CreatedById = input.LastUpdatedById;
+                                    efEntity.Created = DateTime.Now;
+
+                                    context.Course_AssessmentType.Add( efEntity );
+
+                                    int count = context.SaveChanges();
+                                }
+                                else
+                                {
+                                    status.AddError( String.Format( "Error. For Course: '{0}' ({1}) a Course entity was not found for Identifier: {2}", input.Name, input.Id, child ) );
+                                }
+                            }
+                        }
                     }
                 }
                 catch ( Exception ex )
                 {
                     string message = FormatExceptions( ex );
-                    LoggingHelper.LogError( ex, thisClassName + string.Format( ".Add-'{0}', Course: '{1}' ({2}) for conceptId: '{3}'", entityType, input.Name, input.Id, conceptId ) );
-                    status.AddError( thisClassName + ".Add(). Error - the save was not successful. \r\n" + message );
+                    LoggingHelper.LogError( ex, thisClassName + string.Format( ".CourseAssessmentMethodSave failed, Course: '{0}' ({1})", entityType, input.Name, input.Id ) );
+                    status.AddError( thisClassName + ".CourseAssessmentMethodSave(). Error - the save was not successful. \r\n" + message );
                 }
             }
-            return false;
+            return success;
         }
-        //public void AddCourseConcept( AppFullEntity input, int conceptSchemeId, string concept, ref SaveStatus status )
-        //{
-        //    ConceptSchemeManager csMgr = new ConceptSchemeManager();
-        //    var efEntity = new Data.Tables.Course_Concept();
-        //    int conceptId = 0;
-        //    //lookup - need to check name or CodedNotation
-        //    var c = ConceptSchemeManager.GetConcept( conceptSchemeId, concept );
-        //    if ( c != null && c.Id > 0)
-        //        conceptId = c.Id;
-        //    else
-        //    {
-        //        //add
-        //        status.HasSectionErrors = false;
-        //        conceptId = csMgr.SaveConcept( conceptSchemeId, concept, ref status );
-        //        if ( conceptId == 0 )
-        //        {
-        //            LoggingHelper.DoTrace( 1, thisClassName + String.Format( ".AddCourseConcept. Failed to add Course_Concept of: '{0}' for conceptSchemeId: {1}, was added for Course: '{2}' by the import.", concept, conceptSchemeId, input.Name ) );
-        //            return;
-        //        }
-        //    }
-        //    using ( var context = new DataEntities() )
-        //    {
-        //        try
-        //        {
-        //            efEntity.CourseId = input.Id;
-        //            efEntity.ConceptId = conceptId;
-        //            efEntity.RowId = Guid.NewGuid();
-        //            //efEntity.CTID = "ce-" + efEntity.RowId.ToString().ToLower();
-        //            efEntity.Created = DateTime.Now;
-
-        //            context.Course_Concept.Add( efEntity );
-
-        //            // submit the change to database
-        //            int count = context.SaveChanges();
-        //            if ( count > 0 )
-        //            {
-        //                //
-        //                //add log entry
-        //                SiteActivity sa = new SiteActivity()
-        //                {
-        //                    ActivityType = "Course",
-        //                    Activity = "Import",
-        //                    Event = "Add Course_Concept",
-        //                    Comment = string.Format( "Course_Concept of: '{0}' for conceptSchemeId: {1}, was added for Course: '{2}' by the import.", concept, conceptSchemeId, input.Name ),
-        //                    ActivityObjectId = efEntity.Id
-        //                };
-        //                new ActivityManager().SiteActivityAdd( sa );
-        //           }
-        //            else
-        //            {
-        //                //?no info on error
-
-        //                string message = thisClassName + string.Format( ". Add Failed", "Attempted to add a Course_Concept. The process appeared to not work, but was not an exception, so we have no message, or no clue. Course_Concept of: '{0}' for conceptSchemeId: {1}, was added for Course: '{2}' by the import.", concept, conceptSchemeId, input.Name );
-        //                status.AddError( thisClassName + ". Error - the add Course_Concept was not successful. " + message );
-        //                EmailManager.NotifyAdmin( thisClassName + ". Add Failed", message );
-        //            }
-        //        }
-        //        catch ( System.Data.Entity.Validation.DbEntityValidationException dbex )
-        //        {
-        //            string message = HandleDBValidationError( dbex, thisClassName + ".AddCourseConcept() ", "Course" );
-        //            status.AddError( thisClassName + ".Add(). Error - the save was not successful. " + message );
-
-        //            LoggingHelper.LogError( message, true );
-        //        }
-        //        catch ( Exception ex )
-        //        {
-        //            string message = FormatExceptions( ex );
-        //            LoggingHelper.LogError( ex, thisClassName + string.Format( ".AddCourseConcept(), Course_Concept of: '{0}' for conceptSchemeId: {1}, was added for Course: '{2}' by the import.", concept, conceptSchemeId, input.Name ) );
-        //            status.AddError( thisClassName + ".Add(). Error - the save was not successful. \r\n" + message );
-        //        }
-        //    }
-        //}
-        public bool CourseOrganizationAdd( AppEntity input, int orgId, int userId, ref SaveStatus status )
+        public bool DeleteCourseAssessmentType( int courseId, int conceptId, ref ChangeSummary status )
         {
+            bool isValid = false;
+            if ( conceptId == 0 )
+            {
+                //statusMessage = "Error - missing an identifier for the CourseConcept to remove";
+                return false;
+            }
+
+            using ( var context = new DataEntities() )
+            {
+                var efEntity = context.Course_AssessmentType
+                                .FirstOrDefault( s => s.CourseId == courseId && s.AssessmentMethodConceptId == conceptId );
+
+                if ( efEntity != null && efEntity.Id > 0 )
+                {
+                    context.Course_AssessmentType.Remove( efEntity );
+                    int count = context.SaveChanges();
+                    if ( count > 0 )
+                    {
+                        isValid = true;
+                    }
+                }
+                else
+                {
+                    //statusMessage = "Warning - the record was not found - probably because the target had been previously deleted";
+                    isValid = true;
+                }
+            }
+
+            return isValid;
+        }
+        /*
+        public bool CourseAssessmentMethodSave( AppEntity input, List<Guid> concepts, ref ChangeSummary status )
+        {
+            bool success = false;
+            status.HasSectionErrors = false;
+            var efEntity = new Data.Tables.Course_AssessmentType();
+            var entityType = "Course_AssessmentType";
+
+            using ( var context = new DataEntities() )
+            {
+                try
+                {
+                    if ( concepts?.Count == 0 )
+                        concepts = new List<Guid>();
+                    //check existance
+                    var existing = context.Course_AssessmentType
+                        .Where( s => s.CourseId == input.Id )
+                        .ToList();
+                    if ( existing == null )
+                        existing = new List<Course_AssessmentType>();
+
+                    #region deletes check
+                    if ( existing.Any() )
+                    {
+                        //if exists not in input, delete it
+                        foreach ( var e in existing )
+                        {
+                            var key = e?.ConceptScheme_Concept.RowId;
+                            if ( IsValidGuid( key ) )
+                            {
+                                if ( !concepts.Contains( ( Guid ) key ) )
+                                {
+                                    context.Course_AssessmentType.Remove( e );
+                                    int dcount = context.SaveChanges();
+                                }
+                            }
+                        }
+                    }
+                    #endregion
+                    //adds
+                    if ( concepts != null )
+                    {
+                        foreach ( var child in concepts )
+                        {
+                            //if not in existing, then add
+                            bool doingAdd = true;
+                            if ( existing?.Count > 0 )
+                            {
+                                var isfound = existing.Select( s => s.ConceptScheme_Concept.RowId == child ).ToList();
+                                if ( !isfound.Any() )
+                                    doingAdd = false;
+                            }
+                            if ( doingAdd )
+                            {
+                                var concept = ConceptSchemeManager.GetConcept( child );
+                                if ( concept?.Id > 0 )
+                                {
+                                    efEntity.CourseId = input.Id;
+                                    efEntity.AssessmentMethodConceptId = concept.Id;
+                                    efEntity.RowId = Guid.NewGuid();
+                                    efEntity.CreatedById = input.LastUpdatedById;
+                                    efEntity.Created = DateTime.Now;
+
+                                    context.Course_AssessmentType.Add( efEntity );
+
+                                    int count = context.SaveChanges();
+                                }
+                                else
+                                {
+                                    status.AddError( String.Format( "Error. For Course: '{0}' ({1}) a Course AssessmentMethod concept was not found for Identifier: {2}", input.Name, input.Id, child ) );
+                                }
+                            }
+                        }
+                    }
+                }
+                catch ( Exception ex )
+                {
+                    string message = FormatExceptions( ex );
+                    LoggingHelper.LogError( ex, thisClassName + string.Format( ".CourseAssessmentMethodSave failed, Course: '{0}' ({1})", entityType, input.Name, input.Id ) );
+                    status.AddError( thisClassName + ".CourseAssessmentMethodSave(). Error - the save was not successful. \r\n" + message );
+                }
+            }
+            return success;
+        }
+        */
+        //
+        public bool CourseTypeSave( AppEntity input, List<Guid> concepts, ref ChangeSummary status )
+        {
+            bool success = false;
+            status.HasSectionErrors = false;
+            var efEntity = new Data.Tables.Course_CourseType();
+            var entityType = "Course_CourseType";
+
+            using ( var context = new DataEntities() )
+            {
+                try
+                {
+                    if ( concepts?.Count == 0 )
+                        concepts = new List<Guid>();
+                    //check existance
+                    var results =
+                                    from entity in context.Course_CourseType
+                                    join concept in context.ConceptScheme_Concept
+                                    on entity.CourseTypeConceptId equals concept.Id
+                                    where entity.CourseId == input.Id
+
+                                    select concept;
+                    //if ( existing == null )
+                    //    existing = new List<ConceptScheme_Concept>();  
+                    var existing = results?.ToList();
+                    #region deletes check
+                    if ( existing != null && existing.Count() > 0 )
+                    {
+                        //if exists not in input, delete it
+                        foreach ( var e in existing )
+                        {
+                            var key = e.RowId;
+                            if ( IsValidGuid( key ) )
+                            {
+                                if ( !concepts.Contains( ( Guid ) key ) )
+                                {
+                                    //DeleteCourseType( input.Id, e.Id, ref status );
+                                }
+                            }
+                        }
+                    }
+                    #endregion
+                    //adds
+                    if ( concepts != null )
+                    {
+                        foreach ( var child in concepts )
+                        {
+                            //if not in existing, then add
+                            bool doingAdd = true;
+                            if ( existing != null && existing.Count() > 0 )
+                            {
+                                foreach ( var item in existing )
+                                {
+                                    if ( item.RowId == child )
+                                    {
+                                        doingAdd = false;
+                                        break;
+                                    }
+                                }                                    
+                            }
+                            if ( doingAdd )
+                            {
+                                var concept = ConceptSchemeManager.GetConcept( child );
+                                if ( concept?.Id > 0 )
+                                {
+                                    efEntity.CourseId = input.Id;
+                                    efEntity.CourseTypeConceptId = concept.Id;
+                                    efEntity.RowId = Guid.NewGuid();
+                                    efEntity.CreatedById = input.LastUpdatedById;
+                                    efEntity.Created = DateTime.Now;
+
+                                    context.Course_CourseType.Add( efEntity );
+
+                                    int count = context.SaveChanges();
+                                }
+                                else
+                                {
+                                    status.AddError( String.Format( "Error. For Course: '{0}' ({1}) a Course CourseType was not found for Identifier: {2}", input.Name, input.Id, child ) );
+                                }
+                            }
+                        }
+                    }
+                }
+                catch ( Exception ex )
+                {
+                    string message = FormatExceptions( ex );
+                    LoggingHelper.LogError( ex, thisClassName + string.Format( ".CourseCourseTypeSave failed, Course: '{0}' ({1})", entityType, input.Name, input.Id ) );
+                    status.AddError( thisClassName + ".CourseCourseTypeSave(). Error - the save was not successful. \r\n" + message );
+                }
+            }
+            return success;
+        }
+        public bool DeleteCourseType( int courseId, int conceptId, ref ChangeSummary status )
+        {
+            bool isValid = false;
+            if ( conceptId == 0 )
+            {
+                //statusMessage = "Error - missing an identifier for the CourseConcept to remove";
+                return false;
+            }
+
+            using ( var context = new DataEntities() )
+            {
+                var efEntity = context.Course_CourseType
+                                .FirstOrDefault( s => s.CourseId == courseId && s.CourseTypeConceptId == conceptId);
+
+                if ( efEntity != null && efEntity.Id > 0 )
+                {
+                    context.Course_CourseType.Remove( efEntity );
+                    int count = context.SaveChanges();
+                    if ( count > 0 )
+                    {
+                        isValid = true;
+                    }
+                }
+                else
+                {
+                    //statusMessage = "Warning - the record was not found - probably because the target had been previously deleted";
+                    isValid = true;
+                }
+            }
+
+            return isValid;
+        }
+
+        #endregion
+
+
+        #region Course-Org
+        public bool CurriculumControlAuthorityUpdate( AppEntity input, ref ChangeSummary status )
+        {
+            status.HasSectionErrors = false;
             var efEntity = new Data.Tables.Course_Organization();
-            var entityType = "CourseOrganization";
-            status.HasSectionErrors = false;
+            var entityType = "Course_Organization";
             using ( var context = new DataEntities() )
             {
                 try
                 {
-                    //check existance
-                    var item = context.Course_Organization
-                            .FirstOrDefault( s => s.CourseId == input.Id && s.OrganizationId == orgId );
-                    if ( item?.Id > 0 )
-                        return true;
+                    if ( input.CurriculumControlAuthority?.Count == 0 )
+                        input.CurriculumControlAuthority = new List<Guid>();
+                    var results =
+                                    from entity in context.Course_Organization
+                                    join org in context.Organization
+                                    on entity.OrganizationId  equals org.Id
+                                    where entity.CourseId == input.Id
 
-                    efEntity.CourseId = input.Id;
-                    efEntity.OrganizationId = orgId;
-                    efEntity.RowId = Guid.NewGuid();
-                    efEntity.CreatedById = userId;
-                    //efEntity.CTID = "ce-" + efEntity.RowId.ToString().ToLower();
-                    efEntity.Created = DateTime.Now;
-
-                    context.Course_Organization.Add( efEntity );
-
-                    // submit the change to database
-                    int count = context.SaveChanges();
-                    if ( count > 0 )
+                                    select org;
+                    var existing = results?.ToList();
+                    #region deletes check
+                    if ( existing.Any() )
                     {
-                        //
-                        return true;
+                        //if exists not in input, delete it
+                        foreach ( var e in existing )
+                        {
+                            var key = e.RowId;
+                            if ( IsValidGuid( key ) )
+                            {
+                                //issue one row could refer to one org and another row a different org - results in deleting the first one. 
+                                //also would be useful to 'know' if these were all part of the same rating upload
+                                status.AddWarning( String.Format( thisClassName + ".CurriculumControlAuthorityUpdate. Warning: the org: '{0}' was included with this course (for one or more rows) and could have been deleted (but deletes are not enabled at this time. ", e.Name) );
+                                if ( !input.CurriculumControlAuthority.Contains( ( Guid ) key ) )
+                                {
+                                    //could log that a different org was found
+                                    //DeleteCourseOrganization( input.Id, e.Id, ref status );
+                                }
+                            }
+                        }
                     }
-                    else
+                    #endregion
+                    //adds
+                    if ( input.CurriculumControlAuthority != null )
                     {
-                        //?no info on error
+                        foreach ( var child in input.CurriculumControlAuthority )
+                        {
+                            //if not in existing, then add
+                            bool doingAdd = true;
+                            if ( existing?.Count > 0 )
+                            {
+                                var isfound = existing.Select( s => s.RowId == child ).ToList();
+                                if ( isfound.Any() )
+                                    doingAdd = false;
+                            }
+                            if ( doingAdd ) 
+                            {
+                                var org = OrganizationManager.Get( child );
+                                if ( org?.Id > 0 )
+                                {
+                                    //ReferenceConceptAdd( input, concept.Id, input.LastUpdatedById, ref status );
+                                    efEntity.CourseId = input.Id;
+                                    efEntity.OrganizationId = org.Id;
+                                    efEntity.RowId = Guid.NewGuid();
+                                    efEntity.CreatedById = input.LastUpdatedById;
+                                    efEntity.Created = DateTime.Now;
 
-                        string message = thisClassName + string.Format( ". Add Failed", "Attempted to add a {0}. The process appeared to not work, but was not an exception, so we have no message, or no clue. Course: '{2}'  ({3}) for orgId: {4}, was added for by the import.", entityType, input.Name, input.Id, orgId );
-                        status.AddError( thisClassName + String.Format( ".Add-'{0}' Error - the add was not successful. ", entityType ) + message );
-                        EmailManager.NotifyAdmin( thisClassName + ". Add Failed", message );
+                                    context.Course_Organization.Add( efEntity );
+
+                                    // submit the change to database
+                                    int count = context.SaveChanges();
+                                }
+                                else
+                                {
+                                    status.AddError( String.Format( "Error. For Course: '{0}' ({1}) a Course CurriculumControlAuthority was not found for Identifier: {2}", input.Name, input.Id, child ) );
+                                }
+                            }
+                        }
                     }
                 }
                 catch ( Exception ex )
                 {
                     string message = FormatExceptions( ex );
-                    LoggingHelper.LogError( ex, thisClassName + string.Format( ".Add-'{0}', Course: '{1}' ({2}) for orgId: '{3}'", entityType, input.Name, input.Id, orgId ) );
-                    status.AddError( thisClassName + ".Add(). Error - the save was not successful. \r\n" + message );
+                    LoggingHelper.LogError( ex, thisClassName + string.Format( ".CurriculumControlAuthorityUpdate-'{0}', RatingTask: '{1}' ({2})", entityType, input.Name, input.Id ) );
+                    status.AddError( thisClassName + ".CurriculumControlAuthorityUpdate(). Error - the save was not successful. \r\n" + message );
                 }
             }
             return false;
         }
-
-        public void CourseTaskSave( AppEntity input, MSc.TrainingTask task, ref SaveStatus status )
+        public bool DeleteCourseOrganization( int courseId, int conceptId, ref ChangeSummary status )
         {
-
-            using ( var context = new DataEntities() )
+            bool isValid = false;
+            if ( conceptId == 0 )
             {
-                //check existance
-                //or may want to assign and check for change (could be legit case change). 
-                //  use rowId if present - although the upload may have no way to determine if an existing task is being updated - 
-                Course_Task efEntity = new Course_Task();
-                if ( IsValidGuid( task.RowId ) )
-                {
-                    efEntity = context.Course_Task.FirstOrDefault( s => s.RowId == task.RowId );
-                }
-
-                if ( efEntity == null )
-                {
-                    efEntity = context.Course_Task
-                        .FirstOrDefault( s => s.CourseId == input.Id && s.Description.ToLower() == task.Description.ToLower() );
-                }
-                if ( efEntity?.Id > 0 )
-                {
-                    //update
-                    List<string> errors = new List<string>();
-                    //this will include the extra props (like LifeCycleControlDocument, etc. for now)
-                    BaseFactory.AutoMap( task, efEntity, errors );
-                    if ( HasStateChanged( context ) )
-                    {
-                        efEntity.LastUpdatedById = input.LastUpdatedById;
-                        efEntity.LastUpdated = DateTime.Now;
-                        var count = context.SaveChanges();
-                        //can be zero if no data changed
-                        if ( count >= 0 )
-                        {
-                            task.LastUpdated = ( DateTime ) efEntity.LastUpdated;
-                        }
-                        else
-                        {
-                            //?no info on error
-
-                            string message = string.Format( thisClassName + ".Save Failed", "Attempted to update a CourseTask. The process appeared to not work, but was not an exception, so we have no message, or no clue. Course: {0}, Id: {1}, Task: '{2}'", input.Name, input.Id, task.Description );
-                            status.AddError( "Error - the update was not successful. " + message );
-                            EmailManager.NotifyAdmin( thisClassName + ".CourseTaskSave Failed Failed", message );
-                        }
-
-                    }
-                } else
-                {
-                    var result = CourseTaskAdd( input, task, ref status );
-                }
-
+                //statusMessage = "Error - missing an identifier for the CourseConcept to remove";
+                return false;
             }
-        }
-
-        public bool CourseTaskAdd( AppEntity input, MSc.TrainingTask task, ref SaveStatus status )
-        {
-            var entityType = "CourseTask";
-            var efEntity = new Data.Tables.Course_Task();
-            status.HasSectionErrors = false;
-            //need to do a look up
 
             using ( var context = new DataEntities() )
             {
-                try
+                var efEntity = context.Course_Organization
+                                .FirstOrDefault( s => s.CourseId == courseId && s.OrganizationId == conceptId );
+
+                if ( efEntity != null && efEntity.Id > 0 )
                 {
-                    if ( IsValidGuid( task.RowId ) )
-                        efEntity.RowId = task.RowId;
-                    else
-                        efEntity.RowId = Guid.NewGuid();
-                    if ( IsValidCtid( task.CTID ) )
-                        efEntity.CTID = task.CTID;
-                    else
-                        efEntity.CTID = "ce-" + efEntity.RowId.ToString().ToLower();
-
-                    efEntity.CourseId = input.Id;
-                    efEntity.Description = task.Description;
-                    efEntity.CreatedById = efEntity.LastUpdatedById = input.LastUpdatedById;
-                    efEntity.Created = efEntity.LastUpdated = DateTime.Now;
-
-                    context.Course_Task.Add( efEntity );
-
-                    // submit the change to database
+                    context.Course_Organization.Remove( efEntity );
                     int count = context.SaveChanges();
                     if ( count > 0 )
                     {
-                        //
-                        return true;
-                    }
-                    else
-                    {
-                        //?no info on error
-                        string message = thisClassName + string.Format( ". Add Failed", "Attempted to add a {0}. The process appeared to not work, but was not an exception, so we have no message, or no clue. Course: '{2}' ({3}) for task: '{4}', was added for by the import.", entityType, input.Name, input.Id, task.Description );
-                        status.AddError( thisClassName + String.Format( ".Add-'{0}' Error - the add was not successful. ", entityType) + message );
-                        EmailManager.NotifyAdmin( thisClassName + ". Add Failed", message );
+                        isValid = true;
                     }
                 }
-                catch ( Exception ex )
+                else
                 {
-                    string message = FormatExceptions( ex );
-                    LoggingHelper.LogError( ex, thisClassName + string.Format( ".Add-'{0}', Course: '{1}' ({2}) for task: '{3}'", entityType, input.Name, input.Id, task.Description ) );
-                    status.AddError( thisClassName + ".Add(). Error - the save was not successful. \r\n" + message );
+                    //statusMessage = "Warning - the record was not found - probably because the target had been previously deleted";
+                    isValid = true;
                 }
             }
-            return false;
+
+            return isValid;
         }
+
         #endregion
 
     }

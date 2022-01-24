@@ -186,10 +186,36 @@ namespace Factories
 
 			return mappingWasSuccessful;
 		}
-	
+
 
         #region data retrieval     
+        public static List<Guid> GetFunctionalAreas( string property, ref string workRoleList )
+        {
+            if ( string.IsNullOrEmpty( property ) )
+                return null;
+            var output = new List<Guid>();
+            workRoleList = "";
+            var pipe = "";
+            //workRoles = new List<string>();
+            string[] parts = property.Split( '|' );
+            foreach ( var item in parts )
+            {
+                string[] part2 = property.Split( '~' );
+                if ( part2.Length > 0 )
+                {
+                    workRoleList += pipe + part2[0].Trim();
+                    pipe = "|";
+                    //workRoles.Add( part2[0].Trim() );
+                    if ( part2.Length == 2 )
+                    {
+                        if (IsValidGuid( part2[1] ) )
+                            output.Add( new Guid( part2[1] ) );
+                    }
+                }
+            }
 
+            return output;
+        } //
         public static Guid GetGuidType( DataRow dr, string property )
         {
             string guid = GetRowColumn( dr, property );
@@ -230,7 +256,7 @@ namespace Factories
                 {
                     if ( cache.LastUpdated > maxTime )
                     {
-                        LoggingHelper.DoTrace( 6, string.Format( thisClassName + ".GetRatingFromCache. Using cached version of Ratings" ) );
+                        LoggingHelper.DoTrace( 7, string.Format( thisClassName + ".GetRatingFromCache. Using cached version of Ratings" ) );
 
                         ratings = cache.Ratings;
                         output = ratings.FirstOrDefault( s => s.CodedNotation == rating );
@@ -1472,6 +1498,15 @@ namespace Factories
 
         #endregion
 
+        public static string FormatLongLabel( string text, int maxLength = 75 )
+        {
+            if (string.IsNullOrWhiteSpace(text))
+                return "";
+            if ( text.Length > maxLength )
+                return text.Substring( 0, maxLength ) + " ...";
+            else
+                return text;
+        }
         public static string ConvertSpecialCharacters( string text )
         {
             bool hasChanged = false;

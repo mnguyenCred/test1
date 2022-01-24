@@ -7,7 +7,10 @@ using System.Text;
 using System.Threading.Tasks;
 
 using Models.Application;
+using Models.Curation;
+
 using Models.Import;
+using Models.Schema;
 using AppEntity = Models.Schema.RatingTask;
 using EntitySummary = Models.Schema.RatingTaskSummary;
 using DataEntities = Data.Tables.NavyRRLEntities;
@@ -54,7 +57,7 @@ namespace Factories
                 {
                     item = context.RatingTaskSummary
                                 .FirstOrDefault( s => s.PayGradeType == importEntity.PayGradeType
-                                && s.FunctionalAreaUID == importEntity.ReferenceType
+                                //&& s.FunctionalAreaUID == importEntity.ReferenceType //NOW a list, so not helpful
                                 && s.HasReferenceResource == importEntity.HasReferenceResource
                                 && s.RatingTask.ToLower() == importEntity.Description.ToLower()
                                 );
@@ -409,12 +412,14 @@ namespace Factories
 						item.RowId = GetGuidType( dr, "RowId" );
 						item.Ratings = dr["Ratings"].ToString();// GetRowColumn( dr, "Ratings", "" );
                         
-                        item.HasRatings = GetRatingGuids( item.Ratings );
+                        if ( autocomplete ) 
+                            item.HasRatings = GetRatingGuids( item.Ratings );
                         //do we need to populate HasRating (if so, could include in the pipe separated list of Ratings
                         item.BilletTitles = dr["BilletTitles"].ToString();// GetRowColumn( dr, "BilletTitles", "" );
                         var bt= GetRowColumn( dr, "BilletTitles", "" );
                         //could save previous and then first check the previous
-                        item.HasBilletTitles = GetBilletTitleGuids( item.BilletTitles );
+                        if ( autocomplete )
+                            item.HasBilletTitles = GetBilletTitleGuids( item.BilletTitles );
                         //similarly, do we need a list of billet guids?
 
                         item.Description = dr["RatingTask"].ToString();// GetRowColumn( dr, "RatingTask", "" );
@@ -434,11 +439,18 @@ namespace Factories
                         item.PayGradeType = GetGuidType( dr, "PayGradeType" );
                                                                            //
                         item.Level = dr["Level"].ToString();// GetRowPossibleColumn( dr, "Level", "" );
-                                                                    //
+                        //FunctionalArea  - not a pipe separated list 
+                        //22-01-23 - what to do about the HasWorkRole list. Could include and split out here?
                         item.FunctionalArea = dr["FunctionalArea"].ToString();// GetRowColumn( dr, "FunctionalArea", "" );
-                        item.ReferenceType = GetGuidType( dr, "ReferenceType" );
-						//
-						item.Source = dr["Source"].ToString();// GetRowColumn( dr, "Source", "" );
+                        if ( !string.IsNullOrWhiteSpace( item.FunctionalArea ) ) 
+                        {
+                            var workRoleList = "";
+                            item.HasWorkRole = GetFunctionalAreas( item.FunctionalArea, ref workRoleList );
+                            item.FunctionalArea = workRoleList;
+                        }
+                        //
+                        //
+                        item.ReferenceResource = dr["ReferenceResource"].ToString();// GetRowColumn( dr, "Source", "" );
                         item.SourceDate = dr["SourceDate"].ToString();// GetRowColumn( dr, "SourceDate", "" );
                         item.HasReferenceResource = GetGuidType( dr, "HasReferenceResource" );
 						//
@@ -453,7 +465,7 @@ namespace Factories
 
 						item.CIN = dr["CIN"].ToString();// GetRowColumn( dr, "CIN", "" );
                         item.CourseName = dr["CourseName"].ToString();// GetRowColumn( dr, "CourseName", "" );
-                        item.CourseType = dr["CourseType"].ToString();// GetRowPossibleColumn( dr, "CourseType", "" );
+                        item.CourseType = dr["CourseTypes"].ToString();// GetRowPossibleColumn( dr, "CourseType", "" );
                         item.CurrentAssessmentApproach = dr["AssessmentMethodTypes"].ToString();// GetRowPossibleColumn( dr, "AssessmentMethodTypes", "" );
                                                                                      //
                         item.TrainingTask = dr["TrainingTask"].ToString();// GetRowPossibleColumn( dr, "TrainingTask", "" );
@@ -461,7 +473,7 @@ namespace Factories
 						//
 						item.CurriculumControlAuthority = dr["CurriculumControlAuthority"].ToString();// GetRowPossibleColumn( dr, "CurriculumControlAuthority", "" );
                         item.LifeCycleControlDocument = dr["LifeCycleControlDocument"].ToString();// GetRowPossibleColumn( dr, "LifeCycleControlDocument", "" );
-
+                        item.Notes = dr["Notes"].ToString();
 
                         list.Add( item );
 					}
@@ -508,10 +520,707 @@ namespace Factories
                 //output.TrainingGapType = ConceptSchemeManager.MapConcept( input.ConceptScheme_TrainingGap )?.RowId ?? Guid.Empty;
 			}
         }
+        #endregion
+
+        #region === persistance ==================
+        public bool Save( AppEntity input, ref ChangeSummary status )
+        {
+            bool isValid = true;
+            int count = 0;
+            try
+            {
+                using ( var context = new DataEntities() )
+                {
+                    //if ( ValidateProfile( entity, ref status ) == false )
+                    //    return false;
+                    //look up if no id
+                    if ( input.Id == 0 )
+                    {
+                        //need to identify for sure what is unique
+                        //use codedNotation first if present
+                        var record = Get( input );
+                        if ( record?.Id > 0 )
+                        {
+                            //
+                            input.Id = record.Id;
+                            UpdateParts( input, status );
+                            //??
+                            return true;
+                        }
+                        else
+                        {
+                            //add
+                            int newId = Add( input, ref status );
+                            if ( newId == 0 || status.HasSectionErrors )
+                                isValid = false;
+                        }
+                    }
+                    else
+                    {
+                        //TODO - consider if necessary, or interferes with anything
+                        context.Configuration.LazyLoadingEnabled = false;
+                        DBEntity efEntity = context.RatingTask
+                                .SingleOrDefault( s => s.Id == input.Id );
+
+                        if ( efEntity != null && efEntity.Id > 0 )
+                        {
+                            //fill in fields that may not be in entity
+                            input.RowId = efEntity.RowId;
+                            input.Created = efEntity.Created;
+                            input.CreatedById = ( efEntity.CreatedById ?? 0 );
+                            input.Id = efEntity.Id;
+
+                            MapToDB( input, efEntity, ref status );
+
+                            if ( HasStateChanged( context ) )
+                            {
+                                efEntity.LastUpdated = DateTime.Now;
+                                efEntity.LastUpdatedById = input.LastUpdatedById;
+                                count = context.SaveChanges();
+                                //can be zero if no data changed
+                                if ( count >= 0 )
+                                {
+                                    input.LastUpdated = ( DateTime ) efEntity.LastUpdated;
+                                    isValid = true;
+                                }
+                                else
+                                {
+                                    //?no info on error
+
+                                    isValid = false;
+                                    string message = string.Format( thisClassName + ".Save Failed", "Attempted to update a RatingTask. The process appeared to not work, but was not an exception, so we have no message, or no clue. RatingTask: {0}, Id: {1}", FormatLongLabel( input.Description ), input.Id );
+                                    status.AddError( "Error - the update was not successful. " + message );
+                                    EmailManager.NotifyAdmin( thisClassName + ".Save Failed Failed", message );
+                                }
+
+                            }
+
+                            if ( isValid )
+                            {
+                                UpdateParts( input, status );
+                                SiteActivity sa = new SiteActivity()
+                                {
+                                    ActivityType = "RatingTask",
+                                    Activity = "Import",
+                                    Event = "Update",
+                                    Comment = string.Format( "RatingTask was updated by the import. Name: {0}", input.Description ),
+                                    ActionByUserId = input.LastUpdatedById,
+                                    ActivityObjectId = input.Id
+                                };
+                                new ActivityManager().SiteActivityAdd( sa );
+                            }
+                        }
+                        else
+                        {
+                            status.AddError( "Error - update failed, as record was not found." );
+                        }
+                    }
+
+                }
+            }
+            catch ( System.Data.Entity.Validation.DbEntityValidationException dbex )
+            {
+                string message = HandleDBValidationError( dbex, thisClassName + string.Format( ".Save. id: {0}, Name: {1}", input.Id, FormatLongLabel( input.Description ) ), "RatingTask" );
+                status.AddError( thisClassName + ".Save(). Error - the save was not successful. " + message );
+            }
+            catch ( Exception ex )
+            {
+                string message = FormatExceptions( ex );
+                LoggingHelper.LogError( ex, thisClassName + string.Format( ".Save. id: {0}, Name: {1}", input.Id, FormatLongLabel( input.Description ) ), true );
+                status.AddError( thisClassName + ".Save(). Error - the save was not successful. " + message );
+                isValid = false;
+            }
+
+
+            return isValid;
+        }
+        private int Add( AppEntity entity, ref ChangeSummary status )
+        {
+            DBEntity efEntity = new DBEntity();
+            status.HasSectionErrors = false;
+            using ( var context = new DataEntities() )
+            {
+                try
+                {
+                    MapToDB( entity, efEntity, ref status );
+
+                    if ( IsValidGuid( entity.RowId ) )
+                        efEntity.RowId = entity.RowId;
+                    else
+                        efEntity.RowId = Guid.NewGuid();
+                    if ( IsValidCtid( entity.CTID ) )
+                        efEntity.CTID = entity.CTID;
+                    else
+                        efEntity.CTID = "ce-" + efEntity.RowId.ToString().ToLower();
+                    entity.Created = efEntity.Created = DateTime.Now;
+                    entity.LastUpdated = efEntity.LastUpdated = DateTime.Now;
+                    efEntity.CreatedById = efEntity.LastUpdatedById = entity.LastUpdatedById;
+
+                    context.RatingTask.Add( efEntity );
+
+                    // submit the change to database
+                    int count = context.SaveChanges();
+                    if ( count > 0 )
+                    {
+                        entity.RowId = efEntity.RowId;
+                        entity.Id = efEntity.Id;
+                        UpdateParts( entity, status );
+                        //
+                        //add log entry
+                        SiteActivity sa = new SiteActivity()
+                        {
+                            ActivityType = "RatingTask",
+                            Activity = "Import",
+                            Event = "Add",
+                            Comment = string.Format( " A RatingTask was added by the import. Desc: {0}", FormatLongLabel( entity.Description) ),
+                            ActionByUserId = entity.LastUpdatedById,
+                            ActivityObjectId = entity.Id
+                        };
+                        new ActivityManager().SiteActivityAdd( sa );
+
+
+                        return efEntity.Id;
+                    }
+                    else
+                    {
+                        //?no info on error
+
+                        string message = thisClassName + string.Format( ". Add Failed", "Attempted to add a RatingTask. The process appeared to not work, but was not an exception, so we have no message, or no clue. RatingTask: '{0}'", FormatLongLabel( entity.Description ) );
+                        status.AddError( thisClassName + ". Error - the add was not successful. " + message );
+                        EmailManager.NotifyAdmin( "RatingTaskManager. Add Failed", message );
+                    }
+                }
+                catch ( System.Data.Entity.Validation.DbEntityValidationException dbex )
+                {
+                    string message = HandleDBValidationError( dbex, thisClassName + string.Format(".Add() RatingTask: '{0}'", FormatLongLabel( entity.Description )), "RatingTask" );
+                    status.AddError( thisClassName + ".Add(). Data Validation Error - the save was not successful. " + message );
+
+                    LoggingHelper.LogError( message, true );
+                }
+                catch ( Exception ex )
+                {
+                    string message = FormatExceptions( ex );
+                    LoggingHelper.LogError( ex, thisClassName + string.Format( ".Add(), RatingTask: '{0}'", FormatLongLabel( entity.Description ) ) );
+                    status.AddError( thisClassName + string.Format( ".Add(), RatingTask: '{0}'. ", FormatLongLabel( entity.Description ) )   + message );
+                }
+            }
+
+            return efEntity.Id;
+        }
+        public void UpdateParts( AppEntity input, ChangeSummary status )
+        {
+            try
+            {
+                //FunctionArea/WorkRole
+                WorkRoleUpdate( input, ref status );
+
+                //RatingTask.HasRating
+                HasRatingUpdate( input, ref status );
+                //RatingTask.HasJob
+                HasJobUpdate( input, ref status );
+            }
+            catch ( Exception ex )
+            {
+                LoggingHelper.LogError( ex, thisClassName + "UpdateParts" );
+            }
+        }
+        public bool WorkRoleUpdate( AppEntity input, ref ChangeSummary status )
+        {
+            status.HasSectionErrors = false;
+            var efEntity = new Data.Tables.RatingTask_WorkRole();
+            var entityType = "RatingTask_WorkRole";
+            using ( var context = new DataEntities() )
+            {
+                try
+                {
+                    if ( input.HasWorkRole?.Count == 0 )
+                        input.HasWorkRole = new List<Guid>();
+                    var results =
+                                    from entity in context.RatingTask_WorkRole
+                                    join related in context.WorkRole
+                                    on entity.WorkRoleId equals related.Id
+                                    where entity.RatingTaskId == input.Id
+
+                                    select related;
+                    var existing = results?.ToList();
+                    #region deletes check
+                    if ( existing.Any() )
+                    {
+                        //if exists not in input, delete it
+                        foreach ( var e in existing )
+                        {
+                            var key = e.RowId;
+                            if ( IsValidGuid( key ) )
+                            {
+                                if ( !input.HasWorkRole.Contains( ( Guid ) key ) )
+                                {
+                                    DeleteRatingTaskWorkRole( input.Id, e.Id, ref status );
+                                }
+                            }
+                        }
+                    }
+                    #endregion
+                    //adds
+                    if ( input.HasWorkRole != null )
+                    {
+                        foreach ( var child in input.HasWorkRole )
+                        {
+                            //if not in existing, then add
+                            bool doingAdd = true;
+                            if ( existing?.Count > 0 )
+                            {
+                                var isfound = existing.Select( s => s.RowId == child ).ToList();
+                                if ( isfound.Any() )
+                                    doingAdd = false;
+                            }
+                            if ( doingAdd )
+                            {
+                                var related = WorkRoleManager.Get( child );
+                                if ( related?.Id > 0 )
+                                {
+                                    //ReferenceConceptAdd( input, concept.Id, input.LastUpdatedById, ref status );
+                                    efEntity.RatingTaskId = input.Id;
+                                    efEntity.WorkRoleId = related.Id;
+                                    efEntity.RowId = Guid.NewGuid();
+                                    efEntity.CreatedById = input.LastUpdatedById;
+                                    efEntity.Created = DateTime.Now;
+
+                                    context.RatingTask_WorkRole.Add( efEntity );
+
+                                    // submit the change to database
+                                    int count = context.SaveChanges();
+                                }
+                                else
+                                {
+                                    status.AddError( String.Format( "Error. For RatingTask: '{0}' ({1}) a HasWorkRole was not found for Identifier: {2}", FormatLongLabel(input.Description), input.Id, child ) );
+                                }
+                            }
+                        }
+                    }
+                }
+                catch ( Exception ex )
+                {
+                    string message = FormatExceptions( ex );
+                    LoggingHelper.LogError( ex, thisClassName + string.Format( ".HasWorkRoleUpdate-'{0}', RatingTask: '{1}' ({2})", entityType, FormatLongLabel( input.Description ), input.Id ) );
+                    status.AddError( thisClassName + ".HasWorkRoleUpdate(). Error - the save was not successful. \r\n" + message );
+                }
+            }
+            return false;
+        }
+        public bool DeleteRatingTaskWorkRole( int ratingTaskId, int workRoleId, ref ChangeSummary status )
+        {
+            bool isValid = false;
+            if ( workRoleId == 0 )
+            {
+                //statusMessage = "Error - missing an identifier for the CourseConcept to remove";
+                return false;
+            }
+
+            using ( var context = new DataEntities() )
+            {
+                var efEntity = context.RatingTask_WorkRole
+                                .FirstOrDefault( s => s.RatingTaskId == ratingTaskId && s.WorkRoleId == workRoleId );
+
+                if ( efEntity != null && efEntity.Id > 0 )
+                {
+                    context.RatingTask_WorkRole.Remove( efEntity );
+                    int count = context.SaveChanges();
+                    if ( count > 0 )
+                    {
+                        isValid = true;
+                    }
+                }
+                else
+                {
+                    //statusMessage = "Warning - the record was not found - probably because the target had been previously deleted";
+                    isValid = true;
+                }
+            }
+
+            return isValid;
+        }
+
+        public bool HasRatingUpdate( AppEntity input, ref ChangeSummary status )
+        {
+            status.HasSectionErrors = false;
+            var efEntity = new Data.Tables.RatingTask_HasRating();
+            var entityType = "RatingTask_HasRating";
+            using ( var context = new DataEntities() )
+            {
+                try
+                {
+                    if ( input.HasRating?.Count == 0 )
+                        input.HasRating = new List<Guid>();
+                    var results =
+                                    from entity in context.RatingTask_HasRating
+                                    join related in context.Rating
+                                    on entity.RatingId equals related.Id
+                                    where entity.RatingTaskId == input.Id
+
+                                    select related;
+                    var existing = results?.ToList();
+                    #region deletes check
+                    if ( existing.Any() )
+                    {
+                        //if exists not in input, delete it
+                        foreach ( var e in existing )
+                        {
+                            var key = e.RowId;
+                            if ( IsValidGuid( key ) )
+                            {
+                                if ( !input.HasRating.Contains( ( Guid ) key ) )
+                                {
+                                    DeleteRatingTaskHasRating( input.Id, e.Id, ref status );
+                                }
+                            }
+                        }
+                    }
+                    #endregion
+                    //adds
+                    if ( input.HasRating != null )
+                    {
+                        foreach ( var child in input.HasRating )
+                        {
+                            //if not in existing, then add
+                            bool doingAdd = true;
+                            if ( existing?.Count > 0 )
+                            {
+                                var isfound = existing.Select( s => s.RowId == child ).ToList();
+                                if ( isfound.Any() )
+                                    doingAdd = false;
+                            }
+                            if ( doingAdd )
+                            {
+                                var related = RatingManager.Get( child );
+                                if ( related?.Id > 0 )
+                                {
+                                    //ReferenceConceptAdd( input, concept.Id, input.LastUpdatedById, ref status );
+                                    efEntity.RatingTaskId = input.Id;
+                                    efEntity.RatingId = related.Id;
+                                    efEntity.RowId = Guid.NewGuid();
+                                    efEntity.CreatedById = input.LastUpdatedById;
+                                    efEntity.Created = DateTime.Now;
+
+                                    context.RatingTask_HasRating.Add( efEntity );
+
+                                    // submit the change to database
+                                    int count = context.SaveChanges();
+                                }
+                                else
+                                {
+                                    status.AddError( String.Format( "Error. For RatingTask: '{0}' ({1}) a HasRating was not found for Identifier: {2}", FormatLongLabel( input.Description ), input.Id, child ) );
+                                }
+                            }
+                        }
+                    }
+                }
+                catch ( Exception ex )
+                {
+                    string message = FormatExceptions( ex );
+                    LoggingHelper.LogError( ex, thisClassName + string.Format( ".HasRatingUpdate-'{0}', RatingTask: '{1}' ({2})", entityType, FormatLongLabel( input.Description ), input.Id ) );
+                    status.AddError( thisClassName + ".HasRatingUpdate(). Error - the save was not successful. \r\n" + message );
+                }
+            }
+            return false;
+        }
+        public bool DeleteRatingTaskHasRating( int ratingTaskId, int workRoleId, ref ChangeSummary status )
+        {
+            bool isValid = false;
+            if ( workRoleId == 0 )
+            {
+                //statusMessage = "Error - missing an identifier for the CourseConcept to remove";
+                return false;
+            }
+
+            using ( var context = new DataEntities() )
+            {
+                var efEntity = context.RatingTask_HasRating
+                                .FirstOrDefault( s => s.RatingTaskId == ratingTaskId && s.RatingId == workRoleId );
+
+                if ( efEntity != null && efEntity.Id > 0 )
+                {
+                    context.RatingTask_HasRating.Remove( efEntity );
+                    int count = context.SaveChanges();
+                    if ( count > 0 )
+                    {
+                        isValid = true;
+                    }
+                }
+                else
+                {
+                    //statusMessage = "Warning - the record was not found - probably because the target had been previously deleted";
+                    isValid = true;
+                }
+            }
+
+            return isValid;
+        }
+
+        public bool HasJobUpdate( AppEntity input, ref ChangeSummary status )
+        {
+            status.HasSectionErrors = false;
+            var efEntity = new Data.Tables.RatingTask_HasJob();
+            var entityType = "RatingTask_HasJob";
+            using ( var context = new DataEntities() )
+            {
+                try
+                {
+                    if ( input.HasBillet?.Count == 0 )
+                        input.HasBillet = new List<Guid>();
+                    var results =
+                                    from entity in context.RatingTask_HasJob
+                                    join related in context.Job
+                                    on entity.JobId equals related.Id
+                                    where entity.RatingTaskId == input.Id
+
+                                    select related;
+                    var existing = results?.ToList();
+                    #region deletes check
+                    if ( existing.Any() )
+                    {
+                        //if exists not in input, delete it
+                        foreach ( var e in existing )
+                        {
+                            var key = e.RowId;
+                            if ( IsValidGuid( key ) )
+                            {
+                                if ( !input.HasBillet.Contains( ( Guid ) key ) )
+                                {
+                                    DeleteRatingTaskHasJob( input.Id, e.Id, ref status );
+                                }
+                            }
+                        }
+                    }
+                    #endregion
+                    //adds
+                    if ( input.HasBillet != null )
+                    {
+                        foreach ( var child in input.HasBillet )
+                        {
+                            //if not in existing, then add
+                            bool doingAdd = true;
+                            if ( existing?.Count > 0 )
+                            {
+                                var isfound = existing.Select( s => s.RowId == child ).ToList();
+                                if ( isfound.Any() )
+                                    doingAdd = false;
+                            }
+                            if ( doingAdd )
+                            {
+                                var related = JobManager.Get( child );
+                                if ( related?.Id > 0 )
+                                {
+                                    //ReferenceConceptAdd( input, concept.Id, input.LastUpdatedById, ref status );
+                                    efEntity.RatingTaskId = input.Id;
+                                    efEntity.JobId = related.Id;
+                                    efEntity.RowId = Guid.NewGuid();
+                                    efEntity.CreatedById = input.LastUpdatedById;
+                                    efEntity.Created = DateTime.Now;
+
+                                    context.RatingTask_HasJob.Add( efEntity );
+
+                                    // submit the change to database
+                                    int count = context.SaveChanges();
+                                }
+                                else
+                                {
+                                    status.AddError( String.Format( "Error. For RatingTask: '{0}' ({1}) a HasBillet was not found for Identifier: {2}", FormatLongLabel( input.Description ), input.Id, child ) );
+                                }
+                            }
+                        }
+                    }
+                }
+                catch ( Exception ex )
+                {
+                    string message = FormatExceptions( ex );
+                    LoggingHelper.LogError( ex, thisClassName + string.Format( ".HasRatingUpdate-'{0}', RatingTask: '{1}' ({2})", entityType, FormatLongLabel( input.Description ), input.Id ) );
+                    status.AddError( thisClassName + ".HasRatingUpdate(). Error - the save was not successful. \r\n" + message );
+                }
+            }
+            return false;
+        }
+        public bool DeleteRatingTaskHasJob( int ratingTaskId, int jobId, ref ChangeSummary status )
+        {
+            bool isValid = false;
+            if ( jobId == 0 )
+            {
+                //statusMessage = "Error - missing an identifier for the CourseConcept to remove";
+                return false;
+            }
+
+            using ( var context = new DataEntities() )
+            {
+                var efEntity = context.RatingTask_HasJob
+                                .FirstOrDefault( s => s.RatingTaskId == ratingTaskId && s.JobId == jobId );
+
+                if ( efEntity != null && efEntity.Id > 0 )
+                {
+                    context.RatingTask_HasJob.Remove( efEntity );
+                    int count = context.SaveChanges();
+                    if ( count > 0 )
+                    {
+                        isValid = true;
+                    }
+                }
+                else
+                {
+                    //statusMessage = "Warning - the record was not found - probably because the target had been previously deleted";
+                    isValid = true;
+                }
+            }
+
+            return isValid;
+        }
+
+
+        public static void MapToDB( AppEntity input, DBEntity output, ref ChangeSummary status )
+        {
+            if ( input.Note?.ToLower() == "n/a" )
+                input.Note = "";
+            //watch for missing properties like rowId
+            List<string> errors = new List<string>();
+            BaseFactory.AutoMap( input, output, errors );
+
+            //check if can handle nullables - or do these get missed
+            //
+            if ( IsValidGuid( input.PayGradeType ) )
+            {
+                var currentRankId = output.RankId;
+                var currentLevelId = output.LevelId;
+                //
+                var concept = ConceptSchemeManager.GetConcept( input.PayGradeType );
+                if ( concept?.Id > 0 )
+                {
+                    output.RankId = concept.Id;
+                    if (output.RankId != currentRankId || currentLevelId == 0)
+                    {
+                        //level is tied to Paygrade.so
+                        var paygradeLevel = GetPayGradeLevel( concept.Name );
+                        output.LevelId = ( int ) ConceptSchemeManager.GetConcept( ConceptSchemeManager.ConceptScheme_RatingLevel, paygradeLevel )?.Id;
+
+                    }
+                }
+            } else
+            {
+                output.RankId = 0;
+                output.LevelId = 0;
+            }
+            //TaskApplicability
+            if ( IsValidGuid( input.ApplicabilityType ) )
+            {
+                output.TaskApplicabilityId = ( int ) ConceptSchemeManager.GetConcept( input.ApplicabilityType )?.Id;
+            }
+            else
+                output.TaskApplicabilityId = null;
+            //HasReferenceResource - ReferenceResourceId
+            if ( IsValidGuid( input.HasReferenceResource ) )
+            {
+                //TODO - can we get this info prior to here??
+                //output.ReferenceResourceId = ReferenceResourceManager.Get( input.HasReferenceResource )?.Id;
+
+                if ( output.ReferenceResourceId != null && output.ReferenceResource1?.RowId == input.HasReferenceResource )
+                {
+                    //no action
+                }
+                else
+                {
+                    var entity = ReferenceResourceManager.Get( input.HasReferenceResource );
+                    if ( entity?.Id > 0 )
+                        output.ReferenceResourceId = ( int ) entity?.Id;
+                    else
+                    {
+                        status.AddError( thisClassName + String.Format( ".MapToDB. RatingTask: '{0}'. The related HasReferenceResource '{1}' was not found", FormatLongLabel( input.Description ), input.HasReferenceResource ) );
+                    }
+                }
+            }
+            else
+                output.ReferenceResourceId = null;
+            //ReferenceType-WorkElementType
+            if ( IsValidGuid( input.ReferenceType ) )
+            {
+                if ( output.WorkElementTypeId != null && output.ConceptScheme_WorkElementType?.RowId == input.ReferenceType )
+                {
+                    //no action
+                }
+                else
+                {
+                    var entity = ConceptSchemeManager.GetConcept( input.ReferenceType );
+                    if ( entity?.Id > 0 )
+                        output.WorkElementTypeId = ( int ) entity?.Id;
+                    else
+                    {
+                        status.AddError( thisClassName + String.Format( ".MapToDB. RatingTask: '{0}'. The related ReferenceType '{1}' was not found", FormatLongLabel( input.Description ), input.HasTrainingTask ) );
+                    }
+                }
+                
+            }
+            else
+                output.WorkElementTypeId = null;
+
+            if ( IsValidGuid( input.TrainingGapType ) )
+            {
+                output.FormalTrainingGapId = ( int ) ConceptSchemeManager.GetConcept( input.TrainingGapType )?.Id;
+            }
+            //
+            if ( IsValidGuid( input.HasTrainingTask ) )
+            {
+                //this sucks, having to do lookups!
+                if ( output.TrainingTaskId != null && output.Course_Task?.RowId == input.HasTrainingTask )
+                {
+                    //no action
+                }
+                else
+                {
+                    var trainingTask = TrainingTaskManager.Get( input.HasTrainingTask );
+                    if ( trainingTask?.Id > 0 )
+                        output.TrainingTaskId = ( int ) trainingTask?.Id;
+                    else 
+                    {
+                        status.AddError( thisClassName + String.Format(".MapToDB. RatingTask: '{0}'. The related training task '{1}' was not found", FormatLongLabel(input.Description), input.HasTrainingTask  ));
+                    }
+                }
+            } else
+                output.TrainingTaskId = null;
+            //FunctionalAreaId
+            //NOTE this can be multiple. Setting here for current demo code. will remove once the search stuff is adjusted
+            //output.FunctionalAreaId = null;
+            //if ( input.HasWorkRole?.Count > 0 )
+            //{
+            //    if ( input.HasWorkRole?.Count == 1 )
+            //    {
+            //        var workRole = WorkRoleManager.Get( input.HasWorkRole[0] );
+            //        output.FunctionalAreaId = ( int ) workRole?.Id;
+            //    }
+            //}
+        }
+        public static string FormatMessage( string className, string method, string message )
+        {
+            var msg = string.Format( "{0}.{1}. {2}", className, method, message );
+            return msg;
+        }
+        public static string GetPayGradeLevel( string paygrade )
+        {
+            var level = "";
+            if ( "e1 e2 e3 e4".IndexOf(paygrade.ToLower()) > -1)
+            {
+                level = "Apprentice";
+            } else if ( "e5 e6".IndexOf( paygrade.ToLower() ) > -1 )
+            {
+                level = "Journeyman";
+            }
+            else if ( "e7 e8".IndexOf( paygrade.ToLower() ) > -1 )
+            {
+                level = "Master";
+            }
+            return level; 
+        }
 
         #endregion
-        #region === persistance ==================
-        public bool Save( ImportRMTL input, ref SaveStatus status )
+
+
+        #region === ImportRMTL (prototype)  ==================
+        /*
+        public bool Save( ImportRMTL input, ref ChangeSummary status )
         {
             bool isValid = true;
             int count = 0;
@@ -625,117 +1334,7 @@ namespace Factories
         /// <param name="input"></param>
         /// <param name="status"></param>
         /// <returns></returns>
-        public bool Save( AppEntity input, ref SaveStatus status )
-        {
-            bool isValid = true;
-            int count = 0;
-            try
-            {
-                using ( var context = new DataEntities() )
-                {
-                    //if ( ValidateProfile( entity, ref status ) == false )
-                    //    return false;
-                    //look up if no id
-                    if ( input.Id == 0 )
-                    {
-                        //need to identify for sure what is unique
-                        //use codedNotation first if present
-                        var record = Get( input );
-                        if ( record?.Id > 0 )
-                        {
-                            //
-                            input.Id = record.Id;
-                            UpdateParts( input, status );
-                            //??
-                            return true;
-                        }
-                        else
-                        {
-                            //add
-                            int newId = Add( input, ref status );
-                            if ( newId == 0 || status.HasSectionErrors )
-                                isValid = false;
-                        }
-                    }
-                    else
-                    {
-                        //TODO - consider if necessary, or interferes with anything
-                        context.Configuration.LazyLoadingEnabled = false;
-                        DBEntity efEntity = context.RatingTask
-                                .SingleOrDefault( s => s.Id == input.Id );
-
-                        if ( efEntity != null && efEntity.Id > 0 )
-                        {
-                            //fill in fields that may not be in entity
-                            input.RowId = efEntity.RowId;
-                            input.Created = efEntity.Created;
-                            input.CreatedById = ( efEntity.CreatedById ?? 0 );
-                            input.Id = efEntity.Id;
-
-                            MapToDB( input, efEntity );
-
-                            if ( HasStateChanged( context ) )
-                            {
-                                efEntity.LastUpdated = DateTime.Now;
-                                efEntity.LastUpdatedById = input.LastUpdatedById;
-                                count = context.SaveChanges();
-                                //can be zero if no data changed
-                                if ( count >= 0 )
-                                {
-                                    input.LastUpdated = ( DateTime ) efEntity.LastUpdated;
-                                    isValid = true;
-                                }
-                                else
-                                {
-                                    //?no info on error
-
-                                    isValid = false;
-                                    string message = string.Format( thisClassName + ".Save Failed", "Attempted to update a RatingTask. The process appeared to not work, but was not an exception, so we have no message, or no clue. RatingTask: {0}, Id: {1}", input.Description, input.Id );
-                                    status.AddError( "Error - the update was not successful. " + message );
-                                    EmailManager.NotifyAdmin( thisClassName + ".Save Failed Failed", message );
-                                }
-
-                            }
-
-                            if ( isValid )
-                            {
-                                UpdateParts( input, status );
-                                SiteActivity sa = new SiteActivity()
-                                {
-                                    ActivityType = "RatingTask",
-                                    Activity = "Import",
-                                    Event = "Update",
-                                    Comment = string.Format( "RatingTask was updated by the import. Name: {0}", input.Description ),
-                                    ActivityObjectId = input.Id
-                                };
-                                new ActivityManager().SiteActivityAdd( sa );
-                            }
-                        }
-                        else
-                        {
-                            status.AddError( "Error - update failed, as record was not found." );
-                        }
-                    }
-
-                }
-            }
-            catch ( System.Data.Entity.Validation.DbEntityValidationException dbex )
-            {
-                string message = HandleDBValidationError( dbex, thisClassName + string.Format( ".Save. id: {0}, Name: {1}", input.Id, input.Description ), "RatingTask" );
-                status.AddError( thisClassName + ".Save(). Error - the save was not successful. " + message );
-            }
-            catch ( Exception ex )
-            {
-                string message = FormatExceptions( ex );
-                LoggingHelper.LogError( ex, thisClassName + string.Format( ".Save. id: {0}, Name: {1}", input.Id, input.Description ), true );
-                status.AddError( thisClassName + ".Save(). Error - the save was not successful. " + message );
-                isValid = false;
-            }
-
-
-            return isValid;
-        }
-        private int Add( ImportRMTL input, ref SaveStatus status )
+        private int Add( ImportRMTL input, ref ChangeSummary status )
         {
             DBEntity efEntity = new DBEntity();
             status.HasSectionErrors = false;
@@ -743,12 +1342,12 @@ namespace Factories
             {
                 try
                 {
-                    MapToDB( input, efEntity );
+                    MapToDB( input, efEntity, status );
 
                     //if ( IsValidGuid( input.RowId ) )
                     //    efEntity.RowId = input.RowId;
                     //else
-                        efEntity.RowId = Guid.NewGuid();
+                    efEntity.RowId = Guid.NewGuid();
                     efEntity.CTID = "ce-" + efEntity.RowId.ToString().ToLower();
                     input.ImportDate = efEntity.LastUpdated = efEntity.Created = DateTime.Now;
                     //efEntity.CreatedById = efEntity.LastUpdatedById = input.LastUpdatedById;
@@ -781,7 +1380,7 @@ namespace Factories
                     {
                         //?no info on error
 
-                        string message = thisClassName + string.Format( ". Add Failed", "Attempted to add a RatingTask. The process appeared to not work, but was not an exception, so we have no message, or no clue. RatingTask: {0}", input.Work_Element_Task );
+                        string message = thisClassName + string.Format( ". Add Failed", "Attempted to add a RatingTask. The process appeared to not work, but was not an exception, so we have no message, or no clue. RatingTask: {0}", FormatLongLabel( input.Work_Element_Task ) );
                         status.AddError( thisClassName + ". Error - the add was not successful. " + message );
                         EmailManager.NotifyAdmin( "RatingTaskManager. Add Failed", message );
                     }
@@ -796,7 +1395,7 @@ namespace Factories
                 catch ( Exception ex )
                 {
                     string message = FormatExceptions( ex );
-                    LoggingHelper.LogError( ex, thisClassName + string.Format( ".Add(), Description: {0}, CTID: {1}", efEntity.Description, efEntity.CTID ) );
+                    LoggingHelper.LogError( ex, thisClassName + string.Format( ".Add(), Description: {0}", FormatLongLabel( input.Description ) ) );
                     status.AddError( thisClassName + ".Add(). Error - the save was not successful. \r\n" + message );
                 }
             }
@@ -809,79 +1408,7 @@ namespace Factories
         /// <param name="entity"></param>
         /// <param name="status"></param>
         /// <returns></returns>
-        private int Add( AppEntity entity, ref SaveStatus status )
-        {
-            DBEntity efEntity = new DBEntity();
-            status.HasSectionErrors = false;
-            using ( var context = new DataEntities() )
-            {
-                try
-                {
-                    MapToDB( entity, efEntity );
-
-                    if ( IsValidGuid( entity.RowId ) )
-                        efEntity.RowId = entity.RowId;
-                    else
-                        efEntity.RowId = Guid.NewGuid();
-                    if ( IsValidCtid( entity.CTID ) )
-                        efEntity.CTID = entity.CTID;
-                    else
-                        efEntity.CTID = "ce-" + efEntity.RowId.ToString().ToLower();
-                    entity.Created = efEntity.Created = DateTime.Now;
-                    entity.LastUpdated = efEntity.LastUpdated = DateTime.Now;
-                    efEntity.CreatedById = efEntity.LastUpdatedById = entity.LastUpdatedById;
-
-                    context.RatingTask.Add( efEntity );
-
-                    // submit the change to database
-                    int count = context.SaveChanges();
-                    if ( count > 0 )
-                    {
-                        entity.RowId = efEntity.RowId;
-                        entity.Id = efEntity.Id;
-                        UpdateParts( entity, status );
-                        //
-                        //add log entry
-                        SiteActivity sa = new SiteActivity()
-                        {
-                            ActivityType = "RatingTask",
-                            Activity = "Import",
-                            Event = "Add",
-                            Comment = string.Format( " A RatingTask was added by the import. Desc: {0}", entity.Description ),
-                            ActivityObjectId = entity.Id
-                        };
-                        new ActivityManager().SiteActivityAdd( sa );
-
-
-                        return efEntity.Id;
-                    }
-                    else
-                    {
-                        //?no info on error
-
-                        string message = thisClassName + string.Format( ". Add Failed", "Attempted to add a RatingTask. The process appeared to not work, but was not an exception, so we have no message, or no clue. RatingTask: {0}, ctid: {1}", entity.Description, entity.CTID );
-                        status.AddError( thisClassName + ". Error - the add was not successful. " + message );
-                        EmailManager.NotifyAdmin( "RatingTaskManager. Add Failed", message );
-                    }
-                }
-                catch ( System.Data.Entity.Validation.DbEntityValidationException dbex )
-                {
-                    string message = HandleDBValidationError( dbex, thisClassName + ".Add() ", "RatingTask" );
-                    status.AddError( thisClassName + ".Add(). Error - the save was not successful. " + message );
-
-                    LoggingHelper.LogError( message, true );
-                }
-                catch ( Exception ex )
-                {
-                    string message = FormatExceptions( ex );
-                    LoggingHelper.LogError( ex, thisClassName + string.Format( ".Add(), Description: {0}, CTID: {1}", efEntity.Description, efEntity.CTID ) );
-                    status.AddError( thisClassName + ".Add(). Error - the save was not successful. \r\n" + message );
-                }
-            }
-
-            return efEntity.Id;
-        }
-        public void UpdateParts( ImportRMTL input, SaveStatus status )
+        public void UpdateParts( ImportRMTL input, ChangeSummary status )
         {
             try
             {
@@ -892,420 +1419,6 @@ namespace Factories
             {
                 LoggingHelper.LogError( ex, thisClassName + "UpdateParts" );
             }
-        }
-        public void UpdateParts( AppEntity input, SaveStatus status )
-        {
-            try
-            {
-                //FunctionArea/WorkRole
-                WorkRoleUpdate( input, ref status );
-
-                //RatingTask.HasRating
-                HasRatingUpdate( input, ref status );
-                //RatingTask.HasJob
-                HasJobUpdate( input, ref status );
-                //RatingTask.HasBillet
-                //HasBilletUpdate( input, ref status );
-            }
-            catch ( Exception ex )
-            {
-                LoggingHelper.LogError( ex, thisClassName + "UpdateParts" );
-            }
-        }
-        public bool WorkRoleUpdate( AppEntity input, ref SaveStatus status )
-        {
-            status.HasSectionErrors = false;
-            var efEntity = new Data.Tables.RatingTask_WorkRole();
-            var entityType = "RatingTask.WorkRole";
-            using ( var context = new DataEntities() )
-            {
-                try
-                {
-                    if ( input.HasWorkRole?.Count == 0 )
-                        input.HasWorkRole = new List<Guid>();
-                    //check existance
-                    var existing = context.RatingTask_WorkRole
-                        .Where( s => s.RatingTaskId == input.Id )
-                        .ToList();
-
-                    #region deletes check
-                    if ( existing.Any() )
-                    {
-                        //if exists not in input, delete it
-                        foreach ( var e in existing )
-                        {
-                            var key = e?.WorkRole.RowId;
-                            if ( IsValidGuid( key ) )
-                            {
-                                if ( !input.HasWorkRole.Contains( ( Guid ) key ) )
-                                {
-                                    context.RatingTask_WorkRole.Remove( e );
-                                    int dcount = context.SaveChanges();
-                                }
-                            }
-                        }
-                    }
-                    #endregion
-                    //adds
-                    if ( input.HasWorkRole != null )
-                    {
-                        foreach ( var child in input.HasWorkRole )
-                        {
-                            //if not in existing, then add
-                            var isfound = existing.Select( s => s.WorkRole.RowId == child ).ToList();
-                            if ( !isfound.Any() )
-                            {
-                                var wr = WorkRoleManager.Get( child );
-                                if ( wr?.Id > 0 )
-                                {
-                                    //ReferenceConceptAdd( input, concept.Id, input.LastUpdatedById, ref status );
-                                    efEntity.RatingTaskId = input.Id;
-                                    efEntity.WorkRoled = wr.Id;
-                                    efEntity.RowId = Guid.NewGuid();
-                                    efEntity.CreatedById = input.LastUpdatedById;
-                                    //efEntity.CTID = "ce-" + efEntity.RowId.ToString().ToLower();
-                                    efEntity.Created = DateTime.Now;
-
-                                    context.RatingTask_WorkRole.Add( efEntity );
-
-                                    // submit the change to database
-                                    int count = context.SaveChanges();
-                                }
-                                else
-                                {
-                                    status.AddError( String.Format( "Error. For RatingTask: '{0}' ({1}) a RatingTask_WorkRole workRole was not found for Identifier: {2}", input.Description, input.Id, child ) );
-                                }
-                            }
-                        }
-                    }
-                }
-                catch ( Exception ex )
-                {
-                    string message = FormatExceptions( ex );
-                    LoggingHelper.LogError( ex, thisClassName + string.Format( ".WorkRoleUpdate-'{0}', RatingTask: '{1}' ({2})", entityType, input.Description, input.Id ) );
-                    status.AddError( thisClassName + ".WorkRoleUpdate(). Error - the save was not successful. \r\n" + message );
-                }
-            }
-            return false;
-        }
-        public bool HasRatingUpdate( AppEntity input, ref SaveStatus status )
-        {
-            status.HasSectionErrors = false;
-            var efEntity = new Data.Tables.RatingTask_HasRating();
-            var entityType = "RatingTask.HasRating";
-            using ( var context = new DataEntities() )
-            {
-                try
-                {
-                    if ( input.HasRating?.Count == 0 )
-                        input.HasRating = new List<Guid>();
-                    //check existance
-                    var existing = context.RatingTask_HasRating
-                        .Where( s => s.RatingTaskId == input.Id )
-                        .ToList();
-
-                    #region deletes check
-                    if ( existing.Any() )
-                    {
-                        //if exists not in input, delete it
-                        foreach ( var e in existing )
-                        {
-                            var key = e?.Rating.RowId;
-                            if ( IsValidGuid( key ) )
-                            {
-                                if ( !input.HasRating.Contains( ( Guid ) key ) )
-                                {
-                                    context.RatingTask_HasRating.Remove( e );
-                                    int dcount = context.SaveChanges();
-                                }
-                            }
-                        }
-                    }
-                    #endregion
-                    //adds
-                    if ( input.HasRating != null )
-                    {
-                        foreach ( var child in input.HasRating )
-                        {
-                            //if not in existing, then add
-                            var isfound = existing.Select( s => s.Rating.RowId == child ).ToList();
-                            if ( !isfound.Any() )
-                            {
-                                var wr = RatingManager.Get( child );
-                                if ( wr?.Id > 0 )
-                                {
-                                    //ReferenceConceptAdd( input, concept.Id, input.LastUpdatedById, ref status );
-                                    efEntity.RatingTaskId = input.Id;
-                                    efEntity.RatingId = wr.Id;
-                                    efEntity.RowId = Guid.NewGuid();
-                                    efEntity.CreatedById = input.LastUpdatedById;
-                                    efEntity.Created = DateTime.Now;
-
-                                    context.RatingTask_HasRating.Add( efEntity );
-
-                                    // submit the change to database
-                                    int count = context.SaveChanges();
-                                }
-                                else
-                                {
-                                    status.AddError( String.Format( "Error. For RatingTask: '{0}' ({1}) a RatingTask HasRating was not found for Identifier: {2}", input.Description, input.Id, child ) );
-                                }
-                            }
-                        }
-                    }
-                }
-                catch ( Exception ex )
-                {
-                    string message = FormatExceptions( ex );
-                    LoggingHelper.LogError( ex, thisClassName + string.Format( ".HasRatingUpdate-'{0}', RatingTask: '{1}' ({2})", entityType, input.Description, input.Id ) );
-                    status.AddError( thisClassName + ".HasRatingUpdate(). Error - the save was not successful. \r\n" + message );
-                }
-            }
-            return false;
-        }
-
-        public bool HasJobUpdate( AppEntity input, ref SaveStatus status )
-        {
-            status.HasSectionErrors = false;
-            var efEntity = new Data.Tables.RatingTask_HasJob();
-            var entityType = "RatingTask_HasJob";
-            using ( var context = new DataEntities() )
-            {
-                try
-                {
-                    if ( input.HasBillet?.Count == 0 )
-                        input.HasBillet = new List<Guid>();
-                    //check existance
-                    var existing = context.RatingTask_HasJob
-                        .Where( s => s.RatingTaskId == input.Id )
-                        .ToList();
-
-                    #region deletes check
-                    if ( existing.Any() )
-                    {
-                        //if exists not in input, delete it
-                        foreach ( var e in existing )
-                        {
-                            var key = e?.Job.RowId;
-                            if ( IsValidGuid( key ) )
-                            {
-                                if ( !input.HasBillet.Contains( ( Guid ) key ) )
-                                {
-                                    context.RatingTask_HasJob.Remove( e );
-                                    int dcount = context.SaveChanges();
-                                }
-                            }
-                        }
-                    }
-                    #endregion
-                    //adds
-                    if ( input.HasBillet != null )
-                    {
-                        foreach ( var child in input.HasBillet )
-                        {
-                            //if not in existing, then add
-                            var isfound = existing.Select( s => s.Job.RowId == child ).ToList();
-                            if ( !isfound.Any() )
-                            {
-                                var wr = JobManager.Get( child );
-                                if ( wr?.Id > 0 )
-                                {
-                                    //ReferenceConceptAdd( input, concept.Id, input.LastUpdatedById, ref status );
-                                    efEntity.RatingTaskId = input.Id;
-                                    efEntity.JobId = wr.Id;
-                                    efEntity.RowId = Guid.NewGuid();
-                                    efEntity.CreatedById = input.LastUpdatedById;
-                                    efEntity.Created = DateTime.Now;
-
-                                    context.RatingTask_HasJob.Add( efEntity );
-
-                                    // submit the change to database
-                                    int count = context.SaveChanges();
-                                }
-                                else
-                                {
-                                    status.AddError( String.Format( "Error. For RatingTask: '{0}' ({1}) a RatingTask HasJob was not found for Identifier: {2}", input.Description, input.Id, child ) );
-                                }
-                            }
-                        }
-                    }
-                }
-                catch ( Exception ex )
-                {
-                    string message = FormatExceptions( ex );
-                    LoggingHelper.LogError( ex, thisClassName + string.Format( ".HasJobUpdate-'{0}', RatingTask: '{1}' ({2})", entityType, input.Description, input.Id ) );
-                    status.AddError( thisClassName + ".HasJobUpdate(). Error - the save was not successful. \r\n" + message );
-                }
-            }
-            return false;
-        }
-        public bool HasBilletUpdate( AppEntity input, ref SaveStatus status )
-        {
-            status.HasSectionErrors = false;
-            var efEntity = new Data.Tables.RatingTask_HasJob();
-            var entityType = "RatingTask_HasJob";
-            using ( var context = new DataEntities() )
-            {
-                try
-                {
-                    if ( input.HasBillet?.Count == 0 )
-                        input.HasBillet = new List<Guid>();
-                    //check existance
-                    var existing = context.RatingTask_HasJob
-                        .Where( s => s.RatingTaskId == input.Id )
-                        .ToList();
-
-                    #region deletes check
-                    if ( existing.Any() )
-                    {
-                        //if exists not in input, delete it
-                        foreach ( var e in existing )
-                        {
-                            var key = e?.Job.RowId;
-                            if ( IsValidGuid( key ) )
-                            {
-                                if ( !input.HasBillet.Contains( ( Guid ) key ) )
-                                {
-                                    context.RatingTask_HasJob.Remove( e );
-                                    int dcount = context.SaveChanges();
-                                }
-                            }
-                        }
-                    }
-                    #endregion
-                    //adds
-                    if ( input.HasBillet != null )
-                    {
-                        foreach ( var child in input.HasBillet )
-                        {
-                            //if not in existing, then add
-                            var isfound = existing.Select( s => s.Job.RowId == child ).ToList();
-                            if ( !isfound.Any() )
-                            {
-                                var wr = JobManager.Get( child );
-                                if ( wr?.Id > 0 )
-                                {
-                                    //ReferenceConceptAdd( input, concept.Id, input.LastUpdatedById, ref status );
-                                    efEntity.RatingTaskId = input.Id;
-                                    efEntity.JobId = wr.Id;
-                                    efEntity.RowId = Guid.NewGuid();
-                                    efEntity.CreatedById = input.LastUpdatedById;
-                                    efEntity.Created = DateTime.Now;
-
-                                    context.RatingTask_HasJob.Add( efEntity );
-
-                                    // submit the change to database
-                                    int count = context.SaveChanges();
-                                }
-                                else
-                                {
-                                    status.AddError( String.Format( "Error. For RatingTask: '{0}' ({1}) a RatingTask HasBillet was not found for Identifier: {2}", input.Description, input.Id, child ) );
-                                }
-                            }
-                        }
-                    }
-                }
-                catch ( Exception ex )
-                {
-                    string message = FormatExceptions( ex );
-                    LoggingHelper.LogError( ex, thisClassName + string.Format( ".HasBilletUpdate-'{0}', RatingTask: '{1}' ({2})", entityType, input.Description, input.Id ) );
-                    status.AddError( thisClassName + ".HasBilletUpdate(). Error - the save was not successful. \r\n" + message );
-                }
-            }
-            return false;
-        }
-
-        public static void MapToDB( AppEntity input, DBEntity output )
-        {
-            if ( input.Note?.ToLower() == "n/a" )
-                input.Note = "";
-            //watch for missing properties like rowId
-            List<string> errors = new List<string>();
-            BaseFactory.AutoMap( input, output, errors );
-
-            //
-            if ( IsValidGuid( input.PayGradeType ) )
-            {
-                var currentRankId = output.RankId;
-                var currentLevelId = output.LevelId;
-                //
-                var concept = ConceptSchemeManager.GetConcept( input.PayGradeType );
-                if ( concept?.Id > 0 )
-                {
-                    output.RankId = concept.Id;
-                    if (output.RankId != currentRankId || currentLevelId == 0)
-                    {
-                        //level is tied to Paygrade.so
-                        var paygradeLevel = GetPayGradeLevel( concept.Name );
-                        output.LevelId = ( int ) ConceptSchemeManager.GetConcept( ConceptSchemeManager.ConceptScheme_RatingLevel, paygradeLevel )?.Id;
-
-                    }
-                }
-            } else
-            {
-                output.RankId = 0;
-                output.LevelId = 0;
-            }
-            //TaskApplicability
-            if ( IsValidGuid( input.ApplicabilityType ) )
-            {
-                output.TaskApplicabilityId = ( int ) ConceptSchemeManager.GetConcept( input.ApplicabilityType )?.Id;
-            }
-            else
-                output.TaskApplicabilityId = null;
-            //HasReferenceResource - SourceId
-            if ( IsValidGuid( input.HasReferenceResource ) )
-            {
-                //TODO - can we get this info prior to here??
-                output.SourceId = ReferenceResourceManager.Get( input.HasReferenceResource )?.Id;
-            }
-            else
-                output.SourceId = null;
-            //ReferenceType-WorkElementType
-            if ( IsValidGuid( input.ReferenceType ) )
-            {
-                output.WorkElementTypeId = ( int ) ConceptSchemeManager.GetConcept( input.ReferenceType )?.Id;
-            }
-            else
-                output.WorkElementTypeId = null;
-
-            if ( IsValidGuid( input.TrainingGapType ) )
-            {
-                output.FormalTrainingGapId = ( int ) ConceptSchemeManager.GetConcept( input.TrainingGapType )?.Id;
-            }
-            //
-            if ( IsValidGuid( input.HasTrainingTask ) )
-            {
-                output.TrainingTaskId = ( int ) TrainingTaskManager.Get( input.HasTrainingTask )?.Id;
-            } else
-                output.TrainingTaskId = null;
-            //FunctionalAreaId
-            //NOTE this can be multiple. Setting here for current demo code. will remove once the search stuff is adjusted
-            output.FunctionalAreaId = null;
-            if ( input.HasWorkRole?.Count > 0 )
-            {
-                if ( input.HasWorkRole?.Count == 1 )
-                {
-                    var workRole = WorkRoleManager.Get( input.HasWorkRole[0] );
-                    output.FunctionalAreaId = ( int ) workRole?.Id;
-                }
-            }
-        }
-        public static string GetPayGradeLevel( string paygrade )
-        {
-            var level = "";
-            if ( "e1 e2 e3 e4".IndexOf(paygrade.ToLower()) > -1)
-            {
-                level = "Apprentice";
-            } else if ( "e5 e6".IndexOf( paygrade.ToLower() ) > -1 )
-            {
-                level = "Journeyman";
-            }
-            else if ( "e7 e8".IndexOf( paygrade.ToLower() ) > -1 )
-            {
-                level = "Master";
-            }
-            return level; 
         }
         public static void MapToDB( ImportRMTL input, DBEntity output )
         {
@@ -1317,8 +1430,10 @@ namespace Factories
             output.Description = input.Work_Element_Task;
 
         }
-        #endregion
 
+
+        */
+        #endregion
     }
     [Serializable]
     public class CachedRatingTask

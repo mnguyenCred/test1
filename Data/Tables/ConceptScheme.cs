@@ -35,10 +35,10 @@ namespace Data.Tables
         public Nullable<System.DateTime> LastPublished { get; set; }
         public Nullable<int> LastPublishedById { get; set; }
     
-        public virtual Account Account { get; set; }
-        public virtual Account Account1 { get; set; }
-        public virtual Account Account2 { get; set; }
-        public virtual Account Account3 { get; set; }
+        public virtual Account Account_CreatedBy { get; set; }
+        public virtual Account Account_ApprovedBy { get; set; }
+        public virtual Account Account_LastUpdatedBy { get; set; }
+        public virtual Account Account_PublishedBy { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<ConceptScheme_Concept> ConceptScheme_Concept { get; set; }
     }

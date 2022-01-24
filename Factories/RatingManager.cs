@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 
 using AppEntity = Models.Schema.Rating;
 using DBEntity = Data.Tables.Rating;
+using Models.Curation;
 
 using DataEntities = Data.Tables.NavyRRLEntities;
 using ViewContext = Data.Views.ceNavyViewEntities;
@@ -26,7 +27,7 @@ namespace Factories
         /// <param name="entity"></param>
         /// <param name="status"></param>
         /// <returns></returns>
-        public bool Save( AppEntity entity, ref SaveStatus status )
+        public bool Save( AppEntity entity, ref ChangeSummary status )
         {
             bool isValid = true;
             int count = 0;
@@ -101,6 +102,7 @@ namespace Factories
                                     Activity = "Import",
                                     Event = "Update",
                                     Comment = string.Format( "Rating was updated by the import. Name: {0}", entity.Name ),
+                                    ActionByUserId = entity.LastUpdatedById,
                                     ActivityObjectId = entity.Id
                                 };
                                 new ActivityManager().SiteActivityAdd( sa );
@@ -137,7 +139,7 @@ namespace Factories
         /// <param name="entity"></param>
         /// <param name="status"></param>
         /// <returns></returns>
-        private int Add( AppEntity entity, ref SaveStatus status )
+        private int Add( AppEntity entity, ref ChangeSummary status )
         {
             DBEntity efEntity = new DBEntity();
             status.HasSectionErrors = false;
@@ -174,6 +176,7 @@ namespace Factories
                             Activity = "Import",
                             Event = "Add",
                             Comment = string.Format( "Full Rating was added by the import. Name: {0}", entity.Name ),
+                            ActionByUserId = entity.LastUpdatedById,
                             ActivityObjectId = entity.Id
                         };
                         new ActivityManager().SiteActivityAdd( sa );

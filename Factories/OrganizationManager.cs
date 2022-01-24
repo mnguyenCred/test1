@@ -4,7 +4,7 @@ using System.Linq;
 using System.Runtime.Caching;
 
 using Models.Application;
-
+using Models.Curation;
 using Navy.Utilities;
 
 using AppEntity = Models.Schema.Organization;
@@ -23,7 +23,7 @@ namespace Factories
         /// <param name="entity"></param>
         /// <param name="status"></param>
         /// <returns></returns>
-        public bool Save( AppEntity entity, int userId, ref SaveStatus status )
+        public bool Save( AppEntity entity, int userId, ref ChangeSummary status )
         {
             bool isValid = true;
             int count = 0;
@@ -99,6 +99,7 @@ namespace Factories
                                     Activity = "Import",
                                     Event = "Update",
                                     Comment = string.Format( "Organization was updated by the import. Name: {0}", entity.Name ),
+                                    ActionByUserId = entity.LastUpdatedById,
                                     ActivityObjectId = entity.Id
                                 };
                                 new ActivityManager().SiteActivityAdd( sa );
@@ -135,7 +136,7 @@ namespace Factories
         /// <param name="entity"></param>
         /// <param name="status"></param>
         /// <returns></returns>
-        private int Add( AppEntity entity, ref SaveStatus status )
+        private int Add( AppEntity entity, ref ChangeSummary status )
         {
             DBEntity efEntity = new DBEntity();
             status.HasSectionErrors = false;
@@ -173,6 +174,7 @@ namespace Factories
                             Activity = "Import",
                             Event = "Add",
                             Comment = string.Format( "An Organization was added by the import. Name: {0}", entity.Name ),
+                            ActionByUserId = entity.LastUpdatedById,
                             ActivityObjectId = entity.Id
                         };
                         new ActivityManager().SiteActivityAdd( sa );

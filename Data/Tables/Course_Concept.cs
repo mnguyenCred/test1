@@ -14,12 +14,6 @@ namespace Data.Tables
     
     public partial class Course_Concept
     {
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2214:DoNotCallOverridableMethodsInConstructors")]
-        public Course_Concept()
-        {
-            this.Course_Organization = new HashSet<Course_Organization>();
-        }
-    
         public int Id { get; set; }
         public System.Guid RowId { get; set; }
         public int CourseId { get; set; }
@@ -29,7 +23,5 @@ namespace Data.Tables
     
         public virtual ConceptScheme_Concept ConceptScheme_Concept { get; set; }
         public virtual Course Course { get; set; }
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<Course_Organization> Course_Organization { get; set; }
     }
 }

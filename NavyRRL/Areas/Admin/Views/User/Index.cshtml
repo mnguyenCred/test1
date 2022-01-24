@@ -11,38 +11,41 @@
 	<link href="~/Content/Site.css" rel="stylesheet" />
 	<link href="~/Content/font-awesome.min.css" rel="stylesheet" />
 	<style type="text/css">
-		.custom-loader { background-color: crimson !important; }
+        .custom-loader { background-color: crimson !important; }
 
-			.custom-loader i { color: #fff !important; }
+        .custom-loader i { color: #fff !important; }
 
-		div.organizations { height: 200px; overflow-y: auto; }
+        div.organizations { height: 200px; overflow-y: auto; }
 
-		.organization .multiselect-container { width: 400px !important; }
+        .organization .multiselect-container { width: 400px !important; }
 
-			.organization .multiselect-container > li > a { white-space: normal !important; }
+        .organization .multiselect-container > li > a { white-space: normal !important; }
 
-		.ui-autocomplete { z-index: 999999; height: 200px; overflow-y: auto; width: 420px; }
+        .ui-autocomplete { z-index: 999999; height: 200px; overflow-y: auto; width: 420px; }
 
-		/* Prevent overflow of selected organizations */
-		.organizations { overflow: auto; max-height: 200px; }
-		/* Show modal on top of header menu items */
-		.modal-backdrop.fade.in { z-index: 6030; }
+        /* Prevent overflow of selected organizations */
+        .organizations { overflow: auto; max-height: 200px; }
+        /* Show modal on top of header menu items */
+        .modal-backdrop.fade.in { z-index: 6030; }
 
-		.modal.fade.in { z-index: 6040; }
+        .modal.fade.in { z-index: 6040; }
 
-		.modal-dialog { z-index: 6050; }
-		.popover { max-width: 600px !important; }
-		.datepicker[readonly] { cursor: pointer !important; }
+        .modal-dialog { z-index: 6050; }
+        .popover { max-width: 600px !important; }
+        .datepicker[readonly] { cursor: pointer !important; }
+        /*	show pager on the left*/
+        #results_paginate { margin: 0; white-space: nowrap; text-align: left; }
 	</style>
+
 }
 
 <h2>Account Management Menu</h2>
 <p>
-	<a href="~/Admin/User/AddUser" class="btn btn-primary">Add New Account</a>
+	<a href="~/Account/AddUser" class="btn btn-primary">Add New Account</a>
 </p>
-<p>
+@*<p>
 	<a href="~/Admin/User/ResetPassword">Reset User Password</a>
-</p>
+</p>*@
 @*<p>
 		<a href="~/Admin/User/List">List</a>
 	</p>
@@ -50,7 +53,7 @@
 		<a href="~/Admin/User/Search">Accounts</a>
 	</p>*@
 <br />
-<div style="width:100%">
+<div style="width:80%">
 	<table id="results" class="table"></table>
 	<div id="resultsPager"></div>
 	<br />
@@ -90,13 +93,13 @@
                 },
                 order: [[2, "asc"]],
                 //columnDefs: [{ targets: [0, 1, 2, 3], orderable: true }, { targets: 4, orderable: false, searchable: false }],
-                columns: [{ data: "Id", name: "Id", title: 'Id', width: "5%", filter: true },
+                columns: [{ data: "Id", name: "Id", title: 'Id', width: "15px", filter: true },
                 { data: 'FirstName', name: "FirstName", title: "First Name", filter: true, width: "85px" },
                 { data: 'LastName', name: "LastName", title: "Last Name", filter: true, width: "85px" },
                 { data: 'Email', name: "Email", title: "Email", filter: true },
                 { data: 'Roles', name: "Roles", title: "Roles", filter: true },
          /*       { data: 'OrgMbrs', name: "OrgMbrs", title: "Organizations", filter: true },*/
-                { data: "lastLogon", name: "lastLogon", title: "Last Login Date", filter: true, type: "date" },
+             /*   { data: "lastLogon", name: "lastLogon", title: "Last Login Date", filter: true, type: "date" },*/
 
                 //{ data: 'IsActive', name: "IsActive", title: "Deleted", filter: false },
                 //Edit Column
@@ -155,33 +158,34 @@
 
                 row.append(th);
             });
-            $(".datepicker").attr("readOnly", true).datepicker({
-                showButtonPanel: true,
-                closeText: "Clear",
-                onClose: function () {
-                    if ($(window.event.srcElement).hasClass("ui-datepicker-close")) {
-                        $(this).val("");
-                        var input = $(this);
-                        var index = input.parent().index();
-                        table.columns(index).search("").draw();
-                    }
-                },
-                onSelect: function (dateText, inst) {
-                    var input = $(this);
-                    var index = input.parent().index();
-                    this.value = dateText;
-                    table.columns(index).search(dateText).draw();
-                },
-                beforeShow: function (input) {
-                    setTimeout(function () {
-                        $(input).datepicker("widget").find(".ui-datepicker-current").hide();
-                    }, 1);
-                }
-            }).on("change", function (dateText, inst) {
-            	var input = $(this);
-            	var index = input.parent().index();
-            	table.columns(index).search(dateText).draw();
-            });
+
+            //$(".datepicker").attr("readOnly", true).datepicker({
+            //    showButtonPanel: true,
+            //    closeText: "Clear",
+            //    onClose: function () {
+            //        if ($(window.event.srcElement).hasClass("ui-datepicker-close")) {
+            //            $(this).val("");
+            //            var input = $(this);
+            //            var index = input.parent().index();
+            //            table.columns(index).search("").draw();
+            //        }
+            //    },
+            //    onSelect: function (dateText, inst) {
+            //        var input = $(this);
+            //        var index = input.parent().index();
+            //        this.value = dateText;
+            //        table.columns(index).search(dateText).draw();
+            //    },
+            //    beforeShow: function (input) {
+            //        setTimeout(function () {
+            //            $(input).datepicker("widget").find(".ui-datepicker-current").hide();
+            //        }, 1);
+            //    }
+            //}).on("change", function (dateText, inst) {
+            //	var input = $(this);
+            //	var index = input.parent().index();
+            //	table.columns(index).search(dateText).draw();
+            //});
             $(document).on("keyup change", "#results thead input:text", function (e) {
                 if (this.value === this.defaultValue) return false;
 
@@ -191,7 +195,7 @@
                 table.columns(index).search(this.value).draw();
             });
 
-            $(document).on("click", "#results a.edit", function (e) {
+            @*$(document).on("click", "#results a.edit", function (e) {
                 e.preventDefault();
                 $.get(this.href, function (html) {
                     $(html).on("shown.bs.modal", function (e) {
@@ -263,7 +267,7 @@
                         $.validator.unobtrusive.parse(form);
                     }).modal("show");
                 });
-            });
+            });*@
 
             $(document).on("click", "button.multiselect", function (e) {
                 e.preventDefault();

@@ -9,7 +9,7 @@ using Newtonsoft.Json.Linq;
 using SM = Models.Schema;
 using CM = Models.Curation;
 using Models.Application;
-
+using Navy.Utilities;
 namespace NavyRRL.Controllers
 {
     public class UploadController : BaseController
@@ -41,7 +41,15 @@ namespace NavyRRL.Controllers
 
 
 			//Store Change Summary in the Application Cache
-			Services.BulkUploadServices.CacheChangeSummary( changeSummaryNew );
+			if ( UtilityManager.GetAppKeyValue( "usingProcessV2", true )) 
+			{
+				Services.BulkUploadServices.CacheChangeSummary( changeSummaryNew );
+			} else
+            {
+				changeSummaryOld.Messages.Note.Add( "USING OLD PROCESS VERSION" );
+				Services.BulkUploadServices.CacheChangeSummary( changeSummaryOld );
+
+			}
 
 			var temp = new List<object>();
 			temp.Add( new SM.RatingTask() { RowId = Guid.NewGuid(), Description = "Test" } );

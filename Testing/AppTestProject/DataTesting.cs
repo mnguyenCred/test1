@@ -20,7 +20,7 @@ namespace AppTestProject
             var referenceResource = Factories.ReferenceResourceManager.GetAll();
             var workRole = Factories.WorkRoleManager.GetAll();
             //training task - really all?
-            var trainingTask = Factories.CourseManager.TrainingTaskGetAll();
+            var trainingTask = Factories.TrainingTaskManager.GetAll();
 
                 int totalRows = 0;
             var ratingTask = Factories.RatingTaskManager.GetAllForRating( "q", true, ref totalRows );

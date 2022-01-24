@@ -5,6 +5,8 @@ using System.Text;
 using System.Threading.Tasks;
 
 using Models.Application;
+using Models.Curation;
+
 using AppEntity = Models.Schema.ConceptScheme;
 using Concept = Models.Schema.Concept;
 using DBEntity = Data.Tables.ConceptScheme;
@@ -34,7 +36,7 @@ namespace Factories
         #region ConceptScheme
         #region ConceptScheme - Persistance
         //unlikely
-        public bool Save( AppEntity entity, ref SaveStatus status )
+        public bool Save( AppEntity entity, ref ChangeSummary status )
         {
             bool isValid = true;
             int count = 0;
@@ -102,6 +104,7 @@ namespace Factories
                                 Activity = "Import",
                                 Event = "Update",
                                 Comment = string.Format( "Concept was updated by the import. Name: {0}", entity.Name ),
+                                ActionByUserId = entity.LastUpdatedById,
                                 ActivityObjectId = entity.Id
                             };
                             new ActivityManager().SiteActivityAdd( sa );
@@ -127,7 +130,7 @@ namespace Factories
             return isValid;
         }
         //placeholder, as can't (yet) add a new concept scheme
-        private int Add( AppEntity entity, ref SaveStatus status )
+        private int Add( AppEntity entity, ref ChangeSummary status )
         {
             var efEntity = new Data.Tables.ConceptScheme_Concept();
            
@@ -284,7 +287,7 @@ namespace Factories
         #region Concept
         #region Concept - Persistance
         //need alternate to handle workElementType
-        public int SaveConcept( int conceptSchemeId, string conceptName, ref SaveStatus status )
+        public int SaveConcept( int conceptSchemeId, string conceptName, ref ChangeSummary status )
         {
             //check if exists
             var concept = GetConcept( conceptSchemeId, conceptName );
@@ -308,7 +311,7 @@ namespace Factories
             }
 
         }
-        public bool SaveConcept( int conceptSchemeId, Concept entity, ref SaveStatus status )
+        public bool SaveConcept( int conceptSchemeId, Concept entity, ref ChangeSummary status )
         {
             bool isValid = true;
             int count = 0;
@@ -384,6 +387,7 @@ namespace Factories
                                 Activity = "Import",
                                 Event = "Update",
                                 Comment = string.Format( "Concept was updated by the import. Name: {0}", entity.Name ),
+                                ActionByUserId = entity.LastUpdatedById,
                                 ActivityObjectId = entity.Id
                             };
                             new ActivityManager().SiteActivityAdd( sa );
@@ -413,7 +417,7 @@ namespace Factories
 
             return isValid;
         }
-        private int AddConcept( Concept entity, ref SaveStatus status )
+        private int AddConcept( Concept entity, ref ChangeSummary status )
         {
             var efEntity = new Data.Tables.ConceptScheme_Concept();
             status.HasSectionErrors = false;
@@ -445,6 +449,7 @@ namespace Factories
                             Activity = "Import",
                             Event = "Add Concept",
                             Comment = string.Format( "Concept was added by the import. Name: {0}", entity.Name ),
+                            ActionByUserId = entity.LastUpdatedById,
                             ActivityObjectId = entity.Id
                         };
                         new ActivityManager().SiteActivityAdd( sa );
@@ -586,7 +591,7 @@ namespace Factories
             {
                 output.RowId = input.RowId;
             }
-
+            output.ConceptSchemeId = (int)input.ConceptScheme?.Id;
             //if ( input != null && input.Id > 0 )
             //{
             //    output.Id = input.Id;

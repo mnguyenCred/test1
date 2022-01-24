@@ -21,7 +21,7 @@ namespace Data.Tables
         public System.DateTime Created { get; set; }
         public Nullable<int> CreatedById { get; set; }
     
-        public virtual Course_Concept Course_Concept { get; set; }
         public virtual Organization Organization { get; set; }
+        public virtual Course Course { get; set; }
     }
 }
