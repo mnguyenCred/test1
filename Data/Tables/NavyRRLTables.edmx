@@ -323,11 +323,12 @@
           <Property Name="Description" Type="nvarchar(max)" />
           <Property Name="ShortName30" Type="varchar" MaxLength="30" />
           <Property Name="ShortName14" Type="varchar" MaxLength="14" />
-          <Property Name="RatingId" Type="int" />
           <Property Name="Created" Type="datetime" Nullable="false" />
           <Property Name="CreatedById" Type="int" />
           <Property Name="LastUpdated" Type="datetime" Nullable="false" />
           <Property Name="LastUpdatedById" Type="int" />
+          <Property Name="HasRating" Type="uniqueidentifier" />
+          <Property Name="RatingId" Type="int" />
         </EntityType>
         <EntityType Name="Organization">
           <Key>
@@ -424,17 +425,6 @@
           <Property Name="Created" Type="datetime" Nullable="false" />
           <Property Name="CreatedById" Type="int" />
         </EntityType>
-        <EntityType Name="RatingTask_WorkRole">
-          <Key>
-            <PropertyRef Name="Id" />
-          </Key>
-          <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
-          <Property Name="RowId" Type="uniqueidentifier" Nullable="false" />
-          <Property Name="RatingTaskId" Type="int" Nullable="false" />
-          <Property Name="WorkRoled" Type="int" Nullable="false" />
-          <Property Name="Created" Type="datetime" Nullable="false" />
-          <Property Name="CreatedById" Type="int" />
-        </EntityType>
         <EntityType Name="ReferenceResource">
           <Key>
             <PropertyRef Name="Id" />
@@ -501,19 +491,6 @@
           <Property Name="LastUpdated" Type="datetime" Nullable="false" />
           <Property Name="LastUpdatedById" Type="int" />
           <Property Name="RowId" Type="uniqueidentifier" Nullable="false" />
-        </EntityType>
-        <EntityType Name="RmtlProject_BilletTask">
-          <Key>
-            <PropertyRef Name="Id" />
-          </Key>
-          <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
-          <Property Name="RowId" Type="uniqueidentifier" Nullable="false" />
-          <Property Name="ProjectBilletId" Type="int" Nullable="false" />
-          <Property Name="RatingTaskId" Type="int" Nullable="false" />
-          <Property Name="Created" Type="datetime" Nullable="false" />
-          <Property Name="CreatedById" Type="int" />
-          <Property Name="LastUpdated" Type="datetime" Nullable="false" />
-          <Property Name="LastUpdatedById" Type="int" />
         </EntityType>
         <EntityType Name="System_ProxyCodes">
           <Key>
@@ -739,6 +716,9 @@
             </Dependent>
           </ReferentialConstraint>
         </Association>
+        <!--Errors Found During Generation:
+warning 6035: The relationship 'FK_Job_Rating' has columns that are not part of the key of the table on the primary side of the relationship. The relationship was excluded.
+        <Association Name="FK_Job_Rating" />-->
         <Association Name="FK_Job_Rating1">
           <End Role="Rating" Type="Self.Rating" Multiplicity="0..1" />
           <End Role="Job" Type="Self.Job" Multiplicity="*" />
@@ -865,32 +845,6 @@
             </Dependent>
           </ReferentialConstraint>
         </Association>
-        <Association Name="FK_RatingTask_WorkRole_RatingTask">
-          <End Role="RatingTask" Type="Self.RatingTask" Multiplicity="1">
-            <OnDelete Action="Cascade" />
-          </End>
-          <End Role="RatingTask_WorkRole" Type="Self.RatingTask_WorkRole" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="RatingTask">
-              <PropertyRef Name="Id" />
-            </Principal>
-            <Dependent Role="RatingTask_WorkRole">
-              <PropertyRef Name="RatingTaskId" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
-        <Association Name="FK_RatingTask_WorkRole_WorkRole">
-          <End Role="WorkRole" Type="Self.WorkRole" Multiplicity="1" />
-          <End Role="RatingTask_WorkRole" Type="Self.RatingTask_WorkRole" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="WorkRole">
-              <PropertyRef Name="Id" />
-            </Principal>
-            <Dependent Role="RatingTask_WorkRole">
-              <PropertyRef Name="WorkRoled" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
         <Association Name="FK_RatingTask_ReferenceResource">
           <End Role="ReferenceResource" Type="Self.ReferenceResource" Multiplicity="0..1" />
           <End Role="RatingTask" Type="Self.RatingTask" Multiplicity="*" />
@@ -969,34 +923,6 @@
             </Dependent>
           </ReferentialConstraint>
         </Association>
-        <Association Name="FK_RmtlProject_BilletTask_RatingTask">
-          <End Role="RatingTask" Type="Self.RatingTask" Multiplicity="1">
-            <OnDelete Action="Cascade" />
-          </End>
-          <End Role="RmtlProject_BilletTask" Type="Self.RmtlProject_BilletTask" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="RatingTask">
-              <PropertyRef Name="Id" />
-            </Principal>
-            <Dependent Role="RmtlProject_BilletTask">
-              <PropertyRef Name="RatingTaskId" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
-        <Association Name="FK_RmtlProject_BilletTask_RmtlProject_Billet">
-          <End Role="RmtlProject_Billet" Type="Self.RmtlProject_Billet" Multiplicity="1">
-            <OnDelete Action="Cascade" />
-          </End>
-          <End Role="RmtlProject_BilletTask" Type="Self.RmtlProject_BilletTask" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="RmtlProject_Billet">
-              <PropertyRef Name="Id" />
-            </Principal>
-            <Dependent Role="RmtlProject_BilletTask">
-              <PropertyRef Name="ProjectBilletId" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
         <EntityContainer Name="NavyRRLModelStoreContainer">
           <EntitySet Name="Account" EntityType="Self.Account" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="ActivityLog" EntityType="Self.ActivityLog" Schema="dbo" store:Type="Tables" />
@@ -1019,12 +945,10 @@
           <EntitySet Name="RatingTask" EntityType="Self.RatingTask" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="RatingTask_HasJob" EntityType="Self.RatingTask_HasJob" Schema="dbo" Table="RatingTask.HasJob" store:Type="Tables" />
           <EntitySet Name="RatingTask_HasRating" EntityType="Self.RatingTask_HasRating" Schema="dbo" Table="RatingTask.HasRating" store:Type="Tables" />
-          <EntitySet Name="RatingTask_WorkRole" EntityType="Self.RatingTask_WorkRole" Schema="dbo" Table="RatingTask.WorkRole" store:Type="Tables" />
           <EntitySet Name="ReferenceResource" EntityType="Self.ReferenceResource" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="ReferenceResource_ReferenceType" EntityType="Self.ReferenceResource_ReferenceType" Schema="dbo" Table="ReferenceResource.ReferenceType" store:Type="Tables" />
           <EntitySet Name="RMTLProject" EntityType="Self.RMTLProject" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="RmtlProject_Billet" EntityType="Self.RmtlProject_Billet" Schema="dbo" Table="RmtlProject.Billet" store:Type="Tables" />
-          <EntitySet Name="RmtlProject_BilletTask" EntityType="Self.RmtlProject_BilletTask" Schema="dbo" Table="RmtlProject.BilletTask" store:Type="Tables" />
           <EntitySet Name="System_ProxyCodes" EntityType="Self.System_ProxyCodes" Schema="dbo" Table="System.ProxyCodes" store:Type="Tables" />
           <EntitySet Name="WorkRole" EntityType="Self.WorkRole" Schema="dbo" store:Type="Tables" />
           <AssociationSet Name="FK_Account_AspNetUsers" Association="Self.FK_Account_AspNetUsers">
@@ -1127,14 +1051,6 @@
             <End Role="RatingTask" EntitySet="RatingTask" />
             <End Role="RatingTask_HasRating" EntitySet="RatingTask_HasRating" />
           </AssociationSet>
-          <AssociationSet Name="FK_RatingTask_WorkRole_RatingTask" Association="Self.FK_RatingTask_WorkRole_RatingTask">
-            <End Role="RatingTask" EntitySet="RatingTask" />
-            <End Role="RatingTask_WorkRole" EntitySet="RatingTask_WorkRole" />
-          </AssociationSet>
-          <AssociationSet Name="FK_RatingTask_WorkRole_WorkRole" Association="Self.FK_RatingTask_WorkRole_WorkRole">
-            <End Role="WorkRole" EntitySet="WorkRole" />
-            <End Role="RatingTask_WorkRole" EntitySet="RatingTask_WorkRole" />
-          </AssociationSet>
           <AssociationSet Name="FK_RatingTask_ReferenceResource" Association="Self.FK_RatingTask_ReferenceResource">
             <End Role="ReferenceResource" EntitySet="ReferenceResource" />
             <End Role="RatingTask" EntitySet="RatingTask" />
@@ -1158,14 +1074,6 @@
           <AssociationSet Name="FK_RmtlProject_Billet_RMTLProject" Association="Self.FK_RmtlProject_Billet_RMTLProject">
             <End Role="RMTLProject" EntitySet="RMTLProject" />
             <End Role="RmtlProject_Billet" EntitySet="RmtlProject_Billet" />
-          </AssociationSet>
-          <AssociationSet Name="FK_RmtlProject_BilletTask_RatingTask" Association="Self.FK_RmtlProject_BilletTask_RatingTask">
-            <End Role="RatingTask" EntitySet="RatingTask" />
-            <End Role="RmtlProject_BilletTask" EntitySet="RmtlProject_BilletTask" />
-          </AssociationSet>
-          <AssociationSet Name="FK_RmtlProject_BilletTask_RmtlProject_Billet" Association="Self.FK_RmtlProject_BilletTask_RmtlProject_Billet">
-            <End Role="RmtlProject_Billet" EntitySet="RmtlProject_Billet" />
-            <End Role="RmtlProject_BilletTask" EntitySet="RmtlProject_BilletTask" />
           </AssociationSet>
         </EntityContainer>
       </Schema></edmx:StorageModels>
@@ -1355,6 +1263,7 @@
           <NavigationProperty Name="RatingTask_HasJob" Relationship="NavyRRLModel.FK_RatingTask_HasJob_Job" FromRole="Job" ToRole="RatingTask_HasJob" />
           <Property Name="RatingId" Type="Int32" />
           <NavigationProperty Name="Rating" Relationship="NavyRRLModel.FK_Job_Rating1" FromRole="Job" ToRole="Rating" />
+          <Property Name="HasRating" Type="Guid" />
         </EntityType>
         <EntityType Name="Organization">
           <Key>
@@ -2577,6 +2486,7 @@
           <EntitySetMapping Name="Job">
             <EntityTypeMapping TypeName="NavyRRLModel.Job">
               <MappingFragment StoreEntitySet="Job">
+                <ScalarProperty Name="HasRating" ColumnName="HasRating" />
                 <ScalarProperty Name="RatingId" ColumnName="RatingId" />
                 <ScalarProperty Name="LastUpdatedById" ColumnName="LastUpdatedById" />
                 <ScalarProperty Name="CreatedById" ColumnName="CreatedById" />
@@ -2973,33 +2883,7 @@
               </MappingFragment>
             </EntityTypeMapping>
           </EntitySetMapping>
-          <EntitySetMapping Name="RatingTask_WorkRole">
-            <EntityTypeMapping TypeName="NavyRRLModel.RatingTask_WorkRole">
-              <MappingFragment StoreEntitySet="RatingTask_WorkRole">
-                <ScalarProperty Name="CreatedById" ColumnName="CreatedById" />
-                <ScalarProperty Name="Created" ColumnName="Created" />
-                <ScalarProperty Name="WorkRoled" ColumnName="WorkRoled" />
-                <ScalarProperty Name="RatingTaskId" ColumnName="RatingTaskId" />
-                <ScalarProperty Name="RowId" ColumnName="RowId" />
-                <ScalarProperty Name="Id" ColumnName="Id" />
-              </MappingFragment>
-            </EntityTypeMapping>
-          </EntitySetMapping>
-          <EntitySetMapping Name="RmtlProject_BilletTask">
-            <EntityTypeMapping TypeName="NavyRRLModel.RmtlProject_BilletTask">
-              <MappingFragment StoreEntitySet="RmtlProject_BilletTask">
-                <ScalarProperty Name="LastUpdatedById" ColumnName="LastUpdatedById" />
-                <ScalarProperty Name="LastUpdated" ColumnName="LastUpdated" />
-                <ScalarProperty Name="CreatedById" ColumnName="CreatedById" />
-                <ScalarProperty Name="Created" ColumnName="Created" />
-                <ScalarProperty Name="RatingTaskId" ColumnName="RatingTaskId" />
-                <ScalarProperty Name="ProjectBilletId" ColumnName="ProjectBilletId" />
-                <ScalarProperty Name="RowId" ColumnName="RowId" />
-                <ScalarProperty Name="Id" ColumnName="Id" />
-              </MappingFragment>
-            </EntityTypeMapping>
-          </EntitySetMapping>
-        </EntityContainerMapping>
+          </EntityContainerMapping>
       </Mapping>
     </edmx:Mappings>
   </edmx:Runtime>
