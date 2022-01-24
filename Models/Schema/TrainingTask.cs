@@ -13,5 +13,6 @@ namespace Models.Schema
 		public string Description { get; set; }
 
 		public Guid Course { get; set; }
+		public string CourseCodedNotation { get; set; }
 	}
 }

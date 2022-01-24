@@ -412,12 +412,14 @@ namespace Factories
 						item.RowId = GetGuidType( dr, "RowId" );
 						item.Ratings = dr["Ratings"].ToString();// GetRowColumn( dr, "Ratings", "" );
                         
-                        item.HasRatings = GetRatingGuids( item.Ratings );
+                        if ( autocomplete ) 
+                            item.HasRatings = GetRatingGuids( item.Ratings );
                         //do we need to populate HasRating (if so, could include in the pipe separated list of Ratings
                         item.BilletTitles = dr["BilletTitles"].ToString();// GetRowColumn( dr, "BilletTitles", "" );
                         var bt= GetRowColumn( dr, "BilletTitles", "" );
                         //could save previous and then first check the previous
-                        item.HasBilletTitles = GetBilletTitleGuids( item.BilletTitles );
+                        if ( autocomplete )
+                            item.HasBilletTitles = GetBilletTitleGuids( item.BilletTitles );
                         //similarly, do we need a list of billet guids?
 
                         item.Description = dr["RatingTask"].ToString();// GetRowColumn( dr, "RatingTask", "" );
@@ -448,7 +450,7 @@ namespace Factories
                         }
                         //
                         //
-                        item.Source = dr["ReferenceResource"].ToString();// GetRowColumn( dr, "Source", "" );
+                        item.ReferenceResource = dr["ReferenceResource"].ToString();// GetRowColumn( dr, "Source", "" );
                         item.SourceDate = dr["SourceDate"].ToString();// GetRowColumn( dr, "SourceDate", "" );
                         item.HasReferenceResource = GetGuidType( dr, "HasReferenceResource" );
 						//

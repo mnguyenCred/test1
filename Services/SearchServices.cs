@@ -136,7 +136,7 @@ namespace Services
 						{ "PayGrade", item.Rank },
 						{ "Level", item.Level },
 						{ "FunctionalArea", item.FunctionalArea },
-						{ "Source", item.Source },
+						{ "Source", item.ReferenceResource },
 						{ "SourceDate", item.SourceDate },
 						{ "WorkElementType", item.WorkElementType },
 						{ "TaskApplicability", item.TaskApplicability },

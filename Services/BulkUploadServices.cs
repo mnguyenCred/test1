@@ -968,6 +968,20 @@ namespace Services
 							LoggingHelper.DoTrace( 6, String.Format("Course: {0}, CIN: {1}.",item.Name, item.CodedNotation ), false);
 						}
 					}
+				} //if no courses, there could be training tasks?
+				else
+                {
+					var trainTaskMgr = new TrainingTaskManager();
+					//but what to do with them?
+					if ( summary.ItemsToBeCreated.TrainingTask?.Count > 0 )
+					{
+						foreach( var item in summary.ItemsToBeCreated.TrainingTask )
+                        {
+							item.CreatedById = item.LastUpdatedById = user.Id;
+							//there is no associate with the course? Need to store the CIN with training task
+							//trainTaskMgr.Save( item, ref summary );
+						}
+					}
 				}
 
 				if ( summary.ItemsToBeCreated.WorkRole?.Count > 0 )
@@ -1018,11 +1032,20 @@ namespace Services
 						if ( summary.ItemsToBeCreated.BilletTitle?.Count > 0 )
 						{
 							//get billets that reference this task
-							var results = summary.ItemsToBeCreated.BilletTitle.Where( p => p.HasRatingTask.Contains(item.RowId) ).ToList();	
+							var results = summary.ItemsToBeCreated.BilletTitle.Where( p => p.HasRatingTask.Contains(item.RowId) ).ToList();
 
-							//var results = summary.ItemsToBeCreated.BilletTitle.Where( p => item.HasBillet.Any( p2 => p2 == p.RowId ) );
-							//var results2 = item.Where( p => summary.ItemsToBeCreated.BilletTitle.Any( p2 => p2 == p.RowId ) );
-							item.HasBillet.AddRange( results.Select( p => p.RowId) );
+							if ( results.Count > 0 )
+							{
+								item.HasBillet.AddRange( results.Select( p => p.RowId ) );
+							} else
+                            {
+								var resultsByCode = summary.ItemsToBeCreated.BilletTitle.Where( p => p.HasRatingTaskByCode.Contains( item.CodedNotation ) ).ToList();
+								if( resultsByCode.Count > 0 )
+								{
+									//this will always be one (one per row). Alternate would be to do a set based approach after all rating tasks are created. 
+									item.HasBillet.AddRange( resultsByCode.Select( p => p.RowId ) );
+								}
+							}
 						}
 						item.CreatedById = item.LastUpdatedById = user.Id;
 						mgr.Save( item, ref summary );
@@ -1497,12 +1520,13 @@ namespace Services
 		{
 			//Get the existing data
 			existingTrainingTasks = existingTrainingTasks ?? TrainingTaskManager.GetAll();
-
+			
 			//Convert the uploaded data
 			var uploadedTrainingTaskMatchers = GetSheetMatchers<TrainingTask, MatchableTrainingTask>( uploadedRows, GetRowMatchHelper_TrainingTask );
 			foreach ( var matcher in uploadedTrainingTaskMatchers )
 			{
 				matcher.Flattened.Description = matcher.Rows.Select( m => m.TrainingTask_Description ).FirstOrDefault();
+				matcher.Flattened.CourseCodedNotation = matcher.Rows.Select( m => m.Course_CodedNotation ).FirstOrDefault();
 			}
 
 			//Remove empty rows
@@ -1537,7 +1561,11 @@ namespace Services
 			var newTrainingTaskMatchers = uploadedTrainingTaskMatchers.Where( m => !looseMatchingTrainingTaskMatchers.Contains( m ) ).ToList();
 			foreach ( var item in newTrainingTaskMatchers )
 			{
-				CreateNewItem( summary.ItemsToBeCreated.TrainingTask, m => m.Description = item.Flattened.Description );
+				CreateNewItem( summary.ItemsToBeCreated.TrainingTask, m => 
+				{
+					m.Description = item.Flattened.Description;
+					m.CourseCodedNotation = item.Flattened.CourseCodedNotation;
+				} );
 			}
 
 			//Items that were not found in the uploaded data (deleted items)
@@ -1970,6 +1998,7 @@ namespace Services
 					m.HasRatingTask = combinedTaskMatchHelpers.Where( n =>
 						 item.Flattened.HasRatingTask_MatchHelper.Contains( n.MatchHelper )
 					).Select( n => n.Data.RowId ).ToList();
+					m.HasRatingTaskByCode = item.Flattened.HasRatingTaskCodedNotation;
 				} );
 			}
 
@@ -2147,6 +2176,7 @@ namespace Services
 		{
 			return GetMergedRowMatchHelper( new List<string>()
 			{
+				row.Course_CodedNotation,
 				row.TrainingTask_Description
 			} );
 		}

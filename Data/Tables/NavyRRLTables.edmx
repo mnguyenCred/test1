@@ -207,7 +207,7 @@
           <Property Name="RowId" Type="uniqueidentifier" Nullable="false" />
           <Property Name="CourseId" Type="int" Nullable="false" />
           <Property Name="OrganizationId" Type="int" Nullable="false" />
-          <Property Name="Created" Type="date" Nullable="false" />
+          <Property Name="Created" Type="datetime" Nullable="false" />
           <Property Name="CreatedById" Type="int" />
         </EntityType>
         <EntityType Name="Course_Task">
@@ -2366,7 +2366,7 @@
           <Property Name="RowId" Type="Guid" Nullable="false" />
           <Property Name="CourseId" Type="Int32" Nullable="false" />
           <Property Name="OrganizationId" Type="Int32" Nullable="false" />
-          <Property Name="Created" Type="DateTime" Nullable="false" Precision="0" />
+          <Property Name="Created" Type="DateTime" Nullable="false" Precision="3" />
           <Property Name="CreatedById" Type="Int32" />
           <NavigationProperty Name="Organization" Relationship="NavyRRLModel.FK_Course_Organization_Organization" FromRole="Course_Organization" ToRole="Organization" />
           <NavigationProperty Name="Course" Relationship="NavyRRLModel.FK_CourseOrganization_Course" FromRole="Course_Organization" ToRole="Course" />

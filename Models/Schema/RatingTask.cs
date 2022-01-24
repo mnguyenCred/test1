@@ -113,7 +113,7 @@ namespace Models.Schema
 		public string FunctionalArea { get; set; }
 		public string Level { get; set; }
 		public string Rank { get; set; }
-		public string Source { get; set; }
+		public string ReferenceResource { get; set; }
 		public string SourceDate { get; set; }
 		public string TaskApplicability { get; set; }
 		public string WorkElementType { get; set; }

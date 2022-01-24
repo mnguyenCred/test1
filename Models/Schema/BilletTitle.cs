@@ -34,5 +34,7 @@ namespace Models.Schema
 		/// From Column: Work Element (Task)
 		/// </summary>
 		public List<Guid> HasRatingTask { get; set; }
+
+		public List<string> HasRatingTaskByCode { get; set; }
 	}
 }
