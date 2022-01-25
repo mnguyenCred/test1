@@ -11,6 +11,7 @@ namespace Models.Schema
 			CurriculumControlAuthority = new List<Guid>();
 			HasTrainingTask = new List<Guid>();
 			AssessmentMethodType = new List<Guid>();
+			CourseTypes = new List<Guid>();
 		}
 
 		/// <summary>
@@ -49,7 +50,7 @@ namespace Models.Schema
 		/// </summary>
 		public Guid CourseType { get; set; }
 		//TBD must be a list
-		public List<Guid> CourseTypes { get; set; } = new List<Guid>();
+		public List<Guid> CourseTypes { get; set; }
 		/// <summary>
 		/// GUID for the Concept for the Assessment Method Type for this Course<br />
 		/// From Column: Current Assessment Approach

@@ -47,6 +47,7 @@ namespace Models.Curation
 		public string Row_Identifier { get; set; }
 		public string Rating_CodedNotation { get; set; }
 		public string PayGradeType_Notation { get; set; }
+		public string Level_Name { get; set; }
 		public string BilletTitle_Name { get; set; }
 		public string WorkRole_Name { get; set; }
 		public string ReferenceResource_Name { get; set; }

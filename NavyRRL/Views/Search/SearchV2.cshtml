@@ -60,23 +60,24 @@
 	var Search = {
 		UI: {},
 		Columns: [
-			{ Label: "Rating", Category: "overall", CssClass: "rating" },
-			{ Label: "Pay Grade", Category: "overall", CssClass: "payGrade" },
-			{ Label: "Billet Title", Category: "overall", CssClass: "billetTitle" },
-			{ Label: "Functional Area", Category: "ratingTask", CssClass: "workRole" },
-			{ Label: "Source", Category: "ratingTask", CssClass: "source" },
-			{ Label: "Source Date", Category: "ratingTask", CssClass: "sourceDate" },
-			{ Label: "Source Type", Category: "ratingTask", CssClass: "sourceType" },
-			{ Label: "Rating Task Description", Category: "ratingTask", CssClass: "ratingTaskDescription" },
-			{ Label: "Rating Task Applicability", Category: "ratingTask", CssClass: "applicabilityType" },
-			{ Label: "Training Gap", Category: "course", CssClass: "trainingGapType" },
-			{ Label: "Training Task Description", Category: "course", CssClass: "trainingTaskDescription" },
-			{ Label: "Course Identification Number", Category: "course", CssClass: "courseID" },
-			{ Label: "Course Name", Category: "course", CssClass: "courseName" },
-			{ Label: "Course Type", Category: "course", CssClass: "courseType" },
-			{ Label: "Curriculum Control Authority", Category: "course", CssClass: "cca" },
-			{ Label: "Life-Cycle Control Document", Category: "course", CssClass: "lccd" },
-			{ Label: "Course Assessment Approach", Category: "course", CssClass: "assessmentMethodType" }
+			{ Label: "Rating", ResultMap: "Rating_CodedNotation", Category: "overall", CssClass: "rating" },
+			{ Label: "Pay Grade", ResultMap: "PayGradeType_Notation", Category: "overall", CssClass: "payGrade" },
+			{ Label: "Level", ResultMap: "Level_Name", Category: "overall", CssClass: "level" },
+			{ Label: "Billet Title", ResultMap: "BilletTitle_Name", Category: "overall", CssClass: "billetTitle" },
+			{ Label: "Functional Area", ResultMap: "WorkRole_Name", Category: "ratingTask", CssClass: "workRole" },
+			{ Label: "Source", ResultMap: "ReferenceResource_Name", Category: "ratingTask", CssClass: "source" },
+			{ Label: "Source Date", ResultMap: "ReferenceResource_PublicationDate", Category: "ratingTask", CssClass: "sourceDate" },
+			{ Label: "Source Type", ResultMap: "Shared_ReferenceType", Category: "ratingTask", CssClass: "sourceType" },
+			{ Label: "Rating Task Description", ResultMap: "RatingTask_Description", Category: "ratingTask", CssClass: "ratingTaskDescription" },
+			{ Label: "Rating Task Applicability", ResultMap: "RatingTask_ApplicabilityType_Label", Category: "ratingTask", CssClass: "applicabilityType" },
+			{ Label: "Training Gap", ResultMap: "RatingTask_TrainingGapType_Label", Category: "course", CssClass: "trainingGapType" },
+			{ Label: "Training Task Description", ResultMap: "TrainingTask_Description", Category: "course", CssClass: "trainingTaskDescription" },
+			{ Label: "Course Identification Number", ResultMap: "Course_CodedNotation", Category: "course", CssClass: "courseID" },
+			{ Label: "Course Name", ResultMap: "Course_Name", Category: "course", CssClass: "courseName" },
+			{ Label: "Course Type", ResultMap: "Course_CourseType_Label", Category: "course", CssClass: "courseType" },
+			{ Label: "Curriculum Control Authority", ResultMap: "Course_CurriculumControlAuthority_Name", Category: "course", CssClass: "cca" },
+			{ Label: "Life-Cycle Control Document", ResultMap: "Course_HasReferenceResource_Name", Category: "course", CssClass: "lccd" },
+			{ Label: "Course Assessment Approach", ResultMap: "Course_AssessmentMethodType_Label", Category: "course", CssClass: "assessmentMethodType" }
 		],
 		Prefilled: {
 			Rating: @Html.Raw(JsonConvert.SerializeObject(ratingFilter, Formatting.None)),
@@ -87,13 +88,16 @@
 			CourseType: @Html.Raw(JsonConvert.SerializeObject(courseTypeFilter, Formatting.None)),
 			AssessmentMethodType: @Html.Raw(JsonConvert.SerializeObject(assessmentMethodTypeFilter, Formatting.None))
 		},
+		PageNumber: 1,
+		PageSize: 250,
 		Filters: []
 	};
 	//
 
 	$(document).ready(function () {
 		setupSearchUI();
-		setupResultsTables();
+		setupSearchResultsTable();
+		setupSearchHeader();
 		setupFilters();
 	});
 	//
@@ -101,26 +105,53 @@
 	function setupSearchUI() {
 		Search.UI.StyleBox = $(".searchTableStyles");
 		Search.UI.FiltersBox = $(".filtersBox");
+		Search.UI.SearchResultsBox = $(".searchResults");
 		Search.UI.SearchStatusBox = $(".searchStatus");
-		Search.UI.ResultsHeadersWrapper = $(".searchResults .headersWrapper");
-		Search.UI.ResultsHeadersTable = $(".searchResults .resultsHeaders tbody");
-		Search.UI.ResultsWrapper = $(".searchResults .resultsWrapper");
-		Search.UI.ResultsTable = $(".searchResults .resultsTable tbody");
-		Search.UI.ResultsTableWidthForcer = $(".searchResults .widthForcer");
+		Search.UI.SearchSpinner = $(".searchSpinner");
+		Search.UI.NavbarScrollThreshhold = $(".navbar-fixed-top").outerHeight();
+		Search.UI.SearchResultsTable = $(".searchResultsTable tbody");
+		Search.UI.ExportButton = $("[data-action='export']");
+		Search.UI.ExportSpinner = $(".exportSpinner");
+		Search.UI.FullScreenViewButton = $("[data-action='fullScreenView']");
+		Search.UI.NormalViewButton = $("[data-action='normalView']");
+		Search.UI.PageSelector = $(".pageSelector");
+		Search.UI.SearchSpinner.hide();
+		Search.UI.ExportSpinner.hide();
 	}
 	//
 
-	function setupResultsTables() {
-		Search.UI.ResultsWrapper.on("scroll", () => {
-			Search.UI.ResultsHeadersWrapper[0].scrollTo(Search.UI.ResultsWrapper[0].scrollLeft, 0);
-		});
-
-		var headerRow = $("<tr></tr>").appendTo(Search.UI.ResultsHeadersTable);
+	function setupSearchResultsTable() {
+		var headerRow = $("<tr class=\"header\"></tr>").appendTo(Search.UI.SearchResultsTable);
 		Search.Columns.forEach((Column) => {
 			headerRow.append("<th class=\"" + Column.Category + " " + Column.CssClass + "\">" + Column.Label + "</th>");
-			Search.UI.ResultsTableWidthForcer.append("<td class=\"" + Column.CssClass + "\"></td>");
 		});
-		Search.UI.ResultsTableResetContent = Search.UI.ResultsTable.html();
+		Search.UI.SearchResultsTableResetContent = Search.UI.SearchResultsTable.html();
+	}
+	//
+
+	function setupSearchHeader() {
+		Search.UI.ExportButton.on("click", () => {
+			exportResults();
+		});
+
+		Search.UI.FullScreenViewButton.on("click", () => {
+			Search.UI.SearchResultsBox.addClass("fullScreen");
+			Search.UI.FullScreenViewButton.hide();
+			Search.UI.NormalViewButton.show();
+		});
+
+		Search.UI.NormalViewButton.on("click", () => {
+			Search.UI.SearchResultsBox.removeClass("fullScreen");
+			Search.UI.FullScreenViewButton.show();
+			Search.UI.NormalViewButton.hide();
+		});
+
+		Search.UI.NormalViewButton.hide();
+
+		Search.UI.PageSelector.on("change", () => {
+			Search.PageNumber = parseInt(Search.UI.PageSelector.val() || "1");
+			doSearch(true);
+		});
 	}
 	//
 
@@ -131,8 +162,8 @@
 			Search.UI.StyleBox.html("");
 			Filter.Items.forEach((Item, index) => {
 				if (Item.CheckBox.prop("checked") == false) {
-					Search.UI.StyleBox.append(".searchBox .searchResults .headersWrapper th:nth-child(" + (index + 1) + ") { display: none; }");
-					Search.UI.StyleBox.append(".searchBox .searchResults .resultsWrapper td:nth-child(" + (index + 1) + ") { display: none; }");
+					Search.UI.StyleBox.append(".searchResultsTable th:nth-child(" + (index + 1) + ") { display: none; }");
+					Search.UI.StyleBox.append(".searchResultsTable td:nth-child(" + (index + 1) + ") { display: none; }");
 				}
 			})
 		}, true);
@@ -277,7 +308,9 @@
 	}
 	//
 
-	function doSearch() {
+	function doSearch(asPaging, getAllHandler) {
+		Search.PageNumber = asPaging ? Search.PageNumber : 1;
+
 		var currentFilters = Search.Filters
 			.filter(Filter => Filter.Name != "Column")
 			.map(Filter => {
@@ -291,11 +324,13 @@
 
 		var query = {
 			SortOrder: "TBD",
-			Filters: currentFilters
+			Filters: currentFilters,
+			PageSize: getAllHandler ? -1 : 250,
+			PageNumber: getAllHandler ? 1 : Search.PageNumber
 		};
 
 		console.log("Sending Query...", query);
-		setSearchStatus("Searching...");
+		setSearchStatus("Searching...", true);
 		fetch("@Url.Content("~/search/mainsearch")", {
 			method: "POST",
 			headers: { 'Accept': 'application/json', 'Content-Type': 'application/json' },
@@ -304,9 +339,16 @@
 			console.log("Received response", response);
 			return response.text();
 		}).then((text) => {
-			Search.Results = JSON.parse(text);
+			var resultsData = JSON.parse(text);
 			console.log("Parsed JSON", Search.Results);
-			renderResults();
+			if (getAllHandler) {
+				setSearchStatus("Exported " + (Search.Results.Data.TotalResults || 0) + " Rows");
+				getAllHandler(resultsData);
+			}
+			else {
+				Search.Results = resultsData
+				renderResults();
+			}
 		});
 	}
 	//
@@ -314,29 +356,79 @@
 	function renderResults() {
 		console.log("Rendering results", Search.Results);
 		if (Search.Results.Valid) {
-			setSearchStatus("Found " + Search.Results.Data.TotalResults + " Rows");
+			setSearchStatus("Found " + (Search.Results.Data.TotalResults || 0) + " Rows");
 
-			Search.UI.ResultsTable.html(Search.UI.ResultsTableResetContent);
+			//Update paging
+			var totalPages = Math.ceil((Search.Results.Data.TotalResults || 1) / Search.PageSize);
+			Search.UI.PageSelector.html("");
+			for (var i = 1; i <= totalPages; i++) {
+				Search.UI.PageSelector.append("<option value=\"" + i + "\"" + (i == Search.PageNumber ? " selected=\"selected\"" : "") + ">Page " + i + "</option>");
+			}
+
+			//Render results
+			Search.UI.SearchResultsTable.html(Search.UI.SearchResultsTableResetContent);
 			Search.Results.Data.Results.forEach(Result => {
-				console.log("Rendering result", Result);
-				var resultBox = $("<tr></tr>").appendTo(Search.UI.ResultsTable);
-				//Additional rendering TBD
+				var resultBox = $("<tr></tr>").appendTo(Search.UI.SearchResultsTable);
+				setTimeout(() => {
+					resultBox.html("<td>" + Search.Columns.map(column => { return Result.Data[column.ResultMap] || Result.Extra[column.ResultMap] || "" }).join("</td><td>") + "</td>");
+				}, 0)
 			});
 		}
 		else {
-			setSearchStatus(Search.Results.Status.join("<br />"));
+			setSearchStatus("Error(s): " + Search.Results.Status.join(" | "));
 		}
 	}
 	//
 
-	function setSearchStatus(message) {
+	function setSearchStatus(message, showSpinner) {
 		Search.UI.SearchStatusBox.html(message);
+		showSpinner ? Search.UI.SearchSpinner.show() : Search.UI.SearchSpinner.hide();
 	}
 	//
 
+	async function exportResults() {
+		Search.UI.ExportButton.hide();
+		Search.UI.ExportSpinner.show();
+
+		//Be sure to get all of the results first!
+		doSearch(true, (allResults) => {
+			if (allResults.Valid) {
+				saveResultsAsCSV(allResults.Data.Results)
+			}
+			else {
+				alert("Error: " + allResults.Status.join("\n"));
+			}
+
+			Search.UI.ExportButton.show();
+			Search.UI.ExportSpinner.hide();
+		});
+	}
+	//
+
+	function saveResultsAsCSV(results) {
+		var columns = Search.Filters.filter(m => m.Name == "Column")[0].Items.filter(m => m.CheckBox.prop("checked") == true).map(m => { return m.ResultMap });
+		var rows = [columns];
+		results.forEach(result => {
+			rows.push(columns.map(m => {
+				var text = (result.Data[m] || result.Extra[m] || "").replace(/"/g, '""').replace(/\r\n/g, "\n");
+				return text.includes("\n") || text.includes(",") ? '"' + text + '"' : text;
+			}));
+		});
+		var csv = rows.map(m => m.join(",")).join("\n");
+		var file = new Blob([csv], { type: "text/csv" });
+		var url = window.URL.createObjectURL(file);
+		var link = $("<a href=\"" + url + "\" download=\"Task Data Export.csv\"></a>").appendTo(document.body);
+		link[0].click();
+		window.URL.revokeObjectURL(url);
+		link.remove();
+	}
+	//
 </script>
 <style type="text/css">
 	html body .container { width: 98vw; }
+	.spinner { display: inline-block; box-shadow: inset 4px 0 0 5px; border-radius: 50%; height: 20px; width: 20px; animation: spin 1s linear infinite; }
+	@@keyframes spin { 100% { transform: rotate(360deg); } }
+
 	.searchBox { }
 	.searchBox .searchHeader { }
 	.searchBox .searchHeader .filtersBox { display: flex; }
@@ -368,14 +460,19 @@
 	.searchBox .searchHeader .filtersBox .filter.autofill .filterItems .filterItem button { margin-left: 10px; background-color: #F55; border: none; color: #FFF; font-weight: bold; height: 22px; width: 22px; }
 	.searchBox .searchHeader .filtersBox .filter.autofill .filterItems .filterItem button:hover, .searchBox .searchHeader .filtersBox .filter.autofill .filterItems .filterItem button:focus { background-color: #F77; }
 
-	.searchBox .searchResults { }
-	.searchBox .searchResults .headersWrapper { overflow-x: hidden; }
-	.searchBox .searchResults .resultsWrapper { overflow-x: scroll; }
-	.searchBox .searchResults .headersWrapper th { padding: 5px 10px; border: 1px solid #777; border-width: 0 1px; }
-	.searchBox .searchResults .resultsWrapper td { padding: 5px 10px; border: 1px solid #CCC; }
-	.searchBox .searchResults .headersWrapper th.overall { background-color: #CCF; }
-	.searchBox .searchResults .headersWrapper th.ratingTask { background-color: #FC5; }
-	.searchBox .searchResults .headersWrapper th.course { background-color: #FEA; }
+	.searchTableTopBar { display: flex; flex-wrap: wrap; align-items: center; padding: 5px 10px; background-color: #EEE; }
+	.searchTableTopBar > *:not(:last-child) { margin-right: 10px; }
+	.searchTableTopBar .searchStatus { font-weight: bold; }
+	.searchTableTopBar .searchSpinner {  }
+	.searchTableTopBar .searchTopBarDivider { margin-left: auto; }
+	.searchTableTopBar .pageSelector { height: 26px; }
+
+	.searchResults.fullScreen { display: flex; flex-direction: column; position: fixed; z-index: 5000; background-color: #FFF; top: 0; left: 0; width: 100vw; height: 100vh; }
+	.searchResults.fullScreen .searchResultsTableWrapper { max-height: none; }
+	.searchResults .searchResultsTableWrapper { flex: 1 1 auto; max-width: 100%; max-height: 90vh; overflow: scroll; }
+	.searchResults .searchResultsTableWrapper .searchResultsTable { border-collapse: separate; border-spacing: 0; }
+	.searchResults .searchResultsTableWrapper .searchResultsTable th { position: sticky; top: 0px; border: 1px solid #777; border-width: 0 0 0 1px; }
+	.searchResults .searchResultsTableWrapper .searchResultsTable td { padding: 5px 10px; border: 1px solid #CCC; border-width: 1px 0 0 1px; font-size: 12px; }
 
 	@@media(max-width: 1300px){
 		.searchBox .searchHeader .filtersBox { display: block; }
@@ -386,8 +483,14 @@
 
 	/* Table Column widths */
 	/* Have to hard-set these so that the headers stay synched up with the results */
+	table th { padding: 5px 10px; border: 1px solid #777; border-width: 0 1px; }
+	table td { padding: 5px 10px; border: 1px solid #CCC; }
+	table th.overall { background-color: #CCF; }
+	table th.ratingTask { background-color: #FC5; }
+	table th.course { background-color: #FEA; }
 	table .rating { min-width: 100px; max-width: 100px; }
 	table .payGrade { min-width: 100px; max-width: 100px; }
+	table .level { min-width: 100px; max-width: 100px; }
 	table .billetTitle { min-width: 200px; max-width: 200px; }
 	table .workRole { min-width: 200px; max-width: 200px; }
 	table .source { min-width: 200px; max-width: 200px; }
@@ -402,12 +505,12 @@
 	table .courseType { min-width: 100px; max-width: 100px; }
 	table .cca { min-width: 100px; max-width: 100px; }
 	table .lccd { min-width: 100px; max-width: 100px; }
-	table .assessmentMethodType { min-width: 150px; max-width: 150px; }
+	table .assessmentMethodType { min-width: 200px; max-width: 200px; }
+
 </style>
 <style class="searchTableStyles"></style>
 
 <h2>Search</h2>
-
 <div class="searchBox">
 	<div class="searchHeader">
 		<div class="filtersBox">
@@ -419,17 +522,21 @@
 		</div>
 	</div>
 	<div class="searchResults">
-		<div class="searchStatus"></div>
-		<div class="headersWrapper">
-			<table class="resultsHeaders">
-				<tbody></tbody>
-			</table>
+		<div class="searchTableTopBar">
+			<div class="searchStatus"></div>
+			<div class="searchSpinner spinner"></div>
+			<div class="searchTopBarDivider"></div>
+			<div class="exportSpinner spinner"></div>
+			<select class="pageSelector">
+				<option value="1">Page 1</option>
+			</select>
+			<button data-action="export">Export All Results</button>
+			<button data-action="fullScreenView">Full Screen View</button>
+			<button data-action="normalView">Normal View</button>
 		</div>
-		<div class="resultsWrapper">
-			<table class="resultsTable">
-				<tbody>
-					<tr class="widthForcer"></tr>
-				</tbody>
+		<div class="searchResultsTableWrapper">
+			<table class="searchResultsTable">
+				<tbody></tbody>
 			</table>
 		</div>
 	</div>

@@ -4,6 +4,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
+using Newtonsoft.Json.Linq;
+
 namespace Models.Search
 {
 	public class SearchQuery
@@ -75,50 +77,23 @@ namespace Models.Search
 	}
 	//
 
-	public class SearchResultSet
+	public class SearchResultSet<T>
 	{
 		public SearchResultSet()
 		{
-			Results = new List<SearchResult>();
+			Results = new List<T>();
 		}
 		public string SearchType { get; set; }
 		public int TotalResults { get; set; }
-		public List<SearchResult> Results { get; set; }
+		public List<T> Results { get; set; }
 	}
 	//
 
-	public class SearchResult
+	public class ResultWithExtraData<T>
 	{
-		//TBD
-		public string Name { get; set; }
-		public string FriendlyName { get; set; }
-		public string Description { get; set; }
-		public int RecordId { get; set; }
-		public Dictionary<string, object> Properties { get; set; } = new Dictionary<string, object>();
-		public List<TagSet> Tags { get; set; } = new List<TagSet>();
+		public T Data { get; set; }
+		public JObject Extra { get; set; }
 	}
 	//
 
-	public class TagSet
-	{
-		public TagSet()
-		{
-			Items = new List<TagItem>();
-		}
-		public string Schema { get; set; } //
-		public string Method { get; set; } //embedded, ajax, link
-		public string Label { get; set; }
-		public int CategoryId { get; set; }
-		public List<TagItem> Items { get; set; }
-		public int Count { get; set; }
-	}
-	//
-
-	public class TagItem
-	{
-		public int CodeId { get; set; } //Should be the record integer ID from the code table itself
-		public string Schema { get; set; }  //Used when CodeId is not viable
-		public string Label { get; set; } //Used when all else fails
-		public string Description { get; set; }
-	}
 }

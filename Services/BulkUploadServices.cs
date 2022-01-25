@@ -1241,12 +1241,16 @@ namespace Services
 			//This approach attempts to achieve that by mapping both the uploaded data and the existing data into a common structure that can then easily be compared
 			//Note: The order in which these methods are called is very important, since later methods rely on data determined by earlier methods!
 			HandleUploadSheet_Organization( uploadedData.Rows, summary, currentRating, existingOrganizations );
+
 			HandleUploadSheet_WorkRole( uploadedData.Rows, summary, existingWorkRoles );
+
 			HandleUploadSheet_ReferenceResource( uploadedData.Rows, summary, existingReferenceResources, sourceTypeConcepts );
+
 			HandleUploadSheet_TrainingTask( uploadedData.Rows, summary, existingTrainingTasks );
 
 			HandleUploadSheet_Course( uploadedData.Rows, summary, existingCourses, existingOrganizations, existingReferenceResources, existingTrainingTasks, courseTypeConcepts, assessmentMethodTypeConcepts );
 
+			//Billet Title needs to come after Rating Task because new/existing Rating Tasks are an input to figuring out Billet Title's HasRatingTask property
 			HandleUploadSheet_BilletTitle( uploadedData.Rows, summary, currentRating, existingBilletTitles, existingRatingTasks, existingReferenceResources, payGradeTypeConcepts, sourceTypeConcepts, applicabilityTypeConcepts, trainingGapTypeConcepts );
 
 			HandleUploadSheet_RatingTask( uploadedData.Rows, summary, currentRating, existingRatings, existingBilletTitles, existingRatingTasks, existingTrainingTasks, existingReferenceResources, existingWorkRoles, payGradeTypeConcepts, applicabilityTypeConcepts, trainingGapTypeConcepts, sourceTypeConcepts );
