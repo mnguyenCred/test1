@@ -101,9 +101,6 @@
     <Compile Include="Tables\Course_AssessmentType.cs">
       <DependentUpon>NavyRRLTables.tt</DependentUpon>
     </Compile>
-    <Compile Include="Tables\Course_Concept.cs">
-      <DependentUpon>NavyRRLTables.tt</DependentUpon>
-    </Compile>
     <Compile Include="Tables\Course_CourseType.cs">
       <DependentUpon>NavyRRLTables.tt</DependentUpon>
     </Compile>

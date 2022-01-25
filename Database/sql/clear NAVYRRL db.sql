@@ -93,7 +93,7 @@ DBCC CHECKIDENT ('[Entity]', RESEED, 0);
 DBCC CHECKIDENT ('[Course]', RESEED, 0);
 DBCC CHECKIDENT ('[Course.Task]', RESEED, 0);
 DBCC CHECKIDENT ('[Course.Concept]', RESEED, 0);
-DBCC CHECKIDENT ('[Course.Organization]', RESEED, 0);
+--DBCC CHECKIDENT ('[Course.Organization]', RESEED, 0);
 --DBCC CHECKIDENT ('[Course.SchoolType]', RESEED, 0)
 --
 --DBCC CHECKIDENT ('[FunctionalArea]', RESEED, 0);

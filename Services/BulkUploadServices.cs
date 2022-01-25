@@ -1024,8 +1024,10 @@ namespace Services
 				if ( summary.ItemsToBeCreated.RatingTask?.Count > 0 )
 				{
 					var mgr = new RatingTaskManager();
+					int cntr = 0;
 					foreach ( var item in summary.ItemsToBeCreated.RatingTask )
 					{
+						cntr++;
 						//get all billets for this task
 						if ( item.HasBillet == null )
 							item.HasBillet = new List<Guid>();

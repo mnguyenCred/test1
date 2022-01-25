@@ -93,10 +93,12 @@ namespace NavyRRL.Controllers
 						else
 						{
 							if ( value.Length > 1 && value.IndexOf( "!" ) == 0 )
+							{
 								columnSearch.Add( string.Format( "({0} NOT LIKE '%{1}%')", Request.Form[string.Format( "columns[{0}][data]", index )], value.Substring( 1 ) ) );
+							}
 							else
 							{
-								//check for OR, or ||
+								//check for OR, or || better to require upper case to avoid issue with phrases
 								//should watch for incomplete typing
 								if ( value.IndexOf( " OR " ) > 0 )
 								{
@@ -105,7 +107,7 @@ namespace NavyRRL.Controllers
 									string OR = "";
 									foreach ( var item in itemList )
 									{
-										filter = OR + string.Format( "({0} LIKE '%{1}%')", Request.Form[string.Format( "columns[{0}][data]", index )], item );
+										filter += OR + string.Format( "({0} LIKE '%{1}%')", Request.Form[string.Format( "columns[{0}][data]", index )], item.Trim() );
 										OR = " OR ";
 									}
 									columnSearch.Add( filter );
@@ -117,7 +119,19 @@ namespace NavyRRL.Controllers
 									string OR = "";
 									foreach ( var item in itemList )
 									{
-										filter = OR + string.Format( "({0} LIKE '%{1}%')", Request.Form[string.Format( "columns[{0}][data]", index )], item );
+										filter += OR + string.Format( "({0} LIKE '%{1}%')", Request.Form[string.Format( "columns[{0}][data]", index )], item.Trim() );
+										OR = " OR ";
+									}
+									columnSearch.Add( filter );
+								}
+								else if ( value.IndexOf( " | " ) > 0 )
+								{
+									var itemList = value.Split( new string[] { " | " }, StringSplitOptions.None );
+									string filter = "";
+									string OR = "";
+									foreach ( var item in itemList )
+									{
+										filter += OR + string.Format( "({0} LIKE '%{1}%')", Request.Form[string.Format( "columns[{0}][data]", index )], item.Trim() );
 										OR = " OR ";
 									}
 									columnSearch.Add( filter );

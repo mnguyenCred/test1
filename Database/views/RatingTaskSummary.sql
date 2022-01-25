@@ -154,8 +154,10 @@ SELECT
 		,g.TrainingTaskUID as HasTrainingTask
 		--can be multiple
 		,g.AssessmentMethodTypes
-		--single or multiple?
+		--22-01-24-yes single 
 		,g.CurriculumControlAuthority
+		,g.CurriculumControlAuthorityId
+		,g.CurriculumControlAuthorityUID
 		--comfirm if can be multiple
 		,g.LifeCycleControlDocument
 

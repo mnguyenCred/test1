@@ -14,6 +14,8 @@ namespace AppTestProject
         [TestMethod]
         public void GetAllTesting()
         {
+            var existingRatings = RatingManager.GetAll();
+
             var billetTitle = Factories.JobManager.GetAll();
             var course = Factories.CourseManager.GetAll();
             var organization = Factories.OrganizationManager.GetAll();
@@ -24,6 +26,17 @@ namespace AppTestProject
 
                 int totalRows = 0;
             var ratingTask = Factories.RatingTaskManager.GetAllForRating( "q", true, ref totalRows );
+        }
+      
+        [TestMethod]
+        public void GetAllConcepts()
+        {
+            var payGradeTypeConcepts = Factories.ConceptSchemeManager.GetbyShortUri( Factories.ConceptSchemeManager.ConceptScheme_Pay_Grade ).Concepts;
+            var trainingGapTypeConcepts = Factories.ConceptSchemeManager.GetbyShortUri( Factories.ConceptSchemeManager.ConceptScheme_TrainingGap ).Concepts;
+            var applicabilityTypeConcepts = Factories.ConceptSchemeManager.GetbyShortUri( Factories.ConceptSchemeManager.ConceptScheme_TaskApplicability ).Concepts;
+            var sourceTypeConcepts = Factories.ConceptSchemeManager.GetbyShortUri( Factories.ConceptSchemeManager.ConceptScheme_ReferenceResource ).Concepts;
+            var courseTypeConcepts = Factories.ConceptSchemeManager.GetbyShortUri( Factories.ConceptSchemeManager.ConceptScheme_CourseType ).Concepts;
+            var assessmentMethodTypeConcepts = Factories.ConceptSchemeManager.GetbyShortUri( Factories.ConceptSchemeManager.ConceptScheme_CurrentAssessmentApproach ).Concepts;
         }
         #region RatingTask
         [TestMethod]

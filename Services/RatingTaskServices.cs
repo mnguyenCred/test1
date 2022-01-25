@@ -202,7 +202,8 @@ namespace Services
             string AND = "";
             if ( where.Length > 0 )
                 AND = " AND ";
-
+            if ( data.IsDescending )
+                data.OrderBy += " desc";
 
             List<EntitySummary> list = RatingTaskManager.Search( data.Filter, data.OrderBy, data.PageNumber, data.PageSize, userId, ref totalRows );
 

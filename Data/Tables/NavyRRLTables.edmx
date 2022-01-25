@@ -335,6 +335,7 @@
           <Property Name="CreatedById" Type="int" />
           <Property Name="LastUpdated" Type="datetime" Nullable="false" />
           <Property Name="LastUpdatedById" Type="int" />
+          <Property Name="HasRating" Type="uniqueidentifier" />
         </EntityType>
         <EntityType Name="Organization">
           <Key>
@@ -1393,6 +1394,7 @@
           <NavigationProperty Name="RatingTask_HasJob" Relationship="NavyRRLModel.FK_RatingTask_HasJob_Job" FromRole="Job" ToRole="RatingTask_HasJob" />
           <Property Name="RatingId" Type="Int32" />
           <NavigationProperty Name="Rating" Relationship="NavyRRLModel.FK_Job_Rating1" FromRole="Job" ToRole="Rating" />
+          <Property Name="HasRating" Type="Guid" />
         </EntityType>
         <EntityType Name="Organization">
           <Key>
@@ -2660,6 +2662,7 @@
           <EntitySetMapping Name="Job">
             <EntityTypeMapping TypeName="NavyRRLModel.Job">
               <MappingFragment StoreEntitySet="Job">
+                <ScalarProperty Name="HasRating" ColumnName="HasRating" />
                 <ScalarProperty Name="RatingId" ColumnName="RatingId" />
                 <ScalarProperty Name="LastUpdatedById" ColumnName="LastUpdatedById" />
                 <ScalarProperty Name="CreatedById" ColumnName="CreatedById" />

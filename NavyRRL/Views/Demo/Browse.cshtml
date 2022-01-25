@@ -25,7 +25,7 @@
         }
 	</style>
 }
-<h2>RMTLs Summary</h2>
+<h2>RMTL Catalog</h2>
 
 <div style="width:100%">
 	<table id="results" class="table"></table>
@@ -69,23 +69,23 @@
                 //order: [[0, "desc"]],
                 //columnDefs: [{ targets: [0, 1, 2, 3], orderable: true }, { targets: 4, orderable: false, searchable: false }],
                 columns: [
-					{ data: "Id", name: "Id", title: 'Id', width: "15px" , filter: true },
-					{ data: 'CodedNotation', name: "Task Code", title: "Task Code", filter: true, width: "15px" },
+					{ data: "DisplayDate", name: "LastUpdated", title: 'Last Updated', width: "5%" , filter: false },
+					{ data: 'CodedNotation', name: "Task Code", title: "Task Code", filter: true, width: "5%" },
                 /*    { data: 'Unique_Identifier', name: "Unique_Identifier", title: "Unique Identifier", filter: true, width: "50px" },*/
 	
-                    { data: 'Ratings', name: "Rating", title: "Rating", filter: true, width: "15px"  },
-                    { data: 'Rank', name: "Rank", title: "Rank", filter: true, width: "15px"  },
+                    { data: 'Ratings', name: "Rating", title: "Rating", filter: true, width: "5%"  },
+					{ data: 'Rank', name: "Rank", title: "Rank", filter: true, width: "5%"  },
                     { data: 'Level', name: "RankLevel", title: "Level", filter: true, width: "15px"  },
 					{ data: 'BilletTitles', name: "Billet_Title", title: "Billet Title", filter: true, width: "200px" },
 
                     { data: 'FunctionalArea', name: "Functional_Area", title: "Functional Area", filter: true, width: "15px"  },
 					{ data: 'ReferenceResource', name: "Source", title: "Source", filter: true, width: "200px" },
 
-					{ data: 'SourceDate', name: "Date_of_Source", title: "Source Date", filter: true },
+					{ data: 'SourceDate', name: "Date_of_Source", title: "Source Date", filter: true, width: "5%" },
 					{ data: 'WorkElementType', name: "Work_Element_Type", title: "Work Element Type", filter: true, width: "50px" },
 					{ data: 'Description', name: "Work_Element_Task", title: "Rating Task", filter: true, width: "500px" },
 					{ data: 'TaskApplicability', name: "Task_Applicability", title: "Task Applicability", filter: true },
-					{ data: 'FormalTrainingGap', name: "Formal_Training_Gap", title: "Formal Training Gap", filter: true },
+					{ data: 'FormalTrainingGap', name: "Formal_Training_Gap", title: "Formal Training Gap", filter: true, width: "5%" },
 
 					{ data: 'CIN', name: "CIN", title: "CIN", filter: true, width: "25px" },
 					{ data: 'CourseName', name: "Course_Name", title: "Course Name", filter: true, width: "100px" },
