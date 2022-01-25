@@ -14,6 +14,7 @@
         <EntityTypeShape EntityType="ceNavyViewModel.CourseSummary" Width="2.5" PointX="0.625" PointY="8.5" />
         <EntityTypeShape EntityType="ceNavyViewModel.TrainingTaskSummary" Width="2.625" PointX="3.75" PointY="8.75" />
         <EntityTypeShape EntityType="ceNavyViewModel.ReferenceResourceSummary" Width="2.5" PointX="5.875" PointY="14.5" />
+        <EntityTypeShape EntityType="ceNavyViewModel.RatingSummary" Width="1.5" PointX="0.75" PointY="0.75" />
       </Diagram>
     </edmx:Diagrams>
   </edmx:Designer>

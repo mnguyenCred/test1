@@ -11,18 +11,18 @@
 	<link href="~/Content/Site.css" rel="stylesheet" />
 	<link href="~/Content/font-awesome.min.css" rel="stylesheet" />
 	<style type="text/css">
-		.custom-loader { background-color: crimson !important; }
-			.custom-loader i { color: #fff !important; }
-		.ui-autocomplete { z-index: 999999; height: 200px; overflow-y: auto; width: 420px; }
-		td.highlight { background-color: whitesmoke !important; }
-		#mainSiteFooter { display: none; }
-		.dataTables_filter { display: none; }
+        .custom-loader { background-color: crimson !important; }
+        .custom-loader i { color: #fff !important; }
+        .ui-autocomplete { z-index: 999999; height: 200px; overflow-y: auto; width: 420px; }
+        td.highlight { background-color: whitesmoke !important; }
+        #mainSiteFooter { display: none; }
+        .dataTables_filter { display: none; }
 
-		/*	show pager on the left*/
-		#results_paginate { margin: 0; white-space: nowrap; text-align: left; }
-		@@media (min-width: 1200px) {
-			.container { width: 150%; }
-		}
+        /*	show pager on the left*/
+        #results_paginate { margin: 0; white-space: nowrap; text-align: left; }
+        @@media (min-width: 1200px) {
+        .container { width: 150%; }
+        }
 	</style>
 }
 <h2>RMTLs Summary</h2>
@@ -70,7 +70,7 @@
                 //columnDefs: [{ targets: [0, 1, 2, 3], orderable: true }, { targets: 4, orderable: false, searchable: false }],
                 columns: [
 					{ data: "Id", name: "Id", title: 'Id', width: "15px" , filter: true },
-                    { data: 'CodedNotation', name: "CodeNotation", title: "Identifier", filter: true, width: "15px" },
+					{ data: 'CodedNotation', name: "Task Code", title: "Task Code", filter: true, width: "15px" },
                 /*    { data: 'Unique_Identifier', name: "Unique_Identifier", title: "Unique Identifier", filter: true, width: "50px" },*/
 	
                     { data: 'Ratings', name: "Rating", title: "Rating", filter: true, width: "15px"  },

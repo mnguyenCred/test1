@@ -134,6 +134,26 @@ warning 6002: The table/view 'NavyRRL.dbo.CourseSummary' does not have a primary
           <Property Name="LastUpdatedById" Type="int" />
         </EntityType>
         <!--Errors Found During Generation:
+warning 6002: The table/view 'NavyRRL.dbo.RatingSummary' does not have a primary key defined. The key has been inferred and the definition was created as a read-only table/view.-->
+        <EntityType Name="RatingSummary">
+          <Key>
+            <PropertyRef Name="Id" />
+            <PropertyRef Name="Name" />
+            <PropertyRef Name="HasRatingTasks" />
+            <PropertyRef Name="CTID" />
+            <PropertyRef Name="RowId" />
+          </Key>
+          <Property Name="Id" Type="int" Nullable="false" />
+          <Property Name="Name" Type="nvarchar" MaxLength="500" Nullable="false" />
+          <Property Name="HasRatingTasks" Type="int" Nullable="false" />
+          <Property Name="CodedNotation" Type="varchar" MaxLength="100" />
+          <Property Name="CTID" Type="varchar" MaxLength="50" Nullable="false" />
+          <Property Name="RowId" Type="uniqueidentifier" Nullable="false" />
+          <Property Name="Description" Type="nvarchar(max)" />
+          <Property Name="MainEntityOfPage" Type="varchar" MaxLength="600" />
+          <Property Name="Version" Type="varchar" MaxLength="30" />
+        </EntityType>
+        <!--Errors Found During Generation:
 warning 6002: The table/view 'NavyRRL.dbo.RatingTaskSummary' does not have a primary key defined. The key has been inferred and the definition was created as a read-only table/view.-->
         <EntityType Name="RatingTaskSummary">
           <Key>
@@ -392,6 +412,19 @@ warning 6002: The table/view 'NavyRRL.dbo.TrainingTaskSummary' does not have a p
     [CourseSummary].[LastUpdatedById] AS [LastUpdatedById]
     FROM [dbo].[CourseSummary] AS [CourseSummary]</DefiningQuery>
           </EntitySet>
+          <EntitySet Name="RatingSummary" EntityType="Self.RatingSummary" store:Type="Views" store:Schema="dbo">
+            <DefiningQuery>SELECT 
+    [RatingSummary].[Id] AS [Id], 
+    [RatingSummary].[Name] AS [Name], 
+    [RatingSummary].[HasRatingTasks] AS [HasRatingTasks], 
+    [RatingSummary].[CodedNotation] AS [CodedNotation], 
+    [RatingSummary].[CTID] AS [CTID], 
+    [RatingSummary].[RowId] AS [RowId], 
+    [RatingSummary].[Description] AS [Description], 
+    [RatingSummary].[MainEntityOfPage] AS [MainEntityOfPage], 
+    [RatingSummary].[Version] AS [Version]
+    FROM [dbo].[RatingSummary] AS [RatingSummary]</DefiningQuery>
+          </EntitySet>
           <EntitySet Name="RatingTaskSummary" EntityType="Self.RatingTaskSummary" store:Type="Views" store:Schema="dbo">
             <DefiningQuery>SELECT 
     [RatingTaskSummary].[Id] AS [Id], 
@@ -524,6 +557,7 @@ warning 6002: The table/view 'NavyRRL.dbo.TrainingTaskSummary' does not have a p
           <EntitySet Name="CourseSummary" EntityType="ceNavyViewModel.CourseSummary" />
           <EntitySet Name="TrainingTaskSummary" EntityType="ceNavyViewModel.TrainingTaskSummary" />
           <EntitySet Name="ReferenceResourceSummary" EntityType="ceNavyViewModel.ReferenceResourceSummary" />
+          <EntitySet Name="RatingSummary" EntityType="ceNavyViewModel.RatingSummary" />
         </EntityContainer>
         <EntityType Name="Activity_Summary">
           <Key>
@@ -805,6 +839,24 @@ warning 6002: The table/view 'NavyRRL.dbo.TrainingTaskSummary' does not have a p
           <Property Name="LastUpdatedById" Type="Int32" />
           <Property Name="ModifiedBy" Type="String" MaxLength="101" FixedLength="false" Unicode="false" />
         </EntityType>
+        <EntityType Name="RatingSummary">
+          <Key>
+            <PropertyRef Name="Id" />
+            <PropertyRef Name="Name" />
+            <PropertyRef Name="HasRatingTasks" />
+            <PropertyRef Name="CTID" />
+            <PropertyRef Name="RowId" />
+          </Key>
+          <Property Name="Id" Type="Int32" Nullable="false" />
+          <Property Name="Name" Type="String" Nullable="false" MaxLength="500" FixedLength="false" Unicode="true" />
+          <Property Name="HasRatingTasks" Type="Int32" Nullable="false" />
+          <Property Name="CodedNotation" Type="String" MaxLength="100" FixedLength="false" Unicode="false" />
+          <Property Name="CTID" Type="String" Nullable="false" MaxLength="50" FixedLength="false" Unicode="false" />
+          <Property Name="Description" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
+          <Property Name="MainEntityOfPage" Type="String" MaxLength="600" FixedLength="false" Unicode="false" />
+          <Property Name="RowId" Type="Guid" Nullable="false" />
+          <Property Name="Version" Type="String" MaxLength="30" FixedLength="false" Unicode="false" />
+        </EntityType>
       </Schema>
     </edmx:ConceptualModels>
     <!-- C-S mapping content -->
@@ -1028,6 +1080,21 @@ warning 6002: The table/view 'NavyRRL.dbo.TrainingTaskSummary' does not have a p
                 <ScalarProperty Name="ReferenceTypeId" ColumnName="ReferenceTypeId" />
                 <ScalarProperty Name="Name" ColumnName="Name" />
                 <ScalarProperty Name="RowId" ColumnName="RowId" />
+                <ScalarProperty Name="Id" ColumnName="Id" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="RatingSummary">
+            <EntityTypeMapping TypeName="ceNavyViewModel.RatingSummary">
+              <MappingFragment StoreEntitySet="RatingSummary">
+                <ScalarProperty Name="Version" ColumnName="Version" />
+                <ScalarProperty Name="RowId" ColumnName="RowId" />
+                <ScalarProperty Name="MainEntityOfPage" ColumnName="MainEntityOfPage" />
+                <ScalarProperty Name="Description" ColumnName="Description" />
+                <ScalarProperty Name="CTID" ColumnName="CTID" />
+                <ScalarProperty Name="CodedNotation" ColumnName="CodedNotation" />
+                <ScalarProperty Name="HasRatingTasks" ColumnName="HasRatingTasks" />
+                <ScalarProperty Name="Name" ColumnName="Name" />
                 <ScalarProperty Name="Id" ColumnName="Id" />
               </MappingFragment>
             </EntityTypeMapping>

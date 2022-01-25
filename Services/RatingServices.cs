@@ -17,5 +17,11 @@ namespace Services
 
             return allRatings; ;
         }
+        public static List<AppEntity> GetAllActiveRatings()
+        {
+            var allRatings = RatingManager.GetAll( true ).OrderByDescending( m => m.CodedNotation.ToLower() == "all" ).ToList();
+
+            return allRatings; ;
+        }
     }
 }

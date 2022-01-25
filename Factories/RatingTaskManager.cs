@@ -450,14 +450,14 @@ namespace Factories
                         }
                         //
                         //
-                        item.ReferenceResource = dr["ReferenceResource"].ToString();// GetRowColumn( dr, "Source", "" );
+                        item.ReferenceResource = dr["ReferenceResource"].ToString().Trim();// GetRowColumn( dr, "Source", "" );
                         item.SourceDate = dr["SourceDate"].ToString();// GetRowColumn( dr, "SourceDate", "" );
                         item.HasReferenceResource = GetGuidType( dr, "HasReferenceResource" );
 						//
 						item.WorkElementType = dr["WorkElementType"].ToString();// GetRowPossibleColumn( dr, "WorkElementType", "" );
                         item.ReferenceType = GetGuidType( dr, "ReferenceType" );
 						//
-						item.TaskApplicability = dr["TaskApplicability"].ToString();// GetRowPossibleColumn( dr, "TaskApplicability", "" );
+						item.TaskApplicability = dr["TaskApplicability"].ToString().Trim();// GetRowPossibleColumn( dr, "TaskApplicability", "" );
                         item.ApplicabilityType = GetGuidType( dr, "ApplicabilityType" );
 						//
 						item.FormalTrainingGap = dr["FormalTrainingGap"].ToString();// GetRowPossibleColumn( dr, "FormalTrainingGap", "" );
@@ -465,14 +465,14 @@ namespace Factories
 
 						item.CIN = dr["CIN"].ToString();// GetRowColumn( dr, "CIN", "" );
                         item.CourseName = dr["CourseName"].ToString();// GetRowColumn( dr, "CourseName", "" );
-                        item.CourseType = dr["CourseTypes"].ToString();// GetRowPossibleColumn( dr, "CourseType", "" );
-                        item.CurrentAssessmentApproach = dr["AssessmentMethodTypes"].ToString();// GetRowPossibleColumn( dr, "AssessmentMethodTypes", "" );
+                        item.CourseType = dr["CourseTypes"].ToString().Trim();// GetRowPossibleColumn( dr, "CourseType", "" );
+                        item.CurrentAssessmentApproach = dr["AssessmentMethodTypes"].ToString().Trim();// GetRowPossibleColumn( dr, "AssessmentMethodTypes", "" );
                                                                                      //
                         item.TrainingTask = dr["TrainingTask"].ToString();// GetRowPossibleColumn( dr, "TrainingTask", "" );
                         item.HasTrainingTask = GetGuidType( dr, "HasTrainingTask" );
 						//
-						item.CurriculumControlAuthority = dr["CurriculumControlAuthority"].ToString();// GetRowPossibleColumn( dr, "CurriculumControlAuthority", "" );
-                        item.LifeCycleControlDocument = dr["LifeCycleControlDocument"].ToString();// GetRowPossibleColumn( dr, "LifeCycleControlDocument", "" );
+						item.CurriculumControlAuthority = dr["CurriculumControlAuthority"].ToString().Trim();// GetRowPossibleColumn( dr, "CurriculumControlAuthority", "" );
+                        item.LifeCycleControlDocument = dr["LifeCycleControlDocument"].ToString().Trim();// GetRowPossibleColumn( dr, "LifeCycleControlDocument", "" );
                         item.Notes = dr["Notes"].ToString();
 
                         list.Add( item );

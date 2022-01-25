@@ -256,26 +256,27 @@ namespace Factories
             }
             //
             //this may be removed if there can be multiple CCA
-            //if ( input.CurriculumControlAuthority?.Count > 0 )
-            //{
-            //    foreach ( var item in input.CurriculumControlAuthority )
-            //    {
-            //        //all org adds will occur before here
-            //        var org = OrganizationManager.Get( item );
-            //        if ( org != null && org.Id > 0 )
-            //        {
-            //            //TODO - now using Course.Organization
-            //            output.CurriculumControlAuthorityId = org.Id;
-            //            //only can handle one here
-            //        }
-            //        else
-            //        {
-            //            //should not have a new org here
-            //            //NO, all new orgs will have been added first, so this would be an error
-            //        }
-            //    }
+            //22-01-24 - Navy confirmed only one!
+            if ( input.CurriculumControlAuthority?.Count > 0 )
+            {
+                foreach ( var item in input.CurriculumControlAuthority )
+                {
+                    //all org adds will occur before here
+                    var org = OrganizationManager.Get( item );
+                    if ( org != null && org.Id > 0 )
+                    {
+                        //TODO - now using Course.Organization
+                        output.CurriculumControlAuthorityId = org.Id;
+                        //only can handle one here
+                    }
+                    else
+                    {
+                        //should not have a new org here
+                        //NO, all new orgs will have been added first, so this would be an error
+                    }
+                }
 
-            //}
+            }
         }
         public static void MapToDB( AppFullEntity input, DBEntity output )
         {
@@ -456,6 +457,17 @@ namespace Factories
                 }
             }
             //
+            if ( input.CurriculumControlAuthorityId != null )
+            {
+                output.CurriculumControlAuthorityId = ( int ) input.CurriculumControlAuthorityId;
+                if ( input.Organization?.Id > 0 )
+                {
+                    output.OrganizationName = input.Organization.Name;
+                    output.Organizations.Add( output.OrganizationName );
+                    output.CurriculumControlAuthority.Add ( input.Organization.RowId);
+                }
+            }
+            //
             if ( input.LifeCycleControlDocumentId != null )
             {
                 output.LifeCycleControlDocumentId = (int)input.LifeCycleControlDocumentId;
@@ -466,18 +478,18 @@ namespace Factories
                 }
             }
             //
-            if ( input.Course_Organization?.Count > 0 )
-            {
-                output.Organizations = new List<string>();
-                foreach ( var item in input.Course_Organization )
-                {
-                    if ( item != null && item.Organization != null )
-                    {
-                        output.CurriculumControlAuthority.Add( item.Organization.RowId );
-                        output.Organizations.Add( item.Organization.Name );
-                    }
-                }
-            }
+            //if ( input.Course_Organization?.Count > 0 )
+            //{
+            //    output.Organizations = new List<string>();
+            //    foreach ( var item in input.Course_Organization )
+            //    {
+            //        if ( item != null && item.Organization != null )
+            //        {
+            //            output.CurriculumControlAuthority.Add( item.Organization.RowId );
+            //            output.Organizations.Add( item.Organization.Name );
+            //        }
+            //    }
+            //}
 
             //
             if ( includingTrainingTasks && input?.Course_Task?.Count > 0 )
@@ -506,7 +518,8 @@ namespace Factories
                 //CourseTaskSave( input, ref status );
                 new TrainingTaskManager().SaveList( input, false, ref status );
 
-                CurriculumControlAuthorityUpdate( input, ref status );
+                //22-01-24 - CCA is confirmed to be a single
+                //CurriculumControlAuthorityUpdate( input, ref status );
                 //TBD
                 if (IsValidGuid(input.CourseType))
                 {
@@ -525,139 +538,6 @@ namespace Factories
                 LoggingHelper.LogError( ex, thisClassName + "UpdateParts" );
             }
         }
-        /*
-        public void UpdateParts( AppFullEntity input, ChangeSummary status )
-        {
-            try
-            {
-                if ( input.TrainingTasks != null )
-                {
-
-                }
-                if ( !string.IsNullOrWhiteSpace( input.Course_Type ) )
-                {
-                    var parts = input.Course_Type.Split( '-' ).ToList();
-                    if ( parts.Count > 0 )
-                    {
-                        foreach ( var item in parts )
-                        {
-                            var concept = ConceptSchemeManager.GetConcept( item, ConceptSchemeManager.ConceptScheme_CourseType );
-                            if ( concept?.Id > 0 )
-                            {
-                                if ( AddCourseConcept( input, concept.Id, input.LastUpdatedById, ref status ) )
-                                {
-                                    //add log entry
-                                    SiteActivity sa = new SiteActivity()
-                                    {
-                                        ActivityType = "Course",
-                                        Activity = "Import",
-                                        Event = "Add Course_Concept",
-                                        Comment = string.Format( "CourseType of: '{0}' for conceptScheme: '{1}', was added for Course: '{2}' by the import.", item, ConceptSchemeManager.ConceptScheme_CourseType, input.Name ),
-                                    };
-                                    new ActivityManager().SiteActivityAdd( sa );
-                                }
-                            }
-                            else
-                            {
-                                //add new
-                            }
-                        }
-                    }
-                    //
-                }
-
-                if ( !string.IsNullOrWhiteSpace( input.CurrentAssessmentApproach ) )
-                {
-                    //output.AssessmentApproachId = ConceptSchemeManager.GetConcept( input.CurrentAssessmentApproach, ConceptSchemeManager.ConceptScheme_CurrentAssessmentApproach )?.Id;
-                    var parts = input.CurrentAssessmentApproach.Split( '-' ).ToList();
-                    if ( parts.Count > 0 )
-                    {
-                        foreach ( var item in parts )
-                        {
-                            var concept = ConceptSchemeManager.GetConcept( item, ConceptSchemeManager.ConceptScheme_CurrentAssessmentApproach );
-                            if ( concept?.Id > 0 )
-                            {
-                                if ( AddCourseConcept( input, concept.Id, input.LastUpdatedById, ref status ) )
-                                {
-                                    //add log entry
-                                    SiteActivity sa = new SiteActivity()
-                                    {
-                                        ActivityType = "Course",
-                                        Activity = "Import",
-                                        Event = "Add Course_Concept",
-                                        Comment = string.Format( "AssessmentApproach of: '{0}' for conceptScheme: '{1}', was added for Course: '{2}' by the import.", item, ConceptSchemeManager.ConceptScheme_CurrentAssessmentApproach, input.Name ),
-                                    };
-                                    new ActivityManager().SiteActivityAdd( sa );
-                                }
-                            }
-                            else
-                            {
-                                //add new
-                            }
-                        }
-                    }
-                    //
-                }
-
-            }
-            catch ( Exception ex )
-            {
-                LoggingHelper.LogError( ex, thisClassName + "UpdateParts" );
-            }
-        }
-        */
-        #region TrainingTask
-        ///// <summary>
-        ///// Not sure if we want to get thousands of tasks
-        ///// </summary>
-        ///// <returns></returns>
-        //public static List<CourseTask> TrainingTaskGetAll()
-        //{
-        //    var entity = new CourseTask();
-        //    var list = new List<CourseTask>();
-
-        //    using ( var context = new DataEntities() )
-        //    {
-        //        var results = context.Course_Task
-        //                .OrderBy( s => s.Id )
-        //                .ToList();
-        //        if ( results?.Count > 0 )
-        //        {
-        //            foreach ( var item in results )
-        //            {
-        //                if ( item != null && item.Id > 0 )
-        //                {
-        //                    entity = new CourseTask();
-        //                    MapFromDB( item, entity, true );
-        //                    list.Add( ( entity ) );
-        //                }
-        //            }
-        //        }
-
-        //    }
-        //    return list;
-        //}
-        //public static void MapFromDB( Course_Task input, CourseTask output, bool includingCourseId = false )
-        //{
-        //    //should include list of concepts
-        //    List<string> errors = new List<string>();
-        //    BaseFactory.AutoMap( input, output, errors );
-        //    if ( input.RowId != output.RowId )
-        //    {
-        //        output.RowId = input.RowId;
-        //    }
-        //    //
-        //    if ( includingCourseId )
-        //    {
-        //        if ( input.Course?.Id > 0 )
-        //        {
-        //            output.Course = input.Course.RowId;
-        //        }
-        //    }
-
-        //}
-        #endregion
-
 
         #region Course concepts
         public bool CourseAssessmentMethodSave( AppEntity input, List<Guid> concepts, ref ChangeSummary status )

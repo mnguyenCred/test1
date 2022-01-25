@@ -206,6 +206,9 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>NavyViews.edmx</DependentUpon>
     </Compile>
+    <Compile Include="Views\RatingSummary.cs">
+      <DependentUpon>NavyViews.tt</DependentUpon>
+    </Compile>
     <Compile Include="Views\RatingTaskSummary.cs">
       <DependentUpon>NavyViews.tt</DependentUpon>
     </Compile>

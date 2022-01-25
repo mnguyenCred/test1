@@ -1916,7 +1916,7 @@ namespace Services
 				
 				matcher.Flattened.Name = matcher.Rows.Select( m => m.BilletTitle_Name ).FirstOrDefault();
 				matcher.Flattened.HasRatingTask_MatchHelper = matcher.Rows.Select( m => GetRowMatchHelper_RatingTask( m ) ).Distinct().ToList();
-				//this would be alist
+				//this would be a list
 				matcher.Flattened.HasRatingTaskCodedNotation = matcher.Rows.Select( m => m.Row_CodedNotation ).Distinct().ToList();
 			}
 

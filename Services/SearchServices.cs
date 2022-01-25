@@ -101,6 +101,7 @@ namespace Services
 				case "ratingtask":
 					{
 						var results = RatingTaskServices.Search( data, ref totalResults );
+						data.TotalResults = totalResults;
 						return ConvertRatingTaskResults( results, totalResults, searchType );
 					}
 				//case "course":

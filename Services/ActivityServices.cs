@@ -385,15 +385,7 @@ namespace Services
 			pTotalRows = parms.TotalRows;
 			return list;
 		}
-		public static bool CheckAcknowledgmentSearch( string ackEvent, int userId )
-		{
-			BaseSearchModel parms = new BaseSearchModel();
-			parms.Filter = string.Format( " ActivityType='account' and Activity = 'Acknowledgement' and Event='{0}' AND [ActionByUserId]={1}", ackEvent, userId);
-			int pTotalRows = 0;
-			var list = Search( parms, ref pTotalRows );
 
-			return list != null && list.Any();
-		}
 		public static List<SiteActivity> Search( BaseSearchModel parms, ref int pTotalRows )
 		{
 
