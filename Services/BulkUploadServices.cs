@@ -1166,23 +1166,41 @@ namespace Services
         #region ProcessUpload V2
         public static ChangeSummary ProcessUploadV2( UploadableTable uploadedData, Guid ratingRowID, JObject debug = null )
 		{
+			//Hold data
 			debug = debug ?? new JObject();
 			var latestStepFlag = "FarthestStep";
 			var summary = new ChangeSummary() { RowId = Guid.NewGuid() };
 			int totalRows = 0;
 			debug[ latestStepFlag ] = "Initial Setup";
 
+			//Validate selected Rating
 			var currentRating = RatingManager.Get( ratingRowID );
 			if ( currentRating == null )
 			{
 				summary.Messages.Error.Add( "Error: Unable to find Rating for identifier: " + ratingRowID );
 				return summary;
 			}
+
+			//Valiate row count
 			if ( uploadedData.Rows.Count == 0 )
 			{
 				summary.Messages.Error.Add( "Error: No rows were found to process." );
 				return summary;
 			}
+
+			//Filter out rows that don't match the selected rating
+			var nonMatchingRows = uploadedData.Rows.Where( m => m.Rating_CodedNotation?.ToLower() != currentRating.CodedNotation.ToLower() ).ToList();
+			uploadedData.Rows = uploadedData.Rows.Where( m => !nonMatchingRows.Contains( m ) ).ToList();
+			if( nonMatchingRows.Count() > 0 )
+			{
+				var nonMatchingCodes = nonMatchingRows.Select( m => m.Rating_CodedNotation ).Distinct().ToList();
+				foreach( var code in nonMatchingCodes )
+				{
+					summary.Messages.Warning.Add( "Detected one or more rows that did not match the selected Rating (" + currentRating.CodedNotation + ") and instead were for Rating: \"" + code + "\". These rows have been ignored.");
+				}
+			}
+			
+			//Get existing data
 			var existingRatings = RatingManager.GetAll();
 			var payGradeTypeConcepts = Factories.ConceptSchemeManager.GetbyShortUri( Factories.ConceptSchemeManager.ConceptScheme_Pay_Grade ).Concepts;
 			var trainingGapTypeConcepts = Factories.ConceptSchemeManager.GetbyShortUri( Factories.ConceptSchemeManager.ConceptScheme_TrainingGap ).Concepts;
