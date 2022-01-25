@@ -182,8 +182,9 @@
 
 	function mapCSVJSON() {
 		Upload.MappedTable = {
-			Rows: Upload.CSVJSON.map(row => {
+			Rows: Upload.CSVJSON.map((row, index) => {
 				return {
+					Row_Index: index,
 					Rating_CodedNotation: row["Rating"],
 					Row_CodedNotation: row["Index #"],
 					Row_Identifier: row["Identifier"],
