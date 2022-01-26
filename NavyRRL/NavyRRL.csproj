@@ -176,6 +176,7 @@
     <Compile Include="Areas\Admin\Controllers\ActivityController.cs" />
     <Compile Include="Areas\Admin\Controllers\UserController.cs" />
     <Compile Include="Controllers\AccountController.cs" />
+    <Compile Include="Controllers\AdminController.cs" />
     <Compile Include="Controllers\BaseController.cs" />
     <Compile Include="Controllers\DemoController.cs" />
     <Compile Include="Controllers\DetailController.cs" />
@@ -589,6 +590,7 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Areas\Admin\Data\" />
+    <Folder Include="Views\Admin\" />
     <Folder Include="Views\Base\" />
   </ItemGroup>
   <ItemGroup />
