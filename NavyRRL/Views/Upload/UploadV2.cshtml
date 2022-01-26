@@ -126,7 +126,7 @@
 
 	function parseCSV(rawText) {
 		//Normalize the text
-		Upload.RawCSV = rawText.replace(/\r\n/g, "\n").replace(/""/g, "<INSERTQUOTE>");
+		Upload.RawCSV = rawText.trim().replace(/\r\n/g, "\n").replace(/""/g, "<INSERTQUOTE>");
 		var rows = [];
 		var currentRow = [];
 		var currentCell = [];
@@ -320,6 +320,7 @@
 	//
 
 	function renderRichSet(header, items, messages, container, sortItems, asTabs, explanation, cssClass) {
+		container.html("");
 		var hasAnyItems = false;
 		Object.keys(items).forEach(key => {
 			if (Array.isArray(items[key]) && items[key].length > 0) {
@@ -571,7 +572,7 @@
 	.uploadHeader .statusBox { display: flex; align-items: center; padding: 5px 10px; margin-bottom: 5px; }
 	.uploadHeader .statusBox .status { margin-right: 10px; }
 
-	.buttons { text-align: right; }
+	.buttons { padding: 5px 10px; }
 	.buttons .confirmationButton { padding: 5px 10px; }
 	.buttons .confirmationButton:not(.visible) { display: none; }
 
@@ -602,6 +603,7 @@
 <h2>Upload RMTL Data</h2>
 
 <div class="uploadHeader">
+	<p>Select a rating and choose a CSV (comma-separated values) file to upload. Do not include "All Sailor Tasks", since those have already been added to the system.</p>
 	<select class="uploadItem ratingSelector">
 		<option value="" disabled="disabled" selected="selected">Select a Rating...</option>
 		@foreach( var rating in allRatings )
@@ -625,7 +627,7 @@
 			<h3>Summary</h3>
 			<div class="tabContent uploadSummary"></div>
 			<div class="buttons">
-				<button class="confirmationButton">Confirm All Changes and Update the Source Data in the Database</button>
+				<button class="confirmationButton">Confirm All Changes</button>
 			</div>
 		</div>
 	</div>

@@ -1915,10 +1915,10 @@ namespace Services
 			}
 
 			//Special handling for Rating Tasks that may appear in other ratings
-			var ratingTasksThatMayExistUnderOtherRatings = summary.ItemsToBeCreated.RatingTask.Select( m => new RatingTaskComparisonHelper() { PossiblyNewRatingTask = m } );
+			var ratingTasksThatMayExistUnderOtherRatings = summary.ItemsToBeCreated.RatingTask.Select( m => new RatingTaskComparisonHelper() { PossiblyNewRatingTask = m } ).ToList();
 			//TODO: Implement this
 			//RatingTaskManager.FindMatchingExistingRatingTasksInBulk( ratingTasksThatMayExistUnderOtherRatings ); //Should modify the contents of the list and return void
-			foreach( var foundTask in ratingTasksThatMayExistUnderOtherRatings.Where( m => m.MatchingExistingRatingTask != null && m.MatchingExistingRatingTask.Id > 0 ).ToList() )
+			foreach( var foundTask in ratingTasksThatMayExistUnderOtherRatings.Where( m => m.MatchingExistingRatingTask != null && m.MatchingExistingRatingTask.Id > 0 ) )
 			{
 				summary.ItemsToBeCreated.RatingTask.Remove( foundTask.PossiblyNewRatingTask );
 				AppendLookup( summary, foundTask.MatchingExistingRatingTask );
