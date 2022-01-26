@@ -158,7 +158,6 @@
           <Property Name="CodedNotation" Type="nvarchar" MaxLength="50" Nullable="false" />
           <Property Name="Name" Type="nvarchar" MaxLength="300" Nullable="false" />
           <Property Name="Description" Type="nvarchar(max)" />
-          <Property Name="CurriculumControlAuthorityId" Type="int" />
           <Property Name="LifeCycleControlDocumentId" Type="int" />
           <Property Name="CTID" Type="varchar" MaxLength="50" />
           <Property Name="Created" Type="datetime" Nullable="false" />
@@ -166,6 +165,7 @@
           <Property Name="LastUpdated" Type="datetime" Nullable="false" />
           <Property Name="LastUpdatedById" Type="int" />
           <Property Name="RowVersion" Type="timestamp" StoreGeneratedPattern="Computed" Nullable="false" />
+          <Property Name="CurriculumControlAuthorityId" Type="int" />
         </EntityType>
         <EntityType Name="Course_AssessmentType">
           <Key>
@@ -693,18 +693,6 @@
             </Dependent>
           </ReferentialConstraint>
         </Association>
-        <Association Name="FK_Course_Organization_Organization">
-          <End Role="Organization" Type="Self.Organization" Multiplicity="1" />
-          <End Role="Course_Organization" Type="Self.Course_Organization" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="Organization">
-              <PropertyRef Name="Id" />
-            </Principal>
-            <Dependent Role="Course_Organization">
-              <PropertyRef Name="OrganizationId" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
         <Association Name="FK_Course_Task_Course">
           <End Role="Course" Type="Self.Course" Multiplicity="1">
             <OnDelete Action="Cascade" />
@@ -1101,10 +1089,6 @@
           <AssociationSet Name="FK_Course_AssessmentType_Course" Association="Self.FK_Course_AssessmentType_Course">
             <End Role="Course" EntitySet="Course" />
             <End Role="Course_AssessmentType" EntitySet="Course_AssessmentType" />
-          </AssociationSet>
-          <AssociationSet Name="FK_Course_Organization_Organization" Association="Self.FK_Course_Organization_Organization">
-            <End Role="Organization" EntitySet="Organization" />
-            <End Role="Course_Organization" EntitySet="Course_Organization" />
           </AssociationSet>
           <AssociationSet Name="FK_Course_Task_Course" Association="Self.FK_Course_Task_Course">
             <End Role="Course" EntitySet="Course" />

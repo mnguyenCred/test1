@@ -1183,13 +1183,6 @@ namespace Services
 				return summary;
 			}
 
-			//Valiate row count
-			if ( uploadedData.Rows.Count == 0 )
-			{
-				summary.Messages.Error.Add( "Error: No rows were found to process." );
-				return summary;
-			}
-
 			//Filter out rows that don't match the selected rating
 			var nonMatchingRows = uploadedData.Rows.Where( m => m.Rating_CodedNotation?.ToLower() != currentRating.CodedNotation.ToLower() ).ToList();
 			uploadedData.Rows = uploadedData.Rows.Where( m => !nonMatchingRows.Contains( m ) ).ToList();
@@ -1198,10 +1191,17 @@ namespace Services
 				var nonMatchingCodes = nonMatchingRows.Select( m => m.Rating_CodedNotation ).Distinct().ToList();
 				foreach( var code in nonMatchingCodes )
 				{
-					summary.Messages.Warning.Add( "Detected one or more rows that did not match the selected Rating (" + currentRating.CodedNotation + ") and instead were for Rating: \"" + code + "\". These rows have been ignored.");
+					summary.Messages.Warning.Add( "Detected " + nonMatchingRows.Where(m => m.Rating_CodedNotation == code).Count() + " rows that did not match the selected Rating (" + currentRating.CodedNotation + ") and instead were for Rating: \"" + code + "\". These rows have been ignored.");
 				}
 			}
 			
+			//Valiate row count
+			if ( uploadedData.Rows.Count == 0 )
+			{
+				summary.Messages.Error.Add( "Error: No rows were found to process." );
+				return summary;
+			}
+
 			//Get existing data
 			var existingRatings = RatingManager.GetAll();
 			var payGradeTypeConcepts = Factories.ConceptSchemeManager.GetbyShortUri( Factories.ConceptSchemeManager.ConceptScheme_Pay_Grade ).Concepts;
@@ -1221,6 +1221,8 @@ namespace Services
 			var existingOrganizations = OrganizationManager.GetAll();
 			debug[ latestStepFlag ] = "Got Existing data";
 
+			/*
+			 * These checks are handled above
 			//need a check that only one rating is included
 			var uploadedRatingMatchers = GetSheetMatchers<Rating, MatchableRating>( uploadedData.Rows, GetRowMatchHelper_Rating );
 			//should only be one and must match current
@@ -1254,6 +1256,7 @@ namespace Services
 				summary.Messages.Error.Add( "Error: No rating codes were found in the data. " );
 				return summary;
 			}
+			*/
 
 
 
