@@ -1,6 +1,6 @@
 ﻿
 @{
-	ViewBag.Title = "RMTL Summary";
+	ViewBag.Title = "RMTL Catalog";
 }
 @section css{
 	<link href="~/Content/bootstrap.min.css" rel="stylesheet" />
@@ -62,14 +62,14 @@
                 iDisplayLength: 500,
 				aLengthMenu: [[10, 25, 50, 100, 250, 500, 1000, 1600, 2000, 5000], [10, 25, 50, 100, 250, 500, 1000, 1600, 2000, 5000]],
                 ajax: {
-                    url: '@Html.Raw(Url.Action( "RMTLSummarySearch", "Demo"))',
+                    url: '@Html.Raw(Url.Action( "CatalogSearch", "RMTL"))',
                     type: 'POST',
                     dataType: "json"
                 },
                 //order: [[0, "desc"]],
                 //columnDefs: [{ targets: [0, 1, 2, 3], orderable: true }, { targets: 4, orderable: false, searchable: false }],
                 columns: [
-					{ data: "DisplayDate", name: "LastUpdated", title: 'Last Updated', width: "5%" , filter: false },
+                    { data: "DisplayDate", name: "LastUpdated", title: 'Last Updated', width: "5%", filter: true, type: "date"  },
 					{ data: 'CodedNotation', name: "Task Code", title: "Task Code", filter: true, width: "5%" },
                 /*    { data: 'Unique_Identifier', name: "Unique_Identifier", title: "Unique Identifier", filter: true, width: "50px" },*/
 	
@@ -146,33 +146,33 @@
 
                 row.append(th);
             });
-            //$(".datepicker").attr("readOnly", true).datepicker({
-            //    showButtonPanel: true,
-            //    closeText: "Clear",
-            //    onClose: function () {
-            //        if ($(window.event.srcElement).hasClass("ui-datepicker-close")) {
-            //            $(this).val("");
-            //            var input = $(this);
-            //            var index = input.parent().index();
-            //            table.columns(index).search("").draw();
-            //        }
-            //    },
-            //    onSelect: function (dateText, inst) {
-            //        var input = $(this);
-            //        var index = input.parent().index();
-            //        this.value = dateText;
-            //        table.columns(index).search(dateText).draw();
-            //    },
-            //    beforeShow: function (input) {
-            //        setTimeout(function () {
-            //            $(input).datepicker("widget").find(".ui-datepicker-current").hide();
-            //        }, 1);
-            //    }
-            //}).on("change", function (dateText, inst) {
-            //    var input = $(this);
-            //    var index = input.parent().index();
-            //    table.columns(index).search(dateText).draw();
-            //});
+            $(".datepicker").attr("readOnly", true).datepicker({
+                showButtonPanel: true,
+                closeText: "Clear",
+                onClose: function () {
+                    if ($(window.event.srcElement).hasClass("ui-datepicker-close")) {
+                        $(this).val("");
+                        var input = $(this);
+                        var index = input.parent().index();
+                        table.columns(index).search("").draw();
+                    }
+                },
+                onSelect: function (dateText, inst) {
+                    var input = $(this);
+                    var index = input.parent().index();
+                    this.value = dateText;
+                    table.columns(index).search(dateText).draw();
+                },
+                beforeShow: function (input) {
+                    setTimeout(function () {
+                        $(input).datepicker("widget").find(".ui-datepicker-current").hide();
+                    }, 1);
+                }
+            }).on("change", function (dateText, inst) {
+                var input = $(this);
+                var index = input.parent().index();
+                table.columns(index).search(dateText).draw();
+            });
             $(document).on("keyup change", "#results thead input:text", function (e) {
                 if (this.value === this.defaultValue) return false;
 

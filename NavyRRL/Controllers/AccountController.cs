@@ -124,6 +124,7 @@ namespace NavyRRL.Controllers
         [AllowAnonymous]
         public ActionResult Login(string returnUrl)
         {
+            returnUrl = string.IsNullOrWhiteSpace( returnUrl ) ? "~/search" : returnUrl;
             ViewBag.ReturnUrl = returnUrl;
             return View();
         }

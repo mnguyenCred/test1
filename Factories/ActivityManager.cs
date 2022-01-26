@@ -647,23 +647,25 @@ namespace Factories
 					item.ActionByUser = GetRowColumn( dr, "ActionByUser", "" );
                     item.ActionByUserId = GetRowColumn( dr, "ActionByUserId", 0 );
                     item.Referrer = GetRowColumn( dr, "Referrer", "" );
+
 					item.ActivityObjectId = GetRowColumn( dr, "ActivityObjectId", 0 );
 					item.ActivityObjectCTID = GetRowColumn( dr, "ActivityObjectCTID", "" );
 					item.IPAddress = GetRowColumn( dr, "IPAddress", "" );
-                    item.ParentObject = GetRowColumn( dr, "ParentObject", "" );
-                    item.ParentEntityTypeId = GetRowColumn( dr, "ParentEntityTypeId", 0 );
-                    item.ParentRecordId = GetRowColumn( dr, "ParentRecordId", 0 );
+
+                    //item.ParentObject = GetRowColumn( dr, "ParentObject", "" );
+                    //item.ParentEntityTypeId = GetRowColumn( dr, "ParentEntityTypeId", 0 );
+                    //item.ParentRecordId = GetRowColumn( dr, "ParentRecordId", 0 );
 					//
 					//item.OwningOrgId = GetRowColumn( dr, "OwningOrgId", 0 );
 					//item.Organization = GetRowColumn( dr, "Organization", "" );
 					//item.DataOwnerCTID = GetRowColumn( dr, "OrganizationCTID", "" );
 					//item.OrganizationUID = GetRowColumn( dr, "OrganizationUID", "" );
 					//
-					var uId = GetRowColumn( dr, "ActivityObjectParentEntityUid", "" );
-					if (IsValidGuid(uId))
-					{
-						item.ActivityObjectParentEntityUid = new Guid( uId );
-					}
+					//var uId = GetRowColumn( dr, "ActivityObjectParentEntityUid", "" );
+					//if (IsValidGuid(uId))
+					//{
+					//	item.ActivityObjectParentEntityUid = new Guid( uId );
+					//}
 					list.Add( item );
 				}
 

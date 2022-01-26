@@ -172,13 +172,10 @@
     <Compile Include="App_Start\IdentityConfig.cs" />
     <Compile Include="App_Start\RouteConfig.cs" />
     <Compile Include="App_Start\Startup.Auth.cs" />
-    <Compile Include="Areas\Admin\AdminAreaRegistration.cs" />
-    <Compile Include="Areas\Admin\Controllers\ActivityController.cs" />
-    <Compile Include="Areas\Admin\Controllers\UserController.cs" />
     <Compile Include="Controllers\AccountController.cs" />
     <Compile Include="Controllers\AdminController.cs" />
     <Compile Include="Controllers\BaseController.cs" />
-    <Compile Include="Controllers\DemoController.cs" />
+    <Compile Include="Controllers\rmtlController.cs" />
     <Compile Include="Controllers\DetailController.cs" />
     <Compile Include="Controllers\HomeController.cs" />
     <Compile Include="Controllers\ManageController.cs" />
@@ -196,7 +193,6 @@
   <ItemGroup>
     <Content Include="App_Data\email\ConfirmAccount.txt" />
     <Content Include="App_Data\email\ForgotPassword.txt" />
-    <Content Include="Areas\Admin\Style\account.css" />
     <Content Include="Content\bootstrap-multiselect.css" />
     <Content Include="Content\bootstrap-theme.css" />
     <Content Include="Content\bootstrap-theme.min.css" />
@@ -424,20 +420,11 @@
     <Content Include="Content\bootstrap-theme.css.map" />
     <Content Include="Content\DataTables\Buttons-2.0.1\css\common.scss" />
     <Content Include="Content\DataTables\Buttons-2.0.1\css\mixins.scss" />
-    <Content Include="Areas\Admin\Views\web.config" />
-    <Content Include="Areas\Admin\Views\_ViewStart.cshtml" />
-    <Content Include="Areas\Admin\Views\Shared\_Layout.cshtml" />
-    <Content Include="Areas\Admin\Views\User\Index.cshtml" />
-    <Content Include="Areas\Admin\Views\User\ResetPassword.cshtml" />
-    <Content Include="Areas\Admin\Views\User\ResetPasswordConfirmation.cshtml" />
-    <Content Include="Areas\Admin\Views\User\AddUser.cshtml" />
-    <Content Include="Areas\Admin\Views\User\EditAccount.cshtml" />
     <Content Include="fonts\fontawesome-webfont.eot" />
     <Content Include="fonts\fontawesome-webfont.ttf" />
     <Content Include="fonts\fontawesome-webfont.woff" />
     <Content Include="fonts\fontawesome-webfont.woff2" />
     <Content Include="fonts\FontAwesome.otf" />
-    <Content Include="Areas\Admin\Views\Activity\Index.cshtml" />
     <None Include="Properties\PublishProfiles\Sandbox.pubxml" />
     <None Include="Scripts\jquery-3.6.0.intellisense.js" />
     <Content Include="Scripts\jquery-3.6.0.js" />
@@ -572,7 +559,7 @@
     <Content Include="Scripts\popper-utils.js.map" />
     <Content Include="Views\Detail\DetailV1.cshtml" />
     <Content Include="Views\Upload\UploadV1.cshtml" />
-    <Content Include="Views\Demo\ImportSummary.cshtml" />
+    <Content Include="Views\rmtl\ImportSummary.cshtml" />
     <Content Include="Views\Search\SearchV1.cshtml" />
     <Content Include="Views\Home\PageNotFound.cshtml" />
     <Content Include="Views\Upload\ImportSummary.cshtml" />
@@ -583,14 +570,16 @@
     <Content Include="Views\Account\RegisterConfirmation.cshtml" />
     <Content Include="Views\Search\SearchV2.cshtml" />
     <Content Include="Views\Account\AddUser.cshtml" />
-    <Content Include="Views\Demo\Browse.cshtml" />
+    <Content Include="Views\rmtl\Catalog.cshtml" />
+    <Content Include="Views\Admin\Activity.cshtml" />
+    <Content Include="Views\Admin\Index.cshtml" />
+    <Content Include="Views\Admin\Accounts.cshtml" />
     <None Include="Web.Sandbox.config">
       <DependentUpon>Web.config</DependentUpon>
     </None>
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="Areas\Admin\Data\" />
-    <Folder Include="Views\Admin\" />
+    <Folder Include="Areas\" />
     <Folder Include="Views\Base\" />
   </ItemGroup>
   <ItemGroup />

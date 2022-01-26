@@ -8,102 +8,117 @@
 <!DOCTYPE html>
 <html>
 <head>
-	<meta charset="utf-8" />
-	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<meta name="robots" content="noindex">
-	<title>@ViewBag.Title - Navy RCDC RRL</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex">
+    <title>@ViewBag.Title - Navy RCDC RRL</title>
 
-	@Styles.Render( "~/Content/css" )
-	@Scripts.Render( "~/bundles/modernizr" )
+    @*<script src="http://code.jquery.com/jquery-3.6.0.js"></script>*@
 
-	@Scripts.Render( "~/bundles/jquery" )
-	@Scripts.Render( "~/bundles/bootstrap" )
 
-	@RenderSection( "css", false )
-	@RenderSection( "scripts", required: false )
-	@*<link rel="stylesheet" type="text/css" href="~/Content/DataTables/DataTables-1.11.3/css/dataTables.bootstrap.min.css" />*@
+    <link rel="stylesheet" href="//code.jquery.com/ui/1.12.0/themes/base/jquery-ui.css">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.5.0/css/all.css" integrity="sha384-B4dIYHKNBt8Bc12p+WXckhzcICo0wtJAoU8YZTY5qE0Id1GSseTk6S+L3BlXeVIU" crossorigin="anonymous">
 
-<script src="~/Scripts/jquery.timepicker.js"></script>
-	<style>
-		.navbar-right { float: right !important; margin-right: -5px; }
-	</style>
+    @Styles.Render( "~/Content/css" )
+    @Scripts.Render( "~/bundles/modernizr" )
+
+    @Scripts.Render( "~/bundles/jquery" )
+    @Scripts.Render( "~/bundles/bootstrap" )
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+    @RenderSection( "css", false )
+    @RenderSection( "scripts", required: false )
+    @*<link rel="stylesheet" type="text/css" href="~/Content/DataTables/DataTables-1.11.3/css/dataTables.bootstrap.min.css" />*@
+
+    <script src="~/Scripts/jquery.timepicker.js"></script>
+    <style>
+        .navbar-right { float: right !important; margin-right: -5px; }
+        .navbar-inverse .navbar-collapse, .navbar-inverse .navbar-form { border-color: #1120e8; }
+    </style>
 </head>
 <body>
 	<div id="mainSiteDiv" class="defaultTheme">
 		@*@Html.Partial( "~/Views/Shared/_Header.cshtml" )*@
 		<div class="navbar navbar-inverse navbar-fixed-top">
-			<div class="container">
-				<div class="navbar-header">
-					<button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
-						<span class="icon-bar"></span>
-						<span class="icon-bar"></span>
-						<span class="icon-bar"></span>
-					</button>
-					@Html.ActionLink( "Navy RCDC RRL", "Index", "Home", new { area = "" }, new { @class = "navbar-brand" } )
-				</div>
-				<div class="navbar-collapse collapse">
-					<ul class="nav navbar-nav">
-						<li>@Html.ActionLink( "Home", "Index", "Home" )</li>
-					</ul>
+            <div class="container">
+                @*<div class="navbar-header">
+                    <a class="column" id="mainSiteLogo" href="@Url.Content( "~" )" style="background-image: url('@Url.Content( "~/favicon.png" )'); background-size: 95%;" title="Site Logo"></a>
 
-					@if ( ( user != null && user.Id > 0 ) || env == "development" )
-					{
-						<ul class="nav navbar-nav">
-							<li>@Html.ActionLink( "Search", "SearchV2", "Search" )</li>
-						</ul>
-						<ul class="nav navbar-nav">
-							<li>@Html.ActionLink( "Upload", "UploadV2", "Upload" )</li>
-						</ul>
-						@*<ul class="nav navbar-nav">
-							<li class="dropdown">
-								<a href="#" class="dropdown-toggle" data-toggle="dropdown">Upload<b class="caret"></b></a>
-								<ul class="dropdown-menu">
-									<li>@Html.ActionLink( "Upload V2", "UploadV2", "Upload" )</li>
-									<li>@Html.ActionLink( "Upload V1", "Index", "Upload" )</li>
-								</ul>
-							</li>
+                </div>*@
+                <div class="navbar-header">
+                    <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                    </button>
 
-						</ul>*@
-						<ul class="nav navbar-nav">
-							<li>@Html.ActionLink( "RMTL Catalog", "Browse", "Demo" )</li>
-						</ul>
-					}
-					@if ( AccountServices.IsUserAnAdmin() )
-					{
-						<ul class="nav navbar-nav">
-							<li class="dropdown">
-								<a href="#" class="dropdown-toggle" data-toggle="dropdown">Admin<b class="caret"></b></a>
-								<ul class="dropdown-menu">
-									<li><a href="@Url.Content( "~/Admin/Activity" )">Activity Log</a></li>
+                    @*<a class="navbar-brand" id="mainSiteLogo" href="@Url.Content( "~" )" style="background-image: url('@Url.Content( "~/favicon.png" )'); background-size: 95%;" title="Site Logo"></a>*@
+                    <a class="navbar-brand" href="/" title="Navy RCDC RRL"><img src="~/favicon.png" style="vertical-align: middle; width: 30px;" alt="Navy RCDC RRL"></a>
+                    @*@Html.ActionLink( "Navy RCDC RRL", "Index", "Home", new { area = "" }, new { @class = "navbar-brand" } )*@
+                </div>
+                <div class="navbar-collapse collapse">
+                    <ul class="nav navbar-nav">
+                        <li>@Html.ActionLink( "Home", "Index", "Home" )</li>
+                    </ul>
 
-									<li><a href="@Url.Content( "~/Admin/User" )">User Management</a></li>
-									@*<li><a href="@Url.Content( "~/Admin/User/ResetPassword" )">Reset User Password</a></li>*@
-									<li><a href="@Url.Content( "~/Account/AddUser" )">Add Account</a></li>
-								</ul>
-							</li>
+                    @if ( ( user != null && user.Id > 0 ) || env == "developmentX" )
+                    {
+                        <ul class="nav navbar-nav">
+                            <li>@Html.ActionLink( "Search", "SearchV2", "Search" )</li>
+                        </ul>
+                        <ul class="nav navbar-nav">
+                            <li>@Html.ActionLink( "Upload", "UploadV2", "Upload" )</li>
+                        </ul>
+                        @*<ul class="nav navbar-nav">
+                    <li class="dropdown">
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown">Upload<b class="caret"></b></a>
+                        <ul class="dropdown-menu">
+                            <li>@Html.ActionLink( "Upload V2", "UploadV2", "Upload" )</li>
+                            <li>@Html.ActionLink( "Upload V1", "Index", "Upload" )</li>
+                        </ul>
+                    </li>
 
-						</ul>
-					}
-					@*@if ( ( user?.Id == 0 ) )
-		{
-			<ul class="nav navbar-nav navbar-right">
-				@if ( env == "development" )
-				{
-				<li>@Html.ActionLink( "Register", "Register", "Account", routeValues: null, htmlAttributes: new { id = "registerLink" } )</li>
-				}
-				<li>@Html.ActionLink( "Log in", "Login", "Account", routeValues: null, htmlAttributes: new { id = "loginLink" } )</li>
-			</ul>
-		}*@
-					@Html.Partial( "_LoginPartial" )
-				</div>
-			</div>
+                </ul>*@
+                        <ul class="nav navbar-nav">
+                            <li>@Html.ActionLink( "RMTL Catalog", "Catalog", "rmtl" )</li>
+                        </ul>
+                    }
+                    @if ( AccountServices.IsUserAnAdmin() )
+                    {
+                        <ul class="nav navbar-nav">
+                            <li class="dropdown">
+                                <a href="#" class="dropdown-toggle" data-toggle="dropdown">Admin<b class="caret"></b></a>
+                                <ul class="dropdown-menu">
+                                    <li><a href="@Url.Content( "~/Admin/Activity" )">Activity Log</a></li>
+
+                                    <li><a href="@Url.Content( "~/Admin/Accounts" )">User Management</a></li>
+                                    @*<li><a href="@Url.Content( "~/Admin/User/ResetPassword" )">Reset User Password</a></li>*@
+                                    <li><a href="@Url.Content( "~/Account/AddUser" )">Add Account</a></li>
+                                </ul>
+                            </li>
+
+                        </ul>
+                    }
+                    @*@if ( ( user?.Id == 0 ) )
+            {
+                <ul class="nav navbar-nav navbar-right">
+                    @if ( env == "development" )
+                    {
+                    <li>@Html.ActionLink( "Register", "Register", "Account", routeValues: null, htmlAttributes: new { id = "registerLink" } )</li>
+                    }
+                    <li>@Html.ActionLink( "Log in", "Login", "Account", routeValues: null, htmlAttributes: new { id = "loginLink" } )</li>
+                </ul>
+            }*@
+                    @Html.Partial( "_LoginPartial" )
+                </div>
+            </div>
 		</div>
-		<div class="container body-content">
+		<div class="container body-content"  style="text-align: center; bottom:auto">
 			@RenderBody()
-			<hr />
-			<footer>
-				<p>&copy; @DateTime.Now.Year - Navy RCDC RRL</p>
-			</footer>
+
+            <footer id="mainSiteFooter" style="bottom: 50px; position: fixed;  bottom: 0;">
+                <hr />
+                <p>&copy; @DateTime.Now.Year - Navy RCDC RRL</p>
+            </footer>
 		</div>
 		@Html.Partial( "~/Views/Shared/_ConsoleMessage.cshtml" )
 	</div>

@@ -32,62 +32,6 @@ namespace NavyRRL.Areas.Admin.Controllers
             return View();
         }
 
-        #region Add User
-        [Authorize( Roles = "Administrator, Site Manager" )]
-        public ActionResult AddUser()
-        {
-            //return View();
-            return View();
-        }
-
-        [HttpPost]
-        //[RequireHttps]
-        [ValidateAntiForgeryToken]
-        public async Task<ActionResult> AddUser( RegisterViewModel model )
-        {
-            int currentUserId = AccountServices.GetCurrentUserId();
-            if ( ModelState.IsValid )
-            {
-                string statusMessage = "";
-                var user = new ApplicationUser
-                {
-                    UserName = model.Email.Trim(),
-                    Email = model.Email.Trim(),
-                    FirstName = model.FirstName.Trim(),
-                    LastName = model.LastName.Trim()
-                };
-                //See HACK at top of page
-                var result = await UserManager.CreateAsync( user, model.Password );
-
-                if ( result.Succeeded )
-                {
-                    int id = new AccountServices().AddAccount( model.Email,
-                        model.FirstName, model.LastName,
-                        model.Email, user.Id,
-                        model.Password, currentUserId, ref statusMessage );
-                    if ( id > 0 )
-                    {
-                        string msg = "Successfully created account for {0}. ";
-                        
-                        ConsoleMessageHelper.SetConsoleSuccessMessage( string.Format( msg, user.FirstName ) );
-                        //return View( "ConfirmationRequired" );
-                        ModelState.Clear();
-                        return View();
-                    }
-                    else
-                    {
-                        ConsoleMessageHelper.SetConsoleErrorMessage( "Error - " + statusMessage );
-                        return View();
-                    }
-                }
-                AddErrors( result );
-            }
-
-            // If we got this far, something failed, redisplay form
-
-            return View();
-        }
-        #endregion
         public ActionResult LoadRecords()
             {
             var result = new JsonResult();
@@ -173,6 +117,62 @@ namespace NavyRRL.Areas.Admin.Controllers
             return result;
         }
 
+        #region Add User
+        [Authorize( Roles = "Administrator, Site Manager" )]
+        public ActionResult AddUser()
+        {
+            //return View();
+            return View();
+        }
+
+        [HttpPost]
+        //[RequireHttps]
+        [ValidateAntiForgeryToken]
+        public async Task<ActionResult> AddUser( RegisterViewModel model )
+        {
+            int currentUserId = AccountServices.GetCurrentUserId();
+            if ( ModelState.IsValid )
+            {
+                string statusMessage = "";
+                var user = new ApplicationUser
+                {
+                    UserName = model.Email.Trim(),
+                    Email = model.Email.Trim(),
+                    FirstName = model.FirstName.Trim(),
+                    LastName = model.LastName.Trim()
+                };
+                //See HACK at top of page
+                var result = await UserManager.CreateAsync( user, model.Password );
+
+                if ( result.Succeeded )
+                {
+                    int id = new AccountServices().AddAccount( model.Email,
+                        model.FirstName, model.LastName,
+                        model.Email, user.Id,
+                        model.Password, currentUserId, ref statusMessage );
+                    if ( id > 0 )
+                    {
+                        string msg = "Successfully created account for {0}. ";
+                        
+                        ConsoleMessageHelper.SetConsoleSuccessMessage( string.Format( msg, user.FirstName ) );
+                        //return View( "ConfirmationRequired" );
+                        ModelState.Clear();
+                        return View();
+                    }
+                    else
+                    {
+                        ConsoleMessageHelper.SetConsoleErrorMessage( "Error - " + statusMessage );
+                        return View();
+                    }
+                }
+                AddErrors( result );
+            }
+
+            // If we got this far, something failed, redisplay form
+
+            return View();
+        }
+        #endregion
         [Authorize( Roles = "Administrator, Site Manager" )]
         public ActionResult EditAccount( int id )
         {

@@ -12,18 +12,18 @@ using Services;
 
 namespace NavyRRL.Controllers
 {
-    public class DemoController : Controller
+    public class rmtlController : Controller
     {
         // GET: Demo
         public ActionResult Index()
         {
             return View();
         }
-		public ActionResult Browse()
+		public ActionResult Catalog()
 		{
 			return View();
 		}
-		public ActionResult RMTLSummarySearch()
+		public ActionResult CatalogSearch()
 		{
 			var result = new JsonResult();
 
@@ -68,6 +68,13 @@ namespace NavyRRL.Controllers
 							if ( DateTime.TryParse( value, out dt ) )
 							{
 								columnSearch.Add( string.Format( " (convert(varchar(10),PublishDate,120) = '{0}') ", dt.ToString( "yyyy-MM-dd" ) ) );
+							}
+						}
+						else if ( colName == "DisplayDate" )
+						{
+							if ( DateTime.TryParse( value, out dt ) )
+							{
+								columnSearch.Add( string.Format( " (convert(varchar(10),LastUpdated,120) = '{0}') ", dt.ToString( "yyyy-MM-dd" ) ) );
 							}
 						}
 						//allow comma separated integers - N.A here
