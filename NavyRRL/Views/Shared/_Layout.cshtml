@@ -2,7 +2,9 @@
 @using Services;
 @{
 	var env = UtilityManager.GetAppKeyValue( "environment", "production" );
-	var user = AccountServices.GetCurrentUser();
+	var applicationURL = UtilityManager.GetAppKeyValue( "applicationURL", "https://sandbox.credentialengine.org/NavyRRL/" );
+	
+    var user = AccountServices.GetCurrentUser();
 	var url = Request.Url.PathAndQuery.ToLower();
 }
 <!DOCTYPE html>
@@ -52,7 +54,7 @@
                     </button>
 
                     @*<a class="navbar-brand" id="mainSiteLogo" href="@Url.Content( "~" )" style="background-image: url('@Url.Content( "~/favicon.png" )'); background-size: 95%;" title="Site Logo"></a>*@
-                    <a class="navbar-brand" href="/" title="Navy RCDC RRL"><img src="~/favicon.png" style="vertical-align: middle; width: 30px;" alt="Navy RCDC RRL"></a>
+                    <a class="navbar-brand" href="@applicationURL" title="Navy RCDC RRL"><img src="~/favicon.png" style="vertical-align: middle; width: 30px;" alt="Navy RCDC RRL"></a>
                     @*@Html.ActionLink( "Navy RCDC RRL", "Index", "Home", new { area = "" }, new { @class = "navbar-brand" } )*@
                 </div>
                 <div class="navbar-collapse collapse">
@@ -112,7 +114,7 @@
                 </div>
             </div>
 		</div>
-		<div class="container body-content"  style="text-align: center; bottom:auto">
+		<div class="container body-content"  >
 			@RenderBody()
 
             <footer id="mainSiteFooter" style="bottom: 50px; position: fixed;  bottom: 0;">

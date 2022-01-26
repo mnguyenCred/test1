@@ -103,7 +103,7 @@
                     orderable: false,
                     width: "1%",
                     render: function (data, type, full) {
-                        var url = decodeURI('@Html.ActionLink(" ", "EditAccount", "User", new { area = "Admin", id = "{0}" }, new { @class = "fa fa-edit edit", title = "Edit" })');
+                        var url = decodeURI('@Html.ActionLink(" ", "EditAccount", "Admin", new { id = "{0}" }, new { @class = "fa fa-edit edit", title = "Edit" })');
                         var edit = $.validator.format(url);
                         return edit(full.Id);
                     }
@@ -113,7 +113,7 @@
                     orderable: false,
                     width: "1%",
                     render: function (data, type, full) {
-                        var url = decodeURI('@Html.ActionLink(" ", "DeleteAccount", "User", new { area = "Admin", id = "{0}" }, new { @class = "fa fa-trash-o delete", title = "Inactive Account" })');
+                        var url = decodeURI('@Html.ActionLink(" ", "DeleteAccount", "Admin", new { id = "{0}" }, new { @class = "fa fa-trash-o delete", title = "Inactive Account" })');
                         var edit = $.validator.format(url);
                         return edit(full.Id);
                     }

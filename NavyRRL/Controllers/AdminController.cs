@@ -11,6 +11,9 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using System.Web;
 using System.Web.Mvc;
+using System.Net;
+using Microsoft.AspNet.Identity;
+using NavyRRL.Models;
 
 namespace NavyRRL.Controllers
 {
@@ -234,6 +237,100 @@ namespace NavyRRL.Controllers
             }
 
             return result;
+        }
+
+        [Authorize( Roles = "Administrator, Site Manager" )]
+        public ActionResult EditAccount( int id )
+        {
+            var account = AccountServices.GetAccount( id );
+            if ( account != null )
+            {
+                var model = new AccountViewModel { UserId = account.Id, Email = account.Email, FirstName = account.FirstName, LastName = account.LastName };
+                var roles = AccountServices.GetRoles();
+                model.SelectedRoles = roles.Where( x => account.UserRoles.Contains( x.Name ) ).Select( x => x.Id ).ToArray();
+                model.Roles = roles.Select( x => new SelectListItem { Text = x.Name, Value = x.Id, Selected = account.UserRoles.Contains( x.Name ) } ).ToList();
+
+                //model.SelectedOrgs = account.Organizations.Select( x => x.Id ).ToArray();
+
+                //If Organizations not found, get top 3 Organizations to show
+                //if (!account.Organizations.Any())
+                //    account.Organizations = AccountServices.GetOrganizations(string.Empty).OrderBy(x => x.Name).Take(3).Select(x => new CodeItem { Id = x.Id, Name = x.Name }).ToList();
+
+                //model.Organizations = account.Organizations.Select( x => new SelectListItem { Text = x.Name, Value = x.Id.ToString(), Selected = true } ).ToList();
+                return PartialView( model );
+            }
+
+            return HttpNotFound();
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult EditAccount( AccountViewModel model )
+        {
+            var account = AccountServices.GetAccount( model.UserId );
+            if ( account != null )
+            {
+                if ( ModelState.IsValid )
+                {
+                    account.FirstName = model.FirstName;
+                    account.LastName = model.LastName;
+                    account.Email = model.Email;
+
+                    //Update Account and AspNetUser
+                    var message = string.Empty;
+                    var success = new AccountServices().Update( account, false, ref message );
+                    if ( success )
+                    {
+                        //if null, should there be a check to delete all??
+                        //if (model.SelectedRoles != null)
+                        //Bulk Add/Remove Roles
+                        new AccountServices().UpdateRoles( account.AspNetUserId, model.SelectedRoles );
+
+                        //if null, should there be a check to delete all??
+                        //Bulk Add/Remove Organizations
+                        //OrganizationServices.UpdateUserOrganizations( model.UserId, model.SelectedOrgs, User.Identity.Name );
+                    }
+
+                    Response.StatusCode = ( int ) HttpStatusCode.OK;
+                    return RedirectToAction( "EditAccount", new { id = model.UserId } );
+                }
+                else
+                {
+                    Response.StatusCode = ( int ) HttpStatusCode.InternalServerError;
+                    ModelState.AddModelError( "", string.Join( Environment.NewLine, ModelState.Values.SelectMany( x => x.Errors ).Select( x => x.ErrorMessage ) ) );
+                }
+
+                var roles = AccountServices.GetRoles();
+                model.SelectedRoles = roles.Where( x => account.UserRoles.Contains( x.Name ) ).Select( x => x.Id ).ToArray();
+                model.Roles = roles.Select( x => new SelectListItem { Text = x.Name, Value = x.Id, Selected = account.UserRoles.Contains( x.Name ) } ).ToList();
+
+                //model.SelectedOrgs = account.Organizations.Select( x => x.Id ).ToArray();
+                //model.Organizations = account.Organizations.Select( x => new SelectListItem { Text = x.Name, Value = x.Id.ToString(), Selected = true } ).ToList();
+            }
+            return PartialView( model );
+        }
+        public void DeleteAccount( int id )
+        {
+            if ( !AccountServices.IsUserAuthenticated() )
+            {
+                ConsoleMessageHelper.SetConsoleErrorMessage( "You must be logged in and authorized to perform this action." );
+
+                //return RedirectToAction( "Login", "Account", new { area = "" } );
+            }
+            else
+            {
+                var deletedBy = AccountServices.GetCurrentUser();
+                //Update Account IsActive
+                var message = string.Empty;
+                new AccountServices().Delete( id, deletedBy, ref message );
+            }
+        }
+        private void AddErrors( IdentityResult result )
+        {
+            foreach ( var error in result.Errors )
+            {
+                ModelState.AddModelError( "", error );
+            }
         }
         #endregion
     }

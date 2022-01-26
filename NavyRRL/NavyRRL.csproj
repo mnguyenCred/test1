@@ -394,6 +394,8 @@
     <Content Include="Content\font-awesome.css" />
     <Content Include="Content\font-awesome.min.css" />
     <Content Include="favicon.ico" />
+    <Content Include="favicon.jpg" />
+    <Content Include="favicon.png" />
     <Content Include="fonts\fontawesome-webfont.svg" />
     <Content Include="fonts\glyphicons-halflings-regular.svg" />
     <Content Include="Global.asax" />
@@ -574,6 +576,8 @@
     <Content Include="Views\Admin\Activity.cshtml" />
     <Content Include="Views\Admin\Index.cshtml" />
     <Content Include="Views\Admin\Accounts.cshtml" />
+    <Content Include="Views\Admin\AddUser.cshtml" />
+    <Content Include="Views\Admin\EditAccount.cshtml" />
     <None Include="Web.Sandbox.config">
       <DependentUpon>Web.config</DependentUpon>
     </None>
