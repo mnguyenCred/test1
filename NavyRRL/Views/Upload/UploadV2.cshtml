@@ -38,6 +38,7 @@
 		Upload.UI.StatusBox = $(".status");
 		Upload.UI.Spinner = $(".uploadSpinner");
 		Upload.UI.UploadSummaryBox = $(".uploadSummary");
+		Upload.UI.ConfirmChangesSection = $(".confirmChangesSection");
 		Upload.UI.ConfirmationButton = $(".confirmationButton");
 		Upload.UI.TabBox = {
 			Box: $(".uploadDisplay"),
@@ -63,7 +64,7 @@
 
 	function setupTabs() {
 		createTab("Summary", "Summary", $(".tab[data-tab='Summary']"));
-		createTab("ItemsToBeDeleted", "Items to be Deleted");
+		@*createTab("ItemsToBeDeleted", "Items to be Deleted");*@
 		createTab("PossibleDuplicates", "Possible Duplicates");
 		createTab("ItemsToBeCreated", "Items to be Created");
 		createTab("AddedItemsToInnerListsForCopiesOfItems", "References to be Added to Existing Items");
@@ -216,7 +217,7 @@
 	//
 
 	function submitData() {
-		hideConfirmationButton();
+		hideConfirmChangesSection();
 		var data = {
 			rawData: Upload.MappedTable,
 			ratingRowID: Upload.UI.RatingSelector.val()
@@ -243,10 +244,10 @@
 			renderRichResults();
 
 			if (Upload.Summary.Valid && Upload.Summary.Data.Messages.Error?.length == 0) {
-				showConfirmationButton();
+				showConfirmChangesSection();
 			}
 			else {
-				hideConfirmationButton();
+				hideConfirmChangesSection();
 			}
 		});
 	}
@@ -278,7 +279,7 @@
 		renderTextSet("Errors", Upload.Summary.Data.Messages.Error, Upload.UI.UploadSummaryBox, false, "Please correct the errors and try again.");
 		renderTextSet("Warnings", Upload.Summary.Data.Messages.Warning, Upload.UI.UploadSummaryBox, false, "Please review the warnings carefully before confirming the update.");
 		renderTextSet("Notes", Upload.Summary.Data.Messages.Note, Upload.UI.UploadSummaryBox, false, "Miscellaneous notes.");
-		renderRichSet("Items to be Deleted", Upload.Summary.Data.ItemsToBeDeleted, Upload.Summary.Data.Messages.Delete, Upload.UI.TabBox.TabsMap.ItemsToBeDeleted.ContentBox, true, true, "Warning: The following items were not detected in the uploaded data, and will be deleted if you confirm the changes!");
+		@*renderRichSet("Items to be Deleted", Upload.Summary.Data.ItemsToBeDeleted, Upload.Summary.Data.Messages.Delete, Upload.UI.TabBox.TabsMap.ItemsToBeDeleted.ContentBox, true, true, "Warning: The following items were not detected in the uploaded data, and will be deleted if you confirm the changes!");*@
 		renderRichSet("Possible Duplicates", { PossibleDuplicates: Upload.Summary.Data.PossibleDuplicates }, Upload.Summary.Data.Messages.Duplicate, Upload.UI.TabBox.TabsMap.PossibleDuplicates.ContentBox, false, false, "Found multiple instances of one or more items. This may be caused by inconsistent capitalization on different rows. Please carefully review the data before confirming the update.")
 		renderRichSet("Items to be Created", Upload.Summary.Data.ItemsToBeCreated, Upload.Summary.Data.Messages.Create, Upload.UI.TabBox.TabsMap.ItemsToBeCreated.ContentBox, true, true, "The following items will be created if you confirm the changes.");
 		renderRichSet("Additional References for Existing Items", Upload.Summary.Data.AddedItemsToInnerListsForCopiesOfItems, Upload.Summary.Data.Messages.AddItem, Upload.UI.TabBox.TabsMap.AddedItemsToInnerListsForCopiesOfItems.ContentBox, true, false, "New references have been detected for the following existing items.");
@@ -289,14 +290,14 @@
 	function renderSummaryTable(container) {
 		var table = $("<table class=\"summaryTable\"><tbody></tbody></table>").appendTo(container);
 		var tbody = table.find("tbody");
-		tbody.append("<tr><th>Item Type</th><th>Unchanged</th><th>To Be Deleted</th><th>Possible Duplicates</th><th>To be Created</th><th>Has Data to be Added</th><th>Has Data to be Removed</th></tr>");
+		tbody.append("<tr><th>Item Type</th><th>Unchanged</th>@*<th>To Be Deleted</th>*@<th>Possible Duplicates</th><th>To be Created</th><th>Has Data to be Added</th><th>Has Data to be Removed</th></tr>");
 		["BilletTitle|Billet Title", "Course|Course", "Organization|Curriculum Control Authority", "RatingTask|Rating Task", "ReferenceResource|Reference Resource", "TrainingTask|Training Task", "WorkRole|Functional Area"].forEach(item => {
 			var property = item.split("|")[0];
 			var label = item.split("|")[1];
 			tbody.append("<tr><td>" + [
 				label,
 				(Upload.Summary.Data.UnchangedCount[property] || 0),
-				(Upload.Summary.Data.ItemsToBeDeleted[property]?.length || 0),
+				@*(Upload.Summary.Data.ItemsToBeDeleted[property]?.length || 0),*@
 				(Upload.Summary.Data.PossibleDuplicates.filter(m => m.Type == property)?.length || 0),
 				(Upload.Summary.Data.ItemsToBeCreated[property]?.length || 0),
 				(Upload.Summary.Data.AddedItemsToInnerListsForCopiesOfItems[property]?.length || 0),
@@ -335,7 +336,7 @@
 			asTabs && container.addClass("tabBox");
 			asTabs && $("<div class=\"tabButtons\"></div>").appendTo(container);
 			if (hasAnyItems) {
-				var itemList = $("<div class=\"richItemSet " + (cssClass || "") + (asTabs ? "tabList" : "") +"\"\"></div>").appendTo(container);
+				var itemList = $("<div class=\"richItemSet " + (cssClass || "") + (asTabs ? "tabList" : "") + "\"\"></div>").appendTo(container);
 				renderRichItemList("Reference Resource", items.ReferenceResource, itemList, asTabs);
 				renderRichItemList("Curriculum Control Authority", items.Organization, itemList, asTabs);
 				renderRichItemList("Billet Title", items.BilletTitle, itemList, asTabs);
@@ -354,6 +355,9 @@
 					messageList.append("<li>" + message + "</li>");
 				});
 			}
+		}
+		else {
+			container.append("<p>No items detected for this category.</p>");
 		}
 	}
 	//
@@ -455,7 +459,7 @@
 			return;
 		}
 
-		hideConfirmationButton();
+		hideConfirmChangesSection();
 		window.scrollTo(0, 0); //Ensure the user can see the status box
 		setUploadStatus("Confirming changes, please wait...", true);
 
@@ -490,13 +494,13 @@
 	}
 	//
 
-	function showConfirmationButton() {
-		Upload.UI.ConfirmationButton.addClass("visible");
+	function showConfirmChangesSection() {
+		Upload.UI.ConfirmChangesSection.addClass("visible");
 	}
 	//
 
-	function hideConfirmationButton() {
-		Upload.UI.ConfirmationButton.removeClass("visible");
+	function hideConfirmChangesSection() {
+		Upload.UI.ConfirmChangesSection.removeClass("visible");
 	}
 	//
 
@@ -572,9 +576,9 @@
 	.uploadHeader .statusBox { display: flex; align-items: center; padding: 5px 10px; margin-bottom: 5px; }
 	.uploadHeader .statusBox .status { margin-right: 10px; }
 
-	.buttons { padding: 5px 10px; }
-	.buttons .confirmationButton { padding: 5px 10px; }
-	.buttons .confirmationButton:not(.visible) { display: none; }
+	.confirmChangesSection { margin-top: 30px; padding: 10px 0; border-top: 1px solid #CCC; }
+	.confirmChangesSection:not(.visible) { display: none; }
+	.confirmChangesSection .confirmationButton { padding: 5px 10px; }
 
 	.uploadSummary .midExplanation { margin-top: 20px; }
 	.richItemSet { }
@@ -626,7 +630,9 @@
 		<div class="tab" data-tab="Summary">
 			<h3>Summary</h3>
 			<div class="tabContent uploadSummary"></div>
-			<div class="buttons">
+			<div class="confirmChangesSection">
+				<h4>Confirm Changes</h4>
+				<p>If you are satisfied with the changes listed above, click the Confirm All Changes button.</p>
 				<button class="confirmationButton">Confirm All Changes</button>
 			</div>
 		</div>
