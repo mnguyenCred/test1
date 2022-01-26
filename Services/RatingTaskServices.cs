@@ -80,7 +80,7 @@ namespace Services
                         }
                         else if ( item.Name == "navy:CourseType" && item.ItemIds?.Count > 0 )
                         {
-                            var template = "( base.CourseId in ( select a.id from Course a Inner join [dbo].[Course.Concept] c on a.Id = c.CourseId and c.ConceptId in ({0})) ) ";
+                            var template = "( base.CourseId in ( select a.id from Course a Inner join [dbo].[Course.CourseType] c on a.Id = c.CourseId and c.CourseTypeConceptId in ({0})) ) ";
                             var itemList = "";
                             var comma = "";
                             foreach (var t in item.ItemIds)
@@ -120,7 +120,7 @@ namespace Services
                         else if ( item.Name == "navy:CurrentAssessmentApproach" )
                         {
                             //NOTE this seems like it could be combined with courseType (and LCCD)
-                            var template = "( base.CourseId in ( select a.id from Course a Inner join [dbo].[Course.Concept] c on a.Id = c.CourseId and c.ConceptId in ({0})) ) ";
+                            var template = "( base.CourseId in ( select a.id from Course a Inner join [dbo].[Course.AssessmentType] c on a.Id = c.CourseId and c.AssessmentMethodConceptId in ({0})) ) ";
                             var itemList = "";
                             var comma = "";
                             foreach ( var t in item.ItemIds )

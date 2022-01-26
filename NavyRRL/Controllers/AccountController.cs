@@ -95,7 +95,7 @@ namespace NavyRRL.Controllers
                     int id = new AccountServices().AddAccount( model.Email,
                         model.FirstName, model.LastName,
                         model.Email, user.Id,
-                        model.Password, ref statusMessage );
+                        model.Password, currentUserId, ref statusMessage );
                     if ( id > 0 )
                     {
                         string msg = "Successfully created account for {0}. ";

@@ -1028,6 +1028,10 @@ namespace Services
 					foreach ( var item in summary.ItemsToBeCreated.RatingTask )
 					{
 						cntr++;
+						if (item.CodedNotation == "PQ17-038" || item.CodedNotation == "PQ31-007" )
+                        {
+
+                        }
 						//get all billets for this task
 						if ( item.HasBillet == null )
 							item.HasBillet = new List<Guid>();
@@ -1198,7 +1202,8 @@ namespace Services
 				var nonMatchingCodes = nonMatchingRows.Select( m => m.Rating_CodedNotation ).Distinct().ToList();
 				foreach( var code in nonMatchingCodes )
 				{
-					summary.Messages.Warning.Add( "Detected one or more rows that did not match the selected Rating (" + currentRating.CodedNotation + ") and instead were for Rating: \"" + code + "\". These rows have been ignored.");
+					if (!string.IsNullOrWhiteSpace( code ) )
+						summary.Messages.Warning.Add( "Detected one or more rows that did not match the selected Rating (" + currentRating.CodedNotation + ") and instead were for Rating: \"" + code + "\". These rows have been ignored.");
 				}
 			}
 			
@@ -1773,6 +1778,10 @@ namespace Services
 			{
 				matcher.Flattened.Description = matcher.Rows.Select( m => m.RatingTask_Description ).FirstOrDefault();
 				matcher.Flattened.HasCodedNotation = matcher.Rows.Select( m => m.Row_CodedNotation ).FirstOrDefault();
+				if ( matcher.Flattened.HasCodedNotation == "PQ17-038" || matcher.Flattened.HasCodedNotation == "PQ31-007" )
+				{
+
+				}
 				//this should equate to the RowId - ideally. But only if done at the beginning.
 				matcher.Flattened.HasIdentifier = matcher.Rows.Select( m => m.Row_Identifier ).FirstOrDefault();
 				matcher.Flattened.HasRating_CodedNotation = matcher.Rows.Select( m => m.Rating_CodedNotation ).Distinct().ToList();
@@ -1793,6 +1802,7 @@ namespace Services
 			uploadedRatingTaskMatchers = uploadedRatingTaskMatchers.Where( m => !string.IsNullOrWhiteSpace( m.Flattened.Description ) ).ToList();
 
 			//Convert the existing data
+			//scenario - uploading E9 and now matching against 786 existing
 			var existingRatingTaskMatchers = GetSheetMatchersFromExisting<RatingTask, MatchableRatingTask>( existingRatingTasks );
 			foreach ( var matcher in existingRatingTaskMatchers )
 			{
@@ -1933,6 +1943,7 @@ namespace Services
 			trainingGapTypeConcepts = trainingGapTypeConcepts ?? ConceptSchemeManager.GetbyShortUri( ConceptSchemeManager.ConceptScheme_TrainingGap ).Concepts;
 
 			//Convert the uploaded data
+			//NOTE focus on the Rows list, the Flattened data seems not relevant yet, it will be populated
 			var uploadedBilletTitleMatchers = GetSheetMatchers<BilletTitle, MatchableBilletTitle>( uploadedRows, GetRowMatchHelper_BilletTitle );
 			foreach ( var matcher in uploadedBilletTitleMatchers )
 			{

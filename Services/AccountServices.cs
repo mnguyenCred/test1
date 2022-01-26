@@ -331,8 +331,7 @@ namespace Services
 		/// <param name="password"></param>
 		/// <param name="statusMessage"></param>
 		/// <returns></returns>
-		public int AddAccount( string email, string firstName, string lastName, string userName, string userKey, string password,
-					ref string statusMessage )
+		public int AddAccount( string email, string firstName, string lastName, string userName, string userKey, string password, int addedByUserId, ref string statusMessage )
 		{
 			int id = 0;
 			statusMessage = "";
@@ -357,7 +356,7 @@ namespace Services
 				//don't want to add to session, user needs to confirm
 				//AddUserToSession( HttpContext.Current.Session, user );
 
-				ActivityServices.UserRegistration( user );
+				ActivityServices.AddUserActivity( user, addedByUserId );
 				string msg = string.Format( "New Account. <br/>Email: {0}, <br/>Name: {1}<br/>Type: {2}", email, firstName + " " + lastName, "New Account" );
 	
 				//EmailServices.SendSiteEmail( "New Application Account", msg );
