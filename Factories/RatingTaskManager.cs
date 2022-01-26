@@ -986,7 +986,7 @@ namespace Factories
                             {
                                 if ( !input.HasBillet.Contains( ( Guid ) key ) )
                                 {
-                                    DeleteRatingTaskHasJob( input.Id, e.Id, ref status );
+                                    //DeleteRatingTaskHasJob( input.Id, e.Id, ref status );
                                 }
                             }
                         }
@@ -1208,7 +1208,7 @@ namespace Factories
             {
                 level = "Journeyman";
             }
-            else if ( "e7 e8".IndexOf( paygrade.ToLower() ) > -1 )
+            else if ( "e7 e8 e9".IndexOf( paygrade.ToLower() ) > -1 )
             {
                 level = "Master";
             }
