@@ -604,6 +604,10 @@
       <Project>{afbf8dfa-05f5-4827-9f8e-458254a86c54}</Project>
       <Name>Data</Name>
     </ProjectReference>
+    <ProjectReference Include="..\Factories\Factories.csproj">
+      <Project>{aa33c5ae-3fbc-42cd-a1b8-ea727217c639}</Project>
+      <Name>Factories</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Models\Models.csproj">
       <Project>{7c6cdcb7-9c31-4310-b34d-028bf8bb816f}</Project>
       <Name>Models</Name>
