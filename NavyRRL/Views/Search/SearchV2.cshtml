@@ -61,24 +61,24 @@
 	var Search = {
 		UI: {},
 		Columns: [
-			{ Label: "Rating", ResultMap: "Rating_CodedNotation", Category: "overall", CssClass: "rating" },
-			{ Label: "Pay Grade", ResultMap: "PayGradeType_Notation", Category: "overall", CssClass: "payGrade" },
-			{ Label: "Level", ResultMap: "Level_Name", Category: "overall", CssClass: "level" },
-			{ Label: "Billet Title", ResultMap: "BilletTitle_Name", Category: "overall", CssClass: "billetTitle" },
-			{ Label: "Functional Area", ResultMap: "WorkRole_Name", Category: "ratingTask", CssClass: "workRole" },
-			{ Label: "Source", ResultMap: "ReferenceResource_Name", Category: "ratingTask", CssClass: "source" },
-			{ Label: "Source Date", ResultMap: "ReferenceResource_PublicationDate", Category: "ratingTask", CssClass: "sourceDate" },
-			{ Label: "Source Type", ResultMap: "Shared_ReferenceType", Category: "ratingTask", CssClass: "sourceType" },
-			{ Label: "Rating Task Description", ResultMap: "RatingTask_Description", Category: "ratingTask", CssClass: "ratingTaskDescription" },
-			{ Label: "Rating Task Applicability", ResultMap: "RatingTask_ApplicabilityType_Label", Category: "ratingTask", CssClass: "applicabilityType" },
-			{ Label: "Training Gap", ResultMap: "RatingTask_TrainingGapType_Label", Category: "course", CssClass: "trainingGapType" },
-			{ Label: "Training Task Description", ResultMap: "TrainingTask_Description", Category: "course", CssClass: "trainingTaskDescription" },
-			{ Label: "Course Identification Number", ResultMap: "Course_CodedNotation", Category: "course", CssClass: "courseID" },
-			{ Label: "Course Name", ResultMap: "Course_Name", Category: "course", CssClass: "courseName" },
-			{ Label: "Course Type", ResultMap: "Course_CourseType_Label", Category: "course", CssClass: "courseType" },
-			{ Label: "Curriculum Control Authority", ResultMap: "Course_CurriculumControlAuthority_Name", Category: "course", CssClass: "cca" },
-			{ Label: "Life-Cycle Control Document", ResultMap: "Course_HasReferenceResource_Name", Category: "course", CssClass: "lccd" },
-			{ Label: "Course Assessment Approach", ResultMap: "Course_AssessmentMethodType_Label", Category: "course", CssClass: "assessmentMethodType" }
+			{ Label: "Rating", ResultMap: "Rating_CodedNotation", SortOrder: "Ratings", Category: "overall", CssClass: "rating" },
+			{ Label: "Pay Grade", ResultMap: "PayGradeType_Notation", SortOrder: "Rank", Category: "overall", CssClass: "payGrade" },
+			{ Label: "Level", ResultMap: "Level_Name", SortOrder: "Level", Category: "overall", CssClass: "level" },
+			{ Label: "Billet Title", ResultMap: "BilletTitle_Name", SortOrder: "BilletTitles", Category: "overall", CssClass: "billetTitle" },
+			{ Label: "Functional Area", ResultMap: "WorkRole_Name", SortOrder: "FunctionalArea", Category: "ratingTask", CssClass: "workRole" },
+			{ Label: "Source", ResultMap: "ReferenceResource_Name", SortOrder: "ReferenceResource", Category: "ratingTask", CssClass: "source" },
+			{ Label: "Source Date", ResultMap: "ReferenceResource_PublicationDate", SortOrder: "SourceDate", Category: "ratingTask", CssClass: "sourceDate" },
+			{ Label: "Source Type", ResultMap: "Shared_ReferenceType", SortOrder: "WorkElementType", Category: "ratingTask", CssClass: "sourceType" },
+			{ Label: "Rating Task Description", ResultMap: "RatingTask_Description", SortOrder: "RatingTask", Category: "ratingTask", CssClass: "ratingTaskDescription" },
+			{ Label: "Rating Task Applicability", ResultMap: "RatingTask_ApplicabilityType_Label", SortOrder: "TaskApplicability", Category: "ratingTask", CssClass: "applicabilityType" },
+			{ Label: "Training Gap", ResultMap: "RatingTask_TrainingGapType_Label", SortOrder: "FormalTrainingGap", Category: "course", CssClass: "trainingGapType" },
+			{ Label: "Training Task Description", ResultMap: "TrainingTask_Description", SortOrder: "TrainingTask", Category: "course", CssClass: "trainingTaskDescription" },
+			{ Label: "Course Identification Number", ResultMap: "Course_CodedNotation", SortOrder: "CIN", Category: "course", CssClass: "courseID" },
+			{ Label: "Course Name", ResultMap: "Course_Name", SortOrder: "CourseName", Category: "course", CssClass: "courseName" },
+			{ Label: "Course Type", ResultMap: "Course_CourseType_Label", SortOrder: "CourseTypes", Category: "course", CssClass: "courseType" },
+			{ Label: "Curriculum Control Authority", ResultMap: "Course_CurriculumControlAuthority_Name", SortOrder: "CurriculumControlAuthority", Category: "course", CssClass: "cca" },
+			{ Label: "Life-Cycle Control Document", ResultMap: "Course_HasReferenceResource_Name", SortOrder: "LifeCycleControlDocument", Category: "course", CssClass: "lccd" },
+			{ Label: "Course Assessment Approach", ResultMap: "Course_AssessmentMethodType_Label", SortOrder: "AssessmentMethodTypes", Category: "course", CssClass: "assessmentMethodType" }
 		],
 		Prefilled: {
 			Rating: @Html.Raw(JsonConvert.SerializeObject(ratingFilter, Formatting.None)),
@@ -89,6 +89,7 @@
 			CourseType: @Html.Raw(JsonConvert.SerializeObject(courseTypeFilter, Formatting.None)),
 			AssessmentMethodType: @Html.Raw(JsonConvert.SerializeObject(assessmentMethodTypeFilter, Formatting.None))
 		},
+		SortOrders: [],
 		PageNumber: 1,
 		PageSize: 250,
 		Filters: []
@@ -175,7 +176,19 @@
 		createFilter_Text("search:RatingTaskKeyword", 0, textFilterBox, "Rating Task Keywords");
 		createFilter_Text("search:TrainingTaskKeyword", 0, textFilterBox, "Training Task Keywords");
 		createFilter_Text("search:BilletTitleKeyword", 0, textFilterBox, "Billet Title Keywords");
-		createFilter_Autofill("navy:Rating", 0, textFilterBox, "Rating", (Filter, text) => { return findSimpleFilterItem(Search.Prefilled.Rating.Items, Filter.Items, text); });
+		createFilter_Autofill("navy:Rating", 0, textFilterBox, "Rating", (Filter, text) => {
+			return findSimpleFilterItem(Search.Prefilled.Rating.Items, Filter.Items, text);
+		});
+		Search.SortOrders = Search.Columns.map(column => {
+			return { Label: column.Label, Column: column.SortOrder, Ascending: true };
+		}).concat(Search.Columns.map(column => {
+			return { Label: column.Label + " (Reverse)", Column: column.SortOrder, Ascending: false };
+		}));
+		createFilter_Autofill("SortOrder", 0, textFilterBox, "Sort Order", (Filter, text) => {
+			return findSimpleFilterItem(Search.SortOrders, Filter.Items, text);
+		}, (Filter) => {
+			return Filter.Items.map(m => { return { Column: m.Column, Ascending: m.Ascending }; });
+		});
 
 		//Checkbox Filters
 		var checkBoxFilterBox = Search.UI.FiltersBox.find(".checkBoxFilters");
@@ -242,7 +255,7 @@
 	}
 	//
 
-	function createFilter_Autofill(name, id, container, label, findItems) {
+	function createFilter_Autofill(name, id, container, label, findItems, customReadValue) {
 		var Filter = createFilter(name, id, container, label, "autofill", { Items: [], findItems: findItems });
 
 		Filter.Input = $("<input type=\"text\" placeholder=\"Search...\" />").appendTo(Filter.Box);
@@ -288,7 +301,7 @@
 		};
 
 		Filter.readValue = function () {
-			return { ItemIds: Filter.Items.map(Item => Item.Id) };
+			return customReadValue?.(Filter) || { ItemIds: Filter.Items.map(Item => Item.Id) };
 		};
 
 		return Filter;
@@ -297,7 +310,11 @@
 
 	function findSimpleFilterItem(searchIn, notIn, text, limit) {
 		text = (text || "").toLowerCase();
-		return searchIn.filter(Item => { return !notIn.includes(Item) && Item.Label.toLowerCase().includes(text) }).sort((a, b) => { return a.Label.toLowerCase().indexOf(text) < b.Label.toLowerCase().indexOf(text) ? -1 : 1 }).slice(0, limit || 10);
+		return searchIn.filter(Item => {
+			return !notIn.includes(Item) && Item.Label.toLowerCase().includes(text)
+		}).sort((a, b) => {
+			return a.Label.toLowerCase().indexOf(text) < b.Label.toLowerCase().indexOf(text) ? -1 : 1
+		}).slice(0, limit || 10);
 	}
 	//
 
@@ -314,6 +331,7 @@
 
 		var currentFilters = Search.Filters
 			.filter(Filter => Filter.Name != "Column")
+			.filter(Filter => Filter.Name != "SortOrder")
 			.map(Filter => {
 				return {
 					Name: Filter.Name,
@@ -324,8 +342,8 @@
 			.filter(Filter => { return (Filter.Text && Filter.Text.length > 0) || (Filter.ItemIds && Filter.ItemIds.length > 0) });
 
 		var query = {
-			SortOrder: "TBD",
 			Filters: currentFilters,
+			SortOrder: Search.Filters.filter(m => m.Name == "SortOrder")[0].readValue(),
 			PageSize: getAllHandler ? -1 : 250,
 			PageNumber: getAllHandler ? 1 : Search.PageNumber
 		};
@@ -431,35 +449,35 @@
 	@@keyframes spin { 100% { transform: rotate(360deg); } }
 
 	.searchBox { }
-		.searchBox .searchHeader { }
-			.searchBox .searchHeader .filtersBox { display: flex; }
-				.searchBox .searchHeader .filtersBox .topSection { flex: 0 0 650px; display: flex; }
-				.searchBox .searchHeader .filtersBox .filter { padding: 5px; }
-					.searchBox .searchHeader .filtersBox .filter .filterLabel { font-weight: bold; border-bottom: 1px solid #CCC; }
-				.searchBox .searchHeader .filtersBox .columnSelector { flex: 1 1 50%; }
-				.searchBox .searchHeader .filtersBox .textFilters { flex: 1 1 50%; }
-				.searchBox .searchHeader .filtersBox .checkBoxFilters { flex: 1 1 auto; display: grid; grid-template-columns: repeat(auto-fill, minmax(325px, 1fr)); }
+	.searchBox .searchHeader { }
+	.searchBox .searchHeader .filtersBox { display: flex; }
+	.searchBox .searchHeader .filtersBox .topSection { flex: 0 0 650px; display: flex; }
+	.searchBox .searchHeader .filtersBox .filter { padding: 5px; }
+	.searchBox .searchHeader .filtersBox .filter .filterLabel { font-weight: bold; border-bottom: 1px solid #CCC; }
+	.searchBox .searchHeader .filtersBox .columnSelector { flex: 1 1 50%; }
+	.searchBox .searchHeader .filtersBox .textFilters { flex: 1 1 50%; }
+	.searchBox .searchHeader .filtersBox .checkBoxFilters { flex: 1 1 auto; display: grid; grid-template-columns: repeat(auto-fill, minmax(325px, 1fr)); }
 
-				.searchBox .searchHeader .filtersBox .filter.text { }
-					.searchBox .searchHeader .filtersBox .filter.text input { display: block; width: 100%; max-width: none; }
+	.searchBox .searchHeader .filtersBox .filter.text { }
+	.searchBox .searchHeader .filtersBox .filter.text input { display: block; width: 100%; max-width: none; }
 
-				.searchBox .searchHeader .filtersBox .filter.checkBox { }
-					.searchBox .searchHeader .filtersBox .filter.checkBox label { display: flex; padding: 2.5px 5px; width: 100%; font-weight: normal; margin-bottom: 0; }
-						.searchBox .searchHeader .filtersBox .filter.checkBox label:hover, .searchBox .searchHeader .filtersBox .filter.checkBox label:focus { cursor: pointer; background-color: rgba(0,0,0,0.05); }
-						.searchBox .searchHeader .filtersBox .filter.checkBox label input { margin-right: 5px; }
+	.searchBox .searchHeader .filtersBox .filter.checkBox { }
+	.searchBox .searchHeader .filtersBox .filter.checkBox label { display: flex; padding: 2.5px 5px; width: 100%; font-weight: normal; margin-bottom: 0; }
+	.searchBox .searchHeader .filtersBox .filter.checkBox label:hover, .searchBox .searchHeader .filtersBox .filter.checkBox label:focus { cursor: pointer; background-color: rgba(0,0,0,0.05); }
+	.searchBox .searchHeader .filtersBox .filter.checkBox label input { margin-right: 5px; }
 
-				.searchBox .searchHeader .filtersBox .filter.autofill { position: relative; }
-					.searchBox .searchHeader .filtersBox .filter.autofill input { display: block; width: 100%; max-width: none; }
-					.searchBox .searchHeader .filtersBox .filter.autofill .filterOptions { position: absolute; background-color: #FFF; border: 1px solid #CCC; width: 100%; }
-						.searchBox .searchHeader .filtersBox .filter.autofill .filterOptions:not(.visible) { display: none; }
-						.searchBox .searchHeader .filtersBox .filter.autofill .filterOptions button { display: block; width: 100%; padding: 5px 10px; background-color: #FFF; border: none; }
-							.searchBox .searchHeader .filtersBox .filter.autofill .filterOptions button:hover, .searchBox .searchHeader .filtersBox .filter.autofill .filterOptions button:focus { background-color: rgba(0,0,0,0.05); }
-					.searchBox .searchHeader .filtersBox .filter.autofill .filterItems { }
-						.searchBox .searchHeader .filtersBox .filter.autofill .filterItems .filterItem { display: flex; width: 100%; padding: 2.5px 5px; }
-							.searchBox .searchHeader .filtersBox .filter.autofill .filterItems .filterItem:not(:last-child) { border-bottom: 1px dashed #CCC; }
-							.searchBox .searchHeader .filtersBox .filter.autofill .filterItems .filterItem span { flex: 1 1 auto; }
-							.searchBox .searchHeader .filtersBox .filter.autofill .filterItems .filterItem button { margin-left: 10px; background-color: #F55; border: none; color: #FFF; font-weight: bold; height: 22px; width: 22px; }
-								.searchBox .searchHeader .filtersBox .filter.autofill .filterItems .filterItem button:hover, .searchBox .searchHeader .filtersBox .filter.autofill .filterItems .filterItem button:focus { background-color: #F77; }
+	.searchBox .searchHeader .filtersBox .filter.autofill { position: relative; }
+	.searchBox .searchHeader .filtersBox .filter.autofill input { display: block; width: 100%; max-width: none; }
+	.searchBox .searchHeader .filtersBox .filter.autofill .filterOptions { position: absolute; z-index: 10; background-color: #FFF; border: 1px solid #CCC; width: 100%; }
+	.searchBox .searchHeader .filtersBox .filter.autofill .filterOptions:not(.visible) { display: none; }
+	.searchBox .searchHeader .filtersBox .filter.autofill .filterOptions button { display: block; width: 100%; padding: 5px 10px; background-color: #FFF; border: none; }
+	.searchBox .searchHeader .filtersBox .filter.autofill .filterOptions button:hover, .searchBox .searchHeader .filtersBox .filter.autofill .filterOptions button:focus { background-color: rgba(0,0,0,0.05); }
+	.searchBox .searchHeader .filtersBox .filter.autofill .filterItems { }
+	.searchBox .searchHeader .filtersBox .filter.autofill .filterItems .filterItem { display: flex; width: 100%; padding: 2.5px 5px; }
+	.searchBox .searchHeader .filtersBox .filter.autofill .filterItems .filterItem:not(:last-child) { border-bottom: 1px dashed #CCC; }
+	.searchBox .searchHeader .filtersBox .filter.autofill .filterItems .filterItem span { flex: 1 1 auto; }
+	.searchBox .searchHeader .filtersBox .filter.autofill .filterItems .filterItem button { margin-left: 10px; background-color: #F55; border: none; color: #FFF; font-weight: bold; height: 22px; width: 22px; }
+	.searchBox .searchHeader .filtersBox .filter.autofill .filterItems .filterItem button:hover, .searchBox .searchHeader .filtersBox .filter.autofill .filterItems .filterItem button:focus { background-color: #F77; }
 
 	.searchTableTopBar { display: flex; flex-wrap: wrap; align-items: center; padding: 5px 10px; background-color: #EEE; }
 	.searchTableTopBar > *:not(:last-child) { margin-right: 10px; }

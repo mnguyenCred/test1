@@ -126,8 +126,10 @@ namespace Services
 			}
 
 			//Sanitize Sort Order
-			var validSortOrders = new List<string>() { "newest", "oldest", "relevance", "alpha", "cost_lowest", "cost_highest", "duration_shortest", "duration_longest", "org_alpha", "zalpha" };
-			query.SortOrder = validSortOrders.FirstOrDefault( m => m.ToLower() == query.SortOrder.ToLower() ) ?? validSortOrders.First();
+			foreach( var item in query.SortOrder )
+			{
+				item.Column = SanitizeKeywordString( item.Column );
+			}
 
 			//Sanitize Page Size
 			//Need a way to get all (use -1)
