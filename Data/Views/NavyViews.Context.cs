@@ -34,5 +34,6 @@ namespace Data.Views
         public virtual DbSet<CourseSummary> CourseSummary { get; set; }
         public virtual DbSet<TrainingTaskSummary> TrainingTaskSummary { get; set; }
         public virtual DbSet<ReferenceResourceSummary> ReferenceResourceSummary { get; set; }
+        public virtual DbSet<RatingSummary> RatingSummary { get; set; }
     }
 }

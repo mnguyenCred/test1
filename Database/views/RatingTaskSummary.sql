@@ -23,7 +23,7 @@ SELECT [Id]
       ,[RowId]
       ,[Ratings]
       ,[BilletTitles]
-      ,[CodedNotation]
+      ,[CodedNotation] as TaskCodedNotation
       ,[RankId]
       ,[Rank]
       ,[PayGradeType]
@@ -59,11 +59,11 @@ SELECT [Id]
       ,[Created]
       ,[CreatedById]
       ,[CreatedBy]
-      ,[CreatedByUID]
+     -- ,[CreatedByUID]
       ,[LastUpdated]
       ,[LastUpdatedById]
       ,[ModifiedBy]
-      ,[ModifiedByUID]
+     -- ,[ModifiedByUID]
   FROM [dbo].[RatingTaskSummary]
     where taskApplicabilityId=77
 	and isnull(ratings,'') = ''
@@ -154,8 +154,10 @@ SELECT
 		,g.TrainingTaskUID as HasTrainingTask
 		--can be multiple
 		,g.AssessmentMethodTypes
-		--single or multiple?
+		--22-01-24-yes single 
 		,g.CurriculumControlAuthority
+		,g.CurriculumControlAuthorityId
+		,g.CurriculumControlAuthorityUID
 		--comfirm if can be multiple
 		,g.LifeCycleControlDocument
 

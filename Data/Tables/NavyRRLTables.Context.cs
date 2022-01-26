@@ -47,7 +47,6 @@ namespace Data.Tables
         public virtual DbSet<ReferenceResource> ReferenceResource { get; set; }
         public virtual DbSet<ReferenceResource_ReferenceType> ReferenceResource_ReferenceType { get; set; }
         public virtual DbSet<Codes_EntityType> Codes_EntityType { get; set; }
-        public virtual DbSet<Course_Concept> Course_Concept { get; set; }
         public virtual DbSet<ImportHistory> ImportHistory { get; set; }
         public virtual DbSet<RatingTask_HasJob> RatingTask_HasJob { get; set; }
         public virtual DbSet<WorkRole> WorkRole { get; set; }

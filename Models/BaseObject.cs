@@ -27,7 +27,7 @@ namespace Models
 		public string LastUpdatedDisplay { get { return LastUpdated > DateTime.MinValue ? LastUpdated.ToShortDateString() : Created > DateTime.MinValue ? Created.ToShortDateString() : ""; } }
 
 		public bool CanViewRecord { get; set; } //What is this for?
-
+		public string Message { get; set; }
 	}
 	//
 }

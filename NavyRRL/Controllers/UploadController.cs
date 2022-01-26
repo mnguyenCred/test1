@@ -10,6 +10,8 @@ using SM = Models.Schema;
 using CM = Models.Curation;
 using Models.Application;
 using Navy.Utilities;
+using Models.Curation;
+
 namespace NavyRRL.Controllers
 {
     public class UploadController : BaseController
@@ -38,8 +40,13 @@ namespace NavyRRL.Controllers
 			Services.BulkUploadServices.CacheChangeSummary( changeSummary );
 
 			/*
+			var changeSummaryNew = Services.BulkUploadServices.ProcessUploadV2( rawData, ratingRowID, debug );
+			var changeSummaryOld = new ChangeSummary();
 			//Temp
-			var changeSummaryOld = Services.BulkUploadServices.ProcessUpload( rawData, ratingRowID, debug );
+			if ( UtilityManager.GetAppKeyValue( "includingProcessV1ToCompare", false ) )
+			{
+				changeSummaryOld = Services.BulkUploadServices.ProcessUpload( rawData, ratingRowID, debug );
+			}
 			//End Temp
 
 
@@ -48,8 +55,12 @@ namespace NavyRRL.Controllers
 				Services.BulkUploadServices.CacheChangeSummary( changeSummaryNew );
 			} else
             {
-				changeSummaryOld.Messages.Note.Add( "USING OLD PROCESS VERSION" );
-				Services.BulkUploadServices.CacheChangeSummary( changeSummaryOld );
+				if ( UtilityManager.GetAppKeyValue( "includingProcessV1ToCompare", false ) )
+				{
+                    changeSummaryOld.Messages.Note.Add( "USING OLD PROCESS VERSION" );
+                    Services.BulkUploadServices.CacheChangeSummary( changeSummaryOld );
+                }
+
 
 			}
 			*/

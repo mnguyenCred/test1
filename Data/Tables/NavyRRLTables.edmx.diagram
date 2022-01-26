@@ -73,10 +73,10 @@
         <AssociationConnector Association="NavyRRLModel.FK_Table_1_CourseType_Concept" />
         <AssociationConnector Association="NavyRRLModel.FK_Course_AssessmentType_Course" />
         <AssociationConnector Association="NavyRRLModel.FK_Course_CourseType_Course" />
-        <AssociationConnector Association="NavyRRLModel.FK_CourseOrganization_Course" />
         <AssociationConnector Association="NavyRRLModel.FK_CourseLCCD_ReferenceResource" />
         <AssociationConnector Association="NavyRRLModel.FK_RatingTask_ReferenceResource1" />
         <AssociationConnector Association="NavyRRLModel.FK_RatingTask_WorkRole_WorkRole1" />
+        <AssociationConnector Association="NavyRRLModel.FK_Course_Organization" />
       </Diagram>
     </edmx:Diagrams>
   </edmx:Designer>

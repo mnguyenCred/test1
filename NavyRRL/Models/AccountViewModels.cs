@@ -70,7 +70,25 @@ namespace NavyRRL.Models
         [Display( Name = "Remember me?" )]
         public bool RememberMe { get; set; } = false;
     }
+    public class ContactUsViewModel
+    {
+        [Required]
+        [Display( Name = "Email" )]
+        [EmailAddress]
+        public string Email { get; set; } = "";
+        [Required]
+        [Display( Name = "First Name" )]
+        public string FirstName { get; set; }
 
+        [Required]
+        [Display( Name = "Last Name" )]
+        public string LastName { get; set; }
+
+        [Required]
+        [DataType( DataType.Text )]
+        [Display( Name = "Reason for Contact" )]
+        public string Reason { get; set; } = "";
+    }
     public class RegisterViewModel
     {
         [Required]

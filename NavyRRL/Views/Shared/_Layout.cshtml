@@ -12,13 +12,9 @@
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<meta name="robots" content="noindex">
 	<title>@ViewBag.Title - Navy RCDC RRL</title>
+
 	@Styles.Render( "~/Content/css" )
 	@Scripts.Render( "~/bundles/modernizr" )
-
-
-	@*<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/v/dt/jszip-2.5.0/dt-1.11.3/af-2.3.7/b-2.0.1/b-html5-2.0.1/cr-1.5.5/date-1.1.1/r-2.2.9/datatables.min.css" />
-
-		<script type="text/javascript" src="https://cdn.datatables.net/v/dt/jszip-2.5.0/dt-1.11.3/af-2.3.7/b-2.0.1/b-html5-2.0.1/cr-1.5.5/date-1.1.1/r-2.2.9/datatables.min.js"></script>*@
 
 	@Scripts.Render( "~/bundles/jquery" )
 	@Scripts.Render( "~/bundles/bootstrap" )
@@ -27,7 +23,7 @@
 	@RenderSection( "scripts", required: false )
 	@*<link rel="stylesheet" type="text/css" href="~/Content/DataTables/DataTables-1.11.3/css/dataTables.bootstrap.min.css" />*@
 
-	@*<script type="text/javascript" src="~/Content/DataTables/datatables.min.js"></script>*@
+<script src="~/Scripts/jquery.timepicker.js"></script>
 	<style>
 		.navbar-right { float: right !important; margin-right: -5px; }
 	</style>
@@ -56,6 +52,9 @@
 							<li>@Html.ActionLink( "Search", "SearchV2", "Search" )</li>
 						</ul>
 						<ul class="nav navbar-nav">
+							<li>@Html.ActionLink( "Upload", "UploadV2", "Upload" )</li>
+						</ul>
+						@*<ul class="nav navbar-nav">
 							<li class="dropdown">
 								<a href="#" class="dropdown-toggle" data-toggle="dropdown">Upload<b class="caret"></b></a>
 								<ul class="dropdown-menu">
@@ -64,9 +63,9 @@
 								</ul>
 							</li>
 
-						</ul>
+						</ul>*@
 						<ul class="nav navbar-nav">
-							<li>@Html.ActionLink( "Browse", "Browse", "Demo" )</li>
+							<li>@Html.ActionLink( "RMTL Catalog", "Browse", "Demo" )</li>
 						</ul>
 					}
 					@if ( AccountServices.IsUserAnAdmin() )
@@ -75,6 +74,8 @@
 							<li class="dropdown">
 								<a href="#" class="dropdown-toggle" data-toggle="dropdown">Admin<b class="caret"></b></a>
 								<ul class="dropdown-menu">
+									<li><a href="@Url.Content( "~/Admin/Activity" )">Activity Log</a></li>
+
 									<li><a href="@Url.Content( "~/Admin/User" )">User Management</a></li>
 									@*<li><a href="@Url.Content( "~/Admin/User/ResetPassword" )">Reset User Password</a></li>*@
 									<li><a href="@Url.Content( "~/Account/AddUser" )">Add Account</a></li>
@@ -84,15 +85,15 @@
 						</ul>
 					}
 					@*@if ( ( user?.Id == 0 ) )
-					{
-						<ul class="nav navbar-nav navbar-right">
-							@if ( env == "development" )
-							{ 
-							<li>@Html.ActionLink( "Register", "Register", "Account", routeValues: null, htmlAttributes: new { id = "registerLink" } )</li>
-							}
-							<li>@Html.ActionLink( "Log in", "Login", "Account", routeValues: null, htmlAttributes: new { id = "loginLink" } )</li>
-						</ul>
-					}*@
+		{
+			<ul class="nav navbar-nav navbar-right">
+				@if ( env == "development" )
+				{
+				<li>@Html.ActionLink( "Register", "Register", "Account", routeValues: null, htmlAttributes: new { id = "registerLink" } )</li>
+				}
+				<li>@Html.ActionLink( "Log in", "Login", "Account", routeValues: null, htmlAttributes: new { id = "loginLink" } )</li>
+			</ul>
+		}*@
 					@Html.Partial( "_LoginPartial" )
 				</div>
 			</div>

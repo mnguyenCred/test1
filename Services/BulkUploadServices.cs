@@ -1024,8 +1024,10 @@ namespace Services
 				if ( summary.ItemsToBeCreated.RatingTask?.Count > 0 )
 				{
 					var mgr = new RatingTaskManager();
+					int cntr = 0;
 					foreach ( var item in summary.ItemsToBeCreated.RatingTask )
 					{
+						cntr++;
 						//get all billets for this task
 						if ( item.HasBillet == null )
 							item.HasBillet = new List<Guid>();
@@ -1938,7 +1940,7 @@ namespace Services
 				
 				matcher.Flattened.Name = matcher.Rows.Select( m => m.BilletTitle_Name ).FirstOrDefault();
 				matcher.Flattened.HasRatingTask_MatchHelper = matcher.Rows.Select( m => GetRowMatchHelper_RatingTask( m ) ).Distinct().ToList();
-				//this would be alist
+				//this would be a list
 				matcher.Flattened.HasRatingTaskCodedNotation = matcher.Rows.Select( m => m.Row_CodedNotation ).Distinct().ToList();
 			}
 

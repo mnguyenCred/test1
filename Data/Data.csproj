@@ -125,9 +125,6 @@
     <Compile Include="Tables\Course_AssessmentType.cs">
       <DependentUpon>NavyRRLTables.tt</DependentUpon>
     </Compile>
-    <Compile Include="Tables\Course_Concept.cs">
-      <DependentUpon>NavyRRLTables.tt</DependentUpon>
-    </Compile>
     <Compile Include="Tables\Course_CourseType.cs">
       <DependentUpon>NavyRRLTables.tt</DependentUpon>
     </Compile>
@@ -355,6 +352,9 @@
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>NavyViews.edmx</DependentUpon>
+    </Compile>
+    <Compile Include="Views\RatingSummary.cs">
+      <DependentUpon>NavyViews.tt</DependentUpon>
     </Compile>
     <Compile Include="Views\RatingTaskSummary.cs">
       <DependentUpon>NavyViews.tt</DependentUpon>

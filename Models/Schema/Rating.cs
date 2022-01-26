@@ -23,5 +23,7 @@ namespace Models.Schema
 		/// From Column: Rating
 		/// </summary>
 		public string CodedNotation { get; set; }
+
+		public int HasRatingTasks { get; set; }
 	}
 }
