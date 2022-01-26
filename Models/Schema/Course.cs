@@ -11,6 +11,7 @@ namespace Models.Schema
 			CurriculumControlAuthority = new List<Guid>();
 			HasTrainingTask = new List<Guid>();
 			AssessmentMethodType = new List<Guid>();
+			CourseTypes = new List<Guid>();
 		}
 
 		/// <summary>
@@ -31,6 +32,7 @@ namespace Models.Schema
 		/// </summary>
 		public List<Guid> CurriculumControlAuthority { get; set; }
 
+
 		/// <summary>
 		/// List of GUIDs for the Training Tasks for this Course<br />
 		/// From Column: CTTL/PPP/TCCD Statement
@@ -49,7 +51,7 @@ namespace Models.Schema
 		/// </summary>
 		public Guid CourseType { get; set; }
 		//TBD must be a list
-		public List<Guid> CourseTypes { get; set; } = new List<Guid>();
+		public List<Guid> CourseTypes { get; set; }
 		/// <summary>
 		/// GUID for the Concept for the Assessment Method Type for this Course<br />
 		/// From Column: Current Assessment Approach
@@ -63,7 +65,10 @@ namespace Models.Schema
 
 		public List<string> CourseTypeList { get; set; } = new List<string>();
 		public List<string> AssessmentMethods{ get; set; } = new List<string>();
+
 		public List<string> Organizations { get; set; } = new List<string>();
+		public int CurriculumControlAuthorityId { get; set; }
+		public string OrganizationName { get; set; }
 		public string LifeCycleControlDocument { get; set; }
 		public int LifeCycleControlDocumentId { get; set; }
 
@@ -77,7 +82,7 @@ namespace Models.Schema
 		public string Course_Type { get; set; }
 		public int CourseTypeId { get; set; }
 		public string Curriculum_Control_Authority { get; set; }
-		public int CurriculumControlAuthorityId { get; set; }
+
 
 		//
 		//public string LifeCycleControlDocument { get; set; }

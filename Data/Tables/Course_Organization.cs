@@ -22,6 +22,5 @@ namespace Data.Tables
         public Nullable<int> CreatedById { get; set; }
     
         public virtual Organization Organization { get; set; }
-        public virtual Course Course { get; set; }
     }
 }

@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 
 using AppEntity = Models.Schema.Rating;
 using DBEntity = Data.Tables.Rating;
+using ViewEntity = Data.Views.RatingSummary;
 using Models.Curation;
 
 using DataEntities = Data.Tables.NavyRRLEntities;
@@ -298,14 +299,41 @@ namespace Factories
         /// May need a get all for a rating? Should not matter as this is external data?
         /// </summary>
         /// <returns></returns>
-        public static List<AppEntity> GetAll()
+        public static List<AppEntity> GetAll( bool mustHaveRatingTasks = false)
+        {
+            var entity = new AppEntity();
+            var list = new List<AppEntity>();
+
+            using ( var context = new ViewContext() )
+            {
+                var results = context.RatingSummary
+                    .Where ( s => !mustHaveRatingTasks || s.HasRatingTasks > 0 )
+                        .OrderBy( s => s.Name )
+                        .ToList();
+                if ( results?.Count > 0 )
+                {
+                    foreach ( var item in results )
+                    {
+                        if ( item != null && item.Id > 0 )
+                        {
+                            entity = new AppEntity();
+                            MapFromDB( item, entity );
+                            list.Add( ( entity ) );
+                        }
+                    }
+                }
+
+            }
+            return list;
+        }
+        public static List<AppEntity> GetAll2( bool activeOnly = false )
         {
             var entity = new AppEntity();
             var list = new List<AppEntity>();
 
             using ( var context = new DataEntities() )
             {
-                var results = context.Rating
+                List<DBEntity> results = context.Rating
                         .OrderBy( s => s.Name )
                         .ToList();
                 if ( results?.Count > 0 )
@@ -333,10 +361,17 @@ namespace Factories
             {
                 output.RowId = input.RowId;
             }
-            //
-
         }
-
+        public static void MapFromDB( ViewEntity input, AppEntity output )
+        {
+            //
+            List<string> errors = new List<string>();
+            BaseFactory.AutoMap( input, output, errors );
+            if ( input.RowId != output.RowId )
+            {
+                output.RowId = input.RowId;
+            }
+        }
 
         #endregion
 

@@ -331,8 +331,7 @@ namespace Services
 		/// <param name="password"></param>
 		/// <param name="statusMessage"></param>
 		/// <returns></returns>
-		public int AddAccount( string email, string firstName, string lastName, string userName, string userKey, string password,
-					ref string statusMessage )
+		public int AddAccount( string email, string firstName, string lastName, string userName, string userKey, string password, int addedByUserId, ref string statusMessage )
 		{
 			int id = 0;
 			statusMessage = "";
@@ -357,7 +356,7 @@ namespace Services
 				//don't want to add to session, user needs to confirm
 				//AddUserToSession( HttpContext.Current.Session, user );
 
-				ActivityServices.UserRegistration( user );
+				ActivityServices.AddUserActivity( user, addedByUserId );
 				string msg = string.Format( "New Account. <br/>Email: {0}, <br/>Name: {1}<br/>Type: {2}", email, firstName + " " + lastName, "New Account" );
 	
 				//EmailServices.SendSiteEmail( "New Application Account", msg );
@@ -630,7 +629,47 @@ namespace Services
 			}
 
 		}
+		public static void SendEmail_ContactUs( AppUser user, string reason )
+		{
+			string subject = "Contact Us Request";
 
+			string toEmail = UtilityManager.GetAppKeyValue( "systemAdminEmail", CodesManager.DefaultEmailAddress );
+			string appUrl = UtilityManager.GetAppKeyValue( "applicationURL" );
+			string fromEmail = UtilityManager.GetAppKeyValue( "contactUsMailFrom", CodesManager.DefaultEmailAddress );
+			//
+			string rowTemplate = "<tr><td 'style=width: 225px; text-align:right; vertical-align: top'><b>{0}&nbsp;</b></td><td style='width: 500px;text-align:left; vertical-align: top'>{1}</td></tr>";
+			string email = "<p>A contact request has been received:</p>";
+			email += "<table><tbody>";
+			email += string.Format( rowTemplate, "Name:", user.FullName() );
+			email += string.Format( rowTemplate, "Email:", user.Email );
+			if ( user.Message?.Length > 0 )
+			{
+				//assume IP address - more useful for the code to skip repeats from same IP?
+				email += string.Format( rowTemplate, "IP Address: ", user.Message );
+			}
+			email += string.Format( rowTemplate, "Reason: ", reason );
+
+			//email += string.Format( "<div style='display:inline-block;width: 500px;'><b>From:</b><span>{0}</span></div> <br/><div style='width: 500px;'><b>Email:</b> {1}</div></br>", user.FullName(), user.Email );
+			//if (user.Message?.Length > 0)
+			//         {
+			//	//assume IP address - more useful for the code to skip repeats from same IP?
+			//	email += string.Format( "<div style='width: 500px;'><b>IP Address:</b>{0}</div></br>", user.Message );
+			//}
+			email += "</tbody></table>";
+			//email += string.Format( "<div style='width: 150px;text-align:right;'><b>Reason:</b></div><p style='margin-left: 50px; width: 50%;'>{0}</p>", reason) ;
+			//email += "<p>Navy RRL Application</p>";
+			email += string.Format("<p><a href='{0}'>Navy RRL Application</a></p>", appUrl);
+
+			try
+			{
+
+				EmailServices.SendEmail( toEmail, fromEmail, subject, email, "", "" );
+			}
+			catch ( Exception ex )
+			{
+				LoggingHelper.LogError( ex, thisClassName + ".SendEmail_ContactUs()" );
+			}
+		}
 		public static void SendEmail_OnUnConfirmedEmail( string userEmail )
 		{
 			//should have a valid email at this point

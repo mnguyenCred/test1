@@ -23,15 +23,13 @@ SELECT [Id]
       ,[RowId]
       ,[Ratings]
       ,[BilletTitles]
-      ,[CodedNotation]
+      ,[CodedNotation] as TaskCodedNotation
       ,[RankId]
       ,[Rank]
       ,[PayGradeType]
       ,[LevelId]
       ,[Level]
-      ,[FunctionalAreaId]
       ,[FunctionalArea]
-      ,[FunctionalAreaUID]
       ,[ReferenceResourceId]
       ,[ReferenceResource]
       ,[SourceDate]
@@ -61,11 +59,11 @@ SELECT [Id]
       ,[Created]
       ,[CreatedById]
       ,[CreatedBy]
-      ,[CreatedByUID]
+     -- ,[CreatedByUID]
       ,[LastUpdated]
       ,[LastUpdatedById]
       ,[ModifiedBy]
-      ,[ModifiedByUID]
+     -- ,[ModifiedByUID]
   FROM [dbo].[RatingTaskSummary]
     where taskApplicabilityId=77
 	and isnull(ratings,'') = ''
@@ -96,10 +94,15 @@ SELECT
 	,c1.RowId as PayGradeType
 	,a.[LevelId]
 	, isnull(c2.Name,'missing') As [Level]
-
-	,a.[FunctionalAreaId]
-	, isnull(b.name,'missing') As FunctionalArea
-	,b.RowId as FunctionalAreaUID
+	--FunctionalArea/WorkRole
+	--,a.[FunctionalAreaId]
+	--, isnull(b.name,'missing') As FunctionalArea
+	--,b.RowId as FunctionalAreaUID
+		,CASE
+		WHEN WorkRoles IS NULL THEN ''
+		WHEN len(WorkRoles) = 0 THEN ''
+		ELSE left(WorkRoles,len(WorkRoles)-1)
+		END AS FunctionalArea
 	--		
 	--,a.[SourceId]
 	,a.ReferenceResourceId
@@ -151,8 +154,10 @@ SELECT
 		,g.TrainingTaskUID as HasTrainingTask
 		--can be multiple
 		,g.AssessmentMethodTypes
-		--single or multiple?
+		--22-01-24-yes single 
 		,g.CurriculumControlAuthority
+		,g.CurriculumControlAuthorityId
+		,g.CurriculumControlAuthorityUID
 		--comfirm if can be multiple
 		,g.LifeCycleControlDocument
 
@@ -171,7 +176,7 @@ SELECT
   left Join RatingTaskBillets rtb on a.Id = rtb.RatingTaskId
 left join [ConceptScheme.Concept]	c1 on a.[RankId] = c1.Id
 left join [ConceptScheme.Concept]	c2 on a.[LevelId] = c2.Id
-left join WorkRole					b on a.FunctionalAreaId = b.Id
+--left join WorkRole					b on a.FunctionalAreaId = b.Id
 --left join FunctionalArea			b on a.FunctionalAreaId = b.Id
 left join ReferenceResource			c on a.ReferenceResourceId = c.Id
 --left join Source					c on a.SourceId = c.Id
@@ -185,6 +190,16 @@ Left Join TrainingTaskSummary		g on a.TrainingTaskId = g.TrainingTaskId
 --Left Join [Course]				h on g.CourseId = h.Id
   Left Join Account_Summary ac on a.CreatedById = ac.Id
   Left Join Account_Summary am on a.LastUpdatedById = am.Id
+  --
+  
+    CROSS APPLY (
+	SELECT distinct d.Name + '~' + convert(varchar(50),d.RowId) + ' | '
+    FROM dbo.RatingTask  rt
+		Inner join [dbo].[RatingTask.WorkRole]	rtw on rt.Id = rtw.RatingTaskId
+		inner join WorkRole d on rtw.WorkRoleId = d.Id 
+    WHERE  a.Id = rt.Id
+    FOR XML Path('') 
+) WR (WorkRoles)
 go
 
 grant select on RatingTaskSummary to public

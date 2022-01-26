@@ -57,7 +57,7 @@ namespace Factories
                 {
                     item = context.RatingTaskSummary
                                 .FirstOrDefault( s => s.PayGradeType == importEntity.PayGradeType
-                                && s.FunctionalAreaUID == importEntity.ReferenceType
+                                //&& s.FunctionalAreaUID == importEntity.ReferenceType //NOW a list, so not helpful
                                 && s.HasReferenceResource == importEntity.HasReferenceResource
                                 && s.RatingTask.ToLower() == importEntity.Description.ToLower()
                                 );
@@ -412,12 +412,14 @@ namespace Factories
 						item.RowId = GetGuidType( dr, "RowId" );
 						item.Ratings = dr["Ratings"].ToString();// GetRowColumn( dr, "Ratings", "" );
                         
-                        item.HasRatings = GetRatingGuids( item.Ratings );
+                        if ( autocomplete ) 
+                            item.HasRatings = GetRatingGuids( item.Ratings );
                         //do we need to populate HasRating (if so, could include in the pipe separated list of Ratings
                         item.BilletTitles = dr["BilletTitles"].ToString();// GetRowColumn( dr, "BilletTitles", "" );
                         var bt= GetRowColumn( dr, "BilletTitles", "" );
                         //could save previous and then first check the previous
-                        item.HasBilletTitles = GetBilletTitleGuids( item.BilletTitles );
+                        if ( autocomplete )
+                            item.HasBilletTitles = GetBilletTitleGuids( item.BilletTitles );
                         //similarly, do we need a list of billet guids?
 
                         item.Description = dr["RatingTask"].ToString();// GetRowColumn( dr, "RatingTask", "" );
@@ -437,18 +439,25 @@ namespace Factories
                         item.PayGradeType = GetGuidType( dr, "PayGradeType" );
                                                                            //
                         item.Level = dr["Level"].ToString();// GetRowPossibleColumn( dr, "Level", "" );
-                                                                    //
+                        //FunctionalArea  - not a pipe separated list 
+                        //22-01-23 - what to do about the HasWorkRole list. Could include and split out here?
                         item.FunctionalArea = dr["FunctionalArea"].ToString();// GetRowColumn( dr, "FunctionalArea", "" );
-                        item.ReferenceType = GetGuidType( dr, "ReferenceType" );
-						//
-						item.Source = dr["ReferenceResource"].ToString();// GetRowColumn( dr, "Source", "" );
+                        if ( !string.IsNullOrWhiteSpace( item.FunctionalArea ) ) 
+                        {
+                            var workRoleList = "";
+                            item.HasWorkRole = GetFunctionalAreas( item.FunctionalArea, ref workRoleList );
+                            item.FunctionalArea = workRoleList;
+                        }
+                        //
+                        //
+                        item.ReferenceResource = dr["ReferenceResource"].ToString().Trim();// GetRowColumn( dr, "Source", "" );
                         item.SourceDate = dr["SourceDate"].ToString();// GetRowColumn( dr, "SourceDate", "" );
                         item.HasReferenceResource = GetGuidType( dr, "HasReferenceResource" );
 						//
 						item.WorkElementType = dr["WorkElementType"].ToString();// GetRowPossibleColumn( dr, "WorkElementType", "" );
                         item.ReferenceType = GetGuidType( dr, "ReferenceType" );
 						//
-						item.TaskApplicability = dr["TaskApplicability"].ToString();// GetRowPossibleColumn( dr, "TaskApplicability", "" );
+						item.TaskApplicability = dr["TaskApplicability"].ToString().Trim();// GetRowPossibleColumn( dr, "TaskApplicability", "" );
                         item.ApplicabilityType = GetGuidType( dr, "ApplicabilityType" );
 						//
 						item.FormalTrainingGap = dr["FormalTrainingGap"].ToString();// GetRowPossibleColumn( dr, "FormalTrainingGap", "" );
@@ -456,14 +465,14 @@ namespace Factories
 
 						item.CIN = dr["CIN"].ToString();// GetRowColumn( dr, "CIN", "" );
                         item.CourseName = dr["CourseName"].ToString();// GetRowColumn( dr, "CourseName", "" );
-                        item.CourseType = dr["CourseTypes"].ToString();// GetRowPossibleColumn( dr, "CourseType", "" );
-                        item.CurrentAssessmentApproach = dr["AssessmentMethodTypes"].ToString();// GetRowPossibleColumn( dr, "AssessmentMethodTypes", "" );
+                        item.CourseType = dr["CourseTypes"].ToString().Trim();// GetRowPossibleColumn( dr, "CourseType", "" );
+                        item.CurrentAssessmentApproach = dr["AssessmentMethodTypes"].ToString().Trim();// GetRowPossibleColumn( dr, "AssessmentMethodTypes", "" );
                                                                                      //
                         item.TrainingTask = dr["TrainingTask"].ToString();// GetRowPossibleColumn( dr, "TrainingTask", "" );
                         item.HasTrainingTask = GetGuidType( dr, "HasTrainingTask" );
 						//
-						item.CurriculumControlAuthority = dr["CurriculumControlAuthority"].ToString();// GetRowPossibleColumn( dr, "CurriculumControlAuthority", "" );
-                        item.LifeCycleControlDocument = dr["LifeCycleControlDocument"].ToString();// GetRowPossibleColumn( dr, "LifeCycleControlDocument", "" );
+						item.CurriculumControlAuthority = dr["CurriculumControlAuthority"].ToString().Trim();// GetRowPossibleColumn( dr, "CurriculumControlAuthority", "" );
+                        item.LifeCycleControlDocument = dr["LifeCycleControlDocument"].ToString().Trim();// GetRowPossibleColumn( dr, "LifeCycleControlDocument", "" );
                         item.Notes = dr["Notes"].ToString();
 
                         list.Add( item );
@@ -729,15 +738,10 @@ namespace Factories
                     var results =
                                     from entity in context.RatingTask_WorkRole
                                     join related in context.WorkRole
-                                    on entity.WorkRoled equals related.Id
+                                    on entity.WorkRoleId equals related.Id
                                     where entity.RatingTaskId == input.Id
 
-                                    select new WorkRole()
-                                    {
-                                        Id = related.Id,
-                                        Name = related.Name,
-                                        RowId = related.RowId,
-                                    };
+                                    select related;
                     var existing = results?.ToList();
                     #region deletes check
                     if ( existing.Any() )
@@ -776,7 +780,7 @@ namespace Factories
                                 {
                                     //ReferenceConceptAdd( input, concept.Id, input.LastUpdatedById, ref status );
                                     efEntity.RatingTaskId = input.Id;
-                                    efEntity.WorkRoled = related.Id;
+                                    efEntity.WorkRoleId = related.Id;
                                     efEntity.RowId = Guid.NewGuid();
                                     efEntity.CreatedById = input.LastUpdatedById;
                                     efEntity.Created = DateTime.Now;
@@ -815,7 +819,7 @@ namespace Factories
             using ( var context = new DataEntities() )
             {
                 var efEntity = context.RatingTask_WorkRole
-                                .FirstOrDefault( s => s.RatingTaskId == ratingTaskId && s.WorkRoled == workRoleId );
+                                .FirstOrDefault( s => s.RatingTaskId == ratingTaskId && s.WorkRoleId == workRoleId );
 
                 if ( efEntity != null && efEntity.Id > 0 )
                 {
@@ -853,12 +857,7 @@ namespace Factories
                                     on entity.RatingId equals related.Id
                                     where entity.RatingTaskId == input.Id
 
-                                    select new Rating()
-                                    {
-                                        Id = related.Id,
-                                        Name = related.Name,
-                                        RowId = related.RowId,
-                                    };
+                                    select related;
                     var existing = results?.ToList();
                     #region deletes check
                     if ( existing.Any() )
@@ -974,12 +973,7 @@ namespace Factories
                                     on entity.JobId equals related.Id
                                     where entity.RatingTaskId == input.Id
 
-                                    select new Rating()
-                                    {
-                                        Id = related.Id,
-                                        Name = related.Name,
-                                        RowId = related.RowId,
-                                    };
+                                    select related;
                     var existing = results?.ToList();
                     #region deletes check
                     if ( existing.Any() )
@@ -1189,7 +1183,7 @@ namespace Factories
                 output.TrainingTaskId = null;
             //FunctionalAreaId
             //NOTE this can be multiple. Setting here for current demo code. will remove once the search stuff is adjusted
-            output.FunctionalAreaId = null;
+            //output.FunctionalAreaId = null;
             //if ( input.HasWorkRole?.Count > 0 )
             //{
             //    if ( input.HasWorkRole?.Count == 1 )

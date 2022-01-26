@@ -19,7 +19,6 @@ namespace Data.Views
         public string Rank { get; set; }
         public int LevelId { get; set; }
         public string Level { get; set; }
-        public int FunctionalAreaId { get; set; }
         public string FunctionalArea { get; set; }
         public string SourceDate { get; set; }
         public Nullable<int> WorkElementTypeId { get; set; }
@@ -61,6 +60,5 @@ namespace Data.Views
         public Nullable<int> LastUpdatedById { get; set; }
         public string ModifiedBy { get; set; }
         public Nullable<System.Guid> ModifiedByUID { get; set; }
-        public Nullable<System.Guid> FunctionalAreaUID { get; set; }
     }
 }

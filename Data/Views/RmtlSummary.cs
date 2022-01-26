@@ -19,19 +19,19 @@ namespace Data.Views
         public string Level { get; set; }
         public string BilletTitle { get; set; }
         public string FunctionalArea { get; set; }
-        public string Source { get; set; }
         public string SourceDate { get; set; }
         public string WorkElementType { get; set; }
         public string TaskApplicability { get; set; }
         public string FormalTrainingGap { get; set; }
         public string CIN { get; set; }
         public string CourseName { get; set; }
-        public string CourseType { get; set; }
-        public string CurrentAssessmentApproach { get; set; }
         public string CurriculumControlAuthority { get; set; }
         public string LifeCycleControlDocument { get; set; }
         public string RMTLProject { get; set; }
         public string RatingTask { get; set; }
         public string TrainingTask { get; set; }
+        public string ReferenceResource { get; set; }
+        public string CourseTypes { get; set; }
+        public string AssessmentMethodTypes { get; set; }
     }
 }

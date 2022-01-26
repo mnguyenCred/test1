@@ -654,10 +654,10 @@ namespace Factories
                     item.ParentEntityTypeId = GetRowColumn( dr, "ParentEntityTypeId", 0 );
                     item.ParentRecordId = GetRowColumn( dr, "ParentRecordId", 0 );
 					//
-					item.OwningOrgId = GetRowColumn( dr, "OwningOrgId", 0 );
-					item.Organization = GetRowColumn( dr, "Organization", "" );
-					item.DataOwnerCTID = GetRowColumn( dr, "OrganizationCTID", "" );
-					item.OrganizationUID = GetRowColumn( dr, "OrganizationUID", "" );
+					//item.OwningOrgId = GetRowColumn( dr, "OwningOrgId", 0 );
+					//item.Organization = GetRowColumn( dr, "Organization", "" );
+					//item.DataOwnerCTID = GetRowColumn( dr, "OrganizationCTID", "" );
+					//item.OrganizationUID = GetRowColumn( dr, "OrganizationUID", "" );
 					//
 					var uId = GetRowColumn( dr, "ActivityObjectParentEntityUid", "" );
 					if (IsValidGuid(uId))

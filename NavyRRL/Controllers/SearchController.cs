@@ -27,14 +27,11 @@ namespace NavyRRL.Controllers
 		[HttpPost]
 		public ActionResult MainSearch( SM.SearchQuery query )
 		{
-			//Handle the query
-			//Need to get data + total results
 			bool valid = true;
 			string status = "";
-			var results = new SM.SearchResultSet();
-			results = new SearchServices().MainSearch( query, ref valid, ref status );
-			//Return results
-			return JsonResponse( results, valid, null, null );
+			var results = new SearchServices().MainSearch( query, ref valid, ref status );
+
+			return JsonResponse( results, valid, new List<string>() { status }, null );
 		}
 		//
     }

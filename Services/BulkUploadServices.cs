@@ -968,6 +968,20 @@ namespace Services
 							LoggingHelper.DoTrace( 6, String.Format("Course: {0}, CIN: {1}.",item.Name, item.CodedNotation ), false);
 						}
 					}
+				} //if no courses, there could be training tasks?
+				else
+                {
+					var trainTaskMgr = new TrainingTaskManager();
+					//but what to do with them?
+					if ( summary.ItemsToBeCreated.TrainingTask?.Count > 0 )
+					{
+						foreach( var item in summary.ItemsToBeCreated.TrainingTask )
+                        {
+							item.CreatedById = item.LastUpdatedById = user.Id;
+							//there is no associate with the course? Need to store the CIN with training task
+							//trainTaskMgr.Save( item, ref summary );
+						}
+					}
 				}
 
 				if ( summary.ItemsToBeCreated.WorkRole?.Count > 0 )
@@ -1010,19 +1024,34 @@ namespace Services
 				if ( summary.ItemsToBeCreated.RatingTask?.Count > 0 )
 				{
 					var mgr = new RatingTaskManager();
+					int cntr = 0;
 					foreach ( var item in summary.ItemsToBeCreated.RatingTask )
 					{
+						cntr++;
+						if (item.CodedNotation == "PQ17-038" || item.CodedNotation == "PQ31-007" )
+                        {
+
+                        }
 						//get all billets for this task
 						if ( item.HasBillet == null )
 							item.HasBillet = new List<Guid>();
 						if ( summary.ItemsToBeCreated.BilletTitle?.Count > 0 )
 						{
 							//get billets that reference this task
-							var results = summary.ItemsToBeCreated.BilletTitle.Where( p => p.HasRatingTask.Contains(item.RowId) ).ToList();	
+							var results = summary.ItemsToBeCreated.BilletTitle.Where( p => p.HasRatingTask.Contains(item.RowId) ).ToList();
 
-							//var results = summary.ItemsToBeCreated.BilletTitle.Where( p => item.HasBillet.Any( p2 => p2 == p.RowId ) );
-							//var results2 = item.Where( p => summary.ItemsToBeCreated.BilletTitle.Any( p2 => p2 == p.RowId ) );
-							item.HasBillet.AddRange( results.Select( p => p.RowId) );
+							if ( results.Count > 0 )
+							{
+								item.HasBillet.AddRange( results.Select( p => p.RowId ) );
+							} else
+                            {
+								var resultsByCode = summary.ItemsToBeCreated.BilletTitle.Where( p => p.HasRatingTaskByCode.Contains( item.CodedNotation ) ).ToList();
+								if( resultsByCode.Count > 0 )
+								{
+									//this will always be one (one per row). Alternate would be to do a set based approach after all rating tasks are created. 
+									item.HasBillet.AddRange( resultsByCode.Select( p => p.RowId ) );
+								}
+							}
 						}
 						item.CreatedById = item.LastUpdatedById = user.Id;
 						mgr.Save( item, ref summary );
@@ -1143,23 +1172,41 @@ namespace Services
         #region ProcessUpload V2
         public static ChangeSummary ProcessUploadV2( UploadableTable uploadedData, Guid ratingRowID, JObject debug = null )
 		{
+			//Hold data
 			debug = debug ?? new JObject();
 			var latestStepFlag = "FarthestStep";
 			var summary = new ChangeSummary() { RowId = Guid.NewGuid() };
 			int totalRows = 0;
 			debug[ latestStepFlag ] = "Initial Setup";
 
+			//Validate selected Rating
 			var currentRating = RatingManager.Get( ratingRowID );
 			if ( currentRating == null )
 			{
 				summary.Messages.Error.Add( "Error: Unable to find Rating for identifier: " + ratingRowID );
 				return summary;
 			}
+
+			//Filter out rows that don't match the selected rating
+			var nonMatchingRows = uploadedData.Rows.Where( m => m.Rating_CodedNotation?.ToLower() != currentRating.CodedNotation.ToLower() ).ToList();
+			uploadedData.Rows = uploadedData.Rows.Where( m => !nonMatchingRows.Contains( m ) ).ToList();
+			if( nonMatchingRows.Count() > 0 )
+			{
+				var nonMatchingCodes = nonMatchingRows.Select( m => m.Rating_CodedNotation ).Distinct().ToList();
+				foreach( var code in nonMatchingCodes )
+				{
+					summary.Messages.Warning.Add( "Detected " + nonMatchingRows.Where(m => m.Rating_CodedNotation == code).Count() + " rows that did not match the selected Rating (" + currentRating.CodedNotation + ") and instead were for Rating: \"" + code + "\". These rows have been ignored.");
+				}
+			}
+			
+			//Valiate row count
 			if ( uploadedData.Rows.Count == 0 )
 			{
 				summary.Messages.Error.Add( "Error: No rows were found to process." );
 				return summary;
 			}
+
+			//Get existing data
 			var existingRatings = RatingManager.GetAll();
 			var payGradeTypeConcepts = Factories.ConceptSchemeManager.GetbyShortUri( Factories.ConceptSchemeManager.ConceptScheme_Pay_Grade ).Concepts;
 			var trainingGapTypeConcepts = Factories.ConceptSchemeManager.GetbyShortUri( Factories.ConceptSchemeManager.ConceptScheme_TrainingGap ).Concepts;
@@ -1178,16 +1225,59 @@ namespace Services
 			var existingOrganizations = OrganizationManager.GetAll();
 			debug[ latestStepFlag ] = "Got Existing data";
 
+			/*
+			 * These checks are handled above
+			//need a check that only one rating is included
+			var uploadedRatingMatchers = GetSheetMatchers<Rating, MatchableRating>( uploadedData.Rows, GetRowMatchHelper_Rating );
+			//should only be one and must match current
+			foreach ( var matcher in uploadedRatingMatchers )
+			{
+				matcher.Flattened.CodedNotation = matcher.Rows.Select( m => m.Rating_CodedNotation ).FirstOrDefault();
+			}
+			//Remove empty rows?
+			uploadedRatingMatchers = uploadedRatingMatchers.Where( m => !string.IsNullOrWhiteSpace( m.Flattened.CodedNotation ) ).ToList();
+
+			if ( uploadedRatingMatchers != null )
+            {
+				bool foundRequestRating = false;
+				foreach( var ratingMatcher in uploadedRatingMatchers )
+                {
+					if ( ratingMatcher.Flattened.CodedNotation.ToLower() != currentRating.CodedNotation.ToLower() )
+					{
+						summary.Messages.Error.Add( String.Format( "Error: A rating code ({0}) was found that doesn't match the requested rating: '{1}'. Only one rating may be uploaded at a time.", ratingMatcher.Flattened.CodedNotation, currentRating.CodedNotation ) );
+					}
+					else
+						foundRequestRating = true;
+				}
+				if (!foundRequestRating )
+					summary.Messages.Error.Add( String.Format( "Error: The requested rating code ({0}) was NOT in the uploaded data.", currentRating.CodedNotation ) );
+
+				if ( summary.HasAnyErrors )
+					return summary;
+            } else
+            {
+				//no ratings found
+				summary.Messages.Error.Add( "Error: No rating codes were found in the data. " );
+				return summary;
+			}
+			*/
+
+
+
 			//In order to facilitate a correct comparison, it must be done apples-to-apples
 			//This approach attempts to achieve that by mapping both the uploaded data and the existing data into a common structure that can then easily be compared
 			//Note: The order in which these methods are called is very important, since later methods rely on data determined by earlier methods!
-			HandleUploadSheet_Organization( uploadedData.Rows, summary, existingOrganizations );
+			HandleUploadSheet_Organization( uploadedData.Rows, summary, currentRating, existingOrganizations );
+
 			HandleUploadSheet_WorkRole( uploadedData.Rows, summary, existingWorkRoles );
+
 			HandleUploadSheet_ReferenceResource( uploadedData.Rows, summary, existingReferenceResources, sourceTypeConcepts );
+
 			HandleUploadSheet_TrainingTask( uploadedData.Rows, summary, existingTrainingTasks );
 
 			HandleUploadSheet_Course( uploadedData.Rows, summary, existingCourses, existingOrganizations, existingReferenceResources, existingTrainingTasks, courseTypeConcepts, assessmentMethodTypeConcepts );
 
+			//Billet Title needs to come after Rating Task because new/existing Rating Tasks are an input to figuring out Billet Title's HasRatingTask property
 			HandleUploadSheet_BilletTitle( uploadedData.Rows, summary, currentRating, existingBilletTitles, existingRatingTasks, existingReferenceResources, payGradeTypeConcepts, sourceTypeConcepts, applicabilityTypeConcepts, trainingGapTypeConcepts );
 
 			HandleUploadSheet_RatingTask( uploadedData.Rows, summary, currentRating, existingRatings, existingBilletTitles, existingRatingTasks, existingTrainingTasks, existingReferenceResources, existingWorkRoles, payGradeTypeConcepts, applicabilityTypeConcepts, trainingGapTypeConcepts, sourceTypeConcepts );
@@ -1219,7 +1309,11 @@ namespace Services
 		//
 
 		//Organization
-		public static void HandleUploadSheet_Organization( List<UploadableRow> uploadedRows, ChangeSummary summary, List<Organization> existingOrganizations = null )
+		public static void HandleUploadSheet_Organization( 
+			List<UploadableRow> uploadedRows, 
+			ChangeSummary summary, 
+			Rating currentRating, 
+			List<Organization> existingOrganizations = null )
 		{
 			//Get existing data
 			existingOrganizations = existingOrganizations ?? OrganizationManager.GetAll();
@@ -1457,12 +1551,13 @@ namespace Services
 		{
 			//Get the existing data
 			existingTrainingTasks = existingTrainingTasks ?? TrainingTaskManager.GetAll();
-
+			
 			//Convert the uploaded data
 			var uploadedTrainingTaskMatchers = GetSheetMatchers<TrainingTask, MatchableTrainingTask>( uploadedRows, GetRowMatchHelper_TrainingTask );
 			foreach ( var matcher in uploadedTrainingTaskMatchers )
 			{
 				matcher.Flattened.Description = matcher.Rows.Select( m => m.TrainingTask_Description ).FirstOrDefault();
+				matcher.Flattened.CourseCodedNotation = matcher.Rows.Select( m => m.Course_CodedNotation ).FirstOrDefault();
 			}
 
 			//Remove empty rows
@@ -1497,7 +1592,11 @@ namespace Services
 			var newTrainingTaskMatchers = uploadedTrainingTaskMatchers.Where( m => !looseMatchingTrainingTaskMatchers.Contains( m ) ).ToList();
 			foreach ( var item in newTrainingTaskMatchers )
 			{
-				CreateNewItem( summary.ItemsToBeCreated.TrainingTask, m => m.Description = item.Flattened.Description );
+				CreateNewItem( summary.ItemsToBeCreated.TrainingTask, m => 
+				{
+					m.Description = item.Flattened.Description;
+					m.CourseCodedNotation = item.Flattened.CourseCodedNotation;
+				} );
 			}
 
 			//Items that were not found in the uploaded data (deleted items)
@@ -1681,6 +1780,10 @@ namespace Services
 			{
 				matcher.Flattened.Description = matcher.Rows.Select( m => m.RatingTask_Description ).FirstOrDefault();
 				matcher.Flattened.HasCodedNotation = matcher.Rows.Select( m => m.Row_CodedNotation ).FirstOrDefault();
+				if ( matcher.Flattened.HasCodedNotation == "PQ17-038" || matcher.Flattened.HasCodedNotation == "PQ31-007" )
+				{
+
+				}
 				//this should equate to the RowId - ideally. But only if done at the beginning.
 				matcher.Flattened.HasIdentifier = matcher.Rows.Select( m => m.Row_Identifier ).FirstOrDefault();
 				matcher.Flattened.HasRating_CodedNotation = matcher.Rows.Select( m => m.Rating_CodedNotation ).Distinct().ToList();
@@ -1701,6 +1804,7 @@ namespace Services
 			uploadedRatingTaskMatchers = uploadedRatingTaskMatchers.Where( m => !string.IsNullOrWhiteSpace( m.Flattened.Description ) ).ToList();
 
 			//Convert the existing data
+			//scenario - uploading E9 and now matching against 786 existing
 			var existingRatingTaskMatchers = GetSheetMatchersFromExisting<RatingTask, MatchableRatingTask>( existingRatingTasks );
 			foreach ( var matcher in existingRatingTaskMatchers )
 			{
@@ -1813,10 +1917,10 @@ namespace Services
 			}
 
 			//Special handling for Rating Tasks that may appear in other ratings
-			var ratingTasksThatMayExistUnderOtherRatings = summary.ItemsToBeCreated.RatingTask.Select( m => new RatingTaskComparisonHelper() { PossiblyNewRatingTask = m } );
+			var ratingTasksThatMayExistUnderOtherRatings = summary.ItemsToBeCreated.RatingTask.Select( m => new RatingTaskComparisonHelper() { PossiblyNewRatingTask = m } ).ToList();
 			//TODO: Implement this
 			//RatingTaskManager.FindMatchingExistingRatingTasksInBulk( ratingTasksThatMayExistUnderOtherRatings ); //Should modify the contents of the list and return void
-			foreach( var foundTask in ratingTasksThatMayExistUnderOtherRatings.Where( m => m.MatchingExistingRatingTask != null && m.MatchingExistingRatingTask.Id > 0 ).ToList() )
+			foreach( var foundTask in ratingTasksThatMayExistUnderOtherRatings.Where( m => m.MatchingExistingRatingTask != null && m.MatchingExistingRatingTask.Id > 0 ) )
 			{
 				summary.ItemsToBeCreated.RatingTask.Remove( foundTask.PossiblyNewRatingTask );
 				AppendLookup( summary, foundTask.MatchingExistingRatingTask );
@@ -1841,12 +1945,16 @@ namespace Services
 			trainingGapTypeConcepts = trainingGapTypeConcepts ?? ConceptSchemeManager.GetbyShortUri( ConceptSchemeManager.ConceptScheme_TrainingGap ).Concepts;
 
 			//Convert the uploaded data
+			//NOTE focus on the Rows list, the Flattened data seems not relevant yet, it will be populated
 			var uploadedBilletTitleMatchers = GetSheetMatchers<BilletTitle, MatchableBilletTitle>( uploadedRows, GetRowMatchHelper_BilletTitle );
 			foreach ( var matcher in uploadedBilletTitleMatchers )
 			{
 				matcher.Flattened.HasRating_CodedNotation = currentRating.CodedNotation;
+				
 				matcher.Flattened.Name = matcher.Rows.Select( m => m.BilletTitle_Name ).FirstOrDefault();
 				matcher.Flattened.HasRatingTask_MatchHelper = matcher.Rows.Select( m => GetRowMatchHelper_RatingTask( m ) ).Distinct().ToList();
+				//this would be a list
+				matcher.Flattened.HasRatingTaskCodedNotation = matcher.Rows.Select( m => m.Row_CodedNotation ).Distinct().ToList();
 			}
 
 			//Remove empty rows
@@ -1927,6 +2035,7 @@ namespace Services
 					m.HasRatingTask = combinedTaskMatchHelpers.Where( n =>
 						 item.Flattened.HasRatingTask_MatchHelper.Contains( n.MatchHelper )
 					).Select( n => n.Data.RowId ).ToList();
+					m.HasRatingTaskByCode = item.Flattened.HasRatingTaskCodedNotation;
 				} );
 			}
 
@@ -2040,6 +2149,13 @@ namespace Services
 			var merged = items?.Where( m => !string.IsNullOrWhiteSpace( m ) ).ToList();
 			return merged.Count() == 0 ? "" : string.Join( "__", merged );
 		}
+		private static string GetRowMatchHelper_Rating( UploadableRow row )
+		{
+			return GetMergedRowMatchHelper( new List<string>()
+			{
+				row.Rating_CodedNotation
+			} );
+		}
 		private static string GetRowMatchHelper_BilletTitle( UploadableRow row )
 		{
 			return GetMergedRowMatchHelper( new List<string>()
@@ -2097,6 +2213,7 @@ namespace Services
 		{
 			return GetMergedRowMatchHelper( new List<string>()
 			{
+				row.Course_CodedNotation,
 				row.TrainingTask_Description
 			} );
 		}

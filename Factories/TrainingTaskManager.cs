@@ -239,6 +239,10 @@ namespace Factories
                 output.RowId = input.RowId;
             }
             //
+            if (input.Course?.Id > 0 )
+            {
+                output.CourseCodedNotation = input.Course.CodedNotation;
+            }
 
         }
 

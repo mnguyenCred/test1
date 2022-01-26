@@ -10,6 +10,8 @@ using SM = Models.Schema;
 using CM = Models.Curation;
 using Models.Application;
 using Navy.Utilities;
+using Models.Curation;
+
 namespace NavyRRL.Controllers
 {
     public class UploadController : BaseController
@@ -32,29 +34,38 @@ namespace NavyRRL.Controllers
 		{
 			//Construct Change Summary
 			var debug = new JObject();
+			var changeSummary = Services.BulkUploadServices.ProcessUploadV2( rawData, ratingRowID, debug );
 
+			//Store Change Summary in the Application Cache
+			Services.BulkUploadServices.CacheChangeSummary( changeSummary );
+
+			/*
 			var changeSummaryNew = Services.BulkUploadServices.ProcessUploadV2( rawData, ratingRowID, debug );
-
+			var changeSummaryOld = new ChangeSummary();
 			//Temp
-			var changeSummaryOld = Services.BulkUploadServices.ProcessUpload( rawData, ratingRowID, debug );
+			if ( UtilityManager.GetAppKeyValue( "includingProcessV1ToCompare", false ) )
+			{
+				changeSummaryOld = Services.BulkUploadServices.ProcessUpload( rawData, ratingRowID, debug );
+			}
 			//End Temp
 
 
-			//Store Change Summary in the Application Cache
 			if ( UtilityManager.GetAppKeyValue( "usingProcessV2", true )) 
 			{
 				Services.BulkUploadServices.CacheChangeSummary( changeSummaryNew );
 			} else
             {
-				changeSummaryOld.Messages.Note.Add( "USING OLD PROCESS VERSION" );
-				Services.BulkUploadServices.CacheChangeSummary( changeSummaryOld );
+				if ( UtilityManager.GetAppKeyValue( "includingProcessV1ToCompare", false ) )
+				{
+                    changeSummaryOld.Messages.Note.Add( "USING OLD PROCESS VERSION" );
+                    Services.BulkUploadServices.CacheChangeSummary( changeSummaryOld );
+                }
+
 
 			}
+			*/
 
-			var temp = new List<object>();
-			temp.Add( new SM.RatingTask() { RowId = Guid.NewGuid(), Description = "Test" } );
-			temp.Add( new SM.Concept() { RowId = Guid.NewGuid(), Name = "test 2" } );
-			return JsonResponse( changeSummaryNew, true, null, new { Debug = debug, ChangeSummaryOld = changeSummaryOld, Lookup = temp } );
+			return JsonResponse( changeSummary, true, null, new { Debug = debug } );
         }
 		//
 

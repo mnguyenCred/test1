@@ -16,12 +16,11 @@ namespace Data.Views
     {
         public int CourseId { get; set; }
         public System.Guid CourseUID { get; set; }
-        public string CIN { get; set; }
         public string CourseName { get; set; }
         public int TrainingTaskId { get; set; }
         public string TrainingTask { get; set; }
         public System.Guid TrainingTaskUID { get; set; }
-        public Nullable<int> CurriculumControlAuthorityId { get; set; }
+        public int CurriculumControlAuthorityId { get; set; }
         public string CurriculumControlAuthority { get; set; }
         public Nullable<int> LifeCycleControlDocumentId { get; set; }
         public string LifeCycleControlDocument { get; set; }
@@ -33,5 +32,6 @@ namespace Data.Views
         public Nullable<int> CreatedById { get; set; }
         public System.DateTime LastUpdated { get; set; }
         public Nullable<int> LastUpdatedById { get; set; }
+        public string CodedNotation { get; set; }
     }
 }

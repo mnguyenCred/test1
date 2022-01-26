@@ -118,25 +118,38 @@ namespace Services
 			}
 		}
 		#region Site Activity - account
+		public static int AddUserActivity( AppUser entity, int actionByUserId, string type = "Registration", string message = "" )
+		{
+			string ipAddress = ActivityManager.GetUserIPAddress();
+			return UserRegistration( entity, actionByUserId, ipAddress, type, message );
+
+		}
+		/// <summary>
+		/// A self registration activity
+		/// </summary>
+		/// <param name="entity"></param>
+		/// <param name="type"></param>
+		/// <param name="message"></param>
+		/// <returns></returns>
 		public static int UserRegistration( AppUser entity, string type = "Registration", string message = "" )
 		{
 			string ipAddress = ActivityManager.GetUserIPAddress();
-			return UserRegistration( entity, ipAddress, type, message );
+			return UserRegistration( entity, 0, ipAddress, type, message );
 
 		}
-		public static int UserRegistration( AppUser entity, string ipAddress )
-		{
-			return UserRegistration( entity, ipAddress, "Registration" );
+		//public static int UserRegistration( AppUser entity, string ipAddress )
+		//{
+		//	return UserRegistration( entity, ipAddress, "Registration" );
 			
-		}
+		//}
 
-		public static int UserRegistrationFromGoogle( ThisUser entity, string ipAddress )
-		{
-			return UserRegistration( entity, ipAddress, "Google SSO Registration" );
+		//public static int UserRegistrationFromGoogle( ThisUser entity, string ipAddress )
+		//{
+		//	return UserRegistration( entity, ipAddress, "Google SSO Registration" );
 			
-		}
+		//}
 
-		public static int UserRegistration( ThisUser entity, string ipAddress, string type, string extra = "" )
+		public static int UserRegistration( ThisUser entity, int actionByUserId, string ipAddress, string type, string extra = "" )
 		{
 			string server = UtilityManager.GetAppKeyValue( "serverName", "" );
 
@@ -147,7 +160,7 @@ namespace Services
 			log.Event = type;
 			log.Comment = string.Format( "{0} ({1}) {4}. From IPAddress: {2}, on server: {3}. {5}", entity.FullName(), entity.Id, ipAddress, server, type, extra );
 			//actor type - person, system
-			log.ActionByUserId = entity.Id;
+			log.ActionByUserId = actionByUserId> 0 ? actionByUserId: entity.Id;
 			log.TargetUserId = entity.Id;
 			log.SessionId = ActivityManager.GetCurrentSessionId();
 			try
@@ -385,15 +398,7 @@ namespace Services
 			pTotalRows = parms.TotalRows;
 			return list;
 		}
-		public static bool CheckAcknowledgmentSearch( string ackEvent, int userId )
-		{
-			BaseSearchModel parms = new BaseSearchModel();
-			parms.Filter = string.Format( " ActivityType='account' and Activity = 'Acknowledgement' and Event='{0}' AND [ActionByUserId]={1}", ackEvent, userId);
-			int pTotalRows = 0;
-			var list = Search( parms, ref pTotalRows );
 
-			return list != null && list.Any();
-		}
 		public static List<SiteActivity> Search( BaseSearchModel parms, ref int pTotalRows )
 		{
 

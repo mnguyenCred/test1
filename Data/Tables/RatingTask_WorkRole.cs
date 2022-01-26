@@ -17,11 +17,11 @@ namespace Data.Tables
         public int Id { get; set; }
         public System.Guid RowId { get; set; }
         public int RatingTaskId { get; set; }
-        public int WorkRoled { get; set; }
         public System.DateTime Created { get; set; }
         public Nullable<int> CreatedById { get; set; }
+        public int WorkRoleId { get; set; }
     
         public virtual RatingTask RatingTask { get; set; }
-        public virtual WorkRole WorkRole { get; set; }
+        public virtual WorkRole WorkRole1 { get; set; }
     }
 }

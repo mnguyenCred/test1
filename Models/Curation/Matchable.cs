@@ -18,11 +18,16 @@ namespace Models.Curation
 		public List<UploadableRow> Rows { get; set; }
 	}
 	//
-
+	public class MatchableRating : Schema.Rating
+	{
+		//No additional properties
+	}
+	//
 	public class MatchableBilletTitle : Schema.BilletTitle
 	{
 		public string HasRating_CodedNotation { get; set; }
 		public List<string> HasRatingTask_MatchHelper { get; set; }
+		public List<string> HasRatingTaskCodedNotation { get; set; } = new List<string>();
 	}
 	//
 

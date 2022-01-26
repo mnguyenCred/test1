@@ -14,6 +14,18 @@ namespace Models.Schema
 		public string Creator { get; set; }
 		public Guid CreatedBy { get; set; }
 		public DateTime LastUpdated { get; set; }
+		public string DisplayDate
+		{
+			get
+			{
+				if ( LastUpdated != null )
+				{
+					return this.LastUpdated.ToString( "yyyy-MM-dd HH.mm.ss" );
+				}
+				else
+					return "";
+			}
+		}
 		public int LastUpdatedById { get; set; }
 		public string ModifiedBy { get; set; }
 		public Guid LastUpdatedBy { get; set; }

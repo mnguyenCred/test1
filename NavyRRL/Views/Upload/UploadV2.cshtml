@@ -36,6 +36,7 @@
 		Upload.UI.FileInput = $(".mainFileUpload");
 		Upload.UI.ProcessButton = $(".processButton");
 		Upload.UI.StatusBox = $(".status");
+		Upload.UI.Spinner = $(".uploadSpinner");
 		Upload.UI.UploadSummaryBox = $(".uploadSummary");
 		Upload.UI.ConfirmationButton = $(".confirmationButton");
 		Upload.UI.TabBox = {
@@ -53,6 +54,8 @@
 		Upload.UI.ConfirmationButton.on("click", function () {
 			confirmChanges();
 		});
+
+		Upload.UI.Spinner.hide();
 
 		setupTabs();
 	}
@@ -123,7 +126,7 @@
 
 	function parseCSV(rawText) {
 		//Normalize the text
-		Upload.RawCSV = rawText.replace(/\r\n/g, "\n").replace(/""/g, "<INSERTQUOTE>");
+		Upload.RawCSV = rawText.trim().replace(/\r\n/g, "\n").replace(/""/g, "<INSERTQUOTE>");
 		var rows = [];
 		var currentRow = [];
 		var currentCell = [];
@@ -182,12 +185,14 @@
 
 	function mapCSVJSON() {
 		Upload.MappedTable = {
-			Rows: Upload.CSVJSON.map(row => {
+			Rows: Upload.CSVJSON.map((row, index) => {
 				return {
+					Row_Index: index,
 					Rating_CodedNotation: row["Rating"],
 					Row_CodedNotation: row["Index #"],
 					Row_Identifier: row["Identifier"],
-					PayGradeType_Notation: row[ "Rank" ],
+					PayGradeType_Notation: row["Rank"],
+					Level_Name: row["Level (A/J/M)"],
 					BilletTitle_Name: row[ "Billet Title" ],
 					WorkRole_Name: row[ "Functional Area" ],
 					ReferenceResource_Name: row[ "Source" ],
@@ -223,7 +228,7 @@
 			return;
 		}
 
-		setUploadStatus("Sending data, check console for details");
+		setUploadStatus("Sending data, check console for details...", true);
 		console.log("Submitting data", data);
 		Upload.UI.UploadSummaryBox.html("");
 		
@@ -315,6 +320,7 @@
 	//
 
 	function renderRichSet(header, items, messages, container, sortItems, asTabs, explanation, cssClass) {
+		container.html("");
 		var hasAnyItems = false;
 		Object.keys(items).forEach(key => {
 			if (Array.isArray(items[key]) && items[key].length > 0) {
@@ -451,7 +457,7 @@
 
 		hideConfirmationButton();
 		window.scrollTo(0, 0); //Ensure the user can see the status box
-		setUploadStatus("Confirming changes, please wait...");
+		setUploadStatus("Confirming changes, please wait...", true);
 
 		postData("@Url.Content("~/upload/confirmchanges")", { changeSummaryRowID: Upload.Summary.Data.RowId }).then((response) => {
 			setUploadStatus("Received response, check console for details");
@@ -478,8 +484,9 @@
 	}
 	//
 
-	function setUploadStatus(text) {
+	function setUploadStatus(text, showSpinner) {
 		Upload.UI.StatusBox.html(text);
+		showSpinner ? Upload.UI.Spinner.show() : Upload.UI.Spinner.hide();
 	}
 	//
 
@@ -544,6 +551,9 @@
 </script>
 <style type="text/css">
 	html body .container { width: 98vw; }
+	.spinner { display: inline-block; box-shadow: inset 4px 0 0 5px; border-radius: 50%; height: 20px; width: 20px; animation: spin 1s linear infinite; }
+	@@keyframes spin { 100% { transform: rotate(360deg); } }
+
 	.monospace { font-family: Consolas, 'Courier New', monospace; }
 
 	.tabBox { }
@@ -559,9 +569,10 @@
 	.uploadHeader .uploadBox .mainFileUpload { flex: 33% 1 1; padding: 4px 5px; cursor: pointer; background-color: #EEE; }
 	.uploadHeader .uploadBox .mainFileUpload:hover, .uploadHeader .uploadBox .mainFileUpload:focus { background-color: #DDD; }
 	.uploadHeader .uploadBox .processButton { flex: 200px 0 0; height: 30px; }
-	.uploadHeader .status { padding: 4px 5px; }
+	.uploadHeader .statusBox { display: flex; align-items: center; padding: 5px 10px; margin-bottom: 5px; }
+	.uploadHeader .statusBox .status { margin-right: 10px; }
 
-	.buttons { text-align: right; }
+	.buttons { padding: 5px 10px; }
 	.buttons .confirmationButton { padding: 5px 10px; }
 	.buttons .confirmationButton:not(.visible) { display: none; }
 
@@ -592,6 +603,7 @@
 <h2>Upload RMTL Data</h2>
 
 <div class="uploadHeader">
+	<p>Select a rating and choose a CSV (comma-separated values) file to upload. Do not include "All Sailor Tasks", since those have already been added to the system.</p>
 	<select class="uploadItem ratingSelector">
 		<option value="" disabled="disabled" selected="selected">Select a Rating...</option>
 		@foreach( var rating in allRatings )
@@ -603,7 +615,10 @@
 		<input class="uploadItem mainFileUpload" type="file" />
 		<button class="uploadItem processButton" data-action="process">Process</button>
 	</div>
-	<div class="uploadItem status"></div>
+	<div class="statusBox">
+		<div class="status"></div>
+		<div class="spinner uploadSpinner"></div>
+	</div>
 </div>
 <div class="tabBox uploadDisplay">
 	<div class="tabButtons"></div>
@@ -612,7 +627,7 @@
 			<h3>Summary</h3>
 			<div class="tabContent uploadSummary"></div>
 			<div class="buttons">
-				<button class="confirmationButton">Confirm All Changes and Update the Source Data in the Database</button>
+				<button class="confirmationButton">Confirm All Changes</button>
 			</div>
 		</div>
 	</div>
