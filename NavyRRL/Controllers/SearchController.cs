@@ -14,10 +14,13 @@ namespace NavyRRL.Controllers
         // GET: Search
         public ActionResult Index()
         {
-            return View( "~/views/search/searchv1.cshtml" );
+            return View( "~/views/search/searchv2.cshtml" );
         }
 		//
-
+		public ActionResult SearchV1()
+		{
+			return View( "~/views/search/searchv1.cshtml" );
+		}
 		public ActionResult SearchV2()
 		{
 			return View( "~/views/search/searchv2.cshtml" );

@@ -266,9 +266,12 @@ namespace Factories
             {
                 foreach( var item  in input.ConceptScheme_Concept )
                 {
-                    var concept = new Concept();
-                    MapFromDB( item, concept );
-                    output.Concepts.Add( concept );
+                    if ( item.IsActive )
+                    {
+                        var concept = new Concept();
+                        MapFromDB( item, concept );
+                        output.Concepts.Add( concept );
+                    }
                 }
             }
             //

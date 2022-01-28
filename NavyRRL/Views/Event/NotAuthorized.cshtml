@@ -1,0 +1,37 @@
+﻿
+@using Models.Application;
+@{
+	ViewBag.Title = "Not Authorized";
+
+	var pageHeading = "Not Authorized for the Requested Function";
+	var pageMessage = "";
+
+	//may want to have specific message types so don't get a cross over. Maybe use a cache!
+	if ( Session["siteMessage"] != null )
+	{
+		//should we assume message will include a title
+		pageMessage = Session["siteMessage"].ToString();
+
+		Session.Remove( "siteMessage" );
+	}
+	else if ( Session["SystemMessage"] != null )
+	{
+		//should we assume message will include a title
+		SiteMessage msg = ( SiteMessage ) Session["SystemMessage"];
+		pageHeading = msg.Title ?? "Site Message";
+		pageMessage = msg.Message;
+
+		Session.Remove( "SystemMessage" );
+	}
+	else
+	{
+
+	}
+
+}
+<h2>Not Authorized for the Requested Function</h2>
+
+<p>You are not authorized to perform the requested function.</p>
+<p>@Html.Raw( pageMessage )</p>
+<p>If you believe that you should be authorized to use this function, then please contact your supervisor or system administration.</p>
+

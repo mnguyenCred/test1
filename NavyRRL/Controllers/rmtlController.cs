@@ -14,11 +14,12 @@ namespace NavyRRL.Controllers
 {
     public class rmtlController : Controller
     {
-        // GET: Demo
-        public ActionResult Index()
+		[Authorize( Roles = "Administrator, Site Staff" )]
+		public ActionResult Index()
         {
             return View();
         }
+		[Authorize( Roles = "Administrator, Site Staff" )]
 		public ActionResult Catalog()
 		{
 			return View();
@@ -199,6 +200,9 @@ namespace NavyRRL.Controllers
 
 			return result;
 		}
+
+
+
 		public ActionResult ImportSummary()
         {
             return View();
