@@ -173,12 +173,12 @@ namespace Services
 
 
 			//Handle Sort Order
-			//Temporarily converting this so the project will compile
-			var tempSortOrder = string.Join( ", ", data.SortOrder.Select( m => m.Column ) );
+			var sortOrder = string.Join( ", ", data.SortOrder.Select( m => "base.[" + m.Column + "]" + ( m.Ascending ? "" : " DESC" ) ).ToList() );
 
-
-            List<EntitySummary> list = RatingTaskManager.Search( where, tempSortOrder, data.PageNumber, data.PageSize, userId , ref totalRows);
+			//Do the search
+            List<EntitySummary> list = RatingTaskManager.Search( where, sortOrder, data.PageNumber, data.PageSize, userId , ref totalRows);
             data.TotalResults = totalRows;
+
             //stopwatch.Stop();
             //timeDifference = start.Subtract( DateTime.Now );
             //LoggingHelper.DoTrace( 6, string.Format( "===CredentialServices.Search === Ended: {0}, Elapsed: {1}", DateTime.Now, timeDifference.TotalSeconds ) );

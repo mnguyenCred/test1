@@ -11,6 +11,7 @@
 		Items = ratings.Select( m => { return new SimpleFilterItem() { Label = m.CodedNotation + " - " + m.Name, Id = m.Id }; } ).ToList()
 	};
 
+	var levels = SchemeToFilter( Factories.ConceptSchemeManager.ConceptScheme_RatingLevel );
 	var payGradeTypeFilter = SchemeToFilter( Factories.ConceptSchemeManager.ConceptScheme_Pay_Grade );
 	var trainingGapTypeFilter = SchemeToFilter( Factories.ConceptSchemeManager.ConceptScheme_TrainingGap );
 	var applicabilityTypeFilter = SchemeToFilter( Factories.ConceptSchemeManager.ConceptScheme_TaskApplicability );
@@ -117,6 +118,7 @@
 		Search.UI.FullScreenViewButton = $("[data-action='fullScreenView']");
 		Search.UI.NormalViewButton = $("[data-action='normalView']");
 		Search.UI.PageSelector = $(".pageSelector");
+		Search.UI.ResetAllFiltersButton = $("[data-action='resetFilters']");
 		Search.UI.SearchSpinner.hide();
 		Search.UI.ExportSpinner.hide();
 	}
@@ -148,6 +150,15 @@
 			Search.UI.NormalViewButton.hide();
 		});
 
+		Search.UI.ResetAllFiltersButton.on("click", () => {
+			if (confirm("Really reset all search filters?")) {
+				Search.Filters.forEach(Filter => {
+					Filter.reset();
+				});
+				doSearch();
+			}
+		});
+
 		Search.UI.NormalViewButton.hide();
 
 		Search.UI.PageSelector.on("change", () => {
@@ -169,7 +180,8 @@
 				}
 			})
 		}, true);
-		ColumnFilter.Items.forEach(Item => { Item.CheckBox.prop("checked", true); });
+		ColumnFilter.reset = function () { ColumnFilter.Items.forEach(Item => { Item.CheckBox.prop("checked", true).trigger("change"); }); };
+		ColumnFilter.reset();
 
 		//Text Filters
 		var textFilterBox = Search.UI.FiltersBox.find(".textFilters");
@@ -211,7 +223,7 @@
 			...(init || {})
 		};
 
-		Filter.Box.append("<div class=\"filterLabel\">" + Filter.Label + "</div>");
+		Filter.LabelBox = $("<div class=\"filterLabel\">" + Filter.Label + "</div>").appendTo(Filter.Box);
 
 		Search.Filters.push(Filter);
 		return Filter;
@@ -230,6 +242,10 @@
 			return { Text: Filter.Input.val().trim() };
 		};
 
+		Filter.reset = function () {
+			Filter.Input.val("");
+		}
+
 		return Filter;
 	}
 	//
@@ -247,9 +263,19 @@
 			});
 		});
 
+		Filter.ToggleAllButton = $("<button class=\"toggleAll\">Toggle All</button>").appendTo(Filter.LabelBox);
+		Filter.ToggleAllButton.on("click", () => {
+			var allChecked = Filter.Items.every(Item => { return Item.CheckBox.prop("checked"); });
+			Filter.Items.forEach(Item => { Item.CheckBox.prop("checked", !allChecked).trigger("change"); });
+		});
+
 		Filter.readValue = function () {
 			return { ItemIds: Filter.Items.filter(Item => Item.CheckBox.prop("checked")).map(Item => Item.Id) };
 		};
+
+		Filter.reset = function () {
+			Filter.Items.forEach((Item) => { Item.CheckBox.prop("checked", false); });
+		}
 
 		return Filter;
 	}
@@ -302,6 +328,12 @@
 
 		Filter.readValue = function () {
 			return customReadValue?.(Filter) || { ItemIds: Filter.Items.map(Item => Item.Id) };
+		};
+
+		Filter.reset = function () {
+			Filter.Input.val("");
+			Filter.Items = [];
+			Filter.renderItems();
 		};
 
 		return Filter;
@@ -465,6 +497,8 @@
 	.searchBox .searchHeader .filtersBox .filter.checkBox label { display: flex; padding: 2.5px 5px; width: 100%; font-weight: normal; margin-bottom: 0; }
 	.searchBox .searchHeader .filtersBox .filter.checkBox label:hover, .searchBox .searchHeader .filtersBox .filter.checkBox label:focus { cursor: pointer; background-color: rgba(0,0,0,0.05); }
 	.searchBox .searchHeader .filtersBox .filter.checkBox label input { margin-right: 5px; }
+	.searchBox .searchHeader .filtersBox .filter.checkBox .filterLabel { display: flex; align-items: baseline; }
+	.searchBox .searchHeader .filtersBox .filter.checkBox .filterLabel .toggleAll { font-weight: normal; margin-left: auto; }
 
 	.searchBox .searchHeader .filtersBox .filter.autofill { position: relative; }
 	.searchBox .searchHeader .filtersBox .filter.autofill input { display: block; width: 100%; max-width: none; }
@@ -552,6 +586,7 @@
 			<button data-action="export">Export All Results</button>
 			<button data-action="fullScreenView">Full Screen View</button>
 			<button data-action="normalView">Normal View</button>
+			<button data-action="resetFilters">Reset All Filters</button>
 		</div>
 		<div class="searchResultsTableWrapper">
 			<table class="searchResultsTable">
