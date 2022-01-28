@@ -143,6 +143,7 @@
           <Property Name="AlternateLabel" Type="varchar" MaxLength="500" />
           <Property Name="Description" Type="varchar(max)" />
           <Property Name="ListId" Type="int" />
+          <Property Name="IsActive" Type="bit" Nullable="false" />
           <Property Name="Created" Type="datetime" Nullable="false" />
           <Property Name="CreatedById" Type="int" />
           <Property Name="LastUpdated" Type="datetime" Nullable="false" />
@@ -158,6 +159,7 @@
           <Property Name="CodedNotation" Type="nvarchar" MaxLength="50" Nullable="false" />
           <Property Name="Name" Type="nvarchar" MaxLength="300" Nullable="false" />
           <Property Name="Description" Type="nvarchar(max)" />
+          <Property Name="CurriculumControlAuthorityId" Type="int" />
           <Property Name="LifeCycleControlDocumentId" Type="int" />
           <Property Name="CTID" Type="varchar" MaxLength="50" />
           <Property Name="Created" Type="datetime" Nullable="false" />
@@ -165,7 +167,6 @@
           <Property Name="LastUpdated" Type="datetime" Nullable="false" />
           <Property Name="LastUpdatedById" Type="int" />
           <Property Name="RowVersion" Type="timestamp" StoreGeneratedPattern="Computed" Nullable="false" />
-          <Property Name="CurriculumControlAuthorityId" Type="int" />
         </EntityType>
         <EntityType Name="Course_AssessmentType">
           <Key>
@@ -1316,6 +1317,7 @@
           <NavigationProperty Name="RatingTask4" Relationship="NavyRRLModel.FK_RatingTask_ConceptWorkElelment" FromRole="ConceptScheme_Concept" ToRole="RatingTask" />
           <NavigationProperty Name="Course_AssessmentType" Relationship="NavyRRLModel.FK_Course_AssessmentType_Concept" FromRole="ConceptScheme_Concept" ToRole="Course_AssessmentType" />
           <NavigationProperty Name="Course_CourseType" Relationship="NavyRRLModel.FK_Table_1_CourseType_Concept" FromRole="ConceptScheme_Concept" ToRole="Course_CourseType" />
+          <Property Name="IsActive" Type="Boolean" Nullable="false" />
         </EntityType>
         <EntityType Name="Course">
           <Key>
@@ -2591,6 +2593,7 @@
           <EntitySetMapping Name="ConceptScheme_Concept">
             <EntityTypeMapping TypeName="NavyRRLModel.ConceptScheme_Concept">
               <MappingFragment StoreEntitySet="ConceptScheme_Concept">
+                <ScalarProperty Name="IsActive" ColumnName="IsActive" />
                 <ScalarProperty Name="LastUpdatedById" ColumnName="LastUpdatedById" />
                 <ScalarProperty Name="CreatedById" ColumnName="CreatedById" />
                 <ScalarProperty Name="WorkElementType" ColumnName="WorkElementType" />
