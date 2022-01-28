@@ -435,7 +435,8 @@ namespace Factories
 
 						item.CodedNotation = dr["CodedNotation"].ToString();// GetRowPossibleColumn( dr, "CodedNotation", "" );
                                           //
-                        item.Rank = dr["Rank"].ToString();// GetRowPossibleColumn( dr, "Rank", "" );
+                        item.Rank = dr["Rank"].ToString();
+                        item.RankName = dr["RankName"].ToString();
                         item.PayGradeType = GetGuidType( dr, "PayGradeType" );
                                                                            //
                         item.Level = dr["Level"].ToString();// GetRowPossibleColumn( dr, "Level", "" );
@@ -1095,7 +1096,7 @@ namespace Factories
                     if (output.RankId != currentRankId || currentLevelId == 0)
                     {
                         //level is tied to Paygrade.so
-                        var paygradeLevel = GetPayGradeLevel( concept.Name );
+                        var paygradeLevel = GetPayGradeLevel( concept.CodedNotation );
                         output.LevelId = ( int ) ConceptSchemeManager.GetConcept( ConceptSchemeManager.ConceptScheme_RatingLevel, paygradeLevel )?.Id;
 
                     }

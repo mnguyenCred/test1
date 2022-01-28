@@ -112,7 +112,9 @@ namespace Models.Schema
 		public string FormalTrainingGap { get; set; }
 		public string FunctionalArea { get; set; }
 		public string Level { get; set; }
+		//codedNotation for Rank/PayGrade
 		public string Rank { get; set; }
+		public string RankName { get; set; }
 		public string ReferenceResource { get; set; }
 		public string SourceDate { get; set; }
 		public string TaskApplicability { get; set; }
