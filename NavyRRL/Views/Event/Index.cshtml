@@ -1,0 +1,34 @@
+﻿@using Models.Application;
+@{
+	ViewBag.Title = "Event Message";
+
+	var pageHeading = "General Site Message";
+	var pageMessage = "An unexpected condition has occurred. ";
+
+	if ( Session["siteMessage"] != null )
+	{
+		//should we assume message will include a title
+		pageMessage = Session["siteMessage"].ToString();
+
+		Session.Remove( "siteMessage" );
+	}
+	else if ( Session["SystemMessage"] != null )
+	{
+		//should we assume message will include a title
+		SiteMessage msg = ( SiteMessage ) Session["SystemMessage"];
+		pageHeading = msg.Title ?? "Site Message";
+		pageMessage = msg.Message;
+
+		Session.Remove( "SystemMessage" );
+	}
+	else
+	{
+
+	}
+
+}
+
+<h2 class="text-danger">@Html.Raw( pageHeading )</h2>
+
+<p>@Html.Raw( pageMessage )</p>
+

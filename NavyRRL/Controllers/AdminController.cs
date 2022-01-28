@@ -151,6 +151,10 @@ namespace NavyRRL.Controllers
         #region Users 
         public ActionResult Accounts()
         {
+            if ( !AccountServices.IsUserAnAdmin() )
+            {
+
+            }
             return View();
         }
 
