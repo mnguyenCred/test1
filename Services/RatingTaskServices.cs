@@ -160,7 +160,7 @@ namespace Services
                     }
                 }
             }
-            /*
+			/*
             SetKeywordFilter( data.Keywords, false, ref where );
             where = where.Replace( "[USERID]", user.Id.ToString() );
 
@@ -170,7 +170,14 @@ namespace Services
             SearchServices.SetAuthorizationFilter( user, "Credential_Summary", ref where );
 
             */
-            List<EntitySummary> list = RatingTaskManager.Search( where, data.SortOrder, data.PageNumber, data.PageSize, userId , ref totalRows);
+
+
+			//Handle Sort Order
+			//Temporarily converting this so the project will compile
+			var tempSortOrder = string.Join( ", ", data.SortOrder.Select( m => m.Column ) );
+
+
+            List<EntitySummary> list = RatingTaskManager.Search( where, tempSortOrder, data.PageNumber, data.PageSize, userId , ref totalRows);
             data.TotalResults = totalRows;
             //stopwatch.Stop();
             //timeDifference = start.Subtract( DateTime.Now );
