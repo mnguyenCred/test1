@@ -21,6 +21,7 @@ namespace NavyRRL.Controllers
     {
         public static string thisClassName = "AdminController";
         // GET: Admin
+        [Authorize( Roles = "Administrator, Site Staff" )]
         public ActionResult Index()
         {
             return View();
@@ -28,6 +29,7 @@ namespace NavyRRL.Controllers
 
         #region  Activity
         // GET: Admin/Activity
+        [Authorize( Roles = "Administrator, Site Staff" )]
         public ActionResult Activity()
         {
             return View();
@@ -149,6 +151,7 @@ namespace NavyRRL.Controllers
 
 
         #region Users 
+        [Authorize( Roles = "Administrator, Site Staff" )]
         public ActionResult Accounts()
         {
             if ( !AccountServices.IsUserAnAdmin() )
@@ -313,6 +316,8 @@ namespace NavyRRL.Controllers
             }
             return PartialView( model );
         }
+
+        [Authorize( Roles = "Administrator, Site Staff" )]
         public void DeleteAccount( int id )
         {
             if ( !AccountServices.IsUserAuthenticated() )

@@ -4,6 +4,7 @@ using System.Linq;
 using System.Web;
 using System.Web.Mvc;
 
+using AM = Models.Application;
 using SM = Models.Search;
 using Services;
 
@@ -11,9 +12,19 @@ namespace NavyRRL.Controllers
 {
     public class SearchController : BaseController
     {
-        // GET: Search
-        public ActionResult Index()
+		// GET: Search
+		[Authorize( Roles = "Administrator, Site Staff" )]
+
+		public ActionResult Index()
         {
+			if (!AccountServices.IsUserAuthenticated())
+            {
+				AM.SiteMessage siteMessage = new AM.SiteMessage()
+				{
+					Title = "Invalid Request",
+					Message = "You must be authenticated and authorized to use this feature"
+				};
+			}
             return View( "~/views/search/searchv2.cshtml" );
         }
 		//

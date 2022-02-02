@@ -19,7 +19,7 @@ namespace NavyRRL.Controllers
         // GET: Upload
         public ActionResult Index()
         {
-			return View( "~/views/upload/uploadv1.cshtml" );
+			return View( "~/views/upload/uploadv2.cshtml" );
         }
 		//
 
@@ -28,7 +28,11 @@ namespace NavyRRL.Controllers
 			return View( "~/views/upload/uploadv2.cshtml" );
 		}
 		//
-
+		public ActionResult UploadV1()
+		{
+			return View( "~/views/upload/uploadv1.cshtml" );
+		}
+		//
 		//Initial processing of the data before any changes are made to the database
 		public ActionResult ProcessUpload( CM.UploadableTable rawData, Guid ratingRowID )
 		{

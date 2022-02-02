@@ -23,9 +23,9 @@ set @SortOrder = 'WorkElementType'
 
 set @SortDir = ' desc'
 set @SortOrder = 'CodedNotation ' + @SortDir
-set @SortOrder = 'base.Ratings, base.Rank, base.FunctionalArea, base.ReferenceResource'
-set @SortOrder = 'base.[Ratings], base.[Rank] DESC, base.[FunctionalArea] desc, base.[ReferenceResource]'
 
+set @SortOrder = 'base.[Ratings], base.[Rank] DESC, base.[FunctionalArea] desc, base.[ReferenceResource]'
+set @SortOrder = 'Ratings, Rank, BilletTitles, FunctionalArea'
 --set @CurrentUserId = 108
 set @Filter = '  Rating = ''abf'' '
 
@@ -233,6 +233,7 @@ SELECT
       ,b.[CodedNotation]
       ,b.[RankId]
       ,b.[Rank]
+	  ,b.[RankName]
       ,b.[PayGradeType]
       ,b.[LevelId]
       ,b.[Level]

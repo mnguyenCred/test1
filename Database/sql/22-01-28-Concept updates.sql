@@ -12,7 +12,7 @@ UPDATE [dbo].[ConceptScheme.Concept]
 GO
 
 UPDATE [dbo].[ConceptScheme.Concept]
-   SET [Name] = 'E-2 Seaman Apprentice'
+   SET [Name] = 'Seaman Apprentice'
  WHERE CodedNotation = 'E2'
 GO
 
