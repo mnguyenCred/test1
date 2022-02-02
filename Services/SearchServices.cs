@@ -48,7 +48,7 @@ namespace Services
 					Data = new UploadableRow()
 					{
 						Rating_CodedNotation = item.Ratings,
-						PayGradeType_Notation = item.Rank,
+						PayGradeType_CodedNotation = item.Rank,
 						Level_Name = item.Level,
 						BilletTitle_Name = item.BilletTitles,
 						WorkRole_Name = item.FunctionalArea,
@@ -56,15 +56,15 @@ namespace Services
 						ReferenceResource_PublicationDate = item.SourceDate,
 						Shared_ReferenceType = item.WorkElementType,
 						RatingTask_Description = item.Description,
-						RatingTask_ApplicabilityType_Label = item.TaskApplicability,
-						RatingTask_TrainingGapType_Label = item.FormalTrainingGap,
+						RatingTask_ApplicabilityType_Name = item.TaskApplicability,
+						RatingTask_TrainingGapType_Name = item.FormalTrainingGap,
 						Course_CodedNotation = item.CIN,
 						Course_Name = item.CourseName,
-						Course_CourseType_Label = item.CourseType,
+						Course_CourseType_Name = item.CourseType,
 						Course_HasReferenceResource_Name = item.LifeCycleControlDocument,
 						Course_CurriculumControlAuthority_Name = item.CurriculumControlAuthority,
 						TrainingTask_Description = item.TrainingTask,
-						Course_AssessmentMethodType_Label = item.CurrentAssessmentApproach,
+						Course_AssessmentMethodType_Name = item.CurrentAssessmentApproach,
 						Note = item.Note,
 					},
 					Extra = new JObject()
