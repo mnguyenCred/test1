@@ -19,13 +19,14 @@ DECLARE @StartPageIndex int, @PageSize int, @TotalRows int
 ,@SortOrder varchar(500), @SortDir varchar(50), @CurrentUserId	int
 --=========
 set @SortOrder = 'rank'
-set @SortOrder = 'WorkElementType'
+
 
 set @SortDir = ' desc'
 set @SortOrder = 'CodedNotation ' + @SortDir
 
 set @SortOrder = 'base.[Ratings], base.[Rank] DESC, base.[FunctionalArea] desc, base.[ReferenceResource]'
 set @SortOrder = 'Ratings, Rank, BilletTitles, FunctionalArea'
+set @SortOrder = 'base.[WorkElementType] desc'
 --set @CurrentUserId = 108
 set @Filter = '  Rating = ''abf'' '
 
@@ -39,7 +40,7 @@ set @Filter = ' base.LevelId in (89) AND FunctionalAreaId in(2,5)'
 set @Filter = ' base.id in (select a.[RatingTaskId] from [RatingTask.HasRating] a inner join Rating b on a.ratingId = b.Id where b.Id in (77,78 ))	'
 set @Filter = ' ( base.WorkElementTypeId in ( 1120 ) )  '
  
---set @Filter = ''
+set @Filter = ''
 
 set @StartPageIndex = 1
 set @PageSize = 100
@@ -99,7 +100,7 @@ set @SortOrder= replace(@SortOrder,'description','RatingTask')
 print 'input sortOrder: ' + @SortOrder
 set @OrderDir= ','
 --use this code only for a single property. Check for a comma?
-if charindex( ',', lower(@SortOrder) ) = 0 AND charindex( 'desc', lower(@SortOrder) ) > 0 begin
+if charindex( 'base.[', lower(@SortOrder) ) = 0 AND charindex( 'desc', lower(@SortOrder) ) > 0 begin
 	print 'found desc ' 
 	set @OrderDir= ' DESC, '
 	set @SortOrder= rtrim(replace(@SortOrder,'DESC',''))
@@ -107,6 +108,7 @@ if charindex( ',', lower(@SortOrder) ) = 0 AND charindex( 'desc', lower(@SortOrd
   end
 --base.level, 
 --set @SortOrder = 'base.Rank, base.Ratings, base.FunctionalArea, base.ReferenceResource '
+/*
 if @SortOrder = 'DisplayDate' OR @SortOrder = 'LastUpdated' 
 	set @SortOrder = 'base.LastUpdated ' + @OrderDir + ' base.Ratings, base.FunctionalArea, base.ReferenceResource, base.[RatingTask]'
 else if @SortOrder = 'CodedNotation' 
@@ -142,6 +144,10 @@ else if @SortOrder = 'LifeCycleControlDocument' set @SortOrder = 'base.LifeCycle
 else if @SortOrder = 'CurriculumControlAuthority' set @SortOrder = 'base.CurriculumControlAuthority ' + @OrderDir + ' base.[CourseName] '
 else if @SortOrder = 'CurrentAssessmentApproach' set @SortOrder = 'base.AssessmentMethodTypes ' + @OrderDir + ' base.[CourseName] '
 
+
+*/
+if @SortOrder = 'DisplayDate' OR @SortOrder = 'LastUpdated' 
+	set @SortOrder = 'base.LastUpdated ' + @OrderDir + ' base.Ratings, base.FunctionalArea, base.ReferenceResource, base.[RatingTask]'
 else if @SortOrder = 'relevance' set @SortOrder = 'base.Ratings, base.Rank, base.FunctionalArea, base.ReferenceResource '
 else if @SortOrder = 'alpha' set @SortOrder = 'base.RatingTask '
 else if @SortOrder = 'oldest' set @SortOrder = 'base.Created '

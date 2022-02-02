@@ -325,11 +325,10 @@ namespace Factories
         /// <param name="userId"></param>
         /// <param name="pTotalRows"></param>
         /// <returns></returns>
-        public static List<EntitySummary> SearchForRating( string rating, string pOrderBy, int pageNumber, int pageSize, int userId, ref int pTotalRows )
+        public static List<EntitySummary> SearchForRating( string rating, string orderBy, int pageNumber, int pageSize, int userId, ref int pTotalRows )
 		{
 			var keyword = HandleApostrophes( rating );
 			string filter = String.Format( "base.id in (select a.[RatingTaskId] from [RatingTask.HasRating] a inner join Rating b on a.ratingId = b.Id where b.CodedNotation = '{0}' OR b.name = '{0}' )", keyword );
-			string orderBy = "";
 
 
 			return Search( filter, orderBy, pageNumber, pageSize, userId, ref pTotalRows );

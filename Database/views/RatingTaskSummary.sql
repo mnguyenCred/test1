@@ -25,7 +25,7 @@ SELECT [Id]
       ,[BilletTitles]
       ,[CodedNotation] as TaskCodedNotation
       ,[RankId]
-      ,[Rank]
+      ,[Rank], [RankName]
       ,[PayGradeType]
       ,[LevelId]
       ,[Level]

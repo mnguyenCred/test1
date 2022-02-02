@@ -65,10 +65,10 @@
                     @if ( ( user != null && user.Id > 0 ) || env == "developmentX" )
                     {
                         <ul class="nav navbar-nav">
-                            <li>@Html.ActionLink( "Search", "Search", "Search" )</li>
+                            <li>@Html.ActionLink( "Search", "Index", "Search" )</li>
                         </ul>
                         <ul class="nav navbar-nav">
-                            <li>@Html.ActionLink( "Upload", "Upload", "Upload" )</li>
+                            <li>@Html.ActionLink( "Upload", "Index", "Upload" )</li>
                         </ul>
 
                         <ul class="nav navbar-nav">
