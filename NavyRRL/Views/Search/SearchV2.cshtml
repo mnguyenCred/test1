@@ -226,7 +226,7 @@
 			return { Label: column.Label + " (Reverse)", Column: column.SortOrder, Ascending: false };
 		}));
 		createFilter_Autofill("SortOrder", 0, textFilterBox, "Sort Order", (Filter, text) => {
-			return findSimpleFilterItem(Search.SortOrders, Filter.Items, text);
+			return findSimpleFilterItem(Search.SortOrders, Filter.Items, text, 50);
 		}, (Filter) => {
 			return Filter.Items.map(m => { return { Column: m.Column, Ascending: m.Ascending }; });
 		});
