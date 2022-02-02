@@ -123,14 +123,14 @@ namespace Services
 				//If no match is found, create a new object and put it into the graph
 
 				//Pre-cleaning
-				row.Course_CourseType_Label = NullifyNotApplicable( row.Course_CourseType_Label );
+				row.Course_CourseType_Name = NullifyNotApplicable( row.Course_CourseType_Name );
 				row.Course_CodedNotation = NullifyNotApplicable( row.Course_CodedNotation );
 				row.Course_Name = NullifyNotApplicable( row.Course_Name );
-				row.Course_CourseType_Label = NullifyNotApplicable( row.Course_CourseType_Label );
+				row.Course_CourseType_Name = NullifyNotApplicable( row.Course_CourseType_Name );
 				row.Course_CurriculumControlAuthority_Name = NullifyNotApplicable( row.Course_CurriculumControlAuthority_Name );
 				row.Course_HasReferenceResource_Name = NullifyNotApplicable( row.Course_HasReferenceResource_Name );
 				//this can be multiple now - check
-				row.Course_AssessmentMethodType_Label = NullifyNotApplicable( row.Course_AssessmentMethodType_Label );
+				row.Course_AssessmentMethodType_Name = NullifyNotApplicable( row.Course_AssessmentMethodType_Name );
 
 				row.ReferenceResource_PublicationDate = NullifyNotApplicable( row.ReferenceResource_PublicationDate );
 				if ( BaseFactory.IsValidDate( row.ReferenceResource_PublicationDate ) )
@@ -140,18 +140,18 @@ namespace Services
 				}
 
 				//Concepts from Concept Schemes
-				var payGradeType = FindConceptOrError( payGradeTypeConcepts, new Concept() { CodedNotation = row.PayGradeType_Notation }, "Pay Grade (Rank)", row.PayGradeType_Notation, result.Messages.Error );
-				var trainingGapType = FindConceptOrError( trainingGapTypeConcepts, new Concept() { Name = row.RatingTask_TrainingGapType_Label }, "Training Gap Type", row.RatingTask_TrainingGapType_Label, result.Messages.Error );
-				var applicabilityType = FindConceptOrError( applicabilityTypeConcepts, new Concept() { Name = row.RatingTask_ApplicabilityType_Label }, "Applicability Type", row.RatingTask_ApplicabilityType_Label, result.Messages.Error );
+				var payGradeType = FindConceptOrError( payGradeTypeConcepts, new Concept() { CodedNotation = row.PayGradeType_CodedNotation }, "Pay Grade (Rank)", row.PayGradeType_CodedNotation, result.Messages.Error );
+				var trainingGapType = FindConceptOrError( trainingGapTypeConcepts, new Concept() { Name = row.RatingTask_TrainingGapType_Name }, "Training Gap Type", row.RatingTask_TrainingGapType_Name, result.Messages.Error );
+				var applicabilityType = FindConceptOrError( applicabilityTypeConcepts, new Concept() { Name = row.RatingTask_ApplicabilityType_Name }, "Applicability Type", row.RatingTask_ApplicabilityType_Name, result.Messages.Error );
 				var sharedSourceType = FindConceptOrError( sourceTypeConcepts, new Concept() { WorkElementType = row.Shared_ReferenceType }, "Reference Resource Type (for Rating-Level Task)", row.Shared_ReferenceType, result.Messages.Error );
 				//var courseSourceType = FindConceptOrError( sourceTypeConcepts, row.Course_HasReferenceResource_Name, false, "Reference Resource Type (for Course)", result.Errors );
 				var courseSourceType = sourceTypeConcepts.FirstOrDefault( m => m.CodedNotation == "LCCD" ); //Course Reference Resource Type is always a Life-Cycle Control Document
-				var courseType = string.IsNullOrWhiteSpace( row.Course_CourseType_Label ) ?
+				var courseType = string.IsNullOrWhiteSpace( row.Course_CourseType_Name ) ?
 					null : //It's okay if this is null, since only some rows have course types
-					FindConceptOrError( courseTypeConcepts, new Concept() { Name = row.Course_CourseType_Label }, "Course Type", row.Course_CourseType_Label, result.Messages.Error );
-				var assessmentMethodTypes = string.IsNullOrWhiteSpace( row.Course_AssessmentMethodType_Label ) ? 
+					FindConceptOrError( courseTypeConcepts, new Concept() { Name = row.Course_CourseType_Name }, "Course Type", row.Course_CourseType_Name, result.Messages.Error );
+				var assessmentMethodTypes = string.IsNullOrWhiteSpace( row.Course_AssessmentMethodType_Name ) ? 
 					null : //It's okay if this is null, since only some rows have assessment methods
-					FindConceptListOrError( assessmentMethodTypeConcepts, new Concept() { Name = row.Course_AssessmentMethodType_Label }, "Assessment Method Type", row.Course_AssessmentMethodType_Label, result.Messages.Error );
+					FindConceptListOrError( assessmentMethodTypeConcepts, new Concept() { Name = row.Course_AssessmentMethodType_Name }, "Assessment Method Type", row.Course_AssessmentMethodType_Name, result.Messages.Error );
 				
 
 				//Stop processing if one or more unknown concepts were detected
@@ -270,9 +270,9 @@ namespace Services
 						//&& Find( graph.ReferenceResource, m.HasReferenceResource )?.PublicationDate == ParseDateOrEmpty( row.ReferenceResource_PublicationDate ) 
 						//.need codedNotation here
 						&& sharedSourceType?.CodedNotation == row.Shared_ReferenceType
-						&& trainingGapType?.Name == row.RatingTask_TrainingGapType_Label
-						&& applicabilityType?.Name == row.RatingTask_ApplicabilityType_Label
-						&& payGradeType?.CodedNotation == row.PayGradeType_Notation
+						&& trainingGapType?.Name == row.RatingTask_TrainingGapType_Name
+						&& applicabilityType?.Name == row.RatingTask_ApplicabilityType_Name
+						&& payGradeType?.CodedNotation == row.PayGradeType_CodedNotation
 						&& ( Find( graph.TrainingTask, m.HasTrainingTask )?.Description ?? "" ) == ( row.TrainingTask_Description ?? "" )
 					);
 				}
@@ -287,9 +287,9 @@ namespace Services
 					 //&& Find( graph.ReferenceResource, m.HasReferenceResource )?.PublicationDate == ParseDateOrEmpty( row.ReferenceResource_PublicationDate ) 
 					 //.need codedNotation here
 					 && sharedSourceType?.CodedNotation == row.Shared_ReferenceType 
-					 && trainingGapType?.Name == row.RatingTask_TrainingGapType_Label 
-					 && applicabilityType?.Name == row.RatingTask_ApplicabilityType_Label 
-					 && payGradeType?.CodedNotation == row.PayGradeType_Notation 
+					 && trainingGapType?.Name == row.RatingTask_TrainingGapType_Name 
+					 && applicabilityType?.Name == row.RatingTask_ApplicabilityType_Name 
+					 && payGradeType?.CodedNotation == row.PayGradeType_CodedNotation 
 					 //&& ( Find( graph.TrainingTask, m.HasTrainingTask )?.Description ?? "" ) == ( row.TrainingTask_Description ?? "" )
 				);
 
@@ -402,7 +402,7 @@ namespace Services
 						course = graph.Course.FirstOrDefault( m =>
 								m.Name == row.Course_Name
 								//&& m.CodedNotation == row.Course_CodedNotation
-								//&& assessmentMethodTypes?.Name == row.Course_AssessmentMethodType_Label
+								//&& assessmentMethodTypes?.Name == row.Course_AssessmentMethodType_Name
 							);
 					}
 					if ( course == null )
@@ -1638,10 +1638,10 @@ namespace Services
 				matcher.Flattened.CodedNotation = matcher.Rows.Select( m => m.Course_CodedNotation ).FirstOrDefault();
 				//
 				matcher.Flattened.HasReferenceResource_Name = matcher.Rows.Select( m => m.Course_HasReferenceResource_Name ).FirstOrDefault();
-				matcher.Flattened.CourseType_Name = matcher.Rows.Select( m => m.Course_CourseType_Label ).FirstOrDefault();
+				matcher.Flattened.CourseType_Name = matcher.Rows.Select( m => m.Course_CourseType_Name ).FirstOrDefault();
 				matcher.Flattened.CurriculumControlAuthority_Name = matcher.Rows.Select( m => m.Course_CurriculumControlAuthority_Name ).Distinct().ToList();
 				matcher.Flattened.HasTrainingTask_Description = matcher.Rows.Select( m => m.TrainingTask_Description ).Distinct().ToList();
-				matcher.Flattened.AssessmentMethodType_Name = matcher.Rows.Select( m => m.Course_AssessmentMethodType_Label ).Distinct().ToList();
+				matcher.Flattened.AssessmentMethodType_Name = matcher.Rows.Select( m => m.Course_AssessmentMethodType_Name ).Distinct().ToList();
 			}
 
 			//Remove empty rows
@@ -1801,9 +1801,9 @@ namespace Services
 				matcher.Flattened.HasTrainingTask_Description = matcher.Rows.Select( m => m.TrainingTask_Description ).FirstOrDefault();
 				matcher.Flattened.HasReferenceResource_Name = matcher.Rows.Select( m => m.ReferenceResource_Name ).FirstOrDefault();
 				matcher.Flattened.HasWorkRole_Name = matcher.Rows.Select( m => m.WorkRole_Name ).Distinct().ToList();
-				matcher.Flattened.PayGradeType_CodedNotation = matcher.Rows.Select( m => m.PayGradeType_Notation ).FirstOrDefault();
-				matcher.Flattened.ApplicabilityType_Name = matcher.Rows.Select( m => m.RatingTask_ApplicabilityType_Label ).FirstOrDefault();
-				matcher.Flattened.TrainingGapType_Name = matcher.Rows.Select( m => m.RatingTask_TrainingGapType_Label ).FirstOrDefault();
+				matcher.Flattened.PayGradeType_CodedNotation = matcher.Rows.Select( m => m.PayGradeType_CodedNotation ).FirstOrDefault();
+				matcher.Flattened.ApplicabilityType_Name = matcher.Rows.Select( m => m.RatingTask_ApplicabilityType_Name ).FirstOrDefault();
+				matcher.Flattened.TrainingGapType_Name = matcher.Rows.Select( m => m.RatingTask_TrainingGapType_Name ).FirstOrDefault();
 				matcher.Flattened.ReferenceType_WorkElementType = matcher.Rows.Select( m => m.Shared_ReferenceType ).FirstOrDefault();
 				matcher.Flattened.HasReferenceResource_PublicationDate = matcher.Rows.Select( m => m.ReferenceResource_PublicationDate ).FirstOrDefault();
 			}
@@ -2192,7 +2192,7 @@ namespace Services
 				row.Course_HasReferenceResource_Name, 
 				row.Course_CodedNotation, 
 				row.Course_Name, 
-				row.Course_CourseType_Label, 
+				row.Course_CourseType_Name, 
 				row.Course_CurriculumControlAuthority_Name 
 			} );
 		}
@@ -2207,13 +2207,13 @@ namespace Services
 		{
 			return GetMergedRowMatchHelper( new List<string>()
 			{
-				row.PayGradeType_Notation,
+				row.PayGradeType_CodedNotation,
 				row.ReferenceResource_Name,
 				row.ReferenceResource_PublicationDate,
 				row.Shared_ReferenceType,
 				row.RatingTask_Description,
-				row.RatingTask_ApplicabilityType_Label,
-				row.RatingTask_TrainingGapType_Label
+				row.RatingTask_ApplicabilityType_Name,
+				row.RatingTask_TrainingGapType_Name
 			} );
 		}
 		private static string GetRowMatchHelper_ReferenceResource_Task( UploadableRow row )

@@ -189,26 +189,26 @@
 			Rows: Upload.CSVJSON.map((row, index) => {
 				return {
 					Row_Index: index,
-					Rating_CodedNotation: row["Rating"],
+					Row_Identifier: row["Identifier"], //Not used?
 					Row_CodedNotation: row["Index #"],
-					Row_Identifier: row["Identifier"],
-					PayGradeType_Notation: row["Rank"],
-					Level_Name: row["Level (A/J/M)"],
+					Rating_CodedNotation: row["Rating"],
+					PayGradeType_CodedNotation: row["Rank"],
+					Level_Name: row["Level (A/J/M)"], //Not used, seems to have changed to a single character and a column named "Level (A)" instead?
 					BilletTitle_Name: row[ "Billet Title" ],
 					WorkRole_Name: row[ "Functional Area" ],
 					ReferenceResource_Name: row[ "Source" ],
 					ReferenceResource_PublicationDate: row[ "Date of Source" ],
 					Shared_ReferenceType: row[ "Work Element Type" ],
 					RatingTask_Description: row[ "Work Element (Task)" ],
-					RatingTask_ApplicabilityType_Label: row[ "Task Applicability" ],
-					RatingTask_TrainingGapType_Label: row[ "Formal Training Gap" ],
+					RatingTask_ApplicabilityType_Name: row[ "Task Applicability" ],
+					RatingTask_TrainingGapType_Name: row[ "Formal Training Gap" ],
 					Course_CodedNotation: row[ "CIN" ],
 					Course_Name: row[ "Course Name" ],
-					Course_CourseType_Label: row[ "Course Type (A/C/G/F/T)" ],
-					Course_HasReferenceResource_Name: row["Life-Cycle Control Document"],
+					Course_CourseType_Name: row[ "Course Type (A/C/G/F/T)" ],
 					Course_CurriculumControlAuthority_Name: row["Curriculum Control Authority (CCA)"],
+					Course_HasReferenceResource_Name: row["Life-Cycle Control Document"],
 					TrainingTask_Description: row[ "CTTL/PPP/TCCD Statement" ],
-					Course_AssessmentMethodType_Label: row[ "Current Assessment Approach" ],
+					Course_AssessmentMethodType_Name: row[ "Current Assessment Approach" ],
 					Note: row[ "Notes" ]
 				}
 			})
