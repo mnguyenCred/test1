@@ -68,6 +68,9 @@
                             <li>@Html.ActionLink( "Task Search", "Index", "TaskSearch" )</li>
                         </ul>
                         <ul class="nav navbar-nav">
+                            <li>@Html.ActionLink( "Old Search", "Index", "Search" )</li>
+                        </ul>
+                        <ul class="nav navbar-nav">
                             <li>@Html.ActionLink( "Rating Search", "Index", "RatingSearch" )</li>
                         </ul>
                         <ul class="nav navbar-nav">
@@ -95,15 +98,15 @@
                         </ul>
                     }
                     @*@if ( ( user?.Id == 0 ) )
-            {
-                <ul class="nav navbar-nav navbar-right">
-                    @if ( env == "development" )
-                    {
-                    <li>@Html.ActionLink( "Register", "Register", "Account", routeValues: null, htmlAttributes: new { id = "registerLink" } )</li>
-                    }
-                    <li>@Html.ActionLink( "Log in", "Login", "Account", routeValues: null, htmlAttributes: new { id = "loginLink" } )</li>
-                </ul>
-            }*@
+        {
+            <ul class="nav navbar-nav navbar-right">
+                @if ( env == "development" )
+                {
+                <li>@Html.ActionLink( "Register", "Register", "Account", routeValues: null, htmlAttributes: new { id = "registerLink" } )</li>
+                }
+                <li>@Html.ActionLink( "Log in", "Login", "Account", routeValues: null, htmlAttributes: new { id = "loginLink" } )</li>
+            </ul>
+        }*@
                     @Html.Partial( "_LoginPartial" )
                 </div>
             </div>

@@ -181,6 +181,7 @@
     <Compile Include="Controllers\DetailController.cs" />
     <Compile Include="Controllers\HomeController.cs" />
     <Compile Include="Controllers\ManageController.cs" />
+    <Compile Include="Controllers\SearchController.cs" />
     <Compile Include="Controllers\TaskSearchController.cs" />
     <Compile Include="Controllers\UploadController.cs" />
     <Compile Include="Global.asax.cs">
@@ -585,6 +586,8 @@
     <Content Include="Views\Event\NotAuthorized.cshtml" />
     <Content Include="Views\Event\NotAuththenticated.cshtml" />
     <Content Include="Views\RatingSearch\RatingSearchV1.cshtml" />
+    <Content Include="Views\Search\SearchV2.cshtml" />
+    <Content Include="Views\rmtl\FunctionalArea.cshtml" />
     <None Include="Web.Sandbox.config">
       <DependentUpon>Web.config</DependentUpon>
     </None>
