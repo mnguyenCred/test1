@@ -146,7 +146,7 @@ namespace Services
                         }
                         else if ( item.Name == "navy:ReferenceResource" )
                         {
-                            var template = " ( base.ReferenceResourceId in ( {0} ) ) ";
+                            var template = " ( base.WorkElementTypeId in ( {0} ) ) ";
                             var itemList = "";
                             var comma = "";
                             foreach ( var t in item.ItemIds )
@@ -160,22 +160,25 @@ namespace Services
                     }
                 }
             }
-            /*
+			/*
             SetKeywordFilter( data.Keywords, false, ref where );
             where = where.Replace( "[USERID]", user.Id.ToString() );
-
-            SearchServices.SetSubjectsFilter( data, CodesManager.ENTITY_TYPE_CREDENTIAL, ref where );
-            SearchServices.SetDatesFilter( data, CodesManager.ENTITY_TYPE_CREDENTIAL, ref where, ref messages );
 
             SearchServices.HandleApprovalFilters( data, 16, 1, ref where );
 
             //SetAuthorizationFilter( user, ref where );
             SearchServices.SetAuthorizationFilter( user, "Credential_Summary", ref where );
 
-            SetPropertiesFilter( data, ref where );
             */
-            List<EntitySummary> list = RatingTaskManager.Search( where, data.SortOrder, data.PageNumber, data.PageSize, userId , ref totalRows);
+
+
+			//Handle Sort Order
+			var sortOrder = string.Join( ", ", data.SortOrder.Select( m => "base.[" + m.Column + "]" + ( m.Ascending ? "" : " DESC" ) ).ToList() );
+
+			//Do the search
+            List<EntitySummary> list = RatingTaskManager.Search( where, sortOrder, data.PageNumber, data.PageSize, userId , ref totalRows);
             data.TotalResults = totalRows;
+
             //stopwatch.Stop();
             //timeDifference = start.Subtract( DateTime.Now );
             //LoggingHelper.DoTrace( 6, string.Format( "===CredentialServices.Search === Ended: {0}, Elapsed: {1}", DateTime.Now, timeDifference.TotalSeconds ) );

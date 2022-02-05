@@ -175,11 +175,13 @@
     <Compile Include="Controllers\AccountController.cs" />
     <Compile Include="Controllers\AdminController.cs" />
     <Compile Include="Controllers\BaseController.cs" />
+    <Compile Include="Controllers\EventController.cs" />
+    <Compile Include="Controllers\RatingSearchController.cs" />
     <Compile Include="Controllers\rmtlController.cs" />
     <Compile Include="Controllers\DetailController.cs" />
     <Compile Include="Controllers\HomeController.cs" />
     <Compile Include="Controllers\ManageController.cs" />
-    <Compile Include="Controllers\SearchController.cs" />
+    <Compile Include="Controllers\TaskSearchController.cs" />
     <Compile Include="Controllers\UploadController.cs" />
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
@@ -394,6 +396,8 @@
     <Content Include="Content\font-awesome.css" />
     <Content Include="Content\font-awesome.min.css" />
     <Content Include="favicon.ico" />
+    <Content Include="favicon.jpg" />
+    <Content Include="favicon.png" />
     <Content Include="fonts\fontawesome-webfont.svg" />
     <Content Include="fonts\glyphicons-halflings-regular.svg" />
     <Content Include="Global.asax" />
@@ -560,7 +564,7 @@
     <Content Include="Views\Detail\DetailV1.cshtml" />
     <Content Include="Views\Upload\UploadV1.cshtml" />
     <Content Include="Views\rmtl\ImportSummary.cshtml" />
-    <Content Include="Views\Search\SearchV1.cshtml" />
+    <Content Include="Views\TaskSearch\TaskSearchV1.cshtml" />
     <Content Include="Views\Home\PageNotFound.cshtml" />
     <Content Include="Views\Upload\ImportSummary.cshtml" />
     <Content Include="Views\Shared\_ConsoleMessage.cshtml" />
@@ -568,12 +572,19 @@
     <Content Include="Views\Upload\PreProcess.cshtml" />
     <Content Include="Views\Upload\UploadV2.cshtml" />
     <Content Include="Views\Account\RegisterConfirmation.cshtml" />
-    <Content Include="Views\Search\SearchV2.cshtml" />
+    <Content Include="Views\TaskSearch\TaskSearchV2.cshtml" />
     <Content Include="Views\Account\AddUser.cshtml" />
     <Content Include="Views\rmtl\Catalog.cshtml" />
     <Content Include="Views\Admin\Activity.cshtml" />
     <Content Include="Views\Admin\Index.cshtml" />
     <Content Include="Views\Admin\Accounts.cshtml" />
+    <Content Include="Views\Admin\AddUser.cshtml" />
+    <Content Include="Views\Admin\EditAccount.cshtml" />
+    <Content Include="Views\rmtl\Index.cshtml" />
+    <Content Include="Views\Event\Index.cshtml" />
+    <Content Include="Views\Event\NotAuthorized.cshtml" />
+    <Content Include="Views\Event\NotAuththenticated.cshtml" />
+    <Content Include="Views\RatingSearch\RatingSearchV1.cshtml" />
     <None Include="Web.Sandbox.config">
       <DependentUpon>Web.config</DependentUpon>
     </None>

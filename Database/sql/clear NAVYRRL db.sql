@@ -38,7 +38,6 @@ truncate table NavyRRL.dbo.Comment
 DELETE FROM NavyRRL.dbo.Entity
 --========================================================================
 
---DELETE FROM NavyRRL.dbo.FunctionalArea
 ----
 --DELETE FROM NavyRRL.dbo.ImportHistory
 
@@ -52,7 +51,6 @@ DELETE FROM NavyRRL.dbo.RatingTask
 DELETE FROM NavyRRL.dbo.Course
 
 --DELETE FROM NavyRRL.dbo.[Course.Task]   
---DELETE FROM NavyRRL.dbo.[Course.Concept]
 --DELETE FROM NavyRRL.dbo.[Course.Organization]   
 --DELETE FROM NavyRRL.dbo.[Course.SchoolType]   
 

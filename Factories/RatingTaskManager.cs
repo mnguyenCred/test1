@@ -325,11 +325,10 @@ namespace Factories
         /// <param name="userId"></param>
         /// <param name="pTotalRows"></param>
         /// <returns></returns>
-        public static List<EntitySummary> SearchForRating( string rating, string pOrderBy, int pageNumber, int pageSize, int userId, ref int pTotalRows )
+        public static List<EntitySummary> SearchForRating( string rating, string orderBy, int pageNumber, int pageSize, int userId, ref int pTotalRows )
 		{
 			var keyword = HandleApostrophes( rating );
 			string filter = String.Format( "base.id in (select a.[RatingTaskId] from [RatingTask.HasRating] a inner join Rating b on a.ratingId = b.Id where b.CodedNotation = '{0}' OR b.name = '{0}' )", keyword );
-			string orderBy = "";
 
 
 			return Search( filter, orderBy, pageNumber, pageSize, userId, ref pTotalRows );
@@ -435,7 +434,8 @@ namespace Factories
 
 						item.CodedNotation = dr["CodedNotation"].ToString();// GetRowPossibleColumn( dr, "CodedNotation", "" );
                                           //
-                        item.Rank = dr["Rank"].ToString();// GetRowPossibleColumn( dr, "Rank", "" );
+                        item.Rank = dr["Rank"].ToString();
+                        item.RankName = dr["RankName"].ToString();
                         item.PayGradeType = GetGuidType( dr, "PayGradeType" );
                                                                            //
                         item.Level = dr["Level"].ToString();// GetRowPossibleColumn( dr, "Level", "" );
@@ -986,7 +986,7 @@ namespace Factories
                             {
                                 if ( !input.HasBillet.Contains( ( Guid ) key ) )
                                 {
-                                    DeleteRatingTaskHasJob( input.Id, e.Id, ref status );
+                                    //DeleteRatingTaskHasJob( input.Id, e.Id, ref status );
                                 }
                             }
                         }
@@ -1095,7 +1095,7 @@ namespace Factories
                     if (output.RankId != currentRankId || currentLevelId == 0)
                     {
                         //level is tied to Paygrade.so
-                        var paygradeLevel = GetPayGradeLevel( concept.Name );
+                        var paygradeLevel = GetPayGradeLevel( concept.CodedNotation );
                         output.LevelId = ( int ) ConceptSchemeManager.GetConcept( ConceptSchemeManager.ConceptScheme_RatingLevel, paygradeLevel )?.Id;
 
                     }
@@ -1208,7 +1208,7 @@ namespace Factories
             {
                 level = "Journeyman";
             }
-            else if ( "e7 e8".IndexOf( paygrade.ToLower() ) > -1 )
+            else if ( "e7 e8 e9".IndexOf( paygrade.ToLower() ) > -1 )
             {
                 level = "Master";
             }

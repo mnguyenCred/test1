@@ -17,8 +17,7 @@ namespace Models.Search
 			PageNumber = 1;
 			PageSize = 50;
 			Keywords = "";
-			//relevance is not implemented yet, so latest?
-			SortOrder = "relevance";
+			SortOrder = new List<SortOrderItem>();
 		}
 		/// <summary>
 		/// While starting with RatingTask search, could be other searches in the future
@@ -39,7 +38,7 @@ namespace Models.Search
 		/// <summary>
 		/// TBD
 		/// </summary>
-		public string SortOrder { get; set; }
+		public List<SortOrderItem> SortOrder { get; set; }
 
 		/// <summary>
 		/// List of Filters (including keywords) for this Query
@@ -74,6 +73,19 @@ namespace Models.Search
 		/// If the filter is used to select one or more items from a list, then the numeric IDs for the items are included here
 		/// </summary>
 		public List<int> ItemIds { get; set; }
+	}
+	//
+
+	public class SortOrderItem
+	{
+		/// <summary>
+		/// Name of the column to sort by. Currently uses the same names as the properties in the UploadableRow class.
+		/// </summary>
+		public string Column { get; set; }
+		/// <summary>
+		/// Whether to sort this item ascending or descending
+		/// </summary>
+		public bool Ascending { get; set; }
 	}
 	//
 

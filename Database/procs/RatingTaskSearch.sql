@@ -19,10 +19,14 @@ DECLARE @StartPageIndex int, @PageSize int, @TotalRows int
 ,@SortOrder varchar(500), @SortDir varchar(50), @CurrentUserId	int
 --=========
 set @SortOrder = 'rank'
-set @SortOrder = 'WorkElementType'
+
 
 set @SortDir = ' desc'
 set @SortOrder = 'CodedNotation ' + @SortDir
+
+set @SortOrder = 'base.[Ratings], base.[Rank] DESC, base.[FunctionalArea] desc, base.[ReferenceResource]'
+set @SortOrder = 'Ratings, Rank, BilletTitles, FunctionalArea'
+set @SortOrder = 'base.[WorkElementType] desc'
 --set @CurrentUserId = 108
 set @Filter = '  Rating = ''abf'' '
 
@@ -34,7 +38,8 @@ set @Filter = ' base.Rank in (''e3'', ''e4'')'
 set @Filter = ' base.RankId in (69, 70,71)'
 set @Filter = ' base.LevelId in (89) AND FunctionalAreaId in(2,5)'
 set @Filter = ' base.id in (select a.[RatingTaskId] from [RatingTask.HasRating] a inner join Rating b on a.ratingId = b.Id where b.Id in (77,78 ))	'
-
+set @Filter = ' ( base.WorkElementTypeId in ( 1120 ) )  '
+ 
 set @Filter = ''
 
 set @StartPageIndex = 1
@@ -94,7 +99,8 @@ DECLARE
 set @SortOrder= replace(@SortOrder,'description','RatingTask')
 print 'input sortOrder: ' + @SortOrder
 set @OrderDir= ','
-if charindex( 'desc', lower(@SortOrder) ) > 0 begin
+--use this code only for a single property. Check for a comma?
+if charindex( 'base.[', lower(@SortOrder) ) = 0 AND charindex( 'desc', lower(@SortOrder) ) > 0 begin
 	print 'found desc ' 
 	set @OrderDir= ' DESC, '
 	set @SortOrder= rtrim(replace(@SortOrder,'DESC',''))
@@ -102,19 +108,33 @@ if charindex( 'desc', lower(@SortOrder) ) > 0 begin
   end
 --base.level, 
 --set @SortOrder = 'base.Rank, base.Ratings, base.FunctionalArea, base.ReferenceResource '
-if @SortOrder = 'DisplayDate' OR @SortOrder = 'LastUpdated' set @SortOrder = 'base.LastUpdated ' + @OrderDir + ' base.Ratings, base.FunctionalArea, base.ReferenceResource, base.[RatingTask]'
-else if @SortOrder = 'CodedNotation' set @SortOrder = 'base.CodedNotation ' + @OrderDir + ' base.Ratings'
-else if @SortOrder = 'rank' set @SortOrder = 'base.Rank ' + @OrderDir + 'base.Ratings, base.BilletTitles, base.FunctionalArea, base.ReferenceResource, base.[RatingTask] '
-else if @SortOrder = 'level' set @SortOrder = 'base.level ' + @OrderDir + 'base.Ratings, base.BilletTitles,base.FunctionalArea, base.ReferenceResource, base.[RatingTask] '
-else if @SortOrder = 'BilletTitles' set @SortOrder ='base.BilletTitles ' + @OrderDir + 'base.Ratings, base.FunctionalArea, base.ReferenceResource, base.[RatingTask] '
-else if @SortOrder = 'FunctionalArea' set @SortOrder = 'base.FunctionalArea ' + @OrderDir + ' base.ReferenceResource, base.[WorkElementType], base.[RatingTask] '
-else if @SortOrder = 'ReferenceResource' set @SortOrder = 'base.ReferenceResource ' + @OrderDir + '  base.[WorkElementType], base.[RatingTask] '
-else if @SortOrder = 'SourceDate' set @SortOrder = 'base.SourceDate ' + @OrderDir + ' base.[RatingTask] '
-else if @SortOrder = 'WorkElementType' set @SortOrder = 'base.WorkElementType ' + @OrderDir + ' base.[RatingTask] '
-else if @SortOrder = 'Description' set @SortOrder = 'base.RatingTask ' + @OrderDir + ' base.[Ratings] '
-else if @SortOrder = 'RatingTask' set @SortOrder = 'base.RatingTask ' + @OrderDir + ' base.[Ratings] '
-else if @SortOrder = 'TaskApplicability' set @SortOrder = 'base.TaskApplicability ' + @OrderDir + ' base.[Ratings] '
-else if @SortOrder = 'FormalTrainingGap' set @SortOrder = 'base.FormalTrainingGap ' + @OrderDir + ' base.[Ratings] '
+/*
+if @SortOrder = 'DisplayDate' OR @SortOrder = 'LastUpdated' 
+	set @SortOrder = 'base.LastUpdated ' + @OrderDir + ' base.Ratings, base.FunctionalArea, base.ReferenceResource, base.[RatingTask]'
+else if @SortOrder = 'CodedNotation' 
+	set @SortOrder = 'base.CodedNotation ' + @OrderDir + ' base.Ratings'
+else if @SortOrder = 'rank' 
+	set @SortOrder = 'base.Rank ' + @OrderDir + 'base.Ratings, base.BilletTitles, base.FunctionalArea, base.ReferenceResource, base.[RatingTask] '
+else if @SortOrder = 'level' 
+	set @SortOrder = 'base.level ' + @OrderDir + 'base.Ratings, base.BilletTitles,base.FunctionalArea, base.ReferenceResource, base.[RatingTask] '
+else if @SortOrder = 'BilletTitles' 
+	set @SortOrder ='base.BilletTitles ' + @OrderDir + 'base.Ratings, base.FunctionalArea, base.ReferenceResource, base.[RatingTask] '
+else if @SortOrder = 'FunctionalArea' 
+	set @SortOrder = 'base.FunctionalArea ' + @OrderDir + ' base.ReferenceResource, base.[WorkElementType], base.[RatingTask] '
+else if @SortOrder = 'ReferenceResource' 
+	set @SortOrder = 'base.ReferenceResource ' + @OrderDir + '  base.[WorkElementType], base.[RatingTask] '
+else if @SortOrder = 'SourceDate' 
+	set @SortOrder = 'base.SourceDate ' + @OrderDir + ' base.[RatingTask] '
+else if @SortOrder = 'WorkElementType' 
+	set @SortOrder = 'base.WorkElementType ' + @OrderDir + ' base.[RatingTask] '
+else if @SortOrder = 'Description' 
+	set @SortOrder = 'base.RatingTask ' + @OrderDir + ' base.[Ratings] '
+else if @SortOrder = 'RatingTask' 
+	set @SortOrder = 'base.RatingTask ' + @OrderDir + ' base.[Ratings] '
+else if @SortOrder = 'TaskApplicability' 
+	set @SortOrder = 'base.TaskApplicability ' + @OrderDir + ' base.[Ratings] '
+else if @SortOrder = 'FormalTrainingGap' 
+	set @SortOrder = 'base.FormalTrainingGap ' + @OrderDir + ' base.[Ratings] '
 else if @SortOrder = 'CIN' set @SortOrder = 'base.CIN ' + @OrderDir + ' base.[TrainingTask] '
 else if @SortOrder = 'CourseName' set @SortOrder = 'base.CourseName ' + @OrderDir + ' base.[TrainingTask] '
 else if @SortOrder = 'CourseType' set @SortOrder = 'base.CourseTypes ' + @OrderDir + ' base.[TrainingTask] '
@@ -124,12 +144,18 @@ else if @SortOrder = 'LifeCycleControlDocument' set @SortOrder = 'base.LifeCycle
 else if @SortOrder = 'CurriculumControlAuthority' set @SortOrder = 'base.CurriculumControlAuthority ' + @OrderDir + ' base.[CourseName] '
 else if @SortOrder = 'CurrentAssessmentApproach' set @SortOrder = 'base.AssessmentMethodTypes ' + @OrderDir + ' base.[CourseName] '
 
+
+*/
+if @SortOrder = 'DisplayDate' OR @SortOrder = 'LastUpdated' 
+	set @SortOrder = 'base.LastUpdated ' + @OrderDir + ' base.Ratings, base.FunctionalArea, base.ReferenceResource, base.[RatingTask]'
 else if @SortOrder = 'relevance' set @SortOrder = 'base.Ratings, base.Rank, base.FunctionalArea, base.ReferenceResource '
 else if @SortOrder = 'alpha' set @SortOrder = 'base.RatingTask '
 else if @SortOrder = 'oldest' set @SortOrder = 'base.Created '
 else if @SortOrder = 'newest' set @SortOrder = 'base.LastUpdated Desc, base.Ratings, base.Rank, base.FunctionalArea, base.ReferenceResource  '
 else if @SortOrder = 'id_lowest' set @SortOrder = 'base.Id'
-else set @SortOrder = 'base.Ratings, base.Rank, base.FunctionalArea, base.ReferenceResource '
+else if @SortOrder = '' set @SortOrder = 'base.Ratings, base.Rank, base.FunctionalArea, base.ReferenceResource '
+
+
 print 'modified sortOrder: ' + @SortOrder
 if len(@SortOrder) > 0 
       set @OrderBy = ' Order by ' + @SortOrder
@@ -213,6 +239,7 @@ SELECT
       ,b.[CodedNotation]
       ,b.[RankId]
       ,b.[Rank]
+	  ,b.[RankName]
       ,b.[PayGradeType]
       ,b.[LevelId]
       ,b.[Level]

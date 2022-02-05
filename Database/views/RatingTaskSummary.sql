@@ -25,7 +25,7 @@ SELECT [Id]
       ,[BilletTitles]
       ,[CodedNotation] as TaskCodedNotation
       ,[RankId]
-      ,[Rank]
+      ,[Rank], [RankName]
       ,[PayGradeType]
       ,[LevelId]
       ,[Level]
@@ -90,7 +90,8 @@ SELECT
 	isnull(rtb.BilletTitles,'') as BilletTitles,
 	a.CodedNotation 
 	,a.[RankId]
-	, isnull(c1.Name,'missing') As [Rank]
+	, isnull(c1.CodedNotation,'missing') As [Rank]
+	, isnull(c1.Name,'missing') As [RankName]
 	,c1.RowId as PayGradeType
 	,a.[LevelId]
 	, isnull(c2.Name,'missing') As [Level]
