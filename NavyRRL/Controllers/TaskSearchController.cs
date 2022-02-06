@@ -11,7 +11,7 @@ using Navy.Utilities;
 
 namespace NavyRRL.Controllers
 {
-    public class SearchController : BaseController
+    public class TaskSearchController : BaseController
     {
 		// GET: Search
 		//Changed to custom Authorize as for the base Authorized, if user doesn't have role they immediately get sent back to log, no message!
@@ -31,16 +31,19 @@ namespace NavyRRL.Controllers
             {
 
             }
-			return View( "~/views/search/searchv2.cshtml" );
+            return View( "~/views/tasksearch/tasksearchv2.cshtml" );
         }
 		//
-		public ActionResult SearchV1()
+		
+		public ActionResult TaskSearchV1()
 		{
-			return View( "~/views/search/searchv1.cshtml" );
+			return View( "~/views/tasksearch/tasksearchv1.cshtml" );
 		}
-		public ActionResult SearchV2()
+		//
+
+		public ActionResult TaskSearchV2()
 		{
-			return View( "~/views/search/searchv2.cshtml" );
+			return View( "~/views/tasksearch/tasksearchv2.cshtml" );
 		}
 		//
 		public ActionResult SearchV3()
