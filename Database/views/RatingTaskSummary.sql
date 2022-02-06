@@ -64,8 +64,11 @@ SELECT [Id]
       ,[LastUpdatedById]
       ,[ModifiedBy]
      -- ,[ModifiedByUID]
-  FROM [dbo].[RatingTaskSummary]
-    where taskApplicabilityId=77
+  FROM [dbo].[RatingTaskSummary] base
+  where ( base.id in (select a.[RatingTaskId] from [RatingTask.WorkRole] a inner join WorkRole b on a.WorkRoleId = b.Id where b.Id in (30) )) 
+    where FunctionalArea= ''
+	order by CodedNotation
+	taskApplicabilityId=77
 	and isnull(ratings,'') = ''
 	id in (select a.[RatingTaskId] from [RatingTask.HasRating] a inner join Rating b on a.ratingId = b.Id where b.CodedNotation = 'qm' )
 
@@ -114,6 +117,7 @@ SELECT
 	--	WorkElementType. Now a concept
 	,a.[WorkElementTypeId]
 	, isnull(wet.name,'missing') As WorkElementType
+	, isnull(wet.ListId, 30) As WorkElementTypeOrder
 	,wet.RowId as ReferenceType
 
 

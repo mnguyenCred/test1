@@ -21,7 +21,7 @@ SELECT [conceptid]
       ,[Description]
       ,[WorkElementType]
       ,[IsAWorkElementType]
-      ,[ListId]
+      ,WorkElementTypeOrder
       ,[CTID]
   FROM [dbo].[WorkElementTypeConcepts]
 
@@ -35,7 +35,7 @@ GO
 View for Concepts  for WorkElementType a subset of type Reference Resource Categories
 
 */
-Create VIEW [dbo].[WorkElementTypeConcepts]
+Alter VIEW [dbo].[WorkElementTypeConcepts]
 AS
 SELECT
 	--
@@ -48,11 +48,12 @@ SELECT
 	else 0 end as IsAWorkElementType
 	--, case when b.WorkElementType is not null then WorkElementType
 	--else b.Name end as WorkElementType
-	, b.ListId
+	, b.ListId As WorkElementTypeOrder
 	, b.CTID
 FROM dbo.[ConceptScheme.Concept] b 
 where b.ConceptSchemeId = 9
-and  b.WorkElementType is not null
+and b.IsActive = 1
+--and  b.WorkElementType is not null
 GO
 
 

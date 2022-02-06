@@ -62,7 +62,9 @@ SELECT base.[Id] as CourseId
 	,task.RowId as TrainingTaskUID
 	-- now multiple, leaves as is until duplicate rows?
 	,base.[CurriculumControlAuthorityId]
-	, b.Name as CurriculumControlAuthority
+	--, b.Name as CurriculumControlAuthority
+	, case when isnull(b.alternateName,'') <> '' then b.name + ' (' + b.AlternateName + ')'
+	else b.name end as CurriculumControlAuthority
 	, b.RowId as CurriculumControlAuthorityUID
 	--
 	,base.[LifeCycleControlDocumentId]
