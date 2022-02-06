@@ -914,6 +914,16 @@ namespace Services
 				summary.Messages.Error.Add( "Error - a current user was not found. You must authenticated and authorized to use this function!" );
 				return;
             }
+			SiteActivity sa = new SiteActivity()
+			{
+				ActivityType = "RatingTask",
+				Activity = "Upload",
+				Event = "Processing",
+				Comment = String.Format( "A bulk upload initiated by: '{0}' for Rating: '{1}' was committed.", user.FullName(), summary.Rating ?? "" ),
+				ActionByUserId = user.Id,
+				ActionByUser = user.FullName()
+			};
+			new ActivityServices().AddActivity( sa );
 			//now what
 			//go thru all non-rating task
 			if (summary.ItemsToBeCreated != null)
@@ -1212,6 +1222,18 @@ namespace Services
 
 
 			LoggingHelper.DoTrace( 6, string.Format( "Rating: {0}, Tasks: {1}, User: {2}", currentRating.CodedNotation, uploadedData.Rows.Count(), user.FullName() ) );
+			summary.Rating = currentRating.CodedNotation;
+			SiteActivity sa = new SiteActivity()
+			{
+				ActivityType = "RatingTask",
+				Activity = "Upload",
+				Event = "Processing",
+				Comment = String.Format( "A bulk upload was initiated by: '{0}' for Rating: '{1}'.", user.FullName(), currentRating.CodedNotation ),
+				ActionByUserId = user.Id,
+				ActionByUser = user.FullName()
+			};
+			new ActivityServices().AddActivity( sa );
+
 			//Get existing data
 			var existingRatings = RatingManager.GetAll();
 			var payGradeTypeConcepts = Factories.ConceptSchemeManager.GetbyShortUri( Factories.ConceptSchemeManager.ConceptScheme_Pay_Grade ).Concepts;
