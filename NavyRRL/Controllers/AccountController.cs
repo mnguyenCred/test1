@@ -124,7 +124,8 @@ namespace NavyRRL.Controllers
         [AllowAnonymous]
         public ActionResult Login(string returnUrl)
         {
-            returnUrl = string.IsNullOrWhiteSpace( returnUrl ) ? "~/search" : returnUrl;
+            var defaultPage = UtilityManager.GetAppKeyValue( "defaultPageOnLogin" );
+            returnUrl = string.IsNullOrWhiteSpace( returnUrl ) ? defaultPage : returnUrl;
             ViewBag.ReturnUrl = returnUrl;
             return View();
         }

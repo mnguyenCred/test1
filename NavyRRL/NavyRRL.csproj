@@ -175,6 +175,7 @@
     <Compile Include="Controllers\AccountController.cs" />
     <Compile Include="Controllers\AdminController.cs" />
     <Compile Include="Controllers\BaseController.cs" />
+    <Compile Include="Controllers\DataController.cs" />
     <Compile Include="Controllers\EventController.cs" />
     <Compile Include="Controllers\rmtlController.cs" />
     <Compile Include="Controllers\DetailController.cs" />
@@ -582,7 +583,13 @@
     <Content Include="Views\rmtl\Index.cshtml" />
     <Content Include="Views\Event\Index.cshtml" />
     <Content Include="Views\Event\NotAuthorized.cshtml" />
-    <Content Include="Views\Event\NotAuththenticated.cshtml" />
+    <Content Include="Views\Event\NotAuthenticated.cshtml" />
+    <Content Include="Views\Home\Placeholder.cshtml" />
+    <Content Include="Views\Data\Index.cshtml" />
+    <Content Include="Views\Data\ManageCCA.cshtml" />
+    <Content Include="Views\Data\ManageCourses.cshtml" />
+    <Content Include="Views\Data\ManageConceptSchemes.cshtml" />
+    <Content Include="Views\Search\SearchV3.cshtml" />
     <None Include="Web.Sandbox.config">
       <DependentUpon>Web.config</DependentUpon>
     </None>

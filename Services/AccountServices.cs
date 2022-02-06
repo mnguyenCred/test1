@@ -17,6 +17,15 @@ namespace Services
     public class AccountServices
 	{
 		private static string thisClassName = "AccountServices";
+
+		//messages
+		public static string NOT_AUTHORIZED = "You do not have the proper privileges to access this function.";
+		public static string NOT_AUTHENTICATED = "You must be authenticated (logged in) and authorized to perform this action.";
+
+		//event actions
+		public static string EVENT_AUTHORIZED = "NotAuthorized";
+		public static string EVENT_AUTHENTICATED = "NotAuthenticated";
+
 		#region Authorization methods
 		public static bool IsUserAnAdmin()
 		{
@@ -31,7 +40,7 @@ namespace Services
 			if ( user == null || user.Id == 0 )
 				return false;
 
-			if ( user.UserRoles.Contains( "Administrator" ) )
+			if ( user.UserRoles.Contains( AccountManager.ROLE_ADMINISTRATOR ))
 				return true;
 			else
 				return false;
@@ -50,15 +59,65 @@ namespace Services
 			if ( user == null || user.Id == 0 )
 				return false;
 
-			if ( user.UserRoles.Contains( "Administrator" )
-			  || user.UserRoles.Contains( "Site Manager" )
-			  || user.UserRoles.Contains( "Site Staff" )
+			if ( user.UserRoles.Contains( AccountManager.ROLE_ADMINISTRATOR )
+			  || user.UserRoles.Contains( AccountManager.ROLE_SITE_MANAGER )
+			  || user.UserRoles.Contains( AccountManager.ROLE_SITE_STAFF )
 				)
 				return true;
 			else
 				return false;
 		}
+		//
+		public static bool HasRmtlDeveloperAccess( AppUser user )
+		{
+			if ( user == null || user.Id == 0 )
+				return false;
 
+			if ( user.UserRoles.Contains( AccountManager.ROLE_ADMINISTRATOR )
+			  || user.UserRoles.Contains( AccountManager.ROLE_SITE_MANAGER )
+			  || user.UserRoles.Contains( AccountManager.ROLE_RMTL_DEVELOPER )
+				)
+				return true;
+			else
+				return false;
+		}
+		public static bool HasRatingContinuumManagerAccess( AppUser user )
+		{
+			if ( user == null || user.Id == 0 )
+				return false;
+
+			if ( user.UserRoles.Contains( AccountManager.ROLE_ADMINISTRATOR )
+			  || user.UserRoles.Contains( AccountManager.ROLE_SITE_MANAGER )
+			  || user.UserRoles.Contains( AccountManager.ROLE_RATING_CONTINUUM_MANAGER )
+				)
+				return true;
+			else
+				return false;
+		}
+		public static bool HasRatingContinuumAnalystAccess( AppUser user )
+		{
+			if ( user == null || user.Id == 0 )
+				return false;
+
+			if ( user.UserRoles.Contains( AccountManager.ROLE_ADMINISTRATOR )
+			  || user.UserRoles.Contains( AccountManager.ROLE_RATING_CONTINUUM_DEVELOPMENT_ANALYST )
+				)
+				return true;
+			else
+				return false;
+		}
+		public static bool HasRmtlSubjectMatterExpertAccess( AppUser user )
+		{
+			if ( user == null || user.Id == 0 )
+				return false;
+
+			if ( user.UserRoles.Contains( AccountManager.ROLE_ADMINISTRATOR )
+			  || user.UserRoles.Contains( AccountManager.ROLE_RMTL_SME )
+				)
+				return true;
+			else
+				return false;
+		}
 		/// <summary>
 		/// Return true if user can view all parts of site.
 		/// </summary>
@@ -69,11 +128,10 @@ namespace Services
 			if ( user == null || user.Id == 0 )
 				return false;
 
-			if ( user.UserRoles.Contains( "Administrator" )
-			  || user.UserRoles.Contains( "Site Manager" )
-			  || user.UserRoles.Contains( "Site Staff" )
-			  || user.UserRoles.Contains( "Site Partner" )
-			  || user.UserRoles.Contains( "Site Reader" ) 
+			if ( user.UserRoles.Contains( AccountManager.ROLE_ADMINISTRATOR )
+			  || user.UserRoles.Contains( AccountManager.ROLE_SITE_MANAGER )
+			  || user.UserRoles.Contains( AccountManager.ROLE_SITE_STAFF )
+			  || user.UserRoles.Contains( "Site Reader" ) //??? use?
 				)
 				return true;
 			else
@@ -112,11 +170,10 @@ namespace Services
 				return false;
 			}
 
-			if ( user.UserRoles.Contains( "Administrator" )
-			  || user.UserRoles.Contains( "Site Manager" )
-			  || user.UserRoles.Contains( "Site Staff" )
-			  || user.UserRoles.Contains( "Site Partner" )
-			  || user.UserRoles.Contains( "Site Reader" )
+			if ( user.UserRoles.Contains( AccountManager.ROLE_ADMINISTRATOR )
+			  || user.UserRoles.Contains( AccountManager.ROLE_SITE_MANAGER )
+			  || user.UserRoles.Contains( AccountManager.ROLE_SITE_STAFF )
+			  || user.UserRoles.Contains( "Site Reader" ) //???
 				)
 				return true;
 
@@ -171,8 +228,9 @@ namespace Services
 		}
 	
 		/// <summary>
-		/// Return true if user can publish content
-		/// Essentially this relates to being able to create credentials and related entities. 
+		/// Return true if user can publish content.
+		/// May be to general to be used
+		/// Essentially this relates to being able to upload rmtl lists, create rmtl projects
 		/// </summary>
 		/// <param name="user"></param>
 		/// <param name="status"></param>
@@ -186,10 +244,9 @@ namespace Services
 				return false;
 			}
 
-			if ( user.UserRoles.Contains( "Administrator" )
-			  || user.UserRoles.Contains( "Site Manager" )
-			  || user.UserRoles.Contains( "Site Staff" )
-			  || user.UserRoles.Contains( "Site Partner" )
+			if ( user.UserRoles.Contains( AccountManager.ROLE_ADMINISTRATOR )
+			  || user.UserRoles.Contains( AccountManager.ROLE_SITE_STAFF )
+			  || user.UserRoles.Contains( AccountManager.ROLE_RMTL_DEVELOPER )
 				)
 				return true;
 
@@ -206,6 +263,25 @@ namespace Services
 			return false;
 		}
 
+		public static bool CanUserCreateRmtlProject( AppUser user, ref string status )
+		{
+			status = "";
+			if ( user == null || user.Id == 0 )
+			{
+				status = "You must be authenticated and authorized before being allowed to create any content.";
+				return false;
+			}
+
+			if ( user.UserRoles.Contains( AccountManager.ROLE_ADMINISTRATOR )
+			  || user.UserRoles.Contains( AccountManager.ROLE_SITE_STAFF )
+			  || user.UserRoles.Contains( AccountManager.ROLE_RMTL_DEVELOPER )
+				)
+				return true;
+
+			status = "Sorry - You have not been authorized to create RMTL projects. Please contact site management if you believe that you should have this privilege.";
+
+			return false;
+		}
 
 		/// <summary>
 		/// Perform basic authorization checks. First establish an initial user object.
@@ -215,10 +291,10 @@ namespace Services
 		/// <param name="mustBeLoggedIn"></param>
 		/// <param name="status"></param>
 		/// <returns></returns>
-		public static bool AuthorizationCheck( ref string status )
+		public static bool AuthorizationCheck( bool mustBeLoggedIn, ref string status )
 		{
 			AppUser user = GetCurrentUser();
-			return AuthorizationCheck( "", false, ref status, ref user );
+			return AuthorizationCheck( "", mustBeLoggedIn, ref status, ref user );
 		}
 		/// <summary>
 		/// Do auth check - where user is not expected back, so can be instantiate here and passed to next version
@@ -231,7 +307,7 @@ namespace Services
 		{
 
 			AppUser user = new AppUser(); //GetCurrentUser();
-			return AuthorizationCheck( action, false, ref status, ref user );
+			return AuthorizationCheck( action, mustBeLoggedIn, ref status, ref user );
 		}
 		/// <summary>
 		/// Perform basic authorization checks
@@ -248,22 +324,14 @@ namespace Services
 			bool isAuthenticated = IsUserAuthenticated( user );
 			if ( mustBeLoggedIn && !isAuthenticated )
 			{
-				status = string.Format( "You must be logged in to do that ({0}).", action );
+				status = NOT_AUTHENTICATED + ( string.IsNullOrWhiteSpace( action ) ? "" : string.Format( " ({0}).", action ));
 				return false;
 			}
 
-			if ( action == "Delete" )
-			{
+			if ( string.IsNullOrWhiteSpace( action ) )
+				return true;
 
-				//TODO: validate user's ability to delete a specific entity (though this should probably be handled by the delete method?)
-				//if ( AccountServices.IsUserSiteStaff( user ) == false )
-				//{
-				//	ConsoleMessageHelper.SetConsoleInfoMessage( "Sorry - You have not been authorized to delete content on this site during this <strong>BETA</strong> period.", "", false );
-
-				//	status = "You have not been authorized to delete content on this site during this BETA period.";
-				//	return false;
-				//}
-			}
+			//for authorization, may not be able to handle all, perhaps just those for a range of role ids using say minimum role. 
 			return isAuthorized;
 
 		}

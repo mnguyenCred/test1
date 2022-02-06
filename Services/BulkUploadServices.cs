@@ -1028,7 +1028,7 @@ namespace Services
 					foreach ( var item in summary.ItemsToBeCreated.RatingTask )
 					{
 						cntr++;
-						if (item.CodedNotation == "PQ17-038" || item.CodedNotation == "PQ31-007" )
+						if (item.CodedNotation == "OC-071" || item.CodedNotation == "PQ26-081" )
                         {
 
                         }
@@ -1186,7 +1186,18 @@ namespace Services
 				summary.Messages.Error.Add( "Error: Unable to find Rating for identifier: " + ratingRowID );
 				return summary;
 			}
-
+			AppUser user = AccountServices.GetCurrentUser();
+			if ( user?.Id == 0 )
+			{
+				summary.Messages.Error.Add( "Error - a current user was not found. You must authenticated and authorized to use this function!" );
+				return summary;
+			}
+			//Valiate row count
+			if ( uploadedData.Rows.Count == 0 )
+			{
+				summary.Messages.Error.Add( "Error: No rows were found to process." );
+				return summary;
+			}
 			//Filter out rows that don't match the selected rating
 			var nonMatchingRows = uploadedData.Rows.Where( m => m.Rating_CodedNotation?.ToLower() != currentRating.CodedNotation.ToLower() ).ToList();
 			uploadedData.Rows = uploadedData.Rows.Where( m => !nonMatchingRows.Contains( m ) ).ToList();
@@ -1198,20 +1209,17 @@ namespace Services
 					summary.Messages.Warning.Add( "Detected " + nonMatchingRows.Where(m => m.Rating_CodedNotation == code).Count() + " rows that did not match the selected Rating (" + currentRating.CodedNotation + ") and instead were for Rating: \"" + code + "\". These rows have been ignored.");
 				}
 			}
-			
-			//Valiate row count
-			if ( uploadedData.Rows.Count == 0 )
-			{
-				summary.Messages.Error.Add( "Error: No rows were found to process." );
-				return summary;
-			}
 
+
+			LoggingHelper.DoTrace( 6, string.Format( "Rating: {0}, Tasks: {1}, User: {2}", currentRating.CodedNotation, uploadedData.Rows.Count(), user.FullName() ) );
 			//Get existing data
 			var existingRatings = RatingManager.GetAll();
 			var payGradeTypeConcepts = Factories.ConceptSchemeManager.GetbyShortUri( Factories.ConceptSchemeManager.ConceptScheme_Pay_Grade ).Concepts;
 			var trainingGapTypeConcepts = Factories.ConceptSchemeManager.GetbyShortUri( Factories.ConceptSchemeManager.ConceptScheme_TrainingGap ).Concepts;
 			var applicabilityTypeConcepts = Factories.ConceptSchemeManager.GetbyShortUri( Factories.ConceptSchemeManager.ConceptScheme_TaskApplicability ).Concepts;
-			var sourceTypeConcepts = Factories.ConceptSchemeManager.GetbyShortUri( Factories.ConceptSchemeManager.ConceptScheme_ReferenceResource ).Concepts;
+			//WorkElementType/ReferenceResource
+			//these should now be using Concept.WorkElementType
+			var sourceTypeConcepts = Factories.ConceptSchemeManager.GetbyShortUri( Factories.ConceptSchemeManager.ConceptScheme_ReferenceResource, true ).Concepts;
 			var courseTypeConcepts = Factories.ConceptSchemeManager.GetbyShortUri( Factories.ConceptSchemeManager.ConceptScheme_CourseType ).Concepts;
 			var assessmentMethodTypeConcepts = Factories.ConceptSchemeManager.GetbyShortUri( Factories.ConceptSchemeManager.ConceptScheme_CurrentAssessmentApproach ).Concepts;
 			debug[ latestStepFlag ] = "Got Concept Scheme data";
@@ -2107,9 +2115,15 @@ namespace Services
 		public static List<SheetMatcher<T1, T2>> GetSheetMatchersFromExisting<T1, T2>( List<T1> existingItems ) where T1 : new() where T2 : new()
 		{
 			var matchers = new List<SheetMatcher<T1, T2>>();
+			var cntr = 0;
 			foreach( var existing in existingItems )
 			{
-				var matcher = new SheetMatcher<T1, T2>() { Data = existing };
+                cntr++;
+                if ( cntr > 16 )
+                {
+
+                }
+                var matcher = new SheetMatcher<T1, T2>() { Data = existing };
 				BaseFactory.AutoMap( existing, matcher.Flattened );
 				matchers.Add( matcher );
 			}
@@ -2133,6 +2147,14 @@ namespace Services
 		}
 		//
 
+		/// <summary>
+		/// What is happening here?
+		/// </summary>
+		/// <typeparam name="T1"></typeparam>
+		/// <typeparam name="T2"></typeparam>
+		/// <param name="rows"></param>
+		/// <param name="matchFunction"></param>
+		/// <returns></returns>
 		private static List<SheetMatcher<T1, T2>> GetSheetMatchers<T1, T2>( List<UploadableRow> rows, Func<UploadableRow, string> matchFunction ) where T1: new() where T2: new()
 		{
 			var keys = rows.GroupBy( m => matchFunction( m ) ).Select( m => m.Key ).Distinct().ToList();

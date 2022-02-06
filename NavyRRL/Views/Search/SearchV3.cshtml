@@ -518,55 +518,57 @@
 <style type="text/css">
 	html body .container { width: 98vw; }
 	.spinner { display: inline-block; box-shadow: inset 4px 0 0 5px; border-radius: 50%; height: 20px; width: 20px; animation: spin 1s linear infinite; }
-	@@keyframes spin { 100% { transform: rotate(360deg); } }
+	@@keyframes spin {
+		100% { transform: rotate(360deg); }
+	}
 
 	.searchBox { }
-	.searchBox .searchHeader { }
-	.searchBox .searchHeader .filtersBox { display: flex; }
-	.searchBox .searchHeader .filtersBox .topSection { flex: 0 0 650px; display: flex; }
-	.searchBox .searchHeader .filtersBox .filter { padding: 5px; }
-	.searchBox .searchHeader .filtersBox .filter .filterLabel { font-weight: bold; border-bottom: 1px solid #CCC; }
-	.searchBox .searchHeader .filtersBox .columnSelector { flex: 1 1 50%; }
-	.searchBox .searchHeader .filtersBox .textFilters { flex: 1 1 50%; }
-	.searchBox .searchHeader .filtersBox .checkBoxFilters { flex: 1 1 auto; display: grid; grid-template-columns: repeat(auto-fill, minmax(325px, 1fr)); }
+		.searchBox .searchHeader { }
+			.searchBox .searchHeader .filtersBox { display: flex; }
+				.searchBox .searchHeader .filtersBox .topSection { flex: 0 0 650px; display: flex; }
+				.searchBox .searchHeader .filtersBox .filter { padding: 5px; }
+					.searchBox .searchHeader .filtersBox .filter .filterLabel { font-weight: bold; border-bottom: 1px solid #CCC; }
+				.searchBox .searchHeader .filtersBox .columnSelector { flex: 1 1 50%; }
+				.searchBox .searchHeader .filtersBox .textFilters { flex: 1 1 50%; }
+				.searchBox .searchHeader .filtersBox .checkBoxFilters { flex: 1 1 auto; display: grid; grid-template-columns: repeat(auto-fill, minmax(325px, 1fr)); }
 
-	.searchBox .searchHeader .filtersBox .filter.text { }
-	.searchBox .searchHeader .filtersBox .filter.text input { display: block; width: 100%; max-width: none; }
+				.searchBox .searchHeader .filtersBox .filter.text { }
+					.searchBox .searchHeader .filtersBox .filter.text input { display: block; width: 100%; max-width: none; }
 
-	.searchBox .searchHeader .filtersBox .filter.checkBox { }
-	.searchBox .searchHeader .filtersBox .filter.checkBox label { display: flex; padding: 2.5px 5px; width: 100%; font-weight: normal; margin-bottom: 0; }
-	.searchBox .searchHeader .filtersBox .filter.checkBox label:hover, .searchBox .searchHeader .filtersBox .filter.checkBox label:focus { cursor: pointer; background-color: rgba(0,0,0,0.05); }
-	.searchBox .searchHeader .filtersBox .filter.checkBox label input { margin-right: 5px; }
-	.searchBox .searchHeader .filtersBox .filter.checkBox .filterLabel { display: flex; align-items: baseline; }
-	.searchBox .searchHeader .filtersBox .filter.checkBox .filterLabel .toggleAll { font-weight: normal; margin-left: auto; }
+				.searchBox .searchHeader .filtersBox .filter.checkBox { }
+					.searchBox .searchHeader .filtersBox .filter.checkBox label { display: flex; padding: 2.5px 5px; width: 100%; font-weight: normal; margin-bottom: 0; }
+						.searchBox .searchHeader .filtersBox .filter.checkBox label:hover, .searchBox .searchHeader .filtersBox .filter.checkBox label:focus { cursor: pointer; background-color: rgba(0,0,0,0.05); }
+						.searchBox .searchHeader .filtersBox .filter.checkBox label input { margin-right: 5px; }
+					.searchBox .searchHeader .filtersBox .filter.checkBox .filterLabel { display: flex; align-items: baseline; }
+						.searchBox .searchHeader .filtersBox .filter.checkBox .filterLabel .toggleAll { font-weight: normal; margin-left: auto; }
 
-	.searchBox .searchHeader .filtersBox .filter.autofill { position: relative; }
-	.searchBox .searchHeader .filtersBox .filter.autofill input { display: block; width: 100%; max-width: none; }
-	.searchBox .searchHeader .filtersBox .filter.autofill .filterOptions { position: absolute; z-index: 10; background-color: #FFF; border: 1px solid #CCC; width: 100%; }
-	.searchBox .searchHeader .filtersBox .filter.autofill .filterOptions:not(.visible) { display: none; }
-	.searchBox .searchHeader .filtersBox .filter.autofill .filterOptions button { display: block; width: 100%; padding: 5px 10px; background-color: #FFF; border: none; }
-	.searchBox .searchHeader .filtersBox .filter.autofill .filterOptions button:hover, .searchBox .searchHeader .filtersBox .filter.autofill .filterOptions button:focus { background-color: rgba(0,0,0,0.05); }
-	.searchBox .searchHeader .filtersBox .filter.autofill .filterItems { }
-	.searchBox .searchHeader .filtersBox .filter.autofill .filterItems .filterItem { display: flex; width: 100%; padding: 2.5px 5px; }
-	.searchBox .searchHeader .filtersBox .filter.autofill .filterItems .filterItem:not(:last-child) { border-bottom: 1px dashed #CCC; }
-	.searchBox .searchHeader .filtersBox .filter.autofill .filterItems .filterItem span { flex: 1 1 auto; }
-	.searchBox .searchHeader .filtersBox .filter.autofill .filterItems .filterItem button { margin-left: 10px; background-color: #F55; border: none; color: #FFF; font-weight: bold; height: 22px; width: 22px; }
-	.searchBox .searchHeader .filtersBox .filter.autofill .filterItems .filterItem button:hover, .searchBox .searchHeader .filtersBox .filter.autofill .filterItems .filterItem button:focus { background-color: #F77; }
+				.searchBox .searchHeader .filtersBox .filter.autofill { position: relative; }
+					.searchBox .searchHeader .filtersBox .filter.autofill input { display: block; width: 100%; max-width: none; }
+					.searchBox .searchHeader .filtersBox .filter.autofill .filterOptions { position: absolute; z-index: 10; background-color: #FFF; border: 1px solid #CCC; width: 100%; }
+						.searchBox .searchHeader .filtersBox .filter.autofill .filterOptions:not(.visible) { display: none; }
+						.searchBox .searchHeader .filtersBox .filter.autofill .filterOptions button { display: block; width: 100%; padding: 5px 10px; background-color: #FFF; border: none; }
+							.searchBox .searchHeader .filtersBox .filter.autofill .filterOptions button:hover, .searchBox .searchHeader .filtersBox .filter.autofill .filterOptions button:focus { background-color: rgba(0,0,0,0.05); }
+					.searchBox .searchHeader .filtersBox .filter.autofill .filterItems { }
+						.searchBox .searchHeader .filtersBox .filter.autofill .filterItems .filterItem { display: flex; width: 100%; padding: 2.5px 5px; }
+							.searchBox .searchHeader .filtersBox .filter.autofill .filterItems .filterItem:not(:last-child) { border-bottom: 1px dashed #CCC; }
+							.searchBox .searchHeader .filtersBox .filter.autofill .filterItems .filterItem span { flex: 1 1 auto; }
+							.searchBox .searchHeader .filtersBox .filter.autofill .filterItems .filterItem button { margin-left: 10px; background-color: #F55; border: none; color: #FFF; font-weight: bold; height: 22px; width: 22px; }
+								.searchBox .searchHeader .filtersBox .filter.autofill .filterItems .filterItem button:hover, .searchBox .searchHeader .filtersBox .filter.autofill .filterItems .filterItem button:focus { background-color: #F77; }
 
 	.searchTableTopBar { display: flex; flex-wrap: wrap; align-items: center; padding: 5px 10px; background-color: #EEE; }
-	.searchTableTopBar > *:not(:last-child) { margin-right: 10px; }
-	.searchTableTopBar .searchStatus { font-weight: bold; }
-	.searchTableTopBar .searchSpinner {  }
-	.searchTableTopBar .searchTopBarDivider { margin-left: auto; }
-	.searchTableTopBar .pageSelector { height: 26px; }
+		.searchTableTopBar > *:not(:last-child) { margin-right: 10px; }
+		.searchTableTopBar .searchStatus { font-weight: bold; }
+		.searchTableTopBar .searchSpinner { }
+		.searchTableTopBar .searchTopBarDivider { margin-left: auto; }
+		.searchTableTopBar .pageSelector { height: 26px; }
 
 	.searchResults { background-color: #FFF; }
-	.searchResults.fullScreen { display: flex; flex-direction: column; position: fixed; z-index: 5000; top: 0; left: 0; width: 100vw; height: 100vh; }
-	.searchResults.fullScreen .searchResultsTableWrapper { max-height: none; }
-	.searchResults .searchResultsTableWrapper { flex: 1 1 auto; max-width: 100%; max-height: 90vh; overflow: scroll; }
-	.searchResults .searchResultsTableWrapper .searchResultsTable { border-collapse: separate; border-spacing: 0; }
-	.searchResults .searchResultsTableWrapper .searchResultsTable th { position: sticky; top: 0px; border: 1px solid #777; border-width: 0 0 0 1px; }
-	.searchResults .searchResultsTableWrapper .searchResultsTable td { padding: 5px 10px; border: 1px solid #CCC; border-width: 1px 0 0 1px; font-size: 12px; }
+		.searchResults.fullScreen { display: flex; flex-direction: column; position: fixed; z-index: 5000; top: 0; left: 0; width: 100vw; height: 100vh; }
+			.searchResults.fullScreen .searchResultsTableWrapper { max-height: none; }
+		.searchResults .searchResultsTableWrapper { flex: 1 1 auto; max-width: 100%; max-height: 90vh; overflow: scroll; }
+			.searchResults .searchResultsTableWrapper .searchResultsTable { border-collapse: separate; border-spacing: 0; }
+				.searchResults .searchResultsTableWrapper .searchResultsTable th { position: sticky; top: 0px; border: 1px solid #777; border-width: 0 0 0 1px; }
+				.searchResults .searchResultsTableWrapper .searchResultsTable td { padding: 5px 10px; border: 1px solid #CCC; border-width: 1px 0 0 1px; font-size: 12px; }
 
 	@@media(max-width: 1300px) {
 		.searchBox .searchHeader .filtersBox { display: block; }
@@ -600,7 +602,6 @@
 	table .cca { min-width: 100px; max-width: 100px; }
 	table .lccd { min-width: 100px; max-width: 100px; }
 	table .assessmentMethodType { min-width: 200px; max-width: 200px; }
-
 </style>
 <style class="searchTableStyles"></style>
 

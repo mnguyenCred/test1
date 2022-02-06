@@ -51,10 +51,36 @@ namespace Services
                             where += AND + String.Format( template, keyword );
                             AND = " AND ";
                         }
+
                         else if ( item.Name == "navy:Rating" && item.ItemIds?.Count > 0 )
                         {
                             var template = "( base.id in (select a.[RatingTaskId] from [RatingTask.HasRating] a inner join Rating b on a.ratingId = b.Id where b.Id in ({0}) )) ";
                             var itemList = "";
+                            var comma = "";
+                            foreach ( var t in item.ItemIds )
+                            {
+                                itemList += comma + t.ToString();
+                                comma = ",";
+                            }
+                            where += AND + String.Format( template, itemList );
+                            AND = " AND ";
+                        }
+                        else if ( item.Name == "navy:Organization" && item.ItemIds?.Count > 0 )
+                        {
+                            var template = "( base.CurriculumControlAuthorityId in ({0}) ) ";
+                            var itemList = "";
+                            var comma = "";
+                            foreach ( var t in item.ItemIds )
+                            {
+                                itemList += comma + t.ToString();
+                                comma = ",";
+                            }
+                            where += AND + String.Format( template, itemList );
+                            AND = " AND ";
+                        }
+                        else if ( item.Name == "navy:WorkRole" && item.ItemIds?.Count > 0 )
+                        {
+                            var template = "( base.id in (select a.[RatingTaskId] from [RatingTask.WorkRole] a inner join WorkRole b on a.WorkRoleId = b.Id where b.Id in ({0}) )) "; var itemList = "";
                             var comma = "";
                             foreach ( var t in item.ItemIds )
                             {
@@ -69,6 +95,20 @@ namespace Services
                             var keyword = ServiceHelper.HandleApostrophes( item.Text );
                             var template = "( base.TrainingTask like '%{0}%' ) ";
                             where += AND + String.Format( template, keyword );
+                            AND = " AND ";
+                        }
+
+                        else if ( item.Name == "navy:Job" && item.ItemIds?.Count > 0 )
+                        {
+                            var template = "( base.id in (select a.[RatingTaskId] from [RatingTask.HasJob] a inner join Job b on a.JobId = b.Id where b.Id in ({0}) )) ";
+                            var itemList = "";
+                            var comma = "";
+                            foreach ( var t in item.ItemIds )
+                            {
+                                itemList += comma + t.ToString();
+                                comma = ",";
+                            }
+                            where += AND + String.Format( template, itemList );
                             AND = " AND ";
                         }
                         else if ( item.Name == "search:BilletTitleKeyword" && !string.IsNullOrWhiteSpace( item.Text ) )

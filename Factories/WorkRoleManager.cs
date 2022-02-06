@@ -47,6 +47,7 @@ namespace Factories
                         if ( record?.Id > 0 )
                         {
                             //currently no description, so can just return
+                            //do a check to see if the rowId is different
                             entity.Id = record.Id;
                             return true;
                         }
