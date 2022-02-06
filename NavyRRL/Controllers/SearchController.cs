@@ -7,14 +7,15 @@ using System.Web.Mvc;
 using AM = Models.Application;
 using SM = Models.Search;
 using Services;
+using Navy.Utilities;
 
 namespace NavyRRL.Controllers
 {
     public class SearchController : BaseController
     {
 		// GET: Search
-		[Authorize( Roles = "Administrator, Site Staff" )]
-
+		//Changed to custom Authorize as for the base Authorized, if user doesn't have role they immediately get sent back to log, no message!
+		[CustomAttributes.NavyAuthorize( "Search", Roles = "Administrator, RMTL Developer, Site Staff" )]
 		public ActionResult Index()
         {
 			if (!AccountServices.IsUserAuthenticated())
@@ -22,10 +23,15 @@ namespace NavyRRL.Controllers
 				AM.SiteMessage siteMessage = new AM.SiteMessage()
 				{
 					Title = "Invalid Request",
-					Message = "You must be authenticated and authorized to use this feature"
+					Message = AccountServices.NOT_AUTHENTICATED
 				};
-			}
-            return View( "~/views/search/searchv2.cshtml" );
+				ConsoleMessageHelper.SetConsoleErrorMessage( AccountServices.NOT_AUTHENTICATED );
+				return RedirectToAction( AccountServices.EVENT_AUTHENTICATED, "event", new { area = "" } );
+			} else
+            {
+
+            }
+			return View( "~/views/search/searchv2.cshtml" );
         }
 		//
 		public ActionResult SearchV1()
@@ -37,7 +43,11 @@ namespace NavyRRL.Controllers
 			return View( "~/views/search/searchv2.cshtml" );
 		}
 		//
-
+		public ActionResult SearchV3()
+		{
+			return View( "~/views/search/searchv3.cshtml" );
+		}
+		//
 		[HttpPost]
 		public ActionResult MainSearch( SM.SearchQuery query )
 		{
