@@ -585,13 +585,14 @@
     <Content Include="Views\Event\NotAuthorized.cshtml" />
     <Content Include="Views\Event\NotAuththenticated.cshtml" />
     <Content Include="Views\RatingSearch\RatingSearchV1.cshtml" />
+    <Content Include="Views\Shared\_FormHelperV1.cshtml" />
+    <Content Include="Views\Admin\FormHelperV1Demo.cshtml" />
     <None Include="Web.Sandbox.config">
       <DependentUpon>Web.config</DependentUpon>
     </None>
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Areas\" />
-    <Folder Include="Views\Base\" />
   </ItemGroup>
   <ItemGroup />
   <ItemGroup>

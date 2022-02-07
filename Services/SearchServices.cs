@@ -72,6 +72,7 @@ namespace Services
 						{ "ResultNumber", item.ResultNumber },
 						{ "RecordId", item.Id },
 						{ "CTID", item.CTID },
+						{ "RowId", item.RowId.ToString() },
 						{ "Created", item.Created.ToShortDateString() },
 						{ "LastUpdated", item.LastUpdated.ToShortDateString() },
 					}
@@ -106,7 +107,11 @@ namespace Services
 					Data = item, //Course?
 					Extra = new JObject()
 					{
-						//Extra properties
+						{ "RecordId", item.Id },
+						{ "CTID", item.CTID },
+						{ "RowId", item.RowId.ToString() },
+						{ "Created", item.Created.ToShortDateString() },
+						{ "LastUpdated", item.LastUpdated.ToShortDateString() },
 					}
 				} );
 			}
