@@ -7,19 +7,19 @@ using System.Web.Mvc;
 
 using Models.Import;
 using Data.Tables;
-
+using Navy.Utilities;
 using Services;
 
 namespace NavyRRL.Controllers
 {
     public class rmtlController : Controller
     {
-		[Authorize( Roles = "Administrator, Site Staff" )]
+		[CustomAttributes.NavyAuthorize( "RMTL Home", Roles = "Administrator, RMTL Developer, Site Staff" )]
 		public ActionResult Index()
         {
             return View();
         }
-		[Authorize( Roles = "Administrator, Site Staff" )]
+		[CustomAttributes.NavyAuthorize( "RMTL Catalog", Roles = "Administrator, Site Staff" )]
 		public ActionResult Catalog()
 		{
 			return View();

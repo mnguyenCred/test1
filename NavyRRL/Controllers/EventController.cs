@@ -14,7 +14,7 @@ namespace NavyRRL.Controllers
             return View();
         }
 
-        public ActionResult NotAuththenticated()
+        public ActionResult NotAuthenticated()
         {
             return View();
         }

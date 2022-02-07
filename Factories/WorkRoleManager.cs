@@ -8,7 +8,9 @@ using Models.Curation;
 using Navy.Utilities;
 
 using AppEntity = Models.Schema.WorkRole;
+using ViewEntity = Data.Views.WorkRoleSummary;
 using DataEntities = Data.Tables.NavyRRLEntities;
+using ViewEntities = Data.Views.ceNavyViewEntities;
 using DBEntity = Data.Tables.WorkRole;
 namespace Factories
 {
@@ -47,6 +49,7 @@ namespace Factories
                         if ( record?.Id > 0 )
                         {
                             //currently no description, so can just return
+                            //do a check to see if the rowId is different
                             entity.Id = record.Id;
                             return true;
                         }
@@ -143,7 +146,7 @@ namespace Factories
         /// <param name="entity"></param>
         /// <param name="status"></param>
         /// <returns></returns>
-        private int Add( AppEntity entity, ref ChangeSummary status )
+        public int Add( AppEntity entity, ref ChangeSummary status )
         {
             DBEntity efEntity = new DBEntity();
             status.HasSectionErrors = false;
@@ -214,6 +217,53 @@ namespace Factories
             BaseFactory.AutoMap( input, output, errors );
 
         }
+
+        /// <summary>
+        /// Delete record
+        /// Do not allow if referenced anywhere.
+        /// DEFER FOR NOW
+        /// </summary>
+        /// <param name="recordId"></param>
+        /// <param name="deletedBy"></param>
+        /// <param name="statusMessage"></param>
+        /// <returns></returns>
+        public bool Delete( int recordId, AppUser deletedBy, ref string statusMessage )
+        {
+            bool isValid = false;
+            using ( var context = new DataEntities() )
+            {
+                DBEntity efEntity = new DBEntity();
+                try
+                {
+                    efEntity = context.WorkRole
+                            .SingleOrDefault( s => s.Id == recordId );
+                    if ( efEntity != null && efEntity.Id > 0 )
+                    {
+                        context.WorkRole.Remove( efEntity );
+                        int count = context.SaveChanges();
+                        //add activity log 
+                        if ( count >= 0 )
+                        {
+                            isValid = true;
+                        }
+                    }
+                    else
+                    {
+                        statusMessage = "Error/Warning - record was not found.";
+                        isValid = true;
+                    }
+
+
+                }
+                catch ( Exception ex )
+                {
+                    LoggingHelper.LogError( ex, thisClassName + string.Format( ".Delete(), Name: {0}", efEntity.Name ) );
+                }
+            }
+
+            return isValid;
+        }
+
         #endregion
 
         #region Retrieval
@@ -277,33 +327,53 @@ namespace Factories
         /// May need a get all for a rating? Should not matter as this is external data?
         /// </summary>
         /// <returns></returns>
-        public static List<AppEntity> GetAll()
+        public static List<AppEntity> GetAll( bool includeOnlyIfHasTasks = true)
         {
             var entity = new AppEntity();
             var list = new List<AppEntity>();
 
-            using ( var context = new DataEntities() )
+            try
             {
-                var results = context.WorkRole
-                        .OrderBy( s => s.Name )
-                        .ToList();
-                if ( results?.Count > 0 )
+                using ( var context = new ViewEntities() )
                 {
-                    foreach ( var item in results )
+                    var results = context.WorkRoleSummary
+                            .Where( g => !includeOnlyIfHasTasks || g.HasRatingTasks > 0 )
+                            .OrderBy( s => s.Name )
+                            .ToList();
+                    if ( results?.Count > 0 )
                     {
-                        if ( item != null && item.Id > 0 )
+                        foreach ( var item in results )
                         {
-                            entity = new AppEntity();
-                            MapFromDB( item, entity );
-                            list.Add( ( entity ) );
+                            if ( item != null && item.Id > 0 )
+                            {
+                                entity = new AppEntity();
+                                MapFromDB( item, entity );
+                                list.Add( ( entity ) );
+                            }
                         }
                     }
+
                 }
+            } catch ( Exception ex )
+            {
 
             }
             return list;
         }
         public static void MapFromDB( DBEntity input, AppEntity output )
+        {
+            //
+            List<string> errors = new List<string>();
+            BaseFactory.AutoMap( input, output, errors );
+            if ( input.RowId != output.RowId )
+            {
+                output.RowId = input.RowId;
+            }
+            //
+
+        }
+
+        public static void MapFromDB( ViewEntity input, AppEntity output )
         {
             //
             List<string> errors = new List<string>();

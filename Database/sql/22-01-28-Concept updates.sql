@@ -7,17 +7,17 @@ UPDATE [dbo].[ConceptScheme.Concept]
 GO
 
 UPDATE [dbo].[ConceptScheme.Concept]
-   SET [Name] = 'Seaman Recruit'
+   SET [Name] = 'Seaman/Fireman/Airman Recruit'
  WHERE CodedNotation = 'E1'
 GO
 
 UPDATE [dbo].[ConceptScheme.Concept]
-   SET [Name] = 'Seaman Apprentice'
+   SET [Name] = 'Seaman/Fireman/Airman Apprentice'
  WHERE CodedNotation = 'E2'
 GO
 
 UPDATE [dbo].[ConceptScheme.Concept]
-   SET [Name] = 'Seaman'
+   SET [Name] = 'Seaman/Fireman/Airman'
  WHERE CodedNotation = 'E3'
 GO
 

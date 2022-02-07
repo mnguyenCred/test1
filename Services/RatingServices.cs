@@ -5,6 +5,9 @@ using System.Text;
 using System.Threading.Tasks;
 
 using AppEntity = Models.Schema.Rating;
+using Models.Application;
+using Models.Curation;
+using Models.Schema;
 using Factories;
 namespace Services
 {
@@ -23,5 +26,6 @@ namespace Services
 
             return allRatings; ;
         }
+
     }
 }

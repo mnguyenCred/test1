@@ -1,11 +1,4 @@
-﻿using Navy.Utilities;
-
-using Models.Application;
-using Models.Import;
-using Services;
-
-
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
@@ -13,10 +6,19 @@ using System.Web;
 using System.Web.Mvc;
 using System.Net;
 using Microsoft.AspNet.Identity;
+
 using NavyRRL.Models;
+using Navy.Utilities;
+
+using Models.Application;
+using Models.Import;
+using Services;
+
+
 
 namespace NavyRRL.Controllers
 {
+   // [Authorize( Roles = "Administrator, Site Staff" )]
     public class AdminController : Controller
     {
         public static string thisClassName = "AdminController";
@@ -328,7 +330,7 @@ namespace NavyRRL.Controllers
         {
             if ( !AccountServices.IsUserAuthenticated() )
             {
-                ConsoleMessageHelper.SetConsoleErrorMessage( "You must be logged in and authorized to perform this action." );
+                ConsoleMessageHelper.SetConsoleErrorMessage( AccountServices.NOT_AUTHENTICATED );
 
                 //return RedirectToAction( "Login", "Account", new { area = "" } );
             }
@@ -340,6 +342,12 @@ namespace NavyRRL.Controllers
                 new AccountServices().Delete( id, deletedBy, ref message );
             }
         }
+
+        public JsonResult GetOrganizations( string keyword )
+        {
+            //var result = null;
+            return Json( null, JsonRequestBehavior.AllowGet );
+        }
         private void AddErrors( IdentityResult result )
         {
             foreach ( var error in result.Errors )
@@ -347,6 +355,49 @@ namespace NavyRRL.Controllers
                 ModelState.AddModelError( "", error );
             }
         }
+        #endregion
+
+
+        #region Role testing
+        [CustomAttributes.NavyAuthorize( "Admin RmtlDeveloperOnly", Roles = "RMTL Developer" )]
+        public ActionResult RmtlDeveloperOnly()
+        {
+            //should not get here with out this role, but just in case
+            AppUser user = AccountServices.GetCurrentUser();
+            if (user?.Id > 0)
+            {
+                if (AccountServices.HasRmtlDeveloperAccess(user ))
+                {
+                    ConsoleMessageHelper.SetConsoleSuccessMessage( "Success, has the proper role." );
+                    return RedirectToAction( "Index", "event");
+                }
+                else
+                {
+                    ConsoleMessageHelper.SetConsoleErrorMessage( AccountServices.NOT_AUTHORIZED );
+                    return RedirectToAction( AccountServices.EVENT_AUTHORIZED, "event" );
+
+                }
+            }
+            else
+            {
+                ConsoleMessageHelper.SetConsoleErrorMessage( AccountServices.NOT_AUTHENTICATED );
+                return RedirectToAction( AccountServices.EVENT_AUTHENTICATED, "event" );
+            }
+          
+        }
+
+        [CustomAttributes.NavyAuthorize( "Admin RatingContinuumManagerOnly Home", Roles = "Rating Continuum Manager" )]
+        public ActionResult RatingContinuumManagerOnly()
+        {
+            return RedirectToAction( "index", "event" );
+        }
+
+        [CustomAttributes.NavyAuthorize( "Admin RCDAnalystOnly", Roles = "Rating Continuum Development Analyst" )]
+        public ActionResult RCDAnalystOnly()
+        {
+            return RedirectToAction( "index", "event" );
+        }
+
         #endregion
     }
 }

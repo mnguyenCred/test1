@@ -1,15 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 using EntitySummary = Models.Schema.RatingTaskSummary;
 using Factories;
+
 using Models.Application;
-using Models.Search;
-using Navy.Utilities;
+using Models.Curation;
 using Models.Import;
+using Models.Schema;
+using Models.Search;
+
+using Navy.Utilities;
 
 namespace Services
 {
@@ -51,10 +53,36 @@ namespace Services
                             where += AND + String.Format( template, keyword );
                             AND = " AND ";
                         }
+
                         else if ( item.Name == "navy:Rating" && item.ItemIds?.Count > 0 )
                         {
                             var template = "( base.id in (select a.[RatingTaskId] from [RatingTask.HasRating] a inner join Rating b on a.ratingId = b.Id where b.Id in ({0}) )) ";
                             var itemList = "";
+                            var comma = "";
+                            foreach ( var t in item.ItemIds )
+                            {
+                                itemList += comma + t.ToString();
+                                comma = ",";
+                            }
+                            where += AND + String.Format( template, itemList );
+                            AND = " AND ";
+                        }
+                        else if ( item.Name == "navy:Organization" && item.ItemIds?.Count > 0 )
+                        {
+                            var template = "( base.CurriculumControlAuthorityId in ({0}) ) ";
+                            var itemList = "";
+                            var comma = "";
+                            foreach ( var t in item.ItemIds )
+                            {
+                                itemList += comma + t.ToString();
+                                comma = ",";
+                            }
+                            where += AND + String.Format( template, itemList );
+                            AND = " AND ";
+                        }
+                        else if ( item.Name == "navy:WorkRole" && item.ItemIds?.Count > 0 )
+                        {
+                            var template = "( base.id in (select a.[RatingTaskId] from [RatingTask.WorkRole] a inner join WorkRole b on a.WorkRoleId = b.Id where b.Id in ({0}) )) "; var itemList = "";
                             var comma = "";
                             foreach ( var t in item.ItemIds )
                             {
@@ -69,6 +97,20 @@ namespace Services
                             var keyword = ServiceHelper.HandleApostrophes( item.Text );
                             var template = "( base.TrainingTask like '%{0}%' ) ";
                             where += AND + String.Format( template, keyword );
+                            AND = " AND ";
+                        }
+
+                        else if ( item.Name == "navy:Job" && item.ItemIds?.Count > 0 )
+                        {
+                            var template = "( base.id in (select a.[RatingTaskId] from [RatingTask.HasJob] a inner join Job b on a.JobId = b.Id where b.Id in ({0}) )) ";
+                            var itemList = "";
+                            var comma = "";
+                            foreach ( var t in item.ItemIds )
+                            {
+                                itemList += comma + t.ToString();
+                                comma = ",";
+                            }
+                            where += AND + String.Format( template, itemList );
                             AND = " AND ";
                         }
                         else if ( item.Name == "search:BilletTitleKeyword" && !string.IsNullOrWhiteSpace( item.Text ) )
@@ -216,5 +258,42 @@ namespace Services
             return list;
         }
 
+
+        public static List<BilletTitle> GetAllActiveBilletTitles()
+        {
+            var output = JobManager.GetAll().ToList();
+
+            return output;
+        }
+
+        public static List<Organization> GetAllOrganizations()
+        {
+            var output = OrganizationManager.GetAll().ToList();
+
+            return output;
+        }
+
+        #region Functional Area
+        public static List<WorkRole> GetAllFunctionalAreas()
+        {
+            var output = WorkRoleManager.GetAll();
+
+            return output;
+        }
+        //chg to just use save
+        public int AddFunctionalArea( WorkRole input, ref ChangeSummary status )
+        {
+            return new WorkRoleManager().Add( input, ref status );
+        }
+        public bool SaveFunctionalArea( WorkRole input, ref ChangeSummary status )
+        {
+            return new WorkRoleManager().Save( input, ref status );
+        }
+        public bool DeleteFunctionalArea( int recordId, AppUser deletedBy, ref string statusMessage )
+        {
+            return new WorkRoleManager().Delete( recordId, deletedBy, ref statusMessage );
+        }
+
+        #endregion
     }
 }

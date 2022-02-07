@@ -229,7 +229,7 @@
 			return;
 		}
 
-		setUploadStatus("Sending data, check console for details...", true);
+		setUploadStatus("Status: Sending data, check below for details...", true);
 		console.log("Submitting data", data);
 		Upload.UI.UploadSummaryBox.html("");
 		
@@ -237,7 +237,7 @@
 			console.log("Received response", response);
 			return response.text()
 		}).then((text) => {
-			setUploadStatus("Received Response, check console for details");
+			setUploadStatus("Status: Received Response, review the Summary report. If there are no issues, then click the <b>Confirm All Changes</b> button to save the data to the database.");
 			Upload.Summary = JSON.parse(text);
 			console.log("Parsed Data", Upload.Summary);
 			//renderResults();
@@ -382,7 +382,7 @@
 					appendProperty(itemBox, "Functional Area", item, "HasWorkRole", getLookupList);
 					appendProperty(itemBox, "Course Type", item, "CourseType", getLookupList);
 					appendProperty(itemBox, "Assessment Method Type", item, "AssessmentMethodType", getLookupList);
-					appendProperty(itemBox, "Reference Type", item, "ReferenceType", getLookupList);
+					appendProperty(itemBox, "Work Element Type", item, "ReferenceType", getLookupList);
 					appendProperty(itemBox, "Has Reference Resource", item, "HasReferenceResource", getLookupList);
 					appendProperty(itemBox, "Curriculum Control Authority", item, "CurriculumControlAuthority", getLookupList);
 					appendProperty(itemBox, "Rating Tasks", item, "HasRatingTask", getLookupList);
@@ -464,7 +464,7 @@
 		setUploadStatus("Confirming changes, please wait...", true);
 
 		postData("@Url.Content("~/upload/confirmchanges")", { changeSummaryRowID: Upload.Summary.Data.RowId }).then((response) => {
-			setUploadStatus("Received response, check console for details");
+			setUploadStatus("Status: Received response, check below for details");
 			console.log("Received response", response);
 			return response.text();
 		}).then((text) => {
@@ -579,6 +579,7 @@
 	.confirmChangesSection { margin-top: 30px; padding: 10px 0; border-top: 1px solid #CCC; }
 	.confirmChangesSection:not(.visible) { display: none; }
 	.confirmChangesSection .confirmationButton { padding: 5px 10px; }
+	.confirmationButton {background-color: green; color: white;}
 
 	.uploadSummary .midExplanation { margin-top: 20px; }
 	.richItemSet { }

@@ -5,7 +5,6 @@
     <!-- Diagram content (shape and connector positions) -->
     <edmx:Diagrams>
       <Diagram DiagramId="f0c058a3e8214195a80077f365b68286" Name="Diagram1" ZoomLevel="64">
-        <EntityTypeShape EntityType="ceNavyViewModel.Activity_Summary" Width="2.75" PointX="18.625" PointY="6.75" />
         <EntityTypeShape EntityType="ceNavyViewModel.Account_Summary" Width="2.375" PointX="17.5" PointY="1.25" />
         <EntityTypeShape EntityType="ceNavyViewModel.AspNetUserRoles_Summary" Width="1.5" PointX="15.25" PointY="1" />
         <EntityTypeShape EntityType="ceNavyViewModel.ConceptSchemeSummary" Width="2.125" PointX="10.375" PointY="14.625" />
@@ -15,6 +14,8 @@
         <EntityTypeShape EntityType="ceNavyViewModel.TrainingTaskSummary" Width="2.625" PointX="3.75" PointY="8.75" />
         <EntityTypeShape EntityType="ceNavyViewModel.ReferenceResourceSummary" Width="2.5" PointX="5.875" PointY="14.5" />
         <EntityTypeShape EntityType="ceNavyViewModel.RatingSummary" Width="1.5" PointX="0.75" PointY="0.75" />
+        <EntityTypeShape EntityType="ceNavyViewModel.WorkRoleSummary" Width="2.625" PointX="0.75" PointY="13.75" FillColor="Yellow" />
+        <EntityTypeShape EntityType="ceNavyViewModel.Activity_Summary" Width="1.5" PointX="13.375" PointY="4.75" />
       </Diagram>
     </edmx:Diagrams>
   </edmx:Designer>

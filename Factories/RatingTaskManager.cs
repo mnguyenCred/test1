@@ -754,7 +754,7 @@ namespace Factories
                             {
                                 if ( !input.HasWorkRole.Contains( ( Guid ) key ) )
                                 {
-                                    DeleteRatingTaskWorkRole( input.Id, e.Id, ref status );
+                                    //DeleteRatingTaskWorkRole( input.Id, e.Id, ref status );
                                 }
                             }
                         }
