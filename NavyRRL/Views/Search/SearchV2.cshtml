@@ -219,6 +219,9 @@
 		createFilter_Autofill("navy:Job", 0, textFilterBox, "BilletTitle", (Filter, text) => {
             return findSimpleFilterItem(Search.Prefilled.BilletTitle.Items, Filter.Items, text);
 		});
+		createFilter_Autofill("navy:WorkRole", 0, textFilterBox, "Functional Area", (Filter, text) => {
+			return findSimpleFilterItem(Search.Prefilled.FunctionalArea.Items, Filter.Items, text);
+		});
         createFilter_Autofill("navy:Organization", 0, textFilterBox, "CCA", (Filter, text) => {
             return findSimpleFilterItem(Search.Prefilled.Organization.Items, Filter.Items, text);
         });
