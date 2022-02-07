@@ -218,6 +218,9 @@
     <Compile Include="Views\TrainingTaskSummary.cs">
       <DependentUpon>NavyViews.tt</DependentUpon>
     </Compile>
+    <Compile Include="Views\WorkRoleSummary.cs">
+      <DependentUpon>NavyViews.tt</DependentUpon>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />

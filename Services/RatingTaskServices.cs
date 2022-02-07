@@ -1,15 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 using EntitySummary = Models.Schema.RatingTaskSummary;
 using Factories;
+
 using Models.Application;
-using Models.Search;
-using Navy.Utilities;
+using Models.Curation;
 using Models.Import;
+using Models.Schema;
+using Models.Search;
+
+using Navy.Utilities;
 
 namespace Services
 {
@@ -256,5 +258,42 @@ namespace Services
             return list;
         }
 
+
+        public static List<BilletTitle> GetAllActiveBilletTitles()
+        {
+            var output = JobManager.GetAll().ToList();
+
+            return output;
+        }
+
+        public static List<Organization> GetAllOrganizations()
+        {
+            var output = OrganizationManager.GetAll().ToList();
+
+            return output;
+        }
+
+        #region Functional Area
+        public static List<WorkRole> GetAllFunctionalAreas()
+        {
+            var output = WorkRoleManager.GetAll();
+
+            return output;
+        }
+        //chg to just use save
+        public int AddFunctionalArea( WorkRole input, ref ChangeSummary status )
+        {
+            return new WorkRoleManager().Add( input, ref status );
+        }
+        public bool SaveFunctionalArea( WorkRole input, ref ChangeSummary status )
+        {
+            return new WorkRoleManager().Save( input, ref status );
+        }
+        public bool DeleteFunctionalArea( int recordId, AppUser deletedBy, ref string statusMessage )
+        {
+            return new WorkRoleManager().Delete( recordId, deletedBy, ref statusMessage );
+        }
+
+        #endregion
     }
 }

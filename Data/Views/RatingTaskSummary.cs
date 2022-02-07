@@ -60,5 +60,8 @@ namespace Data.Views
         public Nullable<int> LastUpdatedById { get; set; }
         public string ModifiedBy { get; set; }
         public Nullable<System.Guid> ModifiedByUID { get; set; }
+        public string RankName { get; set; }
+        public Nullable<int> CurriculumControlAuthorityId { get; set; }
+        public Nullable<System.Guid> CurriculumControlAuthorityUID { get; set; }
     }
 }

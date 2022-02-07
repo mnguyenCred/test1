@@ -30,10 +30,11 @@ namespace NavyRRL.Controllers
 			} else
             {
 
-            }
+			}
 			return View( "~/views/search/searchv2.cshtml" );
         }
 		//
+		
 		public ActionResult SearchV1()
 		{
 			return View( "~/views/search/searchv1.cshtml" );
@@ -48,6 +49,7 @@ namespace NavyRRL.Controllers
 			return View( "~/views/search/searchv3.cshtml" );
 		}
 		//
+
 		[HttpPost]
 		public ActionResult MainSearch( SM.SearchQuery query )
 		{
