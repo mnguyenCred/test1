@@ -78,6 +78,8 @@ namespace NavyRRL.Controllers
             return View();
         }
 
+
+        #region  Functional Area
         [CustomAttributes.NavyAuthorize( "ManageFunctionalArea", Roles = "Administrator, Site Staff" )]
         public ActionResult ManageFunctionalArea()
         {
@@ -111,5 +113,8 @@ namespace NavyRRL.Controllers
             List<WorkRole> input = RatingTaskServices.GetAllFunctionalAreas();
             return View( input );
         }
+
+
+        #endregion
     }
 }

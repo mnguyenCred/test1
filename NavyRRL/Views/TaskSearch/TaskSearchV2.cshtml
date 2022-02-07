@@ -10,19 +10,19 @@
 		Name = "navy:Rating",
 		Items = ratings.Select( m => { return new SimpleFilterItem() { Label = m.CodedNotation + " - " + m.Name, Id = m.Id }; } ).ToList()
 	};
-	var billetTitles = RatingServices.GetAllActiveBilletTitles().ToList();
+	var billetTitles = RatingTaskServices.GetAllActiveBilletTitles().ToList();
 	var billetFilter = new SimpleFilter()
 	{
 		Name = "navy:Job",
 		Items = billetTitles.Select( m => { return new SimpleFilterItem() { Label = m.Name, Id = m.Id }; } ).ToList()
 	};
-	var cca = RatingServices.GetAllOrganizations().ToList();
+	var cca = RatingTaskServices.GetAllOrganizations().ToList();
 	var ccaFilter = new SimpleFilter()
 	{
 		Name = "navy:Organization",
 		Items = cca.Select( m => { return new SimpleFilterItem() { Label = m.Name, Id = m.Id }; } ).ToList()
 	};
-	var functionalAreas = RatingServices.GetAllWorkRoles().ToList();
+	var functionalAreas = RatingTaskServices.GetAllFunctionalAreas().ToList();
 	var functionalAreaFilter = new SimpleFilter()
 	{
 		Name = "navy:WorkRole",
