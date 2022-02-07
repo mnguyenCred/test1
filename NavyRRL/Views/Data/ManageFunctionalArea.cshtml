@@ -18,103 +18,103 @@
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap3-dialog/1.34.5/js/bootstrap-dialog.min.js"></script>
-<script>
+<script type="text/javascript">
 
-    function saveData(i, custid) {
-        if (validateForm(i)) {
-            var txtcustName = $("#tblinfo").find("input[id=txtCName_" + i.toString() + "]").val();
-            var IDd = i;
-            var txthdnCustId = custid;
-            console.log("txtCName : " + txtPrice);
-
-
-            var item = {};
-            var jsonObj = [];
-
-            item["CustId"] = txthdnCustId;
-            item["CustName"] = txtcustName;
-            item["Id"] = IDd;
-            item["Name"] = txtName;
-            jsonObj.push(item);
+	function saveData(i, custid) {
+		if (validateForm(i)) {
+			var txtcustName = $("#tblinfo").find("input[id=txtCName_" + i.toString() + "]").val();
+			var IDd = i;
+			var txthdnCustId = custid;
+			console.log("txtCName : " + txtPrice);
 
 
-            console.log("jsonObj : " + jsonObj);
-            var jsonString = JSON.stringify(jsonObj);
-            console.log("jsonString : " + jsonString);
+			var item = {};
+			var jsonObj = [];
 
-            $.ajax({
-                url: "~/data/SaveFunctionalArea",
-                type: "POST",
-                data: { custId: txthdnCustId, dataToSend: jsonString, custName: txtcustName },
-                success: function (data) {
-                    if (data.status == "Success") {
-                        BootstrapDialog.show({
-                            title: 'Success!',
-                            message: "Data Updated Successfully!",
-                            buttons: [{
-                                label: 'OK',
-                                action: function (dialog) {
-                                    window.location.href = "/Home/Index";
-                                    removeData(i);
-                                    $("#btnAdd").attr("disabled", false);
-                                    dialog.close();
-                                }
-                            }]
-                        });
-                    }
-
-                }
-            });
-        }
-    }
+			item["CustId"] = txthdnCustId;
+			item["CustName"] = txtcustName;
+			item["Id"] = IDd;
+			item["Name"] = txtName;
+			jsonObj.push(item);
 
 
-    function deleteData(recordId) {
-        $.ajax({
-            url: "~/data/DeleteFunctionalArea",
-            type: "POST",
-            data: { recordId: recordId },
-            success: function (data) {
-                if (data.status == "Success") {
-                    BootstrapDialog.show({
-                        title: 'Success!',
-                        message: "Data Deleted Successfully!",
-                        buttons: [{
-                            label: 'OK',
-                            action: function (dialog) {
-                                window.location.href = "~/Data/Index";
-                                dialog.close();
-                            }
-                        }]
-                    });
-                }
-            }
-        });
-    }
+			console.log("jsonObj : " + jsonObj);
+			var jsonString = JSON.stringify(jsonObj);
+			console.log("jsonString : " + jsonString);
 
-    function validateForm(i) {
-        var flag = true;
-        var msg = "";
+			$.ajax({
+				url: "~/data/SaveFunctionalArea",
+				type: "POST",
+				data: { custId: txthdnCustId, dataToSend: jsonString, custName: txtcustName },
+				success: function (data) {
+					if (data.status == "Success") {
+						BootstrapDialog.show({
+							title: 'Success!',
+							message: "Data Updated Successfully!",
+							buttons: [{
+								label: 'OK',
+								action: function (dialog) {
+									window.location.href = "/Home/Index";
+									removeData(i);
+									$("#btnAdd").attr("disabled", false);
+									dialog.close();
+								}
+							}]
+						});
+					}
 
-        var CustName = $("#tblinfo").find("input[id=txtCName_" + i.toString() + "]").val();
+				}
+			});
+		}
+	}
 
-        if (CustName == "") {
-            msg += "Functional Area Name at level " + i + " is required. " + "\n";
-            $("#txtCName_" + i.toString()).val('');
-            flag = false;
-        }
 
-        if (flag == false) {
-            BootstrapDialog.show({
-                title: 'Warning!',
-                message: msg
-            });
-        }
+	function deleteData(recordId) {
+		$.ajax({
+			url: "~/data/DeleteFunctionalArea",
+			type: "POST",
+			data: { recordId: recordId },
+			success: function (data) {
+				if (data.status == "Success") {
+					BootstrapDialog.show({
+						title: 'Success!',
+						message: "Data Deleted Successfully!",
+						buttons: [{
+							label: 'OK',
+							action: function (dialog) {
+								window.location.href = "~/Data/Index";
+								dialog.close();
+							}
+						}]
+					});
+				}
+			}
+		});
+	}
 
-        return flag;
-    }
+	function validateForm(i) {
+		var flag = true;
+		var msg = "";
+
+		var CustName = $("#tblinfo").find("input[id=txtCName_" + i.toString() + "]").val();
+
+		if (CustName == "") {
+			msg += "Functional Area Name at level " + i + " is required. " + "\n";
+			$("#txtCName_" + i.toString()).val('');
+			flag = false;
+		}
+
+		if (flag == false) {
+			BootstrapDialog.show({
+				title: 'Warning!',
+				message: msg
+			});
+		}
+
+		return flag;
+	}
 </script>
-<script>
+<script type="text/javascript">
     function AddRowData() {
         var incrID = @newID +1;
 
@@ -139,32 +139,32 @@
         $("#btnAdd").attr("disabled", false);
     };
 </script>
-<script>
-    function editRowData(i) {
+<script type="text/javascript">
+	function editRowData(i) {
 
-        $("#tblinfo").find('#btnEdit_' + i.toString()).hide();
-        $("#tblinfo").find('#btnDelete_' + i.toString()).hide();
+		$("#tblinfo").find('#btnEdit_' + i.toString()).hide();
+		$("#tblinfo").find('#btnDelete_' + i.toString()).hide();
 
-        $("#tblinfo").find('#tdName_' + i.toString()).hide();
+		$("#tblinfo").find('#tdName_' + i.toString()).hide();
 
-        $("#tblinfo").find('#btnUpdate_' + i.toString()).show();
-        $("#tblinfo").find('#btnCancel_' + i.toString()).show();
+		$("#tblinfo").find('#btnUpdate_' + i.toString()).show();
+		$("#tblinfo").find('#btnCancel_' + i.toString()).show();
 
-        $("#tblinfo").find('#txtName_' + i.toString()).show();
-    }
+		$("#tblinfo").find('#txtName_' + i.toString()).show();
+	}
 
-    function removeData(i) {
+	function removeData(i) {
 
-        $("#tblinfo").find('#btnEdit_' + i.toString()).show();
-        $("#tblinfo").find('#btnDelete_' + i.toString()).show();
+		$("#tblinfo").find('#btnEdit_' + i.toString()).show();
+		$("#tblinfo").find('#btnDelete_' + i.toString()).show();
 
-        $("#tblinfo").find('#tdName_' + i.toString()).show();
+		$("#tblinfo").find('#tdName_' + i.toString()).show();
 
-        $("#tblinfo").find('#btnUpdate_' + i.toString()).hide();
-        $("#tblinfo").find('#btnCancel_' + i.toString()).hide();
+		$("#tblinfo").find('#btnUpdate_' + i.toString()).hide();
+		$("#tblinfo").find('#btnCancel_' + i.toString()).hide();
 
-        $("#tblinfo").find('#txtName_' + i.toString()).hide();
-    }
+		$("#tblinfo").find('#txtName_' + i.toString()).hide();
+	}
 </script>
 <div style="margin: auto; width: 65%;">
     <h2>Manage Functional Area</h2>
