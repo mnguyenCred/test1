@@ -78,6 +78,18 @@ namespace Services
                             where += AND + String.Format( template, itemList );
                             AND = " AND ";
                         }
+                        else if ( item.Name == "navy:WorkRole" && item.ItemIds?.Count > 0 )
+                        {
+                            var template = "( base.id in (select a.[RatingTaskId] from [RatingTask.WorkRole] a inner join WorkRole b on a.WorkRoleId = b.Id where b.Id in ({0}) )) "; var itemList = "";
+                            var comma = "";
+                            foreach ( var t in item.ItemIds )
+                            {
+                                itemList += comma + t.ToString();
+                                comma = ",";
+                            }
+                            where += AND + String.Format( template, itemList );
+                            AND = " AND ";
+                        }
                         else if ( item.Name == "search:TrainingTaskKeyword" && !string.IsNullOrWhiteSpace( item.Text ) )
                         {
                             var keyword = ServiceHelper.HandleApostrophes( item.Text );

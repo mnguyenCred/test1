@@ -60,7 +60,8 @@ DELETE FROM NavyRRL.dbo.Job
 --DELETE FROM NavyRRL.dbo.[Job.HasRatingTask]
 --
 --must be done after RatingTask
-DELETE FROM NavyRRL.dbo.Organization
+--NO LONGER CLEAR HAS HAVE ADDED ADDITIONAL DATA
+--DELETE FROM NavyRRL.dbo.Organization
 --
 DELETE FROM NavyRRL.dbo.ReferenceResource   
 --DELETE FROM NavyRRL.dbo.[ReferenceResource.ReferenceType]   
@@ -101,7 +102,7 @@ DBCC CHECKIDENT ('[Course.Concept]', RESEED, 0);
 DBCC CHECKIDENT ('[Job]', RESEED, 0);
 --DBCC CHECKIDENT ('[Job.HasRatingTask]', RESEED, 0);;
 --
-DBCC CHECKIDENT ('[Organization]', RESEED, 0);
+--DBCC CHECKIDENT ('[Organization]', RESEED, 0);
 --DBCC CHECKIDENT ('[Rating]', RESEED, 0);
 DBCC CHECKIDENT ('[RatingTask]', RESEED, 0);
 

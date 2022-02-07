@@ -16,17 +16,28 @@ namespace Factories
     public class AccountManager : BaseFactory
 	{
 		static new string thisClassName = "AccountManager";
-
+		//AspNetRolesids 
 		static int Administrator = 1;
 		static int SiteManager = 2;
 		static int SiteStaff = 3;
 
 		static int RMTLDeveloper = 10;
-		static int RMTLSME = 11;
-		static int RCDCAnalyst = 12;
+		static int RCDAnalyst = 11;
 		static int RatingContinuumManager = 13;
+		static int RMTLSME = 13;
 
 		static int SiteReader = 20;
+
+		//AspNetRolesids 
+		public static string ROLE_ADMINISTRATOR = "Administrator";
+		public static string ROLE_SITE_MANAGER = "Site Manager";
+		public static string ROLE_SITE_STAFF = "Site Staff";
+
+		public static string ROLE_RMTL_DEVELOPER = "RMTL Developer";
+		public static string ROLE_RATING_CONTINUUM_MANAGER = "Rating Continuum Manager";
+		public static string ROLE_RATING_CONTINUUM_DEVELOPMENT_ANALYST = "Rating Continuum Development Analyst";
+		public static string ROLE_RMTL_SME = "RMTL Subject Matter Expert";
+
 
 		static string SessionLoginProxy = "Session Login Proxy";
 

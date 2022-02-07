@@ -22,6 +22,7 @@ namespace Models.Curation
 			PossibleDuplicates = new List<PossibleDuplicateSet>();
 		}
 
+		public string Rating { get; set; }
 		/// <summary>
 		/// Set of items that don't exist and will be created.
 		/// </summary>

@@ -340,3 +340,5 @@ ASALocalRun/
 healthchecksdb
 *.zip
 /NavyARTT/Areas/Admin/Views/RegistryHistory/Index - Copy.cshtml
+/NavyRRL/Controllers/SearchController - Copy.cs
+/NavyRRL/Views/Upload/UploadV3.cshtml

@@ -6,22 +6,41 @@ using System.Web.Mvc;
 
 using Newtonsoft.Json.Linq;
 
+using AM = Models.Application;
 using SM = Models.Schema;
 using CM = Models.Curation;
 using Models.Application;
 using Navy.Utilities;
 using Models.Curation;
-
+using Services;
 namespace NavyRRL.Controllers
 {
     public class UploadController : BaseController
     {
-        // GET: Upload
-        public ActionResult Index()
+		// GET: Upload
+		[CustomAttributes.NavyAuthorize( "Search", Roles = "Administrator, RMTL Developer, Site Staff" )]
+
+		public ActionResult Index()
         {
+			if ( !AccountServices.IsUserAuthenticated() )
+			{
+				AM.SiteMessage siteMessage = new AM.SiteMessage()
+				{
+					Title = "Invalid Request",
+					Message = "You must be authenticated and authorized to use this feature"
+				};
+				ConsoleMessageHelper.SetConsoleErrorMessage( "You must be logged in and authorized to perform this action." );
+				return RedirectToAction( AccountServices.EVENT_AUTHENTICATED, "event" );
+
+			} else
+            {
+
+            }
 			return View( "~/views/upload/uploadv2.cshtml" );
         }
 		//
+
+		[CustomAttributes.NavyAuthorize( "Search", Roles = "Administrator, RMTL Developer, Site Staff" )]
 
 		public ActionResult UploadV2()
 		{

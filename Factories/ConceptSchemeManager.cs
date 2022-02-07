@@ -161,7 +161,7 @@ namespace Factories
 		/// </summary>
 		/// <param name="shortURI"></param>
 		/// <returns></returns>
-		public static AppEntity GetbyShortUri( string shortURI )
+		public static AppEntity GetbyShortUri( string shortURI, bool usingWorkElementTypeForName = false )
 		{
 			var entity = new AppEntity();
 			if ( string.IsNullOrWhiteSpace( shortURI ) )
@@ -174,7 +174,7 @@ namespace Factories
 
 				if ( item != null && item.Id > 0 )
 				{
-					MapFromDB( item, entity );
+					MapFromDB( item, entity, usingWorkElementTypeForName );
 				}
 			}
 			return entity;
@@ -249,7 +249,7 @@ namespace Factories
             return list;
         }
 
-        public static void MapFromDB( DBEntity input, AppEntity output )
+        public static void MapFromDB( DBEntity input, AppEntity output, bool usingWorkElementTypeForName = false )
         {
             //should include list of concepts
             List<string> errors = new List<string>();
@@ -269,7 +269,7 @@ namespace Factories
                     if ( item.IsActive )
                     {
                         var concept = new Concept();
-                        MapFromDB( item, concept );
+                        MapFromDB( item, concept, usingWorkElementTypeForName );
                         output.Concepts.Add( concept );
                     }
                 }
@@ -586,10 +586,14 @@ namespace Factories
             return entity;
         }
 
-        public static void MapFromDB( ConceptScheme_Concept input, Concept output )
+        public static void MapFromDB( ConceptScheme_Concept input, Concept output, bool usingWorkElementTypeForName = false )
         {
             List<string> errors = new List<string>();
             BaseFactory.AutoMap( input, output, errors );
+            if ( usingWorkElementTypeForName )
+            {
+                //output.Name = string.IsNullOrWhiteSpace(input.WorkElementType) ? output.Name : input.WorkElementType; 
+            }
             if ( input.RowId != output.RowId )
             {
                 output.RowId = input.RowId;
