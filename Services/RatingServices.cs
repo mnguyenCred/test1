@@ -5,6 +5,8 @@ using System.Text;
 using System.Threading.Tasks;
 
 using AppEntity = Models.Schema.Rating;
+using Models.Application;
+using Models.Curation;
 using Models.Schema;
 using Factories;
 namespace Services
@@ -25,18 +27,5 @@ namespace Services
             return allRatings; ;
         }
 
-        public static List<BilletTitle> GetAllActiveBilletTitles()
-        {
-            var output = JobManager.GetAll().ToList();
-
-            return output;
-        }
-
-        public static List<Organization> GetAllOrganizations()
-        {
-            var output = OrganizationManager.GetAll().ToList();
-
-            return output;
-        }
     }
 }

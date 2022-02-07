@@ -25,7 +25,6 @@ namespace Data.Views
             throw new UnintentionalCodeFirstException();
         }
     
-        public virtual DbSet<Activity_Summary> Activity_Summary { get; set; }
         public virtual DbSet<Account_Summary> Account_Summary { get; set; }
         public virtual DbSet<AspNetUserRoles_Summary> AspNetUserRoles_Summary { get; set; }
         public virtual DbSet<ConceptSchemeSummary> ConceptSchemeSummary { get; set; }
@@ -35,5 +34,7 @@ namespace Data.Views
         public virtual DbSet<TrainingTaskSummary> TrainingTaskSummary { get; set; }
         public virtual DbSet<ReferenceResourceSummary> ReferenceResourceSummary { get; set; }
         public virtual DbSet<RatingSummary> RatingSummary { get; set; }
+        public virtual DbSet<WorkRoleSummary> WorkRoleSummary { get; set; }
+        public virtual DbSet<Activity_Summary> Activity_Summary { get; set; }
     }
 }

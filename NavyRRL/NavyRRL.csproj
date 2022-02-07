@@ -595,6 +595,7 @@
     <Content Include="Views\RatingSearch\RatingSearchV1.cshtml" />
     <Content Include="Views\Search\SearchV2.cshtml" />
     <Content Include="Views\rmtl\FunctionalArea.cshtml" />
+    <Content Include="Views\Data\ManageFunctionalArea.cshtml" />
     <None Include="Web.Sandbox.config">
       <DependentUpon>Web.config</DependentUpon>
     </None>

@@ -5,9 +5,13 @@ using System.Web;
 using System.Web.Mvc;
 
 using AM = Models.Application;
+using Models.Curation;
 using Navy.Utilities;
 using Services;
 using Models.Application;
+using Models.Schema;
+using System.Threading.Tasks;
+
 namespace NavyRRL.Controllers
 {
     public class DataController : Controller
@@ -68,11 +72,44 @@ namespace NavyRRL.Controllers
             }
             return View();
         }
-        [CustomAttributes.NavyAuthorize( "ManageConceptSchemes", Roles = "Administrator, RMTL Developer, Site Staff" )]
+        [CustomAttributes.NavyAuthorize( "ManageConceptSchemes", Roles = "Administrator, Site Staff" )]
         public ActionResult ManageConceptSchemes()
         {
             return View();
         }
 
+        [CustomAttributes.NavyAuthorize( "ManageFunctionalArea", Roles = "Administrator, Site Staff" )]
+        public ActionResult ManageFunctionalArea()
+        {
+            List<WorkRole> input = RatingTaskServices.GetAllFunctionalAreas();
+            return View( input );
+        }
+
+        
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public JsonResult SaveFunctionalArea( int recordId, string name )
+        {
+            //long _id = 0;
+            //if ( !string.IsNullOrEmpty( recordId ) && !string.IsNullOrEmpty( name ) )
+            //{
+            //    long.TryParse( custId, out _CustId );
+            //}
+            ChangeSummary status = new ChangeSummary();
+            WorkRole workRole = new WorkRole()
+            {
+                Id = recordId,
+                Name = name
+            };
+            var result = new RatingTaskServices().SaveFunctionalArea( workRole, ref status );
+
+            return Json( new { status = "Success" } );
+        }
+
+        public ActionResult DeleteFunctionalArea( string recordId )
+        {
+            List<WorkRole> input = RatingTaskServices.GetAllFunctionalAreas();
+            return View( input );
+        }
     }
 }
