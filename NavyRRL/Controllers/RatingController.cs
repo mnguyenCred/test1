@@ -22,11 +22,9 @@ namespace NavyRRL.Controllers
 
 		public ActionResult DoSearch( SearchQuery query )
 		{
-			bool valid = true;
-			string status = "";
-			var results = new SearchServices().RatingSearch( query, ref valid, ref status );
+			var results = SearchServices.RatingSearch( query );
 
-			return JsonResponse( results, valid, new List<string>() { status }, null );
+			return JsonResponse( results, true );
 		}
 		//
 

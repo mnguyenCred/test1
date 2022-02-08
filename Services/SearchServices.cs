@@ -84,146 +84,107 @@ namespace Services
 		}
 		//
 
-
-		public SearchResultSet<ResultWithExtraData<Course>> CourseSearch( SearchQuery query, ref bool valid, ref string status, JObject debug = null )
+		public static SearchResultSet<T> GeneralSearch<T>( SearchQuery query, Func<SearchQuery, List<T>> searchMethod, JObject debug = null )
 		{
+			//Setup logging
 			debug = debug ?? new JObject();
-			LoggingHelper.DoTrace( 6, thisClassName + ".CourseSearch - entered" );
+			var searchType = typeof( T ).Name;
+			LoggingHelper.DoTrace( 6, thisClassName + "." + searchType + "Search - entered" );
 
 			//Normalize the query
-			NormalizeQuery( query, "Course" );
+			NormalizeQuery( query, searchType );
 
 			//Do the search
 			var totalResults = 0;
-			LoggingHelper.DoTrace( 7, thisClassName + ".CourseSearch. Calling: " + query.SearchType );
-			var results = new List<Course>();// CourseServices.Search( query, ref totalResults );
+			LoggingHelper.DoTrace( 7, thisClassName + "." + searchType + "Search. Calling: " + query.SearchType );
+			var results = searchMethod( query );
 
 			//Convert the results
-			var output = new SearchResultSet<ResultWithExtraData<Course>>() { TotalResults = totalResults, SearchType = query.SearchType };
-			foreach ( var item in results )
-			{
-				output.Results.Add( new ResultWithExtraData<Course>()
-				{
-					Data = item, //Course?
-					Extra = new JObject()
-					{
-						{ "RecordId", item.Id },
-						{ "CTID", item.CTID },
-						{ "RowId", item.RowId.ToString() },
-						{ "Created", item.Created.ToShortDateString() },
-						{ "LastUpdated", item.LastUpdated.ToShortDateString() },
-					}
-				} );
-			}
+			var output = new SearchResultSet<T>() { Results = results, TotalResults = query.TotalResults, SearchType = searchType };
 
 			//Return the results
 			return output;
 		}
-		//BilletTitle
-		public SearchResultSet<ResultWithExtraData<BilletTitle>> BilletTitleSearch( SearchQuery query, ref bool valid, ref string status, JObject debug = null )
+
+		//Billet Title
+		public static SearchResultSet<BilletTitle> BilletTitleSearch( SearchQuery query, JObject debug = null )
 		{
-			debug = debug ?? new JObject();
-			LoggingHelper.DoTrace( 6, thisClassName + ".BilletTitleSearch - entered" );
-
-			//Normalize the query
-			NormalizeQuery( query, "BilletTitle" );
-
-			//Do the search
-			var totalResults = 0;
-			var results = Factories.JobManager.Search( query );
-
-			//Convert the results
-			var output = new SearchResultSet<ResultWithExtraData<BilletTitle>>() { TotalResults = totalResults, SearchType = query.SearchType };
-			foreach ( var item in results )
-			{
-				output.Results.Add( new ResultWithExtraData<BilletTitle>()
-				{
-					Data = item, //Course?
-					Extra = new JObject()
-					{
-						{ "RecordId", item.Id },
-						{ "CTID", item.CTID },
-						{ "RowId", item.RowId.ToString() },
-						{ "Created", item.Created.ToShortDateString() },
-						{ "LastUpdated", item.LastUpdated.ToShortDateString() },
-					}
-				} );
-			}
-
-			//Return the results
-			return output;
-		}
-		//Rating
-		public SearchResultSet<ResultWithExtraData<Rating>> RatingSearch( SearchQuery query, ref bool valid, ref string status, JObject debug = null )
-		{
-			debug = debug ?? new JObject();
-			LoggingHelper.DoTrace( 6, thisClassName + ".RatingSearch - entered" );
-
-			//Normalize the query
-			NormalizeQuery( query, "Rating" );
-
-			//Do the search
-			var totalResults = 0;
-			var results = Factories.RatingManager.Search( query );
-
-			//Convert the results
-			var output = new SearchResultSet<ResultWithExtraData<Rating>>() { TotalResults = totalResults, SearchType = query.SearchType };
-			foreach ( var item in results )
-			{
-				output.Results.Add( new ResultWithExtraData<Rating>()
-				{
-					Data = item, //
-					Extra = new JObject()
-					{
-						{ "RecordId", item.Id },
-						{ "CTID", item.CTID },
-						{ "RowId", item.RowId.ToString() },
-						{ "Created", item.Created.ToShortDateString() },
-						{ "LastUpdated", item.LastUpdated.ToShortDateString() },
-					}
-				} );
-			}
-
-			//Return the results
-			return output;
-		}
-		//WorkRole
-		public SearchResultSet<ResultWithExtraData<WorkRole>> WorkRoleSearch( SearchQuery query, ref bool valid, ref string status, JObject debug = null )
-		{
-			debug = debug ?? new JObject();
-			LoggingHelper.DoTrace( 6, thisClassName + ".WorkRoleSearch - entered" );
-
-			//Normalize the query
-			NormalizeQuery( query, "WorkRole" );
-
-			//Do the search
-			var totalResults = 0;
-			var results = Factories.WorkRoleManager.Search( query );
-
-			//Convert the results
-			var output = new SearchResultSet<ResultWithExtraData<WorkRole>>() { TotalResults = totalResults, SearchType = query.SearchType };
-			foreach ( var item in results )
-			{
-				output.Results.Add( new ResultWithExtraData<WorkRole>()
-				{
-					Data = item, //Course?
-					Extra = new JObject()
-					{
-						{ "RecordId", item.Id },
-						{ "CTID", item.CTID },
-						{ "RowId", item.RowId.ToString() },
-						{ "Created", item.Created.ToShortDateString() },
-						{ "LastUpdated", item.LastUpdated.ToShortDateString() },
-					}
-				} );
-			}
-
-			//Return the results
-			return output;
+			return GeneralSearch( query, Factories.JobManager.Search, debug );
 		}
 		//
 
-		private void NormalizeQuery( SearchQuery query, string searchType, JObject debug = null )
+		//Concept
+		public static SearchResultSet<Concept> ConceptSearch( SearchQuery query, JObject debug = null )
+		{
+			return GeneralSearch( query, Factories.ConceptSchemeManager.SearchConcept, debug );
+		}
+		//
+
+		//ConceptScheme
+		public static SearchResultSet<ConceptScheme> ConceptSchemeSearch( SearchQuery query, JObject debug = null )
+		{
+			return GeneralSearch( query, Factories.ConceptSchemeManager.Search, debug );
+		}
+		//
+
+		//Course
+		public static SearchResultSet<Course> CourseSearch( SearchQuery query, JObject debug = null )
+		{
+			return GeneralSearch( query, Factories.CourseManager.Search, debug );
+		}
+		//
+
+		//Organization
+		public static SearchResultSet<Organization> OrganizationSearch( SearchQuery query, JObject debug = null )
+		{
+			return GeneralSearch( query, Factories.OrganizationManager.Search, debug );
+		}
+		//
+
+		//Rating
+		public static SearchResultSet<Rating> RatingSearch( SearchQuery query, JObject debug = null )
+		{
+			return GeneralSearch( query, Factories.RatingManager.Search, debug );
+		}
+		//
+
+		//RatingTask
+		public static SearchResultSet<RatingTask> RatingTaskSearch( SearchQuery query, JObject debug = null )
+		{
+			return GeneralSearch( query, Factories.RatingTaskManager.Search, debug );
+		}
+		//
+
+		//ReferenceResource
+		public static SearchResultSet<ReferenceResource> ReferenceResourceSearch( SearchQuery query, JObject debug = null )
+		{
+			return GeneralSearch( query, Factories.ReferenceResourceManager.Search, debug );
+		}
+		//
+
+		//RMTLProject
+		public static SearchResultSet<RMTLProject> RMTLProjectSearch( SearchQuery query, JObject debug = null )
+		{
+			//return GeneralSearch( query, Factories.RMTLProjectManager.Search, debug );
+			return new SearchResultSet<RMTLProject>() { Results = new List<RMTLProject>() { new RMTLProject() { Name = "Not implemented yet!" } } };
+		}
+		//
+
+		//TrainingTask
+		public static SearchResultSet<TrainingTask> TrainingTaskSearch( SearchQuery query, JObject debug = null )
+		{
+			return GeneralSearch( query, Factories.TrainingTaskManager.Search, debug );
+		}
+		//
+
+		//Work Role
+		public static SearchResultSet<WorkRole> WorkRoleSearch( SearchQuery query, JObject debug = null )
+		{
+			return GeneralSearch( query, Factories.WorkRoleManager.Search, debug );
+		}
+		//
+
+		private static void NormalizeQuery( SearchQuery query, string searchType, JObject debug = null )
 		{
 			//Sanitize Keywords
 			query.Keywords = SanitizeKeywordString( query.Keywords );
@@ -250,7 +211,7 @@ namespace Services
 		}
 		//
 
-		private string SanitizeKeywordString( string text )
+		private static string SanitizeKeywordString( string text )
 		{
 			var result = string.IsNullOrWhiteSpace( text ) ? "" : text;
 			result = ServiceHelper.CleanText( result );

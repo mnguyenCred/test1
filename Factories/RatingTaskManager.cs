@@ -19,6 +19,7 @@ using DBEntity = Data.Tables.RatingTask;
 
 using Navy.Utilities;
 using System.Runtime.Caching;
+using Models.Search;
 
 namespace Factories
 {
@@ -165,8 +166,13 @@ namespace Factories
             }
             return list;
         }
-
-        public static List<AppEntity> GetAllForRating( string ratingCodedNotation, bool includingAllSailorsTasks, ref int totalRows )
+		public static List<AppEntity> Search( SearchQuery query )
+		{
+			//TODO: Implement
+			query.TotalResults = 0;
+			return new List<AppEntity>();
+		}
+		public static List<AppEntity> GetAllForRating( string ratingCodedNotation, bool includingAllSailorsTasks, ref int totalRows )
         {
             int pageNumber = 1;
             //what is a reasonable max number for all tasks for a rating?

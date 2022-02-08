@@ -22,17 +22,9 @@ namespace NavyRRL.Controllers
 
 		public ActionResult DoSearch( SearchQuery query )
 		{
-			//var tempResults = SearchController.CreateFakeResults<BilletTitle>( query.PageNumber, query.PageSize );
-			//List<BilletTitle> results = Factories.JobManager.Search( query );
+			var results = SearchServices.BilletTitleSearch( query );
 
-			//var output = ConvertResults<BilletTitle>( query, results );
-
-			//return JsonResponse( output, true );
-			bool valid = true;
-			string status = "";
-			var results = new SearchServices().BilletTitleSearch( query, ref valid, ref status );
-
-			return JsonResponse( results, valid, new List<string>() { status }, null );
+			return JsonResponse( results, true );
 		}
 		public SearchResultSet<T> ConvertResults<T>( SearchQuery query, List<BilletTitle> results ) where T : BilletTitle, new()
 		{

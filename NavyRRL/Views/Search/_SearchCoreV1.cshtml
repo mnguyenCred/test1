@@ -76,7 +76,7 @@
 		Search.handleResponse = function (response) {
 			if (response.Valid) {
 				Search.Results = response.Data.Results;
-				Search.TotalResults = response.Data.TotalResults;
+				Search.TotalResults = response.Data.TotalResults || 0;
 				Search.setStatus("Found " + Search.TotalResults + " Results");
 				Search.renderResults();
 				Search.renderPaging();
