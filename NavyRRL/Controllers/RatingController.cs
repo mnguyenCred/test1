@@ -8,6 +8,7 @@ using Models.Search;
 using Models.Schema;
 using Services;
 using Navy.Utilities;
+using Models.Curation;
 
 namespace NavyRRL.Controllers
 {
@@ -21,8 +22,11 @@ namespace NavyRRL.Controllers
 
 		public ActionResult DoSearch( SearchQuery query )
 		{
-			var tempResults = SearchController.CreateFakeResults<Rating>( query.PageNumber, query.PageSize );
-			return JsonResponse( tempResults, true );
+			bool valid = true;
+			string status = "";
+			var results = new SearchServices().RatingSearch( query, ref valid, ref status );
+
+			return JsonResponse( results, valid, new List<string>() { status }, null );
 		}
 		//
 
@@ -45,13 +49,28 @@ namespace NavyRRL.Controllers
 		public ActionResult Save( Rating data )
 		{
 			//Validate the request
-			if( !AuthenticateOrFail() )
+			if ( !AuthenticateOrFail() )
 			{
 				return JsonResponse( null, false, new List<string>() { "You must be authenticated and authorized to edit Rating data." }, null );
 			}
-
-			//On success
-			ConsoleMessageHelper.SetConsoleSuccessMessage( "Saved changes successfully." );
+			var user = AccountServices.GetCurrentUser();
+			ChangeSummary status = new ChangeSummary()
+			{
+				Action = "Edit"
+			};
+			data.LastUpdatedById = user.Id;
+			var results = new Factories.RatingManager().Save( data, ref status );
+			if ( status.HasAnyErrors )
+			{
+				var msg = string.Join( "</br>", status.Messages.Error.ToArray() );
+				ConsoleMessageHelper.SetConsoleErrorMessage( "Saved changes successfully." );
+			}
+			else
+			{
+				//On success
+				ConsoleMessageHelper.SetConsoleSuccessMessage( "Saved changes successfully." );
+			}
+			
 			return JsonResponse( data, true, null, null );
 		}
 		//

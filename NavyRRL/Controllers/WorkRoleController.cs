@@ -7,6 +7,8 @@ using System.Web.Mvc;
 using Models.Search;
 using Models.Schema;
 using Navy.Utilities;
+using Models.Curation;
+using Services;
 
 namespace NavyRRL.Controllers
 {
@@ -20,9 +22,39 @@ namespace NavyRRL.Controllers
 
 		public ActionResult DoSearch( SearchQuery query )
 		{
-			var tempResults = SearchController.CreateFakeResults<WorkRole>( query.PageNumber, query.PageSize );
-			return JsonResponse( tempResults, true );
+			//var tempResults = SearchController.CreateFakeResults<WorkRole>( query.PageNumber, query.PageSize );
+
+			//List<WorkRole> results = Factories.WorkRoleManager.Search( query );
+			//var output = ConvertResults<WorkRole>( query, results );
+			//return JsonResponse( output, true );
+			bool valid = true;
+			string status = "";
+			var results = new SearchServices().WorkRoleSearch( query, ref valid, ref status );
+
+			return JsonResponse( results, valid, new List<string>() { status }, null );
 		}
+		public SearchResultSet<T> ConvertResults<T>( SearchQuery query, List<WorkRole> results ) where T : WorkRole, new()
+		{
+			var gResults = new List<T>();
+
+			var output = new SearchResultSet<T>();
+			if ( results?.Count == 0 )
+				return output;
+			foreach ( var item in results )
+			{
+				var gResult = new T();
+				gResult.Id = item.Id;
+				gResult.Name = item.Name;
+
+				gResults.Add( gResult );
+			}
+			output.TotalResults = query.TotalResults;
+			output.Results = gResults;
+			output.SearchType = query.SearchType;
+
+			return output;
+		}
+		//
 		//
 
 		public ActionResult Detail( int id )
@@ -48,9 +80,23 @@ namespace NavyRRL.Controllers
 			{
 				return JsonResponse( null, false, new List<string>() { "You must be authenticated and authorized to edit Functional Area data." }, null );
 			}
-
-			//On success
-			ConsoleMessageHelper.SetConsoleSuccessMessage( "Saved changes successfully." );
+			var user = AccountServices.GetCurrentUser();
+			ChangeSummary status = new ChangeSummary()
+			{
+				Action = "Edit"
+			};
+			data.LastUpdatedById = user.Id;
+			var results = new Factories.WorkRoleManager().Save( data, ref status );
+			if ( status.HasAnyErrors )
+			{
+				var msg = string.Join( "</br>", status.Messages.Error.ToArray() );
+				ConsoleMessageHelper.SetConsoleErrorMessage( "Saved changes successfully." );
+			}
+			else
+			{
+				//On success
+				ConsoleMessageHelper.SetConsoleSuccessMessage( "Saved changes successfully." );
+			}
 			return JsonResponse( data, true, null, null );
 		}
 		//

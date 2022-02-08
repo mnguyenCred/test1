@@ -104,6 +104,7 @@
 			BilletTitle: @Html.Raw(JsonConvert.SerializeObject( billetFilter, Formatting.None)),
 			Organization: @Html.Raw(JsonConvert.SerializeObject( ccaFilter, Formatting.None)),
 			PayGradeType: @Html.Raw(JsonConvert.SerializeObject(payGradeTypeFilter, Formatting.None)),
+			FunctionalArea: @Html.Raw(JsonConvert.SerializeObject( functionalAreaFilter, Formatting.None)),
 			TrainingGapType: @Html.Raw(JsonConvert.SerializeObject(trainingGapTypeFilter, Formatting.None)),
 			ApplicabilityType: @Html.Raw(JsonConvert.SerializeObject(applicabilityTypeFilter, Formatting.None)),
 			ReferenceType: @Html.Raw(JsonConvert.SerializeObject(referenceTypeFilter, Formatting.None)),

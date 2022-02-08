@@ -13,11 +13,11 @@ using Newtonsoft.Json.Linq;
 
 namespace Services
 {
-    public class SearchServices
-    {
+	public class SearchServices
+	{
 		public static string thisClassName = "SearchServices";
 
-		
+
 		/// <summary>
 		/// 
 		/// </summary>
@@ -100,9 +100,111 @@ namespace Services
 
 			//Convert the results
 			var output = new SearchResultSet<ResultWithExtraData<Course>>() { TotalResults = totalResults, SearchType = query.SearchType };
-			foreach( var item in results )
+			foreach ( var item in results )
 			{
 				output.Results.Add( new ResultWithExtraData<Course>()
+				{
+					Data = item, //Course?
+					Extra = new JObject()
+					{
+						{ "RecordId", item.Id },
+						{ "CTID", item.CTID },
+						{ "RowId", item.RowId.ToString() },
+						{ "Created", item.Created.ToShortDateString() },
+						{ "LastUpdated", item.LastUpdated.ToShortDateString() },
+					}
+				} );
+			}
+
+			//Return the results
+			return output;
+		}
+		//BilletTitle
+		public SearchResultSet<ResultWithExtraData<BilletTitle>> BilletTitleSearch( SearchQuery query, ref bool valid, ref string status, JObject debug = null )
+		{
+			debug = debug ?? new JObject();
+			LoggingHelper.DoTrace( 6, thisClassName + ".BilletTitleSearch - entered" );
+
+			//Normalize the query
+			NormalizeQuery( query, "BilletTitle" );
+
+			//Do the search
+			var totalResults = 0;
+			var results = Factories.JobManager.Search( query );
+
+			//Convert the results
+			var output = new SearchResultSet<ResultWithExtraData<BilletTitle>>() { TotalResults = totalResults, SearchType = query.SearchType };
+			foreach ( var item in results )
+			{
+				output.Results.Add( new ResultWithExtraData<BilletTitle>()
+				{
+					Data = item, //Course?
+					Extra = new JObject()
+					{
+						{ "RecordId", item.Id },
+						{ "CTID", item.CTID },
+						{ "RowId", item.RowId.ToString() },
+						{ "Created", item.Created.ToShortDateString() },
+						{ "LastUpdated", item.LastUpdated.ToShortDateString() },
+					}
+				} );
+			}
+
+			//Return the results
+			return output;
+		}
+		//Rating
+		public SearchResultSet<ResultWithExtraData<Rating>> RatingSearch( SearchQuery query, ref bool valid, ref string status, JObject debug = null )
+		{
+			debug = debug ?? new JObject();
+			LoggingHelper.DoTrace( 6, thisClassName + ".RatingSearch - entered" );
+
+			//Normalize the query
+			NormalizeQuery( query, "Rating" );
+
+			//Do the search
+			var totalResults = 0;
+			var results = Factories.RatingManager.Search( query );
+
+			//Convert the results
+			var output = new SearchResultSet<ResultWithExtraData<Rating>>() { TotalResults = totalResults, SearchType = query.SearchType };
+			foreach ( var item in results )
+			{
+				output.Results.Add( new ResultWithExtraData<Rating>()
+				{
+					Data = item, //
+					Extra = new JObject()
+					{
+						{ "RecordId", item.Id },
+						{ "CTID", item.CTID },
+						{ "RowId", item.RowId.ToString() },
+						{ "Created", item.Created.ToShortDateString() },
+						{ "LastUpdated", item.LastUpdated.ToShortDateString() },
+					}
+				} );
+			}
+
+			//Return the results
+			return output;
+		}
+		//WorkRole
+		public SearchResultSet<ResultWithExtraData<WorkRole>> WorkRoleSearch( SearchQuery query, ref bool valid, ref string status, JObject debug = null )
+		{
+			debug = debug ?? new JObject();
+			LoggingHelper.DoTrace( 6, thisClassName + ".WorkRoleSearch - entered" );
+
+			//Normalize the query
+			NormalizeQuery( query, "WorkRole" );
+
+			//Do the search
+			var totalResults = 0;
+			var results = Factories.WorkRoleManager.Search( query );
+
+			//Convert the results
+			var output = new SearchResultSet<ResultWithExtraData<WorkRole>>() { TotalResults = totalResults, SearchType = query.SearchType };
+			foreach ( var item in results )
+			{
+				output.Results.Add( new ResultWithExtraData<WorkRole>()
 				{
 					Data = item, //Course?
 					Extra = new JObject()

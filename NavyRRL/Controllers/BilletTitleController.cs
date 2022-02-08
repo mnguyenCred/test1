@@ -6,7 +6,9 @@ using System.Web.Mvc;
 
 using Models.Search;
 using Models.Schema;
+using Services;
 using Navy.Utilities;
+using Models.Curation;
 
 namespace NavyRRL.Controllers
 {
@@ -20,8 +22,39 @@ namespace NavyRRL.Controllers
 
 		public ActionResult DoSearch( SearchQuery query )
 		{
-			var tempResults = SearchController.CreateFakeResults<BilletTitle>( query.PageNumber, query.PageSize );
-			return JsonResponse( tempResults, true );
+			//var tempResults = SearchController.CreateFakeResults<BilletTitle>( query.PageNumber, query.PageSize );
+			//List<BilletTitle> results = Factories.JobManager.Search( query );
+
+			//var output = ConvertResults<BilletTitle>( query, results );
+
+			//return JsonResponse( output, true );
+			bool valid = true;
+			string status = "";
+			var results = new SearchServices().BilletTitleSearch( query, ref valid, ref status );
+
+			return JsonResponse( results, valid, new List<string>() { status }, null );
+		}
+		public SearchResultSet<T> ConvertResults<T>( SearchQuery query, List<BilletTitle> results ) where T : BilletTitle, new()
+		{
+			var gResults = new List<T>();
+
+			var output = new SearchResultSet<T>();
+			if ( results?.Count == 0 )
+				return output;
+			foreach (var item in results)
+            {
+				var gResult = new T();
+				gResult.Id = item.Id;
+				gResult.Name = item.Name;
+				gResult.Description = item.Description;
+
+				gResults.Add( gResult );
+			}
+			output.TotalResults = query.TotalResults;
+			output.Results = gResults;
+			output.SearchType = query.SearchType;
+
+			return output;
 		}
 		//
 
@@ -49,8 +82,23 @@ namespace NavyRRL.Controllers
 				return JsonResponse( null, false, new List<string>() { "You must be authenticated and authorized to edit Billet Title data." }, null );
 			}
 
-			//On success
-			ConsoleMessageHelper.SetConsoleSuccessMessage( "Saved changes successfully." );
+			var user = AccountServices.GetCurrentUser();
+			ChangeSummary status = new ChangeSummary()
+			{
+				Action = "Edit"
+			};
+			data.LastUpdatedById = user.Id;
+			var results = new Factories.JobManager().Save( data, ref status );
+			if ( status.HasAnyErrors )
+			{
+				var msg = string.Join( "</br>", status.Messages.Error.ToArray() );
+				ConsoleMessageHelper.SetConsoleErrorMessage( "Saved changes successfully." );
+			}
+			else
+			{
+				//On success
+				ConsoleMessageHelper.SetConsoleSuccessMessage( "Saved changes successfully." );
+			}
 			return JsonResponse( data, true, null, null );
 		}
 		//
