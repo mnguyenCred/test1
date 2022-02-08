@@ -916,14 +916,16 @@ namespace Services
             }
 			SiteActivity sa = new SiteActivity()
 			{
-				ActivityType = "RatingTask",
+				ActivityType = "RMTL",
 				Activity = "Upload",
-				Event = "Processing",
+				Event = "Processing Started",
 				Comment = String.Format( "A bulk upload initiated by: '{0}' for Rating: '{1}' was committed.", user.FullName(), summary.Rating ?? "" ),
 				ActionByUserId = user.Id,
 				ActionByUser = user.FullName()
 			};
 			new ActivityServices().AddActivity( sa );
+			DateTime saveStarted = DateTime.Now;
+			var saveDuration = new TimeSpan();
 			//now what
 			//go thru all non-rating task
 			if (summary.ItemsToBeCreated != null)
@@ -1176,6 +1178,21 @@ namespace Services
 			}
 
 			//copy messages
+
+			//duration
+			saveDuration = DateTime.Now.Subtract( saveStarted );
+			summary.Messages.Note.Add( string.Format( "Save Duration: {0:N2} seconds ", saveDuration.TotalSeconds ) );
+
+			sa = new SiteActivity()
+			{
+				ActivityType = "RMTL",
+				Activity = "Upload",
+				Event = "Processing Completed",
+				Comment = String.Format( "A bulk upload was completed by: '{0}' for Rating: '{1}'. Duration: {2:N2} seconds .", user.FullName(), summary.Rating ?? "", saveDuration.TotalSeconds ),
+				ActionByUserId = user.Id,
+				ActionByUser = user.FullName()
+			};
+			new ActivityServices().AddActivity( sa );
 		}
         //
 
@@ -1228,14 +1245,16 @@ namespace Services
 				summary.Messages.Error.Add( "Error: No rows were found to process after doing a match on Rating. This can occur if there is only one header row. The system expects two header rows. OR if the Rating selected from the interface is different from the Rating in the uploaded file." );
 				return summary;
 			}
+			DateTime saveStarted = DateTime.Now;
+			var saveDuration = new TimeSpan();
 
 			LoggingHelper.DoTrace( 6, string.Format( "Rating: {0}, Tasks: {1}, User: {2}", currentRating.CodedNotation, uploadedData.Rows.Count(), user.FullName() ) );
 			summary.Rating = currentRating.CodedNotation;
 			SiteActivity sa = new SiteActivity()
 			{
-				ActivityType = "RatingTask",
+				ActivityType = "RMTL",
 				Activity = "Upload",
-				Event = "Processing",
+				Event = "Reviewing",
 				Comment = String.Format( "A bulk upload was initiated by: '{0}' for Rating: '{1}', Rows: {2}.", user.FullName(), currentRating.CodedNotation, uploadedData.Rows.Count ),
 				ActionByUserId = user.Id,
 				ActionByUser = user.FullName()
@@ -1342,6 +1361,8 @@ namespace Services
 			).ToList();
 			debug[ latestStepFlag ] = "Cleaned up summary Lookup Graph";
 
+			saveDuration = DateTime.Now.Subtract( saveStarted );
+			summary.Messages.Note.Add( string.Format( "Duration: {0:N2} seconds ", saveDuration.TotalSeconds ) );
 			return summary;
 		}
 		//

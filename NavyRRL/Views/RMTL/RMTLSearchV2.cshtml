@@ -2,7 +2,7 @@
 @using Models.Schema;
 @using Services;
 @{
-    ViewBag.Title = "Search V2";
+    ViewBag.Title = "RMTL Search";
 
     var ratings = RatingServices.GetAllActiveRatings().OrderByDescending( m => m.CodedNotation.ToLower() == "all" ).ToList();
     var ratingFilter = new SimpleFilter()
@@ -510,6 +510,7 @@
 	.spinner { display: inline-block; box-shadow: inset 4px 0 0 5px; border-radius: 50%; height: 20px; width: 20px; animation: spin 1s linear infinite; }
 	@@keyframes spin { 100% { transform: rotate(360deg); } }
 
+	#mainSiteFooter{display: none;}
 	.searchBox { }
 	.searchBox .searchHeader { }
 	.searchBox .searchHeader .filtersBox { display: flex; }
