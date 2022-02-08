@@ -276,8 +276,8 @@ namespace Factories
                             {
                                 if (!input.ReferenceType.Contains( (Guid)key ))
                                 {
-                                    context.ReferenceResource_ReferenceType.Remove( e );
-                                    int dcount = context.SaveChanges();
+                                    //context.ReferenceResource_ReferenceType.Remove( e );
+                                    //int dcount = context.SaveChanges();
                                 }
                             }
                         }

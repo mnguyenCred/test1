@@ -870,7 +870,7 @@ namespace Factories
                             {
                                 if ( !input.HasRating.Contains( ( Guid ) key ) )
                                 {
-                                    DeleteRatingTaskHasRating( input.Id, e.Id, ref status );
+                                    //DeleteRatingTaskHasRating( input.Id, e.Id, ref status );
                                 }
                             }
                         }
