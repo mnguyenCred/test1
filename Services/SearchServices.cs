@@ -95,7 +95,6 @@ namespace Services
 			NormalizeQuery( query, searchType );
 
 			//Do the search
-			var totalResults = 0;
 			LoggingHelper.DoTrace( 7, thisClassName + "." + searchType + "Search. Calling: " + query.SearchType );
 			var results = searchMethod( query );
 
