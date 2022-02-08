@@ -4,6 +4,7 @@ using System.Linq;
 using System.Web;
 using System.Web.Mvc;
 
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
 using AM = Models.Application;
@@ -13,6 +14,8 @@ using Models.Application;
 using Navy.Utilities;
 using Models.Curation;
 using Services;
+using System.IO;
+
 namespace NavyRRL.Controllers
 {
     public class UploadController : BaseController
@@ -41,22 +44,38 @@ namespace NavyRRL.Controllers
 		//
 
 		[CustomAttributes.NavyAuthorize( "Search", Roles = "Administrator, RMTL Developer, Site Staff" )]
-
 		public ActionResult UploadV2()
 		{
 			return View( "~/views/upload/uploadv2.cshtml" );
 		}
 		//
+
 		public ActionResult UploadV1()
 		{
 			return View( "~/views/upload/uploadv1.cshtml" );
 		}
 		//
+
 		//Initial processing of the data before any changes are made to the database
-		public ActionResult ProcessUpload( CM.UploadableTable rawData, Guid ratingRowID )
+		//Expects the following arguments, but since we have to manually read them out of the request, we need to bypass MVC's default model binding
+		//CM.UploadableTable rawData, Guid ratingRowID
+		public ActionResult ProcessUpload()
 		{
-			var jsonResult = Json( rawData, JsonRequestBehavior.AllowGet );
-			jsonResult.MaxJsonLength = int.MaxValue;
+			//Get the raw request JSON
+			Request.InputStream.Position = 0;
+			var rawJSON = new StreamReader( Request.InputStream ).ReadToEnd();
+
+			//Read it into a JToken
+			//Have to do it this way to keep Newtonsoft from messing with the dates for some stupid reason
+			JToken token;
+			using ( var reader = new JsonTextReader( new StringReader( rawJSON ) ) { DateParseHandling = DateParseHandling.None } )
+			{
+				token = JToken.Load( reader );
+			}
+
+			//Extract the data from the request
+			var rawData = token[ "rawData" ].ToObject<CM.UploadableTable>();
+			var ratingRowID = token[ "ratingRowID" ].ToObject<Guid>();
 
 			//Construct Change Summary
 			var debug = new JObject();
@@ -65,34 +84,9 @@ namespace NavyRRL.Controllers
 			//Store Change Summary in the Application Cache
 			Services.BulkUploadServices.CacheChangeSummary( changeSummary );
 
-			/*
-			var changeSummaryNew = Services.BulkUploadServices.ProcessUploadV2( rawData, ratingRowID, debug );
-			var changeSummaryOld = new ChangeSummary();
-			//Temp
-			if ( UtilityManager.GetAppKeyValue( "includingProcessV1ToCompare", false ) )
-			{
-				changeSummaryOld = Services.BulkUploadServices.ProcessUpload( rawData, ratingRowID, debug );
-			}
-			//End Temp
-
-
-			if ( UtilityManager.GetAppKeyValue( "usingProcessV2", true )) 
-			{
-				Services.BulkUploadServices.CacheChangeSummary( changeSummaryNew );
-			} else
-            {
-				if ( UtilityManager.GetAppKeyValue( "includingProcessV1ToCompare", false ) )
-				{
-                    changeSummaryOld.Messages.Note.Add( "USING OLD PROCESS VERSION" );
-                    Services.BulkUploadServices.CacheChangeSummary( changeSummaryOld );
-                }
-
-
-			}
-			*/
-
+			//Return the result
 			return JsonResponse( changeSummary, true, null, new { Debug = debug } );
-        }
+		}
 		//
 
 		public ActionResult ConfirmChanges( Guid changeSummaryRowID )
