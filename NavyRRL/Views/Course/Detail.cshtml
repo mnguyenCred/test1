@@ -1,0 +1,10 @@
+﻿@using Models.Schema;
+@model Course
+@{
+	ViewBag.Title = "Course: " + Model.Name;
+}
+
+<h2>@Model.Name</h2>
+
+<p>@Model.CodedNotation</p>
+<p><a href="@Url.Content("~/" + Model.GetType().Name.ToLower() + "/edit/" + Model.Id)" target="_blank">Edit</a></p>

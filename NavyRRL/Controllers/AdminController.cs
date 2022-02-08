@@ -29,6 +29,12 @@ namespace NavyRRL.Controllers
             return View();
         }
 
+		public ActionResult FormHelperV1Demo()
+		{
+			return View();
+		}
+
+
         #region  Activity
         // GET: Admin/Activity
         [Authorize( Roles = "Administrator, Site Staff" )]

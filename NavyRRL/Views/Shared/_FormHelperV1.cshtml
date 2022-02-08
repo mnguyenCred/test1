@@ -1,0 +1,794 @@
+﻿<script type="text/javascript">
+	//Form Items
+	var FormItem = {};
+
+	//Call this once after the page has loaded
+	FormItem.setupFormItems = function (Host, name, Config) {
+		Host.Fields = Host.Fields || [];
+		Host.PathMap = {};
+		$("form-item[data-path^='" + name + ".']").each(function () {
+			//Create the field itself
+			var Field = FormItem.createField($(this));
+
+			//Recursively figure out what the structure of data to be saved/loaded should look like, based on the data-path attributes of the form-items
+			var currentPath = Host.PathMap;
+			Field.Path.forEach((step, index) => {
+				if (step == name) { } //Do nothing
+				else {
+					currentPath[step] = currentPath[step] || {};
+					currentPath = currentPath[step];
+				}
+			});
+			currentPath[Field.Property] = Field; //After recursion, set the Field as the value for the property in the Path Map
+
+			//Store the Field's configuration function and then run it
+			Field.Config = Config[Field.ConfigName];
+			Field.Config?.(Field);
+
+			//Keep a reference to the Field in both the Fields array and in the PathMap structure so it can be accessed either way
+			Host.Fields.push(Field);
+		});
+
+		//Recursively read data from all Fields
+		Host.read = function () {
+			var result = {};
+			readLayer(Host.PathMap, result);
+			return result;
+		};
+
+		//Recursively write data to all Fields
+		Host.write = function (value) {
+			writeLayer(Host.PathMap, value);
+		};
+
+		//Recursion function to get data from Fields
+		function readLayer(map, container) {
+			Object.keys(map).forEach(key => {
+				if (map[key].IsField) {
+					container[map[key].Property] = map[key].read(); //Have to allow passing null/empty values here or else we can't update something to be empty
+				}
+				else {
+					container[key] = container[key] || {};
+					readLayer(map[key], container[key]);
+				}
+			});
+		}
+
+		//Recursion function to write data to Fields
+		function writeLayer(map, value) {
+			Object.keys(map).forEach(key => {
+				if (map[key].IsField) {
+					map[key].write(value?.[key]);
+				}
+				else {
+					writeLayer(map[key], value?.[key]);
+				}
+			});
+		}
+	}
+	//
+
+	//Generic method to create a Field
+	FormItem.createField = function (box) {
+		var path = box.attr("data-path").split(".");
+		var property = path.pop();
+		var Field = {
+			IsField: true,
+			Box: box,
+			ConfigName: box.attr("data-config"),
+			UIType: box.attr("data-ui"),
+			Label: box.attr("data-label"),
+			Path: path,
+			Property: property,
+			LabelBox: $("<div class=\"formItemLabel\"></div>").appendTo(box),
+			ContentBox: $("<div class=\"formItemValue\"></div>").appendTo(box)
+		};
+
+		Field.Box.addClass("formItem");
+		Field.LabelBox.html(Field.Label);
+
+		Field.Box[0].getField = function () {
+			return Field;
+		};
+
+		//Run the specialized setup method based on the form-item's data-ui attribute
+		FormItem["setupUI_" + Field.UIType](Field);
+
+		//return the Field
+		return Field;
+	}
+	//
+
+	//Create a display Field
+	FormItem.setupUI_display = function (Field) {
+		Field.UI = $("<div></div>").appendTo(Field.ContentBox);
+		Field.Value = null;
+
+		Field.read = function () {
+			return Field.Value;
+		}
+
+		Field.write = function (value) {
+			Field.Value = value;
+			Field.UI.html(Field.Value);
+		}
+	}
+	//
+
+	//Create a button Field
+	FormItem.setupUI_button = function (Field) {
+		Field.UI = $("<button>" + Field.Label + "</button>").appendTo(Field.ContentBox);
+		Field.LabelBox.html("");
+
+		Field.read = function () { return null; };
+
+		Field.write = function (value) { };
+
+		Field.UI.on("click", function () {
+			Field.handleClick();
+		});
+
+		Field.handleClick = function () {
+			console.log("Button clicked!", Field);
+		}
+	}
+	//
+
+	//Create a text Field
+	FormItem.setupUI_text = function (Field) {
+		Field.UI = $("<input type=\"text\" />").appendTo(Field.ContentBox);
+
+		Field.read = function () {
+			return Field.UI.val().trim();
+		};
+
+		Field.write = function (value) {
+			Field.UI.val(value);
+		};
+
+		return Field;
+	}
+	//
+
+	//Create a textarea Field
+	FormItem.setupUI_textarea = function (Field) {
+		Field.UI = $("<textarea></textarea>").appendTo(Field.ContentBox);
+
+		Field.read = function () {
+			return Field.UI.val().trim();
+		};
+
+		Field.write = function (value) {
+			Field.UI.val(value);
+		};
+
+		return Field;
+	}
+	//
+
+	//Create a drop-down list Field
+	FormItem.setupUI_select = function (Field) {
+		Field.UI = $("<select></select>").appendTo(Field.ContentBox);
+		Field.Items = [];
+
+		Field.read = function () {
+			return parseInt(Field.UI.val()) || Field.UI.val();
+		};
+
+		Field.write = function (value) {
+			Field.UI.val(value);
+		};
+
+		Field.renderItems = function () {
+			Field.ItemMaps = [];
+			Field.UI.html("");
+			Field.Items.forEach(Item => {
+				var option = $("<option value=\"" + Field.getItemValue(Item) + "\">" + Field.getItemLabel(Item) + "</option>").appendTo(Field.UI);
+				option[0].getItem = function () { return Item; }
+			});
+		};
+
+		Field.UI.on("change", function () {
+			Field.onChange(Field.UI.find(":selected")[0].getItem(), Field.read());
+		});
+
+		Field.getItemValue = function (Item) {
+			return parseInt(Item.Id) || Item.RowId || Item.CTID || Item;
+		}
+
+		Field.getItemLabel = function (Item) {
+			return (Item.CodedNotation || "") + (Item.CodedNotation && Item.Name ? " - " : "") + (Item.Name || "");
+		}
+
+		Field.onChange = function (Item, option) { };
+
+		return Field;
+	}
+	//
+
+	//Create a checkbox list Field
+	FormItem.setupUI_checkboxlist = function (Field) {
+		Field.UI = $("<div class=\"checkboxlist\"></div>").appendTo(Field.ContentBox);
+		Field.Items = [];
+
+		Field.read = function () {
+			return Field.UI.find(":checked").get().map(m => {
+				var value = $(m).val();
+				return parseInt(value) || value;
+			})
+		};
+
+		Field.write = function (value) {
+			value = value.map(m => m.toString());
+			Field.UI.find("input[type='checkbox']").each(function () {
+				var box = $(this);
+				box.prop("checked", value.includes(box.val()));
+			});
+		};
+
+		Field.renderItems = function () {
+			Field.UI.html("");
+			Field.ItemMaps = [];
+			Field.Items.forEach(Item => {
+				var wrapper = $("<label></label>").appendTo(Field.UI);
+				var checkbox = $("<input type=\"checkbox\" value=\"" + Field.getItemValue(Item) + "\" />").appendTo(wrapper);
+				$("<span>" + Field.getItemLabel(Item) + "</span>").appendTo(wrapper);
+				checkbox[0].getItem = function () { return Item; }
+				checkbox.on("change", () => {
+					Field.onItemChange(Map);
+				})
+			});
+		};
+
+		Field.getItemValue = function (Item) {
+			return parseInt(Item.Id) || Item.RowId || Item.CTID || Item;
+		}
+
+		Field.getItemLabel = function (Item) {
+			return (Item.CodedNotation || "") + (Item.CodedNotation && Item.Name ? " - " : "") + (Item.Name || "");
+		}
+
+		Field.onItemChange = function (Map) { };
+
+		return Field;
+	}
+	//
+
+	//Create a multi-item text field (e.g. keywords)
+	FormItem.setupUI_textmulti = function (Field) {
+		Field.UI = $("<div class=\"textmulti\"></div>").appendTo(Field.ContentBox);
+		Field.AddBox = $("<div class=\"addBox\"></div>").appendTo(Field.UI);
+		Field.AddItemText = $("<input type=\"text\" placeholder=\"Add Item...\" />").appendTo(Field.AddBox);
+		Field.AddItemButton = $("<button>Add</button>").appendTo(Field.AddBox);
+		Field.ItemList = $("<div class=\"items\"></div>").appendTo(Field.UI);
+		Field.Items = [];
+
+		Field.read = function () {
+			return Field.Items;
+		};
+
+		Field.write = function (value) {
+			Field.Items = value || [];
+			Field.renderItems();
+		};
+
+		Field.renderItems = function () {
+			Field.ItemList.html("");
+			Field.Items.forEach(item => {
+				var box = $("<div class=\"item\"><span>" + item + "</span></div>").appendTo(Field.ItemList);
+				var button = $("<button>X</button>").appendTo(box);
+				button.on("click", function () {
+					Field.Items = Field.Items.filter(m => m != item);
+					Field.renderItems();
+				});
+			});
+		};
+
+		Field.AddItemButton.on("click", function () {
+			Field.addItem();
+		});
+
+		Field.AddItemText.on("keyup", function (e) {
+			if (e.which == 13 || e.keyCode == 13) {
+				Field.addItem();
+			}
+		});
+
+		Field.addItem = function () {
+			var item = Field.AddItemText.val().trim();
+			if (item.length > 0 && !Field.Items.includes(item)) {
+				Field.Items.push(item);
+				Field.renderItems();
+				Field.AddItemText.val("");
+			}
+		};
+
+		return Field;
+	}
+	//
+
+	//Create a search/select Field that will immediately send AJAX requests for additions and removals
+	//This method is also used as the foundation for other variations of the search/select fields, so changes here will have ripple effects!
+	FormItem.setupUI_searchselectimmediate = function (Field) {
+		Field.UI = $("<div class=\"searchselect searchColumns\"></div>").appendTo(Field.ContentBox);
+		Field.Search = FormItem.setupUI_search({ ContentBox: Field.UI });
+		Field.Existing = FormItem.setupUI_search({ ContentBox: Field.UI });
+		Field.AddItemURL = "";
+		Field.RemoveItemURL = "";
+
+		Field.Search.KeywordsFilter.Box.attr("placeholder", "Find items to add...");
+		Field.Search.renderResultWrapper = function (container, Result) {
+			var button = $("<button>Add &rarr;</button>");
+			Field.renderWrappedResult(container, Result, Field.Search.renderResult, button, Field.addItem);
+		};
+
+		Field.Existing.KeywordsFilter.Box.attr("placeholder", "Find existing items...");
+		Field.Existing.renderResultWrapper = function (container, Result) {
+			var button = $("<button>X</button>");
+			Field.renderWrappedResult(container, Result, Field.Existing.renderResult, button, Field.removeItem);
+		};
+
+		Field.renderWrappedResult = function (container, Result, renderMethod, button, onClick) {
+			var box = $("<div class=\"resultWrapper\"></div>").appendTo(container);
+			var inner = $("<div class=\"resultInner\"></div>").appendTo(box);
+			renderMethod(inner, Result);
+			button.appendTo(box);
+			button.on("click", function () {
+				button.prop("disabled", true).html("<div class=\"spinner\"></div>");
+				onClick?.(Result, box, button);
+			});
+		};
+
+		Field.addItem = function (Item) {
+			FormItem.doPOSTRequest(Field.AddItemURL, Item, Field.handleItemAdded);
+		};
+
+		Field.handleItemAdded = function (response) {
+			if (response.Valid) {
+				Field.Search.doSearch();
+				Field.Existing.doSearch();
+			}
+			else {
+				alert("Error adding item: " + response.Status.join("\n"));
+			}
+		};
+
+		Field.removeItem = function (Item) {
+			FormItem.doPOSTRequest(Field.RemoveItemURL, Item, Field.handleItemRemoved);
+		};
+
+		Field.handleItemRemoved = function (response) {
+			if (response.Valid) {
+				Field.Search.doSearch();
+				Field.Existing.doSearch();
+			}
+			else {
+				alert("Error removing item: " + response.Status.join("\n"));
+			}
+		};
+
+		Field.read = function () {
+			return Field.Existing.Results;
+		};
+
+		Field.write = function (value) {
+			Field.Existing.Results = value || [];
+			Field.Existing.renderResults();
+		};
+
+		return Field;
+	}
+	//
+
+	//Modification of the immediate search/select Field that uses a local array as a data source instead of using AJAX requests
+	//Useful when you would otherwise need a really big checkbox list
+	FormItem.setupUI_searchselectlocal = function (Field) {
+		Field.UI = FormItem.setupUI_searchselectimmediate(Field);
+		Field.Items = [];
+		Field.SelectedItems = [];
+
+		Field.filterItems = function (Items, Filters) {
+			var keywordsText = Filters?.[0]?.Text?.toLowerCase() || "";
+			return Items.filter(Item => (Item.Name + Item.CodedNotation + Item.Description).toLowerCase().includes(keywordsText));
+		};
+
+		Field.renderItem = function (container, Result) {
+			container.append("<div>" + (Result.Name || Result.CodedNotation || Result.Description || JSON.stringify(Result)) + "</div>");
+		};
+
+		Field.refresh = function () {
+			Field.Search.doSearch();
+			Field.Existing.doSearch();
+		};
+
+		Field.addItem = function (Item) {
+			Field.SelectedItems.push(Item);
+			Field.handleItemAdded();
+		};
+
+		Field.handleItemAdded = function () {
+			Field.refresh();
+		};
+
+		Field.removeItem = function (Item) {
+			Field.SelectedItems = Field.SelectedItems.filter(m => m != Item);
+			Field.handleItemRemoved();
+		};
+
+		Field.handleItemRemoved = function () {
+			Field.refresh();
+		};
+
+		Field.Search.searchMethod = function () {
+			var start = (Field.Search.PageNumber - 1) * Field.Search.PageSize;
+			var end = start + Field.Search.PageSize;
+			var results = Field.filterItems(Field.Items).filter(Item => {
+				return !Field.SelectedItems.includes(Item)
+			});
+
+			Field.Search.handleResponse({ Valid: true, Data: { Results: results.slice(start, end), TotalResults: results.length } });
+		};
+
+		Field.Search.renderResult = function (container, Result) {
+			Field.renderItem(container, Result);
+		};
+
+		Field.Existing.searchMethod = function () {
+			var start = (Field.Existing.PageNumber - 1) * Field.Existing.PageSize;
+			var end = start + Field.Existing.PageSize;
+			var results = Field.filterItems(Field.SelectedItems);
+
+			Field.Existing.handleResponse({ Valid: true, Data: { Results: results.slice(start, end), TotalResults: results.length } });
+		};
+
+		Field.Existing.renderResult = function (container, Result) {
+			Field.renderItem(container, Result);
+		};
+
+		return Field;
+	}
+	//
+
+	//Modification of the immediate search/select that will do AJAX for the searches, but will not send AJAX for additions/removals
+	//Instead, additions and removals are stored in their own arrays and returned when the Field's .read() method is called
+	FormItem.setupUI_searchselectdeferred = function (Field) {
+		Field.UI = FormItem.setupUI_searchselectimmediate(Field);
+		Field.ItemsToChangeBox = $("<div class=\"itemsToChange searchColumns\"></div>").appendTo(Field.ContentBox);
+		Field.ItemsToAddWrapper = $("<div class=\"searchBox itemsToAdd\"></div>").appendTo(Field.ItemsToChangeBox);
+		Field.ItemsToAddHeader = $("<div class=\"itemsToChangeLabel itemsToAdd\">Items to Add</div>").appendTo(Field.ItemsToAddWrapper);
+		Field.ItemsToAddBox = $("<div class=\"resultsBox\"></div>").appendTo(Field.ItemsToAddWrapper);
+		Field.ItemsToRemoveWrapper = $("<div class=\"searchBox itemsToRemove\"></div>").appendTo(Field.ItemsToChangeBox);
+		Field.ItemsToRemoveHeader = $("<div class=\"itemsToChangeLabel itemsToRemove\">Items to Remove</div>").appendTo(Field.ItemsToRemoveWrapper);
+		Field.ItemsToRemoveBox = $("<div class=\"resultsBox\"></div>").appendTo(Field.ItemsToRemoveWrapper);
+		Field.ItemsToAdd = [];
+		Field.ItemsToRemove = [];
+
+		Field.listContainsItem = function (List, Item) {
+			return List.filter(m => m.Extra.RowId == Item.Extra.RowId).length > 0;
+		};
+
+		Field.getListWithoutItem = function (List, Item) {
+			return List.filter(m => m.Extra.RowId != Item.Extra.RowId);
+		}
+
+		Field.Search.renderResultWrapper = function (container, Result) {
+			var button = $("<button>Add Item</button>");
+			if (Field.listContainsItem(Field.ItemsToAdd, Result)) {
+				Field.handleSelectButtonClick(button);
+			}
+			Field.renderWrappedResult(container, Result, Field.Search.renderResult, button, Field.addItem);
+		};
+
+		Field.Existing.renderResultWrapper = function (container, Result) {
+			var button = $("<button>Remove Item</button>");
+			if (Field.listContainsItem(Field.ItemsToRemove, Result)) {
+				Field.handleSelectButtonClick(button);
+			}
+			Field.renderWrappedResult(container, Result, Field.Existing.renderResult, button, Field.removeItem);
+		};
+
+		Field.handleSelectButtonClick = function (button) {
+			button?.prop("disabled", true);
+			button?.html("Selected");
+		};
+
+		Field.addItem = function (Item, box, button) {
+			Field.handleSelectButtonClick(button);
+			!Field.listContainsItem(Field.ItemsToAdd, Item) && Field.ItemsToAdd.push(Item);
+			Field.renderItemsToAdd();
+		};
+
+		Field.removeItem = function (Item, box, button) {
+			Field.handleSelectButtonClick(button);
+			!Field.listContainsItem(Field.ItemsToRemove, Item) && Field.ItemsToRemove.push(Item);
+			Field.renderItemsToRemove();
+		};
+
+		Field.renderItemsToAdd = function () {
+			Field.ItemsToAddBox.html("");
+			Field.ItemsToAdd.forEach(Item => {
+				var button = $("<button>Cancel</button>");
+				Field.renderWrappedResult(Field.ItemsToAddBox, Item, Field.Search.renderResult, button, Field.cancelItemToAdd);
+			});
+		};
+
+		Field.renderItemsToRemove = function () {
+			Field.ItemsToRemoveBox.html("");
+			Field.ItemsToRemove.forEach(Item => {
+				var button = $("<button>Cancel</button>");
+				Field.renderWrappedResult(Field.ItemsToRemoveBox, Item, Field.Existing.renderResult, button, Field.cancelItemToRemove);
+			});
+		};
+
+		Field.cancelItemToAdd = function (Item) {
+			Field.ItemsToAdd = Field.getListWithoutItem(Field.ItemsToAdd, Item);
+			Field.Search.renderResults();
+			Field.renderItemsToAdd();
+		};
+
+		Field.cancelItemToRemove = function (Item) {
+			Field.ItemsToRemove = Field.getListWithoutItem(Field.ItemsToRemove, Item);
+			Field.Existing.renderResults();
+			Field.renderItemsToRemove();
+		};
+
+		Field.read = function () {
+			return {
+				ItemsToAdd: Field.ItemsToAdd,
+				ItemsToRemove: Field.ItemsToRemove
+			};
+		};
+
+		Field.write = function (value) {
+			Field.ItemsToAdd = value?.ItemsToAdd || [];
+			Field.ItemsToRemove = value?.ItemsToRemove || [];
+			Field.renderItemsToAdd();
+			Field.renderItemsToRemove();
+		}
+
+		return Field;
+	}
+	//
+
+	//Generic AJAX search Field
+	//Used as the basis for all of the search/select Fields above, so be very careful about making changes!
+	FormItem.setupUI_search = function (Field) {
+		Field.Box = $("<div class=\"searchBox\"></div>").appendTo(Field.ContentBox);
+		Field.FiltersBox = $("<div class=\"filtersBox\"></div>").appendTo(Field.Box);
+		Field.StatusWrapper = $("<div class=\"statusWrapper\"></div>").appendTo(Field.Box);
+		Field.StatusBox = $("<div class=\"statusBox\"></div>").appendTo(Field.StatusWrapper);
+		Field.StatusMessageBox = $("<span></span>").appendTo(Field.StatusBox);
+		Field.Spinner = $("<div class=\"spinner\"></div>").appendTo(Field.StatusBox);
+		Field.ResultsBox = $("<div class=\"resultsBox\"></div>").appendTo(Field.Box);
+		Field.PagingBox = $("<div class=\"pagingBox\"></div>").appendTo(Field.StatusWrapper);
+		Field.Filters = [];
+		Field.Timeout = 0;
+		Field.Delay = 800;
+		Field.PageNumber = 1;
+		Field.PageSize = 10;
+		Field.SearchURL = "";
+		Field.SortOrder = [];
+		Field.Results = [];
+		Field.TotalResults;
+
+		Field.waitThen = function (afterWait) {
+			clearTimeout(Field.Timeout);
+			Field.Timeout = setTimeout(() => {
+				afterWait?.(Field);
+			}, Field.Delay);
+		};
+
+		Field.createTextFilter = function (name, placeholder) {
+			var box = $("<input type=\"text\" placeholder=\"" + placeholder + "\" />").appendTo(Field.FiltersBox);
+			var Filter = {
+				Name: name,
+				Box: box
+			};
+			Filter.read = function () {
+				var value = Filter.Box.val().trim();
+				return value.length > 0 ? { Name: Filter.Name, Text: value } : null;
+			};
+			Field.Filters.push(Filter);
+			return Filter;
+		};
+
+		Field.attachHandlerForTextChange = function (TextBox) {
+			TextBox.on("keyup change", function (e) {
+				var value = TextBox.val().trim();
+				if (value != TextBox.PreviousValue || e.which == 13 || e.keycode == 13) {
+					TextBox.PreviousValue = value;
+					Field.waitThen(() => { Field.doSearch(true); });
+				}
+			});
+		};
+
+		Field.getFilters = function () {
+			var filters = Field.Filters.map(m => m.read()).filter(m => m != null);
+			return filters;
+		};
+
+		Field.getQuery = function () {
+			var query = {
+				Filters: Field.getFilters(),
+				PageNumber: Field.PageNumber,
+				PageSize: Field.PageSize,
+				SortOrder: Field.SortOrder
+			};
+			Field.modifyQuery(query);
+			return query;
+		}
+
+		Field.modifyQuery = function (query) { };
+
+		Field.setStatus = function (message, showSpinner) {
+			Field.StatusMessageBox.html(message);
+			showSpinner ? Field.Spinner.show() : Field.Spinner.hide();
+		};
+
+		Field.doSearch = function (resetPaging) {
+			resetPaging && (Field.CurrentPage = 1);
+			Field.Query = Field.getQuery();
+			Field.setStatus("Searching...", true);
+			Field.searchMethod();
+		};
+
+		Field.searchMethod = function () {
+			FormItem.doPOSTRequest(Field.SearchURL, Field.Query, Field.handleResponse);
+		};
+
+		Field.handleResponse = function (response) {
+			if (response.Valid) {
+				Field.Results = response.Data.Results;
+				Field.TotalResults = response.Data.TotalResults;
+				Field.setStatus("Found " + Field.TotalResults + " Results");
+				Field.renderResults();
+				Field.renderPaging();
+			}
+			else {
+				Field.setStatus("Error: " + result.Status.join(", "));
+			}
+		};
+
+		Field.renderResults = function () {
+			Field.ResultsBox.html("");
+			Field.Results.forEach(Result => {
+				Field.renderResultWrapper(Field.ResultsBox, Result);
+			});
+		};
+
+		Field.renderResultWrapper = function (container, Result) {
+			Field.renderResult(container, Result);
+		};
+
+		Field.renderResult = function (container, Result) {
+			var resultBox = $("<div>" + Field.getItemLabel(Result) + "</div>").appendTo(container);
+			resultBox[0].getItem = function () { return Result; }
+		};
+
+		Field.getItemLabel = function (Item) {
+			return (Item.CodedNotation || "") + (Item.CodedNotation && Item.Name ? " - " : "") + (Item.Name || "");
+		};
+
+		Field.renderPaging = function () {
+			Field.PagingBox.html("");
+
+			if (Field.TotalResults > 0) {
+				var selector = FormItem.setupUI_select({ ContentBox: Field.PagingBox });
+				selector.getItemValue = function (Item) { return Item.page; };
+				selector.getItemLabel = function (Item) { return Item.text; };
+
+				var totalPages = Math.ceil(Field.TotalResults / Field.PageSize);
+				for (var i = 1; i <= totalPages; i++) {
+					selector.Items.push({ page: i, text: "Page " + i });
+				}
+
+				selector.onChange = function (Item, option) {
+					Field.PageNumber = Item.page;
+					Field.doSearch(false);
+				}
+
+				selector.renderItems();
+				selector.write(Field.PageNumber);
+			}
+		};
+
+		Field.read = function () {
+			return Field.Results;
+		};
+
+		Field.write = function (value) {
+			Field.Results = value || [];
+			Field.renderResults();
+		};
+
+		Field.KeywordsFilter = Field.createTextFilter("search:Keywords", "Search...");
+		Field.attachHandlerForTextChange(Field.KeywordsFilter.Box);
+		Field.Spinner.hide();
+		return Field;
+	}
+	//
+
+	//Placeholder Field that is intended to enable creating instances of nested classes
+	FormItem.setupUI_children = function (Field) {
+		console.log("Children objects not implemented yet!");
+
+		Field.read = function () {
+			return "Not implemented yet!";
+		};
+
+		Field.write = function (value) {
+
+		};
+
+		return Field;
+	}
+	//
+
+	//Generic method to do a POST request and handle the response
+	//Used in several of the above Fields, so be careful about making changes!
+	FormItem.doPOSTRequest = function (url, data, handleResponse) {
+		console.log("Sending request", { url: url, data: data });
+		fetch(url, {
+			method: "POST",
+			headers: { 'Accept': 'application/json', 'Content-Type': 'application/json' },
+			body: JSON.stringify(data)
+		}).then((response) => {
+			console.log("Received response", response);
+			return response.text();
+		}).then((text) => {
+			var result = JSON.parse(text);
+			console.log("Parsed JSON", result);
+			handleResponse?.(result);
+		});
+	}
+	//
+
+	//Generic method for handling save operations
+	FormItem.handleSave = function (response, redirectURLAfterSuccess) {
+		if (response.Valid) {
+			consoleMessage && consoleMessage.addSuccessMessage("Successfully saved data. Redirecting...");
+			!consoleMessage && alert("Successfully saved data. Redirecting...");
+			redirectURLAfterSuccess && setTimeout(function () {
+				window.location.href = redirectURLAfterSuccess;
+			}, 3000);
+		}
+		else {
+			consoleMessage && (response.Status || []).map(m => consoleMessage.addErrorMessage("Error: " + m));
+			!consoleMessage && alert("Error: " + (response.status || []).join("\n"));
+		}
+	}
+	//
+</script>
+<style type="text/css">
+	.spinner { display: inline-block; box-shadow: inset 4px 0 0 5px; border-radius: 50%; height: 20px; width: 20px; animation: spin 1s linear infinite; }
+	@@keyframes spin { 100% { transform: rotate(360deg); } }
+
+	form-item { display: block; padding: 10px 0; margin-bottom: 10px; }
+	form-item .formItemLabel { font-weight: bold; }
+	form-item .formItemValue { }
+	form-item input[type='text'], form-item textarea, form-item select, form-item button { display: block; width: 100%; height: 30px; max-width: none; }
+	form-item textarea { min-height: 100px; max-height: 20vh; resize: vertical; }
+	form-item button { padding: 2.5px 10px; }
+	form-item[data-ui='checkboxlist'] label { display: flex; align-items: baseline; padding: 2px 10px; margin: 0; }
+	form-item[data-ui='checkboxlist'] label:hover, form-item[data-ui='checkboxlist'] label:focus { cursor: pointer; background-color: rgba(0,0,0,0.05); }
+	form-item[data-ui='checkboxlist'] label input[type='checkbox'] { margin-right: 10px; }
+	form-item[data-ui='textmulti'] .addBox { display: flex; }
+	form-item[data-ui='textmulti'] .addBox button { flex: 0 0 100px; margin-left: 5px; }
+	form-item[data-ui='textmulti'] .items { display: flex; flex-wrap: wrap; }
+	form-item[data-ui='textmulti'] .items .item { display: flex; align-items: baseline; border: 1px solid #CCC; border-radius: 0 2px 2px 0; margin: 5px; }
+	form-item[data-ui='textmulti'] .items .item span { padding: 0 10px; }
+	form-item[data-ui='textmulti'] .items .item button { flex: 0 0 26px; width: 26px; height: 26px; padding: 0; }
+	form-item[data-ui^='search'] .statusWrapper { display: flex; align-items: baseline; padding: 5px 10px; }
+	form-item[data-ui^='search'] .statusWrapper .statusBox { display: flex; align-items: center; }
+	form-item[data-ui^='search'] .statusWrapper .statusBox span { margin-right: 10px; font-style: italic; }
+	form-item[data-ui^='search'] .statusWrapper .pagingBox { margin-left: auto; min-width: 100px; }
+	form-item[data-ui^='search'] .resultsBox > div { padding: 5px; border-top: 1px solid #CCC; }
+	form-item[data-ui^='searchselect'] .searchColumns { display: flex; }
+	form-item[data-ui^='searchselect'] .searchColumns .searchBox { flex: 0 0 50%; }
+	form-item[data-ui^='searchselect'] .searchColumns .searchBox:first-child { padding-right: 10px; }
+	form-item[data-ui^='searchselect'] .searchColumns .searchBox:last-child { padding-left: 10px; }
+	form-item[data-ui^='searchselect'] .resultWrapper { display: flex; align-items: baseline; padding: 5px; border-top: 1px solid #CCC; }
+	form-item[data-ui^='searchselect'] .resultWrapper .resultInner { flex: 1 1 auto; }
+	form-item[data-ui^='searchselect'] .resultWrapper > button { flex: 0 0 auto; width: auto; margin-left: 10px; }
+	form-item[data-ui='searchselectdeferred'] .itemsToChangeLabel { font-weight: bold; margin-top: 20px; }
+</style>

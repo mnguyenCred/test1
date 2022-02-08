@@ -4,61 +4,64 @@ using System.Linq;
 using System.Web;
 using System.Web.Mvc;
 
-using AM = Models.Application;
-using SM = Models.Search;
-using Services;
 using Navy.Utilities;
+using Models.Search;
+using Models.Schema;
 
 namespace NavyRRL.Controllers
 {
     public class SearchController : BaseController
     {
-		// GET: Search
-		//Changed to custom Authorize as for the base Authorized, if user doesn't have role they immediately get sent back to log, no message!
 		[CustomAttributes.NavyAuthorize( "Search", Roles = "Administrator, RMTL Developer, Site Staff" )]
-		public ActionResult Index()
-        {
-			if (!AccountServices.IsUserAuthenticated())
-            {
-				AM.SiteMessage siteMessage = new AM.SiteMessage()
-				{
-					Title = "Invalid Request",
-					Message = AccountServices.NOT_AUTHENTICATED
-				};
-				ConsoleMessageHelper.SetConsoleErrorMessage( AccountServices.NOT_AUTHENTICATED );
-				return RedirectToAction( AccountServices.EVENT_AUTHENTICATED, "event", new { area = "" } );
-			} else
-            {
-
-			}
-			return View( "~/views/search/searchv2.cshtml" );
+		public ActionResult Index( string searchType )
+		{
+			AuthenticateOrRedirect( "You must be authenticated and authorized to use the search." );
+			ViewBag.SearchType = searchType;
+			return View( "~/Views/Search/GeneralSearchV1.cshtml" );
         }
 		//
-		
-		public ActionResult SearchV1()
+
+		public ActionResult DoSearch( SearchQuery query )
 		{
-			return View( "~/views/search/searchv1.cshtml" );
-		}
-		public ActionResult SearchV2()
-		{
-			return View( "~/views/search/searchv2.cshtml" );
-		}
-		//
-		public ActionResult SearchV3()
-		{
-			return View( "~/views/search/searchv3.cshtml" );
+			return JsonResponse( null, false, new List<string>() { "Not implemented yet!" }, null );
 		}
 		//
 
-		[HttpPost]
-		public ActionResult MainSearch( SM.SearchQuery query )
+		//Used to help stub out and test new searches
+		public static SearchResultSet<T> CreateFakeResults<T>( int pageNumber = 1, int pageSize = 10, int totalResults = 500 ) where T : BaseObject, new()
 		{
-			bool valid = true;
-			string status = "";
-			var results = new SearchServices().MainSearch( query, ref valid, ref status );
+			var fakeResults = new List<T>();
+			var typeName = typeof( T ).Name;
+			for( var i = 1; i <= pageSize; i++ )
+			{
+				var fakeResult = new T();
+				fakeResult.Id = ((pageNumber - 1) * pageSize) + i;
+				var properties = typeof( T ).GetProperties();
+				AddProperty( properties, fakeResult, "Name", "Test " + typeName + " " + fakeResult.Id );
+				AddProperty( properties, fakeResult, "Description", "Test Description for " + typeName + " " + fakeResult.Id );
+				AddProperty( properties, fakeResult, "CodedNotation", "TR" + fakeResult.Id );
+				fakeResults.Add( fakeResult );
+			}
 
-			return JsonResponse( results, valid, new List<string>() { status }, null );
+			var fakeWrapper = new SearchResultSet<T>();
+			fakeWrapper.TotalResults = totalResults;
+			fakeWrapper.Results = fakeResults;
+			fakeWrapper.SearchType = typeName;
+
+			//Fake delay
+			System.Threading.Thread.Sleep( 500 );
+
+			return fakeWrapper;
+		}
+		private static void AddProperty( System.Reflection.PropertyInfo[] properties, object item, string propertyName, string value )
+		{
+			var property = properties.FirstOrDefault( m => m.Name == propertyName );
+			if( property != null )
+			{
+				property.SetValue( item, value );
+			}
 		}
 		//
-    }
+
+	}
 }

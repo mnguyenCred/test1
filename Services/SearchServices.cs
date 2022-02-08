@@ -26,17 +26,17 @@ namespace Services
 		/// <param name="status">Caller will likely ignore unless there are no results</param>
 		/// <param name="debug"></param>
 		/// <returns></returns>
-		public SearchResultSet<ResultWithExtraData<UploadableRow>> MainSearch( SearchQuery query, ref bool valid, ref string status, JObject debug = null )
+		public SearchResultSet<ResultWithExtraData<UploadableRow>> RMTLSearch( SearchQuery query, ref bool valid, ref string status, JObject debug = null )
 		{
 			debug = debug ?? new JObject();
-			LoggingHelper.DoTrace( 6, thisClassName + ".MainSearch - entered" );
+			LoggingHelper.DoTrace( 6, thisClassName + ".RMTLSearch - entered" );
 
 			//Normalize the query
 			NormalizeQuery( query, "RatingTask" );
 
 			//Do the search
 			var totalResults = 0;
-			LoggingHelper.DoTrace( 7, thisClassName + ".MainSearch. Calling: " + query.SearchType );
+			LoggingHelper.DoTrace( 7, thisClassName + ".RMTLSearch. Calling: " + query.SearchType );
 			var results = RatingTaskServices.Search( query, ref totalResults );
 
 			//Convert the results
@@ -72,6 +72,7 @@ namespace Services
 						{ "ResultNumber", item.ResultNumber },
 						{ "RecordId", item.Id },
 						{ "CTID", item.CTID },
+						{ "RowId", item.RowId.ToString() },
 						{ "Created", item.Created.ToShortDateString() },
 						{ "LastUpdated", item.LastUpdated.ToShortDateString() },
 					}
@@ -106,7 +107,11 @@ namespace Services
 					Data = item, //Course?
 					Extra = new JObject()
 					{
-						//Extra properties
+						{ "RecordId", item.Id },
+						{ "CTID", item.CTID },
+						{ "RowId", item.RowId.ToString() },
+						{ "Created", item.Created.ToShortDateString() },
+						{ "LastUpdated", item.LastUpdated.ToShortDateString() },
 					}
 				} );
 			}
