@@ -1216,10 +1216,18 @@ namespace Services
 				var nonMatchingCodes = nonMatchingRows.Select( m => m.Rating_CodedNotation ).Distinct().ToList();
 				foreach( var code in nonMatchingCodes )
 				{
-					summary.Messages.Warning.Add( "Detected " + nonMatchingRows.Where(m => m.Rating_CodedNotation == code).Count() + " rows that did not match the selected Rating (" + currentRating.CodedNotation + ") and instead were for Rating: \"" + code + "\". These rows have been ignored.");
+					if ( !string.IsNullOrWhiteSpace( code ) )
+					{
+						summary.Messages.Warning.Add( "Detected " + nonMatchingRows.Where( m => m.Rating_CodedNotation == code ).Count() + " rows that did not match the selected Rating (" + currentRating.CodedNotation + ") and instead were for Rating: \"" + code + "\". These rows have been ignored." );
+					}
 				}
 			}
-
+			//extra check after matching check - if there is only one header row, willfail
+			if ( uploadedData.Rows.Count == 0 )
+			{
+				summary.Messages.Error.Add( "Error: No rows were found to process after doing a match on Rating. This can occur if there is only one header row. The system expects two header rows. OR if the Rating selected from the interface is different from the Rating in the uploaded file." );
+				return summary;
+			}
 
 			LoggingHelper.DoTrace( 6, string.Format( "Rating: {0}, Tasks: {1}, User: {2}", currentRating.CodedNotation, uploadedData.Rows.Count(), user.FullName() ) );
 			summary.Rating = currentRating.CodedNotation;
@@ -1228,7 +1236,7 @@ namespace Services
 				ActivityType = "RatingTask",
 				Activity = "Upload",
 				Event = "Processing",
-				Comment = String.Format( "A bulk upload was initiated by: '{0}' for Rating: '{1}'.", user.FullName(), currentRating.CodedNotation ),
+				Comment = String.Format( "A bulk upload was initiated by: '{0}' for Rating: '{1}', Rows: {2}.", user.FullName(), currentRating.CodedNotation, uploadedData.Rows.Count ),
 				ActionByUserId = user.Id,
 				ActionByUser = user.FullName()
 			};

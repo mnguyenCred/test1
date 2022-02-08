@@ -33,10 +33,11 @@ namespace Factories
             {
                 return false;
             }
-            if ( string.IsNullOrEmpty( entity.Name ) )
+            if ( string.IsNullOrEmpty( entity.Name ) || entity.Name.ToLower() == "missing")
             {
                 status.AddError( thisClassName + string.Format( ".Save. The WorkRole Name is required, and is missing. This could cause an issue if referenced by another entity. The name will be set to Missing, and will require followup. UID: '{0}'", entity.RowId ) );
-                entity.Name = "Missing";
+                //entity.Name = "Missing";
+                return false;
             }
             try
             {

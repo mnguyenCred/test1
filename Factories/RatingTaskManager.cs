@@ -40,7 +40,7 @@ namespace Factories
         /// <param name="importEntity"></param>
         /// <param name="includingConcepts"></param>
         /// <returns></returns>
-        public static AppEntity Get( AppEntity importEntity )
+        public static AppEntity Get( AppEntity importEntity, string currentRatingCodedNotation )
         {
             var entity = new AppEntity();
             //will probably have to d
@@ -48,12 +48,12 @@ namespace Factories
             using ( var context = new ViewContext() )
             {
                 var item = new Data.Views.RatingTaskSummary();
-
+                //can't trust just coded notation, need to consider the current rating somewhere
                 if ( !string.IsNullOrWhiteSpace( importEntity.CodedNotation ) )
                 {
-                    item = context.RatingTaskSummary.FirstOrDefault( s => (s.CodedNotation ?? "").ToLower() == importEntity.CodedNotation.ToLower() );
+                    item = context.RatingTaskSummary.FirstOrDefault( s => (s.CodedNotation ?? "").ToLower() == importEntity.CodedNotation.ToLower() && s.Ratings.Contains( currentRatingCodedNotation ) );
                 }
-                else
+                if ( item == null || item.Id == 0 )
                 {
                     item = context.RatingTaskSummary
                                 .FirstOrDefault( s => s.PayGradeType == importEntity.PayGradeType
@@ -538,7 +538,7 @@ namespace Factories
                     {
                         //need to identify for sure what is unique
                         //use codedNotation first if present
-                        var record = Get( input );
+                        var record = Get( input, status.Rating );
                         if ( record?.Id > 0 )
                         {
                             //

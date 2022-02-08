@@ -3,7 +3,7 @@
 @{
     ViewBag.Title = "Manage Functional Area";
 
-    Layout = null;
+    //Layout = null;
     int newID = 0;
 
 }
@@ -20,20 +20,17 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap3-dialog/1.34.5/js/bootstrap-dialog.min.js"></script>
 <script type="text/javascript">
 
-	function saveData(i, custid) {
-		if (validateForm(i)) {
-			var txtcustName = $("#tblinfo").find("input[id=txtCName_" + i.toString() + "]").val();
-			var IDd = i;
-			var txthdnCustId = custid;
-			console.log("txtCName : " + txtPrice);
+	function saveData(rowIdentifier) {
+		if (validateForm(rowIdentifier)) {
+			var txtName = $("#tblData").find("input[id=txtName_" + rowIdentifier.toString() + "]").val();
+			var txtHdnRowId = rowIdentifier;
+			console.log("txtName : " + txtName);
 
 
 			var item = {};
 			var jsonObj = [];
 
-			item["CustId"] = txthdnCustId;
-			item["CustName"] = txtcustName;
-			item["Id"] = IDd;
+			item["Id"] = txtHdnRowId;
 			item["Name"] = txtName;
 			jsonObj.push(item);
 
@@ -41,11 +38,14 @@
 			console.log("jsonObj : " + jsonObj);
 			var jsonString = JSON.stringify(jsonObj);
 			console.log("jsonString : " + jsonString);
-
+			/*		data: { recordId: txtHdnRowId, name: txtName },*/
 			$.ajax({
-				url: "~/data/SaveFunctionalArea",
+				url: "@Url.Content( "~/data/SaveFunctionalArea2" )",
+				async: true,
+				headers: { "Accept": "application/json", "Content-type": "application/json; charset=utf-8" },
+				dataType: "json",
 				type: "POST",
-				data: { custId: txthdnCustId, dataToSend: jsonString, custName: txtcustName },
+				data: jsonString,
 				success: function (data) {
 					if (data.status == "Success") {
 						BootstrapDialog.show({
@@ -54,8 +54,8 @@
 							buttons: [{
 								label: 'OK',
 								action: function (dialog) {
-									window.location.href = "/Home/Index";
-									removeData(i);
+									window.location.href = "~/data/ManageFunctionalArea";
+									removeData(rowIdentifier);
 									$("#btnAdd").attr("disabled", false);
 									dialog.close();
 								}
@@ -96,17 +96,17 @@
 		var flag = true;
 		var msg = "";
 
-		var CustName = $("#tblinfo").find("input[id=txtCName_" + i.toString() + "]").val();
+		var name = $("#tblData").find("input[id=txtName_" + i.toString() + "]").val();
 
-		if (CustName == "") {
-			msg += "Functional Area Name at level " + i + " is required. " + "\n";
-			$("#txtCName_" + i.toString()).val('');
+		if (name == "") {
+			msg += "Functional Area Name at row " + i + " is required. " + "\n";
+			$("#txtName_" + i.toString()).val('');
 			flag = false;
 		}
 
 		if (flag == false) {
 			BootstrapDialog.show({
-				title: 'Warning!',
+				title: 'Error!',
 				message: msg
 			});
 		}
@@ -121,13 +121,13 @@
         console.log("incrID :" + incrID);
         var html =
             '<tr id ="Tr_' + incrID + '"> '
-            + '<td id="txtCName_' + incrID + '"><input type="text" id="txtCName_' + incrID + '"   value=""  /></td>'
+            + '<td id="txtName_' + incrID + '"><input type="text" id="txtName_' + incrID + '"   value=""  /></td>'
             + '<td >'
             + '<input type="button" class="btn btn-primary" id="btnUpdate_' + incrID + '"   value="Update"  onclick="saveData(' + incrID + ',' + ')"/>'
             + '<input type="button" class="btn btn-primary" id="btnCancel_' + incrID + '"  value="Cancel" onclick="removeRow(this)";/>'
             + '</td>'
             + '</tr>';
-        $(html).appendTo($("#tblinfo"));
+        $(html).appendTo($("#tblData"));
 
         $("#btnAdd").attr("disabled", true);
 
@@ -142,28 +142,32 @@
 <script type="text/javascript">
 	function editRowData(i) {
 
-		$("#tblinfo").find('#btnEdit_' + i.toString()).hide();
-		$("#tblinfo").find('#btnDelete_' + i.toString()).hide();
+		$("#tblData").find('#btnEdit_' + i.toString()).hide();
+		$("#tblData").find('#btnDelete_' + i.toString()).hide();
 
-		$("#tblinfo").find('#tdName_' + i.toString()).hide();
+		$("#tblData").find('#tdName_' + i.toString()).hide();
+		$("#tblData").find('#tdTaskCount_' + i.toString()).hide();
 
-		$("#tblinfo").find('#btnUpdate_' + i.toString()).show();
-		$("#tblinfo").find('#btnCancel_' + i.toString()).show();
+		$("#tblData").find('#btnUpdate_' + i.toString()).show();
+		$("#tblData").find('#btnCancel_' + i.toString()).show();
 
-		$("#tblinfo").find('#txtName_' + i.toString()).show();
+		$("#tblData").find('#txtName_' + i.toString()).show();
+		$("#tblData").find('#txtTaskCount_' + i.toString()).show();
 	}
 
 	function removeData(i) {
 
-		$("#tblinfo").find('#btnEdit_' + i.toString()).show();
-		$("#tblinfo").find('#btnDelete_' + i.toString()).show();
+		$("#tblData").find('#btnEdit_' + i.toString()).show();
+		$("#tblData").find('#btnDelete_' + i.toString()).show();
 
-		$("#tblinfo").find('#tdName_' + i.toString()).show();
+		$("#tblData").find('#tdName_' + i.toString()).show();
+		$("#tblData").find('#tdTaskCount_' + i.toString()).show();
 
-		$("#tblinfo").find('#btnUpdate_' + i.toString()).hide();
-		$("#tblinfo").find('#btnCancel_' + i.toString()).hide();
+		$("#tblData").find('#btnUpdate_' + i.toString()).hide();
+		$("#tblData").find('#btnCancel_' + i.toString()).hide();
 
-		$("#tblinfo").find('#txtName_' + i.toString()).hide();
+		$("#tblData").find('#txtName_' + i.toString()).hide();
+		$("#tblData").find('#txtTaskCount_' + i.toString()).hide();
 	}
 </script>
 <div style="margin: auto; width: 65%;">
@@ -177,10 +181,11 @@
 
         <table id="tblData" class="table table-bordered table-hover">
             <thead>
-                <tr>
-                    <th id="cname">Functional Area</th>
-                    <th id="cname">Associated Rating Tasks</th>
-                </tr>
+				<tr>
+					<th id="cname">Functional Area</th>
+					<th id="cname">Associated Rating Tasks</th>
+					<th>Action</th>
+				</tr>
             </thead>
             <tbody>
 
@@ -192,9 +197,10 @@
 
                         <tr id="Tr_@Model[i].Id.ToString()">
                             <td id="tdName_@Model[i].Id.ToString()">@Model[i].Name</td>
-                            <td id="tdName_@Model[i].Id.ToString()">@Model[i].HasRatingTasks</td>
+                            <td id="tdTaskCount_@Model[i].Id.ToString()">@Model[i].HasRatingTasks</td>
 
-                            <td id="txtCName_@Model[i].Id.ToString()" style="display:none;"><input type='text' id="txtCName_@Model[i].Id.ToString()" value="@Model[i].Name" /></td>
+                            <td id="txtName_@Model[i].Id.ToString()" style="display:none;"><input type='text' id="txtName_@Model[i].Id.ToString()" value="@Model[i].Name" /></td>
+							<td id="txtTaskCount_@Model[i].Id.ToString()" style="display:none;"><input type='text' readonly  id="txtTaskCount_@Model[i].Id.ToString()" value="@Model[i].HasRatingTasks" /></td>
 
                             <td style="width: 150px;">
                                 <input type="button" class="btn btn-primary" id="btnEdit_@Model[i].Id.ToString()" value="Edit" onclick="editRowData(@Model[i].Id.ToString())" />

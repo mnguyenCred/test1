@@ -55,6 +55,9 @@ namespace NavyRRL.Controllers
 		//Initial processing of the data before any changes are made to the database
 		public ActionResult ProcessUpload( CM.UploadableTable rawData, Guid ratingRowID )
 		{
+			var jsonResult = Json( rawData, JsonRequestBehavior.AllowGet );
+			jsonResult.MaxJsonLength = int.MaxValue;
+
 			//Construct Change Summary
 			var debug = new JObject();
 			var changeSummary = Services.BulkUploadServices.ProcessUploadV2( rawData, ratingRowID, debug );
