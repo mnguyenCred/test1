@@ -7,6 +7,7 @@ using System.Web.Mvc;
 using Models.Search;
 using Models.Schema;
 using Navy.Utilities;
+using Services;
 
 namespace NavyRRL.Controllers
 {
@@ -20,8 +21,9 @@ namespace NavyRRL.Controllers
 
 		public ActionResult DoSearch( SearchQuery query )
 		{
-			var tempResults = SearchController.CreateFakeResults<ConceptScheme>( query.PageNumber, query.PageSize );
-			return JsonResponse( tempResults, true );
+			var results = SearchServices.ConceptSchemeSearch( query );
+
+			return JsonResponse( results, true );
 		}
 		//
 

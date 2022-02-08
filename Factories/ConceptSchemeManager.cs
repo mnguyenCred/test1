@@ -15,6 +15,7 @@ using DataEntities = Data.Tables.NavyRRLEntities;
 using ViewContext = Data.Views.ceNavyViewEntities;
 using Data.Tables;
 using Navy.Utilities;
+using Models.Search;
 
 namespace Factories
 {
@@ -248,8 +249,13 @@ namespace Factories
             }
             return list;
         }
-
-        public static void MapFromDB( DBEntity input, AppEntity output, bool usingWorkElementTypeForName = false )
+		public static List<AppEntity> Search( SearchQuery query )
+		{
+			//TODO: Implement
+			query.TotalResults = 0;
+			return new List<AppEntity>();
+		}
+		public static void MapFromDB( DBEntity input, AppEntity output, bool usingWorkElementTypeForName = false )
         {
             //should include list of concepts
             List<string> errors = new List<string>();
@@ -585,8 +591,13 @@ namespace Factories
 
             return entity;
         }
-
-        public static void MapFromDB( ConceptScheme_Concept input, Concept output, bool usingWorkElementTypeForName = false )
+		public static List<Concept> SearchConcept( SearchQuery query )
+		{
+			//TODO: Implement
+			query.TotalResults = 0;
+			return new List<Concept>();
+		}
+		public static void MapFromDB( ConceptScheme_Concept input, Concept output, bool usingWorkElementTypeForName = false )
         {
             List<string> errors = new List<string>();
             BaseFactory.AutoMap( input, output, errors );

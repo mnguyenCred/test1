@@ -14,6 +14,7 @@ using Models.Application;
 using Models.Curation;
 
 using Navy.Utilities;
+using Models.Search;
 
 namespace Factories
 {
@@ -423,7 +424,13 @@ namespace Factories
             }
             return list;
         }
-        public static void MapFromDB( DBEntity input, AppEntity output )
+		public static List<AppEntity> Search( SearchQuery query )
+		{
+			//TODO: Implement
+			query.TotalResults = 0;
+			return new List<AppEntity>();
+		}
+		public static void MapFromDB( DBEntity input, AppEntity output )
         {
             //should include list of concepts
             List<string> errors = new List<string>();

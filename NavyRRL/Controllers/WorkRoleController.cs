@@ -22,16 +22,9 @@ namespace NavyRRL.Controllers
 
 		public ActionResult DoSearch( SearchQuery query )
 		{
-			//var tempResults = SearchController.CreateFakeResults<WorkRole>( query.PageNumber, query.PageSize );
+			var results = SearchServices.WorkRoleSearch( query );
 
-			//List<WorkRole> results = Factories.WorkRoleManager.Search( query );
-			//var output = ConvertResults<WorkRole>( query, results );
-			//return JsonResponse( output, true );
-			bool valid = true;
-			string status = "";
-			var results = new SearchServices().WorkRoleSearch( query, ref valid, ref status );
-
-			return JsonResponse( results, valid, new List<string>() { status }, null );
+			return JsonResponse( results, true );
 		}
 		public SearchResultSet<T> ConvertResults<T>( SearchQuery query, List<WorkRole> results ) where T : WorkRole, new()
 		{

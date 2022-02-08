@@ -10,6 +10,8 @@ using Navy.Utilities;
 using AppEntity = Models.Schema.Organization;
 using DataEntities = Data.Tables.NavyRRLEntities;
 using DBEntity = Data.Tables.Organization;
+using Models.Search;
+
 namespace Factories
 {
     public class OrganizationManager : BaseFactory
@@ -332,7 +334,13 @@ namespace Factories
             }
             return list;
         }
-        public static List<AppEntity> CheckCache()
+		public static List<AppEntity> Search( SearchQuery query )
+		{
+			//TODO: Implement
+			query.TotalResults = 0;
+			return new List<AppEntity>();
+		}
+		public static List<AppEntity> CheckCache()
         {
             var cache = new CachedObjects();
             var list = new List<AppEntity>();

@@ -15,6 +15,7 @@ using ViewContext = Data.Views.ceNavyViewEntities;
 using Data.Tables;
 using Models.Application;
 using Navy.Utilities;
+using Models.Search;
 
 namespace Factories
 {
@@ -419,6 +420,12 @@ namespace Factories
             }
             return list;
         }
+		public static List<AppEntity> Search( SearchQuery query )
+		{
+			//TODO: Implement
+			query.TotalResults = 0;
+			return new List<AppEntity>();
+		}
         public static void MapFromDB( DBEntity input, AppEntity output, bool includingTrainingTasks = false )
         {
             //should include list of concepts
