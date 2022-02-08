@@ -9,21 +9,45 @@ using Models.Import;
 using Data.Tables;
 using Navy.Utilities;
 using Services;
+using Models.Search;
 
 namespace NavyRRL.Controllers
 {
-    public class rmtlController : Controller
+    public class RMTLController : BaseController
     {
+		[CustomAttributes.NavyAuthorize( "Search", Roles = "Administrator, RMTL Developer, Site Staff" )]
+		public ActionResult Search()
+		{
+			AuthenticateOrRedirect( "You must be authenticated and authorized to use the RMTL Search." );
+			return View( "~/Views/RMTL/RMTLSearchV2.cshtml" );
+		}
+		//
+
+		[HttpPost]
+		public ActionResult	DoSearch( SearchQuery query )
+		{
+			bool valid = true;
+			string status = "";
+			var results = new SearchServices().RMTLSearch( query, ref valid, ref status );
+
+			return JsonResponse( results, valid, new List<string>() { status }, null );
+		}
+		//
+
 		[CustomAttributes.NavyAuthorize( "RMTL Home", Roles = "Administrator, RMTL Developer, Site Staff" )]
 		public ActionResult Index()
         {
             return View();
         }
+		//
+
 		[CustomAttributes.NavyAuthorize( "RMTL Catalog", Roles = "Administrator, Site Staff" )]
 		public ActionResult Catalog()
 		{
 			return View();
 		}
+		//
+
 		public ActionResult CatalogSearch()
 		{
 			var result = new JsonResult();
@@ -200,13 +224,13 @@ namespace NavyRRL.Controllers
 
 			return result;
 		}
-
-
+		//
 
 		public ActionResult ImportSummary()
         {
             return View();
         }
+		//
 
 		public ActionResult ImportSummarySearch()
 		{
@@ -359,9 +383,13 @@ namespace NavyRRL.Controllers
 			}
 			catch ( Exception ex )
 			{
+
 			}
 
 			return result;
 		}
+		//
+
+
 	}
 }

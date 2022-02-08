@@ -3,7 +3,7 @@
     ViewBag.Title = "FormHelperV1Demo";
 }
 
-@Html.Partial( "~/views/shared/_formhelperv1.cshtml" );
+@Html.Partial( "~/Views/Shared/_FormHelperV1.cshtml" );
 
 <script type="text/javascript">
 	var LocalSampleData = {
@@ -30,6 +30,10 @@
 		Main: {},
 		Second: {},
 		Config: {
+			//Configure a generic display
+			DisplaySomeData: function (Field) {
+				Field.write("<p>Some data</p>");
+			},
 			//Configure a generic search and override its render method
 			Search1: function(Field) {
 				Field.SearchURL = "@Url.Content("~/TaskSearch/MainSearch")";
@@ -130,6 +134,12 @@
 			Select2: function (Field) {
 				Field.Items = LocalSampleData.ExampleCheckBoxList1;
 				Field.renderItems();
+			},
+			//Add a click handler to a button
+			SaveData: function (Field) {
+				Field.handleClick = function () {
+					alert("Clicked " + Field.Label + " Button");
+				}
 			}
 		}
 	};
@@ -170,6 +180,9 @@
 <div class="demoContent">
 
 	<h3>Form 1</h3>
+	@* //Display field *@
+	<form-item data-path="MainDemo.Display" data-ui="display" data-label="Display" data-config="DisplaySomeData"></form-item>
+
 	@* //Plain Text fields *@
 	<form-item data-path="MainDemo.Name" data-ui="text" data-label="Name"></form-item>
 	<form-item data-path="MainDemo.SomePart.SampleText1" data-ui="text" data-label="Sample Text 1"></form-item>
@@ -197,6 +210,9 @@
 	<form-item data-path="MainDemo.OptionSet6" data-ui="searchselectimmediate" data-label="Search/Select (Immediate with overrides - see example code)" data-config="Search3"></form-item>
 	<form-item data-path="MainDemo.OptionSetLocal" data-ui="searchselectlocal" data-label="Search/Select (Local, no AJAX)" data-config="SearchLocal"></form-item>
 	<form-item data-path="MainDemo.OptionSetDeferred" data-ui="searchselectdeferred" data-label="Search/Select (Deferred)" data-config="SearchDeferred"></form-item>
+
+	@* //Button field *@
+	<form-item data-path="MainDemo.SaveButton" data-ui="button" data-label="Save" data-config="SaveData"></form-item>
 
 	@* //Sub-Object fields (not implemented yet) *@
 	<form-item data-path="MainDemo.SubDemo" data-ui="children" data-label="Sub-Items"></form-item>

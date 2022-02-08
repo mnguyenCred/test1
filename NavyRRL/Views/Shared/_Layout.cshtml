@@ -4,134 +4,142 @@
 	var env = UtilityManager.GetAppKeyValue( "environment", "production" );
 	var applicationURL = UtilityManager.GetAppKeyValue( "applicationURL", "https://sandbox.credentialengine.org/NavyRRL/" );
 	
-    var user = AccountServices.GetCurrentUser();
+	var user = AccountServices.GetCurrentUser();
 	var url = Request.Url.PathAndQuery.ToLower();
 }
 <!DOCTYPE html>
 <html>
 <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="robots" content="noindex">
-    <title>@ViewBag.Title - Navy RCDC RRL</title>
+	<meta charset="utf-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta name="robots" content="noindex">
+	<title>@ViewBag.Title - Navy RCDC RRL</title>
 
-    @*<script src="http://code.jquery.com/jquery-3.6.0.js"></script>*@
+	@*<script src="http://code.jquery.com/jquery-3.6.0.js"></script>*@
 
 
-    <link rel="stylesheet" href="//code.jquery.com/ui/1.12.0/themes/base/jquery-ui.css">
-    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.5.0/css/all.css" integrity="sha384-B4dIYHKNBt8Bc12p+WXckhzcICo0wtJAoU8YZTY5qE0Id1GSseTk6S+L3BlXeVIU" crossorigin="anonymous">
+	<link rel="stylesheet" href="//code.jquery.com/ui/1.12.0/themes/base/jquery-ui.css">
+	<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.5.0/css/all.css" integrity="sha384-B4dIYHKNBt8Bc12p+WXckhzcICo0wtJAoU8YZTY5qE0Id1GSseTk6S+L3BlXeVIU" crossorigin="anonymous">
 
-    @Styles.Render( "~/Content/css" )
-    @Scripts.Render( "~/bundles/modernizr" )
+	@Styles.Render( "~/Content/css" )
+	@Scripts.Render( "~/bundles/modernizr" )
 
-    @Scripts.Render( "~/bundles/jquery" )
-    @Scripts.Render( "~/bundles/bootstrap" )
-    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
-    @RenderSection( "css", false )
-    @RenderSection( "scripts", required: false )
-    @*<link rel="stylesheet" type="text/css" href="~/Content/DataTables/DataTables-1.11.3/css/dataTables.bootstrap.min.css" />*@
+	@Scripts.Render( "~/bundles/jquery" )
+	@Scripts.Render( "~/bundles/bootstrap" )
+	<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+	@RenderSection( "css", false )
+	@RenderSection( "scripts", required: false )
+	@*<link rel="stylesheet" type="text/css" href="~/Content/DataTables/DataTables-1.11.3/css/dataTables.bootstrap.min.css" />*@
 
-    <script src="~/Scripts/jquery.timepicker.js"></script>
-    <style>
-        .navbar-right { float: right !important; margin-right: -5px; }
-        .navbar-inverse .navbar-collapse, .navbar-inverse .navbar-form { border-color: #1120e8; }
-    </style>
+	<script src="~/Scripts/jquery.timepicker.js"></script>
+	<style>
+		.navbar-right { float: right !important; margin-right: -5px; }
+		.navbar-inverse .navbar-collapse, .navbar-inverse .navbar-form { border-color: #1120e8; }
+	</style>
 </head>
 <body>
 	<div id="mainSiteDiv" class="defaultTheme">
 		@*@Html.Partial( "~/Views/Shared/_Header.cshtml" )*@
 		<div class="navbar navbar-inverse navbar-fixed-top">
-            <div class="container">
-                @*<div class="navbar-header">
-                    <a class="column" id="mainSiteLogo" href="@Url.Content( "~" )" style="background-image: url('@Url.Content( "~/favicon.png" )'); background-size: 95%;" title="Site Logo"></a>
+			<div class="container">
+				@*<div class="navbar-header">
+					<a class="column" id="mainSiteLogo" href="@Url.Content( "~" )" style="background-image: url('@Url.Content( "~/favicon.png" )'); background-size: 95%;" title="Site Logo"></a>
 
-                </div>*@
-                <div class="navbar-header">
-                    <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
-                        <span class="icon-bar"></span>
-                        <span class="icon-bar"></span>
-                        <span class="icon-bar"></span>
-                    </button>
+				</div>*@
+				<div class="navbar-header">
+					<button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+						<span class="icon-bar"></span>
+						<span class="icon-bar"></span>
+						<span class="icon-bar"></span>
+					</button>
 
-                    <a class="navbar-brand" href="@applicationURL" title="Navy RCDC RRL"><img src="~/favicon.png" style="vertical-align: middle; width: 30px;" alt="Navy RCDC RRL"></a>
-                </div>
-                <div class="navbar-collapse collapse">
-                    <ul class="nav navbar-nav">
-                        <li>@Html.ActionLink( "Home", "Index", "Home" )</li>
-                    </ul>
+					<a class="navbar-brand" href="@applicationURL" title="Navy RCDC RRL"><img src="~/favicon.png" style="vertical-align: middle; width: 30px;" alt="Navy RCDC RRL"></a>
+				</div>
+				<div class="navbar-collapse collapse">
+					<ul class="nav navbar-nav">
+						<li>@Html.ActionLink( "Home", "Index", "Home" )</li>
+					</ul>
 
-                    @if ( ( user != null && user.Id > 0 ) || env == "developmentX" )
-                    {
-                        <ul class="nav navbar-nav">
-                            <li>@Html.ActionLink( "Task Search", "Index", "TaskSearch" )</li>
-                        </ul>
-                        <ul class="nav navbar-nav">
-                            <li>@Html.ActionLink( "Old Search", "Index", "Search" )</li>
-                        </ul>
-                        <ul class="nav navbar-nav">
-                            <li>@Html.ActionLink( "Rating Search", "Index", "RatingSearch" )</li>
-                        </ul>
-                        <ul class="nav navbar-nav">
-                            <li>@Html.ActionLink( "Upload", "Index", "Upload" )</li>
-                        </ul>
+					@if ( ( user != null && user.Id > 0 ) || env == "developmentX" )
+					{
+						<ul class="nav navbar-nav">
+							<li><a href="@Url.Content( "~/rmtl/search" )">Rating Master Task List</a></li>
+						</ul>
+						<ul class="nav navbar-nav">
+							<li><a href="@Url.Content( "~/upload/index" )">Upload Data</a></li>
+						</ul>
+						<ul class="nav navbar-nav">
+							<li><a href="@Url.Content( "~/rmtlproject/search" )">RMTL Projects</a></li>
+						</ul>
+						<ul class="nav navbar-nav">
+							<li class="dropdown">
+								<a href="#" class="dropdown-toggle" data-toggle="dropdown">Search by Type<b class="caret"></b></a>
+								<ul class="dropdown-menu">
+									<li><a href="@Url.Content( "~/rating/search" )">Ratings</a></li>
+									<li><a href="@Url.Content( "~/billettitle/search" )">Billet Titles</a></li>
+									<li><a href="@Url.Content( "~/workrole/search" )">Functional Areas</a></li>
+									<li><a href="@Url.Content( "~/referenceresource/search" )">Sources</a></li>
+									<li><a href="@Url.Content( "~/ratingtask/search" )">Rating Tasks</a></li>
+									<li><a href="@Url.Content( "~/course/search" )">Courses</a></li>
+									<li><a href="@Url.Content( "~/organization/search" )">Organizations (CCAs)</a></li>
+									<li><a href="@Url.Content( "~/trainingtask/search" )">Training Tasks</a></li>
+								</ul>
+							</li>
+						</ul>
+					}
+					  @if ( AccountServices.IsUserAnAdmin() )
+					{
+						<ul class="nav navbar-nav">
+							<li class="dropdown">
+								<a href="#" class="dropdown-toggle" data-toggle="dropdown">Data Management<b class="caret"></b></a>
+								<ul class="dropdown-menu">
+									<li><a href="@Url.Content( "~/data/index" )">Home</a></li>
+									<li><a href="@Url.Content( "~/data/ManageCCA" )">CCA Management</a></li>
+									<li><a href="@Url.Content( "~/data/ManageConceptSchemes" )">Concept Management</a></li>
+									<li><a href="@Url.Content( "~/data/ManageCourses" )">Course Management</a></li>
+								</ul>
+							</li>
 
-                        <ul class="nav navbar-nav">
-                            <li>@Html.ActionLink( "RMTL Projects", "Index", "rmtl" )</li>
-                        </ul>
-                    }
-                      @if ( AccountServices.IsUserAnAdmin() )
-                    {
-                        <ul class="nav navbar-nav">
-                            <li class="dropdown">
-                                <a href="#" class="dropdown-toggle" data-toggle="dropdown">Data Management<b class="caret"></b></a>
-                                <ul class="dropdown-menu">
-                                    <li><a href="@Url.Content( "~/data/index" )">Home</a></li>
-                                    <li><a href="@Url.Content( "~/data/ManageCCA" )">CCA Management</a></li>
-                                    <li><a href="@Url.Content( "~/data/ManageConceptSchemes" )">Concept Management</a></li>
-                                    <li><a href="@Url.Content( "~/data/ManageCourses" )">Course Management</a></li>
-                                </ul>
-                            </li>
+						</ul>
+					}
+					@if ( AccountServices.IsUserAnAdmin() )
+					{
+						<ul class="nav navbar-nav">
+							<li class="dropdown">
+								<a href="#" class="dropdown-toggle" data-toggle="dropdown">Admin<b class="caret"></b></a>
+								<ul class="dropdown-menu">
+									<li>@Html.ActionLink( "Account Management", "accounts", "admin" )</li>
+									<li>@Html.ActionLink( "Add Account", "AddUser", "Account" )</li>
+									<li>@Html.ActionLink( "Activity Log", "Activity", "admin" )</li>
+									<li>@Html.ActionLink( "RMTL Catalog", "catalog", "rmtl" )</li>
+						
 
-                        </ul>
-                    }
-                    @if ( AccountServices.IsUserAnAdmin() )
-                    {
-                        <ul class="nav navbar-nav">
-                            <li class="dropdown">
-                                <a href="#" class="dropdown-toggle" data-toggle="dropdown">Admin<b class="caret"></b></a>
-                                <ul class="dropdown-menu">
-                                    <li>@Html.ActionLink( "Account Management", "accounts", "admin" )</li>
-                                    <li>@Html.ActionLink( "Add Account", "AddUser", "Account" )</li>
-                                    <li>@Html.ActionLink( "Activity Log", "Activity", "admin" )</li>
-                                    <li>@Html.ActionLink( "RMTL Catalog", "catalog", "rmtl" )</li>
-                        
+								</ul>
+							</li>
 
-                                </ul>
-                            </li>
-
-                        </ul>
-                    }
-                    @*@if ( ( user?.Id == 0 ) )
-        {
-            <ul class="nav navbar-nav navbar-right">
-                @if ( env == "development" )
-                {
-                <li>@Html.ActionLink( "Register", "Register", "Account", routeValues: null, htmlAttributes: new { id = "registerLink" } )</li>
-                }
-                <li>@Html.ActionLink( "Log in", "Login", "Account", routeValues: null, htmlAttributes: new { id = "loginLink" } )</li>
-            </ul>
-        }*@
-                    @Html.Partial( "_LoginPartial" )
-                </div>
-            </div>
+						</ul>
+					}
+					@*@if ( ( user?.Id == 0 ) )
+		{
+			<ul class="nav navbar-nav navbar-right">
+				@if ( env == "development" )
+				{
+				<li>@Html.ActionLink( "Register", "Register", "Account", routeValues: null, htmlAttributes: new { id = "registerLink" } )</li>
+				}
+				<li>@Html.ActionLink( "Log in", "Login", "Account", routeValues: null, htmlAttributes: new { id = "loginLink" } )</li>
+			</ul>
+		}*@
+					@Html.Partial( "_LoginPartial" )
+				</div>
+			</div>
 		</div>
 		<div class="container body-content"  >
 			@RenderBody()
 
-            <footer id="mainSiteFooter" style="bottom: 50px; position: fixed;  bottom: 0;">
-                <hr />
-                <p>&copy; @DateTime.Now.Year - Navy RCDC RRL</p>
-            </footer>
+			<footer id="mainSiteFooter" style="bottom: 50px; position: fixed;  bottom: 0;">
+				<hr />
+				<p>&copy; @DateTime.Now.Year - Navy RCDC RRL</p>
+			</footer>
 		</div>
 		@Html.Partial( "~/Views/Shared/_ConsoleMessage.cshtml" )
 	</div>

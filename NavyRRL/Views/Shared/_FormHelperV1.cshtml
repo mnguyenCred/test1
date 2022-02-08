@@ -45,7 +45,7 @@
 		function readLayer(map, container) {
 			Object.keys(map).forEach(key => {
 				if (map[key].IsField) {
-					container[map[key].Property] = map[key].read();
+					container[map[key].Property] = map[key].read(); //Have to allow passing null/empty values here or else we can't update something to be empty
 				}
 				else {
 					container[key] = container[key] || {};
@@ -96,6 +96,41 @@
 
 		//return the Field
 		return Field;
+	}
+	//
+
+	//Create a display Field
+	FormItem.setupUI_display = function (Field) {
+		Field.UI = $("<div></div>").appendTo(Field.ContentBox);
+		Field.Value = null;
+
+		Field.read = function () {
+			return Field.Value;
+		}
+
+		Field.write = function (value) {
+			Field.Value = value;
+			Field.UI.html(Field.Value);
+		}
+	}
+	//
+
+	//Create a button Field
+	FormItem.setupUI_button = function (Field) {
+		Field.UI = $("<button>" + Field.Label + "</button>").appendTo(Field.ContentBox);
+		Field.LabelBox.html("");
+
+		Field.read = function () { return null; };
+
+		Field.write = function (value) { };
+
+		Field.UI.on("click", function () {
+			Field.handleClick();
+		});
+
+		Field.handleClick = function () {
+			console.log("Button clicked!", Field);
+		}
 	}
 	//
 
@@ -705,6 +740,22 @@
 			console.log("Parsed JSON", result);
 			handleResponse?.(result);
 		});
+	}
+	//
+
+	//Generic method for handling save operations
+	FormItem.handleSave = function (response, redirectURLAfterSuccess) {
+		if (response.Valid) {
+			consoleMessage && consoleMessage.addSuccessMessage("Successfully saved data. Redirecting...");
+			!consoleMessage && alert("Successfully saved data. Redirecting...");
+			redirectURLAfterSuccess && setTimeout(function () {
+				window.location.href = redirectURLAfterSuccess;
+			}, 3000);
+		}
+		else {
+			consoleMessage && (response.Status || []).map(m => consoleMessage.addErrorMessage("Error: " + m));
+			!consoleMessage && alert("Error: " + (response.status || []).join("\n"));
+		}
 	}
 	//
 </script>

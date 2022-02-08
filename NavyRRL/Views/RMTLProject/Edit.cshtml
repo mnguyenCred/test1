@@ -1,0 +1,53 @@
+﻿@using Models.Schema;
+@using Newtonsoft.Json;
+@model RMTLProject
+@{
+	var title = Model.Id > 0 ? "Editing RMTL Project" : "New RMTL Project";
+	ViewBag.Title = title;
+}
+
+@Html.Partial( "~/Views/Shared/_FormHelperV1.cshtml" )
+
+<script type="text/javascript">
+	var Data = {
+		//The original resource
+		Source: @Html.Raw( JsonConvert.SerializeObject( Model ) ),
+		//Mapping used internally for the FormItem stuff
+		Form: {},
+		//Functions to configure FormItem stuff
+		Config: {
+			//On Save...
+			SaveButton: function (Field) {
+				Field.handleClick = function () {
+					//Create a new object from the combination of the existing object and the updates
+					var data = {
+						...Data.Source,
+						...Data.Form.read()
+					};
+					//Then save it and get the object back from the server, and use its ID to redirect to its detail page (or do other things?)
+					console.log("Saving Data", data);
+					FormItem.doPOSTRequest("@Url.Content("~/rmtlproject/save/")", data, function(response) {
+						FormItem.handleSave(response, "@Url.Content("~/rmtlproject/detail/")" + (response.Data?.Id || 0));
+					});
+				}
+			}
+		}
+	};
+
+	$(document).ready(function () {
+		FormItem.setupFormItems(Data.Form, "RMTLProject", Data.Config);
+		Data.Form.write(Data.Source);
+	});
+	//
+</script>
+
+<h2>@title</h2>
+
+<form-item data-path="RMTLProject.Id" data-ui="display" data-label="ID"></form-item>
+<form-item data-path="RMTLProject.RowId" data-ui="display" data-label="RowID"></form-item>
+<form-item data-path="RMTLProject.Name" data-ui="text" data-label="Name"></form-item>
+<form-item data-path="RMTLProject.CodedNotation" data-ui="text" data-label="Code"></form-item>
+<form-item data-path="RMTLProject.Description" data-ui="textarea" data-label="Description"></form-item>
+<form-item data-path="RMTLProject.Note" data-ui="text" data-label="Note"></form-item>
+<form-item data-path="RMTLProject.VersionIdentifier" data-ui="text" data-label="Version Identifier"></form-item>
+<form-item data-path="RMTLProject.SaveButton" data-ui="button" data-label="Save Changes" data-config="SaveButton"></form-item>
