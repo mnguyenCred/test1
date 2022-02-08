@@ -229,15 +229,20 @@
 			return;
 		}
 
-		setUploadStatus("Status: Sending data, check below for details...", true);
+		setUploadStatus("Status: Processing data, please wait...", true);
 		console.log("Submitting data", data);
 		Upload.UI.UploadSummaryBox.html("");
 		
 		postData("@Url.Content("~/upload/processupload")", data).then((response) => {
-			console.log("Received response", response);
-			return response.text()
+			if (response.ok) {
+				console.log("Received response", response);
+				return response.text()
+			}
+			else {
+				throw response;
+			}
 		}).then((text) => {
-			setUploadStatus("Status: Received Response, review the Summary report. If there are no issues, then click the <b>Confirm All Changes</b> button to save the data to the database.");
+			setUploadStatus("Please review the Summary report below. If there are no issues, then click the <b>Confirm All Changes</b> button to save the data to the database.");
 			Upload.Summary = JSON.parse(text);
 			console.log("Parsed Data", Upload.Summary);
 			//renderResults();
@@ -249,6 +254,9 @@
 			else {
 				hideConfirmChangesSection();
 			}
+		}).catch((response) => {
+			console.log("Error handling request", response);
+			setUploadStatus("Error processing upload. " + response.statusText + " (Error code " + response.status + ")");
 		});
 	}
 	//
@@ -464,13 +472,21 @@
 		setUploadStatus("Confirming changes, please wait...", true);
 
 		postData("@Url.Content("~/upload/confirmchanges")", { changeSummaryRowID: Upload.Summary.Data.RowId }).then((response) => {
-			setUploadStatus("Status: Received response, check below for details");
-			console.log("Received response", response);
-			return response.text();
+			if (response.ok) {
+				setUploadStatus("Please review the below for details.");
+				console.log("Received response", response);
+				return response.text();
+			}
+			else {
+				throw response;
+			}
 		}).then((text) => {
 			Upload.Confirmation = JSON.parse(text);
 			console.log("Parsed Confirmation", Upload.Confirmation);
 			renderConfirmation();
+		}).catch((response) => {
+			console.log("Error handling request", response);
+			setUploadStatus("Error processing upload. " + response.statusText + " (Error code " + response.status + ")");
 		});
 	}
 	//
