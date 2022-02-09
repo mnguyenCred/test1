@@ -1,9 +1,12 @@
 ﻿@using Models.Schema;
+@using Models.DTO;
 @using Newtonsoft.Json;
 @model Course
 @{
 	var title = Model.Id > 0 ? "Editing Course" : "New Course";
 	ViewBag.Title = title;
+	var courseTypeList = Factories.ConceptSchemeManager.GetbyShortUri( Factories.ConceptSchemeManager.ConceptScheme_CourseType ).Concepts.Select( m => SimpleItemHelper.GetSimpleItem( m ) ).ToList();
+	var ccaList = Factories.OrganizationManager.GetAll().Select( m => SimpleItemHelper.GetSimpleItem( m ) ).ToList();
 }
 
 @Html.Partial( "~/Views/Shared/_FormHelperV1.cshtml" )
@@ -16,20 +19,24 @@
 		Form: {},
 		//Functions to configure FormItem stuff
 		Config: {
-			//On Save...
+			//Configure Save Button
 			SaveButton: function (Field) {
-				Field.handleClick = function () {
-					//Create a new object from the combination of the existing object and the updates
-					var data = {
+				Field.SaveURL = "@Url.Content("~/course/save/")";
+				Field.RedirectAfterSuccessURL = "@Url.Content("~/course/detail/")";
+				Field.getDataToSave = function () {
+					return {
 						...Data.Source,
 						...Data.Form.read()
 					};
-					//Then save it and get the object back from the server, and use its ID to redirect to its detail page (or do other things?)
-					console.log("Saving Data", data);
-					FormItem.doPOSTRequest("@Url.Content("~/course/save/")", data, function(response) {
-						FormItem.handleSave(response, "@Url.Content("~/course/detail/")" + (response.Data?.Id || 0));
-					});
 				}
+			},
+			CourseType: function (Field) {
+				Field.Items = @Html.Raw( JsonConvert.SerializeObject( courseTypeList, Formatting.None ) );
+				Field.renderItems();
+			},
+			CurriculumControlAuthority: function (Field) {
+				Field.Items = @Html.Raw( JsonConvert.SerializeObject( ccaList, Formatting.None ) );
+				Field.renderItems();
 			}
 		}
 	};
@@ -47,4 +54,6 @@
 <form-item data-path="Course.RowId" data-ui="display" data-label="RowID"></form-item>
 <form-item data-path="Course.Name" data-ui="text" data-label="Name"></form-item>
 <form-item data-path="Course.CodedNotation" data-ui="text" data-label="Code"></form-item>
-<form-item data-path="Course.SaveButton" data-ui="button" data-label="Save Changes" data-config="SaveButton"></form-item>
+<form-item data-path="Course.CourseType" data-ui="checkboxlist" data-label="Course Type" data-config="CourseType"></form-item>
+<form-item data-path="Course.CurriculumControlAuthority" data-ui="checkboxlist" data-label="Curriculum Control Authority" data-config="CurriculumControlAuthority"></form-item>
+<form-item data-path="Course.SaveButton" data-ui="savebutton" data-label="Save Changes" data-config="SaveButton"></form-item>

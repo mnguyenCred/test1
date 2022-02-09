@@ -16,19 +16,15 @@
 		Form: {},
 		//Functions to configure FormItem stuff
 		Config: {
-			//On Save...
+			//Configure Save Button
 			SaveButton: function (Field) {
-				Field.handleClick = function () {
-					//Create a new object from the combination of the existing object and the updates
-					var data = {
+				Field.SaveURL = "@Url.Content("~/workrole/save/")";
+				Field.RedirectAfterSuccessURL = "@Url.Content("~/workrole/detail/")";
+				Field.getDataToSave = function () {
+					return {
 						...Data.Source,
 						...Data.Form.read()
 					};
-					//Then save it and get the object back from the server, and use its ID to redirect to its detail page (or do other things?)
-					console.log("Saving Data", data);
-					FormItem.doPOSTRequest("@Url.Content("~/workrole/save/")", data, function(response) {
-						FormItem.handleSave(response, "@Url.Content("~/workrole/detail/")" + (response.Data?.Id || 0));
-					});
 				}
 			}
 		}
@@ -48,4 +44,4 @@
 <form-item data-path="WorkRole.Name" data-ui="text" data-label="Name"></form-item>
 <form-item data-path="WorkRole.CodedNotation" data-ui="text" data-label="Code"></form-item>
 <form-item data-path="WorkRole.Description" data-ui="textarea" data-label="Description"></form-item>
-<form-item data-path="WorkRole.SaveButton" data-ui="button" data-label="Save Changes" data-config="SaveButton"></form-item>
+<form-item data-path="WorkRole.SaveButton" data-ui="savebutton" data-label="Save Changes" data-config="SaveButton"></form-item>

@@ -36,7 +36,7 @@
 			},
 			//Configure a generic search and override its render method
 			Search1: function(Field) {
-				Field.SearchURL = "@Url.Content("~/TaskSearch/MainSearch")";
+				Field.SearchURL = "@Url.Content("~/RMTL/DoSearch")";
 				Field.KeywordsFilter.Name = "search:RatingTaskKeyword";
 				Field.renderResult = function (container, Result) {
 					container.append("<div class=\"taskResult\">" + Result.Data.RatingTask_Description + "</div>");
@@ -44,12 +44,12 @@
 			},
 			//Configure a search/select and override its render methods
 			Search2: function(Field) {
-				Field.Search.SearchURL = "@Url.Content("~/TaskSearch/MainSearch")";
+				Field.Search.SearchURL = "@Url.Content("~/RMTL/DoSearch")";
 				Field.Search.KeywordsFilter.Name = "search:TrainingTaskKeyword";
 				Field.Search.renderResult = function (container, Result) {
 					container.append("<div class=\"taskResult\">" + Result.Data.TrainingTask_Description + "</div>");
 				};
-				Field.Existing.SearchURL = "@Url.Content("~/TaskSearch/MainSearch")";
+				Field.Existing.SearchURL = "@Url.Content("~/RMTL/DoSearch")";
 				Field.Existing.KeywordsFilter.Name = "search:TrainingTaskKeyword";
 				Field.Existing.renderResult = function (container, Result) {
 					container.append("<div class=\"taskResult\">" + Result.Data.TrainingTask_Description + "</div>");
@@ -112,12 +112,12 @@
 			},
 			//Configure a deferred search/select
 			SearchDeferred: function (Field) {
-				Field.Search.SearchURL = "@Url.Content("~/TaskSearch/MainSearch")";
+				Field.Search.SearchURL = "@Url.Content("~/RMTL/DoSearch")";
 				Field.Search.KeywordsFilter.Name = "search:RatingTaskKeyword";
 				Field.Search.renderResult = function (container, Result) {
 					container.append("<div class=\"taskResult\">" + Result.Data.RatingTask_Description + "</div>");
 				};
-				Field.Existing.SearchURL = "@Url.Content("~/TaskSearch/MainSearch")";
+				Field.Existing.SearchURL = "@Url.Content("~/RMTL/DoSearch")";
 				Field.Existing.KeywordsFilter.Name = "search:RatingTaskKeyword";
 				Field.Existing.renderResult = function (container, Result) {
 					container.append("<div class=\"taskResult\">" + Result.Data.RatingTask_Description + "</div>");
@@ -262,12 +262,12 @@
 				Field.renderItems();
 			},
 			TrainingTasks: function (Field) {
-				Field.Search.SearchURL = "@Url.Content("~/TaskSearch/MainSearch")";
+				Field.Search.SearchURL = "@Url.Content("~/RMTL/DoSearch")";
 				Field.Search.KeywordsFilter.Name = "search:TrainingTaskKeyword";
 				Field.Search.renderResult = function (container, Result) {
 					container.append("<div class=\"taskResult\">" + Result.Data.TrainingTask_Description + "</div>");
 				};
-				Field.Existing.SearchURL = "@Url.Content("~/TaskSearch/MainSearch")";
+				Field.Existing.SearchURL = "@Url.Content("~/RMTL/DoSearch")";
 				Field.Existing.KeywordsFilter.Name = "search:TrainingTaskKeyword";
 				Field.Existing.renderResult = function (container, Result) {
 					container.append("<div class=\"taskResult\">" + Result.Data.TrainingTask_Description + "</div>");

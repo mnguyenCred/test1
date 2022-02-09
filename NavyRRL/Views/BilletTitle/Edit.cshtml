@@ -1,9 +1,11 @@
 ﻿@using Models.Schema;
+@using Models.DTO;
 @using Newtonsoft.Json;
 @model BilletTitle
 @{
 	var title = Model.Id > 0 ? "Editing Billet Title" : "New Billet Title";
 	ViewBag.Title = title;
+	var ratingsList = Services.RatingServices.GetAll().Select( m => SimpleItemHelper.GetSimpleItem( m ) ).ToList();
 }
 
 @Html.Partial( "~/Views/Shared/_FormHelperV1.cshtml" )
@@ -16,20 +18,21 @@
 		Form: {},
 		//Functions to configure FormItem stuff
 		Config: {
-			//On Save...
+			//Configure Save Button
 			SaveButton: function (Field) {
-				Field.handleClick = function () {
-					//Create a new object from the combination of the existing object and the updates
-					var data = {
+				Field.SaveURL = "@Url.Content("~/billettitle/save/")";
+				Field.RedirectAfterSuccessURL = "@Url.Content("~/billettitle/detail/")";
+				Field.getDataToSave = function () {
+					return {
 						...Data.Source,
 						...Data.Form.read()
 					};
-					//Then save it and get the object back from the server, and use its ID to redirect to its detail page (or do other things?)
-					console.log("Saving Data", data);
-					FormItem.doPOSTRequest("@Url.Content("~/billettitle/save/")", data, function(response) {
-						FormItem.handleSave(response, "@Url.Content("~/billettitle/detail/")" + (response.Data?.Id || 0));
-					});
 				}
+			},
+			//Configure list of ratings
+			HasRating: function (Field) {
+				Field.Items = @Html.Raw( JsonConvert.SerializeObject( ratingsList, Formatting.None ) );
+				Field.renderItems();
 			}
 		}
 	};
@@ -46,5 +49,6 @@
 <form-item data-path="BilletTitle.Id" data-ui="display" data-label="ID"></form-item>
 <form-item data-path="BilletTitle.RowId" data-ui="display" data-label="RowID"></form-item>
 <form-item data-path="BilletTitle.Name" data-ui="text" data-label="Name"></form-item>
+<form-item data-path="BilletTitle.HasRating" data-ui="select" data-label="Associated Rating" data-config="HasRating"></form-item>
 <form-item data-path="BilletTitle.Description" data-ui="textarea" data-label="Description"></form-item>
-<form-item data-path="BilletTitle.SaveButton" data-ui="button" data-label="Save Changes" data-config="SaveButton"></form-item>
+<form-item data-path="BilletTitle.SaveButton" data-ui="savebutton" data-label="Save Changes" data-config="SaveButton"></form-item>
