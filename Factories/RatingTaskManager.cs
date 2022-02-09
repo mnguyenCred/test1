@@ -461,6 +461,7 @@ namespace Factories
                         item.HasReferenceResource = GetGuidType( dr, "HasReferenceResource" );
 						//
 						item.WorkElementType = dr["WorkElementType"].ToString();// GetRowPossibleColumn( dr, "WorkElementType", "" );
+                        item.WorkElementTypeAlternateName = dr["WorkElementTypeAlternateName"].ToString();
                         item.ReferenceType = GetGuidType( dr, "ReferenceType" );
 						//
 						item.TaskApplicability = dr["TaskApplicability"].ToString().Trim();// GetRowPossibleColumn( dr, "TaskApplicability", "" );
