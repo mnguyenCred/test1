@@ -79,24 +79,24 @@
 	var Search = {
 		UI: {},
 		Columns: [
-			{ Label: "Rating", ResultMap: "Rating_CodedNotation", SortOrder: "Ratings", Category: "overall", CssClass: "rating" },
-			{ Label: "Rank", ResultMap: "PayGradeType_CodedNotation", SortOrder: "Rank", Category: "overall", CssClass: "payGrade" },
-			{ Label: "Level (A/J/M)", ResultMap: "Level_Name", SortOrder: "Level", Category: "overall", CssClass: "level" },
-			{ Label: "Billet Title", ResultMap: "BilletTitle_Name", SortOrder: "BilletTitles", Category: "overall", CssClass: "billetTitle" },
-			{ Label: "Functional Area", ResultMap: "WorkRole_Name", SortOrder: "FunctionalArea", Category: "ratingTask", CssClass: "workRole" },
-			{ Label: "Source", ResultMap: "ReferenceResource_Name", SortOrder: "ReferenceResource", Category: "ratingTask", CssClass: "source" },
-			{ Label: "Date of Source", ResultMap: "ReferenceResource_PublicationDate", SortOrder: "SourceDate", Category: "ratingTask", CssClass: "sourceDate" },
-			{ Label: "Work Element Type", ResultMap: "Shared_ReferenceType", SortOrder: "WorkElementType", Category: "ratingTask", CssClass: "sourceType" },
-			{ Label: "Work Element (Task)", ResultMap: "RatingTask_Description", SortOrder: "RatingTask", Category: "ratingTask", CssClass: "ratingTaskDescription" },
-			{ Label: "Task Applicability", ResultMap: "RatingTask_ApplicabilityType_Name", SortOrder: "TaskApplicability", Category: "ratingTask", CssClass: "applicabilityType" },
-			{ Label: "Formal Training Gap", ResultMap: "RatingTask_TrainingGapType_Name", SortOrder: "FormalTrainingGap", Category: "course", CssClass: "trainingGapType" },
-			{ Label: "CIN", ResultMap: "Course_CodedNotation", SortOrder: "CIN", Category: "course", CssClass: "courseID" },
-			{ Label: "Course Name", ResultMap: "Course_Name", SortOrder: "CourseName", Category: "course", CssClass: "courseName" },
-			{ Label: "Course Type (A/C/G/F/T)", ResultMap: "Course_CourseType_Name", SortOrder: "CourseTypes", Category: "course", CssClass: "courseType" },
-			{ Label: "Curriculum Control Authority (CCA)", ResultMap: "Course_CurriculumControlAuthority_Name", SortOrder: "CurriculumControlAuthority", Category: "course", CssClass: "cca" },
-			{ Label: "Life-Cycle Control Document", ResultMap: "Course_HasReferenceResource_Name", SortOrder: "LifeCycleControlDocument", Category: "course", CssClass: "lccd" },
-			{ Label: "CTTL/PPP/TCCD Statement", ResultMap: "TrainingTask_Description", SortOrder: "TrainingTask", Category: "course", CssClass: "trainingTaskDescription" },
-			{ Label: "Course Assessment Approach", ResultMap: "Course_AssessmentMethodType_Name", SortOrder: "AssessmentMethodTypes", Category: "course", CssClass: "assessmentMethodType" },
+			{ Label: "Rating", ResultMap: "Rating_CodedNotation", SortOrder: "Ratings", Category: "overall", CssClass: "rating", Set: "PART I" },
+			{ Label: "Rank", ResultMap: "PayGradeType_CodedNotation", SortOrder: "Rank", Category: "overall", CssClass: "payGrade", Set: "PART I" },
+			{ Label: "Level (A/J/M)", ResultMap: "Level_Name", SortOrder: "Level", Category: "overall", CssClass: "level", Set: "PART I" },
+			{ Label: "Billet Title", ResultMap: "BilletTitle_Name", SortOrder: "BilletTitles", Category: "overall", CssClass: "billetTitle", Set: "PART I" },
+			{ Label: "Functional Area", ResultMap: "WorkRole_Name", SortOrder: "FunctionalArea", Category: "ratingTask", CssClass: "workRole", Set: "PART I" },
+			{ Label: "Source", ResultMap: "ReferenceResource_Name", SortOrder: "ReferenceResource", Category: "ratingTask", CssClass: "source", Set: "PART I" },
+			{ Label: "Date of Source", ResultMap: "ReferenceResource_PublicationDate", SortOrder: "SourceDate", Category: "ratingTask", CssClass: "sourceDate", Set: "PART I" },
+			{ Label: "Work Element Type", ResultMap: "Shared_ReferenceType", SortOrder: "WorkElementType", Category: "ratingTask", CssClass: "sourceType", Set: "PART I" },
+			{ Label: "Work Element (Task)", ResultMap: "RatingTask_Description", SortOrder: "RatingTask", Category: "ratingTask", CssClass: "ratingTaskDescription", Set: "PART I" },
+			{ Label: "Task Applicability", ResultMap: "RatingTask_ApplicabilityType_Name", SortOrder: "TaskApplicability", Category: "ratingTask", CssClass: "applicabilityType", Set: "PART I" },
+			{ Label: "Formal Training Gap", ResultMap: "RatingTask_TrainingGapType_Name", SortOrder: "FormalTrainingGap", Category: "course", CssClass: "trainingGapType", Set: "PART II" },
+			{ Label: "CIN", ResultMap: "Course_CodedNotation", SortOrder: "CIN", Category: "course", CssClass: "courseID", Set: "PART II" },
+			{ Label: "Course Name", ResultMap: "Course_Name", SortOrder: "CourseName", Category: "course", CssClass: "courseName", Set: "PART II" },
+			{ Label: "Course Type (A/C/G/F/T)", ResultMap: "Course_CourseType_Name", SortOrder: "CourseTypes", Category: "course", CssClass: "courseType", Set: "PART II" },
+			{ Label: "Curriculum Control Authority (CCA)", ResultMap: "Course_CurriculumControlAuthority_Name", SortOrder: "CurriculumControlAuthority", Category: "course", CssClass: "cca", Set: "PART II" },
+			{ Label: "Life-Cycle Control Document", ResultMap: "Course_HasReferenceResource_Name", SortOrder: "LifeCycleControlDocument", Category: "course", CssClass: "lccd", Set: "PART II" },
+			{ Label: "CTTL/PPP/TCCD Statement", ResultMap: "TrainingTask_Description", SortOrder: "TrainingTask", Category: "course", CssClass: "trainingTaskDescription", Set: "PART II" },
+			{ Label: "Course Assessment Approach", ResultMap: "Course_AssessmentMethodType_Name", SortOrder: "AssessmentMethodTypes", Category: "course", CssClass: "assessmentMethodType", Set: "PART II" },
 			{ Label: "Notes", ResultMap: "Note", SortOrder: "Notes", Category: "course", CssClass: "note" }
 		],
 		Prefilled: {
@@ -488,7 +488,8 @@
 
 	function saveResultsAsCSV(results) {
 		var columns = Search.Filters.filter(m => m.Name == "Column")[0].Items.filter(m => m.CheckBox.prop("checked") == true);
-		var rows = [columns.map(m => m.Label)];
+		var appliedSets = [];
+		var rows = [columns.map(m => { if (appliedSets.includes(m.Set)) { return ""; } else { appliedSets.push(m.Set); return m.Set; } }), columns.map(m => m.Label)];
 		results.forEach(result => {
 			rows.push(columns.map(m => {
 				var text = (result.Data[m.ResultMap] || result.Extra[m.ResultMap] || "").replace(/"/g, '""').replace(/\r\n/g, "\n");

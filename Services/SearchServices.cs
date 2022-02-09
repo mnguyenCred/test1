@@ -54,7 +54,7 @@ namespace Services
 						WorkRole_Name = item.FunctionalArea,
 						ReferenceResource_Name = item.ReferenceResource,
 						ReferenceResource_PublicationDate = item.SourceDate,
-						Shared_ReferenceType = item.WorkElementType,
+						Shared_ReferenceType = item.WorkElementTypeAlternateName,
 						RatingTask_Description = item.Description,
 						RatingTask_ApplicabilityType_Name = item.TaskApplicability,
 						RatingTask_TrainingGapType_Name = item.FormalTrainingGap,
