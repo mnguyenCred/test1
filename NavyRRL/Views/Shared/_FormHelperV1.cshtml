@@ -134,6 +134,25 @@
 	}
 	//
 
+	FormItem.setupUI_savebutton = function (Field) {
+		Field.UI = FormItem.setupUI_button(Field);
+		Field.SaveURL = "";
+		Field.RedirectAfterSuccessURL = "";
+
+		Field.handleClick = function () {
+			var data = Field.getDataToSave();
+			console.log("Saving Data", data);
+			FormItem.doPOSTRequest(Field.SaveURL, data, function (response) {
+				FormItem.handleSave(response, Field.RedirectAfterSuccessURL + (response.Data?.Id || 0));
+			});
+		};
+
+		Field.getDataToSave = function () {
+			return {};
+		};
+	}
+	//
+
 	//Create a text Field
 	FormItem.setupUI_text = function (Field) {
 		Field.UI = $("<input type=\"text\" />").appendTo(Field.ContentBox);
@@ -172,7 +191,8 @@
 		Field.Items = [];
 
 		Field.read = function () {
-			return parseInt(Field.UI.val()) || Field.UI.val();
+			var value = Field.UI.val();
+			return isNaN(value) ? value : parseInt(value);
 		};
 
 		Field.write = function (value) {
@@ -193,7 +213,7 @@
 		});
 
 		Field.getItemValue = function (Item) {
-			return parseInt(Item.Id) || Item.RowId || Item.CTID || Item;
+			return Item.RowId || parseInt(Item.Id) || Item.CTID || Item;
 		}
 
 		Field.getItemLabel = function (Item) {
@@ -214,7 +234,7 @@
 		Field.read = function () {
 			return Field.UI.find(":checked").get().map(m => {
 				var value = $(m).val();
-				return parseInt(value) || value;
+				return isNaN(value) ? value : parseInt(value);
 			})
 		};
 
@@ -241,7 +261,7 @@
 		};
 
 		Field.getItemValue = function (Item) {
-			return parseInt(Item.Id) || Item.RowId || Item.CTID || Item;
+			return Item.RowId || parseInt(Item.Id) || Item.CTID || Item;
 		}
 
 		Field.getItemLabel = function (Item) {
@@ -734,11 +754,20 @@
 			body: JSON.stringify(data)
 		}).then((response) => {
 			console.log("Received response", response);
-			return response.text();
+			if (response.ok) {
+				return response.text();
+			}
+			else {
+				throw response;
+			}
 		}).then((text) => {
 			var result = JSON.parse(text);
 			console.log("Parsed JSON", result);
 			handleResponse?.(result);
+		}).catch((response) => {
+			console.log("Error", response);
+			consoleMessage && consoleMessage.addErrorMessage("Error: " + response.statusText + " (Error code " + response.status + ")");
+			!consoleMessage && alert("Error: " + response.statusText + " (Error code " + response.status + ")");
 		});
 	}
 	//

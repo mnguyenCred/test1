@@ -449,16 +449,14 @@ namespace Factories
             //
             if ( input.Course_CourseType?.Count > 0 )
             {
-                output.CourseTypes = new List<Guid>();
+                output.CourseType = new List<Guid>();
                 int cntr = 0;
                 foreach ( var item in input.Course_CourseType )
                 {
                     cntr++;
                     if ( item != null && item.ConceptScheme_Concept != null )
                     {
-                        output.CourseTypes.Add( item.ConceptScheme_Concept.RowId );
-                        if ( cntr == 1 )
-                            output.CourseType = item.ConceptScheme_Concept.RowId;
+                        output.CourseType.Add( item.ConceptScheme_Concept.RowId );
                         output.CourseTypeList.Add( item.ConceptScheme_Concept.Name );
                     }
                 }
@@ -527,16 +525,9 @@ namespace Factories
 
                 //22-01-24 - CCA is confirmed to be a single
                 //CurriculumControlAuthorityUpdate( input, ref status );
-                //TBD
-                if (IsValidGuid(input.CourseType))
-                {
-                    if ( input.CourseTypes == null)
-                        input.CourseTypes = new List<Guid>();
-                    input.CourseTypes.Add( input.CourseType );
-                }
                 //CourseConceptSave( input, ConceptSchemeManager.ConceptScheme_CourseType, input.CourseTypes, "CourseType", ref status );
                 //CourseConceptSave( input, ConceptSchemeManager.ConceptScheme_CurrentAssessmentApproach, input.AssessmentMethodType, "AssessmentMethodType", ref status );
-                CourseTypeSave( input, input.CourseTypes, ref status );
+                CourseTypeSave( input, input.CourseType, ref status );
                 CourseAssessmentMethodSave( input, input.AssessmentMethodType, ref status );
 
 

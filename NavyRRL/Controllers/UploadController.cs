@@ -100,9 +100,9 @@ namespace NavyRRL.Controllers
 				Services.BulkUploadServices.ApplyChangeSummary( summary, ref status );
 				//check for messages
 
-
 				//For now, return the summary object (for testing purposes)
 				return JsonResponse( summary, true, null, debug );
+
 			}
 			else
 			{

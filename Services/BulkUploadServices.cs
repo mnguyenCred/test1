@@ -413,7 +413,7 @@ namespace Services
 							Name = row.Course_Name, 
 							CodedNotation = row.Course_CodedNotation,
 							AssessmentMethodType = assessmentMethodTypes.Select( m => m.RowId ).ToList(),
-							CourseType = courseType.RowId
+							CourseType = new List<Guid>() { courseType.RowId }
 						};
 						graph.Course.Add( course );
 						result.ItemsToBeCreated.Course.Add( course );
@@ -1689,7 +1689,7 @@ namespace Services
 				matcher.Flattened.CodedNotation = matcher.Rows.Select( m => m.Course_CodedNotation ).FirstOrDefault();
 				//
 				matcher.Flattened.HasReferenceResource_Name = matcher.Rows.Select( m => m.Course_HasReferenceResource_Name ).FirstOrDefault();
-				matcher.Flattened.CourseType_Name = matcher.Rows.Select( m => m.Course_CourseType_Name ).FirstOrDefault();
+				matcher.Flattened.CourseType_Name = matcher.Rows.Select( m => m.Course_CourseType_Name ).Distinct().ToList();
 				matcher.Flattened.CurriculumControlAuthority_Name = matcher.Rows.Select( m => m.Course_CurriculumControlAuthority_Name ).Distinct().ToList();
 				matcher.Flattened.HasTrainingTask_Description = matcher.Rows.Select( m => m.TrainingTask_Description ).Distinct().ToList();
 				matcher.Flattened.AssessmentMethodType_Name = matcher.Rows.Select( m => m.Course_AssessmentMethodType_Name ).Distinct().ToList();
@@ -1703,7 +1703,7 @@ namespace Services
 			foreach( var matcher in existingCourseMatchers )
 			{
 				matcher.Flattened.HasReferenceResource_Name = existingReferenceResources.Where( m => matcher.Data.HasReferenceResource == m.RowId ).Select( m => m.Name ).FirstOrDefault();
-				matcher.Flattened.CourseType_Name = courseTypeConcepts.Where( m => matcher.Data.CourseType == m.RowId ).Select( m => m.Name ).FirstOrDefault();
+				matcher.Flattened.CourseType_Name = courseTypeConcepts.Where( m => matcher.Data.CourseType.Contains( m.RowId ) ).Select( m => m.Name ).ToList();
 				matcher.Flattened.CurriculumControlAuthority_Name = existingOrganizations.Where( m => matcher.Data.CurriculumControlAuthority.Contains( m.RowId ) ).Select( m => m.Name ).ToList();
 				matcher.Flattened.HasTrainingTask_Description = existingTrainingTasks.Where( m => matcher.Data.HasTrainingTask.Contains( m.RowId ) ).Select( m => m.Description ).ToList();
 				matcher.Flattened.AssessmentMethodType_Name = assessmentMethodTypeConcepts.Where( m => matcher.Data.AssessmentMethodType.Contains( m.RowId ) ).Select( m => m.Name ).ToList();
@@ -1784,7 +1784,7 @@ namespace Services
 					m.Name = item.Flattened.Name;
 					m.CodedNotation = item.Flattened.CodedNotation;
 					m.HasReferenceResource = existingReferenceResources.Concat( summary.ItemsToBeCreated.ReferenceResource ).Where( n => item.Flattened.HasReferenceResource_Name == n.Name ).Select( n => n.RowId ).FirstOrDefault();
-					m.CourseType = courseTypeConcepts.Where( n => item.Flattened.CourseType_Name == n.Name ).Select( n => n.RowId ).FirstOrDefault();
+					m.CourseType = courseTypeConcepts.Where( n => item.Flattened.CourseType_Name.Contains( n.Name ) ).Select( n => n.RowId ).ToList();
 					m.CurriculumControlAuthority = existingOrganizations.Concat( summary.ItemsToBeCreated.Organization ).Where( n => item.Flattened.CurriculumControlAuthority_Name.Contains( n.Name ) ).Select( n => n.RowId ).ToList();
 					m.HasTrainingTask = existingTrainingTasks.Concat( summary.ItemsToBeCreated.TrainingTask ).Where( n => item.Flattened.HasTrainingTask_Description.Contains( n.Description ) ).Select( n => n.RowId ).ToList();
 					m.AssessmentMethodType = assessmentMethodTypeConcepts.Where( n => item.Flattened.AssessmentMethodType_Name.Contains( n.Name ) ).Select( n => n.RowId ).ToList();
