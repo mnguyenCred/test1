@@ -251,6 +251,7 @@ SELECT
       ,b.[HasReferenceResource]
       ,b.[WorkElementTypeId]
       ,b.[WorkElementType]
+	  ,b.WorkElementTypeAlternateName
       ,b.[ReferenceType]
 	  ,b.CTID
       ,b.[RatingTask]
