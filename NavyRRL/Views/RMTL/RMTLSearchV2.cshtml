@@ -451,7 +451,7 @@
 			Search.Results.Data.Results.forEach(Result => {
 				var resultBox = $("<tr></tr>").appendTo(Search.UI.SearchResultsTable);
 				setTimeout(() => {
-					resultBox.html("<td>" + Search.Columns.map(column => { return Result.Data[column.ResultMap] || Result.Extra[column.ResultMap] || "" }).join("</td><td>") + "</td>");
+					resultBox.html(Search.Columns.map(Column => { return "<td class=\"" + Column.CssClass + "\">" + (Result.Data[Column.ResultMap] || Result.Extra[Column.ResultMap] || "N/A") + "</td>" }).join(""));
 				}, 0)
 			});
 		}
@@ -492,7 +492,7 @@
 		var rows = [columns.map(m => { if (appliedSets.includes(m.Set)) { return ""; } else { appliedSets.push(m.Set); return m.Set; } }), columns.map(m => m.Label)];
 		results.forEach(result => {
 			rows.push(columns.map(m => {
-				var text = (result.Data[m.ResultMap] || result.Extra[m.ResultMap] || "").replace(/"/g, '""').replace(/\r\n/g, "\n");
+				var text = (result.Data[m.ResultMap] || result.Extra[m.ResultMap] || "N/A").replace(/"/g, '""').replace(/\r\n/g, "\n");
 				return text.includes("\n") || text.includes(",") ? '"' + text + '"' : text;
 			}));
 		});
@@ -593,6 +593,8 @@
 	table .lccd { min-width: 100px; max-width: 100px; }
 	table .assessmentMethodType { min-width: 200px; max-width: 200px; }
 
+	/* Some columns must be centered */
+	table td.rating, table td.payGrade, table td.level, table td.workRole, table td.sourceType { text-align: center; }
 </style>
 <style class="searchTableStyles"></style>
 
