@@ -226,7 +226,7 @@ namespace Factories
                 template += ",'ALL'";
             }
             filter = string.Format( "base.id in (select a.[RatingTaskId] from [RatingTask.HasRating] a inner join Rating b on a.ratingId = b.Id where b.CodedNotation in ({0}) )", template );
-            var results = Search( filter, orderBy, pageNumber, pageSize, userId, ref totalRows );
+            var results = RMTLSearch( filter, orderBy, pageNumber, pageSize, userId, ref totalRows );
 
             //no clear difference between the convert and select?
             list = results.ConvertAll( m => new AppEntity() 
@@ -337,11 +337,11 @@ namespace Factories
 			string filter = String.Format( "base.id in (select a.[RatingTaskId] from [RatingTask.HasRating] a inner join Rating b on a.ratingId = b.Id where b.CodedNotation = '{0}' OR b.name = '{0}' )", keyword );
 
 
-			return Search( filter, orderBy, pageNumber, pageSize, userId, ref pTotalRows );
+			return RMTLSearch( filter, orderBy, pageNumber, pageSize, userId, ref pTotalRows );
 			
 		}
 
-		public static List<EntitySummary> Search( string pFilter, string pOrderBy, int pageNumber, int pageSize, int userId, ref int pTotalRows, bool autocomplete = false )
+		public static List<EntitySummary> RMTLSearch( string pFilter, string pOrderBy, int pageNumber, int pageSize, int userId, ref int pTotalRows, bool autocomplete = false )
 		{
 			string connectionString = DBConnectionRO();
 			EntitySummary item = new EntitySummary();

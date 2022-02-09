@@ -18,7 +18,15 @@ namespace Services
     public class RatingTaskServices
     {
         public static string thisClassName = "RatingTaskServices";
-        public static List<EntitySummary> Search( SearchQuery data, ref int totalRows )
+
+		/// <summary>
+		/// Search meant for use with the RMTL Search/Display/Export Page<br />
+		/// use Factories.RatingTaskManager.Search for a vanilla RatingTask search
+		/// </summary>
+		/// <param name="data"></param>
+		/// <param name="totalRows"></param>
+		/// <returns></returns>
+        public static List<EntitySummary> RMTLSearch( SearchQuery data, ref int totalRows )
         {
             string where = "";
             DateTime start = DateTime.Now;
@@ -218,7 +226,7 @@ namespace Services
 			var sortOrder = string.Join( ", ", data.SortOrder.Select( m => "base.[" + m.Column + "]" + ( m.Ascending ? "" : " DESC" ) ).ToList() );
 
 			//Do the search
-            List<EntitySummary> list = RatingTaskManager.Search( where, sortOrder, data.PageNumber, data.PageSize, userId , ref totalRows);
+            List<EntitySummary> list = RatingTaskManager.RMTLSearch( where, sortOrder, data.PageNumber, data.PageSize, userId , ref totalRows);
             data.TotalResults = totalRows;
 
             //stopwatch.Stop();
@@ -250,7 +258,7 @@ namespace Services
             if ( data.IsDescending )
                 data.OrderBy += " desc";
 
-            List<EntitySummary> list = RatingTaskManager.Search( data.Filter, data.OrderBy, data.PageNumber, data.PageSize, userId, ref totalRows );
+            List<EntitySummary> list = RatingTaskManager.RMTLSearch( data.Filter, data.OrderBy, data.PageNumber, data.PageSize, userId, ref totalRows );
 
             //stopwatch.Stop();
             //timeDifference = start.Subtract( DateTime.Now );

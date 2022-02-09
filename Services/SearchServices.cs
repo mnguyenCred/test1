@@ -37,7 +37,7 @@ namespace Services
 			//Do the search
 			var totalResults = 0;
 			LoggingHelper.DoTrace( 7, thisClassName + ".RMTLSearch. Calling: " + query.SearchType );
-			var results = RatingTaskServices.Search( query, ref totalResults );
+			var results = RatingTaskServices.RMTLSearch( query, ref totalResults );
 
 			//Convert the results
 			var output = new SearchResultSet<ResultWithExtraData<UploadableRow>>() { TotalResults = totalResults, SearchType = query.SearchType };
