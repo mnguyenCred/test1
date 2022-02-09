@@ -53,7 +53,7 @@ namespace NavyRRL.Controllers
 		public ActionResult Detail( int id )
 		{
 			AuthenticateOrRedirect( "You must be authenticated and authorized to view Billet Title data." );
-			var data = new BilletTitle() { Name = "Temp name" }; //Not sure how to get a billet title
+			var data = Factories.JobManager.Get( id );
 			return View( data );
 		}
 		//
@@ -62,6 +62,10 @@ namespace NavyRRL.Controllers
 		{
 			AuthenticateOrRedirect( "You must be authenticated and authorized to edit Billet Title data." );
 			var data = new BilletTitle(); //Should get by ID or default to new (to enable new billet titles to be created)
+			if (id > 0)
+            {
+				data = Factories.JobManager.Get( id );
+			}
 			return View( data );
 		}
 		//

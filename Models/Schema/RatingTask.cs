@@ -119,6 +119,7 @@ namespace Models.Schema
 		public string SourceDate { get; set; }
 		public string TaskApplicability { get; set; }
 		public string WorkElementType { get; set; }
+		public string WorkElementTypeAlternateName { get; set; }
 
 		//Course Related
 		public string CIN { get; set; }
