@@ -1,9 +1,11 @@
 ﻿@using Models.Schema;
+@using Models.DTO;
 @using Newtonsoft.Json;
 @model ReferenceResource
 @{
 	var title = Model.Id > 0 ? "Editing Reference Resource" : "New Reference Resource";
 	ViewBag.Title = title;
+	var referenceResourceTypeList = Factories.ConceptSchemeManager.GetbyShortUri( Factories.ConceptSchemeManager.ConceptScheme_ReferenceResource ).Concepts.Select( m => SimpleItemHelper.GetSimpleItem( m ) ).ToList();
 }
 
 @Html.Partial( "~/Views/Shared/_FormHelperV1.cshtml" )
@@ -11,7 +13,7 @@
 <script type="text/javascript">
 	var Data = {
 		//The original resource
-		Source: @Html.Raw( JsonConvert.SerializeObject( Model ) ),
+		Source: @Html.Raw( JsonConvert.SerializeObject( Model, Formatting.None ) ),
 		//Mapping used internally for the FormItem stuff
 		Form: {},
 		//Functions to configure FormItem stuff
@@ -26,6 +28,10 @@
 						...Data.Form.read()
 					};
 				}
+			},
+			ReferenceType: function (Field) {
+				Field.Items = @Html.Raw( JsonConvert.SerializeObject( referenceResourceTypeList, Formatting.None ) );
+				Field.renderItems();
 			}
 		}
 	};
@@ -46,5 +52,7 @@
 <form-item data-path="ReferenceResource.Description" data-ui="textarea" data-label="Description"></form-item>
 <form-item data-path="ReferenceResource.Note" data-ui="text" data-label="Note"></form-item>
 <form-item data-path="ReferenceResource.VersionIdentifier" data-ui="text" data-label="Version Identifier"></form-item>
+<form-item data-path="ReferenceResource.PublicationDate" data-ui="text" data-label="Publication Date"></form-item>
 <form-item data-path="ReferenceResource.SubjectWebpage" data-ui="textmulti" data-label="Webpages"></form-item>
+<form-item data-path="ReferenceResource.ReferenceType" data-ui="checkboxlist" data-label="Reference Type" data-config="ReferenceType"></form-item>
 <form-item data-path="ReferenceResource.SaveButton" data-ui="savebutton" data-label="Save Changes" data-config="SaveButton"></form-item>

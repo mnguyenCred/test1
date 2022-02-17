@@ -610,6 +610,7 @@ namespace Factories
                 output.RowId = input.RowId;
             }
             output.ConceptSchemeId = (int)input.ConceptScheme?.Id;
+			output.InScheme = input.ConceptScheme != null ? input.ConceptScheme.RowId : Guid.Empty;
             //if ( input != null && input.Id > 0 )
             //{
             //    output.Id = input.Id;

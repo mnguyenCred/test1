@@ -403,7 +403,7 @@
 	//Modification of the immediate search/select Field that uses a local array as a data source instead of using AJAX requests
 	//Useful when you would otherwise need a really big checkbox list
 	FormItem.setupUI_searchselectlocal = function (Field) {
-		Field.UI = FormItem.setupUI_searchselectimmediate(Field);
+		Field = FormItem.setupUI_searchselectimmediate(Field);
 		Field.Items = [];
 		Field.SelectedItems = [];
 
@@ -472,7 +472,7 @@
 	//Modification of the immediate search/select that will do AJAX for the searches, but will not send AJAX for additions/removals
 	//Instead, additions and removals are stored in their own arrays and returned when the Field's .read() method is called
 	FormItem.setupUI_searchselectdeferred = function (Field) {
-		Field.UI = FormItem.setupUI_searchselectimmediate(Field);
+		Field = FormItem.setupUI_searchselectimmediate(Field);
 		Field.ItemsToChangeBox = $("<div class=\"itemsToChange searchColumns\"></div>").appendTo(Field.ContentBox);
 		Field.ItemsToAddWrapper = $("<div class=\"searchBox itemsToAdd\"></div>").appendTo(Field.ItemsToChangeBox);
 		Field.ItemsToAddHeader = $("<div class=\"itemsToChangeLabel itemsToAdd\">Items to Add</div>").appendTo(Field.ItemsToAddWrapper);
@@ -570,6 +570,86 @@
 	}
 	//
 
+	//AJAX search to select a single item that will replace an alreadsy-selected item on save
+	FormItem.setupUI_searchselectsingledeferred = function (Field) {
+		Field = FormItem.setupUI_search(Field);
+		Field.ExistingBox = $("<div class=\"resultsWrapperBox existingBox\"></div>").prependTo(Field.ContentBox);
+		Field.SelectedBox = $("<div class=\"resultsWrapperBox selectedBox\"></div>").insertAfter(Field.ExistingBox);
+		Field.RemovalBox = $("<div class=\"resultsWrapperBox removalBox\"></div>").insertAfter(Field.ExistingBox);
+		Field.ExistingItem = null;
+		Field.SelectedItem = null;
+		Field.RemovalItem = null;
+
+		Field.renderResultWrapper = function (container, Result) {
+			var button = $("<button>Select</button>");
+			if(Result.Extra.RowId == Field.SelectedItem?.RowId || Result.Extra.RowId == Field.ExistingItem?.RowId || Result.Extra.RowId == Field.RemovalItem?.RowId){
+				Field.handleSelectButtonClick(button);
+			}
+			Field.renderWrappedResult(container, Result, Field.renderResult, button, Field.selectItem);
+		};
+
+		Field.renderWrappedResult = function (container, Result, renderMethod, button, onClick) {
+			var box = $("<div class=\"resultWrapper\"></div>").appendTo(container);
+			var inner = $("<div class=\"resultInner\"></div>").appendTo(box);
+			renderMethod(inner, Result);
+			button.appendTo(box);
+			button.on("click", function () {
+				button.prop("disabled", true).html("Selected");
+				onClick?.(Result, box, button);
+			});
+		};
+
+		Field.selectItem = function (Result, box, button) {
+			Field.SelectedItem = Result.Data;
+			Field.renderCurrentItems();
+		};
+
+		Field.renderCurrentItems = function () {
+			Field.renderCurrentItem(Field.ExistingBox, Field.ExistingItem, "Currently Saved Item", "Remove Currently Saved Item", Field.removeExistingItem);
+			Field.renderCurrentItem(Field.SelectedBox, Field.SelectedItem, "Item Selection to Save", "Cancel Selecting This Item", Field.removeSelectedItem);
+			Field.renderCurrentItem(Field.RemovalBox, Field.RemovalItem, "Currently Saved Item to Remove", "Cancel Removing Currently Saved Item", Field.cancelRemoveSelectedItem);
+		};
+
+		Field.renderCurrentItem = function (container, Item, itemLabel, buttonLabel, onClick) {
+			container.html("");
+			if (Item) {
+				container.append("<div class=\"itemLabel\">" + itemLabel + "</div>")
+				var button = $("<button>" + buttonLabel + "</button>");
+				var resultsBox = $("<div class=\"resultsBox\"></div>").appendTo(container);
+				Field.renderWrappedResult(resultsBox, Item, Field.renderResult, button, onClick);
+			}
+		};
+
+		Field.removeExistingItem = function () {
+			Field.RemovalItem = Field.ExistingItem;
+			Field.ExistingItem = null;
+			Field.renderResults();
+			Field.renderCurrentItems();
+		};
+
+		Field.removeSelectedItem = function () {
+			Field.SelectedItem = null;
+			Field.renderResults();
+			Field.renderCurrentItems();
+		};
+
+		Field.cancelRemoveSelectedItem = function () {
+			Field.ExistingItem = Field.RemovalItem;
+			Field.RemovalItem = null;
+			Field.renderResults();
+			Field.renderCurrentItems();
+		};
+
+		Field.read = function () {
+			return Field.SelectedItem || Field.ExistingItem;
+		};
+
+		Field.write = function (value) {
+			Field.ExistingItem = value;
+			Field.renderCurrentItems();
+		}
+	}
+
 	//Generic AJAX search Field
 	//Used as the basis for all of the search/select Fields above, so be very careful about making changes!
 	FormItem.setupUI_search = function (Field) {
@@ -660,7 +740,7 @@
 			if (response.Valid) {
 				Field.Results = response.Data.Results;
 				Field.TotalResults = response.Data.TotalResults;
-				Field.setStatus("Found " + Field.TotalResults + " Results");
+				Field.setStatus("Found " + (Field.TotalResults || 0) + " Results");
 				Field.renderResults();
 				Field.renderPaging();
 			}

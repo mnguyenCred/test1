@@ -1,9 +1,18 @@
 ﻿@using Models.Schema;
+@using Models.DTO;
 @using Newtonsoft.Json;
 @model RatingTask
 @{
 	var title = Model.Id > 0 ? "Editing Rating Task" : "New Rating Task";
 	ViewBag.Title = title;
+	var ratingsList = Services.RatingServices.GetAll().Select( m => SimpleItemHelper.GetSimpleItem( m ) ).ToList();
+	var currentTrainingTask = Factories.TrainingTaskManager.Get( Model.HasTrainingTask );
+	currentTrainingTask = currentTrainingTask.Id == 0 ? null : currentTrainingTask;
+	var referenceResourceList = Factories.ReferenceResourceManager.GetAll(); //Don't use SimpleItem here so we can access the ReferenceType array
+	var referenceResourceTypeList = Factories.ConceptSchemeManager.GetbyShortUri( Factories.ConceptSchemeManager.ConceptScheme_ReferenceResource ).Concepts.Select( m => SimpleItemHelper.GetSimpleItem( m ) ).ToList();
+	var payGradeTypeList = Factories.ConceptSchemeManager.GetbyShortUri( Factories.ConceptSchemeManager.ConceptScheme_Pay_Grade ).Concepts.Select( m => SimpleItemHelper.GetSimpleItem( m ) ).ToList();
+	var applicabilityTypeList = Factories.ConceptSchemeManager.GetbyShortUri( Factories.ConceptSchemeManager.ConceptScheme_TaskApplicability ).Concepts.Select( m => SimpleItemHelper.GetSimpleItem( m ) ).ToList();
+	var trainingGapTypeList = Factories.ConceptSchemeManager.GetbyShortUri( Factories.ConceptSchemeManager.ConceptScheme_TrainingGap ).Concepts.Select( m => SimpleItemHelper.GetSimpleItem( m ) ).ToList();
 }
 
 @Html.Partial( "~/Views/Shared/_FormHelperV1.cshtml" )
@@ -11,7 +20,9 @@
 <script type="text/javascript">
 	var Data = {
 		//The original resource
-		Source: @Html.Raw( JsonConvert.SerializeObject( Model ) ),
+		Source: @Html.Raw( JsonConvert.SerializeObject( Model, Formatting.None ) ),
+		ReferenceResourceList: @Html.Raw( JsonConvert.SerializeObject( referenceResourceList, Formatting.None ) ),
+		ReferenceTypeList: @Html.Raw( JsonConvert.SerializeObject( referenceResourceTypeList, Formatting.None ) ),
 		//Mapping used internally for the FormItem stuff
 		Form: {},
 		//Functions to configure FormItem stuff
@@ -26,6 +37,62 @@
 						...Data.Form.read()
 					};
 				}
+			},
+			HasRating: function (Field) {
+				Field.Items = @Html.Raw( JsonConvert.SerializeObject( ratingsList, Formatting.None ) );
+				Field.Existing.doSearch();
+			},
+			HasTrainingTask: function (Field) {
+				Field.ExistingItem = @Html.Raw( JsonConvert.SerializeObject( currentTrainingTask, Formatting.None ) );
+				Field.SearchURL = "@Url.Content( "~/trainingtask/dosearch" )";
+				Field.modifyQuery = function (query) {
+					//And where tasks are NOT already associated with this Course...
+					query.Filters.push({ Name: "navy:RatingTask", ItemIds: [Data.Source.Id], IsNegation: true });
+				}
+				Field.write = function (value) {
+					Field.renderCurrentItems();
+				}
+				Field.read = function () {
+					return Field.SelectedItem?.RowId || Field.ExistingItem?.RowId;
+				}
+			},
+			HasReferenceResource: function (Field) {
+				Field.Items = Data.ReferenceResourceList;
+				Field.renderItems();
+			},
+			ReferenceType: function (Field) {
+				Field.Items = Data.ReferenceTypeList;
+				Field.renderItems();
+			},
+			PayGradeType: function (Field) {
+				Field.Items = @Html.Raw( JsonConvert.SerializeObject( payGradeTypeList, Formatting.None ) );
+				Field.renderItems();
+			},
+			ApplicabilityType: function (Field) {
+				Field.Items = @Html.Raw( JsonConvert.SerializeObject( applicabilityTypeList, Formatting.None ) );
+				Field.renderItems();
+			},
+			TrainingGapType: function (Field) {
+				Field.Items = @Html.Raw( JsonConvert.SerializeObject( trainingGapTypeList, Formatting.None ) );
+				Field.renderItems();
+			},
+			HasWorkRole: function (Field) {
+				//Search to add new valid Work Roles
+				Field.Search.SearchURL = "@Url.Content( "~/workrole/dosearch" )";
+				Field.Search.modifyQuery = function (query) {
+					//And where tasks are NOT already associated with this Rating Task...
+					query.Filters.push({ Name: "navy:RatingTask", ItemIds: [Data.Source.Id], IsNegation: true });
+				}
+
+				//Search to remove already added Work Roles
+				Field.Existing.SearchURL = "@Url.Content( "~/workrole/dosearch" )";
+				Field.Existing.modifyQuery = function (query) {
+					//Where tasks are already associated with this Rating Task...
+					query.Filters.push({ Name: "navy:RatingTask", ItemIds: [Data.Source.Id] });
+				}
+
+				//Show existing items
+				Field.Existing.doSearch();
 			}
 		}
 	};
@@ -33,7 +100,21 @@
 	$(document).ready(function () {
 		FormItem.setupFormItems(Data.Form, "RatingTask", Data.Config);
 		Data.Form.write(Data.Source);
+		handleFormInteractions();
 	});
+	//
+
+	function handleFormInteractions() {
+		//Limit the Reference Type selections based on the selected source
+		var ReferenceResourceSelector = Data.Form.PathMap.HasReferenceResource;
+		var ReferenceResourceTypeSelector = Data.Form.PathMap.ReferenceType;
+		ReferenceResourceSelector.UI.on("change", function () {
+			var source = Data.ReferenceResourceList.filter(m => m.RowId == ReferenceResourceSelector.read())[0];
+			ReferenceResourceTypeSelector.Items = Data.ReferenceTypeList.filter(m => source.ReferenceType.includes(m.RowId));
+			ReferenceResourceTypeSelector.renderItems();
+			ReferenceResourceTypeSelector.write(ReferenceResourceTypeSelector.Items.length == 1 ? ReferenceResourceTypeSelector.Items[0].RowId : null);
+		});
+	}
 	//
 </script>
 
@@ -43,4 +124,12 @@
 <form-item data-path="RatingTask.RowId" data-ui="display" data-label="RowID"></form-item>
 <form-item data-path="RatingTask.CodedNotation" data-ui="text" data-label="Code"></form-item>
 <form-item data-path="RatingTask.Description" data-ui="textarea" data-label="Description"></form-item>
+<form-item data-path="RatingTask.PayGradeType" data-ui="select" data-label="Rank (Pay Grade)" data-config="PayGradeType"></form-item>
+<form-item data-path="RatingTask.ApplicabilityType" data-ui="select" data-label="Applicability Type" data-config="ApplicabilityType"></form-item>
+<form-item data-path="RatingTask.TrainingGapType" data-ui="select" data-label="Training Gap Type" data-config="TrainingGapType"></form-item>
+<form-item data-path="RatingTask.HasReferenceResource" data-ui="select" data-label="Task Source" data-config="HasReferenceResource"></form-item>
+<form-item data-path="RatingTask.ReferenceType" data-ui="select" data-label="Task Source Type" data-config="ReferenceType"></form-item>
+<form-item data-path="RatingTask.HasRating" data-ui="searchselectlocal" data-label="Associated Ratings" data-config="HasRating"></form-item>
+<form-item data-path="RatingTask.HasWorkRole" data-ui="searchselectdeferred" data-label="Functional Areas" data-config="HasWorkRole"></form-item>
+<form-item data-path="RatingTask.HasTrainingTask" data-ui="searchselectsingledeferred" data-label="Associated Training Task" data-config="HasTrainingTask"></form-item>
 <form-item data-path="RatingTask.SaveButton" data-ui="savebutton" data-label="Save Changes" data-config="SaveButton"></form-item>
