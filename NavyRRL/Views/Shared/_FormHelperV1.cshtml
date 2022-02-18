@@ -392,6 +392,7 @@
 		};
 
 		Field.write = function (value) {
+			debugger;
 			Field.Existing.Results = value || [];
 			Field.Existing.renderResults();
 		};
@@ -438,7 +439,7 @@
 		Field.Search.searchMethod = function () {
 			var start = (Field.Search.PageNumber - 1) * Field.Search.PageSize;
 			var end = start + Field.Search.PageSize;
-			var results = Field.filterItems(Field.Items).filter(Item => {
+			var results = Field.filterItems(Field.Items, Field.Search.getFilters()).filter(Item => {
 				return !Field.SelectedItems.includes(Item)
 			});
 
@@ -448,10 +449,22 @@
 		Field.Existing.searchMethod = function () {
 			var start = (Field.Existing.PageNumber - 1) * Field.Existing.PageSize;
 			var end = start + Field.Existing.PageSize;
-			var results = Field.filterItems(Field.SelectedItems);
+			var results = Field.filterItems(Field.SelectedItems, Field.Existing.getFilters());
 
 			Field.Existing.handleResponse({ Valid: true, Data: { Results: results.slice(start, end), TotalResults: results.length } });
 		};
+
+		Field.read = function () {
+			return Field.SelectedItems.map(m => m.RowId);
+		};
+
+		Field.write = function (value) {
+			value = value || [];
+			value = Array.isArray(value) ? value : [value];
+			Field.Items.filter(m => value.includes(m.RowId)).forEach(Item => {
+				Field.addItem(Item);
+			});
+		}
 
 		return Field;
 	}
