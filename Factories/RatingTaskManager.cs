@@ -552,13 +552,56 @@ namespace Factories
 
             //output.Id = input.Id;
             //the status may have to specific to the project - task context?
-			//Yes, this would be specific to a project
+            //Yes, this would be specific to a project
             //output.StatusId = input.TaskStatusId ?? 1;
             //output.RowId = input.RowId;
 
-            //output.Description = input.WorkElementTask;
-            //
-            //output.TaskApplicabilityId = input.TaskApplicabilityId;
+            if (input.RatingTask_HasRating?.Count > 0)
+            {
+                foreach(var item in input.RatingTask_HasRating )
+                {
+                    if ( item.Rating?.RowId != null )
+                    {
+                        output.HasRating.Add( item.Rating.RowId );
+                        output.RatingTitles.Add( item.Rating.Name );
+                        //
+                    }
+                }
+            }
+            if ( input.RatingTask_HasJob?.Count > 0 )
+            {
+                foreach( var item in input.RatingTask_HasJob )
+                {
+                    if ( item.Job?.RowId != null )
+                    {
+                        output.HasBillet.Add( item.Job.RowId );
+                        output.BilletTitles.Add( item.Job.Name );
+                    }
+                }
+            }
+            if ( input.RatingTask_WorkRole?.Count > 0 )
+            {
+                foreach ( var item in input.RatingTask_WorkRole )
+                {
+                    if ( item.WorkRole1?.RowId != null )
+                        output.HasWorkRole.Add( item.WorkRole1.RowId );
+                }
+            }
+            if ( input.RankId > 0 )
+            {
+                ConceptSchemeManager.MapFromDB( input.ConceptScheme_Rank, output.TaskPaygrade );
+                output.PayGradeType = ( output.TaskPaygrade )?.RowId ?? Guid.Empty;
+            }
+            if ( input.ReferenceResourceId > 0 )
+            {
+                ReferenceResourceManager.MapFromDB( input.ToReferenceResource, output.ReferenceResource );
+                output.HasReferenceResource = ( output.ReferenceResource )?.RowId ?? Guid.Empty;
+            }
+            if ( input.WorkElementTypeId > 0 )
+            {
+                ConceptSchemeManager.MapFromDB( input.ConceptScheme_WorkElementType, output.TaskReferenceType );
+                output.ReferenceType = ( output.TaskReferenceType )?.RowId ?? Guid.Empty;
+            }
             if ( input.TaskApplicabilityId > 0 )
             {
                 ConceptSchemeManager.MapFromDB( input.ConceptScheme_Applicability, output.TaskApplicabilityType );
@@ -1173,7 +1216,7 @@ namespace Factories
                 //TODO - can we get this info prior to here??
                 //output.ReferenceResourceId = ReferenceResourceManager.Get( input.HasReferenceResource )?.Id;
 
-                if ( output.ReferenceResourceId != null && output.ReferenceResource1?.RowId == input.HasReferenceResource )
+                if ( output.ReferenceResourceId != null && output.ToReferenceResource?.RowId == input.HasReferenceResource )
                 {
                     //no action
                 }

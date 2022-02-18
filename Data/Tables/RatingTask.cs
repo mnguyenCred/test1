@@ -20,6 +20,7 @@ namespace Data.Tables
             this.RatingTask_HasRating = new HashSet<RatingTask_HasRating>();
             this.RatingTask_HasJob = new HashSet<RatingTask_HasJob>();
             this.RmtlProject_BilletTask = new HashSet<RmtlProject_BilletTask>();
+            this.RatingTask_WorkRole = new HashSet<RatingTask_WorkRole>();
         }
     
         public int Id { get; set; }
@@ -54,6 +55,8 @@ namespace Data.Tables
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<RmtlProject_BilletTask> RmtlProject_BilletTask { get; set; }
         public virtual ConceptScheme_Concept ConceptScheme_WorkElementType { get; set; }
-        public virtual ReferenceResource ReferenceResource1 { get; set; }
+        public virtual ReferenceResource ToReferenceResource { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<RatingTask_WorkRole> RatingTask_WorkRole { get; set; }
     }
 }

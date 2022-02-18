@@ -31,7 +31,7 @@ namespace NavyRRL.Controllers
 		public ActionResult Detail( int id )
 		{
 			AuthenticateOrRedirect( "You must be authenticated and authorized to view Course data." );
-			var data = Factories.CourseManager.Get( id );
+			var data = Factories.CourseManager.Get( id, true );
 			return View( data );
 		}
 		//
@@ -39,7 +39,7 @@ namespace NavyRRL.Controllers
 		public ActionResult Edit( int id )
 		{
 			AuthenticateOrRedirect( "You must be authenticated and authorized to edit Course data." );
-			var data = Factories.CourseManager.Get( id ) ?? new Course();
+			var data = Factories.CourseManager.Get( id, true ) ?? new Course();
 			return View( data );
 		}
 		//

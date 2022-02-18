@@ -92,9 +92,14 @@ namespace Models.Schema
 
 		//Embedded data
 		//Consider moving these to a separate class so they don't result in a lot of extra data being sent between client and server
+		public List<string> RatingTitles { get; set; } = new List<string>();
 		public List<Guid> HasBillet { get; set; } = new List<Guid>();
+		public List<string> BilletTitles { get; set; } = new List<string>();
+		public Concept TaskPaygrade { get; set; } = new Concept();
+		public ReferenceResource ReferenceResource { get; set; } = new ReferenceResource();
 		public Concept TaskApplicabilityType { get; set; } = new Concept();
 		public Concept TaskTrainingGap { get; set; } = new Concept();
+		public Concept TaskReferenceType { get; set; } = new Concept();
 	}
 	public class RatingTaskFull : RatingTask
 	{

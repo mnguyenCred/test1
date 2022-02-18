@@ -21,7 +21,7 @@ namespace Data.Tables
         public Nullable<int> CreatedById { get; set; }
         public int WorkRoleId { get; set; }
     
-        public virtual RatingTask RatingTask { get; set; }
         public virtual WorkRole WorkRole1 { get; set; }
+        public virtual RatingTask RatingTask { get; set; }
     }
 }
