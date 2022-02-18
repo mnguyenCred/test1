@@ -181,7 +181,7 @@ IF @StartPageIndex < 1        SET @StartPageIndex = 1
 CREATE TABLE #tempWorkTable(
 	RowNumber         int PRIMARY KEY IDENTITY(1,1) NOT NULL
 	,Id					int
-	,Task		varchar(900)
+	,Task		varchar(MAX)
 
 )
 -- =================================

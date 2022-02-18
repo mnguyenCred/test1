@@ -331,11 +331,7 @@ namespace Factories
             var skip = 0;
             if ( query.PageNumber > 1 )
                 skip = ( query.PageNumber - 1 ) * query.PageSize;
-            var filter = "";
-            if ( query.Filters?.Count > 0 )
-            {
-                filter = query.Filters[0].Text ?? "".TrimEnd();
-            }
+            var filter = GetSearchFilterText( query );
             try
             {
                 using ( var context = new DataEntities() )

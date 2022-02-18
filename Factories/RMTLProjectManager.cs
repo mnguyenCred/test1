@@ -1,31 +1,37 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.Caching;
+using System.Text;
+using System.Threading.Tasks;
 
-using Models.Application;
+using SM=Models.Schema;
+using AppEntity = Models.Schema.RMTLProject;
+using DBEntity = Data.Tables.RMTLProject;
+using ViewEntity = Data.Views.RMTLProjectSummary;
 using Models.Curation;
-using Navy.Utilities;
 
-using AppEntity = Models.Schema.Organization;
 using DataEntities = Data.Tables.NavyRRLEntities;
-using DBEntity = Data.Tables.Organization;
+using ViewContext = Data.Views.ceNavyViewEntities;
+using Data.Tables;
+using Models.Application;
+using Navy.Utilities;
 using Models.Search;
 
 namespace Factories
 {
-    public class OrganizationManager : BaseFactory
+    public class RMTLProjectManager : BaseFactory
     {
-        public static new string thisClassName = "OrganizationManager";
-        public static string cacheKey = "OrganizationCache";
-        #region Organization - persistance ==================
+        public static new string thisClassName = "RMTLProjectManager";
+
+        #region RMTLProject - persistance - NOT Likely? ==================
         /// <summary>
-        /// Update a Organization
+        /// Update a RMTLProject
+        /// At this time all we will have is the code
         /// </summary>
         /// <param name="entity"></param>
         /// <param name="status"></param>
         /// <returns></returns>
-        public bool Save( AppEntity entity, int userId, ref ChangeSummary status )
+        public bool Save( AppEntity entity, ref ChangeSummary status )
         {
             bool isValid = true;
             int count = 0;
@@ -33,16 +39,20 @@ namespace Factories
             {
                 using ( var context = new DataEntities() )
                 {
-                    //if ( ValidateProfile( entity, ref status ) == false )
-                    //    return false;
                     //look up if no id
                     if ( entity.Id == 0 )
                     {
-                        var record = Get( entity.Name, true );
-                        if ( record?.Id > 0 )
+                        //this needs to check by the ratingId
+                        SM.Rating rating = new SM.Rating();   
+                        if  ( IsValidGuid( entity.HasRating ) )
+                            rating = RatingManager.Get( entity.HasRating );
+                        else if ( IsValidGuid( entity.HasRating ) )
+                            rating = RatingManager.Get( entity.HasRating );
+
+                        if ( rating?.Id > 0 )
                         {
                             //currently no description, so can just return
-                            entity.Id = record.Id;
+                            entity.Id = rating.Id;
                             return true;
                         }
                         else
@@ -57,7 +67,7 @@ namespace Factories
                     {
                         //TODO - consider if necessary, or interferes with anything
                         context.Configuration.LazyLoadingEnabled = false;
-                        DBEntity efEntity = context.Organization
+                        DBEntity efEntity = context.RMTLProject
                                 .SingleOrDefault( s => s.Id == entity.Id );
 
                         if ( efEntity != null && efEntity.Id > 0 )
@@ -86,7 +96,7 @@ namespace Factories
                                     //?no info on error
 
                                     isValid = false;
-                                    string message = string.Format( thisClassName + ".Save Failed", "Attempted to update a Organization. The process appeared to not work, but was not an exception, so we have no message, or no clue. Organization: {0}, Id: {1}", entity.Name, entity.Id );
+                                    string message = string.Format( thisClassName + ".Save Failed", "Attempted to update a RMTLProject. The process appeared to not work, but was not an exception, so we have no message, or no clue. RMTLProject: {0}, Id: {1}", entity.Name, entity.Id );
                                     status.AddError( "Error - the update was not successful. " + message );
                                     EmailManager.NotifyAdmin( thisClassName + ".Save Failed Failed", message );
                                 }
@@ -97,10 +107,10 @@ namespace Factories
                             {
                                 SiteActivity sa = new SiteActivity()
                                 {
-                                    ActivityType = "Organization",
-                                    Activity = "Import",
+                                    ActivityType = "RMTLProject",
+                                    Activity = status.Action,
                                     Event = "Update",
-                                    Comment = string.Format( "Organization was updated by the import. Name: {0}", entity.Name ),
+                                    Comment = string.Format( "RMTLProject was updated by the import. Name: {0}", entity.Name ),
                                     ActionByUserId = entity.LastUpdatedById,
                                     ActivityObjectId = entity.Id
                                 };
@@ -117,7 +127,7 @@ namespace Factories
             }
             catch ( System.Data.Entity.Validation.DbEntityValidationException dbex )
             {
-                string message = HandleDBValidationError( dbex, thisClassName + string.Format( ".Save. id: {0}, Name: {1}", entity.Id, entity.Name ), "Organization" );
+                string message = HandleDBValidationError( dbex, thisClassName + string.Format( ".Save. id: {0}, Name: {1}", entity.Id, entity.Name ), "RMTLProject" );
                 status.AddError( thisClassName + ".Save(). Error - the save was not successful. " + message );
             }
             catch ( Exception ex )
@@ -133,7 +143,7 @@ namespace Factories
         }
 
         /// <summary>
-        /// add a Organization
+        /// add a RMTLProject
         /// </summary>
         /// <param name="entity"></param>
         /// <param name="status"></param>
@@ -158,9 +168,8 @@ namespace Factories
                         efEntity.CTID = "ce-" + efEntity.RowId.ToString().ToLower();
                     entity.Created = efEntity.Created = DateTime.Now;
                     entity.LastUpdated = efEntity.LastUpdated = DateTime.Now;
-                    efEntity.CreatedById = efEntity.LastUpdatedById = entity.LastUpdatedById;
 
-                    context.Organization.Add( efEntity );
+                    context.RMTLProject.Add( efEntity );
 
                     // submit the change to database
                     int count = context.SaveChanges();
@@ -172,10 +181,10 @@ namespace Factories
                         //add log entry
                         SiteActivity sa = new SiteActivity()
                         {
-                            ActivityType = "Organization",
-                            Activity = "Import",
+                            ActivityType = "RMTLProject",
+                            Activity = status.Action,
                             Event = "Add",
-                            Comment = string.Format( "An Organization was added by the import. Name: {0}", entity.Name ),
+                            Comment = string.Format( "Full RMTLProject was added by the import. Name: {0}", entity.Name ),
                             ActionByUserId = entity.LastUpdatedById,
                             ActivityObjectId = entity.Id
                         };
@@ -188,14 +197,14 @@ namespace Factories
                     {
                         //?no info on error
 
-                        string message = thisClassName + string.Format( ". Add Failed", "Attempted to add a Organization. The process appeared to not work, but was not an exception, so we have no message, or no clue. Organization: {0}, ctid: {1}", entity.Name, entity.CTID );
+                        string message = thisClassName + string.Format( ". Add Failed", "Attempted to add a RMTLProject. The process appeared to not work, but was not an exception, so we have no message, or no clue. RMTLProject: {0}, ctid: {1}", entity.Name, entity.CTID );
                         status.AddError( thisClassName + ". Error - the add was not successful. " + message );
-                        EmailManager.NotifyAdmin( "OrganizationManager. Add Failed", message );
+                        EmailManager.NotifyAdmin( "RMTLProjectManager. Add Failed", message );
                     }
                 }
                 catch ( System.Data.Entity.Validation.DbEntityValidationException dbex )
                 {
-                    string message = HandleDBValidationError( dbex, thisClassName + ".Add() ", "Organization" );
+                    string message = HandleDBValidationError( dbex, thisClassName + ".Add() ", "RMTLProject" );
                     status.AddError( thisClassName + ".Add(). Error - the save was not successful. " + message );
 
                     LoggingHelper.LogError( message, true );
@@ -220,56 +229,14 @@ namespace Factories
         #endregion
 
         #region Retrieval
-        /// <summary>
-        /// Get by name
-        /// TBD - should we always check altername name
-        /// </summary>
-        /// <param name="name"></param>
-        /// <returns></returns>
-        public static AppEntity Get( string name, bool checkingAlternateName )
-        {
-            var entity = new AppEntity();
-            if ( string.IsNullOrWhiteSpace( name ) )
-                return null;
 
-            using ( var context = new DataEntities() )
-            {
-                var item = context.Organization
-                            .FirstOrDefault( s => s.Name.ToLower() == name.ToLower() 
-                            || ( checkingAlternateName && s.AlternateName.ToLower() == name.ToLower()) );
-
-                if ( item != null && item.Id > 0 )
-                {
-                    MapFromDB( item, entity );
-                }
-            }
-            return entity;
-        }
-        public static AppEntity GetByAlternateName( string alternameName )
-        {
-            var entity = new AppEntity();
-            if ( string.IsNullOrWhiteSpace( alternameName ) )
-                return null;
-
-            using ( var context = new DataEntities() )
-            {
-                var item = context.Organization
-                            .FirstOrDefault( s => s.AlternateName.ToLower() == alternameName.ToLower() );
-
-                if ( item != null && item.Id > 0 )
-                {
-                    MapFromDB( item, entity );
-                }
-            }
-            return entity;
-        }
         public static AppEntity Get( Guid rowId )
         {
             var entity = new AppEntity();
 
             using ( var context = new DataEntities() )
             {
-                var item = context.Organization
+                var item = context.RMTLProject
                             .FirstOrDefault( s => s.RowId == rowId );
 
                 if ( item != null && item.Id > 0 )
@@ -287,7 +254,7 @@ namespace Factories
 
             using ( var context = new DataEntities() )
             {
-                var item = context.Organization
+                var item = context.RMTLProject
                             .SingleOrDefault( s => s.Id == id );
 
                 if ( item != null && item.Id > 0 )
@@ -303,18 +270,14 @@ namespace Factories
         /// May need a get all for a rating? Should not matter as this is external data?
         /// </summary>
         /// <returns></returns>
-        public static List<AppEntity> GetAll()
+        public static List<AppEntity> GetAllSummary()
         {
             var entity = new AppEntity();
             var list = new List<AppEntity>();
-            list = CheckCache();
-            if ( list?.Count > 0 )
-                return list;
 
-            list = new List<AppEntity>();
-            using ( var context = new DataEntities() )
+            using ( var context = new ViewContext() )
             {
-                var results = context.Organization
+                var results = context.RMTLProjectSummary
                         .OrderBy( s => s.Name )
                         .ToList();
                 if ( results?.Count > 0 )
@@ -328,13 +291,37 @@ namespace Factories
                             list.Add( ( entity ) );
                         }
                     }
-                    AddToCache( list );
                 }
-                
+
             }
             return list;
         }
+        public static List<AppEntity> GetAll( bool activeOnly = false )
+        {
+            var entity = new AppEntity();
+            var list = new List<AppEntity>();
 
+            using ( var context = new DataEntities() )
+            {
+                List<DBEntity> results = context.RMTLProject
+                        .OrderBy( s => s.Name )
+                        .ToList();
+                if ( results?.Count > 0 )
+                {
+                    foreach ( var item in results )
+                    {
+                        if ( item != null && item.Id > 0 )
+                        {
+                            entity = new AppEntity();
+                            MapFromDB( item, entity );
+                            list.Add( ( entity ) );
+                        }
+                    }
+                }
+
+            }
+            return list;
+        }
         public static List<AppEntity> Search( SearchQuery query )
         {
             var entity = new AppEntity();
@@ -345,17 +332,14 @@ namespace Factories
             var filter = GetSearchFilterText( query );
             try
             {
-                using ( var context = new DataEntities() )
+                using ( var context = new ViewContext() )
                 {
-                    var list = from Results in context.Organization
+                    var list = from Results in context.RMTLProjectSummary
                                select Results;
                     if ( !string.IsNullOrWhiteSpace( filter ) )
                     {
                         list = from Results in list
-                                .Where( s => 
-                                ( s.Name.ToLower().Contains( filter.ToLower() ) ) ||
-                                ( s.AlternateName.ToLower() == filter.ToLower() )
-                                )
+                                .Where( s => ( s.Name.ToLower().Contains( filter.ToLower() )))
                                select Results;
                     }
                     query.TotalResults = list.Count();
@@ -387,55 +371,6 @@ namespace Factories
             return output;
         }
 
-        public static List<AppEntity> CheckCache()
-        {
-            var cache = new CachedObjects();
-            var list = new List<AppEntity>();
-            
-            int cacheHours = 8;
-            DateTime maxTime = DateTime.Now.AddHours( cacheHours * -1 );
-            if ( MemoryCache.Default.Get( cacheKey ) != null && cacheHours > 0 )
-            {
-                cache = ( CachedObjects ) MemoryCache.Default.Get( cacheKey );
-                try
-                {
-                    if ( cache.LastUpdated > maxTime )
-                    {
-                        LoggingHelper.DoTrace( 6, string.Format( thisClassName + ".CheckCache. Using cached version." ) );
-                        list = cache.Objects;
-                        return list;
-                    }
-                }
-                catch ( Exception ex )
-                {
-                    LoggingHelper.DoTrace( 5, thisClassName + ".CheckCache === exception " + ex.Message );
-                }
-            }
-            //get
-            return null;
-
-        }
-        public static void AddToCache( List<AppEntity> input )
-        {
-            int cacheHours = 8;
-            //add to cache
-            if ( cacheKey.Length > 0 && cacheHours > 0 )
-            {
-                var newCache = new CachedObjects()
-                {
-                    Objects = input,
-                    LastUpdated = DateTime.Now
-                };
-                if ( MemoryCache.Default.Get( cacheKey ) != null )
-                {
-                    MemoryCache.Default.Remove( cacheKey );
-                }
-                //
-                MemoryCache.Default.Add( cacheKey, newCache, new DateTimeOffset( DateTime.Now.AddHours( cacheHours ) ) );
-                LoggingHelper.DoTrace( 5, thisClassName + ".AddToCache $$$ Updating cached version " );
-
-            }
-        }
         public static void MapFromDB( DBEntity input, AppEntity output )
         {
             //
@@ -445,23 +380,19 @@ namespace Factories
             {
                 output.RowId = input.RowId;
             }
-            //
-
         }
-
+        public static void MapFromDB( ViewEntity input, AppEntity output )
+        {
+            //
+            List<string> errors = new List<string>();
+            BaseFactory.AutoMap( input, output, errors );
+            if ( input.RowId != output.RowId )
+            {
+                output.RowId = input.RowId;
+            }
+        }
 
         #endregion
-
-    }
-    [Serializable]
-    public class CachedObjects
-    {
-        public CachedObjects()
-        {
-            LastUpdated = DateTime.Now;
-        }
-        public DateTime LastUpdated { get; set; }
-        public List<AppEntity> Objects { get; set; }
 
     }
 }

@@ -46,9 +46,18 @@ namespace Factories
             }
         }
 
-        public void Save( ParentEntity input, AppEntity entity, ref ChangeSummary status )
+        public bool Save(  AppEntity entity, ref ChangeSummary status )
         {
+            //get parent
+            //will we have the guid?
+            ParentEntity parent = CourseManager.Get( entity.Course );
 
+            return Save( parent, entity, ref status );
+        }
+
+        public bool Save( ParentEntity parent, AppEntity entity, ref ChangeSummary status )
+        {
+            bool isValid = true;
             using ( var context = new DataEntities() )
             {
                 //check existance
@@ -63,7 +72,7 @@ namespace Factories
                 if ( efEntity == null )
                 {
                     efEntity = context.Course_Task
-                        .FirstOrDefault( s => s.CourseId == input.Id && s.Description.ToLower() == entity.Description.ToLower() );
+                        .FirstOrDefault( s => s.CourseId == parent.Id && s.Description.ToLower() == entity.Description.ToLower() );
                 }
                 if ( efEntity?.Id > 0 )
                 {
@@ -79,7 +88,7 @@ namespace Factories
 
                     if ( HasStateChanged( context ) )
                     {
-                        efEntity.LastUpdatedById = input.LastUpdatedById;
+                        efEntity.LastUpdatedById = parent.LastUpdatedById;
                         efEntity.LastUpdated = DateTime.Now;
                         var count = context.SaveChanges();
                         //can be zero if no data changed
@@ -91,7 +100,7 @@ namespace Factories
                         {
                             //?no info on error
 
-                            string message = string.Format( thisClassName + ".Save Failed", "Attempted to update a CourseTask. The process appeared to not work, but was not an exception, so we have no message, or no clue. Course: {0}, Id: {1}, Task: '{2}'", input.Name, input.Id, entity.Description );
+                            string message = string.Format( thisClassName + ".Save Failed", "Attempted to update a CourseTask. The process appeared to not work, but was not an exception, so we have no message, or no clue. Course: {0}, Id: {1}, Task: '{2}'", parent.Name, parent.Id, entity.Description );
                             status.AddError( "Error - the update was not successful. " + message );
                             EmailManager.NotifyAdmin( thisClassName + ".CourseTaskSave Failed Failed", message );
                         }
@@ -100,10 +109,11 @@ namespace Factories
                 }
                 else
                 {
-                    var result = Add( input, entity, ref status );
+                    var result = Add( parent, entity, ref status );
                 }
 
             }
+            return isValid;
         }
 
         public bool Add( ParentEntity input, AppEntity task, ref ChangeSummary status )
@@ -230,13 +240,58 @@ namespace Factories
             }
             return list;
         }
-		public static List<AppEntity> Search( SearchQuery query )
-		{
-			//TODO: Implement
-			query.TotalResults = 0;
-			return new List<AppEntity>();
-		}
-		public static void MapFromDB( DBEntity input, AppEntity output )
+        public static List<AppEntity> Search( SearchQuery query )
+        {
+            var entity = new AppEntity();
+            var output = new List<AppEntity>();
+            var skip = 0;
+            if ( query.PageNumber > 1 )
+                skip = ( query.PageNumber - 1 ) * query.PageSize;
+            var filter = GetSearchFilterText( query );
+
+            try
+            {
+                using ( var context = new DataEntities() )
+                {
+                    var list = from Results in context.Course_Task
+                               select Results;
+                    if ( !string.IsNullOrWhiteSpace( filter ) )
+                    {
+                        list = from Results in list
+                                .Where( s =>
+                                ( s.Description.ToLower().Contains( filter.ToLower() ) ) 
+                                )
+                               select Results;
+                    }
+                    query.TotalResults = list.Count();
+                    //sort order not handled
+                    list = list.OrderBy( p => p.Description );
+
+                    //
+                    var results = list.Skip( skip ).Take( query.PageSize )
+                        .ToList();
+                    if ( results?.Count > 0 )
+                    {
+                        foreach ( var item in results )
+                        {
+                            if ( item != null && item.Id > 0 )
+                            {
+                                entity = new AppEntity();
+                                MapFromDB( item, entity );
+                                output.Add( ( entity ) );
+                            }
+                        }
+                    }
+
+                }
+            }
+            catch ( Exception ex )
+            {
+
+            }
+            return output;
+        }
+        public static void MapFromDB( DBEntity input, AppEntity output )
         {
             //should include list of concepts
             List<string> errors = new List<string>();
@@ -248,6 +303,7 @@ namespace Factories
             //
             if (input.Course?.Id > 0 )
             {
+                output.CourseName = input.Course.Name;
                 output.CourseCodedNotation = input.Course.CodedNotation;
             }
 

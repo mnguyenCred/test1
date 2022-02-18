@@ -2,39 +2,45 @@
 @using Models.Schema;
 @using Services;
 @{
-    ViewBag.Title = "RMTL Search";
+	ViewBag.Title = "RMTL Search";
 
-    var ratings = RatingServices.GetAllActiveRatings().OrderByDescending( m => m.CodedNotation.ToLower() == "all" ).ToList();
-    var ratingFilter = new SimpleFilter()
-    {
-        Name = "navy:Rating",
-        Items = ratings.Select( m => { return new SimpleFilterItem() { Label = m.CodedNotation + " - " + m.Name, Id = m.Id }; } ).ToList()
-    };
-    var billetTitles = RatingTaskServices.GetAllActiveBilletTitles().ToList();
-    var billetFilter = new SimpleFilter()
-    {
-        Name = "navy:Job",
-        Items = billetTitles.Select( m => { return new SimpleFilterItem() { Label = m.Name, Id = m.Id }; } ).ToList()
-    };
-    var cca = RatingTaskServices.GetAllOrganizations().ToList();
-    var ccaFilter = new SimpleFilter()
-    {
-        Name = "navy:Organization",
-        Items = cca.Select( m => { return new SimpleFilterItem() { Label = m.Name, Id = m.Id }; } ).ToList()
-    };
-    var functionalAreas = RatingTaskServices.GetAllFunctionalAreas().ToList();
-    var functionalAreaFilter = new SimpleFilter()
-    {
-        Name = "navy:WorkRole",
-        Items = functionalAreas.Select( m => { return new SimpleFilterItem() { Label = m.Name, Id = m.Id }; } ).ToList()
-    };
-    var levels = SchemeToFilter( Factories.ConceptSchemeManager.ConceptScheme_RatingLevel );
-    var payGradeTypeFilter = SchemeToFilter( Factories.ConceptSchemeManager.ConceptScheme_Pay_Grade );
-    var trainingGapTypeFilter = SchemeToFilter( Factories.ConceptSchemeManager.ConceptScheme_TrainingGap );
-    var applicabilityTypeFilter = SchemeToFilter( Factories.ConceptSchemeManager.ConceptScheme_TaskApplicability );
-    var referenceTypeFilter = SchemeToFilter( Factories.ConceptSchemeManager.ConceptScheme_ReferenceResource );
-    var courseTypeFilter = SchemeToFilter( Factories.ConceptSchemeManager.ConceptScheme_CourseType );
-    var assessmentMethodTypeFilter = SchemeToFilter( Factories.ConceptSchemeManager.ConceptScheme_CurrentAssessmentApproach );
+	var ratings = RatingServices.GetAllActiveRatings().OrderByDescending( m => m.CodedNotation.ToLower() == "all" ).ToList();
+	var ratingFilter = new SimpleFilter()
+	{
+		Name = "navy:Rating",
+		Items = ratings.Select( m => { return new SimpleFilterItem() { Label = m.CodedNotation + " - " + m.Name, Id = m.Id }; } ).ToList()
+	};
+	var billetTitles = RatingTaskServices.GetAllActiveBilletTitles().ToList();
+	var billetFilter = new SimpleFilter()
+	{
+		Name = "navy:Job",
+		Items = billetTitles.Select( m => { return new SimpleFilterItem() { Label = m.Name, Id = m.Id }; } ).ToList()
+	};
+	var cca = RatingTaskServices.GetAllOrganizations().ToList();
+	var ccaFilter = new SimpleFilter()
+	{
+		Name = "navy:Organization",
+		Items = cca.Select( m => { return new SimpleFilterItem() { Label = m.Name, Id = m.Id }; } ).ToList()
+	};
+	var functionalAreas = RatingTaskServices.GetAllFunctionalAreas().ToList();
+	var functionalAreaFilter = new SimpleFilter()
+	{
+		Name = "navy:WorkRole",
+		Items = functionalAreas.Select( m => { return new SimpleFilterItem() { Label = m.Name, Id = m.Id }; } ).ToList()
+	};
+	var courses = RatingTaskServices.GetAllCourses().ToList();
+	var coursesFilter = new SimpleFilter()
+	{
+		Name = "ceterms:Course",
+		Items = courses.Select( m => { return new SimpleFilterItem() { Label = m.Name, Id = m.Id }; } ).ToList()
+	};
+	var levels = SchemeToFilter( Factories.ConceptSchemeManager.ConceptScheme_RatingLevel );
+	var payGradeTypeFilter = SchemeToFilter( Factories.ConceptSchemeManager.ConceptScheme_Pay_Grade );
+	var trainingGapTypeFilter = SchemeToFilter( Factories.ConceptSchemeManager.ConceptScheme_TrainingGap );
+	var applicabilityTypeFilter = SchemeToFilter( Factories.ConceptSchemeManager.ConceptScheme_TaskApplicability );
+	var referenceTypeFilter = SchemeToFilter( Factories.ConceptSchemeManager.ConceptScheme_ReferenceResource );
+	var courseTypeFilter = SchemeToFilter( Factories.ConceptSchemeManager.ConceptScheme_CourseType );
+	var assessmentMethodTypeFilter = SchemeToFilter( Factories.ConceptSchemeManager.ConceptScheme_CurrentAssessmentApproach );
 }
 @functions {
 	public class SimpleFilter
@@ -105,6 +111,7 @@
 			Organization: @Html.Raw(JsonConvert.SerializeObject( ccaFilter, Formatting.None)),
 			PayGradeType: @Html.Raw(JsonConvert.SerializeObject(payGradeTypeFilter, Formatting.None)),
 			FunctionalArea: @Html.Raw(JsonConvert.SerializeObject( functionalAreaFilter, Formatting.None)),
+			Course: @Html.Raw(JsonConvert.SerializeObject( coursesFilter, Formatting.None)),
 			TrainingGapType: @Html.Raw(JsonConvert.SerializeObject(trainingGapTypeFilter, Formatting.None)),
 			ApplicabilityType: @Html.Raw(JsonConvert.SerializeObject(applicabilityTypeFilter, Formatting.None)),
 			ReferenceType: @Html.Raw(JsonConvert.SerializeObject(referenceTypeFilter, Formatting.None)),
@@ -217,6 +224,9 @@
 		});
 		createFilter_Autofill("navy:WorkRole", 0, textFilterBox, "Functional Area", (Filter, text) => {
 			return findSimpleFilterItem(Search.Prefilled.FunctionalArea.Items, Filter.Items, text);
+		});
+		createFilter_Autofill("ceterms:Course", 0, textFilterBox, "Course", (Filter, text) => {
+			return findSimpleFilterItem(Search.Prefilled.Course.Items, Filter.Items, text);
 		});
         createFilter_Autofill("navy:Organization", 0, textFilterBox, "CCA", (Filter, text) => {
             return findSimpleFilterItem(Search.Prefilled.Organization.Items, Filter.Items, text);

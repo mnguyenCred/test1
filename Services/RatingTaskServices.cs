@@ -75,6 +75,19 @@ namespace Services
                             where += AND + String.Format( template, itemList );
                             AND = " AND ";
                         }
+                        else if ( item.Name == "ceterms:Course" && item.ItemIds?.Count > 0 )
+                        {
+                            var template = "( base.CourseId in ({0}) ) ";
+                            var itemList = "";
+                            var comma = "";
+                            foreach ( var t in item.ItemIds )
+                            {
+                                itemList += comma + t.ToString();
+                                comma = ",";
+                            }
+                            where += AND + String.Format( template, itemList );
+                            AND = " AND ";
+                        }
                         else if ( item.Name == "navy:Organization" && item.ItemIds?.Count > 0 )
                         {
                             var template = "( base.CurriculumControlAuthorityId in ({0}) ) ";
@@ -273,7 +286,12 @@ namespace Services
 
             return output;
         }
+        public static List<Course> GetAllCourses()
+        {
+            var output = CourseManager.GetAll();
 
+            return output;
+        }
         public static List<Organization> GetAllOrganizations()
         {
             var output = OrganizationManager.GetAll().ToList();

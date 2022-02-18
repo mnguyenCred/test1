@@ -63,5 +63,7 @@ namespace Data.Views
         public string RankName { get; set; }
         public Nullable<int> CurriculumControlAuthorityId { get; set; }
         public Nullable<System.Guid> CurriculumControlAuthorityUID { get; set; }
+        public string WorkElementTypeAlternateName { get; set; }
+        public int WorkElementTypeOrder { get; set; }
     }
 }

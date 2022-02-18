@@ -8,6 +8,7 @@ using Models.Search;
 using Models.Schema;
 using Navy.Utilities;
 using Services;
+using Models.Curation;
 
 namespace NavyRRL.Controllers
 {
@@ -51,8 +52,24 @@ namespace NavyRRL.Controllers
 				return JsonResponse( null, false, new List<string>() { "You must be authenticated and authorized to edit Training Task data." }, null );
 			}
 
-			//On success
-			ConsoleMessageHelper.SetConsoleSuccessMessage( "Saved changes successfully." );
+
+			var user = AccountServices.GetCurrentUser();
+			ChangeSummary status = new ChangeSummary()
+			{
+				Action = "Edit"
+			};
+			data.LastUpdatedById = user.Id;
+			var results = new Factories.TrainingTaskManager().Save( data, ref status );
+			if ( status.HasAnyErrors )
+			{
+				var msg = string.Join( "</br>", status.Messages.Error.ToArray() );
+				ConsoleMessageHelper.SetConsoleErrorMessage( "Saved changes successfully." );
+			}
+			else
+			{
+				//On success
+				ConsoleMessageHelper.SetConsoleSuccessMessage( "Saved changes successfully." );
+			}
 			return JsonResponse( data, true, null, null );
 		}
 		//

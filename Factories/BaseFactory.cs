@@ -22,6 +22,7 @@ using Navy.Utilities;
 using Newtonsoft.Json;
 using System.Reflection;
 using System.Collections.Specialized;
+using Models.Search;
 
 namespace Factories
 {
@@ -189,6 +190,27 @@ namespace Factories
 
 
         #region data retrieval     
+        public static string GetSearchFilterText( SearchQuery query )
+        {
+            if ( query == null || query.Filters?.Count == 0 )
+                return "";
+            var output = "";
+
+            foreach ( var item in query.Filters )
+            {
+                //
+                if ( item.Name == "search:Keyword" && !string.IsNullOrWhiteSpace( item.Text ) )
+                {
+                    var keyword = HandleApostrophes( item.Text ).TrimEnd();
+                    //just take first one for now
+                    return keyword;
+                }
+            }
+
+
+            return output;
+        } //
+
         public static List<Guid> GetFunctionalAreas( string property, ref string workRoleList )
         {
             if ( string.IsNullOrEmpty( property ) )

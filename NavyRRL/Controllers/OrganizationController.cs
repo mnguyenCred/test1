@@ -8,6 +8,7 @@ using Models.Search;
 using Models.Schema;
 using Navy.Utilities;
 using Services;
+using Models.Curation;
 
 namespace NavyRRL.Controllers
 {
@@ -38,7 +39,11 @@ namespace NavyRRL.Controllers
 		public ActionResult Edit( int id )
 		{
 			AuthenticateOrRedirect( "You must be authenticated and authorized to edit Organization data." );
-			var data = Factories.OrganizationManager.Get( id ) ?? new Organization();
+			var data = new Organization();
+			if ( id > 0 )
+			{
+				data = Factories.OrganizationManager.Get( id );
+			}
 			return View( data );
 		}
 		//
@@ -51,8 +56,23 @@ namespace NavyRRL.Controllers
 				return JsonResponse( null, false, new List<string>() { "You must be authenticated and authorized to edit Organization data." }, null );
 			}
 
-			//On success
-			ConsoleMessageHelper.SetConsoleSuccessMessage( "Saved changes successfully." );
+			var user = AccountServices.GetCurrentUser();
+			ChangeSummary status = new ChangeSummary()
+			{
+				Action = "Edit"
+			};
+			data.LastUpdatedById = user.Id;
+			var results = new Factories.OrganizationManager().Save( data, user.Id, ref status );
+			if ( status.HasAnyErrors )
+			{
+				var msg = string.Join( "</br>", status.Messages.Error.ToArray() );
+				ConsoleMessageHelper.SetConsoleErrorMessage( "Saved changes successfully." );
+			}
+			else
+			{
+				//On success
+				ConsoleMessageHelper.SetConsoleSuccessMessage( "Saved changes successfully." );
+			}
 			return JsonResponse( data, true, null, null );
 		}
 		//

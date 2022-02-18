@@ -175,8 +175,8 @@ namespace Factories
                         //add log entry
                         SiteActivity sa = new SiteActivity()
                         {
-                            ActivityType = "RatingProfile",
-                            Activity = "Import",
+                            ActivityType = "Rating",
+                            Activity = status.Action,
                             Event = "Add",
                             Comment = string.Format( "Full Rating was added by the import. Name: {0}", entity.Name ),
                             ActionByUserId = entity.LastUpdatedById,
@@ -361,11 +361,7 @@ namespace Factories
             var skip = 0;
             if ( query.PageNumber > 1 )
                 skip = ( query.PageNumber - 1 ) * query.PageSize;
-            var filter = "";
-            if ( query.Filters?.Count > 0 )
-            {
-                filter = query.Filters[0].Text ?? "".TrimEnd();
-            }
+            var filter = GetSearchFilterText( query );
             try
             {
                 using ( var context = new ViewContext() )
