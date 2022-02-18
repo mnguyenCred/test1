@@ -80,14 +80,32 @@
 				//Search to add new valid Work Roles
 				Field.Search.SearchURL = "@Url.Content( "~/workrole/dosearch" )";
 				Field.Search.modifyQuery = function (query) {
-					//And where tasks are NOT already associated with this Rating Task...
+					//And where Work Roles are NOT already associated with this Rating Task...
 					query.Filters.push({ Name: "navy:RatingTask", ItemIds: [Data.Source.Id], IsNegation: true });
 				}
 
 				//Search to remove already added Work Roles
 				Field.Existing.SearchURL = "@Url.Content( "~/workrole/dosearch" )";
 				Field.Existing.modifyQuery = function (query) {
-					//Where tasks are already associated with this Rating Task...
+					//Where Work Roles are already associated with this Rating Task...
+					query.Filters.push({ Name: "navy:RatingTask", ItemIds: [Data.Source.Id] });
+				}
+
+				//Show existing items
+				Field.Existing.doSearch();
+			},
+			HasBilletTitle: function (Field) {
+				//Search to add new valid Billet Titles
+				Field.Search.SearchURL = "@Url.Content( "~/billettitle/dosearch" )";
+				Field.Search.modifyQuery = function (query) {
+					//And where Billet Titles are NOT already associated with this Rating Task...
+					query.Filters.push({ Name: "navy:RatingTask", ItemIds: [Data.Source.Id], IsNegation: true });
+				}
+
+				//Search to remove already added Billet Titles
+				Field.Existing.SearchURL = "@Url.Content( "~/billettitle/dosearch" )";
+				Field.Existing.modifyQuery = function (query) {
+					//Where Billet Titles are already associated with this Rating Task...
 					query.Filters.push({ Name: "navy:RatingTask", ItemIds: [Data.Source.Id] });
 				}
 
@@ -130,12 +148,7 @@
 <form-item data-path="RatingTask.HasReferenceResource" data-ui="select" data-label="Task Source" data-config="HasReferenceResource"></form-item>
 <form-item data-path="RatingTask.ReferenceType" data-ui="select" data-label="Task Source Type" data-config="ReferenceType"></form-item>
 <form-item data-path="RatingTask.HasRating" data-ui="searchselectlocal" data-label="Associated Ratings" data-config="HasRating"></form-item>
-@*
-<form-item data-path="RatingTask.RatingTitles" data-ui="searchselectlocal" data-label="Associated Ratings2" data-config="RatingTitles"></form-item>
-
-<form-item data-path="RatingTask.HasBillet" data-ui="searchselectlocal" data-label="Associated Billet Titles" data-config="HasBillet"></form-item>
-<form-item data-path="RatingTask.BilletTitles" data-ui="searchselectlocal" data-label="Associated Billet Titles2" data-config="BilletTitles"></form-item>
-*@
+<form-item data-path="RatingTask.HasBilletTitle" data-ui="searchselectdeferred" data-label="Associated Billet Titles" data-config="HasBilletTitle"></form-item>
 <form-item data-path="RatingTask.HasWorkRole" data-ui="searchselectdeferred" data-label="Functional Areas" data-config="HasWorkRole"></form-item>
 <form-item data-path="RatingTask.HasTrainingTask" data-ui="searchselectsingledeferred" data-label="Associated Training Task" data-config="HasTrainingTask"></form-item>
 <form-item data-path="RatingTask.SaveButton" data-ui="savebutton" data-label="Save Changes" data-config="SaveButton"></form-item>
