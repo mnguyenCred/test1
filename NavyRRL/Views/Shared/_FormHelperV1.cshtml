@@ -412,10 +412,6 @@
 			return Items.filter(Item => (Item.Name + Item.CodedNotation + Item.Description).toLowerCase().includes(keywordsText));
 		};
 
-		Field.renderItem = function (container, Result) {
-			container.append("<div>" + (Result.Name || Result.CodedNotation || Result.Description || JSON.stringify(Result)) + "</div>");
-		};
-
 		Field.refresh = function () {
 			Field.Search.doSearch();
 			Field.Existing.doSearch();
@@ -449,20 +445,12 @@
 			Field.Search.handleResponse({ Valid: true, Data: { Results: results.slice(start, end), TotalResults: results.length } });
 		};
 
-		Field.Search.renderResult = function (container, Result) {
-			Field.renderItem(container, Result);
-		};
-
 		Field.Existing.searchMethod = function () {
 			var start = (Field.Existing.PageNumber - 1) * Field.Existing.PageSize;
 			var end = start + Field.Existing.PageSize;
 			var results = Field.filterItems(Field.SelectedItems);
 
 			Field.Existing.handleResponse({ Valid: true, Data: { Results: results.slice(start, end), TotalResults: results.length } });
-		};
-
-		Field.Existing.renderResult = function (container, Result) {
-			Field.renderItem(container, Result);
 		};
 
 		return Field;
@@ -484,11 +472,11 @@
 		Field.ItemsToRemove = [];
 
 		Field.listContainsItem = function (List, Item) {
-			return List.filter(m => m.Extra.RowId == Item.Extra.RowId).length > 0;
+			return List.filter(m => m.RowId == Item.RowId).length > 0;
 		};
 
 		Field.getListWithoutItem = function (List, Item) {
-			return List.filter(m => m.Extra.RowId != Item.Extra.RowId);
+			return List.filter(m => m.RowId != Item.RowId);
 		}
 
 		Field.Search.renderResultWrapper = function (container, Result) {
@@ -582,7 +570,7 @@
 
 		Field.renderResultWrapper = function (container, Result) {
 			var button = $("<button>Select</button>");
-			if(Result.Extra.RowId == Field.SelectedItem?.RowId || Result.Extra.RowId == Field.ExistingItem?.RowId || Result.Extra.RowId == Field.RemovalItem?.RowId){
+			if(Result.RowId == Field.SelectedItem?.RowId || Result.RowId == Field.ExistingItem?.RowId || Result.RowId == Field.RemovalItem?.RowId){
 				Field.handleSelectButtonClick(button);
 			}
 			Field.renderWrappedResult(container, Result, Field.renderResult, button, Field.selectItem);
@@ -761,7 +749,11 @@
 		};
 
 		Field.renderResult = function (container, Result) {
-			var resultBox = $("<div>" + Field.getItemLabel(Result) + "</div>").appendTo(container);
+			var resultBox = $("<div class=\"resultContent\"></div>").appendTo(container);
+			var headerBox = $("<div class=\"resultHeader\"></div>").appendTo(resultBox);
+			Result.CodedNotation && $("<div class=\"codedNotation\">" + Result.CodedNotation + "</div>").appendTo(headerBox);
+			Result.Name && $("<div class=\"name\">" + Result.Name + "</div>").appendTo(headerBox);
+			Result.Description && $("<div class=\"description\">" + Result.Description + "</div>").appendTo(resultBox);
 			resultBox[0].getItem = function () { return Result; }
 		};
 
@@ -900,4 +892,10 @@
 	form-item[data-ui^='searchselect'] .resultWrapper .resultInner { flex: 1 1 auto; }
 	form-item[data-ui^='searchselect'] .resultWrapper > button { flex: 0 0 auto; width: auto; margin-left: 10px; }
 	form-item[data-ui='searchselectdeferred'] .itemsToChangeLabel { font-weight: bold; margin-top: 20px; }
+
+	form-item .resultContent .resultHeader { display: flex; margin-bottom: 5px; }
+	form-item .resultContent .resultHeader:empty { display: none; }
+	form-item .resultContent .codedNotation { padding: 2.5px 5px; background-color: #F5F5F5; margin-right: 10px; }
+	form-item .resultContent .name { font-weight: bold; }
+	form-item .resultContent .description { font-size: 12px; }
 </style>
