@@ -11,7 +11,7 @@
 <script type="text/javascript">
 	var Data = {
 		//The original resource
-		Source: @Html.Raw( JsonConvert.SerializeObject( Model ) ),
+		Source: @Html.Raw( JsonConvert.SerializeObject( Model, Formatting.None ) ),
 		//Mapping used internally for the FormItem stuff
 		Form: {},
 		//Functions to configure FormItem stuff

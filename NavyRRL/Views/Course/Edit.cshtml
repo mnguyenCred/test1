@@ -6,7 +6,9 @@
 	var title = Model.Id > 0 ? "Editing Course" : "New Course";
 	ViewBag.Title = title;
 	var courseTypeList = Factories.ConceptSchemeManager.GetbyShortUri( Factories.ConceptSchemeManager.ConceptScheme_CourseType ).Concepts.Select( m => SimpleItemHelper.GetSimpleItem( m ) ).ToList();
+	var assessmentMethodTypeList = Factories.ConceptSchemeManager.GetbyShortUri( Factories.ConceptSchemeManager.ConceptScheme_CurrentAssessmentApproach ).Concepts.Select( m => SimpleItemHelper.GetSimpleItem( m ) ).ToList();
 	var ccaList = Factories.OrganizationManager.GetAll().Select( m => SimpleItemHelper.GetSimpleItem( m ) ).ToList();
+	var referenceResourceList = Factories.ReferenceResourceManager.GetAll().Select( m => SimpleItemHelper.GetSimpleItem( m ) ).ToList();
 }
 
 @Html.Partial( "~/Views/Shared/_FormHelperV1.cshtml" )
@@ -14,7 +16,7 @@
 <script type="text/javascript">
 	var Data = {
 		//The original resource
-		Source: @Html.Raw( JsonConvert.SerializeObject( Model ) ),
+		Source: @Html.Raw( JsonConvert.SerializeObject( Model, Formatting.None ) ),
 		//Mapping used internally for the FormItem stuff
 		Form: {},
 		//Functions to configure FormItem stuff
@@ -30,13 +32,39 @@
 					};
 				}
 			},
+			HasReferenceResource: function (Field) {
+				Field.Items = @Html.Raw( JsonConvert.SerializeObject( referenceResourceList, Formatting.None ) );
+				Field.renderItems();
+			},
 			CourseType: function (Field) {
 				Field.Items = @Html.Raw( JsonConvert.SerializeObject( courseTypeList, Formatting.None ) );
+				Field.renderItems();
+			},
+			AssessmentMethodType: function (Field) {
+				Field.Items = @Html.Raw( JsonConvert.SerializeObject( assessmentMethodTypeList, Formatting.None ) );
 				Field.renderItems();
 			},
 			CurriculumControlAuthority: function (Field) {
 				Field.Items = @Html.Raw( JsonConvert.SerializeObject( ccaList, Formatting.None ) );
 				Field.renderItems();
+			},
+			HasTrainingTask: function (Field) {
+				//Search to add new valid Training Tasks
+				Field.Search.SearchURL = "@Url.Content( "~/trainingtask/dosearch" )";
+				Field.Search.modifyQuery = function (query) {
+					//And where tasks are NOT already associated with this Course...
+					query.Filters.push({ Name: "ceterms:Course", ItemIds: [Data.Source.Id], IsNegation: true });
+				}
+
+				//Search to remove already added Training Tasks
+				Field.Existing.SearchURL = "@Url.Content( "~/trainingtask/dosearch" )";
+				Field.Existing.modifyQuery = function (query) {
+					//Where tasks are already associated with this Course...
+					query.Filters.push({ Name: "ceterms:Course", ItemIds: [Data.Source.Id] });
+				}
+
+				//Show existing items
+				Field.Existing.doSearch();
 			}
 		}
 	};
@@ -54,6 +82,9 @@
 <form-item data-path="Course.RowId" data-ui="display" data-label="RowID"></form-item>
 <form-item data-path="Course.Name" data-ui="text" data-label="Name"></form-item>
 <form-item data-path="Course.CodedNotation" data-ui="text" data-label="Code"></form-item>
+<form-item data-path="Course.HasReferenceResource" data-ui="select" data-label="Source" data-config="HasReferenceResource"></form-item>
 <form-item data-path="Course.CourseType" data-ui="checkboxlist" data-label="Course Type" data-config="CourseType"></form-item>
+<form-item data-path="Course.AssessmentMethodType" data-ui="checkboxlist" data-label="Assessment Method Type" data-config="AssessmentMethodType"></form-item>
 <form-item data-path="Course.CurriculumControlAuthority" data-ui="checkboxlist" data-label="Curriculum Control Authority" data-config="CurriculumControlAuthority"></form-item>
+<form-item data-path="Course.HasTrainingTask" data-ui="searchselectdeferred" data-label="Training Tasks" data-config="HasTrainingTask"></form-item>
 <form-item data-path="Course.SaveButton" data-ui="savebutton" data-label="Save Changes" data-config="SaveButton"></form-item>
