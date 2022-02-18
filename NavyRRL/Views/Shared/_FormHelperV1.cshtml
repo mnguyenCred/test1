@@ -806,7 +806,7 @@
 			Field.renderResults();
 		};
 
-		Field.KeywordsFilter = Field.createTextFilter("search:Keywords", "Search...");
+		Field.KeywordsFilter = Field.createTextFilter("search:Keyword", "Search...");
 		Field.attachHandlerForTextChange(Field.KeywordsFilter.Box);
 		Field.Spinner.hide();
 		return Field;
@@ -877,6 +877,7 @@
 	.spinner { display: inline-block; box-shadow: inset 4px 0 0 5px; border-radius: 50%; height: 20px; width: 20px; animation: spin 1s linear infinite; }
 	@@keyframes spin { 100% { transform: rotate(360deg); } }
 
+	form-item label { font-weight: normal; }
 	form-item { display: block; padding: 10px 0; margin-bottom: 10px; }
 	form-item .formItemLabel { font-weight: bold; }
 	form-item .formItemValue { }
