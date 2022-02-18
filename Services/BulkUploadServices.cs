@@ -1045,8 +1045,8 @@ namespace Services
 
                         }
 						//get all billets for this task
-						if ( item.HasBillet == null )
-							item.HasBillet = new List<Guid>();
+						if ( item.HasBilletTitle == null )
+							item.HasBilletTitle = new List<Guid>();
 						if ( summary.ItemsToBeCreated.BilletTitle?.Count > 0 )
 						{
 							//get billets that reference this task
@@ -1054,14 +1054,14 @@ namespace Services
 
 							if ( results.Count > 0 )
 							{
-								item.HasBillet.AddRange( results.Select( p => p.RowId ) );
+								item.HasBilletTitle.AddRange( results.Select( p => p.RowId ) );
 							} else
                             {
 								var resultsByCode = summary.ItemsToBeCreated.BilletTitle.Where( p => p.HasRatingTaskByCode.Contains( item.CodedNotation ) ).ToList();
 								if( resultsByCode.Count > 0 )
 								{
 									//this will always be one (one per row). Alternate would be to do a set based approach after all rating tasks are created. 
-									item.HasBillet.AddRange( resultsByCode.Select( p => p.RowId ) );
+									item.HasBilletTitle.AddRange( resultsByCode.Select( p => p.RowId ) );
 								}
 							}
 						}
@@ -1154,14 +1154,14 @@ namespace Services
 						{
 							//get billets that reference this task
 							var results = summary.ItemsToBeChanged.BilletTitle.Where( p => p.HasRatingTask.Contains( item.RowId ) ).ToList();
-							item.HasBillet.AddRange( results.Select( p => p.RowId ) );
+							item.HasBilletTitle.AddRange( results.Select( p => p.RowId ) );
 						}
 						//do we need to check the created as well?
 						if ( summary.ItemsToBeCreated.BilletTitle?.Count > 0 )
 						{
 							//get billets that reference this task
 							var results = summary.ItemsToBeCreated.BilletTitle.Where( p => p.HasRatingTask.Contains( item.RowId ) ).ToList();
-							item.HasBillet.AddRange( results.Select( p => p.RowId ) );
+							item.HasBilletTitle.AddRange( results.Select( p => p.RowId ) );
 						}
 						item.CreatedById = item.LastUpdatedById = user.Id;
 						mgr.Save( item, ref summary );
@@ -1949,7 +1949,7 @@ namespace Services
 					m.CodedNotation = item.Flattened.HasCodedNotation;
 					m.Identifier = item.Flattened.Identifier;
 					//???
-					m.HasBillet = item.Flattened.HasBillet;
+					m.HasBilletTitle = item.Flattened.HasBilletTitle;
 					m.ApplicabilityType = FindConceptOrError( applicabilityTypeConcepts, new Concept() { Name = item.Flattened.ApplicabilityType_Name }, "Applicability Type", item.Flattened.ApplicabilityType_Name, summary.Messages.Error ).RowId;
 					m.TrainingGapType = FindConceptOrError( trainingGapTypeConcepts, new Concept() { Name = item.Flattened.TrainingGapType_Name }, "Training Gap Type", item.Flattened.TrainingGapType_Name, summary.Messages.Error ).RowId;
 					m.PayGradeType = FindConceptOrError( payGradeTypeConcepts, new Concept() { CodedNotation = item.Flattened.PayGradeType_CodedNotation }, "Pay Grade Type", item.Flattened.PayGradeType_CodedNotation, summary.Messages.Error ).RowId;

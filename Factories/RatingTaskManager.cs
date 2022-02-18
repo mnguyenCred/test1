@@ -283,7 +283,7 @@ namespace Factories
                 RowId = m.RowId,
                 HasRating = m.HasRatings,      //not available-adding
                 PayGradeType = m.PayGradeType,
-                HasBillet = m.HasBilletTitles,
+                HasBilletTitle = m.HasBilletTitles,
                 HasWorkRole = m.HasWorkRole,
                 HasReferenceResource = m.HasReferenceResource,
                 ReferenceType = m.ReferenceType,
@@ -574,7 +574,7 @@ namespace Factories
                 {
                     if ( item.Job?.RowId != null )
                     {
-                        output.HasBillet.Add( item.Job.RowId );
+                        output.HasBilletTitle.Add( item.Job.RowId );
                         output.BilletTitles.Add( item.Job.Name );
                     }
                 }
@@ -1063,8 +1063,8 @@ namespace Factories
             {
                 try
                 {
-                    if ( input.HasBillet?.Count == 0 )
-                        input.HasBillet = new List<Guid>();
+                    if ( input.HasBilletTitle?.Count == 0 )
+                        input.HasBilletTitle = new List<Guid>();
                     var results =
                                     from entity in context.RatingTask_HasJob
                                     join related in context.Job
@@ -1082,7 +1082,7 @@ namespace Factories
                             var key = e.RowId;
                             if ( IsValidGuid( key ) )
                             {
-                                if ( !input.HasBillet.Contains( ( Guid ) key ) )
+                                if ( !input.HasBilletTitle.Contains( ( Guid ) key ) )
                                 {
                                     //DeleteRatingTaskHasJob( input.Id, e.Id, ref status );
                                 }
@@ -1091,9 +1091,9 @@ namespace Factories
                     }
                     #endregion
                     //adds
-                    if ( input.HasBillet != null )
+                    if ( input.HasBilletTitle != null )
                     {
-                        foreach ( var child in input.HasBillet )
+                        foreach ( var child in input.HasBilletTitle )
                         {
                             //if not in existing, then add
                             bool doingAdd = true;

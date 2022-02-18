@@ -71,6 +71,22 @@ namespace Models.Schema
 		public int LifeCycleControlDocumentId { get; set; }
 
 	}
+	//
+
+	public class CourseDTO : Course
+	{
+		/// <summary>
+		/// List of Training Task RowIds to add to this Course
+		/// </summary>
+		public List<Guid> HasTrainingTask_Add { get; set; } = new List<Guid>();
+
+		/// <summary>
+		/// List of Training Task RowIds to remove from this Course
+		/// </summary>
+		public List<Guid> HasTrainingTask_Remove { get; set; } = new List<Guid>();
+	}
+	//
+
 	public class CourseFull : Course
 	{
 		//this can be plural (pipe separated)
@@ -86,4 +102,5 @@ namespace Models.Schema
 		//public string LifeCycleControlDocument { get; set; }
 		//public int LifeCycleControlDocumentId { get; set; }
 	}
+	//
 }

@@ -70,7 +70,7 @@ namespace NavyRRL.Controllers
 		}
 		//
 
-		public ActionResult Save( BilletTitle data )
+		public ActionResult Save( BilletTitleDTO data )
 		{
 			//Validate the request
 			if ( !AuthenticateOrFail() )

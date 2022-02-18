@@ -93,7 +93,7 @@ namespace Models.Schema
 		//Embedded data
 		//Consider moving these to a separate class so they don't result in a lot of extra data being sent between client and server
 		public List<string> RatingTitles { get; set; } = new List<string>();
-		public List<Guid> HasBillet { get; set; } = new List<Guid>();
+		public List<Guid> HasBilletTitle { get; set; } = new List<Guid>();
 		public List<string> BilletTitles { get; set; } = new List<string>();
 		public Concept TaskPaygrade { get; set; } = new Concept();
 		public ReferenceResource ReferenceResource { get; set; } = new ReferenceResource();
@@ -101,10 +101,48 @@ namespace Models.Schema
 		public Concept TaskTrainingGap { get; set; } = new Concept();
 		public Concept TaskReferenceType { get; set; } = new Concept();
 	}
+	//
+
+	public class RatingTaskDTO : RatingTask
+	{
+		/// <summary>
+		/// List of Rating RowIds to add to this Rating Task
+		/// </summary>
+		public List<Guid> HasRating_Add { get; set; } = new List<Guid>();
+
+		/// <summary>
+		/// List of Rating RowIds to remove from this Rating Task
+		/// </summary>
+		public List<Guid> HasRating_Remove { get; set; } = new List<Guid>();
+
+		/// <summary>
+		/// List of Billet Title RowIds to add to this Rating Task
+		/// </summary>
+		public List<Guid> HasBilletTitle_Add { get; set; } = new List<Guid>();
+
+		/// <summary>
+		/// List of Billet Title RowIds to remove from this Rating Task
+		/// </summary>
+		public List<Guid> HasBilletTitle_Remove { get; set; } = new List<Guid>();
+
+		/// <summary>
+		/// List of Work Role RowIds to add to this Rating Task
+		/// </summary>
+		public List<Guid> HasWorkRole_Add { get; set; } = new List<Guid>();
+
+		/// <summary>
+		/// List of Work Role RowIds to remove from this Rating Task
+		/// </summary>
+		public List<Guid> HasWorkRole_Remove { get; set; } = new List<Guid>();
+	}
+	//
+
 	public class RatingTaskFull : RatingTask
 	{
 
 	}
+	//
+
 	public class RatingTaskSummary : RatingTask
 	{
 		//These are likely redundant now - see Models.Curation.UploadableTable (in Models.Curation.UploadableData.cs)
@@ -136,4 +174,5 @@ namespace Models.Schema
 		public string LifeCycleControlDocument { get; set; }
 		public string Notes { get; set; }
 	}
+	//
 }

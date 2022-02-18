@@ -44,7 +44,7 @@ namespace NavyRRL.Controllers
 		}
 		//
 
-		public ActionResult Save( Course data )
+		public ActionResult Save( CourseDTO data )
 		{
 			//Validate the request
 			if ( !AuthenticateOrFail() )

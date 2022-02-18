@@ -44,7 +44,7 @@ namespace NavyRRL.Controllers
 		}
 		//
 
-		public ActionResult Save( RatingTask data )
+		public ActionResult Save( RatingTaskDTO data )
 		{
 			//Validate the request
 			if ( !AuthenticateOrFail() )
