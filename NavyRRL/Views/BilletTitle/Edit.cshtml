@@ -5,7 +5,6 @@
 @{
 	var title = Model.Id > 0 ? "Editing Billet Title" : "New Billet Title";
 	ViewBag.Title = title;
-	var ratingsList = Services.RatingServices.GetAll().Select( m => SimpleItemHelper.GetSimpleItem( m ) ).ToList();
 }
 
 @Html.Partial( "~/Views/Shared/_FormHelperV1.cshtml" )
@@ -14,7 +13,6 @@
 	var Data = {
 		//The original resource
 		Source: @Html.Raw( JsonConvert.SerializeObject( Model, Formatting.None ) ),
-		RatingsList: @Html.Raw( JsonConvert.SerializeObject( ratingsList, Formatting.None ) ),
 		//Mapping used internally for the FormItem stuff
 		Form: {},
 		//Functions to configure FormItem stuff
@@ -37,27 +35,26 @@
 				Field.renderItems();
 			},
 			//Configure two parts:
-			//One, the search to be performed to find rating tasks that can be added to this billet title
-			//Two, the search to be performed to find rating tasks that are already added to this billet title
-			HasRatingTask: function (Field) {
+			//One, the search to be performed to find Rating Tasks that can be added to this Billet Title
+			//Two, the search to be performed to find Rating Tasks that are already added to this Billet Title
+			HasRatingTask_Add: function (Field) {
 				//Search to add new valid Rating Tasks
 				Field.Search.SearchURL = "@Url.Content( "~/ratingtask/dosearch" )";
 				Field.Search.modifyQuery = function (query) {
-					//Where tasks are associated with the same Rating as this Billet Title...
-					query.Filters.push({ Name: "navy:Rating", ItemIds: [getRatingIDFromGUID(Data.Form.PathMap.HasRating.read())] });
-					//And where tasks are NOT already associated with this Billet Title...
+					//Where Rating Tasks are NOT already associated with this Billet Title...
 					query.Filters.push({ Name: "navy:Job", ItemIds: [Data.Source.Id], IsNegation: true });
 				}
-
+			},
+			HasRatingTask_Remove: function (Field) {
 				//Search to remove already added Rating Tasks
-				Field.Existing.SearchURL = "@Url.Content( "~/ratingtask/dosearch" )";
-				Field.Existing.modifyQuery = function (query) {
-					//Where tasks are already associated with this Billet Title...
+				Field.Search.SearchURL = "@Url.Content( "~/ratingtask/dosearch" )";
+				Field.Search.modifyQuery = function (query) {
+					//Where Rating Tasks are already associated with this Billet Title...
 					query.Filters.push({ Name: "navy:Job", ItemIds: [Data.Source.Id] });
 				}
 
 				//Show existing items
-				Field.Existing.doSearch();
+				Field.Search.doSearch();
 			}
 		}
 	};
@@ -66,37 +63,9 @@
 	$(document).ready(function () {
 		FormItem.setupFormItems(Data.Form, "BilletTitle", Data.Config);
 		Data.Form.write(Data.Source);
-		handleFormInteractions();
 	});
 	//
 
-	//Control the task selector based on rating selection
-	function handleFormInteractions() {
-		var RatingSelector = Data.Form.PathMap.HasRating;
-		var RatingTaskSelector = Data.Form.PathMap.HasRatingTask;
-
-		//Enable/disable the field depending on whether a rating is selected
-		if (getRatingIDFromGUID(RatingSelector.read()) == 0) {
-			RatingTaskSelector.UI.hide();
-		}
-
-		//Reset the lists of items to add/remove if the selected rating is changed
-		RatingSelector.UI.on("change", function () {
-			RatingTaskSelector.UI.show();
-			RatingTaskSelector.ItemsToAdd = [];
-			RatingTaskSelector.renderItemsToAdd();
-			RatingTaskSelector.Search.doSearch();
-			RatingTaskSelector.ItemsToRemove = [];
-			RatingTaskSelector.Existing.doSearch();
-			RatingTaskSelector.renderItemsToRemove();
-		});
-	}
-	//
-
-	//Helper function to lookup a rating
-	function getRatingIDFromGUID(guid) {
-		return Data.RatingsList.filter(m => m.RowId == guid)[0]?.Id || 0;
-	}
 </script>
 
 <h2>@title</h2>
@@ -104,7 +73,7 @@
 <form-item data-path="BilletTitle.Id" data-ui="display" data-label="ID"></form-item>
 <form-item data-path="BilletTitle.RowId" data-ui="display" data-label="RowID"></form-item>
 <form-item data-path="BilletTitle.Name" data-ui="text" data-label="Name"></form-item>
-<form-item data-path="BilletTitle.HasRating" data-ui="select" data-label="Associated Rating" data-config="HasRating"></form-item>
 <form-item data-path="BilletTitle.Description" data-ui="textarea" data-label="Description"></form-item>
-<form-item data-path="BilletTitle.HasRatingTask" data-ui="searchselectdeferred" data-label="Rating Tasks" data-config="HasRatingTask"></form-item>
+<form-item data-path="BilletTitle.HasRatingTask_Add" data-ui="searchselectdeferred" data-label="Add Rating Tasks" data-config="HasRatingTask_Add"></form-item>
+<form-item data-path="BilletTitle.HasRatingTask_Remove" data-ui="searchselectdeferred" data-label="Remove Rating Tasks" data-config="HasRatingTask_Remove"></form-item>
 <form-item data-path="BilletTitle.SaveButton" data-ui="savebutton" data-label="Save Changes" data-config="SaveButton"></form-item>

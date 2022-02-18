@@ -193,7 +193,7 @@ namespace Factories
         public static AppEntity Get( int id)
         {
             var entity = new AppEntity();
-            if ( id < 1 )
+            if ( id < 1 ) //Wouldn't this always be true?
                 return entity;
 
             using ( var context = new DataEntities() )
@@ -209,6 +209,23 @@ namespace Factories
 
             return entity;
         }
+		//Not sure if there's a better way to get this?
+		public static AppEntity GetForRatingTask( int ratingTaskId )
+		{
+			var entity = new AppEntity();
+
+			using ( var context = new DataEntities() )
+			{
+				var item = context.Course_Task
+							.FirstOrDefault( s => s.RatingTask.Where( m => m.Id == ratingTaskId ).Count() > 0 );
+
+				if ( item != null && item.Id > 0 )
+				{
+					MapFromDB( item, entity );
+				}
+			}
+			return entity;
+		}
         /// <summary>
         /// Get all 
         /// May need a get all for a rating? Should not matter as this is external data?

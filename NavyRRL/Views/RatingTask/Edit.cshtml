@@ -5,8 +5,7 @@
 @{
 	var title = Model.Id > 0 ? "Editing Rating Task" : "New Rating Task";
 	ViewBag.Title = title;
-	var ratingsList = Services.RatingServices.GetAll().Select( m => SimpleItemHelper.GetSimpleItem( m ) ).ToList();
-	var currentTrainingTask = Factories.TrainingTaskManager.Get( Model.HasTrainingTask );
+	var currentTrainingTask = Factories.TrainingTaskManager.GetForRatingTask( Model.Id );
 	currentTrainingTask = currentTrainingTask.Id == 0 ? null : currentTrainingTask;
 	var referenceResourceList = Factories.ReferenceResourceManager.GetAll(); //Don't use SimpleItem here so we can access the ReferenceType array
 	var referenceResourceTypeList = Factories.ConceptSchemeManager.GetbyShortUri( Factories.ConceptSchemeManager.ConceptScheme_ReferenceResource ).Concepts.Select( m => SimpleItemHelper.GetSimpleItem( m ) ).ToList();
@@ -38,24 +37,6 @@
 					};
 				}
 			},
-			HasRating: function (Field) {
-				Field.Items = @Html.Raw( JsonConvert.SerializeObject( ratingsList, Formatting.None ) );
-				Field.Existing.doSearch();
-			},
-			HasTrainingTask: function (Field) {
-				Field.ExistingItem = @Html.Raw( JsonConvert.SerializeObject( currentTrainingTask, Formatting.None ) );
-				Field.SearchURL = "@Url.Content( "~/trainingtask/dosearch" )";
-				Field.modifyQuery = function (query) {
-					//And where tasks are NOT already associated with this Course...
-					query.Filters.push({ Name: "navy:RatingTask", ItemIds: [Data.Source.Id], IsNegation: true });
-				}
-				Field.write = function (value) {
-					Field.renderCurrentItems();
-				}
-				Field.read = function () {
-					return Field.SelectedItem?.RowId || Field.ExistingItem?.RowId;
-				}
-			},
 			HasReferenceResource: function (Field) {
 				Field.Items = Data.ReferenceResourceList;
 				Field.renderItems();
@@ -76,42 +57,102 @@
 				Field.Items = @Html.Raw( JsonConvert.SerializeObject( trainingGapTypeList, Formatting.None ) );
 				Field.renderItems();
 			},
-			HasWorkRole: function (Field) {
-				//Search to add new valid Work Roles
-				Field.Search.SearchURL = "@Url.Content( "~/workrole/dosearch" )";
+			AddTrainingTask: function (Field) {
+				Field.Search.SearchURL = "@Url.Content( "~/trainingtask/dosearch" )";
 				Field.Search.modifyQuery = function (query) {
-					//And where Work Roles are NOT already associated with this Rating Task...
+					//Where Training Tasks are NOT already associated with this Rating Task...
 					query.Filters.push({ Name: "navy:RatingTask", ItemIds: [Data.Source.Id], IsNegation: true });
 				}
-
-				//Search to remove already added Work Roles
-				Field.Existing.SearchURL = "@Url.Content( "~/workrole/dosearch" )";
-				Field.Existing.modifyQuery = function (query) {
-					//Where Work Roles are already associated with this Rating Task...
+			},
+			RemoveTrainingTask: function (Field) {
+				Field.Search.SearchURL = "@Url.Content( "~/trainingtask/dosearch" )";
+				Field.Search.modifyQuery = function (query) {
+					//Where Training Tasks are already associated with this Rating Task...
+					query.Filters.push({ Name: "navy:RatingTask", ItemIds: [Data.Source.Id] });
+				}
+			},
+			HasRating_Add: function (Field) {
+				//Search to add new valid Billet Titles
+				Field.Search.SearchURL = "@Url.Content( "~/rating/dosearch" )";
+				Field.Search.modifyQuery = function (query) {
+					//And where Ratings are NOT already associated with this Rating Task...
+					query.Filters.push({ Name: "navy:RatingTask", ItemIds: [Data.Source.Id], IsNegation: true });
+				}
+			},
+			HasRating_Remove: function (Field) {
+				//Search to remove already added Billet Titles
+				Field.Search.SearchURL = "@Url.Content( "~/rating/dosearch" )";
+				Field.Search.modifyQuery = function (query) {
+					//Where Ratings are already associated with this Rating Task...
 					query.Filters.push({ Name: "navy:RatingTask", ItemIds: [Data.Source.Id] });
 				}
 
 				//Show existing items
-				Field.Existing.doSearch();
+				Field.Search.doSearch();
 			},
-			HasBilletTitle: function (Field) {
+			HasBilletTitle_Add: function (Field) {
 				//Search to add new valid Billet Titles
 				Field.Search.SearchURL = "@Url.Content( "~/billettitle/dosearch" )";
 				Field.Search.modifyQuery = function (query) {
 					//And where Billet Titles are NOT already associated with this Rating Task...
 					query.Filters.push({ Name: "navy:RatingTask", ItemIds: [Data.Source.Id], IsNegation: true });
 				}
-
+			},
+			HasBilletTitle_Remove: function (Field) {
 				//Search to remove already added Billet Titles
-				Field.Existing.SearchURL = "@Url.Content( "~/billettitle/dosearch" )";
-				Field.Existing.modifyQuery = function (query) {
+				Field.Search.SearchURL = "@Url.Content( "~/billettitle/dosearch" )";
+				Field.Search.modifyQuery = function (query) {
 					//Where Billet Titles are already associated with this Rating Task...
 					query.Filters.push({ Name: "navy:RatingTask", ItemIds: [Data.Source.Id] });
 				}
 
 				//Show existing items
-				Field.Existing.doSearch();
+				Field.Search.doSearch();
+			},
+			HasWorkRole_Add: function (Field) {
+				//Search to add new valid Work Roles
+				Field.Search.SearchURL = "@Url.Content( "~/workrole/dosearch" )";
+				Field.Search.modifyQuery = function (query) {
+					//And where Work Roles are NOT already associated with this Rating Task...
+					query.Filters.push({ Name: "navy:RatingTask", ItemIds: [Data.Source.Id], IsNegation: true });
+				}
+			},
+			HasWorkRole_Remove: function (Field) {
+				//Search to remove already added Work Roles
+				Field.Search.SearchURL = "@Url.Content( "~/workrole/dosearch" )";
+				Field.Search.modifyQuery = function (query) {
+					//Where Work Roles are already associated with this Rating Task...
+					query.Filters.push({ Name: "navy:RatingTask", ItemIds: [Data.Source.Id] });
+				}
+
+				//Show existing items
+				Field.Search.doSearch();
+			},
+			HasTrainingTask: function (Field) {
+				Field.SelectedItems = [@Html.Raw( currentTrainingTask == null ? "" : JsonConvert.SerializeObject( currentTrainingTask, Formatting.None ) )];
+				Field.Search.SearchURL = "@Url.Content( "~/trainingtask/dosearch" )";
+				Field.Search.modifyQuery = function (query) {
+					//Where Training Tasks are NOT already associated with this Rating Task...
+					query.Filters.push({ Name: "navy:RatingTask", ItemIds: [Data.Source.Id], IsNegation: true });
+				}
+				//Force single selection
+				Field.addItem = function (Item) {
+					Field.SelectedItems = [Item];
+					Field.refresh();
+				}
+				//Return the first item or null
+				Field.read = function () {
+					return Field.SelectedItems[0]?.RowId || null;
+				}
+				//Use "Remove" instead of "Cancel" for the button text
+				Field.Selected.renderResultWrapper = function (container, Result) {
+					var button = $("<button>Remove</button>");
+					Field.renderWrappedResult(container, Result, Field.Selected.renderResult, button, Field.removeItem);
+				};
+				//Show the current item
+				Field.Selected.doSearch();
 			}
+
 		}
 	};
 
@@ -136,6 +177,11 @@
 	//
 </script>
 
+<style type="text/css">
+	[data-path='RatingTask.HasRating_Add'] .description { display: none; }
+	[data-path='RatingTask.HasRating_Remove'] .description { display: none; }
+</style>
+
 <h2>@title</h2>
 
 <form-item data-path="RatingTask.Id" data-ui="display" data-label="ID"></form-item>
@@ -147,8 +193,11 @@
 <form-item data-path="RatingTask.TrainingGapType" data-ui="select" data-label="Training Gap Type" data-config="TrainingGapType"></form-item>
 <form-item data-path="RatingTask.HasReferenceResource" data-ui="select" data-label="Task Source" data-config="HasReferenceResource"></form-item>
 <form-item data-path="RatingTask.ReferenceType" data-ui="select" data-label="Task Source Type" data-config="ReferenceType"></form-item>
-<form-item data-path="RatingTask.HasRating" data-ui="searchselectlocal" data-label="Associated Ratings" data-config="HasRating"></form-item>
-<form-item data-path="RatingTask.HasBilletTitle" data-ui="searchselectdeferred" data-label="Associated Billet Titles" data-config="HasBilletTitle"></form-item>
-<form-item data-path="RatingTask.HasWorkRole" data-ui="searchselectdeferred" data-label="Functional Areas" data-config="HasWorkRole"></form-item>
-<form-item data-path="RatingTask.HasTrainingTask" data-ui="searchselectsingledeferred" data-label="Associated Training Task" data-config="HasTrainingTask"></form-item>
+<form-item data-path="RatingTask.HasRating_Add" data-ui="searchselectdeferred" data-label="Add Ratings" data-config="HasRating_Add"></form-item>
+<form-item data-path="RatingTask.HasRating_Remove" data-ui="searchselectdeferred" data-label="Remove Ratings" data-config="HasRating_Remove"></form-item>
+<form-item data-path="RatingTask.HasBilletTitle_Add" data-ui="searchselectdeferred" data-label="Add Billet Titles" data-config="HasBilletTitle_Add"></form-item>
+<form-item data-path="RatingTask.HasBilletTitle_Remove" data-ui="searchselectdeferred" data-label="Remove Billet Titles" data-config="HasBilletTitle_Remove"></form-item>
+<form-item data-path="RatingTask.HasWorkRole_Add" data-ui="searchselectdeferred" data-label="Add Functional Areas" data-config="HasWorkRole_Add"></form-item>
+<form-item data-path="RatingTask.HasWorkRole_Remove" data-ui="searchselectdeferred" data-label="Remove Functional Areas" data-config="HasWorkRole_Remove"></form-item>
+<form-item data-path="RatingTask.HasTrainingTask" data-ui="searchselectdeferred" data-label="Associated Training Task (Limit 1)" data-config="HasTrainingTask"></form-item>
 <form-item data-path="RatingTask.SaveButton" data-ui="savebutton" data-label="Save Changes" data-config="SaveButton"></form-item>

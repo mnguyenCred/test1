@@ -48,23 +48,24 @@
 				Field.Items = @Html.Raw( JsonConvert.SerializeObject( ccaList, Formatting.None ) );
 				Field.renderItems();
 			},
-			HasTrainingTask: function (Field) {
+			HasTrainingTask_Add: function (Field) {
 				//Search to add new valid Training Tasks
 				Field.Search.SearchURL = "@Url.Content( "~/trainingtask/dosearch" )";
 				Field.Search.modifyQuery = function (query) {
-					//And where tasks are NOT already associated with this Course...
+					//And where Training Tasks are NOT already associated with this Course...
 					query.Filters.push({ Name: "ceterms:Course", ItemIds: [Data.Source.Id], IsNegation: true });
 				}
-
+			},
+			HasTrainingTask_Remove: function (Field) {
 				//Search to remove already added Training Tasks
-				Field.Existing.SearchURL = "@Url.Content( "~/trainingtask/dosearch" )";
-				Field.Existing.modifyQuery = function (query) {
-					//Where tasks are already associated with this Course...
+				Field.Search.SearchURL = "@Url.Content( "~/trainingtask/dosearch" )";
+				Field.Search.modifyQuery = function (query) {
+					//Where Training Tasks are already associated with this Course...
 					query.Filters.push({ Name: "ceterms:Course", ItemIds: [Data.Source.Id] });
 				}
 
 				//Show existing items
-				Field.Existing.doSearch();
+				Field.Search.doSearch();
 			}
 		}
 	};
@@ -86,5 +87,6 @@
 <form-item data-path="Course.CourseType" data-ui="checkboxlist" data-label="Course Type" data-config="CourseType"></form-item>
 <form-item data-path="Course.AssessmentMethodType" data-ui="checkboxlist" data-label="Assessment Method Type" data-config="AssessmentMethodType"></form-item>
 <form-item data-path="Course.CurriculumControlAuthority" data-ui="checkboxlist" data-label="Curriculum Control Authority" data-config="CurriculumControlAuthority"></form-item>
-<form-item data-path="Course.HasTrainingTask" data-ui="searchselectdeferred" data-label="Training Tasks" data-config="HasTrainingTask"></form-item>
+<form-item data-path="Course.HasTrainingTask_Add" data-ui="searchselectdeferred" data-label="Add Training Tasks" data-config="HasTrainingTask_Add"></form-item>
+<form-item data-path="Course.HasTrainingTask_Remove" data-ui="searchselectdeferred" data-label="Remove Training Tasks" data-config="HasTrainingTask_Remove"></form-item>
 <form-item data-path="Course.SaveButton" data-ui="savebutton" data-label="Save Changes" data-config="SaveButton"></form-item>

@@ -327,25 +327,64 @@
 	}
 	//
 
-	//Create a search/select Field that will immediately send AJAX requests for additions and removals
-	//This method is also used as the foundation for other variations of the search/select fields, so changes here will have ripple effects!
-	FormItem.setupUI_searchselectimmediate = function (Field) {
+	//Search and Select
+	//Stores selected items locally, then sends their RowIds to the server on Save
+	FormItem.setupUI_searchselectdeferred = function (Field) {
 		Field.UI = $("<div class=\"searchselect searchColumns\"></div>").appendTo(Field.ContentBox);
 		Field.Search = FormItem.setupUI_search({ ContentBox: Field.UI });
-		Field.Existing = FormItem.setupUI_search({ ContentBox: Field.UI });
-		Field.AddItemURL = "";
-		Field.RemoveItemURL = "";
+		Field.Selected = FormItem.setupUI_search({ ContentBox: Field.UI });
+		Field.SelectedItems = [];
+		Field.RefreshTimeout = 0;
+		Field.Search.KeywordsFilter.Box.attr("placeholder", "Find items to select...");
+		Field.Selected.KeywordsFilter.Box.attr("placeholder", "Filter selected items...");
 
-		Field.Search.KeywordsFilter.Box.attr("placeholder", "Find items to add...");
+		Field.refresh = function () {
+			clearTimeout(Field.RefreshTimeout);
+			Field.RefreshTimeout = setTimeout(function () {
+				Field.Search.doSearch();
+				Field.Selected.doSearch();
+			}, 10);
+		};
+
+		Field.addItem = function (Item) {
+			Field.SelectedItems.push(Item);
+			Field.refresh();
+		};
+
+		Field.removeItem = function (Item) {
+			Field.SelectedItems = Field.SelectedItems.filter(m => m != Item);
+			Field.refresh();
+		};
+
+		Field.Selected.searchMethod = function () {
+			var start = (Field.Selected.PageNumber - 1) * Field.Selected.PageSize;
+			var end = start + Field.Selected.PageSize;
+			var results = Field.filterItems(Field.SelectedItems, Field.Selected.getFilters());
+
+			Field.Selected.handleResponse({ Valid: true, Data: { Results: results.slice(start, end), TotalResults: results.length } });
+		};
+
+		Field.filterItems = function (Items, Filters) {
+			var keywordsText = Filters?.[0]?.Text?.toLowerCase() || "";
+			return Items.filter(Item => (Item.Name + Item.CodedNotation + Item.Description).toLowerCase().includes(keywordsText));
+		};
+
 		Field.Search.renderResultWrapper = function (container, Result) {
-			var button = $("<button>Add &rarr;</button>");
+			var button = $("<button>Select</button>");
+			if (Field.SelectedItems.filter(m => m.RowId == Result.RowId).length > 0) {
+				Field.handleSelectButtonClick(button);
+			}
 			Field.renderWrappedResult(container, Result, Field.Search.renderResult, button, Field.addItem);
 		};
 
-		Field.Existing.KeywordsFilter.Box.attr("placeholder", "Find existing items...");
-		Field.Existing.renderResultWrapper = function (container, Result) {
-			var button = $("<button>X</button>");
-			Field.renderWrappedResult(container, Result, Field.Existing.renderResult, button, Field.removeItem);
+		Field.Selected.renderResultWrapper = function (container, Result) {
+			var button = $("<button>Cancel</button>");
+			Field.renderWrappedResult(container, Result, Field.Selected.renderResult, button, Field.removeItem);
+		};
+
+		Field.handleSelectButtonClick = function (button) {
+			button?.prop("disabled", true);
+			button?.html("Selected");
 		};
 
 		Field.renderWrappedResult = function (container, Result, renderMethod, button, onClick) {
@@ -359,300 +398,18 @@
 			});
 		};
 
-		Field.addItem = function (Item) {
-			FormItem.doPOSTRequest(Field.AddItemURL, Item, Field.handleItemAdded);
-		};
-
-		Field.handleItemAdded = function (response) {
-			if (response.Valid) {
-				Field.Search.doSearch();
-				Field.Existing.doSearch();
-			}
-			else {
-				alert("Error adding item: " + response.Status.join("\n"));
-			}
-		};
-
-		Field.removeItem = function (Item) {
-			FormItem.doPOSTRequest(Field.RemoveItemURL, Item, Field.handleItemRemoved);
-		};
-
-		Field.handleItemRemoved = function (response) {
-			if (response.Valid) {
-				Field.Search.doSearch();
-				Field.Existing.doSearch();
-			}
-			else {
-				alert("Error removing item: " + response.Status.join("\n"));
-			}
-		};
-
-		Field.read = function () {
-			return Field.Existing.Results;
-		};
-
-		Field.write = function (value) {
-			debugger;
-			Field.Existing.Results = value || [];
-			Field.Existing.renderResults();
-		};
-
-		return Field;
-	}
-	//
-
-	//Modification of the immediate search/select Field that uses a local array as a data source instead of using AJAX requests
-	//Useful when you would otherwise need a really big checkbox list
-	FormItem.setupUI_searchselectlocal = function (Field) {
-		Field = FormItem.setupUI_searchselectimmediate(Field);
-		Field.Items = [];
-		Field.SelectedItems = [];
-
-		Field.filterItems = function (Items, Filters) {
-			var keywordsText = Filters?.[0]?.Text?.toLowerCase() || "";
-			return Items.filter(Item => (Item.Name + Item.CodedNotation + Item.Description).toLowerCase().includes(keywordsText));
-		};
-
-		Field.refresh = function () {
-			Field.Search.doSearch();
-			Field.Existing.doSearch();
-		};
-
-		Field.addItem = function (Item) {
-			Field.SelectedItems.push(Item);
-			Field.handleItemAdded();
-		};
-
-		Field.handleItemAdded = function () {
-			Field.refresh();
-		};
-
-		Field.removeItem = function (Item) {
-			Field.SelectedItems = Field.SelectedItems.filter(m => m != Item);
-			Field.handleItemRemoved();
-		};
-
-		Field.handleItemRemoved = function () {
-			Field.refresh();
-		};
-
-		Field.Search.searchMethod = function () {
-			var start = (Field.Search.PageNumber - 1) * Field.Search.PageSize;
-			var end = start + Field.Search.PageSize;
-			var results = Field.filterItems(Field.Items, Field.Search.getFilters()).filter(Item => {
-				return !Field.SelectedItems.includes(Item)
-			});
-
-			Field.Search.handleResponse({ Valid: true, Data: { Results: results.slice(start, end), TotalResults: results.length } });
-		};
-
-		Field.Existing.searchMethod = function () {
-			var start = (Field.Existing.PageNumber - 1) * Field.Existing.PageSize;
-			var end = start + Field.Existing.PageSize;
-			var results = Field.filterItems(Field.SelectedItems, Field.Existing.getFilters());
-
-			Field.Existing.handleResponse({ Valid: true, Data: { Results: results.slice(start, end), TotalResults: results.length } });
-		};
-
 		Field.read = function () {
 			return Field.SelectedItems.map(m => m.RowId);
 		};
 
 		Field.write = function (value) {
-			value = value || [];
-			value = Array.isArray(value) ? value : [value];
-			Field.Items.filter(m => value.includes(m.RowId)).forEach(Item => {
-				Field.addItem(Item);
-			});
+			//Do nothing
 		}
-
-		return Field;
 	}
 	//
-
-	//Modification of the immediate search/select that will do AJAX for the searches, but will not send AJAX for additions/removals
-	//Instead, additions and removals are stored in their own arrays and returned when the Field's .read() method is called
-	FormItem.setupUI_searchselectdeferred = function (Field) {
-		Field = FormItem.setupUI_searchselectimmediate(Field);
-		Field.ItemsToChangeBox = $("<div class=\"itemsToChange searchColumns\"></div>").appendTo(Field.ContentBox);
-		Field.ItemsToAddWrapper = $("<div class=\"searchBox itemsToAdd\"></div>").appendTo(Field.ItemsToChangeBox);
-		Field.ItemsToAddHeader = $("<div class=\"itemsToChangeLabel itemsToAdd\">Items to Add</div>").appendTo(Field.ItemsToAddWrapper);
-		Field.ItemsToAddBox = $("<div class=\"resultsBox\"></div>").appendTo(Field.ItemsToAddWrapper);
-		Field.ItemsToRemoveWrapper = $("<div class=\"searchBox itemsToRemove\"></div>").appendTo(Field.ItemsToChangeBox);
-		Field.ItemsToRemoveHeader = $("<div class=\"itemsToChangeLabel itemsToRemove\">Items to Remove</div>").appendTo(Field.ItemsToRemoveWrapper);
-		Field.ItemsToRemoveBox = $("<div class=\"resultsBox\"></div>").appendTo(Field.ItemsToRemoveWrapper);
-		Field.ItemsToAdd = [];
-		Field.ItemsToRemove = [];
-
-		Field.listContainsItem = function (List, Item) {
-			return List.filter(m => m.RowId == Item.RowId).length > 0;
-		};
-
-		Field.getListWithoutItem = function (List, Item) {
-			return List.filter(m => m.RowId != Item.RowId);
-		}
-
-		Field.Search.renderResultWrapper = function (container, Result) {
-			var button = $("<button>Add Item</button>");
-			if (Field.listContainsItem(Field.ItemsToAdd, Result)) {
-				Field.handleSelectButtonClick(button);
-			}
-			Field.renderWrappedResult(container, Result, Field.Search.renderResult, button, Field.addItem);
-		};
-
-		Field.Existing.renderResultWrapper = function (container, Result) {
-			var button = $("<button>Remove Item</button>");
-			if (Field.listContainsItem(Field.ItemsToRemove, Result)) {
-				Field.handleSelectButtonClick(button);
-			}
-			Field.renderWrappedResult(container, Result, Field.Existing.renderResult, button, Field.removeItem);
-		};
-
-		Field.handleSelectButtonClick = function (button) {
-			button?.prop("disabled", true);
-			button?.html("Selected");
-		};
-
-		Field.addItem = function (Item, box, button) {
-			Field.handleSelectButtonClick(button);
-			!Field.listContainsItem(Field.ItemsToAdd, Item) && Field.ItemsToAdd.push(Item);
-			Field.renderItemsToAdd();
-		};
-
-		Field.removeItem = function (Item, box, button) {
-			Field.handleSelectButtonClick(button);
-			!Field.listContainsItem(Field.ItemsToRemove, Item) && Field.ItemsToRemove.push(Item);
-			Field.renderItemsToRemove();
-		};
-
-		Field.renderItemsToAdd = function () {
-			Field.ItemsToAddBox.html("");
-			Field.ItemsToAdd.forEach(Item => {
-				var button = $("<button>Cancel</button>");
-				Field.renderWrappedResult(Field.ItemsToAddBox, Item, Field.Search.renderResult, button, Field.cancelItemToAdd);
-			});
-		};
-
-		Field.renderItemsToRemove = function () {
-			Field.ItemsToRemoveBox.html("");
-			Field.ItemsToRemove.forEach(Item => {
-				var button = $("<button>Cancel</button>");
-				Field.renderWrappedResult(Field.ItemsToRemoveBox, Item, Field.Existing.renderResult, button, Field.cancelItemToRemove);
-			});
-		};
-
-		Field.cancelItemToAdd = function (Item) {
-			Field.ItemsToAdd = Field.getListWithoutItem(Field.ItemsToAdd, Item);
-			Field.Search.renderResults();
-			Field.renderItemsToAdd();
-		};
-
-		Field.cancelItemToRemove = function (Item) {
-			Field.ItemsToRemove = Field.getListWithoutItem(Field.ItemsToRemove, Item);
-			Field.Existing.renderResults();
-			Field.renderItemsToRemove();
-		};
-
-		Field.read = function () {
-			return {
-				ItemsToAdd: Field.ItemsToAdd,
-				ItemsToRemove: Field.ItemsToRemove
-			};
-		};
-
-		Field.write = function (value) {
-			Field.ItemsToAdd = value?.ItemsToAdd || [];
-			Field.ItemsToRemove = value?.ItemsToRemove || [];
-			Field.renderItemsToAdd();
-			Field.renderItemsToRemove();
-		}
-
-		return Field;
-	}
-	//
-
-	//AJAX search to select a single item that will replace an alreadsy-selected item on save
-	FormItem.setupUI_searchselectsingledeferred = function (Field) {
-		Field = FormItem.setupUI_search(Field);
-		Field.ExistingBox = $("<div class=\"resultsWrapperBox existingBox\"></div>").prependTo(Field.ContentBox);
-		Field.SelectedBox = $("<div class=\"resultsWrapperBox selectedBox\"></div>").insertAfter(Field.ExistingBox);
-		Field.RemovalBox = $("<div class=\"resultsWrapperBox removalBox\"></div>").insertAfter(Field.ExistingBox);
-		Field.ExistingItem = null;
-		Field.SelectedItem = null;
-		Field.RemovalItem = null;
-
-		Field.renderResultWrapper = function (container, Result) {
-			var button = $("<button>Select</button>");
-			if(Result.RowId == Field.SelectedItem?.RowId || Result.RowId == Field.ExistingItem?.RowId || Result.RowId == Field.RemovalItem?.RowId){
-				Field.handleSelectButtonClick(button);
-			}
-			Field.renderWrappedResult(container, Result, Field.renderResult, button, Field.selectItem);
-		};
-
-		Field.renderWrappedResult = function (container, Result, renderMethod, button, onClick) {
-			var box = $("<div class=\"resultWrapper\"></div>").appendTo(container);
-			var inner = $("<div class=\"resultInner\"></div>").appendTo(box);
-			renderMethod(inner, Result);
-			button.appendTo(box);
-			button.on("click", function () {
-				button.prop("disabled", true).html("Selected");
-				onClick?.(Result, box, button);
-			});
-		};
-
-		Field.selectItem = function (Result, box, button) {
-			Field.SelectedItem = Result.Data;
-			Field.renderCurrentItems();
-		};
-
-		Field.renderCurrentItems = function () {
-			Field.renderCurrentItem(Field.ExistingBox, Field.ExistingItem, "Currently Saved Item", "Remove Currently Saved Item", Field.removeExistingItem);
-			Field.renderCurrentItem(Field.SelectedBox, Field.SelectedItem, "Item Selection to Save", "Cancel Selecting This Item", Field.removeSelectedItem);
-			Field.renderCurrentItem(Field.RemovalBox, Field.RemovalItem, "Currently Saved Item to Remove", "Cancel Removing Currently Saved Item", Field.cancelRemoveSelectedItem);
-		};
-
-		Field.renderCurrentItem = function (container, Item, itemLabel, buttonLabel, onClick) {
-			container.html("");
-			if (Item) {
-				container.append("<div class=\"itemLabel\">" + itemLabel + "</div>")
-				var button = $("<button>" + buttonLabel + "</button>");
-				var resultsBox = $("<div class=\"resultsBox\"></div>").appendTo(container);
-				Field.renderWrappedResult(resultsBox, Item, Field.renderResult, button, onClick);
-			}
-		};
-
-		Field.removeExistingItem = function () {
-			Field.RemovalItem = Field.ExistingItem;
-			Field.ExistingItem = null;
-			Field.renderResults();
-			Field.renderCurrentItems();
-		};
-
-		Field.removeSelectedItem = function () {
-			Field.SelectedItem = null;
-			Field.renderResults();
-			Field.renderCurrentItems();
-		};
-
-		Field.cancelRemoveSelectedItem = function () {
-			Field.ExistingItem = Field.RemovalItem;
-			Field.RemovalItem = null;
-			Field.renderResults();
-			Field.renderCurrentItems();
-		};
-
-		Field.read = function () {
-			return Field.SelectedItem || Field.ExistingItem;
-		};
-
-		Field.write = function (value) {
-			Field.ExistingItem = value;
-			Field.renderCurrentItems();
-		}
-	}
 
 	//Generic AJAX search Field
-	//Used as the basis for all of the search/select Fields above, so be very careful about making changes!
+	//Used as the basis for all the search/select Field above, so be very careful about making changes!
 	FormItem.setupUI_search = function (Field) {
 		Field.Box = $("<div class=\"searchBox\"></div>").appendTo(Field.ContentBox);
 		Field.FiltersBox = $("<div class=\"filtersBox\"></div>").appendTo(Field.Box);
@@ -902,12 +659,12 @@
 	form-item[data-ui^='searchselect'] .searchColumns .searchBox { flex: 0 0 50%; }
 	form-item[data-ui^='searchselect'] .searchColumns .searchBox:first-child { padding-right: 10px; }
 	form-item[data-ui^='searchselect'] .searchColumns .searchBox:last-child { padding-left: 10px; }
-	form-item[data-ui^='searchselect'] .resultWrapper { display: flex; align-items: baseline; padding: 5px; border-top: 1px solid #CCC; }
+	form-item[data-ui^='searchselect'] .resultWrapper { display: flex; padding: 5px; border-top: 1px solid #CCC; }
 	form-item[data-ui^='searchselect'] .resultWrapper .resultInner { flex: 1 1 auto; }
-	form-item[data-ui^='searchselect'] .resultWrapper > button { flex: 0 0 auto; width: auto; margin-left: 10px; }
+	form-item[data-ui^='searchselect'] .resultWrapper > button { flex: 0 0 auto; width: auto; min-width: 80px; margin-left: 10px; }
 	form-item[data-ui='searchselectdeferred'] .itemsToChangeLabel { font-weight: bold; margin-top: 20px; }
 
-	form-item .resultContent .resultHeader { display: flex; margin-bottom: 5px; }
+	form-item .resultContent .resultHeader { display: flex; align-items: baseline; margin-bottom: 5px; }
 	form-item .resultContent .resultHeader:empty { display: none; }
 	form-item .resultContent .codedNotation { padding: 2.5px 5px; background-color: #F5F5F5; margin-right: 10px; }
 	form-item .resultContent .name { font-weight: bold; }
