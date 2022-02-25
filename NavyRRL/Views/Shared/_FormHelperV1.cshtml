@@ -134,6 +134,7 @@
 	}
 	//
 
+	//Create a save button
 	FormItem.setupUI_savebutton = function (Field) {
 		Field.UI = FormItem.setupUI_button(Field);
 		Field.SaveURL = "";
@@ -168,21 +169,27 @@
 		return Field;
 	}
 	//
-    //Create a bool
-    FormItem.setupUI_bool = function (Field) {
-        Field.UI = $("<input type=\"checked\" />").appendTo(Field.ContentBox);
 
+	//Create a boolean field
+    FormItem.setupUI_boolean = function (Field) {
+		Field = FormItem.setupUI_checkboxlist(Field);
+
+		//Inject a default item. Note that the value of Value is not actually used; true/false is controlled by the checkbox's "checked" property
+		Field.Items = [{ Name: "True / False", Value: "Value" }];
+
+		//Override the read and write methods to handle a single true/false value
         Field.read = function () {
-            return Field.UI.val().trim();
+			return Field.UI.find(":checked").length > 0;
         };
 
         Field.write = function (value) {
-            Field.UI.val(value);
+			Field.UI.find("input[type='checkbox']").prop("checked", value);
         };
 
         return Field;
     }
 	//
+
 	//Create a textarea Field
 	FormItem.setupUI_textarea = function (Field) {
 		Field.UI = $("<textarea></textarea>").appendTo(Field.ContentBox);
@@ -275,7 +282,7 @@
 		};
 
 		Field.getItemValue = function (Item) {
-			return Item.RowId || parseInt(Item.Id) || Item.CTID || Item;
+			return Item.RowId || parseInt(Item.Id) || Item.CTID || Item.Value || Item;
 		}
 
 		Field.getItemLabel = function (Item) {
@@ -655,9 +662,9 @@
 	form-item input[type='text'], form-item textarea, form-item select, form-item button { display: block; width: 100%; height: 30px; max-width: none; }
 	form-item textarea { min-height: 100px; max-height: 20vh; resize: vertical; }
 	form-item button { padding: 2.5px 10px; }
-	form-item[data-ui='checkboxlist'] label { display: flex; align-items: baseline; padding: 2px 10px; margin: 0; }
-	form-item[data-ui='checkboxlist'] label:hover, form-item[data-ui='checkboxlist'] label:focus { cursor: pointer; background-color: rgba(0,0,0,0.05); }
-	form-item[data-ui='checkboxlist'] label input[type='checkbox'] { margin-right: 10px; }
+	form-item[data-ui='checkboxlist'] label, form-item[data-ui='boolean'] label { display: flex; align-items: baseline; padding: 2px 10px; margin: 0; }
+	form-item[data-ui='checkboxlist'] label:hover, form-item[data-ui='checkboxlist'] label:focus, form-item[data-ui='boolean'] label:hover, form-item[data-ui='boolean'] label:focus { cursor: pointer; background-color: rgba(0,0,0,0.05); }
+	form-item[data-ui='checkboxlist'] label input[type='checkbox'], form-item[data-ui='boolean'] label input[type='checkbox'] { margin-right: 10px; }
 	form-item[data-ui='textmulti'] .addBox { display: flex; }
 	form-item[data-ui='textmulti'] .addBox button { flex: 0 0 100px; margin-left: 5px; }
 	form-item[data-ui='textmulti'] .items { display: flex; flex-wrap: wrap; }
