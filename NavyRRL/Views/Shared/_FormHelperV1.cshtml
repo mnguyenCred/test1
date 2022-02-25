@@ -173,7 +173,9 @@
 	//Create a boolean field
     FormItem.setupUI_boolean = function (Field) {
 		Field = FormItem.setupUI_checkboxlist(Field);
-		Field.Items = [{ Name: "True / False", Value: "false" }]; //Inject a default item
+
+		//Inject a default item. Note that the value of Value is not actually used; true/false is controlled by the checkbox's "checked" property
+		Field.Items = [{ Name: "True / False", Value: "Value" }];
 
 		//Override the read and write methods to handle a single true/false value
         Field.read = function () {
