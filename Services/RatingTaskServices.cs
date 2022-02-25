@@ -18,7 +18,15 @@ namespace Services
     public class RatingTaskServices
     {
         public static string thisClassName = "RatingTaskServices";
-        public static List<EntitySummary> Search( SearchQuery data, ref int totalRows )
+
+		/// <summary>
+		/// Search meant for use with the RMTL Search/Display/Export Page<br />
+		/// use Factories.RatingTaskManager.Search for a vanilla RatingTask search
+		/// </summary>
+		/// <param name="data"></param>
+		/// <param name="totalRows"></param>
+		/// <returns></returns>
+        public static List<EntitySummary> RMTLSearch( SearchQuery data, ref int totalRows )
         {
             string where = "";
             DateTime start = DateTime.Now;
@@ -57,6 +65,19 @@ namespace Services
                         else if ( item.Name == "navy:Rating" && item.ItemIds?.Count > 0 )
                         {
                             var template = "( base.id in (select a.[RatingTaskId] from [RatingTask.HasRating] a inner join Rating b on a.ratingId = b.Id where b.Id in ({0}) )) ";
+                            var itemList = "";
+                            var comma = "";
+                            foreach ( var t in item.ItemIds )
+                            {
+                                itemList += comma + t.ToString();
+                                comma = ",";
+                            }
+                            where += AND + String.Format( template, itemList );
+                            AND = " AND ";
+                        }
+                        else if ( item.Name == "ceterms:Course" && item.ItemIds?.Count > 0 )
+                        {
+                            var template = "( base.CourseId in ({0}) ) ";
                             var itemList = "";
                             var comma = "";
                             foreach ( var t in item.ItemIds )
@@ -218,7 +239,7 @@ namespace Services
 			var sortOrder = string.Join( ", ", data.SortOrder.Select( m => "base.[" + m.Column + "]" + ( m.Ascending ? "" : " DESC" ) ).ToList() );
 
 			//Do the search
-            List<EntitySummary> list = RatingTaskManager.Search( where, sortOrder, data.PageNumber, data.PageSize, userId , ref totalRows);
+            List<EntitySummary> list = RatingTaskManager.RMTLSearch( where, sortOrder, data.PageNumber, data.PageSize, userId , ref totalRows);
             data.TotalResults = totalRows;
 
             //stopwatch.Stop();
@@ -250,7 +271,7 @@ namespace Services
             if ( data.IsDescending )
                 data.OrderBy += " desc";
 
-            List<EntitySummary> list = RatingTaskManager.Search( data.Filter, data.OrderBy, data.PageNumber, data.PageSize, userId, ref totalRows );
+            List<EntitySummary> list = RatingTaskManager.RMTLSearch( data.Filter, data.OrderBy, data.PageNumber, data.PageSize, userId, ref totalRows );
 
             //stopwatch.Stop();
             //timeDifference = start.Subtract( DateTime.Now );
@@ -265,7 +286,12 @@ namespace Services
 
             return output;
         }
+        public static List<Course> GetAllCourses()
+        {
+            var output = CourseManager.GetAll();
 
+            return output;
+        }
         public static List<Organization> GetAllOrganizations()
         {
             var output = OrganizationManager.GetAll().ToList();

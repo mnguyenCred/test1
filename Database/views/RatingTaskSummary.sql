@@ -35,7 +35,7 @@ SELECT [Id]
       ,[SourceDate]
       ,[HasReferenceResource]
       ,[WorkElementTypeId]
-      ,[WorkElementType]
+      ,[WorkElementType], WorkElementTypeAlternateName
       ,[ReferenceType]
       ,[RatingTask]
       ,[TaskApplicabilityId]
@@ -117,11 +117,12 @@ SELECT
 	--	WorkElementType. Now a concept
 	,a.[WorkElementTypeId]
 	, isnull(wet.name,'missing') As WorkElementType
+	, isnull(wet.WorkElementType,'missing') As WorkElementTypeAlternateName
 	, isnull(wet.ListId, 30) As WorkElementTypeOrder
 	,wet.RowId as ReferenceType
 
 
-	-- RatingTask
+	-- RatingTask 
 	,a.Description as RatingTask
 	--
 	,a.TaskApplicabilityId

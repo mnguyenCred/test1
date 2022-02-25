@@ -16,6 +16,7 @@
         <EntityTypeShape EntityType="ceNavyViewModel.RatingSummary" Width="1.5" PointX="0.75" PointY="0.75" />
         <EntityTypeShape EntityType="ceNavyViewModel.WorkRoleSummary" Width="2.625" PointX="0.75" PointY="13.75" FillColor="Yellow" />
         <EntityTypeShape EntityType="ceNavyViewModel.Activity_Summary" Width="1.5" PointX="13.375" PointY="4.75" />
+        <EntityTypeShape EntityType="ceNavyViewModel.RMTLProjectSummary" Width="2.75" PointX="16.125" PointY="7.5" />
       </Diagram>
     </edmx:Diagrams>
   </edmx:Designer>

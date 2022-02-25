@@ -1,0 +1,183 @@
+﻿
+@{
+	ViewBag.Title = "Search";
+
+	var searchType = ViewBag.SearchType ?? Request.Params["searchType"] ?? "Rating";
+}
+
+@Html.Partial( "~/Views/Search/_SearchCoreV1.cshtml" );
+
+<script type="text/javascript">
+	var UI = {};
+	var SearchData = {
+		Active: {},
+		Types: [
+			{ Name: "Rating", LabelSingle: "Rating", LabelMulti: "Ratings" },
+			{ Name: "BilletTitle", LabelSingle: "Billet Title", LabelMulti: "Billet Titles" },
+			{ Name: "WorkRole", LabelSingle: "Functional Area", LabelMulti: "Functional Areas" },
+			{ Name: "ReferenceResource", LabelSingle: "Source", LabelMulti: "Sources" },
+			{ Name: "RatingTask", LabelSingle: "Rating Task", LabelMulti: "Rating Tasks" },
+			{ Name: "Course", LabelSingle: "Course", LabelMulti: "Courses" },
+			{ Name: "Organization", LabelSingle: "Curriculum Control Authority", LabelMulti: "Curriculum Control Authorities" },
+			{ Name: "TrainingTask", LabelSingle: "Training Task", LabelMulti: "Training Tasks" },
+			{ Name: "ConceptScheme", LabelSingle: "Concept Scheme", LabelMulti: "Concept Schemes" },
+			{ Name: "Concept", LabelSingle: "Concept", LabelMulti: "Concepts" },
+			{ Name: "RMTLProject", LabelSingle: "RMTL Project", LabelMulti: "RMTL Projects" }
+		]
+	};
+	//
+
+	$(document).ready(function () {
+		setupUI();
+		setupSearches();
+	});
+	//
+
+	function setupUI() {
+		UI.SearchTypeSelect = $("[data-property='search:SearchType']");
+		UI.KeywordsText = $("[data-property='search:Keyword']");
+		UI.SortOrderSelect = $("[data-property='search:SortOrder']");
+		UI.FiltersBox = $(".searchFiltersBox");
+		UI.StatusText = $(".searchStatusBox");
+		UI.Spinner = $(".searchSpinner");
+		UI.ResultsBox = $(".searchResultsBox");
+		UI.PagingBox = $(".searchPagingBox");
+	}
+	//
+
+	function setupSearches() {
+		//Create individual searches
+		SearchData.Types.forEach(Type => {
+			Type.Search = createSearch(Type.Name, "@Url.Content("~/")" + Type.Name.toLowerCase() + "/dosearch", UI.StatusText, UI.Spinner, UI.ResultsBox, UI.PagingBox, 50, 800);
+			UI.SearchTypeSelect.append("<option value=\"" + Type.Name + "\">" + Type.LabelSingle + "</option>");
+			Type.IsActive = false;
+
+			//Assign method to get filters
+			Type.Search.getFilters = function () {
+				return [
+					{ Name: "search:Keyword", Text: UI.KeywordsText.val().trim() }
+				];
+			};
+
+			//Assign method to get sort order
+			Type.Search.getSortOrder = function () {
+				return UI.SortOrderSelect.val();
+			}
+
+			//Assign method to render a search result
+			Type.Search.renderResult = function (Result, container) {
+				renderResult(Result, container, Type);
+			};
+		});
+
+		//When the search type changes, swap out the active search and trigger its doSearch method
+		UI.SearchTypeSelect.on("change", function() {
+			setSearchType(UI.SearchTypeSelect.val());
+		});
+
+		//Auto-select the search type that matches the desired search type, and trigger the .change() method
+		UI.SearchTypeSelect.val("@searchType").trigger("change");
+
+		//When the keywords change, do a search
+		UI.KeywordsText.on("keyup change", function () {
+			SearchData.Active.Search.delayThenSearch();
+		});
+
+		//When the sort order changes, do a search
+		UI.SortOrderSelect.on("change", function () {
+			SearchData.Active.Search.delayThenSearch();
+		});
+	}
+	//
+
+	function setSearchType(searchType) {
+		SearchData.Types.map(m => m.IsActive = m.Name == searchType);
+		SearchData.Active = SearchData.Types.filter(m => m.Name == searchType)[0];
+		SearchData.Active.Search.delayThenSearch();
+	}
+	//
+
+	function renderResult(Result, container, Type) {
+		var box = $("<div class=\"searchResult\"></div>").appendTo(container);
+		var text = $("<div class=\"resultText\"></div>").appendTo(box);
+		var label = $("<div class=\"resultLabel\"></div>").appendTo(text);
+		renderProperty(Result, "CodedNotation", label, "codedNotation");
+		renderProperty(Result, "Name", label, "name");
+		renderProperty(Result, "Description", text, "description");
+		var linksBox = $("<div class=\"resultLinks\"></div>").appendTo(box);
+		linksBox.append("<a href=\"@Url.Content("~/")" + Type.Name + "/detail/" + Result.Id + "\" target=\"_blank\">Details</a>");
+		linksBox.append("<a href=\"@Url.Content("~/")" + Type.Name + "/edit/" + Result.Id + "\" target=\"_blank\">Edit</a>");
+
+		Type.customRender?.(Result, container, box);
+	}
+	//
+
+	function renderProperty(source, property, container, cssClass) {
+		if (source[property]) {
+			container.append("<div class=\"" + cssClass + "\">" + source[property] + "</div>");
+		}
+	}
+	//
+</script>
+<style type="text/css">
+	.spinner { display: inline-block; box-shadow: inset 4px 0 0 5px; border-radius: 50%; height: 20px; width: 20px; animation: spin 1s linear infinite; }
+	@@keyframes spin { 100% { transform: rotate(360deg); } }
+
+	.searchHeader { background-color: #F5F5F5; padding: 5px 10px 10px 10px; }
+	.searchHeader input, .searchHeader select { display: block; width: 100%; max-width: none; height: 26px; }
+	.searchHeader .searchMainInputs { display: flex; margin-bottom: 5px; }
+	.searchHeader .searchMainInputs .searchMainInput { margin: 0 5px; }
+	.searchHeader .searchMainInputs .searchMainInput:first-child { margin-left: 0; }
+	.searchHeader .searchMainInputs .searchMainInput:last-child { margin-right: 0; }
+	.searchHeader .searchMainInputs .searchMainInput .searchHeaderLabel { font-weight: bold; }
+	.searchHeader .searchMainInputs .searchTypeBox { flex: 0 0 200px; }
+	.searchHeader .searchMainInputs .keywordsBox { flex: 1 1 auto; }
+	.searchHeader .searchMainInputs .sortOrderBox { flex: 0 0 200px; }
+	.searchHeader .searchFiltersBox { }
+	.searchHeader .searchStatusWrapper { display: flex; align-items: center; }
+	.searchHeader .searchStatusWrapper .searchStatusBox { font-style: italic; margin-right: 10px; padding: 0 5px; }
+	.searchHeader .searchStatusWrapper .searchPagingBox { flex: 0 0 200px; margin-left: auto; }
+
+	.searchResultsBox { }
+	.searchResultsBox .searchResult { display: flex; padding: 10px; border-top: 1px solid #CCC; }
+	.searchResultsBox .searchResult:first-child { border-top: none; }
+	.searchResultsBox .searchResult .resultText {  }
+	.searchResultsBox .searchResult .resultText .resultLabel { display: flex; align-items: baseline; }
+	.searchResultsBox .searchResult .resultText .resultLabel .codedNotation { padding: 2.5px 5px; background-color: #EEE; border-radius: 5px; margin-right: 10px; }
+	.searchResultsBox .searchResult .resultText .resultLabel .name { font-weight: bold; }
+	.searchResultsBox .searchResult .resultText .description { padding: 5px 10px; }
+	.searchResultsBox .searchResult .resultLinks { display: flex; margin-left: auto; }
+	.searchResultsBox .searchResult .resultLinks a { padding: 0 10px; border-left: 1px solid #CCC; }
+	.searchResultsBox .searchResult .resultLinks a:first-child { border: none; }
+</style>
+
+<h2>Search by Type</h2>
+
+<div class="searchBox">
+	<div class="searchHeader">
+		<div class="searchMainInputs">
+			<div class="searchMainInput searchTypeBox">
+				<div class="searchHeaderLabel">Search Type</div>
+				<select data-property="search:SearchType"></select>
+			</div>
+			<div class="searchMainInput keywordsBox">
+				<div class="searchHeaderLabel">Keywords</div>
+				<input type="text" data-property="search:Keyword" placeholder="Search..." />
+			</div>
+			<div class="searchMainInput sortOrderBox" style="display:none;">
+				<div class="searchHeaderLabel">Sort Order</div>
+				<select data-property="search:SortOrder">
+					<option value="sortOrder:AtoZ">A to Z</option>
+					<option value="sortOrder:Newest">Newest</option>
+				</select>
+			</div>
+		</div>
+		<div class="searchFiltersBox"></div>
+		<div class="searchStatusWrapper">
+			<div class="searchStatusBox"></div>
+			<div class="spinner searchSpinner"></div>
+			<div class="searchPagingBox"></div>
+		</div>
+	</div>
+	<div class="searchResultsBox"></div>
+</div>

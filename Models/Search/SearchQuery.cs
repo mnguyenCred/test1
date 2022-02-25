@@ -73,6 +73,16 @@ namespace Models.Search
 		/// If the filter is used to select one or more items from a list, then the numeric IDs for the items are included here
 		/// </summary>
 		public List<int> ItemIds { get; set; }
+
+		/// <summary>
+		/// If the filter is used to select one or more items from a list, then the GUIDs for the items are included here
+		/// </summary>
+		public List<Guid> ItemGuids { get; set; }
+
+		/// <summary>
+		/// Indicates whether this filter should be treated as a negation filter, e.g. "where NOT ..."
+		/// </summary>
+		public bool IsNegation { get; set; }
 	}
 	//
 

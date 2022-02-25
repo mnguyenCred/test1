@@ -21,7 +21,7 @@ namespace Models.Curation
 			LookupGraph = new List<object>();
 			PossibleDuplicates = new List<PossibleDuplicateSet>();
 		}
-
+		public string Action { get; set; } = "Upload";
 		public string Rating { get; set; }
 		/// <summary>
 		/// Set of items that don't exist and will be created.

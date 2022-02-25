@@ -212,6 +212,9 @@
     <Compile Include="Views\ReferenceResourceSummary.cs">
       <DependentUpon>NavyViews.tt</DependentUpon>
     </Compile>
+    <Compile Include="Views\RMTLProjectSummary.cs">
+      <DependentUpon>NavyViews.tt</DependentUpon>
+    </Compile>
     <Compile Include="Views\RmtlSummary.cs">
       <DependentUpon>NavyViews.tt</DependentUpon>
     </Compile>

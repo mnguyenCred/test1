@@ -7,6 +7,7 @@
 .body-content {
     padding-left: 15px;
     padding-right: 15px;
+	margin-bottom: 50px; /* Keeps the footer out of the way */
 }
 
 /* Override the default bootstrap behavior where horizontal description lists 
@@ -22,3 +23,5 @@ select,
 textarea {
     max-width: 280px;
 }
+
+#mainSiteFooter{ width: 50%; text-align: center;}

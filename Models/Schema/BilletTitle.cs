@@ -25,7 +25,8 @@ namespace Models.Schema
 
 		/// <summary>
 		/// Guid for the Rating this Billet Title is associated with<br />
-		/// From Column: Rating
+		/// From Column: Rating<br />
+		/// NOTE: This field is to be removed! (per decision on 2022-02-18)
 		/// </summary>
 		public Guid HasRating { get; set; }
 
@@ -37,4 +38,19 @@ namespace Models.Schema
 
 		public List<string> HasRatingTaskByCode { get; set; }
 	}
+	//
+
+	public class BilletTitleDTO: BilletTitle
+	{
+		/// <summary>
+		/// Rating Task RowIds to be added to this Billet Title
+		/// </summary>
+		public List<Guid> HasRatingTask_Add { get; set; } = new List<Guid>();
+
+		/// <summary>
+		/// Rating Task RowIds to be removed from this Billet Title
+		/// </summary>
+		public List<Guid> HasRatingTask_Remove { get; set; } = new List<Guid>();
+	}
+	//
 }

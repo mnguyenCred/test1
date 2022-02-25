@@ -1,0 +1,132 @@
+﻿<script type="text/javascript">
+	var Searches = [];
+	//
+
+	function createSearch (searchType, searchURL, statusBox, spinner, resultsBox, pagingBox, pageSize, delay) {
+		var Search = {
+			SearchType: searchType,
+			SearchURL: searchURL,
+			PageSize: pageSize || 20,
+			PageNumber: 1,
+			Delay: delay || 800,
+			StatusBox: statusBox || $("<div></div>"),
+			ResultsBox: resultsBox || $("<div></div>"),
+			PagingBox: pagingBox || $("<div></div>"),
+			Spinner: spinner || $("<div></div>"),
+			Timeout: 0,
+			Query: {},
+			Results: [],
+			TotalResults: 0,
+			TotalPages: 1
+		};
+		//
+
+		Search.delayThenSearch = function (resetPaging) {
+			clearTimeout(Search.Timeout);
+			Search.Timeout = setTimeout(() => {
+				Search.doSearch(resetPaging);
+			}, Search.Delay);
+		};
+		//
+
+		Search.doSearch = function (resetPaging) {
+			Search.PageNumber = resetPaging ? 1 : Search.PageNumber;
+			Search.Query = {
+				SearchType: Search.SearchType,
+				Filters: Search.getFilters(),
+				PageSize: Search.PageSize,
+				PageNumber: Search.PageNumber,
+				SortOrder: Search.getSortOrder()
+			};
+			Search.customizeQuery();
+			Search.setStatus("Searching...", true);
+			Search.doAJAX(Search.SearchURL, Search.Query, Search.handleResponse);
+		};
+		//
+
+		Search.getFilters = function () {
+			//Intended for use/overriding by other code
+		};
+		//
+
+		Search.getSortOrder = function () {
+			//Intended for use/overriding by other code
+		};
+		//
+
+		Search.customizeQuery = function () {
+			//Intended for use/overriding by other code
+		};
+		//
+
+		Search.doAJAX = function (url, data, handleResponse) {
+			fetch(url, {
+				method: "POST",
+				headers: { 'Accept': 'application/json', 'Content-Type': 'application/json' },
+				body: JSON.stringify(data)
+			}).then((response) => {
+				return response.text();
+			}).then((text) => {
+				var result = JSON.parse(text);
+				handleResponse?.(result);
+			});
+		};
+		//
+
+		Search.handleResponse = function (response) {
+			if (response.Valid) {
+				Search.Results = response.Data.Results;
+				Search.TotalResults = response.Data.TotalResults || 0;
+				Search.setStatus("Found " + Search.TotalResults + " Results");
+				Search.renderResults();
+				Search.renderPaging();
+			}
+			else {
+				Search.setStatus("Error: " + response.Status.join(", "));
+			}
+		};
+		//
+
+		Search.renderResults = function () {
+			Search.ResultsBox.html("");
+			Search.Results.forEach(Result => {
+				Search.renderResult(Result, Search.ResultsBox);
+			});
+		}
+		//
+
+		Search.renderResult = function (Result, container) {
+			container.append("<div class=\"searchResult\">" + (Result.CodedNotation || Result.Name || Result.Description) + "</div>");
+		}
+		//
+
+		Search.renderPaging = function () {
+			Search.PagingBox.html("");
+			Search.TotalPages = Math.ceil(Search.TotalResults / Search.PageSize);
+			var select = $("<select></select>").appendTo(Search.PagingBox);
+			for (var i = 1; i <= Search.TotalPages; i++) {
+				select.append("<option value=\"" + i + "\">Page " + i + "</option>");
+			}
+			select.on("change", function () {
+				Search.PageNumber = parseInt(select.val());
+				Search.doSearch();
+			});
+		}
+		//
+
+		Search.setStatus = function (message, showSpinner) {
+			Search.StatusBox.html(message);
+			showSpinner ? Search.Spinner.show() : Search.Spinner.hide();
+		}
+		//
+
+		Search.Spinner.hide();
+		Searches.push(Search);
+		return Search;
+	}
+	//
+
+</script>
+<style type="text/css">
+
+</style>

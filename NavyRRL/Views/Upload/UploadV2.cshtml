@@ -22,7 +22,8 @@
 			SourceTypeConcepts: @Html.Raw(JsonConvert.SerializeObject(sourceTypeConcepts)),
 			CourseTypeConcepts: @Html.Raw(JsonConvert.SerializeObject(courseTypeConcepts)),
 			AssessmentMethodTypeConcepts: @Html.Raw(JsonConvert.SerializeObject(assessmentMethodTypeConcepts))
-		}
+		},
+		LookupGraph: []
 	};
 	//
 
@@ -102,7 +103,7 @@
 		var file = Upload.UI.FileInput[0].files[0];
 		if (!file) {
 			setUploadStatus("Please select a file.");
-			alert("Please seelct a file.");
+			alert("Please select a file.");
 		}
 		else {
 			setUploadStatus("Reading File...");
@@ -229,19 +230,25 @@
 			return;
 		}
 
-		setUploadStatus("Status: Sending data, check below for details...", true);
+		setUploadStatus("Status: Processing data, please wait...", true);
 		console.log("Submitting data", data);
 		Upload.UI.UploadSummaryBox.html("");
 		
 		postData("@Url.Content("~/upload/processupload")", data).then((response) => {
-			console.log("Received response", response);
-			return response.text()
+			if (response.ok) {
+				console.log("Received response", response);
+				return response.text()
+			}
+			else {
+				throw response;
+			}
 		}).then((text) => {
-			setUploadStatus("Status: Received Response, review the Summary report. If there are no issues, then click the <b>Confirm All Changes</b> button to save the data to the database.");
+			setUploadStatus("Please review the Summary report below. If there are no issues, then click the <b>Confirm All Changes</b> button to save the data to the database.");
 			Upload.Summary = JSON.parse(text);
 			console.log("Parsed Data", Upload.Summary);
 			//renderResults();
-			renderRichResults();
+			//renderRichSummary();
+			renderRichResults(Upload.UI.UploadSummaryBox, false, Upload.Summary);
 
 			if (Upload.Summary.Valid && Upload.Summary.Data.Messages.Error?.length == 0) {
 				showConfirmChangesSection();
@@ -249,28 +256,17 @@
 			else {
 				hideConfirmChangesSection();
 			}
+		}).catch((response) => {
+			console.log("Error handling request", response);
+			setUploadStatus("Error processing upload. " + response.statusText + " (Error code " + response.status + ")");
 		});
 	}
 	//
 
 	/*
-	function renderResults() {
+	function renderRichSummary() {
 		Upload.UI.UploadSummaryBox.html("");
-		renderTextSet("Errors", Upload.Summary.Data.Messages.Error, Upload.UI.UploadSummaryBox, false, "Please correct the errors and try again.");
-		renderTextSet("Warnings", Upload.Summary.Data.Messages.Warning, Upload.UI.UploadSummaryBox, false, "Please review the warnings carefully before confirming the update.");
-		renderTextSet("Possible Duplicates", Upload.Summary.Data.Messages.Duplicate, Upload.UI.UploadSummaryBox, false, "Found multiple instances of one or more items. This may be caused by inconsistent capitalization on different rows. Please carefully review the data before confirming the update.");
-		renderTextSet("Items to be Deleted", Upload.Summary.Data.Messages.Delete, Upload.UI.UploadSummaryBox, true, "Warning: The following items were not detected in the uploaded data, and will be deleted if you confirm the changes!");
-		renderTextSet("Items to be Created", Upload.Summary.Data.Messages.Create, Upload.UI.UploadSummaryBox, true, "The following items will be created if you confirm the changes.");
-		renderTextSet("Additional References for Existing Items", Upload.Summary.Data.Messages.AddItem, Upload.UI.UploadSummaryBox, true, "New references have been detected for the following existing items.");
-		renderTextSet("References to be Removed from Existing Items", Upload.Summary.Data.Messages.RemoveItem, Upload.UI.UploadSummaryBox, true, "These references will be removed from the following existing items.");
-		renderTextSet("Notes", Upload.Summary.Data.Messages.Note, Upload.UI.UploadSummaryBox, false, "Miscellaneous notes.");
-	}
-	//
-	*/
-
-	function renderRichResults() {
-		Upload.UI.UploadSummaryBox.html("");
-		renderSummaryTable(Upload.UI.UploadSummaryBox);
+		renderCountTable(Upload.UI.UploadSummaryBox, false, Upload.Summary);
 		collapseSummaryGraph(Upload.StaticData);
 		collapseSummaryGraph(Upload.Summary.Data.ItemsToBeCreated);
 		collapseSummaryGraph(Upload.Summary.Data.ItemsToBeDeleted);
@@ -279,29 +275,95 @@
 		renderTextSet("Errors", Upload.Summary.Data.Messages.Error, Upload.UI.UploadSummaryBox, false, "Please correct the errors and try again.");
 		renderTextSet("Warnings", Upload.Summary.Data.Messages.Warning, Upload.UI.UploadSummaryBox, false, "Please review the warnings carefully before confirming the update.");
 		renderTextSet("Notes", Upload.Summary.Data.Messages.Note, Upload.UI.UploadSummaryBox, false, "Miscellaneous notes.");
-		@*renderRichSet("Items to be Deleted", Upload.Summary.Data.ItemsToBeDeleted, Upload.Summary.Data.Messages.Delete, Upload.UI.TabBox.TabsMap.ItemsToBeDeleted.ContentBox, true, true, "Warning: The following items were not detected in the uploaded data, and will be deleted if you confirm the changes!");*@
 		renderRichSet("Possible Duplicates", { PossibleDuplicates: Upload.Summary.Data.PossibleDuplicates }, Upload.Summary.Data.Messages.Duplicate, Upload.UI.TabBox.TabsMap.PossibleDuplicates.ContentBox, false, false, "Found multiple instances of one or more items. This may be caused by inconsistent capitalization on different rows. Please carefully review the data before confirming the update.")
 		renderRichSet("Items to be Created", Upload.Summary.Data.ItemsToBeCreated, Upload.Summary.Data.Messages.Create, Upload.UI.TabBox.TabsMap.ItemsToBeCreated.ContentBox, true, true, "The following items will be created if you confirm the changes.");
 		renderRichSet("Additional References for Existing Items", Upload.Summary.Data.AddedItemsToInnerListsForCopiesOfItems, Upload.Summary.Data.Messages.AddItem, Upload.UI.TabBox.TabsMap.AddedItemsToInnerListsForCopiesOfItems.ContentBox, true, false, "New references have been detected for the following existing items.");
 		renderRichSet("References to be Removed from Existing Items", Upload.Summary.Data.RemovedItemsFromInnerListsForCopiesOfItems, Upload.Summary.Data.Messages.RemoveItem, Upload.UI.TabBox.TabsMap.RemovedItemsFromInnerListsForCopiesOfItems.ContentBox, true, false, "These references will be removed from the following existing items.");
 	}
 	//
+	*/
 
+	/*
 	function renderSummaryTable(container) {
 		var table = $("<table class=\"summaryTable\"><tbody></tbody></table>").appendTo(container);
 		var tbody = table.find("tbody");
-		tbody.append("<tr><th>Item Type</th><th>Unchanged</th>@*<th>To Be Deleted</th>*@<th>Possible Duplicates</th><th>To be Created</th><th>Has Data to be Added</th><th>Has Data to be Removed</th></tr>");
+		tbody.append("<tr><th>Item Type</th><th>Unchanged</th><th>Possible Duplicates</th><th>To be Created</th><th>Has Data to be Added</th><th>Has Data to be Removed</th></tr>");
 		["BilletTitle|Billet Title", "Course|Course", "Organization|Curriculum Control Authority", "RatingTask|Rating Task", "ReferenceResource|Reference Resource", "TrainingTask|Training Task", "WorkRole|Functional Area"].forEach(item => {
 			var property = item.split("|")[0];
 			var label = item.split("|")[1];
 			tbody.append("<tr><td>" + [
 				label,
 				(Upload.Summary.Data.UnchangedCount[property] || 0),
-				@*(Upload.Summary.Data.ItemsToBeDeleted[property]?.length || 0),*@
 				(Upload.Summary.Data.PossibleDuplicates.filter(m => m.Type == property)?.length || 0),
 				(Upload.Summary.Data.ItemsToBeCreated[property]?.length || 0),
 				(Upload.Summary.Data.AddedItemsToInnerListsForCopiesOfItems[property]?.length || 0),
 				(Upload.Summary.Data.RemovedItemsFromInnerListsForCopiesOfItems[property]?.length || 0)
+			].join("</td><td>") + "</td></tr>")
+		});
+	}
+	//
+	*/
+
+	function renderRichResults(container, isConfirmation, Source, renderHeaderMessage) {
+		//Clear out the container and graph
+		container.html("");
+		Upload.LookupGraph = [];
+
+		//Render a custom header (optional)
+		renderHeaderMessage?.();
+
+		//Update the tab buttons and headers
+		Upload.UI.TabBox.TabsMap.ItemsToBeCreated.Button.html(isConfirmation ? "Items Created" : "Items to be Created");
+		Upload.UI.TabBox.TabsMap.AddedItemsToInnerListsForCopiesOfItems.Button.html(isConfirmation ? "References Added to Existing Items" : "References to be Added to Existing Items");
+		Upload.UI.TabBox.TabsMap.RemovedItemsFromInnerListsForCopiesOfItems.Button.html(isConfirmation ? "References Removed from Existing Items" : "References to be Removed from Existing Items");
+		Upload.UI.TabBox.TabsMap.ItemsToBeCreated.Header.html(isConfirmation ? "Items Created" : "Items to be Created");
+		Upload.UI.TabBox.TabsMap.AddedItemsToInnerListsForCopiesOfItems.Header.html(isConfirmation ? "References Added to Existing Items" : "References to be Added to Existing Items");
+		Upload.UI.TabBox.TabsMap.RemovedItemsFromInnerListsForCopiesOfItems.Header.html(isConfirmation ? "References Removed from Existing Items" : "References to be Removed from Existing Items");
+
+		//Render the count table
+		renderCountTable(container, isConfirmation, Source);
+
+		//Refresh the lookup graph data
+		collapseSummaryGraph(Upload.StaticData);
+		collapseSummaryGraph(Source.Data.ItemsToBeCreated);
+		collapseSummaryGraph(Source.Data.ItemsToBeDeleted);
+		getLabels(Source.Data.AddedItemsToInnerListsForCopiesOfItems);
+		getLabels(Source.Data.RemovedItemsFromInnerListsForCopiesOfItems);
+
+		//Render simple messages
+		renderTextSet("Errors", Source.Data.Messages.Error, container, false, "Please correct the errors and try again.");
+		renderTextSet("Warnings", Source.Data.Messages.Warning, container, false, "Please review the warnings carefully" + (isConfirmation ? "." : " before confirming the update.") );
+		renderTextSet("Notes", Source.Data.Messages.Note, container, false, "Miscellaneous notes.");
+
+		//Render tabbed data
+		renderRichSet("Possible Duplicates", { PossibleDuplicates: Source.Data.PossibleDuplicates }, Source.Data.Messages.Duplicate, Upload.UI.TabBox.TabsMap.PossibleDuplicates.ContentBox, false, false, "Found multiple instances of one or more items. This may be caused by inconsistent capitalization on different rows. Please carefully review the data" + (isConfirmation ? "." : " before confirming the update."))
+		renderRichSet(isConfirmation ? "Items Created" : "Items to be Created", Source.Data.ItemsToBeCreated, Source.Data.Messages.Create, Upload.UI.TabBox.TabsMap.ItemsToBeCreated.ContentBox, true, true, "The following items " + (isConfirmation ? "were created." : "will be created if you confirm the changes.") );
+		renderRichSet("Additional References for Existing Items", Source.Data.AddedItemsToInnerListsForCopiesOfItems, Source.Data.Messages.AddItem, Upload.UI.TabBox.TabsMap.AddedItemsToInnerListsForCopiesOfItems.ContentBox, true, false, "New references have been " + (isConfirmation ? "added to" : "detected for") + " the following existing items.");
+		renderRichSet(isConfirmation ? "References Removed from Existing Items" : "References to be Removed from Existing Items", Source.Data.RemovedItemsFromInnerListsForCopiesOfItems, Source.Data.Messages.RemoveItem, Upload.UI.TabBox.TabsMap.RemovedItemsFromInnerListsForCopiesOfItems.ContentBox, true, false, "These references " + (isConfirmation ? "have been" : "will be") + " removed from the following existing items.");
+	}
+	//
+
+	function renderCountTable(container, isConfirmation, Source) {
+		var table = $("<table class=\"summaryTable\"><tbody></tbody></table>").appendTo(container);
+		var tbody = table.find("tbody");
+		tbody.append("<tr><th>" + [
+			"Item Type",
+			"Unchanged",
+			"Possible Duplicates",
+			(isConfirmation ? "Items Created" : "To Be Created"),
+			(isConfirmation ? "Has Data that was Added" : "Has Data to be Added"),
+			(isConfirmation ? "Has Data that was Removed" : "Has Data to be Removed")
+		].join("</th><th>") + "</th></tr>");
+		["BilletTitle|Billet Title", "Course|Course", "Organization|Curriculum Control Authority", "RatingTask|Rating Task", "ReferenceResource|Reference Resource", "TrainingTask|Training Task", "WorkRole|Functional Area"].forEach(item => {
+			var property = item.split("|")[0];
+			var label = item.split("|")[1];
+			tbody.append("<tr><td>" + [
+				label,
+				(Source.Data.UnchangedCount[property] || 0),
+				(Source.Data.PossibleDuplicates.filter(m => m.Type == property)?.length || 0),
+				(Source.Data.ItemsToBeCreated[property]?.length || 0),
+				(Source.Data.AddedItemsToInnerListsForCopiesOfItems[property]?.length || 0),
+				(Source.Data.RemovedItemsFromInnerListsForCopiesOfItems[property]?.length || 0)
 			].join("</td><td>") + "</td></tr>")
 		});
 	}
@@ -464,29 +526,57 @@
 		setUploadStatus("Confirming changes, please wait...", true);
 
 		postData("@Url.Content("~/upload/confirmchanges")", { changeSummaryRowID: Upload.Summary.Data.RowId }).then((response) => {
-			setUploadStatus("Status: Received response, check below for details");
-			console.log("Received response", response);
-			return response.text();
+			if (response.ok) {
+				setUploadStatus("Please review the below for details.");
+				console.log("Received response", response);
+				return response.text();
+			}
+			else {
+				throw response;
+			}
 		}).then((text) => {
 			Upload.Confirmation = JSON.parse(text);
 			console.log("Parsed Confirmation", Upload.Confirmation);
-			renderConfirmation();
+			//renderRichConfirmation();
+			renderRichResults(Upload.UI.UploadSummaryBox, true, Upload.Confirmation, () => {
+				if (Upload.Confirmation.Valid) {
+					Upload.UI.UploadSummaryBox.append("<h3>Finished.</h3>");
+					Upload.UI.UploadSummaryBox.append("<p>Your changes have been saved to the database.</p>");
+				}
+			});
+		}).catch((response) => {
+			console.log("Error handling request", response);
+			setUploadStatus("Error processing upload. " + response.statusText + " (Error code " + response.status + ")");
 		});
 	}
 	//
 
-	function renderConfirmation() {
+	/*
+	function renderRichConfirmation() {
 		Upload.UI.UploadSummaryBox.html("");
 
 		if (Upload.Confirmation.Valid) {
 			Upload.UI.UploadSummaryBox.append("<h3>Finished.</h3>");
 			Upload.UI.UploadSummaryBox.append("<p>Your changes have been saved to the database.</p>");
 		}
-		else {
-			renderTextSet("Error", Upload.Confirmation.Status || [], Upload.UI.UploadSummaryBox, false, "One or more errors were encountered while trying to confirm the changes.");
-		}
+
+		renderCountTable(Upload.UI.UploadSummaryBox, true, Upload.Confirmation);
+		collapseSummaryGraph(Upload.StaticData);
+		collapseSummaryGraph(Upload.Summary.Data.ItemsToBeCreated);
+		collapseSummaryGraph(Upload.Summary.Data.ItemsToBeDeleted);
+		getLabels(Upload.Summary.Data.AddedItemsToInnerListsForCopiesOfItems);
+		getLabels(Upload.Summary.Data.RemovedItemsFromInnerListsForCopiesOfItems);
+		renderTextSet("Errors", Upload.Summary.Data.Messages.Error, Upload.UI.UploadSummaryBox, false, "Please correct the errors and try again.");
+		renderTextSet("Warnings", Upload.Summary.Data.Messages.Warning, Upload.UI.UploadSummaryBox, false, "Please review the warnings carefully.");
+		renderTextSet("Notes", Upload.Summary.Data.Messages.Note, Upload.UI.UploadSummaryBox, false, "Miscellaneous notes.");
+		renderRichSet("Possible Duplicates", { PossibleDuplicates: Upload.Summary.Data.PossibleDuplicates }, Upload.Summary.Data.Messages.Duplicate, Upload.UI.TabBox.TabsMap.PossibleDuplicates.ContentBox, false, false, "Found multiple instances of one or more items. This may be caused by inconsistent capitalization on different rows. Please carefully review the data.")
+		renderRichSet("Items Created", Upload.Summary.Data.ItemsToBeCreated, Upload.Summary.Data.Messages.Create, Upload.UI.TabBox.TabsMap.ItemsToBeCreated.ContentBox, true, true, "The following items were created.");
+		renderRichSet("Additional References for Existing Items", Upload.Summary.Data.AddedItemsToInnerListsForCopiesOfItems, Upload.Summary.Data.Messages.AddItem, Upload.UI.TabBox.TabsMap.AddedItemsToInnerListsForCopiesOfItems.ContentBox, true, false, "New references have been added to the following existing items.");
+		renderRichSet("References to be Removed from Existing Items", Upload.Summary.Data.RemovedItemsFromInnerListsForCopiesOfItems, Upload.Summary.Data.Messages.RemoveItem, Upload.UI.TabBox.TabsMap.RemovedItemsFromInnerListsForCopiesOfItems.ContentBox, true, false, "These references have been removed from the following existing items.");
 	}
 	//
+	*/
+
 
 	function setUploadStatus(text, showSpinner) {
 		Upload.UI.StatusBox.html(text);
@@ -505,17 +595,20 @@
 	//
 
 	async function postData(url, data) {
+
+		var output = JSON.stringify(data);
+
 		return fetch(url, {
 			method: "POST",
 			headers: { 'Accept': 'application/json', 'Content-Type': 'application/json' },
-			body: JSON.stringify(data)
+			body: output
 		});
 	}
 	//
 
 	function collapseSummaryGraph(Source) {
 		Object.keys(Source).forEach(key => {
-			Upload.Summary.Data.LookupGraph = Upload.Summary.Data.LookupGraph.concat(Source[key]);
+			Upload.LookupGraph = Upload.LookupGraph.concat(Source[key]);
 		});
 	}
 	//
@@ -523,7 +616,7 @@
 	function getLabels(Source) {
 		Object.keys(Source).forEach(key => {
 			Source[key]?.forEach(Item => {
-				var match = Upload.Summary.Data.LookupGraph.filter(m => m.RowId == Item.RowId)[0];
+				var match = Upload.LookupGraph.filter(m => m.RowId == Item.RowId)[0];
 				match?.Name && (Item.Name = match.Name);
 				match?.CodedNotation && (Item.CodedNotation = match.CodedNotation);
 				match?.Description && (Item.Description = match.Description);
@@ -557,7 +650,7 @@
 	html body .container { width: 98vw; }
 	.spinner { display: inline-block; box-shadow: inset 4px 0 0 5px; border-radius: 50%; height: 20px; width: 20px; animation: spin 1s linear infinite; }
 	@@keyframes spin { 100% { transform: rotate(360deg); } }
-
+	#mainSiteFooter { display: none; }
 	.monospace { font-family: Consolas, 'Courier New', monospace; }
 
 	.tabBox { }
@@ -608,7 +701,7 @@
 <h2>Upload RMTL Data</h2>
 
 <div class="uploadHeader">
-	<p>Select a rating and choose a CSV (comma-separated values) file to upload. Do not include "All Sailor Tasks", since those have already been added to the system.</p>
+	<p>Select a Rating and choose a CSV (comma-separated values) file to upload. Do not include "All Sailor Tasks", since those have already been added to the system.</p>
 	<select class="uploadItem ratingSelector">
 		<option value="" disabled="disabled" selected="selected">Select a Rating...</option>
 		@foreach( var rating in allRatings )

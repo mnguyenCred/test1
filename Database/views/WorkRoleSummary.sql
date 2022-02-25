@@ -1,6 +1,7 @@
+use NavyRRL
+go
 
-
-Create View WorkRoleSummary 
+Alter View WorkRoleSummary 
 As
 SELECT TOP (1000) a.[Id]
       ,a.[RowId]

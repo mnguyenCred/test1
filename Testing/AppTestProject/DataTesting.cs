@@ -85,7 +85,7 @@ namespace AppTestProject
                 int pTotalRows = 0;
 
                 filter = "base.id in (select a.[RatingTaskId] from [RatingTask.HasRating] a inner join Rating b on a.ratingId = b.Id where b.CodedNotation = 'qm' )";
-               var results = RatingTaskManager.Search( filter, orderBy, pageNumber, pageSize, userId, ref pTotalRows );
+               var results = RatingTaskManager.RMTLSearch( filter, orderBy, pageNumber, pageSize, userId, ref pTotalRows );
                 if (results?.Count > 0)
                 {
 

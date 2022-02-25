@@ -1,0 +1,10 @@
+﻿@using Models.Schema;
+@model TrainingTask
+@{
+	ViewBag.Title = "Training Task: " + Model.Description;
+}
+
+<h2>Training Task</h2>
+
+<p>@Model.Description</p>
+<p><a href="@Url.Content("~/" + Model.GetType().Name.ToLower() + "/edit/" + Model.Id)" target="_blank">Edit</a></p>

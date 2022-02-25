@@ -1,0 +1,317 @@
+﻿@using Newtonsoft.Json;
+@{
+    ViewBag.Title = "FormHelperV1Demo";
+}
+
+@Html.Partial( "~/Views/Shared/_FormHelperV1.cshtml" );
+
+<script type="text/javascript">
+	var LocalSampleData = {
+		ExampleCheckBoxList1: [
+			{ Name: "Some Option 1", Id: 1 },
+			{ Name: "Some Option 2", Id: 2 },
+			{ Name: "Some Option 3", Id: 3 },
+			{ Name: "Some Option 4", Id: 4 },
+			{ Name: "Some Option 5", Id: 5 },
+			{ Name: "Some Option 6", Id: 6 },
+			{ Name: "Some Option 7", Id: 7 },
+			{ Name: "Some Option 8", Id: 8 }
+		],
+		ExampleResultSet: [
+			{ Name: "Result One", Id: 1 },
+			{ Name: "Result Two", Id: 2 },
+			{ Name: "Result Three", Id: 3 },
+			{ Name: "Result Four", Id: 4 },
+			{ Name: "Result Five", Id: 5 }
+		],
+		ExampleResultHolder: []
+	}
+	var DemoData = {
+		Main: {},
+		Second: {},
+		Config: {
+			//Configure a generic display
+			DisplaySomeData: function (Field) {
+				Field.write("<p>Some data</p>");
+			},
+			//Configure a generic search and override its render method
+			Search1: function(Field) {
+				Field.SearchURL = "@Url.Content("~/RMTL/DoSearch")";
+				Field.KeywordsFilter.Name = "search:RatingTaskKeyword";
+				Field.renderResult = function (container, Result) {
+					container.append("<div class=\"taskResult\">" + Result.Data.RatingTask_Description + "</div>");
+				};
+			},
+			//Configure a search/select and override its render methods
+			Search2: function(Field) {
+				Field.Search.SearchURL = "@Url.Content("~/RMTL/DoSearch")";
+				Field.Search.KeywordsFilter.Name = "search:TrainingTaskKeyword";
+				Field.Search.renderResult = function (container, Result) {
+					container.append("<div class=\"taskResult\">" + Result.Data.TrainingTask_Description + "</div>");
+				};
+				Field.Existing.SearchURL = "@Url.Content("~/RMTL/DoSearch")";
+				Field.Existing.KeywordsFilter.Name = "search:TrainingTaskKeyword";
+				Field.Existing.renderResult = function (container, Result) {
+					container.append("<div class=\"taskResult\">" + Result.Data.TrainingTask_Description + "</div>");
+				};
+			},
+			//Scary example meant to show how extensively something can be modified if needed
+			Search3: function(Field) {
+				Field.Search.searchMethod = function () {
+					var results = LocalSampleData.ExampleResultSet.filter(m => {
+						return !LocalSampleData.ExampleResultHolder.includes(m) && m.Name.toLowerCase().includes(Field.Search.Query?.Filters?.[0]?.Text?.toLowerCase());
+					});
+					Field.Search.handleResponse(results);
+				};
+				Field.Search.handleResponse = function (response) {
+					Field.Search.Results = response;
+					Field.Search.TotalResults = response.length;
+					Field.Search.setStatus("Found " + Field.Search.TotalResults + " Results");
+					Field.Search.renderResults();
+					Field.Search.renderPaging();
+				};
+				Field.Search.renderResult = function (container, Result) {
+					container.append("<div>" + Result.Name + "</div>")
+				};
+				Field.addItem = function (Item) {
+					LocalSampleData.ExampleResultHolder.push(Item);
+					Field.handleItemAdded();
+				};
+				Field.handleItemAdded = function () {
+					Field.Search.doSearch();
+					Field.Existing.doSearch();
+				}
+				Field.Existing.searchMethod = function () {
+					var results = LocalSampleData.ExampleResultHolder.filter(m => {
+						return m.Name.toLowerCase().includes(Field.Existing.Query?.Filters?.[0]?.Text?.toLowerCase() || "");
+					});
+					Field.Existing.handleResponse(results);
+				};
+				Field.Existing.handleResponse = function (response) {
+					Field.Existing.Results = response;
+					Field.Existing.TotalResults = response.length;
+					Field.Existing.setStatus("Found " + Field.Existing.TotalResults + " Results");
+					Field.Existing.renderResults();
+					Field.Existing.renderPaging();
+				};
+				Field.Existing.renderResult = function (container, Result) {
+					container.append("<div>" + Result.Name + "</div>")
+				};
+				Field.removeItem = function (Item) {
+					LocalSampleData.ExampleResultHolder = LocalSampleData.ExampleResultHolder.filter(m => m != Item);
+					Field.handleItemRemoved();
+				};
+				Field.handleItemRemoved = function () {
+					Field.Search.doSearch();
+					Field.Existing.doSearch();
+				}
+			},
+			//Configure a client-side search/select
+			SearchLocal: function (Field) {
+				Field.Items = LocalSampleData.ExampleResultSet;
+			},
+			//Configure a deferred search/select
+			SearchDeferred: function (Field) {
+				Field.Search.SearchURL = "@Url.Content("~/RMTL/DoSearch")";
+				Field.Search.KeywordsFilter.Name = "search:RatingTaskKeyword";
+				Field.Search.renderResult = function (container, Result) {
+					container.append("<div class=\"taskResult\">" + Result.Data.RatingTask_Description + "</div>");
+				};
+				Field.Existing.SearchURL = "@Url.Content("~/RMTL/DoSearch")";
+				Field.Existing.KeywordsFilter.Name = "search:RatingTaskKeyword";
+				Field.Existing.renderResult = function (container, Result) {
+					container.append("<div class=\"taskResult\">" + Result.Data.RatingTask_Description + "</div>");
+				};
+			},
+			//Configure and initialize a checkbox list
+			//Note that the render method needs to be called after the items list is assigned
+			CheckBoxList1: function(Field) {
+				Field.Items = LocalSampleData.ExampleCheckBoxList1;
+				Field.renderItems();
+			},
+			//Configure and initialize a drop-down list
+			//Note that the render method needs to be called after the items list is assigned
+			Select2: function (Field) {
+				Field.Items = LocalSampleData.ExampleCheckBoxList1;
+				Field.renderItems();
+			},
+			//Add a click handler to a button
+			SaveData: function (Field) {
+				Field.handleClick = function () {
+					alert("Clicked " + Field.Label + " Button");
+				}
+			}
+		}
+	};
+	//
+
+	$(document).ready(function () {
+		FormItem.setupFormItems(DemoData.Main, "MainDemo", DemoData.Config);
+		FormItem.setupFormItems(DemoData.Second, "SecondDemo", DemoData.Config);
+		setupDemoForm();
+	});
+	//
+
+	function setupDemoForm() {
+		$(".rawDataBox").each(function () {
+			var box = $(this);
+			var context = DemoData[box.attr("data-demo")];
+			var textarea = box.find("textarea");
+			box.find("[data-action='readForm']").on("click", function () {
+				var data = context.read();
+				textarea.val(JSON.stringify(data, null, "\t"));
+			});
+			box.find("[data-action='writeForm']").on("click", function () {
+				var data = JSON.parse(textarea.val() || "{}");
+				context.write(data);
+			});
+		});
+	}
+	//
+</script>
+<style type="text/css">
+	.rawDataBox { padding: 20px; text-align: center; }
+	.rawDataBox .rawData { display: block; width: 100%; max-width: none; resize: vertical; min-height: 200px; max-height: 80vh; height: 50vh; font-family: Consolas, 'Courier New', sans-serif; }
+	.rawDataBox .buttons { text-align: center; padding: 5px; }
+</style>
+
+<h2>Form Helper V1 Demo</h2>
+
+<div class="demoContent">
+
+	<h3>Form 1</h3>
+	@* //Display field *@
+	<form-item data-path="MainDemo.Display" data-ui="display" data-label="Display" data-config="DisplaySomeData"></form-item>
+
+	@* //Plain Text fields *@
+	<form-item data-path="MainDemo.Name" data-ui="text" data-label="Name"></form-item>
+	<form-item data-path="MainDemo.SomePart.SampleText1" data-ui="text" data-label="Sample Text 1"></form-item>
+	<form-item data-path="MainDemo.SomePart.SampleText2" data-ui="text" data-label="Sample Text 2"></form-item>
+	
+	@* //Text Area fields *@
+	<form-item data-path="MainDemo.Description" data-ui="textarea" data-label="Description"></form-item>
+
+	@* //Drop-Down List fields *@
+	<form-item data-path="MainDemo.OptionSet1" data-ui="select" data-label="Option Set 1"></form-item>
+	<form-item data-path="MainDemo.OptionSet2" data-ui="select" data-label="Option Set 2" data-config="Select2"></form-item>
+
+	@* //CheckBox List fields *@
+	<form-item data-path="MainDemo.SomePart.OptionSet3" data-ui="checkboxlist" data-label="Option Set 3" data-config="CheckBoxList1"></form-item>
+	<form-item data-path="MainDemo.SomeOtherPart.SomeDeeperLayer.OptionSet4" data-ui="checkboxlist" data-label="Option Set 4"></form-item>
+
+	@* //Multi-Text fields *@
+	<form-item data-path="MainDemo.Keywords" data-ui="textmulti" data-label="Keywords"></form-item>
+
+	@* //Search fields (no selection, just search) *@
+	<form-item data-path="MainDemo.GenericSearch" data-ui="search" data-label="Non-Selectable Search" data-config="Search1"></form-item>
+
+	@* //Search/Select fields *@
+	<form-item data-path="MainDemo.SomeOtherPart.OptionSet5" data-ui="searchselectimmediate" data-label="Search/Select (Immediate AJAX requests)" data-config="Search2"></form-item>
+	<form-item data-path="MainDemo.OptionSet6" data-ui="searchselectimmediate" data-label="Search/Select (Immediate with overrides - see example code)" data-config="Search3"></form-item>
+	<form-item data-path="MainDemo.OptionSetLocal" data-ui="searchselectlocal" data-label="Search/Select (Local, no AJAX)" data-config="SearchLocal"></form-item>
+	<form-item data-path="MainDemo.OptionSetDeferred" data-ui="searchselectdeferred" data-label="Search/Select (Deferred)" data-config="SearchDeferred"></form-item>
+
+	@* //Button field *@
+	<form-item data-path="MainDemo.SaveButton" data-ui="button" data-label="Save" data-config="SaveData"></form-item>
+
+	@* //Sub-Object fields (not implemented yet) *@
+	<form-item data-path="MainDemo.SubDemo" data-ui="children" data-label="Sub-Items"></form-item>
+
+	@* //Example helper for reading/writing data *@
+	<div class="rawDataBox" data-demo="Main">
+		<textarea class="rawData"></textarea>
+		<div class="buttons">
+			<button data-action="readForm">Read all Data from Form</button>
+			<button data-action="writeForm">Write all Data to Form</button>
+		</div>
+	</div>
+
+	<h3>Form 2</h3>
+	@* //Plain Text fields *@
+	<form-item data-path="SecondDemo.Name" data-ui="text" data-label="Name"></form-item>
+	<form-item data-path="SecondDemo.SomePart.SampleText1" data-ui="text" data-label="Sample Text 1"></form-item>
+	<form-item data-path="SecondDemo.SomePart.SampleText2" data-ui="text" data-label="Sample Text 2"></form-item>
+
+	@* //CheckBox List fields *@
+	<form-item data-path="SecondDemo.OptionSet1" data-ui="checkboxlist" data-label="Option Set 1"></form-item>
+
+	@* //Example helper for reading/writing data *@
+	<div class="rawDataBox" data-demo="Second">
+		<textarea class="rawData"></textarea>
+		<div class="buttons">
+			<button data-action="readForm">Read all Data from Form</button>
+			<button data-action="writeForm">Write all Data to Form</button>
+		</div>
+	</div>
+
+
+</div>
+
+@{ 
+	var ccaList = Factories.OrganizationManager.GetAll();
+	var courseSources = Factories.ReferenceResourceManager.GetAll();
+	var courseTypes = Factories.ConceptSchemeManager.GetbyShortUri( Factories.ConceptSchemeManager.ConceptScheme_CourseType ).Concepts;
+	var assessmentMethodTypes = Factories.ConceptSchemeManager.GetbyShortUri( Factories.ConceptSchemeManager.ConceptScheme_CurrentAssessmentApproach ).Concepts;
+}
+<script type="text/javascript">
+	var CourseData = {
+		Map: {},
+		Config: {
+			CCAList: function (Field) {
+				Field.Items = @Html.Raw( JsonConvert.SerializeObject( ccaList, Formatting.None ) );
+				Field.renderItems();
+			},
+			TrainingTasks: function (Field) {
+				Field.Search.SearchURL = "@Url.Content("~/RMTL/DoSearch")";
+				Field.Search.KeywordsFilter.Name = "search:TrainingTaskKeyword";
+				Field.Search.renderResult = function (container, Result) {
+					container.append("<div class=\"taskResult\">" + Result.Data.TrainingTask_Description + "</div>");
+				};
+				Field.Existing.SearchURL = "@Url.Content("~/RMTL/DoSearch")";
+				Field.Existing.KeywordsFilter.Name = "search:TrainingTaskKeyword";
+				Field.Existing.renderResult = function (container, Result) {
+					container.append("<div class=\"taskResult\">" + Result.Data.TrainingTask_Description + "</div>");
+				};
+				Field.Existing.modifyQuery = function (query) {
+					query.Filters.push({ Name: "search:CourseId", Id: 999 }); //Replace with some filter that would cause only training tasks already associated with this course to show up
+				};
+				Field.read = function () {
+					return {
+						ItemsToAdd: Field.ItemsToAdd.map(m => m.Extra.RecordId),
+						ItemsToRemove: Field.ItemsToAdd.map(m => m.Extra.RecordId)
+					}
+				};
+			},
+			ReferenceResourceList: function (Field) {
+				Field.Items = @Html.Raw( JsonConvert.SerializeObject( courseSources, Formatting.None ) );
+				Field.renderItems();
+			},
+			CourseTypes: function (Field) {
+				Field.Items = @Html.Raw( JsonConvert.SerializeObject( courseTypes, Formatting.None ) );
+				Field.renderItems();
+			},
+			AssessmentMethodTypes: function (Field) {
+				Field.Items = @Html.Raw( JsonConvert.SerializeObject( assessmentMethodTypes, Formatting.None ) );
+				Field.renderItems();
+			}
+		}
+	};
+	//
+
+	$(document).ready(function () {
+		FormItem.setupFormItems(CourseData.Map, "Course", CourseData.Config);
+	});
+	//
+</script>
+<div class="exampleCourseEditor">
+	@* //Example Course Editor *@
+	<h2>Course</h2>
+	<form-item data-path="Course.Name" data-ui="text" data-label="Name"></form-item>
+	<form-item data-path="Course.CodedNotation" data-ui="text" data-label="Course Identification Number (CIN)"></form-item>
+	<form-item data-path="Course.CurriculumControlAuthority" data-ui="checkboxlist" data-label="Curriculum Control Authority (CCA)" data-config="CCAList"></form-item>
+	<form-item data-path="Course.HasTrainingTask" data-ui="searchselectdeferred" data-label="Training Tasks" data-config="TrainingTasks"></form-item>
+	<form-item data-path="Course.HasReferenceResource" data-ui="select" data-label="Source" data-config="ReferenceResourceList"></form-item>
+	<form-item data-path="Course.CourseTypes" data-ui="checkboxlist" data-label="Course Type" data-config="CourseTypes"></form-item>
+	<form-item data-path="Course.AssessmentMethodType" data-ui="checkboxlist" data-label="Current Assessment Approach" data-config="AssessmentMethodTypes"></form-item>
+</div>
+

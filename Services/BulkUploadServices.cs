@@ -413,7 +413,7 @@ namespace Services
 							Name = row.Course_Name, 
 							CodedNotation = row.Course_CodedNotation,
 							AssessmentMethodType = assessmentMethodTypes.Select( m => m.RowId ).ToList(),
-							CourseType = courseType.RowId
+							CourseType = new List<Guid>() { courseType.RowId }
 						};
 						graph.Course.Add( course );
 						result.ItemsToBeCreated.Course.Add( course );
@@ -916,14 +916,16 @@ namespace Services
             }
 			SiteActivity sa = new SiteActivity()
 			{
-				ActivityType = "RatingTask",
+				ActivityType = "RMTL",
 				Activity = "Upload",
-				Event = "Processing",
+				Event = "Processing Started",
 				Comment = String.Format( "A bulk upload initiated by: '{0}' for Rating: '{1}' was committed.", user.FullName(), summary.Rating ?? "" ),
 				ActionByUserId = user.Id,
 				ActionByUser = user.FullName()
 			};
 			new ActivityServices().AddActivity( sa );
+			DateTime saveStarted = DateTime.Now;
+			var saveDuration = new TimeSpan();
 			//now what
 			//go thru all non-rating task
 			if (summary.ItemsToBeCreated != null)
@@ -1043,8 +1045,8 @@ namespace Services
 
                         }
 						//get all billets for this task
-						if ( item.HasBillet == null )
-							item.HasBillet = new List<Guid>();
+						if ( item.HasBilletTitle == null )
+							item.HasBilletTitle = new List<Guid>();
 						if ( summary.ItemsToBeCreated.BilletTitle?.Count > 0 )
 						{
 							//get billets that reference this task
@@ -1052,14 +1054,14 @@ namespace Services
 
 							if ( results.Count > 0 )
 							{
-								item.HasBillet.AddRange( results.Select( p => p.RowId ) );
+								item.HasBilletTitle.AddRange( results.Select( p => p.RowId ) );
 							} else
                             {
 								var resultsByCode = summary.ItemsToBeCreated.BilletTitle.Where( p => p.HasRatingTaskByCode.Contains( item.CodedNotation ) ).ToList();
 								if( resultsByCode.Count > 0 )
 								{
 									//this will always be one (one per row). Alternate would be to do a set based approach after all rating tasks are created. 
-									item.HasBillet.AddRange( resultsByCode.Select( p => p.RowId ) );
+									item.HasBilletTitle.AddRange( resultsByCode.Select( p => p.RowId ) );
 								}
 							}
 						}
@@ -1152,14 +1154,14 @@ namespace Services
 						{
 							//get billets that reference this task
 							var results = summary.ItemsToBeChanged.BilletTitle.Where( p => p.HasRatingTask.Contains( item.RowId ) ).ToList();
-							item.HasBillet.AddRange( results.Select( p => p.RowId ) );
+							item.HasBilletTitle.AddRange( results.Select( p => p.RowId ) );
 						}
 						//do we need to check the created as well?
 						if ( summary.ItemsToBeCreated.BilletTitle?.Count > 0 )
 						{
 							//get billets that reference this task
 							var results = summary.ItemsToBeCreated.BilletTitle.Where( p => p.HasRatingTask.Contains( item.RowId ) ).ToList();
-							item.HasBillet.AddRange( results.Select( p => p.RowId ) );
+							item.HasBilletTitle.AddRange( results.Select( p => p.RowId ) );
 						}
 						item.CreatedById = item.LastUpdatedById = user.Id;
 						mgr.Save( item, ref summary );
@@ -1176,6 +1178,21 @@ namespace Services
 			}
 
 			//copy messages
+
+			//duration
+			saveDuration = DateTime.Now.Subtract( saveStarted );
+			summary.Messages.Note.Add( string.Format( "Save Duration: {0:N2} seconds ", saveDuration.TotalSeconds ) );
+
+			sa = new SiteActivity()
+			{
+				ActivityType = "RMTL",
+				Activity = "Upload",
+				Event = "Processing Completed",
+				Comment = String.Format( "A bulk upload was completed by: '{0}' for Rating: '{1}'. Duration: {2:N2} seconds .", user.FullName(), summary.Rating ?? "", saveDuration.TotalSeconds ),
+				ActionByUserId = user.Id,
+				ActionByUser = user.FullName()
+			};
+			new ActivityServices().AddActivity( sa );
 		}
         //
 
@@ -1216,19 +1233,29 @@ namespace Services
 				var nonMatchingCodes = nonMatchingRows.Select( m => m.Rating_CodedNotation ).Distinct().ToList();
 				foreach( var code in nonMatchingCodes )
 				{
-					summary.Messages.Warning.Add( "Detected " + nonMatchingRows.Where(m => m.Rating_CodedNotation == code).Count() + " rows that did not match the selected Rating (" + currentRating.CodedNotation + ") and instead were for Rating: \"" + code + "\". These rows have been ignored.");
+					if ( !string.IsNullOrWhiteSpace( code ) )
+					{
+						summary.Messages.Warning.Add( "Detected " + nonMatchingRows.Where( m => m.Rating_CodedNotation == code ).Count() + " rows that did not match the selected Rating (" + currentRating.CodedNotation + ") and instead were for Rating: \"" + code + "\". These rows have been ignored." );
+					}
 				}
 			}
-
+			//extra check after matching check - if there is only one header row, willfail
+			if ( uploadedData.Rows.Count == 0 )
+			{
+				summary.Messages.Error.Add( "Error: No rows were found to process after doing a match on Rating. This can occur if there is only one header row. The system expects two header rows. OR if the Rating selected from the interface is different from the Rating in the uploaded file." );
+				return summary;
+			}
+			DateTime saveStarted = DateTime.Now;
+			var saveDuration = new TimeSpan();
 
 			LoggingHelper.DoTrace( 6, string.Format( "Rating: {0}, Tasks: {1}, User: {2}", currentRating.CodedNotation, uploadedData.Rows.Count(), user.FullName() ) );
 			summary.Rating = currentRating.CodedNotation;
 			SiteActivity sa = new SiteActivity()
 			{
-				ActivityType = "RatingTask",
+				ActivityType = "RMTL",
 				Activity = "Upload",
-				Event = "Processing",
-				Comment = String.Format( "A bulk upload was initiated by: '{0}' for Rating: '{1}'.", user.FullName(), currentRating.CodedNotation ),
+				Event = "Reviewing",
+				Comment = String.Format( "A bulk upload was initiated by: '{0}' for Rating: '{1}', Rows: {2}.", user.FullName(), currentRating.CodedNotation, uploadedData.Rows.Count ),
 				ActionByUserId = user.Id,
 				ActionByUser = user.FullName()
 			};
@@ -1334,6 +1361,8 @@ namespace Services
 			).ToList();
 			debug[ latestStepFlag ] = "Cleaned up summary Lookup Graph";
 
+			saveDuration = DateTime.Now.Subtract( saveStarted );
+			summary.Messages.Note.Add( string.Format( "Duration: {0:N2} seconds ", saveDuration.TotalSeconds ) );
 			return summary;
 		}
 		//
@@ -1660,7 +1689,7 @@ namespace Services
 				matcher.Flattened.CodedNotation = matcher.Rows.Select( m => m.Course_CodedNotation ).FirstOrDefault();
 				//
 				matcher.Flattened.HasReferenceResource_Name = matcher.Rows.Select( m => m.Course_HasReferenceResource_Name ).FirstOrDefault();
-				matcher.Flattened.CourseType_Name = matcher.Rows.Select( m => m.Course_CourseType_Name ).FirstOrDefault();
+				matcher.Flattened.CourseType_Name = matcher.Rows.Select( m => m.Course_CourseType_Name ).Distinct().ToList();
 				matcher.Flattened.CurriculumControlAuthority_Name = matcher.Rows.Select( m => m.Course_CurriculumControlAuthority_Name ).Distinct().ToList();
 				matcher.Flattened.HasTrainingTask_Description = matcher.Rows.Select( m => m.TrainingTask_Description ).Distinct().ToList();
 				matcher.Flattened.AssessmentMethodType_Name = matcher.Rows.Select( m => m.Course_AssessmentMethodType_Name ).Distinct().ToList();
@@ -1674,7 +1703,7 @@ namespace Services
 			foreach( var matcher in existingCourseMatchers )
 			{
 				matcher.Flattened.HasReferenceResource_Name = existingReferenceResources.Where( m => matcher.Data.HasReferenceResource == m.RowId ).Select( m => m.Name ).FirstOrDefault();
-				matcher.Flattened.CourseType_Name = courseTypeConcepts.Where( m => matcher.Data.CourseType == m.RowId ).Select( m => m.Name ).FirstOrDefault();
+				matcher.Flattened.CourseType_Name = courseTypeConcepts.Where( m => matcher.Data.CourseType.Contains( m.RowId ) ).Select( m => m.Name ).ToList();
 				matcher.Flattened.CurriculumControlAuthority_Name = existingOrganizations.Where( m => matcher.Data.CurriculumControlAuthority.Contains( m.RowId ) ).Select( m => m.Name ).ToList();
 				matcher.Flattened.HasTrainingTask_Description = existingTrainingTasks.Where( m => matcher.Data.HasTrainingTask.Contains( m.RowId ) ).Select( m => m.Description ).ToList();
 				matcher.Flattened.AssessmentMethodType_Name = assessmentMethodTypeConcepts.Where( m => matcher.Data.AssessmentMethodType.Contains( m.RowId ) ).Select( m => m.Name ).ToList();
@@ -1755,7 +1784,7 @@ namespace Services
 					m.Name = item.Flattened.Name;
 					m.CodedNotation = item.Flattened.CodedNotation;
 					m.HasReferenceResource = existingReferenceResources.Concat( summary.ItemsToBeCreated.ReferenceResource ).Where( n => item.Flattened.HasReferenceResource_Name == n.Name ).Select( n => n.RowId ).FirstOrDefault();
-					m.CourseType = courseTypeConcepts.Where( n => item.Flattened.CourseType_Name == n.Name ).Select( n => n.RowId ).FirstOrDefault();
+					m.CourseType = courseTypeConcepts.Where( n => item.Flattened.CourseType_Name.Contains( n.Name ) ).Select( n => n.RowId ).ToList();
 					m.CurriculumControlAuthority = existingOrganizations.Concat( summary.ItemsToBeCreated.Organization ).Where( n => item.Flattened.CurriculumControlAuthority_Name.Contains( n.Name ) ).Select( n => n.RowId ).ToList();
 					m.HasTrainingTask = existingTrainingTasks.Concat( summary.ItemsToBeCreated.TrainingTask ).Where( n => item.Flattened.HasTrainingTask_Description.Contains( n.Description ) ).Select( n => n.RowId ).ToList();
 					m.AssessmentMethodType = assessmentMethodTypeConcepts.Where( n => item.Flattened.AssessmentMethodType_Name.Contains( n.Name ) ).Select( n => n.RowId ).ToList();
@@ -1920,7 +1949,7 @@ namespace Services
 					m.CodedNotation = item.Flattened.HasCodedNotation;
 					m.Identifier = item.Flattened.Identifier;
 					//???
-					m.HasBillet = item.Flattened.HasBillet;
+					m.HasBilletTitle = item.Flattened.HasBilletTitle;
 					m.ApplicabilityType = FindConceptOrError( applicabilityTypeConcepts, new Concept() { Name = item.Flattened.ApplicabilityType_Name }, "Applicability Type", item.Flattened.ApplicabilityType_Name, summary.Messages.Error ).RowId;
 					m.TrainingGapType = FindConceptOrError( trainingGapTypeConcepts, new Concept() { Name = item.Flattened.TrainingGapType_Name }, "Training Gap Type", item.Flattened.TrainingGapType_Name, summary.Messages.Error ).RowId;
 					m.PayGradeType = FindConceptOrError( payGradeTypeConcepts, new Concept() { CodedNotation = item.Flattened.PayGradeType_CodedNotation }, "Pay Grade Type", item.Flattened.PayGradeType_CodedNotation, summary.Messages.Error ).RowId;

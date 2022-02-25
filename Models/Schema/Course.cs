@@ -11,7 +11,7 @@ namespace Models.Schema
 			CurriculumControlAuthority = new List<Guid>();
 			HasTrainingTask = new List<Guid>();
 			AssessmentMethodType = new List<Guid>();
-			CourseTypes = new List<Guid>();
+			CourseType = new List<Guid>();
 		}
 
 		/// <summary>
@@ -46,12 +46,10 @@ namespace Models.Schema
 		public Guid HasReferenceResource { get; set; }
 
 		/// <summary>
-		/// GUID for the Concept for the Course Type for this Course<br />
+		/// List of GUIDs for the Concept for the Course Type(s) for this Course<br />
 		/// From Column: Course Type (A/C/G/F/T)
 		/// </summary>
-		public Guid CourseType { get; set; }
-		//TBD must be a list
-		public List<Guid> CourseTypes { get; set; }
+		public List<Guid> CourseType { get; set; }
 		/// <summary>
 		/// GUID for the Concept for the Assessment Method Type for this Course<br />
 		/// From Column: Current Assessment Approach
@@ -73,6 +71,22 @@ namespace Models.Schema
 		public int LifeCycleControlDocumentId { get; set; }
 
 	}
+	//
+
+	public class CourseDTO : Course
+	{
+		/// <summary>
+		/// List of Training Task RowIds to add to this Course
+		/// </summary>
+		public List<Guid> HasTrainingTask_Add { get; set; } = new List<Guid>();
+
+		/// <summary>
+		/// List of Training Task RowIds to remove from this Course
+		/// </summary>
+		public List<Guid> HasTrainingTask_Remove { get; set; } = new List<Guid>();
+	}
+	//
+
 	public class CourseFull : Course
 	{
 		//this can be plural (pipe separated)
@@ -88,4 +102,5 @@ namespace Models.Schema
 		//public string LifeCycleControlDocument { get; set; }
 		//public int LifeCycleControlDocumentId { get; set; }
 	}
+	//
 }

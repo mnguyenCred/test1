@@ -15,6 +15,7 @@ using ViewContext = Data.Views.ceNavyViewEntities;
 using Data.Tables;
 using Models.Application;
 using Navy.Utilities;
+using Models.Search;
 
 namespace Factories
 {
@@ -419,6 +420,58 @@ namespace Factories
             }
             return list;
         }
+        public static List<AppEntity> Search( SearchQuery query )
+        {
+            var entity = new AppEntity();
+            var output = new List<AppEntity>();
+            var skip = 0;
+            if ( query.PageNumber > 1 )
+                skip = ( query.PageNumber - 1 ) * query.PageSize;
+            var filter = GetSearchFilterText( query );
+           
+            try
+            {
+                using ( var context = new DataEntities() )
+                {
+                    var list = from Results in context.Course
+                               select Results;
+                    if ( !string.IsNullOrWhiteSpace( filter ) )
+                    {
+                        list = from Results in list
+                                .Where( s =>
+                                ( s.Name.ToLower().Contains( filter.ToLower() ) ) ||
+                                ( s.CodedNotation.ToLower() == filter.ToLower() )
+                                )
+                               select Results;
+                    }
+                    query.TotalResults = list.Count();
+                    //sort order not handled
+                    list = list.OrderBy( p => p.Name );
+
+                    //
+                    var results = list.Skip( skip ).Take( query.PageSize )
+                        .ToList();
+                    if ( results?.Count > 0 )
+                    {
+                        foreach ( var item in results )
+                        {
+                            if ( item != null && item.Id > 0 )
+                            {
+                                entity = new AppEntity();
+                                MapFromDB( item, entity );
+                                output.Add( ( entity ) );
+                            }
+                        }
+                    }
+
+                }
+            }
+            catch ( Exception ex )
+            {
+
+            }
+            return output;
+        }
         public static void MapFromDB( DBEntity input, AppEntity output, bool includingTrainingTasks = false )
         {
             //should include list of concepts
@@ -442,16 +495,14 @@ namespace Factories
             //
             if ( input.Course_CourseType?.Count > 0 )
             {
-                output.CourseTypes = new List<Guid>();
+                output.CourseType = new List<Guid>();
                 int cntr = 0;
                 foreach ( var item in input.Course_CourseType )
                 {
                     cntr++;
                     if ( item != null && item.ConceptScheme_Concept != null )
                     {
-                        output.CourseTypes.Add( item.ConceptScheme_Concept.RowId );
-                        if ( cntr == 1 )
-                            output.CourseType = item.ConceptScheme_Concept.RowId;
+                        output.CourseType.Add( item.ConceptScheme_Concept.RowId );
                         output.CourseTypeList.Add( item.ConceptScheme_Concept.Name );
                     }
                 }
@@ -520,16 +571,9 @@ namespace Factories
 
                 //22-01-24 - CCA is confirmed to be a single
                 //CurriculumControlAuthorityUpdate( input, ref status );
-                //TBD
-                if (IsValidGuid(input.CourseType))
-                {
-                    if ( input.CourseTypes == null)
-                        input.CourseTypes = new List<Guid>();
-                    input.CourseTypes.Add( input.CourseType );
-                }
                 //CourseConceptSave( input, ConceptSchemeManager.ConceptScheme_CourseType, input.CourseTypes, "CourseType", ref status );
                 //CourseConceptSave( input, ConceptSchemeManager.ConceptScheme_CurrentAssessmentApproach, input.AssessmentMethodType, "AssessmentMethodType", ref status );
-                CourseTypeSave( input, input.CourseTypes, ref status );
+                CourseTypeSave( input, input.CourseType, ref status );
                 CourseAssessmentMethodSave( input, input.AssessmentMethodType, ref status );
 
 
@@ -577,7 +621,7 @@ namespace Factories
                             {
                                 if ( !concepts.Contains( ( Guid ) key ) )
                                 {
-                                    DeleteCourseAssessmentType( input.Id, e.Id, ref status );
+                                    //DeleteCourseAssessmentType( input.Id, e.Id, ref status );
                                 }
                             }
                         }
@@ -859,130 +903,6 @@ namespace Factories
                 if ( efEntity != null && efEntity.Id > 0 )
                 {
                     context.Course_CourseType.Remove( efEntity );
-                    int count = context.SaveChanges();
-                    if ( count > 0 )
-                    {
-                        isValid = true;
-                    }
-                }
-                else
-                {
-                    //statusMessage = "Warning - the record was not found - probably because the target had been previously deleted";
-                    isValid = true;
-                }
-            }
-
-            return isValid;
-        }
-
-        #endregion
-
-
-        #region Course-Org
-        public bool CurriculumControlAuthorityUpdate( AppEntity input, ref ChangeSummary status )
-        {
-            status.HasSectionErrors = false;
-            var efEntity = new Data.Tables.Course_Organization();
-            var entityType = "Course_Organization";
-            using ( var context = new DataEntities() )
-            {
-                try
-                {
-                    if ( input.CurriculumControlAuthority?.Count == 0 )
-                        input.CurriculumControlAuthority = new List<Guid>();
-                    var results =
-                                    from entity in context.Course_Organization
-                                    join org in context.Organization
-                                    on entity.OrganizationId  equals org.Id
-                                    where entity.CourseId == input.Id
-
-                                    select org;
-                    var existing = results?.ToList();
-                    #region deletes check
-                    if ( existing.Any() )
-                    {
-                        //if exists not in input, delete it
-                        foreach ( var e in existing )
-                        {
-                            var key = e.RowId;
-                            if ( IsValidGuid( key ) )
-                            {
-                                //issue one row could refer to one org and another row a different org - results in deleting the first one. 
-                                //also would be useful to 'know' if these were all part of the same rating upload
-                                status.AddWarning( String.Format( thisClassName + ".CurriculumControlAuthorityUpdate. Warning: the org: '{0}' was included with this course (for one or more rows) and could have been deleted (but deletes are not enabled at this time. ", e.Name) );
-                                if ( !input.CurriculumControlAuthority.Contains( ( Guid ) key ) )
-                                {
-                                    //could log that a different org was found
-                                    //DeleteCourseOrganization( input.Id, e.Id, ref status );
-                                }
-                            }
-                        }
-                    }
-                    #endregion
-                    //adds
-                    if ( input.CurriculumControlAuthority != null )
-                    {
-                        foreach ( var child in input.CurriculumControlAuthority )
-                        {
-                            //if not in existing, then add
-                            bool doingAdd = true;
-                            if ( existing?.Count > 0 )
-                            {
-                                var isfound = existing.Select( s => s.RowId == child ).ToList();
-                                if ( isfound.Any() )
-                                    doingAdd = false;
-                            }
-                            if ( doingAdd ) 
-                            {
-                                var org = OrganizationManager.Get( child );
-                                if ( org?.Id > 0 )
-                                {
-                                    //ReferenceConceptAdd( input, concept.Id, input.LastUpdatedById, ref status );
-                                    efEntity.CourseId = input.Id;
-                                    efEntity.OrganizationId = org.Id;
-                                    efEntity.RowId = Guid.NewGuid();
-                                    efEntity.CreatedById = input.LastUpdatedById;
-                                    efEntity.Created = DateTime.Now;
-
-                                    context.Course_Organization.Add( efEntity );
-
-                                    // submit the change to database
-                                    int count = context.SaveChanges();
-                                }
-                                else
-                                {
-                                    status.AddError( String.Format( "Error. For Course: '{0}' ({1}) a Course CurriculumControlAuthority was not found for Identifier: {2}", input.Name, input.Id, child ) );
-                                }
-                            }
-                        }
-                    }
-                }
-                catch ( Exception ex )
-                {
-                    string message = FormatExceptions( ex );
-                    LoggingHelper.LogError( ex, thisClassName + string.Format( ".CurriculumControlAuthorityUpdate-'{0}', RatingTask: '{1}' ({2})", entityType, input.Name, input.Id ) );
-                    status.AddError( thisClassName + ".CurriculumControlAuthorityUpdate(). Error - the save was not successful. \r\n" + message );
-                }
-            }
-            return false;
-        }
-        public bool DeleteCourseOrganization( int courseId, int conceptId, ref ChangeSummary status )
-        {
-            bool isValid = false;
-            if ( conceptId == 0 )
-            {
-                //statusMessage = "Error - missing an identifier for the CourseConcept to remove";
-                return false;
-            }
-
-            using ( var context = new DataEntities() )
-            {
-                var efEntity = context.Course_Organization
-                                .FirstOrDefault( s => s.CourseId == courseId && s.OrganizationId == conceptId );
-
-                if ( efEntity != null && efEntity.Id > 0 )
-                {
-                    context.Course_Organization.Remove( efEntity );
                     int count = context.SaveChanges();
                     if ( count > 0 )
                     {

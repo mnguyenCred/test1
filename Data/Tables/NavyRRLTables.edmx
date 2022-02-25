@@ -1737,10 +1737,6 @@
             <End Role="Job" EntitySet="Job" />
           </AssociationSet>
           <EntitySet Name="RatingTask_WorkRole" EntityType="NavyRRLModel.RatingTask_WorkRole" />
-          <AssociationSet Name="FK_RatingTask_WorkRole_RatingTask" Association="NavyRRLModel.FK_RatingTask_WorkRole_RatingTask">
-            <End Role="RatingTask" EntitySet="RatingTask" />
-            <End Role="RatingTask_WorkRole" EntitySet="RatingTask_WorkRole" />
-          </AssociationSet>
 
           <EntitySet Name="RmtlProject_BilletTask" EntityType="NavyRRLModel.RmtlProject_BilletTask" />
           <AssociationSet Name="FK_RmtlProject_BilletTask_RatingTask" Association="NavyRRLModel.FK_RmtlProject_BilletTask_RatingTask">
@@ -1788,6 +1784,10 @@
           <AssociationSet Name="FK_Course_Organization" Association="NavyRRLModel.FK_Course_Organization">
             <End Role="Organization" EntitySet="Organization" />
             <End Role="Course" EntitySet="Course" />
+          </AssociationSet>
+          <AssociationSet Name="FK_RatingTask_WorkRole_RatingTask" Association="NavyRRLModel.FK_RatingTask_WorkRole_RatingTask">
+            <End Role="RatingTask" EntitySet="RatingTask" />
+            <End Role="RatingTask_WorkRole" EntitySet="RatingTask_WorkRole" />
           </AssociationSet>
         </EntityContainer>
         <EntityType Name="AspNetUserRoles">
@@ -1901,7 +1901,8 @@
 
           <NavigationProperty Name="RmtlProject_BilletTask" Relationship="NavyRRLModel.FK_RmtlProject_BilletTask_RatingTask" FromRole="RatingTask" ToRole="RmtlProject_BilletTask" />
           <NavigationProperty Name="ConceptScheme_WorkElementType" Relationship="NavyRRLModel.FK_RatingTask_ConceptWorkElelment" FromRole="RatingTask" ToRole="ConceptScheme_Concept" />
-          <NavigationProperty Name="ReferenceResource1" Relationship="NavyRRLModel.FK_RatingTask_ReferenceResource1" FromRole="RatingTask" ToRole="ReferenceResource" />
+          <NavigationProperty Name="ToReferenceResource" Relationship="NavyRRLModel.FK_RatingTask_ReferenceResource1" FromRole="RatingTask" ToRole="ReferenceResource" />
+          <NavigationProperty Name="RatingTask_WorkRole" Relationship="NavyRRLModel.FK_RatingTask_WorkRole_RatingTask" FromRole="RatingTask" ToRole="RatingTask_WorkRole" />
         </EntityType>
         <EntityType Name="RatingTask_HasRating">
           <Key>
@@ -2092,7 +2093,7 @@
           <Property Name="ReferenceTypeId" Type="Int32" />
 
           <NavigationProperty Name="Course" Relationship="NavyRRLModel.FK_CourseLCCD_ReferenceResource" FromRole="ReferenceResource" ToRole="Course" />
-          <NavigationProperty Name="RatingTask1" Relationship="NavyRRLModel.FK_RatingTask_ReferenceResource1" FromRole="ReferenceResource" ToRole="RatingTask" />
+          <NavigationProperty Name="FromRatingTask" Relationship="NavyRRLModel.FK_RatingTask_ReferenceResource1" FromRole="ReferenceResource" ToRole="RatingTask" />
         </EntityType>
         <EntityType Name="ReferenceResource_ReferenceType">
           <Key>
@@ -2300,24 +2301,10 @@
           <Property Name="RatingTaskId" Type="Int32" Nullable="false" />
           <Property Name="Created" Type="DateTime" Nullable="false" Precision="3" />
           <Property Name="CreatedById" Type="Int32" />
-          <NavigationProperty Name="RatingTask" Relationship="NavyRRLModel.FK_RatingTask_WorkRole_RatingTask" FromRole="RatingTask_WorkRole" ToRole="RatingTask" />
           <Property Name="WorkRoleId" Type="Int32" Nullable="false" />
           <NavigationProperty Name="WorkRole1" Relationship="NavyRRLModel.FK_RatingTask_WorkRole_WorkRole1" FromRole="RatingTask_WorkRole" ToRole="WorkRole" />
+          <NavigationProperty Name="RatingTask" Relationship="NavyRRLModel.FK_RatingTask_WorkRole_RatingTask" FromRole="RatingTask_WorkRole" ToRole="RatingTask" />
         </EntityType>
-        <Association Name="FK_RatingTask_WorkRole_RatingTask">
-          <End Type="NavyRRLModel.RatingTask" Role="RatingTask" Multiplicity="1">
-            <OnDelete Action="Cascade" />
-          </End>
-          <End Type="NavyRRLModel.RatingTask_WorkRole" Role="RatingTask_WorkRole" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="RatingTask">
-              <PropertyRef Name="Id" />
-            </Principal>
-            <Dependent Role="RatingTask_WorkRole">
-              <PropertyRef Name="RatingTaskId" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
 
         <EntityType Name="RmtlProject_BilletTask">
           <Key>
@@ -2497,6 +2484,20 @@
             </Principal>
             <Dependent Role="Course">
               <PropertyRef Name="CurriculumControlAuthorityId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_RatingTask_WorkRole_RatingTask">
+          <End Type="NavyRRLModel.RatingTask" Role="RatingTask" Multiplicity="1">
+            <OnDelete Action="Cascade" />
+          </End>
+          <End Type="NavyRRLModel.RatingTask_WorkRole" Role="RatingTask_WorkRole" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="RatingTask">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="RatingTask_WorkRole">
+              <PropertyRef Name="RatingTaskId" />
             </Dependent>
           </ReferentialConstraint>
         </Association>

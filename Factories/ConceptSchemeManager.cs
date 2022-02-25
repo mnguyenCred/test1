@@ -15,6 +15,7 @@ using DataEntities = Data.Tables.NavyRRLEntities;
 using ViewContext = Data.Views.ceNavyViewEntities;
 using Data.Tables;
 using Navy.Utilities;
+using Models.Search;
 
 namespace Factories
 {
@@ -248,7 +249,57 @@ namespace Factories
             }
             return list;
         }
+        public static List<AppEntity> Search( SearchQuery query )
+        {
+            var entity = new AppEntity();
+            var output = new List<AppEntity>();
+            var skip = 0;
+            if ( query.PageNumber > 1 )
+                skip = ( query.PageNumber - 1 ) * query.PageSize;
+            var filter = GetSearchFilterText( query );
 
+            try
+            {
+                using ( var context = new DataEntities() )
+                {
+                    var list = from Results in context.ConceptScheme
+                               select Results;
+                    if ( !string.IsNullOrWhiteSpace( filter ) )
+                    {
+                        list = from Results in list
+                                .Where( s =>
+                                ( s.Name.ToLower().Contains( filter.ToLower() ) )
+                                )
+                               select Results;
+                    }
+                    query.TotalResults = list.Count();
+                    //sort order not handled
+                    list = list.OrderBy( p => p.Name );
+
+                    //
+                    var results = list.Skip( skip ).Take( query.PageSize )
+                        .ToList();
+                    if ( results?.Count > 0 )
+                    {
+                        foreach ( var item in results )
+                        {
+                            if ( item != null && item.Id > 0 )
+                            {
+                                entity = new AppEntity();
+                                MapFromDB( item, entity );
+                                output.Add( ( entity ) );
+                            }
+                        }
+                    }
+
+                }
+            }
+            catch ( Exception ex )
+            {
+
+            }
+            return output;
+        }
         public static void MapFromDB( DBEntity input, AppEntity output, bool usingWorkElementTypeForName = false )
         {
             //should include list of concepts
@@ -585,7 +636,59 @@ namespace Factories
 
             return entity;
         }
+		public static List<Concept> SearchConcept( SearchQuery query )
+        {
+            var entity = new Concept();
+            var output = new List<Concept>();
+            var skip = 0;
+            if ( query.PageNumber > 1 )
+                skip = ( query.PageNumber - 1 ) * query.PageSize;
+            var filter = GetSearchFilterText( query );
 
+            try
+            {
+                using ( var context = new DataEntities() )
+                {
+                    var list = from Results in context.ConceptScheme_Concept
+                               select Results;
+                    if ( !string.IsNullOrWhiteSpace( filter ) )
+                    {
+                        list = from Results in list
+                                .Where( s =>
+                                ( s.Name.ToLower().Contains( filter.ToLower() ) ) ||
+                                ( s.CodedNotation.ToLower().Contains( filter.ToLower() ) ) ||
+                                ( s.WorkElementType.ToLower().Contains( filter.ToLower() ) )
+                                )
+                               select Results;
+                    }
+                    query.TotalResults = list.Count();
+                    //sort order not handled
+                    list = list.OrderBy( p => p.ConceptSchemeId ).ThenBy( s => s.Name);
+
+                    //
+                    var results = list.Skip( skip ).Take( query.PageSize )
+                        .ToList();
+                    if ( results?.Count > 0 )
+                    {
+                        foreach ( var item in results )
+                        {
+                            if ( item != null && item.Id > 0 )
+                            {
+                                entity = new Concept();
+                                MapFromDB( item, entity );
+                                output.Add( ( entity ) );
+                            }
+                        }
+                    }
+
+                }
+            }
+            catch ( Exception ex )
+            {
+
+            }
+            return output;
+        }
         public static void MapFromDB( ConceptScheme_Concept input, Concept output, bool usingWorkElementTypeForName = false )
         {
             List<string> errors = new List<string>();
@@ -599,6 +702,7 @@ namespace Factories
                 output.RowId = input.RowId;
             }
             output.ConceptSchemeId = (int)input.ConceptScheme?.Id;
+			output.InScheme = input.ConceptScheme != null ? input.ConceptScheme.RowId : Guid.Empty;
             //if ( input != null && input.Id > 0 )
             //{
             //    output.Id = input.Id;

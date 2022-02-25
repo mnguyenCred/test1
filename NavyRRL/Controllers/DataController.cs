@@ -14,7 +14,7 @@ using System.Threading.Tasks;
 
 namespace NavyRRL.Controllers
 {
-    public class DataController : Controller
+    public class DataController : BaseController
     {
 
         public bool HasAuthorization()
@@ -78,6 +78,8 @@ namespace NavyRRL.Controllers
             return View();
         }
 
+
+        #region  Functional Area
         [CustomAttributes.NavyAuthorize( "ManageFunctionalArea", Roles = "Administrator, Site Staff" )]
         public ActionResult ManageFunctionalArea()
         {
@@ -104,12 +106,29 @@ namespace NavyRRL.Controllers
             var result = new RatingTaskServices().SaveFunctionalArea( workRole, ref status );
 
             return Json( new { status = "Success" } );
+            //versus
+            //return JsonHelper.GetJsonWithWrapper( data, valid, status, null );
         }
-
+        [HttpPost]
+        public ActionResult SaveFunctionalArea2( WorkRole input )
+        {
+            bool valid = true;
+            string returnStatus = "";
+            ChangeSummary status = new ChangeSummary();
+            var result = new RatingTaskServices().SaveFunctionalArea( input, ref status );
+            if (status.HasAnyErrors )
+            {
+                returnStatus = String.Join( "; ", status.Messages.Error.ToArray() );
+            }
+            return JsonResponse( null, valid, new List<string>() { returnStatus }, null );
+        }
         public ActionResult DeleteFunctionalArea( string recordId )
         {
             List<WorkRole> input = RatingTaskServices.GetAllFunctionalAreas();
             return View( input );
         }
+
+
+        #endregion
     }
 }

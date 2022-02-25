@@ -23,7 +23,6 @@ namespace Models.Schema
 		/// From Column: TBD
 		/// </summary>
 		public string CodedNotation { get; set; }
-		public string Identifier { get; set; }
 		/// <summary>
 		/// May or may not belong on Rating Task (might belong in RMTL Project data instead?)<br />
 		/// From Column: Notes
@@ -89,17 +88,61 @@ namespace Models.Schema
 		public Guid TrainingGapType { get; set; }
 
 
+		public string Identifier { get; set; }
 
 		//Embedded data
 		//Consider moving these to a separate class so they don't result in a lot of extra data being sent between client and server
-		public List<Guid> HasBillet { get; set; } = new List<Guid>();
+		public List<string> RatingTitles { get; set; } = new List<string>();
+		public List<Guid> HasBilletTitle { get; set; } = new List<Guid>();
+		public List<string> BilletTitles { get; set; } = new List<string>();
+		public Concept TaskPaygrade { get; set; } = new Concept();
+		public ReferenceResource ReferenceResource { get; set; } = new ReferenceResource();
 		public Concept TaskApplicabilityType { get; set; } = new Concept();
 		public Concept TaskTrainingGap { get; set; } = new Concept();
+		public Concept TaskReferenceType { get; set; } = new Concept();
 	}
+	//
+
+	public class RatingTaskDTO : RatingTask
+	{
+		/// <summary>
+		/// List of Rating RowIds to add to this Rating Task
+		/// </summary>
+		public List<Guid> HasRating_Add { get; set; } = new List<Guid>();
+
+		/// <summary>
+		/// List of Rating RowIds to remove from this Rating Task
+		/// </summary>
+		public List<Guid> HasRating_Remove { get; set; } = new List<Guid>();
+
+		/// <summary>
+		/// List of Billet Title RowIds to add to this Rating Task
+		/// </summary>
+		public List<Guid> HasBilletTitle_Add { get; set; } = new List<Guid>();
+
+		/// <summary>
+		/// List of Billet Title RowIds to remove from this Rating Task
+		/// </summary>
+		public List<Guid> HasBilletTitle_Remove { get; set; } = new List<Guid>();
+
+		/// <summary>
+		/// List of Work Role RowIds to add to this Rating Task
+		/// </summary>
+		public List<Guid> HasWorkRole_Add { get; set; } = new List<Guid>();
+
+		/// <summary>
+		/// List of Work Role RowIds to remove from this Rating Task
+		/// </summary>
+		public List<Guid> HasWorkRole_Remove { get; set; } = new List<Guid>();
+	}
+	//
+
 	public class RatingTaskFull : RatingTask
 	{
 
 	}
+	//
+
 	public class RatingTaskSummary : RatingTask
 	{
 		//These are likely redundant now - see Models.Curation.UploadableTable (in Models.Curation.UploadableData.cs)
@@ -119,6 +162,7 @@ namespace Models.Schema
 		public string SourceDate { get; set; }
 		public string TaskApplicability { get; set; }
 		public string WorkElementType { get; set; }
+		public string WorkElementTypeAlternateName { get; set; }
 
 		//Course Related
 		public string CIN { get; set; }
@@ -130,4 +174,5 @@ namespace Models.Schema
 		public string LifeCycleControlDocument { get; set; }
 		public string Notes { get; set; }
 	}
+	//
 }

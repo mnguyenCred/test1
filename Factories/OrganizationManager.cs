@@ -10,6 +10,8 @@ using Navy.Utilities;
 using AppEntity = Models.Schema.Organization;
 using DataEntities = Data.Tables.NavyRRLEntities;
 using DBEntity = Data.Tables.Organization;
+using Models.Search;
+
 namespace Factories
 {
     public class OrganizationManager : BaseFactory
@@ -332,6 +334,59 @@ namespace Factories
             }
             return list;
         }
+
+        public static List<AppEntity> Search( SearchQuery query )
+        {
+            var entity = new AppEntity();
+            var output = new List<AppEntity>();
+            var skip = 0;
+            if ( query.PageNumber > 1 )
+                skip = ( query.PageNumber - 1 ) * query.PageSize;
+            var filter = GetSearchFilterText( query );
+            try
+            {
+                using ( var context = new DataEntities() )
+                {
+                    var list = from Results in context.Organization
+                               select Results;
+                    if ( !string.IsNullOrWhiteSpace( filter ) )
+                    {
+                        list = from Results in list
+                                .Where( s => 
+                                ( s.Name.ToLower().Contains( filter.ToLower() ) ) ||
+                                ( s.AlternateName.ToLower() == filter.ToLower() )
+                                )
+                               select Results;
+                    }
+                    query.TotalResults = list.Count();
+                    //sort order not handled
+                    list = list.OrderBy( p => p.Name );
+
+                    //
+                    var results = list.Skip( skip ).Take( query.PageSize )
+                        .ToList();
+                    if ( results?.Count > 0 )
+                    {
+                        foreach ( var item in results )
+                        {
+                            if ( item != null && item.Id > 0 )
+                            {
+                                entity = new AppEntity();
+                                MapFromDB( item, entity );
+                                output.Add( ( entity ) );
+                            }
+                        }
+                    }
+
+                }
+            }
+            catch ( Exception ex )
+            {
+
+            }
+            return output;
+        }
+
         public static List<AppEntity> CheckCache()
         {
             var cache = new CachedObjects();

@@ -56,5 +56,12 @@ namespace Models.Schema
 		/// GUID for the User that currently owns this RMTL Project (to facilitate ownership transfers)
 		/// </summary>
 		public Guid OwnedBy { get; set; }
+
+		public int RatingId { get; set; }
 	}
+
+	public class RMTLProjectSummary : RMTLProject
+    {
+
+    }
 }

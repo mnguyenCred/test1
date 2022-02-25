@@ -13,11 +13,11 @@ using Newtonsoft.Json.Linq;
 
 namespace Services
 {
-    public class SearchServices
-    {
+	public class SearchServices
+	{
 		public static string thisClassName = "SearchServices";
 
-		
+
 		/// <summary>
 		/// 
 		/// </summary>
@@ -26,18 +26,18 @@ namespace Services
 		/// <param name="status">Caller will likely ignore unless there are no results</param>
 		/// <param name="debug"></param>
 		/// <returns></returns>
-		public SearchResultSet<ResultWithExtraData<UploadableRow>> MainSearch( SearchQuery query, ref bool valid, ref string status, JObject debug = null )
+		public SearchResultSet<ResultWithExtraData<UploadableRow>> RMTLSearch( SearchQuery query, ref bool valid, ref string status, JObject debug = null )
 		{
 			debug = debug ?? new JObject();
-			LoggingHelper.DoTrace( 6, thisClassName + ".MainSearch - entered" );
+			LoggingHelper.DoTrace( 6, thisClassName + ".RMTLSearch - entered" );
 
 			//Normalize the query
 			NormalizeQuery( query, "RatingTask" );
 
 			//Do the search
 			var totalResults = 0;
-			LoggingHelper.DoTrace( 7, thisClassName + ".MainSearch. Calling: " + query.SearchType );
-			var results = RatingTaskServices.Search( query, ref totalResults );
+			LoggingHelper.DoTrace( 7, thisClassName + ".RMTLSearch. Calling: " + query.SearchType );
+			var results = RatingTaskServices.RMTLSearch( query, ref totalResults );
 
 			//Convert the results
 			var output = new SearchResultSet<ResultWithExtraData<UploadableRow>>() { TotalResults = totalResults, SearchType = query.SearchType };
@@ -54,7 +54,7 @@ namespace Services
 						WorkRole_Name = item.FunctionalArea,
 						ReferenceResource_Name = item.ReferenceResource,
 						ReferenceResource_PublicationDate = item.SourceDate,
-						Shared_ReferenceType = item.WorkElementType,
+						Shared_ReferenceType = item.WorkElementTypeAlternateName,
 						RatingTask_Description = item.Description,
 						RatingTask_ApplicabilityType_Name = item.TaskApplicability,
 						RatingTask_TrainingGapType_Name = item.FormalTrainingGap,
@@ -72,6 +72,7 @@ namespace Services
 						{ "ResultNumber", item.ResultNumber },
 						{ "RecordId", item.Id },
 						{ "CTID", item.CTID },
+						{ "RowId", item.RowId.ToString() },
 						{ "Created", item.Created.ToShortDateString() },
 						{ "LastUpdated", item.LastUpdated.ToShortDateString() },
 					}
@@ -83,40 +84,106 @@ namespace Services
 		}
 		//
 
-
-		public SearchResultSet<ResultWithExtraData<Course>> CourseSearch( SearchQuery query, ref bool valid, ref string status, JObject debug = null )
+		public static SearchResultSet<T> GeneralSearch<T>( SearchQuery query, Func<SearchQuery, List<T>> searchMethod, JObject debug = null )
 		{
+			//Setup logging
 			debug = debug ?? new JObject();
-			LoggingHelper.DoTrace( 6, thisClassName + ".CourseSearch - entered" );
+			var searchType = typeof( T ).Name;
+			LoggingHelper.DoTrace( 6, thisClassName + "." + searchType + "Search - entered" );
 
 			//Normalize the query
-			NormalizeQuery( query, "Course" );
+			NormalizeQuery( query, searchType );
 
 			//Do the search
-			var totalResults = 0;
-			LoggingHelper.DoTrace( 7, thisClassName + ".CourseSearch. Calling: " + query.SearchType );
-			var results = new List<Course>();// CourseServices.Search( query, ref totalResults );
+			LoggingHelper.DoTrace( 7, thisClassName + "." + searchType + "Search. Calling: " + query.SearchType );
+			var results = searchMethod( query );
 
 			//Convert the results
-			var output = new SearchResultSet<ResultWithExtraData<Course>>() { TotalResults = totalResults, SearchType = query.SearchType };
-			foreach( var item in results )
-			{
-				output.Results.Add( new ResultWithExtraData<Course>()
-				{
-					Data = item, //Course?
-					Extra = new JObject()
-					{
-						//Extra properties
-					}
-				} );
-			}
+			var output = new SearchResultSet<T>() { Results = results, TotalResults = query.TotalResults, SearchType = searchType };
 
 			//Return the results
 			return output;
 		}
+
+		//Billet Title
+		public static SearchResultSet<BilletTitle> BilletTitleSearch( SearchQuery query, JObject debug = null )
+		{
+			return GeneralSearch( query, Factories.JobManager.Search, debug );
+		}
 		//
 
-		private void NormalizeQuery( SearchQuery query, string searchType, JObject debug = null )
+		//Concept
+		public static SearchResultSet<Concept> ConceptSearch( SearchQuery query, JObject debug = null )
+		{
+			return GeneralSearch( query, Factories.ConceptSchemeManager.SearchConcept, debug );
+		}
+		//
+
+		//ConceptScheme
+		public static SearchResultSet<ConceptScheme> ConceptSchemeSearch( SearchQuery query, JObject debug = null )
+		{
+			return GeneralSearch( query, Factories.ConceptSchemeManager.Search, debug );
+		}
+		//
+
+		//Course
+		public static SearchResultSet<Course> CourseSearch( SearchQuery query, JObject debug = null )
+		{
+			return GeneralSearch( query, Factories.CourseManager.Search, debug );
+		}
+		//
+
+		//Organization
+		public static SearchResultSet<Organization> OrganizationSearch( SearchQuery query, JObject debug = null )
+		{
+			return GeneralSearch( query, Factories.OrganizationManager.Search, debug );
+		}
+		//
+
+		//Rating
+		public static SearchResultSet<Rating> RatingSearch( SearchQuery query, JObject debug = null )
+		{
+			return GeneralSearch( query, Factories.RatingManager.Search, debug );
+		}
+		//
+
+		//RatingTask
+		public static SearchResultSet<RatingTask> RatingTaskSearch( SearchQuery query, JObject debug = null )
+		{
+			return GeneralSearch( query, Factories.RatingTaskManager.Search, debug );
+		}
+		//
+
+		//ReferenceResource
+		public static SearchResultSet<ReferenceResource> ReferenceResourceSearch( SearchQuery query, JObject debug = null )
+		{
+			return GeneralSearch( query, Factories.ReferenceResourceManager.Search, debug );
+		}
+		//
+
+		//RMTLProject
+		public static SearchResultSet<RMTLProject> RMTLProjectSearch( SearchQuery query, JObject debug = null )
+		{
+			//return GeneralSearch( query, Factories.RMTLProjectManager.Search, debug );
+			return new SearchResultSet<RMTLProject>() { Results = new List<RMTLProject>() { new RMTLProject() { Name = "Not implemented yet!" } } };
+		}
+		//
+
+		//TrainingTask
+		public static SearchResultSet<TrainingTask> TrainingTaskSearch( SearchQuery query, JObject debug = null )
+		{
+			return GeneralSearch( query, Factories.TrainingTaskManager.Search, debug );
+		}
+		//
+
+		//Work Role
+		public static SearchResultSet<WorkRole> WorkRoleSearch( SearchQuery query, JObject debug = null )
+		{
+			return GeneralSearch( query, Factories.WorkRoleManager.Search, debug );
+		}
+		//
+
+		private static void NormalizeQuery( SearchQuery query, string searchType, JObject debug = null )
 		{
 			//Sanitize Keywords
 			query.Keywords = SanitizeKeywordString( query.Keywords );
@@ -143,7 +210,7 @@ namespace Services
 		}
 		//
 
-		private string SanitizeKeywordString( string text )
+		private static string SanitizeKeywordString( string text )
 		{
 			var result = string.IsNullOrWhiteSpace( text ) ? "" : text;
 			result = ServiceHelper.CleanText( result );

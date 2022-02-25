@@ -19,6 +19,7 @@ using DBEntity = Data.Tables.RatingTask;
 
 using Navy.Utilities;
 using System.Runtime.Caching;
+using Models.Search;
 
 namespace Factories
 {
@@ -40,7 +41,7 @@ namespace Factories
         /// <param name="importEntity"></param>
         /// <param name="includingConcepts"></param>
         /// <returns></returns>
-        public static AppEntity Get( AppEntity importEntity )
+        public static AppEntity Get( AppEntity importEntity, string currentRatingCodedNotation )
         {
             var entity = new AppEntity();
             //will probably have to d
@@ -48,12 +49,12 @@ namespace Factories
             using ( var context = new ViewContext() )
             {
                 var item = new Data.Views.RatingTaskSummary();
-
+                //can't trust just coded notation, need to consider the current rating somewhere
                 if ( !string.IsNullOrWhiteSpace( importEntity.CodedNotation ) )
                 {
-                    item = context.RatingTaskSummary.FirstOrDefault( s => (s.CodedNotation ?? "").ToLower() == importEntity.CodedNotation.ToLower() );
+                    item = context.RatingTaskSummary.FirstOrDefault( s => (s.CodedNotation ?? "").ToLower() == importEntity.CodedNotation.ToLower() && s.Ratings.Contains( currentRatingCodedNotation ) );
                 }
-                else
+                if ( item == null || item.Id == 0 )
                 {
                     item = context.RatingTaskSummary
                                 .FirstOrDefault( s => s.PayGradeType == importEntity.PayGradeType
@@ -166,6 +167,59 @@ namespace Factories
             return list;
         }
 
+        public static List<AppEntity> Search( SearchQuery query )
+        {
+            var entity = new AppEntity();
+            var output = new List<AppEntity>();
+            var skip = 0;
+            if ( query.PageNumber > 1 )
+                skip = ( query.PageNumber - 1 ) * query.PageSize;
+            var filter = GetSearchFilterText( query );
+
+            try
+            {
+                using ( var context = new DataEntities() )
+                {
+                    var list = from Results in context.RatingTask
+                               select Results;
+                    if ( !string.IsNullOrWhiteSpace( filter ) )
+                    {
+                        list = from Results in list
+                                .Where( s =>
+                                ( s.Description.ToLower().Contains( filter.ToLower() ) ) ||
+                                ( s.CodedNotation.ToLower() == filter.ToLower() )
+                                )
+                               select Results;
+                    }
+                    query.TotalResults = list.Count();
+                    //sort order not handled
+                    list = list.OrderBy( p => p.Description );
+
+                    //
+                    var results = list.Skip( skip ).Take( query.PageSize )
+                        .ToList();
+                    if ( results?.Count > 0 )
+                    {
+                        foreach ( var item in results )
+                        {
+                            if ( item != null && item.Id > 0 )
+                            {
+                                entity = new AppEntity();
+                                MapFromDB( item, entity, true );
+                                output.Add( ( entity ) );
+                            }
+                        }
+                    }
+
+                }
+            }
+            catch ( Exception ex )
+            {
+
+            }
+            return output;
+        }
+
         public static List<AppEntity> GetAllForRating( string ratingCodedNotation, bool includingAllSailorsTasks, ref int totalRows )
         {
             int pageNumber = 1;
@@ -220,7 +274,7 @@ namespace Factories
                 template += ",'ALL'";
             }
             filter = string.Format( "base.id in (select a.[RatingTaskId] from [RatingTask.HasRating] a inner join Rating b on a.ratingId = b.Id where b.CodedNotation in ({0}) )", template );
-            var results = Search( filter, orderBy, pageNumber, pageSize, userId, ref totalRows );
+            var results = RMTLSearch( filter, orderBy, pageNumber, pageSize, userId, ref totalRows );
 
             //no clear difference between the convert and select?
             list = results.ConvertAll( m => new AppEntity() 
@@ -229,7 +283,7 @@ namespace Factories
                 RowId = m.RowId,
                 HasRating = m.HasRatings,      //not available-adding
                 PayGradeType = m.PayGradeType,
-                HasBillet = m.HasBilletTitles,
+                HasBilletTitle = m.HasBilletTitles,
                 HasWorkRole = m.HasWorkRole,
                 HasReferenceResource = m.HasReferenceResource,
                 ReferenceType = m.ReferenceType,
@@ -331,11 +385,11 @@ namespace Factories
 			string filter = String.Format( "base.id in (select a.[RatingTaskId] from [RatingTask.HasRating] a inner join Rating b on a.ratingId = b.Id where b.CodedNotation = '{0}' OR b.name = '{0}' )", keyword );
 
 
-			return Search( filter, orderBy, pageNumber, pageSize, userId, ref pTotalRows );
+			return RMTLSearch( filter, orderBy, pageNumber, pageSize, userId, ref pTotalRows );
 			
 		}
 
-		public static List<EntitySummary> Search( string pFilter, string pOrderBy, int pageNumber, int pageSize, int userId, ref int pTotalRows, bool autocomplete = false )
+		public static List<EntitySummary> RMTLSearch( string pFilter, string pOrderBy, int pageNumber, int pageSize, int userId, ref int pTotalRows, bool autocomplete = false )
 		{
 			string connectionString = DBConnectionRO();
 			EntitySummary item = new EntitySummary();
@@ -455,6 +509,7 @@ namespace Factories
                         item.HasReferenceResource = GetGuidType( dr, "HasReferenceResource" );
 						//
 						item.WorkElementType = dr["WorkElementType"].ToString();// GetRowPossibleColumn( dr, "WorkElementType", "" );
+                        item.WorkElementTypeAlternateName = dr["WorkElementTypeAlternateName"].ToString();
                         item.ReferenceType = GetGuidType( dr, "ReferenceType" );
 						//
 						item.TaskApplicability = dr["TaskApplicability"].ToString().Trim();// GetRowPossibleColumn( dr, "TaskApplicability", "" );
@@ -497,13 +552,56 @@ namespace Factories
 
             //output.Id = input.Id;
             //the status may have to specific to the project - task context?
-			//Yes, this would be specific to a project
+            //Yes, this would be specific to a project
             //output.StatusId = input.TaskStatusId ?? 1;
             //output.RowId = input.RowId;
 
-            //output.Description = input.WorkElementTask;
-            //
-            //output.TaskApplicabilityId = input.TaskApplicabilityId;
+            if (input.RatingTask_HasRating?.Count > 0)
+            {
+                foreach(var item in input.RatingTask_HasRating )
+                {
+                    if ( item.Rating?.RowId != null )
+                    {
+                        output.HasRating.Add( item.Rating.RowId );
+                        output.RatingTitles.Add( item.Rating.Name );
+                        //
+                    }
+                }
+            }
+            if ( input.RatingTask_HasJob?.Count > 0 )
+            {
+                foreach( var item in input.RatingTask_HasJob )
+                {
+                    if ( item.Job?.RowId != null )
+                    {
+                        output.HasBilletTitle.Add( item.Job.RowId );
+                        output.BilletTitles.Add( item.Job.Name );
+                    }
+                }
+            }
+            if ( input.RatingTask_WorkRole?.Count > 0 )
+            {
+                foreach ( var item in input.RatingTask_WorkRole )
+                {
+                    if ( item.WorkRole1?.RowId != null )
+                        output.HasWorkRole.Add( item.WorkRole1.RowId );
+                }
+            }
+            if ( input.RankId > 0 )
+            {
+                ConceptSchemeManager.MapFromDB( input.ConceptScheme_Rank, output.TaskPaygrade );
+                output.PayGradeType = ( output.TaskPaygrade )?.RowId ?? Guid.Empty;
+            }
+            if ( input.ReferenceResourceId > 0 )
+            {
+                ReferenceResourceManager.MapFromDB( input.ToReferenceResource, output.ReferenceResource );
+                output.HasReferenceResource = ( output.ReferenceResource )?.RowId ?? Guid.Empty;
+            }
+            if ( input.WorkElementTypeId > 0 )
+            {
+                ConceptSchemeManager.MapFromDB( input.ConceptScheme_WorkElementType, output.TaskReferenceType );
+                output.ReferenceType = ( output.TaskReferenceType )?.RowId ?? Guid.Empty;
+            }
             if ( input.TaskApplicabilityId > 0 )
             {
                 ConceptSchemeManager.MapFromDB( input.ConceptScheme_Applicability, output.TaskApplicabilityType );
@@ -538,7 +636,7 @@ namespace Factories
                     {
                         //need to identify for sure what is unique
                         //use codedNotation first if present
-                        var record = Get( input );
+                        var record = Get( input, status.Rating );
                         if ( record?.Id > 0 )
                         {
                             //
@@ -870,7 +968,7 @@ namespace Factories
                             {
                                 if ( !input.HasRating.Contains( ( Guid ) key ) )
                                 {
-                                    DeleteRatingTaskHasRating( input.Id, e.Id, ref status );
+                                    //DeleteRatingTaskHasRating( input.Id, e.Id, ref status );
                                 }
                             }
                         }
@@ -965,8 +1063,8 @@ namespace Factories
             {
                 try
                 {
-                    if ( input.HasBillet?.Count == 0 )
-                        input.HasBillet = new List<Guid>();
+                    if ( input.HasBilletTitle?.Count == 0 )
+                        input.HasBilletTitle = new List<Guid>();
                     var results =
                                     from entity in context.RatingTask_HasJob
                                     join related in context.Job
@@ -984,7 +1082,7 @@ namespace Factories
                             var key = e.RowId;
                             if ( IsValidGuid( key ) )
                             {
-                                if ( !input.HasBillet.Contains( ( Guid ) key ) )
+                                if ( !input.HasBilletTitle.Contains( ( Guid ) key ) )
                                 {
                                     //DeleteRatingTaskHasJob( input.Id, e.Id, ref status );
                                 }
@@ -993,9 +1091,9 @@ namespace Factories
                     }
                     #endregion
                     //adds
-                    if ( input.HasBillet != null )
+                    if ( input.HasBilletTitle != null )
                     {
-                        foreach ( var child in input.HasBillet )
+                        foreach ( var child in input.HasBilletTitle )
                         {
                             //if not in existing, then add
                             bool doingAdd = true;
@@ -1118,7 +1216,7 @@ namespace Factories
                 //TODO - can we get this info prior to here??
                 //output.ReferenceResourceId = ReferenceResourceManager.Get( input.HasReferenceResource )?.Id;
 
-                if ( output.ReferenceResourceId != null && output.ReferenceResource1?.RowId == input.HasReferenceResource )
+                if ( output.ReferenceResourceId != null && output.ToReferenceResource?.RowId == input.HasReferenceResource )
                 {
                     //no action
                 }

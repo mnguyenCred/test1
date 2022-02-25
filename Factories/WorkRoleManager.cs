@@ -12,6 +12,8 @@ using ViewEntity = Data.Views.WorkRoleSummary;
 using DataEntities = Data.Tables.NavyRRLEntities;
 using ViewEntities = Data.Views.ceNavyViewEntities;
 using DBEntity = Data.Tables.WorkRole;
+using Models.Search;
+
 namespace Factories
 {
     public class WorkRoleManager : BaseFactory
@@ -33,10 +35,11 @@ namespace Factories
             {
                 return false;
             }
-            if ( string.IsNullOrEmpty( entity.Name ) )
+            if ( string.IsNullOrEmpty( entity.Name ) || entity.Name.ToLower() == "missing")
             {
                 status.AddError( thisClassName + string.Format( ".Save. The WorkRole Name is required, and is missing. This could cause an issue if referenced by another entity. The name will be set to Missing, and will require followup. UID: '{0}'", entity.RowId ) );
-                entity.Name = "Missing";
+                //entity.Name = "Missing";
+                return false;
             }
             try
             {
@@ -359,6 +362,56 @@ namespace Factories
 
             }
             return list;
+        }
+
+        public static List<AppEntity> Search ( SearchQuery query )
+        {
+            var entity = new AppEntity();
+            var output = new List<AppEntity>();
+            var skip = 0;
+            if ( query.PageNumber > 1 )
+                skip = ( query.PageNumber - 1 ) * query.PageSize;
+            var filter = GetSearchFilterText( query );
+            try
+            {
+                using ( var context = new ViewEntities() )
+                {
+                    var list = from Results in context.WorkRoleSummary
+                                select Results;
+                    if ( !string.IsNullOrWhiteSpace( filter ) )
+                    {
+                        list = from Results in list
+                                .Where( s => ( s.Name.ToLower().Contains( filter.ToLower() )
+                                ) )
+                                select Results;
+                    }
+                    query.TotalResults = list.Count();
+                    //sort order not handled
+                    list = list.OrderBy( p => p.Name );
+
+                    //
+                    var results = list.Skip( skip ).Take( query.PageSize )
+                        .ToList();
+                    if ( results?.Count > 0 )
+                    {
+                        foreach ( var item in results )
+                        {
+                            if ( item != null && item.Id > 0 )
+                            {
+                                entity = new AppEntity();
+                                MapFromDB( item, entity );
+                                output.Add( ( entity ) );
+                            }
+                        }
+                    }
+
+                }
+            }
+            catch ( Exception ex )
+            {
+
+            }
+            return output;
         }
         public static void MapFromDB( DBEntity input, AppEntity output )
         {
