@@ -9,7 +9,7 @@ namespace Navy.Utilities
 {
     public class CustomAttributes
     {
-        [AttributeUsage( AttributeTargets.Method, Inherited = true )]
+        [AttributeUsage( AttributeTargets.All,  Inherited = true )]
         public class NavyAuthorize : AuthorizeAttribute
         {
             // Private fields.

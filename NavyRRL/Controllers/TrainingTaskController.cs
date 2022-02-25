@@ -12,7 +12,9 @@ using Models.Curation;
 
 namespace NavyRRL.Controllers
 {
-    public class TrainingTaskController : BaseController
+	[CustomAttributes.NavyAuthorize( "Edit", Roles = "Administrator, RMTL Developer, Site Staff" )]
+
+	public class TrainingTaskController : BaseController
     {
 		public ActionResult Search()
 		{

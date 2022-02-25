@@ -11,7 +11,8 @@ using Services;
 
 namespace NavyRRL.Controllers
 {
-    public class RMTLProjectController : BaseController
+	[CustomAttributes.NavyAuthorize( "Edit", Roles = "Administrator, RMTL Developer, Site Staff" )]
+	public class RMTLProjectController : BaseController
     {
 		public ActionResult Search()
 		{
