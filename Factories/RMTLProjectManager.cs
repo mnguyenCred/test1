@@ -168,6 +168,7 @@ namespace Factories
                         efEntity.CTID = "ce-" + efEntity.RowId.ToString().ToLower();
                     entity.Created = efEntity.Created = DateTime.Now;
                     entity.LastUpdated = efEntity.LastUpdated = DateTime.Now;
+                    efEntity.CreatedById = efEntity.LastUpdatedById = entity.LastUpdatedById;
 
                     context.RMTLProject.Add( efEntity );
 

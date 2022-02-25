@@ -505,7 +505,7 @@ namespace Factories
                     efEntity.RowId = Guid.NewGuid();
                     efEntity.CTID = "ce-" + efEntity.RowId.ToString().ToLower();
                     efEntity.Created = efEntity.LastUpdated = DateTime.Now;
-
+                    efEntity.CreatedById = efEntity.LastUpdatedById = entity.LastUpdatedById;
 
                     context.ConceptScheme_Concept.Add( efEntity );
 
