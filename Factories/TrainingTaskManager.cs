@@ -15,12 +15,14 @@ using ViewContext = Data.Views.ceNavyViewEntities;
 using Data.Tables;
 using Navy.Utilities;
 using Models.Search;
+using System.Runtime.Caching;
 
 namespace Factories
 {
     public class TrainingTaskManager : BaseFactory
     {
         public static new string thisClassName = "TrainingTaskManager";
+        public static string cacheKey = "TrainingTaskCache";
 
         #region Persistance
         public void SaveList( ParentEntity input, bool doingDeletes, ref ChangeSummary status )
@@ -257,6 +259,121 @@ namespace Factories
             }
             return list;
         }
+        public static List<AppEntity> GetAllForRating( string ratingCodedNotation, bool includingAllSailorsTasks, ref int totalRows )
+        {
+            int pageNumber = 1;
+            //what is a reasonable max number for all tasks for a rating?
+            int pageSize = 10000;
+            //int totalRows = 0;
+            if ( includingAllSailorsTasks )
+                pageSize = 0;
+            int userId = 0;
+            return GetAll( ratingCodedNotation, includingAllSailorsTasks, pageNumber, pageSize, ref totalRows );
+        }
+        public static List<AppEntity> GetAll( string ratingCodedNotation, bool includingAllSailorsTasks, int pageNumber, int pageSize, ref int totalRows )
+        {
+            //!!! this is very slow when getting 1600+ . Could have an async task to pre-cache
+            var entity = new AppEntity();
+            var list = new List<AppEntity>();
+            //caching will have to be specific to the request
+            //-no caching if not getting all? That is if pageSize > 0
+            if ( pageSize == 0 || pageSize > 1700 )
+            {
+                list = CheckCache( ratingCodedNotation, includingAllSailorsTasks );
+                if ( list?.Count > 0 )
+                    return list;
+            }
+
+            list = new List<AppEntity>();
+
+            string filter = "";
+            string orderBy = "";
+            //int pageNumber = 1;
+            //what is a reasonable max number for all tasks for a rating?
+            //int pageSize = 2000;
+            int userId = 0;
+            //int pTotalRows = 0;
+            if ( string.IsNullOrWhiteSpace( ratingCodedNotation ) )
+            {
+                //don't want to return all, 
+            }
+            var template = string.Format( "'{0}'", ratingCodedNotation.Trim() );
+            if ( includingAllSailorsTasks )
+            {
+                template += ",'ALL'";
+            }
+            filter = string.Format( "base.id in (select a.[RatingTaskId] from [RatingTask.HasRating] a inner join Rating b on a.ratingId = b.Id where b.CodedNotation in ({0}) and (len([TrainingTask]) > 0 ))", template );
+            var results = RatingTaskManager.RMTLSearch( filter, orderBy, pageNumber, pageSize, userId, ref totalRows );
+
+            //no clear difference between the convert and select?
+            list = results.ConvertAll( m => new AppEntity()
+            {
+                CTID = m.CTID,
+                RowId = m.RowId,
+                //HasRating = m.HasRatings,      //not available-adding
+                Description = m.TrainingTask,
+                CourseName = m.CourseName,
+                CourseCodedNotation = m.CIN,
+
+            } ).ToList();
+
+            AddToCache( list, ratingCodedNotation, includingAllSailorsTasks );
+
+
+            return list;
+        }
+        public static List<AppEntity> CheckCache( string rating, bool includingAllSailorsTasks )
+        {
+            var cache = new CachedTrainingTask();
+            var list = new List<AppEntity>();
+            var key = cacheKey + String.Format( "_{0}_{1}", rating, includingAllSailorsTasks );
+            int cacheHours = 8;
+            DateTime maxTime = DateTime.Now.AddHours( cacheHours * -1 );
+            if ( MemoryCache.Default.Get( key ) != null && cacheHours > 0 )
+            {
+                cache = ( CachedTrainingTask ) MemoryCache.Default.Get( key );
+                try
+                {
+                    if ( cache.LastUpdated > maxTime )
+                    {
+                        LoggingHelper.DoTrace( 6, string.Format( thisClassName + ".CheckCache. Using cached version." ) );
+                        list = cache.Objects;
+                        return list;
+                    }
+                }
+                catch ( Exception ex )
+                {
+                    LoggingHelper.DoTrace( 5, thisClassName + ".CheckCache === exception " + ex.Message );
+                }
+            }
+            //get
+            return null;
+
+        }
+        public static void AddToCache( List<AppEntity> input, string rating, bool includingAllSailorsTasks )
+        {
+            var key = cacheKey + String.Format( "_{0}_{1}", rating, includingAllSailorsTasks );
+
+            int cacheHours = 8;
+            //add to cache
+            if ( key.Length > 0 && cacheHours > 0 )
+            {
+                var newCache = new CachedTrainingTask()
+                {
+                    Objects = input,
+                    LastUpdated = DateTime.Now
+                };
+                if ( MemoryCache.Default.Get( key ) != null )
+                {
+                    MemoryCache.Default.Remove( key );
+                }
+                //
+                MemoryCache.Default.Add( key, newCache, new DateTimeOffset( DateTime.Now.AddHours( cacheHours ) ) );
+                LoggingHelper.DoTrace( 5, thisClassName + ".AddToCache $$$ Updating cached version " );
+
+            }
+        }
+
         public static List<AppEntity> Search( SearchQuery query )
         {
             var entity = new AppEntity();
@@ -327,5 +444,16 @@ namespace Factories
         }
 
         #endregion
+    }
+    [Serializable]
+    public class CachedTrainingTask
+    {
+        public CachedTrainingTask()
+        {
+            LastUpdated = DateTime.Now;
+        }
+        public DateTime LastUpdated { get; set; }
+        public List<AppEntity> Objects { get; set; }
+
     }
 }

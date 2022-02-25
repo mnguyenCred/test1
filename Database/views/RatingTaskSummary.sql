@@ -93,11 +93,11 @@ SELECT
 	isnull(rtb.BilletTitles,'') as BilletTitles,
 	a.CodedNotation 
 	,a.[RankId]
-	, isnull(c1.CodedNotation,'missing') As [Rank]
-	, isnull(c1.Name,'missing') As [RankName]
+	, isnull(c1.CodedNotation,'') As [Rank]
+	, isnull(c1.Name,'') As [RankName]
 	,c1.RowId as PayGradeType
 	,a.[LevelId]
-	, isnull(c2.Name,'missing') As [Level]
+	, isnull(c2.Name,'') As [Level]
 	--FunctionalArea/WorkRole
 	--,a.[FunctionalAreaId]
 	--, isnull(b.name,'missing') As FunctionalArea
@@ -110,14 +110,14 @@ SELECT
 	--		
 	--,a.[SourceId]
 	,a.ReferenceResourceId
-	, isnull(c.name,'missing') As ReferenceResource
+	, isnull(c.name,'') As ReferenceResource
 	,c.PublicationDate as SourceDate
 	,c.RowId as HasReferenceResource
 	--
 	--	WorkElementType. Now a concept
 	,a.[WorkElementTypeId]
-	, isnull(wet.name,'missing') As WorkElementType
-	, isnull(wet.WorkElementType,'missing') As WorkElementTypeAlternateName
+	, isnull(wet.name,'') As WorkElementType
+	, isnull(wet.WorkElementType,'') As WorkElementTypeAlternateName
 	, isnull(wet.ListId, 30) As WorkElementTypeOrder
 	,wet.RowId as ReferenceType
 
@@ -126,12 +126,12 @@ SELECT
 	,a.Description as RatingTask
 	--
 	,a.TaskApplicabilityId
-	, isnull(e.Name,'missing') As TaskApplicability
+	, isnull(e.Name,'') As TaskApplicability
 	,e.RowId as ApplicabilityType
 	--
 	--FormalTrainingGap
 	,a.FormalTrainingGapId
-	, isnull(f.Name,'missing') As FormalTrainingGap
+	, isnull(f.Name,'') As FormalTrainingGap
 	,f.RowId as TrainingGapType
 	-- individual course parts
 	/*

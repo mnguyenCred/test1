@@ -15,7 +15,7 @@ namespace Models.Schema
 		/// Description for this Concept Scheme
 		/// </summary>
 		public string Description { get; set; }
-
+		public string SchemaUri { get; set; }
 		/// <summary>
 		/// List of Concepts for this Concept Scheme<br />
 		/// Caution: Data is embedded here

@@ -224,7 +224,7 @@ namespace Factories
         {
             int pageNumber = 1;
             //what is a reasonable max number for all tasks for a rating?
-            int pageSize = 2000;
+            int pageSize = 10000;
             //int totalRows = 0;
             if ( includingAllSailorsTasks )
                 pageSize = 0;
@@ -495,7 +495,7 @@ namespace Factories
                         item.Level = dr["Level"].ToString();// GetRowPossibleColumn( dr, "Level", "" );
                         //FunctionalArea  - not a pipe separated list 
                         //22-01-23 - what to do about the HasWorkRole list. Could include and split out here?
-                        item.FunctionalArea = dr["FunctionalArea"].ToString();// GetRowColumn( dr, "FunctionalArea", "" );
+                        item.FunctionalArea = GetRowColumn( dr, "FunctionalArea", "" );
                         if ( !string.IsNullOrWhiteSpace( item.FunctionalArea ) ) 
                         {
                             var workRoleList = "";
@@ -504,11 +504,12 @@ namespace Factories
                         }
                         //
                         //
-                        item.ReferenceResource = dr["ReferenceResource"].ToString().Trim();// GetRowColumn( dr, "Source", "" );
+                        //item.ReferenceResource = dr["ReferenceResource"].ToString().Trim();
+                        item.ReferenceResource = GetRowColumn( dr, "ReferenceResource", "" );
                         item.SourceDate = dr["SourceDate"].ToString();// GetRowColumn( dr, "SourceDate", "" );
                         item.HasReferenceResource = GetGuidType( dr, "HasReferenceResource" );
 						//
-						item.WorkElementType = dr["WorkElementType"].ToString();// GetRowPossibleColumn( dr, "WorkElementType", "" );
+						item.WorkElementType = GetRowPossibleColumn( dr, "WorkElementType", "" );
                         item.WorkElementTypeAlternateName = dr["WorkElementTypeAlternateName"].ToString();
                         item.ReferenceType = GetGuidType( dr, "ReferenceType" );
 						//
