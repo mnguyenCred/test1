@@ -1274,9 +1274,12 @@ namespace Services
 			debug[ latestStepFlag ] = "Got Concept Scheme data";
 
 			var existingReferenceResources = ReferenceResourceManager.GetAll();
+			//this will not be good where can be GT 8K+
 			var existingRatingTasks = Factories.RatingTaskManager.GetAllForRating( currentRating.CodedNotation, true, ref totalRows );
 			var existingBilletTitles = Factories.JobManager.GetAll();
-			var existingTrainingTasks = TrainingTaskManager.GetAll();
+			//these should probably be only those for the rating
+			//var existingTrainingTasks = TrainingTaskManager.GetAll();
+			var existingTrainingTasks = Factories.TrainingTaskManager.GetAllForRating( currentRating.CodedNotation, true, ref totalRows );
 			var existingCourses = CourseManager.GetAll();
 			var existingWorkRoles = WorkRoleManager.GetAll();
 			var existingOrganizations = OrganizationManager.GetAll();

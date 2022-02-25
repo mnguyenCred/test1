@@ -322,6 +322,9 @@ namespace Factories
                         var concept = new Concept();
                         MapFromDB( item, concept, usingWorkElementTypeForName );
                         output.Concepts.Add( concept );
+                    } else
+                    {
+
                     }
                 }
             }
@@ -354,7 +357,7 @@ namespace Factories
                 Name = conceptName,
                 CodedNotation = conceptName
             };
-            if ( SaveConcept( conceptSchemeId, concept, ref status ) )
+            if ( SaveConcept( concept, ref status ) )
             {
                 return concept.Id;
             }
@@ -365,19 +368,34 @@ namespace Factories
             }
 
         }
-        public bool SaveConcept( int conceptSchemeId, Concept entity, ref ChangeSummary status )
+        public bool SaveConcept( Concept entity, ref ChangeSummary status )
         {
+            //must include conceptSchemeId
+            //check inscheme
+            if( entity?.ConceptSchemeId == 0 )
+            {
+                if ( IsValidGuid( entity.InScheme ) )
+                {
+                    var cs = Get( entity.InScheme );
+                    entity.ConceptSchemeId = cs.Id;
+                }
+                else
+                {
+                    status.AddError( "Error - A concept scheme Id or inscheme GUID must be provided with the Concept, and is missing. " );
+                }
+
+            }
             bool isValid = true;
             int count = 0;
             //check if exists
-            var concept = GetConcept( conceptSchemeId, entity.Name );
+            var concept = GetConcept( entity.ConceptSchemeId, entity.Name );
             if ( concept?.Id > 0 )
             {
                 //or set and fall thru - not clear if any updates at this time! Might depend on type
                 entity.Id = concept.Id;
                 //return true;    
             }
-            entity.ConceptSchemeId = conceptSchemeId;
+            
             try
             {
                 using ( var context = new DataEntities() )
@@ -486,7 +504,7 @@ namespace Factories
                     MapToDB( entity, efEntity );
                     efEntity.RowId = Guid.NewGuid();
                     efEntity.CTID = "ce-" + efEntity.RowId.ToString().ToLower();
-                    efEntity.Created = DateTime.Now;
+                    efEntity.Created = efEntity.LastUpdated = DateTime.Now;
 
 
                     context.ConceptScheme_Concept.Add( efEntity );

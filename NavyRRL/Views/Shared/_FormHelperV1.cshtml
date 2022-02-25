@@ -168,7 +168,21 @@
 		return Field;
 	}
 	//
+    //Create a bool
+    FormItem.setupUI_bool = function (Field) {
+        Field.UI = $("<input type=\"checked\" />").appendTo(Field.ContentBox);
 
+        Field.read = function () {
+            return Field.UI.val().trim();
+        };
+
+        Field.write = function (value) {
+            Field.UI.val(value);
+        };
+
+        return Field;
+    }
+	//
 	//Create a textarea Field
 	FormItem.setupUI_textarea = function (Field) {
 		Field.UI = $("<textarea></textarea>").appendTo(Field.ContentBox);
