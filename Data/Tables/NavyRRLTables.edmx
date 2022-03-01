@@ -884,20 +884,6 @@
             </Dependent>
           </ReferentialConstraint>
         </Association>
-        <Association Name="FK_RatingTask_WorkRole_RatingTask">
-          <End Role="RatingTask" Type="Self.RatingTask" Multiplicity="1">
-            <OnDelete Action="Cascade" />
-          </End>
-          <End Role="RatingTask_WorkRole" Type="Self.RatingTask_WorkRole" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="RatingTask">
-              <PropertyRef Name="Id" />
-            </Principal>
-            <Dependent Role="RatingTask_WorkRole">
-              <PropertyRef Name="RatingTaskId" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
         <Association Name="FK_RatingTask_WorkRole_WorkRole">
           <End Role="WorkRole" Type="Self.WorkRole" Multiplicity="1" />
           <End Role="RatingTask_WorkRole" Type="Self.RatingTask_WorkRole" Multiplicity="*" />
@@ -931,6 +917,20 @@
             </Principal>
             <Dependent Role="RatingTask">
               <PropertyRef Name="ReferenceResourceId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_RatingTaskWorkRole_TO_RatingTask">
+          <End Role="RatingTask" Type="Self.RatingTask" Multiplicity="1">
+            <OnDelete Action="Cascade" />
+          </End>
+          <End Role="RatingTask_WorkRole" Type="Self.RatingTask_WorkRole" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="RatingTask">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="RatingTask_WorkRole">
+              <PropertyRef Name="RatingTaskId" />
             </Dependent>
           </ReferentialConstraint>
         </Association>
@@ -1151,10 +1151,6 @@
             <End Role="RatingTask" EntitySet="RatingTask" />
             <End Role="RatingTask_HasRating" EntitySet="RatingTask_HasRating" />
           </AssociationSet>
-          <AssociationSet Name="FK_RatingTask_WorkRole_RatingTask" Association="Self.FK_RatingTask_WorkRole_RatingTask">
-            <End Role="RatingTask" EntitySet="RatingTask" />
-            <End Role="RatingTask_WorkRole" EntitySet="RatingTask_WorkRole" />
-          </AssociationSet>
           <AssociationSet Name="FK_RatingTask_WorkRole_WorkRole" Association="Self.FK_RatingTask_WorkRole_WorkRole">
             <End Role="WorkRole" EntitySet="WorkRole" />
             <End Role="RatingTask_WorkRole" EntitySet="RatingTask_WorkRole" />
@@ -1166,6 +1162,10 @@
           <AssociationSet Name="FK_RatingTask_to_ReferenceResource" Association="Self.FK_RatingTask_to_ReferenceResource">
             <End Role="ReferenceResource" EntitySet="ReferenceResource" />
             <End Role="RatingTask" EntitySet="RatingTask" />
+          </AssociationSet>
+          <AssociationSet Name="FK_RatingTaskWorkRole_TO_RatingTask" Association="Self.FK_RatingTaskWorkRole_TO_RatingTask">
+            <End Role="RatingTask" EntitySet="RatingTask" />
+            <End Role="RatingTask_WorkRole" EntitySet="RatingTask_WorkRole" />
           </AssociationSet>
           <AssociationSet Name="FK_ReferenceResource_ReferenceType_ConceptScheme_Concept" Association="Self.FK_ReferenceResource_ReferenceType_ConceptScheme_Concept">
             <End Role="ConceptScheme_Concept" EntitySet="ConceptScheme_Concept" />

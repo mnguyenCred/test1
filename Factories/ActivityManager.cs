@@ -37,6 +37,10 @@ namespace Factories
 
 		public int SiteActivityAdd( SiteActivity entity )
 		{
+			if ( entity == null || entity.Id == 0 )
+            {
+				return 0;
+            }
 			ThisEntity log = new ThisEntity();
 			 MapToDB( entity, log);
 			return SiteActivityAdd( log );

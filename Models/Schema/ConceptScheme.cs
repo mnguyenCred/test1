@@ -51,6 +51,8 @@ namespace Models.Schema
 		/// </summary>
 		public Guid InScheme { get; set; }
 
+		public bool IsActive { get; set; }
+
 		/// <summary>
 		/// Helps figure out which value from the spreadsheet this Concept aligns to
 		/// </summary>

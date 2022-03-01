@@ -72,17 +72,17 @@ SELECT base.[Id]
 	--,base.[CurrentAssessmentApproach]
   FROM [dbo].[Course] base
   inner join Organization b on base.CurriculumControlAuthorityId = b.Id
-  left join [dbo].[Course.Concept]	c on base.Id = c.courseId
+  --left join [dbo].[Course.Concept]	c on base.Id = c.courseId
 	--LCCD
-	inner join [ConceptSchemeSummary] d on c.ConceptId = d.conceptid and d.ConceptSchemeId=17
+	inner join [ConceptSchemeSummary] d on base.[LifeCycleControlDocumentId] = d.conceptid
 
 
     CROSS APPLY (
     --SELECT distinct d.Name + '~' + convert(varchar(50), d.RowId) + ' | '
 	SELECT distinct d.Name + ' | '
     FROM dbo.[Course]  a
-		Inner join [dbo].[Course.Concept]	c on a.Id = c.CourseId
-		inner join [ConceptScheme.Concept] d on c.ConceptId = d.Id and d.ConceptSchemeId=16
+		Inner join [dbo].[Course.CourseType]	c on a.Id = c.CourseId
+		inner join [ConceptScheme.Concept] d on c.CourseTypeConceptId = d.Id --and d.ConceptSchemeId=16
     WHERE  base.Id = a.Id
     FOR XML Path('') 
 ) CT (CourseTypes)
@@ -90,8 +90,8 @@ SELECT base.[Id]
     CROSS APPLY (
     SELECT distinct d.Name + ' | '
     FROM dbo.[Course]  a
-		Inner join [dbo].[Course.Concept]	c on a.Id = c.CourseId
-		inner join [ConceptScheme.Concept] d on c.ConceptId = d.Id and d.ConceptSchemeId=13
+		Inner join [dbo].[Course.AssessmentType]	c on a.Id = c.CourseId
+		inner join [ConceptScheme.Concept] d on c.AssessmentMethodConceptId = d.Id --and d.ConceptSchemeId=13
     WHERE  base.Id = a.Id
     FOR XML Path('') 
 ) AMT (AssessmentMethodTypes)
