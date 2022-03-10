@@ -117,7 +117,7 @@ namespace Factories
                             SiteActivity sa = new SiteActivity()
                             {
                                 ActivityType = "Course",
-                                Activity = "Import",
+                                Activity = status.Action,
                                 Event = "Update",
                                 Comment = string.Format( "Course was updated by the import. Name: {0}", entity.Name ),
                                 ActionByUserId = entity.LastUpdatedById,
@@ -192,7 +192,7 @@ namespace Factories
                         SiteActivity sa = new SiteActivity()
                         {
                             ActivityType = "Course",
-                            Activity = "Import",//in the future there could be a different process.
+                            Activity = status.Action,
                             Event = "Add",
                             Comment = string.Format( "Course: '{0} was added.", entity.Name ),
                             ActivityObjectId = entity.Id,

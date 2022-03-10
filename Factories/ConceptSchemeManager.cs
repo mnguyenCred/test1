@@ -84,6 +84,16 @@ namespace Factories
                             {
                                 entity.LastUpdated = ( DateTime ) efEntity.LastUpdated;
                                 isValid = true;
+                                SiteActivity sa = new SiteActivity()
+                                {
+                                    ActivityType = "ConceptScheme",
+                                    Activity = status.Action,
+                                    Event = "Update",
+                                    Comment = string.Format( "ConceptScheme was updated. Name: {0}", entity.Name ),
+                                    ActionByUserId = entity.LastUpdatedById,
+                                    ActivityObjectId = entity.Id
+                                };
+                                new ActivityManager().SiteActivityAdd( sa );
                             }
                             else
                             {
@@ -97,19 +107,7 @@ namespace Factories
 
                         }
 
-                        if ( isValid )
-                        {
-                            SiteActivity sa = new SiteActivity()
-                            {
-                                ActivityType = "Course",
-                                Activity = "Import",
-                                Event = "Update",
-                                Comment = string.Format( "Concept was updated by the import. Name: {0}", entity.Name ),
-                                ActionByUserId = entity.LastUpdatedById,
-                                ActivityObjectId = entity.Id
-                            };
-                            new ActivityManager().SiteActivityAdd( sa );
-                        }
+            
                     }
                     else
                     {
@@ -438,6 +436,16 @@ namespace Factories
                             {
                                 entity.LastUpdated = ( DateTime ) efEntity.LastUpdated;
                                 isValid = true;
+                                SiteActivity sa = new SiteActivity()
+                                {
+                                    ActivityType = "ConceptScheme",
+                                    Activity = status.Action,
+                                    Event = "Update",
+                                    Comment = string.Format( "ConceptScheme was updated. Name: {0}", entity.Name ),
+                                    ActionByUserId = entity.LastUpdatedById,
+                                    ActivityObjectId = entity.Id
+                                };
+                                new ActivityManager().SiteActivityAdd( sa );
                             }
                             else
                             {
@@ -451,19 +459,7 @@ namespace Factories
 
                         }
 
-                        if ( isValid )
-                        {
-                            SiteActivity sa = new SiteActivity()
-                            {
-                                ActivityType = "Course",
-                                Activity = "Import",
-                                Event = "Update",
-                                Comment = string.Format( "Concept was updated by the import. Name: {0}", entity.Name ),
-                                ActionByUserId = entity.LastUpdatedById,
-                                ActivityObjectId = entity.Id
-                            };
-                            new ActivityManager().SiteActivityAdd( sa );
-                        }
+                      
                     }
                     else
                     {
@@ -505,7 +501,7 @@ namespace Factories
                     efEntity.RowId = Guid.NewGuid();
                     efEntity.CTID = "ce-" + efEntity.RowId.ToString().ToLower();
                     efEntity.Created = efEntity.LastUpdated = DateTime.Now;
-
+                    efEntity.CreatedById = efEntity.LastUpdatedById = entity.LastUpdatedById;
 
                     context.ConceptScheme_Concept.Add( efEntity );
 
@@ -518,9 +514,9 @@ namespace Factories
                         SiteActivity sa = new SiteActivity()
                         {
                             ActivityType = "ConceptScheme",
-                            Activity = "Import",
+                            Activity = status.Action,
                             Event = "Add Concept",
-                            Comment = string.Format( "Concept was added by the import. Name: {0}", entity.Name ),
+                            Comment = string.Format( "Concept was added. Name: {0}", entity.Name ),
                             ActionByUserId = entity.LastUpdatedById,
                             ActivityObjectId = entity.Id
                         };
@@ -667,7 +663,7 @@ namespace Factories
             {
                 using ( var context = new DataEntities() )
                 {
-                    var list = from Results in context.ConceptScheme_Concept
+                    var list = from Results in context.ConceptScheme_Concept.Where( m => m.IsActive == true && m.ConceptScheme.SchemaUri != null)
                                select Results;
                     if ( !string.IsNullOrWhiteSpace( filter ) )
                     {

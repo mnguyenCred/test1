@@ -696,13 +696,14 @@ namespace Factories
 
                             if ( isValid )
                             {
+                                //update parts
                                 UpdateParts( input, status );
                                 SiteActivity sa = new SiteActivity()
                                 {
                                     ActivityType = "RatingTask",
-                                    Activity = "Import",
+                                    Activity = status.Action,
                                     Event = "Update",
-                                    Comment = string.Format( "RatingTask was updated by the import. Name: {0}", input.Description ),
+                                    Comment = string.Format( "RatingTask was updated. Name: {0}", FormatLongLabel( input.Description ) ),
                                     ActionByUserId = input.LastUpdatedById,
                                     ActivityObjectId = input.Id
                                 };
@@ -769,9 +770,9 @@ namespace Factories
                         SiteActivity sa = new SiteActivity()
                         {
                             ActivityType = "RatingTask",
-                            Activity = "Import",
+                            Activity = status.Action,
                             Event = "Add",
-                            Comment = string.Format( " A RatingTask was added by the import. Desc: {0}", FormatLongLabel( entity.Description) ),
+                            Comment = string.Format( " A RatingTask was added. Desc: {0}", FormatLongLabel( entity.Description) ),
                             ActionByUserId = entity.LastUpdatedById,
                             ActivityObjectId = entity.Id
                         };
@@ -888,6 +889,20 @@ namespace Factories
 
                                     // submit the change to database
                                     int count = context.SaveChanges();
+                                    if ( count > 0 )
+                                    {
+                                        SiteActivity sa = new SiteActivity()
+                                        {
+                                            ActivityType = "RatingTask WorkRole",
+                                            Activity = status.Action,
+                                            Event = "Add",
+                                            Comment = string.Format( "RatingTask WorkRole was added. Name: {0}", related.Name ),
+                                            ActionByUserId = input.LastUpdatedById,
+                                            ActivityObjectId = input.Id
+                                        };
+                                        new ActivityManager().SiteActivityAdd( sa );
+                                       
+                                    }
                                 }
                                 else
                                 {
@@ -895,6 +910,8 @@ namespace Factories
                                 }
                             }
                         }
+                        //
+                        return true;
                     }
                 }
                 catch ( Exception ex )
@@ -1004,6 +1021,20 @@ namespace Factories
 
                                     // submit the change to database
                                     int count = context.SaveChanges();
+                                    if ( count > 0 )
+                                    {
+                                        SiteActivity sa = new SiteActivity()
+                                        {
+                                            ActivityType = "RatingTask HasRating",
+                                            Activity = status.Action,
+                                            Event = "Add",
+                                            Comment = string.Format( "RatingTask Rating was added. Name: {0}", related.Name ),
+                                            ActionByUserId = input.LastUpdatedById,
+                                            ActivityObjectId = input.Id
+                                        };
+                                        new ActivityManager().SiteActivityAdd( sa );
+                                        //                                       
+                                    }
                                 }
                                 else
                                 {
@@ -1011,6 +1042,7 @@ namespace Factories
                                 }
                             }
                         }
+                        return true;
                     }
                 }
                 catch ( Exception ex )
@@ -1120,6 +1152,20 @@ namespace Factories
 
                                     // submit the change to database
                                     int count = context.SaveChanges();
+                                    if ( count > 0 )
+                                    {
+                                        SiteActivity sa = new SiteActivity()
+                                        {
+                                            ActivityType = "RatingTask BilletTitle",
+                                            Activity = status.Action,
+                                            Event = "Add",
+                                            Comment = string.Format( "RatingTask BilletTitle was added. Name: {0}", related.Name ),
+                                            ActionByUserId = input.LastUpdatedById,
+                                            ActivityObjectId = input.Id
+                                        };
+                                        new ActivityManager().SiteActivityAdd( sa );
+                                        //                                       
+                                    }
                                 }
                                 else
                                 {

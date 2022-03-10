@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
+using Models.Application;
 using Models.Curation;
 
 using ParentEntity = Models.Schema.Course;
@@ -97,6 +98,17 @@ namespace Factories
                         if ( count >= 0 )
                         {
                             entity.LastUpdated = ( DateTime ) efEntity.LastUpdated;
+
+                            SiteActivity sa = new SiteActivity()
+                            {
+                                ActivityType = "TrainingTask",
+                                Activity = status.Action,
+                                Event = "Update",
+                                Comment = string.Format( "TrainingTask was updated. Task: {0}", FormatLongLabel( entity.Description ) ),
+                                ActionByUserId = entity.LastUpdatedById,
+                                ActivityObjectId = entity.Id
+                            };
+                            new ActivityManager().SiteActivityAdd( sa );
                         }
                         else
                         {
@@ -149,6 +161,16 @@ namespace Factories
                     int count = context.SaveChanges();
                     if ( count > 0 )
                     {
+                        SiteActivity sa = new SiteActivity()
+                        {
+                            ActivityType = "TrainingTask",
+                            Activity = status.Action,
+                            Event = "Add",
+                            Comment = string.Format( "TrainingTask was added. Task: {0}", FormatLongLabel( task.Description ) ),
+                            ActionByUserId = input.LastUpdatedById,
+                            ActivityObjectId = input.Id
+                        };
+                        new ActivityManager().SiteActivityAdd( sa );
                         //
                         return true;
                     }

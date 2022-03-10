@@ -84,6 +84,16 @@ namespace Factories
                                 {
                                     entity.LastUpdated = ( DateTime ) efEntity.LastUpdated;
                                     isValid = true;
+                                    SiteActivity sa = new SiteActivity()
+                                    {
+                                        ActivityType = "Rating",
+                                        Activity = status.Action,
+                                        Event = "Update",
+                                        Comment = string.Format( "Rating was updated by the import. Name: {0}", entity.Name ),
+                                        ActionByUserId = entity.LastUpdatedById,
+                                        ActivityObjectId = entity.Id
+                                    };
+                                    new ActivityManager().SiteActivityAdd( sa );
                                 }
                                 else
                                 {
@@ -97,19 +107,6 @@ namespace Factories
 
                             }
 
-                            if ( isValid )
-                            {
-                                SiteActivity sa = new SiteActivity()
-                                {
-                                    ActivityType = "Rating",
-                                    Activity = status.Action,
-                                    Event = "Update",
-                                    Comment = string.Format( "Rating was updated by the import. Name: {0}", entity.Name ),
-                                    ActionByUserId = entity.LastUpdatedById,
-                                    ActivityObjectId = entity.Id
-                                };
-                                new ActivityManager().SiteActivityAdd( sa );
-                            }
                         }
                         else
                         {
@@ -162,6 +159,7 @@ namespace Factories
                         efEntity.CTID = "ce-" + efEntity.RowId.ToString().ToLower();
                     entity.Created = efEntity.Created = DateTime.Now;
                     entity.LastUpdated = efEntity.LastUpdated = DateTime.Now;
+                    efEntity.CreatedById = efEntity.LastUpdatedById = entity.LastUpdatedById;
 
                     context.Rating.Add( efEntity );
 

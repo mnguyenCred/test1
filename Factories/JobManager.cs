@@ -80,7 +80,18 @@ namespace Factories
                                 if ( count >= 0 )
                                 {
                                     entity.LastUpdated = ( DateTime ) efEntity.LastUpdated;
-                                    isValid = true;
+                                    isValid = true; 
+                                    
+                                    SiteActivity sa = new SiteActivity()
+                                    {
+                                        ActivityType = "Job",
+                                        Activity = status.Action,
+                                        Event = "Update",
+                                        Comment = string.Format( "Job was updated by Name: {0}", entity.Name ),
+                                        ActionByUserId = entity.LastUpdatedById,
+                                        ActivityObjectId = entity.Id
+                                    };
+                                    new ActivityManager().SiteActivityAdd( sa );
                                 }
                                 else
                                 {
@@ -94,19 +105,6 @@ namespace Factories
 
                             }
 
-                            if ( isValid )
-                            {
-                                SiteActivity sa = new SiteActivity()
-                                {
-                                    ActivityType = "Job",
-                                    Activity = "Import",
-                                    Event = "Update",
-                                    Comment = string.Format( "Job was updated by the import. Name: {0}", entity.Name ),
-                                    ActionByUserId = entity.LastUpdatedById,
-                                    ActivityObjectId = entity.Id
-                                };
-                                new ActivityManager().SiteActivityAdd( sa );
-                            }
                         }
                         else
                         {
