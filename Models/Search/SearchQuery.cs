@@ -44,6 +44,40 @@ namespace Models.Search
 		/// List of Filters (including keywords) for this Query
 		/// </summary>
 		public List<SearchFilter> Filters { get; set; }
+
+		//Helper methods
+		public SearchFilter GetFilterByName( string name )
+		{
+			return Filters?.FirstOrDefault( m => m.Name.ToLower() == name.ToLower() );
+		}
+		public SearchFilter GetFilterByID( int id )
+		{
+			return Filters?.FirstOrDefault( m => m.Id == id );
+		}
+		public string GetFilterTextByName( string name, string returnValueIfNull = null )
+		{
+			return GetFilterByName( name )?.Text ?? returnValueIfNull;
+		}
+		public List<int> GetFilterIDsByName( string name, List<int> returnValueIfNull = null )
+		{
+			return GetFilterByName( name )?.ItemIds ?? returnValueIfNull;
+		}
+		public List<Guid> GetFilterGUIDsByName( string name, List<Guid> returnValueIfNull = null )
+		{
+			return GetFilterByName( name )?.ItemGuids ?? returnValueIfNull;
+		}
+		public string GetFilterTextByID( int id, string returnValueIfNull = null )
+		{
+			return GetFilterByID( id )?.Text ?? returnValueIfNull;
+		}
+		public List<int> GetFilterIDsByID( int id, List<int> returnValueIfNull = null )
+		{
+			return GetFilterByID( id )?.ItemIds ?? returnValueIfNull;
+		}
+		public List<Guid> GetFilterGUIDsByID( int id, List<Guid> returnValueIfNull = null )
+		{
+			return GetFilterByID( id )?.ItemGuids ?? returnValueIfNull;
+		}
 	}
 	//
 

@@ -363,7 +363,86 @@ namespace Factories
             }
             return list;
         }
+		//
 
+		public static List<AppEntity> Search( SearchQuery query )
+		{
+			var output = new List<AppEntity>();
+			var skip = ( query.PageNumber - 1 ) * query.PageSize;
+			try
+			{
+				using ( var context = new DataEntities() )
+				{
+					//Start query
+					var list = context.WorkRole.AsQueryable();
+
+					//Handle keywords filter
+					var keywordsText = query.GetFilterTextByName( "search:Keyword" )?.ToLower();
+					if ( !string.IsNullOrWhiteSpace( keywordsText ) )
+					{
+						list = list.Where( s =>
+							s.Name.ToLower().Contains( keywordsText ) ||
+							s.Description.ToLower().Contains( keywordsText ) ||
+							s.CodedNotation.ToLower().Contains( keywordsText )
+						);
+					}
+
+					//Handle Rating Task Connection
+					var ratingTaskFilter = query.GetFilterByName( "navy:RatingTask" );
+					if ( ratingTaskFilter != null && ratingTaskFilter.ItemIds?.Count() > 0 )
+					{
+						//Need to handle the negation (i.e. work roles that are not associated with this task), but all work roles get returned since there are many rows for each rating, each with a different task ID.
+						//So get the work roles that do match first, then negate (or not). 
+						//There's probably a better way to do this.
+						var matchingWorkRoleIDs = context.RatingTask_WorkRole.Where( s => ratingTaskFilter.ItemIds.Contains( s.RatingTaskId ) ).Select( m => m.WorkRoleId ).Distinct().ToList();
+						if ( ratingTaskFilter.IsNegation )
+						{
+							list = list.Where( s => !matchingWorkRoleIDs.Contains( s.Id ) );
+						}
+						else
+						{
+							list = list.Where( s => matchingWorkRoleIDs.Contains( s.Id ) );
+						}
+						/*
+						list = list.Where( s =>
+							 s.RatingTask_HasJob.Where( t =>
+								  ratingTaskFilter.IsNegation ?
+									  !ratingTaskFilter.ItemIds.Contains( t.RatingTaskId ) :
+									  ratingTaskFilter.ItemIds.Contains( t.RatingTaskId )
+							 ).Count() > 0
+						);
+						*/
+					}
+
+					//Get total
+					query.TotalResults = list.Count();
+
+					//Sort
+					list = list.OrderBy( p => p.Description );
+
+					//Get page
+					var results = list.Skip( skip ).Take( query.PageSize )
+						.Where( m => m != null ).ToList();
+
+					//Populate
+					foreach ( var item in results )
+					{
+						var entity = new AppEntity();
+						MapFromDB( item, entity );
+						output.Add( entity );
+					}
+				}
+
+				return output;
+			}
+			catch ( Exception ex )
+			{
+				return new List<AppEntity>() { new AppEntity() { Description = "Error: " + ex.Message + " - " + ex.InnerException?.Message } };
+			}
+		}
+		//
+
+		/*
         public static List<AppEntity> Search ( SearchQuery query )
         {
             var entity = new AppEntity();
@@ -413,7 +492,10 @@ namespace Factories
             }
             return output;
         }
-        public static void MapFromDB( DBEntity input, AppEntity output )
+		//
+		*/
+
+		public static void MapFromDB( DBEntity input, AppEntity output )
         {
             //
             List<string> errors = new List<string>();
