@@ -5,7 +5,7 @@
 	var searchType = ViewBag.SearchType ?? Request.Params["searchType"] ?? "Rating";
 }
 
-@Html.Partial( "~/Views/Search/_SearchCoreV1.cshtml" );
+@Html.Partial( "~/Views/Search/_SearchCoreV1.cshtml" )
 
 <script type="text/javascript">
 	var UI = {};
@@ -164,13 +164,15 @@
 				<div class="searchHeaderLabel">Keywords</div>
 				<input type="text" data-property="search:Keyword" placeholder="Search..." />
 			</div>
-			<div class="searchMainInput sortOrderBox" style="display:none;">
+			@*
+			<div class="searchMainInput sortOrderBox">
 				<div class="searchHeaderLabel">Sort Order</div>
 				<select data-property="search:SortOrder">
 					<option value="sortOrder:AtoZ">A to Z</option>
 					<option value="sortOrder:Newest">Newest</option>
 				</select>
 			</div>
+			*@
 		</div>
 		<div class="searchFiltersBox"></div>
 		<div class="searchStatusWrapper">

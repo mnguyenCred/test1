@@ -21,6 +21,8 @@ using Navy.Utilities;
 using System.Runtime.Caching;
 using Models.Search;
 
+using System.Linq.Expressions;
+
 namespace Factories
 {
     public class RatingTaskManager : BaseFactory
@@ -167,6 +169,96 @@ namespace Factories
             return list;
         }
 
+		public static List<AppEntity> Search( SearchQuery query )
+		{
+			var output = new List<AppEntity>();
+			var skip = ( query.PageNumber - 1 ) * query.PageSize;
+			try
+			{
+				using ( var context = new DataEntities() )
+				{
+					//Start query
+					var list = context.RatingTask.AsQueryable();
+
+					//Handle keywords filter
+					var keywordsText = query.GetFilterTextByName( "search:Keyword" )?.ToLower();
+					if ( !string.IsNullOrWhiteSpace( keywordsText ) )
+					{
+						list = list.Where( s =>
+							 s.Description.ToLower().Contains( keywordsText ) ||
+							 s.CodedNotation.ToLower().Contains( keywordsText )
+						);
+					}
+
+					//Handle Has Rating
+					var ratingFilter = query.GetFilterByName( "navy:Rating" );
+					if( ratingFilter != null && ratingFilter.ItemIds?.Count() > 0 )
+					{
+						list = list.Where( s =>
+							 s.RatingTask_HasRating.Where( t =>
+								  ratingFilter.IsNegation ?
+									  !ratingFilter.ItemIds.Contains( t.RatingId ) :
+									  ratingFilter.ItemIds.Contains( t.RatingId )
+							 ).Count() > 0
+						);
+					}
+
+					//Handle Has Job
+					var jobFilter = query.GetFilterByName( "navy:Job" );
+					if( jobFilter != null  && jobFilter.ItemIds?.Count() > 0)
+					{
+						list = list.Where( s =>
+							 s.RatingTask_HasJob.Where( t =>
+								jobFilter.IsNegation ?
+									!jobFilter.ItemIds.Contains( t.JobId ) :
+									jobFilter.ItemIds.Contains( t.JobId )
+							 ).Count() > 0
+						);
+					}
+
+					//Handle Has Work Role
+					var workRoleFilter = query.GetFilterByName( "ceterms:WorkRole" );
+					if ( workRoleFilter != null && workRoleFilter.ItemIds?.Count() > 0 )
+					{
+						list = list.Where( s =>
+							 s.RatingTask_WorkRole.Where( t =>
+								workRoleFilter.IsNegation ?
+									!workRoleFilter.ItemIds.Contains( t.WorkRoleId ) :
+									workRoleFilter.ItemIds.Contains( t.WorkRoleId )
+							 ).Count() > 0
+						);
+					}
+
+					//Get total
+					query.TotalResults = list.Count();
+
+					//Sort
+					list = list.OrderBy( p => p.Description );
+
+					//Get page
+					var results = list.Skip( skip ).Take( query.PageSize )
+						.Where( m => m != null ).ToList();
+					
+					//Populate
+					foreach( var item in results )
+					{
+						var entity = new AppEntity();
+						MapFromDB( item, entity, true );
+						output.Add( entity );
+					}
+				}
+
+				return output;
+			}
+			catch( Exception ex )
+			{
+				return new List<AppEntity>() { new AppEntity() { Description = "Error: " + ex.Message + " - " + ex.InnerException?.Message } };
+			}
+		}
+		//
+
+
+		/*
         public static List<AppEntity> Search( SearchQuery query )
         {
             var entity = new AppEntity();
@@ -219,8 +311,9 @@ namespace Factories
             }
             return output;
         }
+		*/
 
-        public static List<AppEntity> GetAllForRating( string ratingCodedNotation, bool includingAllSailorsTasks, ref int totalRows )
+		public static List<AppEntity> GetAllForRating( string ratingCodedNotation, bool includingAllSailorsTasks, ref int totalRows )
         {
             int pageNumber = 1;
             //what is a reasonable max number for all tasks for a rating?

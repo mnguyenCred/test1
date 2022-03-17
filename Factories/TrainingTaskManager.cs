@@ -396,6 +396,79 @@ namespace Factories
             }
         }
 
+		public static List<AppEntity> Search( SearchQuery query )
+		{
+			var output = new List<AppEntity>();
+			var skip = ( query.PageNumber - 1 ) * query.PageSize;
+			try
+			{
+				using ( var context = new DataEntities() )
+				{
+					//Start query
+					var list = context.Course_Task.AsQueryable();
+
+					//Handle keywords filter
+					var keywordsText = query.GetFilterTextByName( "search:Keyword" )?.ToLower();
+					if ( !string.IsNullOrWhiteSpace( keywordsText ) )
+					{
+						list = list.Where( s =>
+							 s.Description.ToLower().Contains( keywordsText )
+						);
+					}
+
+					//Handle Course Connection
+					var courseFilter = query.GetFilterByName( "ceterms:Course" );
+					if ( courseFilter != null && courseFilter.ItemIds?.Count() > 0 )
+					{
+						list = list.Where( s =>
+							courseFilter.IsNegation ?
+								!courseFilter.ItemIds.Contains( s.CourseId ) :
+								courseFilter.ItemIds.Contains( s.CourseId )
+						);
+					}
+
+					//Handle Rating Task Connection
+					var ratingTaskFilter = query.GetFilterByName( "navy:RatingTask" );
+					if( ratingTaskFilter != null && ratingTaskFilter.ItemIds?.Count() > 0 )
+					{
+						list = list.Where( s =>
+							s.RatingTask.Where( t =>
+								ratingTaskFilter.IsNegation ?
+									!ratingTaskFilter.ItemIds.Contains( t.Id ) :
+									ratingTaskFilter.ItemIds.Contains( t.Id )
+							).Count() > 0
+						);
+					}
+
+					//Get total
+					query.TotalResults = list.Count();
+
+					//Sort
+					list = list.OrderBy( p => p.Description );
+
+					//Get page and populate
+					var results = list.Skip( skip ).Take( query.PageSize )
+						.Where( m => m != null ).ToList();
+
+					//Populate
+					foreach ( var item in results )
+					{
+						var entity = new AppEntity();
+						MapFromDB( item, entity );
+						output.Add( entity );
+					}
+				}
+
+				return output;
+			}
+			catch( Exception ex )
+			{
+				return new List<AppEntity>() { new AppEntity() { Description = "Error: " + ex.Message + " - " + ex.InnerException?.Message } };
+			}
+		}
+		//
+
+		/*
         public static List<AppEntity> Search( SearchQuery query )
         {
             var entity = new AppEntity();
@@ -447,6 +520,9 @@ namespace Factories
             }
             return output;
         }
+		//
+		*/
+
         public static void MapFromDB( DBEntity input, AppEntity output )
         {
             //should include list of concepts
