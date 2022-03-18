@@ -1,10 +1,21 @@
 ﻿@using Models.Schema;
+@using Models.DTO;
 @model Concept
 @{
 	ViewBag.Title = "Concept: " + Model.Name;
 }
 
-<h2>@Model.Name</h2>
-
-<p>@Model.Description</p>
-<p><a href="@Url.Content("~/" + Model.GetType().Name.ToLower() + "/edit/" + Model.Id)" target="_blank">Edit</a></p>
+@Html.Partial( "~/Views/Shared/_DetailBasicInfo.cshtml", new DetailBasicInfoHelper()
+{
+	TypeLabel = "Concept",
+	TypeURL = Model.GetType().Name.ToLower(),
+	Id = Model.Id,
+	Name = Model.Name,
+	Description = Model.Description,
+	Identifiers = new List<NamedValue>()
+	{
+		new NamedValue( "System ID", Model.Id.ToString() ),
+		new NamedValue( "CTID", Model.CTID ),
+		new NamedValue( "Equivalent Work Element Type", Model.WorkElementType )
+	}
+} )

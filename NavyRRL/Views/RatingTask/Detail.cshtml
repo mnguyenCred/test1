@@ -1,11 +1,21 @@
 ﻿@using Models.Schema;
+@using Models.DTO;
 @model RatingTask
 @{
 	ViewBag.Title = "Rating Task: " + Model.Description;
 }
 
-<h2>Rating Task</h2>
-
-<p>@Model.CodedNotation</p>
-<p>@Model.Description</p>
-<p><a href="@Url.Content("~/" + Model.GetType().Name.ToLower() + "/edit/" + Model.Id)" target="_blank">Edit</a></p>
+@Html.Partial( "~/Views/Shared/_DetailBasicInfo.cshtml", new DetailBasicInfoHelper()
+{
+	TypeLabel = "Rating Task",
+	TypeURL = Model.GetType().Name.ToLower(),
+	Id = Model.Id,
+	Name = "Rating Task",
+	Description = Model.Description,
+	Identifiers = new List<NamedValue>()
+	{
+		new NamedValue( "System ID", Model.Id.ToString() ),
+		new NamedValue( "CTID", Model.CTID ),
+		new NamedValue( "Code", Model.CodedNotation )
+	}
+} )

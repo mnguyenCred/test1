@@ -1,12 +1,21 @@
 ﻿@using Models.Schema;
+@using Models.DTO;
 @model ReferenceResource
 @{
 	ViewBag.Title = "Reference Resource: " + Model.Name;
 }
-<h2>Source</h2>
-<h3>@Model.Name</h3>
 
-<p>@Model.CodedNotation</p>
-<p>Date of Source: @Model.PublicationDate</p>
-<p>@Model.Description</p>
-<p><a href="@Url.Content("~/" + Model.GetType().Name.ToLower() + "/edit/" + Model.Id)" target="_blank">Edit</a></p>
+@Html.Partial( "~/Views/Shared/_DetailBasicInfo.cshtml", new DetailBasicInfoHelper()
+{
+	TypeLabel = "Reference Resource",
+	TypeURL = Model.GetType().Name.ToLower(),
+	Id = Model.Id,
+	Name = Model.Name,
+	Description = Model.Description,
+	Identifiers = new List<NamedValue>()
+	{
+		new NamedValue( "System ID", Model.Id.ToString() ),
+		new NamedValue( "CTID", Model.CTID ),
+		new NamedValue( "Date of Source", Model.PublicationDate )
+	}
+} )

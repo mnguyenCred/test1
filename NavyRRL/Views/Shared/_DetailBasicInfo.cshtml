@@ -1,0 +1,61 @@
+﻿@using System.Reflection;
+@using Models.DTO;
+@model DetailBasicInfoHelper
+@{
+	var isAdmin = Services.AccountServices.IsUserAnAdmin();
+}
+
+<style type="text/css">
+	.banner { background-color: #DFDFDF; padding: 20px; margin-bottom: 10px; }
+	.banner .subtitle { display: flex; align-items: baseline; }
+	.banner .subtitle > * { padding: 0 10px; border-right: 1px solid #555; }
+	.banner .subtitle > *:last-child { border: none; }
+	
+	.topSection { display: flex; margin-bottom: 10px; }
+	.topSection .description { flex: 1 0 60%; min-width: 450px; padding: 10px; white-space: pre-wrap; }
+	.topSection .identifiers { flex: 0 0 40%; min-width: 450px; padding: 10px; }
+	.topSection > div { border-right: 1px solid #CCC; }
+	.topSection > div:last-child { border: none; }
+	.topSection .identifiers { padding: 10px; }
+	.topSection .identifiers .identifierTable { width: 100%; }
+	.topSection .identifiers .identifierTable tr { border-bottom: 1px solid #CCC; }
+	.topSection .identifiers .identifierTable tr:last-child { border: none; }
+	.topSection .identifiers .identifierTable tr td { padding: 5px; vertical-align: top; }
+	.topSection .identifiers .identifierTable tr td:first-child { font-weight: bold; text-align: right; min-width: 100px; }
+
+	@@media(max-width: 1200px){
+		.topSection { flex-direction: column; }
+		.topSection .description { order: 2; }
+		.topSection .identifiers { order: 1; }
+		.topSection > div { border: none; }
+	}
+</style>
+<div class="banner">
+	<h1>@Model.Name</h1>
+	<div class="subtitle">
+		<div class="typeLabel">@Model.TypeLabel</div>
+		@if ( isAdmin )
+		{
+			<a class="editLink" href="@Url.Content( "~/" + Model.TypeURL + "/edit/" + Model.Id )">Edit Data</a>
+		}
+	</div>
+</div>
+<div class="topSection">
+	<div class="description">@Html.Raw( string.IsNullOrWhiteSpace( Model.Description ) ? "No Description" : Model.Description )</div>
+	@if(Model.Identifiers != null && Model.Identifiers.Count() > 0 )
+	{
+		<div class="identifiers">
+			<table class="identifierTable">
+				<tbody>
+					@foreach ( var item in Model.Identifiers.Where( m => !string.IsNullOrWhiteSpace( m.Value ) ).ToList() )
+					{
+						<tr>
+							<td>@item.Name</td>
+							<td>@item.Value</td>
+						</tr>
+					}
+				</tbody>
+			</table>
+		</div>
+	}
+</div>
