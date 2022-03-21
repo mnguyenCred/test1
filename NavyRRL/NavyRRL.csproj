@@ -625,6 +625,7 @@
     <Content Include="Views\Concept\Edit.cshtml" />
     <Content Include="Views\ConceptScheme\Detail.cshtml" />
     <Content Include="Views\ConceptScheme\Edit.cshtml" />
+    <Content Include="Views\Shared\_DetailBasicInfo.cshtml" />
     <None Include="Web.Sandbox.config">
       <DependentUpon>Web.config</DependentUpon>
     </None>

@@ -1,11 +1,103 @@
 ﻿@using Models.Schema;
+@using Models.DTO;
+@using Models.Search;
 @model Rating
 @{
 	ViewBag.Title = "Rating: " + Model.Name;
+
+	var trainingGapTypes = Factories.ConceptSchemeManager.GetbyShortUri( Factories.ConceptSchemeManager.ConceptScheme_TrainingGap ).Concepts;
+	var sourceTypes = Factories.ConceptSchemeManager.GetbyShortUri( Factories.ConceptSchemeManager.ConceptScheme_ReferenceResource ).Concepts;
+	var sources = Factories.ReferenceResourceManager.GetAll();
+	var tasksBySource = new List<TaskCountBySource>();
+	foreach( var sourceType in sourceTypes )
+	{
+		var allTotal = 0;
+		var gapTotal = 0;
+		var countQuery = new SearchQuery()
+		{
+			Filters = new List<SearchFilter>()
+			{
+				new SearchFilter()
+				{
+					Name = "navy:Rating",
+					ItemIds = new List<int>(){ Model.Id }
+				},
+				new SearchFilter()
+				{
+					Name = "navy:ReferenceResourceCategory",
+					ItemIds = new List<int>(){ sourceType.Id }
+				}
+			},
+			PageSize = 0
+		};
+		Factories.RatingTaskManager.Search( countQuery );
+		allTotal = countQuery.TotalResults;
+
+		if( allTotal > 0 )
+		{
+			countQuery.Filters.Add( new SearchFilter()
+			{
+				Name = "navy:TrainingGap",
+				ItemIds = trainingGapTypes.Where( m => m.Name.ToLower() != "no" ).Select( m => m.Id ).ToList()
+			} );
+			Factories.RatingTaskManager.Search( countQuery );
+			gapTotal = countQuery.TotalResults;
+		}
+
+		tasksBySource.Add( new TaskCountBySource()
+		{
+			SourceID = sourceType.Id,
+			SourceName = sourceType.Name,
+			TotalTasks = allTotal,
+			TasksWithGaps = gapTotal
+		} );
+	}
+}
+@functions {
+	public class TaskCountBySource
+	{
+		public int SourceID { get; set; }
+		public string SourceName { get; set; }
+		public int TotalTasks { get; set; }
+		public int TasksWithGaps { get; set; }
+	}
 }
 
-<h2>@Model.Name</h2>
+<style type="text/css">
+	.tasksBySource { width: 100%; }
+	.tasksBySource thead th { padding: 5px; }
+	.tasksBySource thead th:not(.name) { text-align: right; width: 200px; min-width: 100px; }
+	.tasksBySource tbody tr { border-top: 1px solid #CCC; }
+	.tasksBySource tbody td { padding: 0 5px; }
+	.tasksBySource tbody td:not(.name) { text-align: right; border-left: 1px dashed #CCC; }
+</style>
 
-<p>@Model.CodedNotation</p>
-<p>@Model.Description</p>
-<p><a href="@Url.Content("~/" + Model.GetType().Name.ToLower() + "/edit/" + Model.Id)" target="_blank">Edit</a></p>
+@Html.Partial( "~/Views/Shared/_DetailBasicInfo.cshtml", new DetailBasicInfoHelper()
+{
+	TypeLabel = "Rating",
+	TypeURL = Model.GetType().Name.ToLower(),
+	Id = Model.Id,
+	Name = Model.Name,
+	Description = Model.Description, //Should hide this?
+	Identifiers = new List<NamedValue>()
+	{
+		new NamedValue( "System ID", Model.Id.ToString( )),
+		new NamedValue( "CTID", Model.CTID ),
+		new NamedValue( "Code", Model.CodedNotation )
+	}
+} )
+
+<h2>Rating Tasks by Source Type</h2>
+<table class="tasksBySource">
+	<thead>
+		<tr><th class="name">Source Type</th><th>Tasks With Training Gap</th><th>Total Tasks</th><th>Training Coverage</th></tr>
+	</thead>
+	<tbody>
+		@foreach ( var count in tasksBySource.OrderByDescending( m => m.TotalTasks ).ThenBy( m => m.TasksWithGaps ).ToList() )
+		{
+			<tr>
+				<td class="name">@count.SourceName</td><td>@count.TasksWithGaps</td><td>@count.TotalTasks</td><td>@( count.TotalTasks <= 0 ? "N/A" : Math.Round((double) count.TasksWithGaps / (double) count.TotalTasks, 4) * 100d + "%" )</td>
+			</tr>
+		}
+	</tbody>
+</table>

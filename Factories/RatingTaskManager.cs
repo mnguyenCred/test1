@@ -229,6 +229,39 @@ namespace Factories
 						);
 					}
 
+					//Handle Has Reference Resource
+					var referenceResourceFilter = query.GetFilterByName( "navy:ReferenceResource" );
+					if ( referenceResourceFilter != null && referenceResourceFilter.ItemIds?.Count() > 0 )
+					{
+						list = list.Where( s =>
+							referenceResourceFilter.IsNegation ?
+								!referenceResourceFilter.ItemIds.Contains( s.ReferenceResourceId ?? 0 ) :
+								referenceResourceFilter.ItemIds.Contains( s.ReferenceResourceId ?? 0 )
+						);
+					}
+
+					//Handle Has Reference Resource Category
+					var referenceResourceCategoryFilter = query.GetFilterByName( "navy:ReferenceResourceCategory" );
+					if ( referenceResourceCategoryFilter != null && referenceResourceCategoryFilter.ItemIds?.Count() > 0 )
+					{
+						list = list.Where( s =>
+							referenceResourceCategoryFilter.IsNegation ?
+								!referenceResourceCategoryFilter.ItemIds.Contains( s.WorkElementTypeId ?? 0 ) :
+								referenceResourceCategoryFilter.ItemIds.Contains( s.WorkElementTypeId ?? 0 )
+						);
+					}
+
+					//Handle Training Gap Type
+					var trainingGapFilter = query.GetFilterByName( "navy:TrainingGap" );
+					if ( trainingGapFilter != null && trainingGapFilter.ItemIds?.Count() > 0 )
+					{
+						list = list.Where( s =>
+							trainingGapFilter.IsNegation ?
+								!trainingGapFilter.ItemIds.Contains( s.FormalTrainingGapId ?? 0 ) :
+								trainingGapFilter.ItemIds.Contains( s.FormalTrainingGapId ?? 0 )
+						);
+					}
+
 					//Get total
 					query.TotalResults = list.Count();
 

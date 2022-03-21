@@ -45,4 +45,28 @@ namespace Models.DTO
 		}
 		//
 	}
+	//
+
+	//Used with ~/Views/Shared/_DetailBasicInfo.cshtml
+	public class DetailBasicInfoHelper
+	{
+		public int Id { get; set; }
+		public string Name { get; set; }
+		public string Description { get; set; }
+		public string TypeLabel { get; set; }
+		public string TypeURL { get; set; }
+		public List<NamedValue> Identifiers { get; set; }
+	}
+	public class NamedValue
+	{
+		public NamedValue( string name, string value )
+		{
+			Name = name;
+			Value = value;
+		}
+
+		public string Name { get; set; }
+		public string Value { get; set; }
+	}
+	//
 }
