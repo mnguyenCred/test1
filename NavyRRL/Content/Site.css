@@ -21,7 +21,7 @@
 input,
 select,
 textarea {
-    max-width: 280px;
+    max-width: 350px;
 }
 
 #mainSiteFooter{ width: 50%; text-align: center;}

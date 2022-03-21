@@ -1367,7 +1367,7 @@ namespace Factories
                         output.ReferenceResourceId = ( int ) entity?.Id;
                     else
                     {
-                        status.AddError( thisClassName + String.Format( ".MapToDB. RatingTask: '{0}'. The related HasReferenceResource '{1}' was not found", FormatLongLabel( input.Description ), input.HasReferenceResource ) );
+                        status.AddError( thisClassName + String.Format( ".MapToDB. RatingTask: '{0}'. The related SOURCE (HasReferenceResource) '{1}' was not found", FormatLongLabel( input.Description ), input.HasReferenceResource ) );
                     }
                 }
             }
@@ -1387,7 +1387,7 @@ namespace Factories
                         output.WorkElementTypeId = ( int ) entity?.Id;
                     else
                     {
-                        status.AddError( thisClassName + String.Format( ".MapToDB. RatingTask: '{0}'. The related ReferenceType '{1}' was not found", FormatLongLabel( input.Description ), input.HasTrainingTask ) );
+                        status.AddError( thisClassName + String.Format( ".MapToDB. RatingTask: '{0}'. The related WorkElementType (ReferenceType) '{1}' was not found", FormatLongLabel( input.Description ), input.HasTrainingTask ) );
                     }
                 }
                 
