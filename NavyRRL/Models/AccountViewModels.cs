@@ -103,6 +103,12 @@ namespace NavyRRL.Models
         [Display( Name = "Last Name" )]
         public string LastName { get; set; } = "";
 
+        [Display( Name = "Default Roles" )]
+        public string[] SelectedRoles { get; set; }
+        public List<System.Web.Mvc.SelectListItem> Roles { get; set; }
+
+        [Display( Name = "Notify User on Save?" )]
+        public bool NotifyUser { get; set; } = false;
 
         [Required]
         [StringLength(100, ErrorMessage = "The {0} must be at least {2} characters long.", MinimumLength = 6)]

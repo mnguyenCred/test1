@@ -14,6 +14,7 @@ using NavyRRL.Models;
 using Navy.Utilities;
 
 using Services;
+using System.Collections.Generic;
 
 namespace NavyRRL.Controllers
 {
@@ -60,8 +61,17 @@ namespace NavyRRL.Controllers
         [Authorize( Roles = "Administrator, Site Manager" )]
         public ActionResult AddUser()
         {
-            //return View();
-            return View();
+            var model = new RegisterViewModel();
+            var roles = AccountServices.GetRoles();
+            //model.SelectedRoles = new List<string>() { "20" }.ToArray();
+            //model.Roles = roles.Select( x => new SelectListItem { Text = x.Name, Value = x.Id, Selected = model.SelectedRoles.Contains( x.Name ) } ).ToList();
+            model.Roles = roles.Select( x => new SelectListItem { Text = x.Name, Value = x.Id, Selected = false } ).ToList();
+            //TODO - could set password to a default.
+            var rand = new Random();
+            var pw= System.Web.Security.Membership.GeneratePassword( 12, 2 ) + rand.Next(12,99).ToString();
+            model.Password = model.ConfirmPassword = pw; 
+
+            return View( model );
         }
 
         [HttpPost]
@@ -70,6 +80,7 @@ namespace NavyRRL.Controllers
         public async Task<ActionResult> AddUser( RegisterViewModel model )
         {
             int currentUserId = AccountServices.GetCurrentUserId();
+            var roles = AccountServices.GetRoles();
             if ( ModelState.IsValid )
             {
                 //check if user email aleady exists
@@ -77,8 +88,9 @@ namespace NavyRRL.Controllers
                 if ( exists?.Id > 0 )
                 {
                     ConsoleMessageHelper.SetConsoleErrorMessage( "Error - An account with the entered email address already exists." );
-                    return View();
+                    return View( model );
                 }
+                //create
                 string statusMessage = "";
                 var user = new ApplicationUser
                 {
@@ -87,7 +99,14 @@ namespace NavyRRL.Controllers
                     FirstName = model.FirstName.Trim(),
                     LastName = model.LastName.Trim()
                 };
-                //See HACK at top of page
+                //
+                if (model.NotifyUser)
+                {
+                    //if password empty, set a default
+                    if (string.IsNullOrWhiteSpace( model.Password ) )
+                        model.Password = System.Web.Security.Membership.GeneratePassword( 12, 3 );
+                    //model.Password= Guid.NewGuid().ToString();
+                }
                 var result = await UserManager.CreateAsync( user, model.Password );
 
                 if ( result.Succeeded )
@@ -98,25 +117,58 @@ namespace NavyRRL.Controllers
                         model.Password, currentUserId, ref statusMessage );
                     if ( id > 0 )
                     {
-                        string msg = "Successfully created account for {0}. ";
+                        var account = AccountServices.GetAccount( id );
 
+                        string msg = "Successfully created account for {0}. ";
+                        //check for a default role
+                        if (model.SelectedRoles?.Count() > 0)
+                        {
+                            new AccountServices().UpdateRoles( account.AspNetUserId, model.SelectedRoles );
+
+                        }
+                        //check if user is to be notified. 
+                        if (model.NotifyUser)
+                        {
+                            //would use forgot password, but need custom email, or confirm email
+                            string code = await UserManager.GenerateEmailConfirmationTokenAsync( user.Id );
+                            new AccountServices().Proxies_StoreProxyCode( code, user.Email, "ConfirmEmail" );
+                            //var callbackUrl = Url.Action( "ConfirmEmail", "Account", new { userId = user.Id, code = code }, protocol: Request.Url.Scheme );
+                            var callbackUrl = Url.Action( "ResetPassword", "Account", new { userId = user.Id, code = code }, protocol: Request.Url.Scheme );
+                            //NEED to be able to set password, so do need forgot password variation
+                            AccountServices.SendEmail_ConfirmAccount( user.Email, callbackUrl );
+                            msg += string.Format(" An email was sent to '{0}' to confirm the email address/account.",user.FirstName);
+                        }
                         ConsoleMessageHelper.SetConsoleSuccessMessage( string.Format( msg, user.FirstName ) );
                         //return View( "ConfirmationRequired" );
                         ModelState.Clear();
-                        return View();
+                        model.Roles = roles.Select( x => new SelectListItem { Text = x.Name, Value = x.Id, Selected = false } ).ToList();
+                        return View( model );
                     }
                     else
                     {
                         ConsoleMessageHelper.SetConsoleErrorMessage( "Error - " + statusMessage );
-                        return View();
+                        return View( model );
                     }
                 }
                 AddErrors( result );
+            } else
+            {
+                var errors = ModelState.Select( x => x.Value.Errors )
+                           .Where( y => y.Count > 0 )
+                           .ToList();
+                foreach ( var error in errors )
+                {
+                    foreach(var item in error)
+                    {
+                        ModelState.AddModelError( "", item.ErrorMessage );
+                    }
+                    
+                }
             }
 
             // If we got this far, something failed, redisplay form
-
-            return View();
+            model.Roles = roles.Select( x => new SelectListItem { Text = x.Name, Value = x.Id, Selected = false } ).ToList();
+            return View( model );
         }
         #endregion
         //
@@ -317,7 +369,7 @@ namespace NavyRRL.Controllers
                 ViewBag.Message = "Error: both a user identifier and an access code must be provided.";
                 return View("Error");
             }
-
+            //new AccountServices().Proxies_StoreProxyCode( code, "mparsons+220321a@credentialengine.org", "ConfirmEmail" );
             if ( !AccountServices.Proxy_IsCodeActive( code ) )
             {
                 ViewBag.Header = "Invalid Confirmation Code";
@@ -438,7 +490,8 @@ namespace NavyRRL.Controllers
         [AllowAnonymous]
         public ActionResult ResetPassword(string code)
         {
-            return code == null ? View("Error") : View();
+            ResetPasswordViewModel model = new ResetPasswordViewModel() { Code = code};
+            return code == null ? View("Error") : View( model );
         }
 
         //

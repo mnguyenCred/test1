@@ -24,8 +24,12 @@ SELECT [ConceptSchemeId]
       ,[Concept]
       ,[CodedNotation],AlternateLabel
       ,[Description]
+	  , IsActive
+	, WorkElementType
       ,[ConceptUID]
   FROM [dbo].[ConceptSchemeSummary]
+  where isactive = 1
+  and ConceptSchemeId= 9 
 
 ORDER BY Name, ListId, Concept
 GO
@@ -44,6 +48,8 @@ SELECT        TOP (100) PERCENT
 	, b.CodedNotation
 	, b.AlternateLabel
 	, b.Description
+	, b.IsActive
+	, b.WorkElementType
 	, b.RowId as ConceptUID
 FROM dbo.ConceptScheme a 
 INNER JOIN dbo.[ConceptScheme.Concept] b ON a.Id = b.ConceptSchemeId

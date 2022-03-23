@@ -1,7 +1,7 @@
 ﻿Dear {0}, <p>Click the following link to confirm your email for use in the Navy RRL application. <br /></p>
 <p style="display:none;" ><b>Note: For your protection, this is a one time use link (so it cannot be used by others to access your account)</b>.</p>
 
-<p><a href="{1}">Confirm your email.</a></p>
+<p><a href="{1}">Confirm your email and reset your password.</a></p>
 <p>If you cannot click on this link, copy and paste the following URL into your browser: <br/>{1}</p>
 
 <p>Please note that only authorized people will have access to the full site.</p>

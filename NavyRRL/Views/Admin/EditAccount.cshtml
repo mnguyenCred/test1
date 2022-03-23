@@ -41,7 +41,7 @@
 								@Html.LabelFor( x => x.Roles )
 								<div class="row">
 									<div class="col-sm-12">
-										@Html.ListBoxFor( x => x.SelectedRoles, Model.Roles, new { @class = "form-control multiselect", multiple = "multiple" } )
+										@Html.ListBoxFor( x => x.SelectedRoles, Model.Roles, new { @class = "form-control multiselect", multiple = "multiple", size=10 } )
 										<div class="row">
 											<div class="col-sm-12 text-right">
 												<i class="fa fa-info-circle" data-toggle="popover" data-trigger="hover" data-placement="left" data-html="true" data-content="<b>Administrator</b><ul><li>Full site access for read and update</li><li>Access to administrative functions</li></ul><b>Site Staff</b><ul><li>Full site access for read and update</li></ul><b>RMTL Developer</b><ul><li>Can Create RMTL Projects</li><li>Can transfer ownership of an owned project</li></ul><b>Rating Continuum Development  Analyst</b><ul><li>Can ...</li><li>Can ...</li></ul><b>Rating Continuum Manager</b><ul><li>Can ...</li><li>Can ...</li></ul>"></i>
