@@ -96,7 +96,7 @@
 		@foreach ( var count in tasksBySource.OrderByDescending( m => m.TotalTasks ).ThenBy( m => m.TasksWithGaps ).ToList() )
 		{
 			<tr>
-				<td class="name">@count.SourceName</td><td>@count.TasksWithGaps</td><td>@count.TotalTasks</td><td>@( count.TotalTasks <= 0 ? "N/A" : Math.Round((double) count.TasksWithGaps / (double) count.TotalTasks, 4) * 100d + "%" )</td>
+				<td class="name">@count.SourceName</td><td>@count.TasksWithGaps</td><td>@count.TotalTasks</td><td>@( count.TotalTasks <= 0 ? "N/A" : Math.Round((double) (count.TotalTasks - count.TasksWithGaps) / (double) count.TotalTasks, 4) * 100d + "%" )</td>
 			</tr>
 		}
 	</tbody>
