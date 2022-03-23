@@ -40,6 +40,7 @@ namespace Models.Curation
 		}
 
 		public List<UploadableRow> Rows { get; set; }
+		public string RawCSV { get; set; }
 	}
 	public class UploadableRow
 	{
