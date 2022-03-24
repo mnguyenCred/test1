@@ -369,7 +369,7 @@ namespace Factories
                             if ( item != null && item.Id > 0 )
                             {
                                 entity = new AppEntity();
-                                MapFromDB( item, entity );
+                                MapFromDB( item, entity, true );
                                 output.Add( ( entity ) );
                             }
                         }
@@ -433,11 +433,18 @@ namespace Factories
 
             }
         }
-        public static void MapFromDB( DBEntity input, AppEntity output )
+        public static void MapFromDB( DBEntity input, AppEntity output, bool appendingShortNameToName = false )
         {
             //
             List<string> errors = new List<string>();
             BaseFactory.AutoMap( input, output, errors );
+            if ( appendingShortNameToName )
+            {
+                if (!string.IsNullOrWhiteSpace(output.AlternateName)  && output.Name.IndexOf( output.AlternateName ) == -1 )
+                {
+                    output.Name += " (" + output.AlternateName  + ")";
+                }
+            }
             if ( input.RowId != output.RowId )
             {
                 output.RowId = input.RowId;

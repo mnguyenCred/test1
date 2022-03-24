@@ -860,7 +860,19 @@ namespace Services
 			}
 		}
 		//
-
+		private static string ParseDateOrEmpty2( string value )
+		{
+			try
+			{
+				return DateTime.Parse( value ).ToString("yyyy-MM-dd");
+			}
+			catch
+			{
+				//or ""
+				return DateTime.MinValue.ToString( "yyyy-MM-dd" );
+			}
+		}
+		//
 		private static void Append<T>( List<T> items, T item )
 		{
 			if ( items != null && item != null && !items.Contains( item ) )
@@ -1225,6 +1237,11 @@ namespace Services
 				summary.Messages.Error.Add( "Error: No rows were found to process." );
 				return summary;
 			}
+			//save input file
+			if ( uploadedData.RawCSV?.Length > 0 )
+			{
+				LoggingHelper.WriteLogFile( 1, string.Format( "Rating_upload_{0}_{1}.csv", currentRating.Name.Replace(" ","_"), DateTime.Now.ToString( "hhmmss" ) ), uploadedData.RawCSV, "", false );
+			}
 			//Filter out rows that don't match the selected rating
 			var nonMatchingRows = uploadedData.Rows.Where( m => m.Rating_CodedNotation?.ToLower() != currentRating.CodedNotation.ToLower() ).ToList();
 			uploadedData.Rows = uploadedData.Rows.Where( m => !nonMatchingRows.Contains( m ) ).ToList();
@@ -1274,6 +1291,7 @@ namespace Services
 			debug[ latestStepFlag ] = "Got Concept Scheme data";
 
 			var existingReferenceResources = ReferenceResourceManager.GetAll();
+
 			//this will not be good where can be GT 8K+
 			var existingRatingTasks = Factories.RatingTaskManager.GetAllForRating( currentRating.CodedNotation, true, ref totalRows );
 			var existingBilletTitles = Factories.JobManager.GetAll();
@@ -1515,20 +1533,29 @@ namespace Services
 			foreach( var matcher in existingReferenceResourceMatchers )
 			{
 				matcher.Flattened.ReferenceType_WorkElementType = sourceTypeConcepts.Where( m => matcher.Data.ReferenceType.Contains( m.RowId ) ).Select( m => m.WorkElementType ).ToList();
+				if ( matcher.Flattened.ReferenceType_WorkElementType?.Count == 0)
+                {
+					//CTTL
+					//TCCD
+                }
 			}
 
 			//Get loose matches
 			var looseMatchReferenceResourceMatchers_Task = new List<SheetMatcher<ReferenceResource, MatchableReferenceResource>>();
 			foreach( var uploaded in uploadedReferenceResourceMatchers_Task )
 			{
+				//only loose match: NAVPERS 18068F Vol II
+				//changed the date compare to a string, but didn't change
 				var matches = existingReferenceResourceMatchers.Where( m =>
-					uploaded.Flattened.Name == m.Flattened.Name &&
-					ParseDateOrEmpty( uploaded.Flattened.PublicationDate ) == ParseDateOrEmpty( m.Flattened.PublicationDate ) 
+					uploaded.Flattened.Name == m.Flattened.Name 
+					&& ParseDateOrEmpty2( uploaded.Flattened.PublicationDate ) == ParseDateOrEmpty2( m.Flattened.PublicationDate ) 
 				).ToList();
-
-				HandleLooseMatchesFound( matches, uploaded, looseMatchReferenceResourceMatchers_Task, summary, "Reference Resource (for Rating Task)", m => m?.Name );
+                var matches2 = existingReferenceResourceMatchers.Where( m =>
+                    uploaded.Flattened.Name == m.Flattened.Name
+                ).ToList();
+                HandleLooseMatchesFound( matches2, uploaded, looseMatchReferenceResourceMatchers_Task, summary, "Reference Resource (for Rating Task)", m => m?.Name );
 			}
-
+			
 			var looseMatchReferenceResourceMatchers_Course = new List<SheetMatcher<ReferenceResource, MatchableReferenceResource>>();
 			foreach (var uploaded in uploadedReferenceResourceMatchers_Course )
 			{
@@ -1633,7 +1660,7 @@ namespace Services
 			foreach ( var uploaded in uploadedTrainingTaskMatchers )
 			{
 				var matches = existingTrainingTaskMatchers.Where( m =>
-					uploaded.Flattened.Description == m.Flattened.Description
+					uploaded.Flattened.Description.ToLower() == m.Flattened.Description.ToLower()
 				).ToList();
 
 				HandleLooseMatchesFound( matches, uploaded, looseMatchingTrainingTaskMatchers, summary, "Training Task", m => m?.Description );
@@ -1642,7 +1669,7 @@ namespace Services
 			//Items that are completely identical (unchanged)
 			var identicalTrainingTaskMatchers = looseMatchingTrainingTaskMatchers.Where( m =>
 				 existingTrainingTaskMatchers.Where( n =>
-					 m.Flattened.Description == n.Flattened.Description
+					 m.Flattened.Description.ToLower() == n.Flattened.Description.ToLower()
 				 ).Count() > 0
 			).ToList();
 			summary.UnchangedCount.TrainingTask = identicalTrainingTaskMatchers.Count();
@@ -1959,11 +1986,13 @@ namespace Services
 					m.ReferenceType = FindConceptOrError( sourceTypeConcepts, new Concept() { WorkElementType = item.Flattened.ReferenceType_WorkElementType }, "Reference Resource Type", item.Flattened.ReferenceType_WorkElementType, summary.Messages.Error ).RowId;
 					m.HasRating = new List<Guid>() { currentRating.RowId };
 					m.HasWorkRole = existingWorkRoles.Concat( summary.ItemsToBeCreated.WorkRole ).Where( n => item.Flattened.HasWorkRole_Name.Contains( n.Name ) ).Select( n => n.RowId ).ToList();
+
 					m.HasReferenceResource = existingReferenceResources.Concat( summary.ItemsToBeCreated.ReferenceResource ).Where( n =>
-						item.Flattened.HasReferenceResource_Name == n.Name &&
-						ParseDateOrEmpty( item.Flattened.HasReferenceResource_PublicationDate ) == ParseDateOrEmpty( n.PublicationDate ) &&
-						sourceTypeConcepts.Where( o => n.ReferenceType.Contains( o.RowId ) ).Select( o => o.WorkElementType ).ToList().Contains( item.Flattened.ReferenceType_WorkElementType )
+						item.Flattened.HasReferenceResource_Name == n.Name 
+						&& ParseDateOrEmpty( item.Flattened.HasReferenceResource_PublicationDate ) == ParseDateOrEmpty( n.PublicationDate )
+						&& sourceTypeConcepts.Where( o => n.ReferenceType.Contains( o.RowId ) ).Select( o => o.WorkElementType ).ToList().Contains( item.Flattened.ReferenceType_WorkElementType )
 					).Select( n => n.RowId ).FirstOrDefault();
+
 					m.HasTrainingTask = existingTrainingTasks.Concat( summary.ItemsToBeCreated.TrainingTask ).Where( n =>
 						item.Flattened.HasTrainingTask_Description == n.Description
 					).Select( n => n.RowId ).FirstOrDefault();

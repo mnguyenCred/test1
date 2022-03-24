@@ -46,6 +46,7 @@ namespace Factories
                         var record = Get( entity.Name );
                         if ( record?.Id > 0 )
                         {
+                            //HOWEVER - if found now and not earlier, the rowId will be wrong for any related data that refers to it
                             //currently no description, so can just return -what about an updated date
                             entity.Id = record.Id;
                             //fall for future use
@@ -332,6 +333,7 @@ namespace Factories
             //watch for missing properties like rowId
             List<string> errors = new List<string>();
             BaseFactory.AutoMap( input, output, errors );
+            output.Name = output.Name?.Trim();
             //the publication date format can be inconsistant
             if ( IsValidDate(output.PublicationDate))
             {
@@ -486,6 +488,10 @@ namespace Factories
             {
                 //should be in the proper format, but maybe useful if there is a change in the default
                 output.PublicationDate = DateTime.Parse( output.PublicationDate ).ToString( "yyyy-MM-dd" );
+            }
+            if (output.Name == "NAVPERS 18068F Vol II" )
+            {
+
             }
             //related
             if ( (input.StatusTypeId ?? 0) > 0 )

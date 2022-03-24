@@ -90,13 +90,13 @@
 <h2>Rating Tasks by Source Type</h2>
 <table class="tasksBySource">
 	<thead>
-		<tr><th class="name">Source Type</th><th>Tasks With Training Gap</th><th>Total Tasks</th><th>Training Coverage</th></tr>
+		<tr><th class="name">Source Type</th><th>Total Tasks</th><th>Tasks With Training Gap</th><th>Training Coverage</th></tr>
 	</thead>
 	<tbody>
 		@foreach ( var count in tasksBySource.OrderByDescending( m => m.TotalTasks ).ThenBy( m => m.TasksWithGaps ).ToList() )
 		{
 			<tr>
-				<td class="name">@count.SourceName</td><td>@count.TasksWithGaps</td><td>@count.TotalTasks</td><td>@( count.TotalTasks <= 0 ? "N/A" : Math.Round((double) (count.TotalTasks - count.TasksWithGaps) / (double) count.TotalTasks, 4) * 100d + "%" )</td>
+				<td class="name">@count.SourceName</td><td>@count.TotalTasks</td><td>@count.TasksWithGaps</td><td>@( count.TotalTasks <= 0 ? "N/A" : Math.Round((double) (count.TotalTasks - count.TasksWithGaps) / (double) count.TotalTasks, 4) * 100d + "%" )</td>
 			</tr>
 		}
 	</tbody>

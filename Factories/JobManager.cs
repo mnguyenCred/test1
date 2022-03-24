@@ -295,9 +295,11 @@ namespace Factories
         {
             var entity = new AppEntity();
             var list = new List<AppEntity>();
-            list = CheckCache();
-            if (list?.Count > 0)
-                return list;
+            //need to watch this as an upload could occurs after cached
+            //skip for job
+            //list = CheckCache();
+            //if (list?.Count > 0)
+            //    return list;
 
             list = new List<AppEntity>();
             using ( var context = new DataEntities() )
@@ -458,7 +460,7 @@ namespace Factories
         {
             var cache = new CachedBillets();
             var list = new List<AppEntity>();
-            int cacheHours = 8;
+            int cacheHours = 1;
             DateTime maxTime = DateTime.Now.AddHours( cacheHours * -1 );
             if ( MemoryCache.Default.Get( cacheKey ) != null && cacheHours > 0 )
             {

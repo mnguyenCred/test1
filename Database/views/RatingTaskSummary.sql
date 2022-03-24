@@ -86,11 +86,13 @@ Alter  VIEW [dbo].RatingTaskSummary
 AS
 
 SELECT 
+--top 1000
 	a.Id,
 	a.CTID,
 	a.RowId,
 	isnull(rtr.Ratings,'') as Ratings,
-	isnull(rtb.BilletTitles,'') as BilletTitles,
+	''BilletTitles,
+	--isnull(rtb.BilletTitles,'') as BilletTitles,
 	a.CodedNotation 
 	,a.[RankId]
 	, isnull(c1.CodedNotation,'') As [Rank]
