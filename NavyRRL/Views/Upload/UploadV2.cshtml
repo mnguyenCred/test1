@@ -180,6 +180,8 @@
 			}
 		});
 
+		//Undo injects
+		Upload.RawCSV = Upload.RawCSV.replace(/<INSERTQUOTE>/g, '""');
 		console.log("CSV Processed", Upload);
 	}
 	//
