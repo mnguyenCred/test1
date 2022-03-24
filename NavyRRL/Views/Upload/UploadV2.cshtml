@@ -204,8 +204,8 @@
 					Rating_CodedNotation: row["Rating"],
 					PayGradeType_CodedNotation: row["Rank"],
 					Level_Name: row["Level (A/J/M)"], //Not used, seems to have changed to a single character and a column named "Level (A)" instead?
-					BilletTitle_Name: row[ "Billet Title" ],
-					WorkRole_Name: row[ "Functional Area" ],
+					BilletTitle_Name: pipeify(row[ "Billet Title" ]),
+					WorkRole_Name: pipeify(row[ "Functional Area" ]),
 					ReferenceResource_Name: row[ "Source" ],
 					ReferenceResource_PublicationDate: row[ "Date of Source" ],
 					Shared_ReferenceType: row[ "Work Element Type" ],
@@ -223,6 +223,12 @@
 				}
 			})
 		};
+	}
+	//
+
+	//Replace line breaks with |
+	function pipeify(text) {
+		return text?.replace(/\r\n/g, "|").replace(/\n/g, "|").split("|").map(m => m.trim()).join("|");
 	}
 	//
 
