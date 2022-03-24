@@ -169,13 +169,19 @@
 		//Create flat JSON
 		Upload.CSVJSON = [];
 		Upload.CSVRows.forEach(function (row) {
-			var temp = {};
-			Upload.CSVColumns.forEach(function (column, index) {
-				temp[column] = row[index];
-			});
-			Upload.CSVJSON.push(temp);
+			//Skip empty rows
+			if (row.join("").trim().length > 0) {
+				//Assemble row data
+				var temp = {};
+				Upload.CSVColumns.forEach(function (column, index) {
+					temp[column] = row[index];
+				});
+				Upload.CSVJSON.push(temp);
+			}
 		});
 
+		//Undo injects
+		Upload.RawCSV = Upload.RawCSV.replace(/<INSERTQUOTE>/g, '""');
 		console.log("CSV Processed", Upload);
 	}
 	//
