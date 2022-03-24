@@ -11,9 +11,15 @@ namespace Models.Schema
         public int RatingTaskId { get; set; }
 
         public int TrainingSolutionTypeId { get; set; }
+        /// <summary>
+        /// Temp
+        /// </summary>
         public string TrainingSolutionType { get; set; }
         public string ClusterAnalysisTitle { get; set; }
         public int RecommendedModalityId { get; set; }
+        /// <summary>
+        /// Temp
+        /// </summary>
         public string RecommendedModality { get; set; }
 
         public string DevelopmentSpecification { get; set; }
