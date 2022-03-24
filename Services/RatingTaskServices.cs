@@ -167,6 +167,20 @@ namespace Services
                             where += AND + String.Format( template, itemList );
                             AND = " AND ";
                         }
+                        //using source vs existing navy:ReferenceResource
+                        else if ( item.Name == "navy:Source" )
+                        {
+                            var template = "( base.ReferenceResourceId in ( {0} ) ) ";
+                            var itemList = "";
+                            var comma = "";
+                            foreach ( var t in item.ItemIds )
+                            {
+                                itemList += comma + t.ToString();
+                                comma = ",";
+                            }
+                            where += AND + String.Format( template, itemList );
+                            AND = " AND ";
+                        }
                         else if ( item.Name == "navy:TrainingGap" )
                         {
                             var template = " ( base.FormalTrainingGapId in ( {0} ) ) ";
@@ -298,7 +312,12 @@ namespace Services
 
             return output;
         }
+        public static List<ReferenceResource> GetAllReferenceResouces()
+        {
+            var output = ReferenceResourceManager.GetAll();
 
+            return output;
+        }
         #region Functional Area
         public static List<WorkRole> GetAllFunctionalAreas()
         {

@@ -20,7 +20,11 @@ DROP TABLE NavyRRL.dbo.[Entity.AssertionSummary]
 GO
 */
 ----==============================================
+--TBD - do we want to retain some event like for accounts?
 --truncate table NavyRRL.dbo.ActivityLog
+--DELETE FROM NavyRRL.dbo.ActivityLog
+--where ActivityType <> 'Account'
+
 
 --DELETE FROM NavyRRL.dbo.Assessment
 
@@ -90,10 +94,10 @@ DBCC CHECKIDENT ('[Comment]', RESEED, 0);
 DBCC CHECKIDENT ('[Entity]', RESEED, 0);
 --
 DBCC CHECKIDENT ('[Course]', RESEED, 0);
+DBCC CHECKIDENT ('[Course.AssessmentType]', RESEED, 0)
+DBCC CHECKIDENT ('[Course.CourseType]', RESEED, 0);
+DBCC CHECKIDENT ('[Course.Organization]', RESEED, 0);
 DBCC CHECKIDENT ('[Course.Task]', RESEED, 0);
-DBCC CHECKIDENT ('[Course.Concept]', RESEED, 0);
---DBCC CHECKIDENT ('[Course.Organization]', RESEED, 0);
---DBCC CHECKIDENT ('[Course.SchoolType]', RESEED, 0)
 --
 --DBCC CHECKIDENT ('[FunctionalArea]', RESEED, 0);
 --
@@ -125,10 +129,6 @@ DBCC CHECKIDENT ('[WorkRole]', RESEED, 0);
 
 --NOTE - no identity column
 ---DBCC CHECKIDENT ('[Entity_Cache]', RESEED, 0);
-
-
-
-
 
 GO
 

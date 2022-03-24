@@ -454,7 +454,7 @@ namespace Factories
 					foreach ( var item in results )
 					{
 						var entity = new AppEntity();
-						MapFromDB( item, entity );
+						MapFromDB( item, entity, true );
 						output.Add( entity );
 					}
 				}
@@ -523,7 +523,7 @@ namespace Factories
 		//
 		*/
 
-        public static void MapFromDB( DBEntity input, AppEntity output )
+        public static void MapFromDB( DBEntity input, AppEntity output, bool appendingCourseCode = false )
         {
             //should include list of concepts
             List<string> errors = new List<string>();
@@ -537,6 +537,10 @@ namespace Factories
             {
                 output.CourseName = input.Course.Name;
                 output.CourseCodedNotation = input.Course.CodedNotation;
+                if ( appendingCourseCode )
+                {
+                    output.Description += " (" + output.CourseCodedNotation + ")";
+                }
             }
 
         }

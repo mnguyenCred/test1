@@ -27,6 +27,26 @@ namespace Services
 		public static string EVENT_AUTHENTICATED = "NotAuthenticated";
 
 		#region Authorization methods
+		public static bool IsUserSiteManager()
+		{
+			AppUser user = GetUserFromSession();
+			if ( user == null || user.Id == 0 )
+				return false;
+
+			return IsUserSiteManager( user );
+		}
+		public static bool IsUserSiteManager( AppUser user )
+		{
+			if ( user == null || user.Id == 0 )
+				return false;
+
+			if ( user.UserRoles.Contains( AccountManager.ROLE_ADMINISTRATOR )
+			  || user.UserRoles.Contains( AccountManager.ROLE_SITE_MANAGER )
+				)
+				return true;
+			else
+				return false;
+		}
 		public static bool IsUserAnAdmin()
 		{
 			AppUser user = GetUserFromSession();

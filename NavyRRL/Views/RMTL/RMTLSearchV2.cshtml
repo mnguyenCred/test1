@@ -28,6 +28,12 @@
 		Name = "navy:WorkRole",
 		Items = functionalAreas.Select( m => { return new SimpleFilterItem() { Label = m.Name, Id = m.Id }; } ).ToList()
 	};
+	var sources = RatingTaskServices.GetAllReferenceResouces().ToList();
+	var sourcesFilter = new SimpleFilter()
+	{
+		Name = "navy:Source",
+		Items = sources.Select( m => { return new SimpleFilterItem() { Label = m.Name, Id = m.Id }; } ).ToList()
+	};
 	var courses = RatingTaskServices.GetAllCourses().ToList();
 	var coursesFilter = new SimpleFilter()
 	{
@@ -111,6 +117,7 @@
 			Organization: @Html.Raw(JsonConvert.SerializeObject( ccaFilter, Formatting.None)),
 			PayGradeType: @Html.Raw(JsonConvert.SerializeObject(payGradeTypeFilter, Formatting.None)),
 			FunctionalArea: @Html.Raw(JsonConvert.SerializeObject( functionalAreaFilter, Formatting.None)),
+			Source: @Html.Raw(JsonConvert.SerializeObject( sourcesFilter, Formatting.None)),
 			Course: @Html.Raw(JsonConvert.SerializeObject( coursesFilter, Formatting.None)),
 			TrainingGapType: @Html.Raw(JsonConvert.SerializeObject(trainingGapTypeFilter, Formatting.None)),
 			ApplicabilityType: @Html.Raw(JsonConvert.SerializeObject(applicabilityTypeFilter, Formatting.None)),
@@ -224,6 +231,9 @@
 		});
 		createFilter_Autofill("navy:WorkRole", 0, textFilterBox, "Functional Area", (Filter, text) => {
 			return findSimpleFilterItem(Search.Prefilled.FunctionalArea.Items, Filter.Items, text);
+		});
+		createFilter_Autofill("navy:Source", 0, textFilterBox, "Source", (Filter, text) => {
+			return findSimpleFilterItem(Search.Prefilled.Source.Items, Filter.Items, text);
 		});
 		createFilter_Autofill("ceterms:Course", 0, textFilterBox, "Course", (Filter, text) => {
 			return findSimpleFilterItem(Search.Prefilled.Course.Items, Filter.Items, text);
