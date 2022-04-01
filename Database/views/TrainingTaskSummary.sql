@@ -111,11 +111,20 @@ SELECT base.[Id] as CourseId
     WHERE  base.Id = a.Id
     FOR XML Path('') 
 ) CT (CourseTypes)
+----
+--    CROSS APPLY (
+--    SELECT distinct d.Name + ' | '
+--    FROM dbo.[Course]  a
+--		Inner join [dbo].[Course.AssessmentType]	c on a.Id = c.CourseId
+--		inner join [ConceptScheme.Concept] d on c.AssessmentMethodConceptId = d.Id 
+--    WHERE  base.Id = a.Id
+--    FOR XML Path('') 
+--) AMT (AssessmentMethodTypes)
 --
     CROSS APPLY (
-    SELECT distinct d.Name + ' | '
-    FROM dbo.[Course]  a
-		Inner join [dbo].[Course.AssessmentType]	c on a.Id = c.CourseId
+    SELECT distinct d.Name + ' , '
+    FROM dbo.[Course.Task]  a
+		Inner join [dbo].[CourseTask.AssessmentType]	c on a.Id = c.CourseTaskId
 		inner join [ConceptScheme.Concept] d on c.AssessmentMethodConceptId = d.Id 
     WHERE  base.Id = a.Id
     FOR XML Path('') 

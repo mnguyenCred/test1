@@ -4,6 +4,9 @@ using System.Text;
 
 namespace Models.Schema
 {
+	/// <summary>
+	/// ReferenceResource related to the Source property
+	/// </summary>
 	public class ReferenceResource : BaseObject
 	{
 		public ReferenceResource()
@@ -45,6 +48,7 @@ namespace Models.Schema
 		/// <summary>
 		/// Publication Date for this Reference Resource<br />
 		/// From Column: Date of Source
+		/// 22-03-23 mparsons - no longer convert to date format, retain original
 		/// </summary>
 		public string PublicationDate { get; set; }
 

@@ -12,6 +12,15 @@ namespace Models.Schema
 		/// </summary>
 		public string Description { get; set; }
 
+		/// <summary>
+		/// GUID for the Concept for the Assessment Method Type for this Course<br />
+		/// From Column: Current Assessment Approach
+		/// </summary>
+		public List<Guid> AssessmentMethodType { get; set; }
+
+
+		public List<string> AssessmentMethods { get; set; } = new List<string>();
+
 		public Guid Course { get; set; }
 		public string CourseCodedNotation { get; set; }
 

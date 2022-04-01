@@ -335,10 +335,10 @@ namespace Factories
             BaseFactory.AutoMap( input, output, errors );
             output.Name = output.Name?.Trim();
             //the publication date format can be inconsistant
-            if ( IsValidDate(output.PublicationDate))
-            {
-                output.PublicationDate = DateTime.Parse( output.PublicationDate ).ToString("yyyy-MM-dd");
-            }
+            //if ( IsValidDate(output.PublicationDate))
+            //{
+            //    output.PublicationDate = DateTime.Parse( output.PublicationDate ).ToString("yyyy-MM-dd");
+            //}
         }
         #endregion
         #region Retrieval
@@ -484,11 +484,11 @@ namespace Factories
             List<string> errors = new List<string>();
             BaseFactory.AutoMap( input, output, errors );
             //the publication date format can be inconsistant
-            if ( IsValidDate( output.PublicationDate ) )
-            {
-                //should be in the proper format, but maybe useful if there is a change in the default
-                output.PublicationDate = DateTime.Parse( output.PublicationDate ).ToString( "yyyy-MM-dd" );
-            }
+            //if ( IsValidDate( output.PublicationDate ) )
+            //{
+            //    //should be in the proper format, but maybe useful if there is a change in the default
+            //    output.PublicationDate = DateTime.Parse( output.PublicationDate ).ToString( "yyyy-MM-dd" );
+            //}
             if (output.Name == "NAVPERS 18068F Vol II" )
             {
 

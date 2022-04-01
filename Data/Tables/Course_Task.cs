@@ -17,7 +17,8 @@ namespace Data.Tables
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2214:DoNotCallOverridableMethodsInConstructors")]
         public Course_Task()
         {
-            this.RatingTask = new HashSet<RatingTask>();
+            this.RatingTask_HasTrainingTask = new HashSet<RatingTask_HasTrainingTask>();
+            this.CourseTask_AssessmentType = new HashSet<CourseTask_AssessmentType>();
         }
     
         public int Id { get; set; }
@@ -29,10 +30,11 @@ namespace Data.Tables
         public Nullable<int> LastUpdatedById { get; set; }
         public System.Guid RowId { get; set; }
         public string Description { get; set; }
-        public byte[] RowVersion { get; set; }
     
         public virtual Course Course { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<RatingTask> RatingTask { get; set; }
+        public virtual ICollection<RatingTask_HasTrainingTask> RatingTask_HasTrainingTask { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<CourseTask_AssessmentType> CourseTask_AssessmentType { get; set; }
     }
 }

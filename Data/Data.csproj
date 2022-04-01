@@ -98,6 +98,9 @@
     <Compile Include="Tables\Course.cs">
       <DependentUpon>NavyRRLTables.tt</DependentUpon>
     </Compile>
+    <Compile Include="Tables\CourseTask_AssessmentType.cs">
+      <DependentUpon>NavyRRLTables.tt</DependentUpon>
+    </Compile>
     <Compile Include="Tables\Course_AssessmentType.cs">
       <DependentUpon>NavyRRLTables.tt</DependentUpon>
     </Compile>
@@ -147,6 +150,9 @@
       <DependentUpon>NavyRRLTables.tt</DependentUpon>
     </Compile>
     <Compile Include="Tables\RatingTask_HasRating.cs">
+      <DependentUpon>NavyRRLTables.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Tables\RatingTask_HasTrainingTask.cs">
       <DependentUpon>NavyRRLTables.tt</DependentUpon>
     </Compile>
     <Compile Include="Tables\RatingTask_WorkRole.cs">

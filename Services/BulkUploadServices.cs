@@ -12,6 +12,8 @@ using Models.Application;
 using Models.Schema;
 using Models.Curation;
 using Factories;
+using System.Data;
+using System.Data.SqlClient;
 
 namespace Services
 {
@@ -133,11 +135,11 @@ namespace Services
 				row.Course_AssessmentMethodType_Name = NullifyNotApplicable( row.Course_AssessmentMethodType_Name );
 
 				row.ReferenceResource_PublicationDate = NullifyNotApplicable( row.ReferenceResource_PublicationDate );
-				if ( BaseFactory.IsValidDate( row.ReferenceResource_PublicationDate ) )
-				{
-					//normalize - may want to make this an app key to allow flexiblig
-					row.ReferenceResource_PublicationDate = DateTime.Parse( row.ReferenceResource_PublicationDate ).ToString( "yyyy-MM-dd" );
-				}
+				//if ( BaseFactory.IsValidDate( row.ReferenceResource_PublicationDate ) )
+				//{
+				//	//normalize - may want to make this an app key to allow flexiblig
+				//	row.ReferenceResource_PublicationDate = DateTime.Parse( row.ReferenceResource_PublicationDate ).ToString( "yyyy-MM-dd" );
+				//}
 
 				//Concepts from Concept Schemes
 				var payGradeType = FindConceptOrError( payGradeTypeConcepts, new Concept() { CodedNotation = row.PayGradeType_CodedNotation }, "Pay Grade (Rank)", row.PayGradeType_CodedNotation, result.Messages.Error );
@@ -223,11 +225,11 @@ namespace Services
 						PublicationDate = ( row.ReferenceResource_PublicationDate ?? "" )
 						//PublicationDate = ParseDateOrEmpty( row.ReferenceResource_PublicationDate )
 					};
-					if ( BaseFactory.IsValidDate( taskSource.PublicationDate ) )
-					{
-						//normalize
-						taskSource.PublicationDate = DateTime.Parse( taskSource.PublicationDate ).ToString( "yyyy-MM-dd" );
-					}
+					//if ( BaseFactory.IsValidDate( taskSource.PublicationDate ) )
+					//{
+					//	//normalize
+					//	taskSource.PublicationDate = DateTime.Parse( taskSource.PublicationDate ).ToString( "yyyy-MM-dd" );
+					//}
 					graph.ReferenceResource.Add( taskSource );
 					result.ItemsToBeCreated.ReferenceResource.Add( taskSource );
 					result.Messages.Create.Add( "Reference Resource for a Task: " + taskSource.Name );
@@ -1241,6 +1243,8 @@ namespace Services
 			if ( uploadedData.RawCSV?.Length > 0 )
 			{
 				LoggingHelper.WriteLogFile( 1, string.Format( "Rating_upload_{0}_{1}.csv", currentRating.Name.Replace(" ","_"), DateTime.Now.ToString( "hhmmss" ) ), uploadedData.RawCSV, "", false );
+
+				new BaseFactory().BulkLoadRMTL( currentRating.CodedNotation, uploadedData.RawCSV );
 			}
 			//Filter out rows that don't match the selected rating
 			var nonMatchingRows = uploadedData.Rows.Where( m => m.Rating_CodedNotation?.ToLower() != currentRating.CodedNotation.ToLower() ).ToList();
@@ -1384,6 +1388,53 @@ namespace Services
 
 			saveDuration = DateTime.Now.Subtract( saveStarted );
 			summary.Messages.Note.Add( string.Format( "Duration: {0:N2} seconds ", saveDuration.TotalSeconds ) );
+			return summary;
+		}
+		//
+
+		//Organization
+		public static ChangeSummary ProcessUploadV3( UploadableTable uploadedData, Guid ratingRowID, JObject debug = null )
+		{
+			//Hold data
+			debug = debug ?? new JObject();
+			var latestStepFlag = "FarthestStep";
+			var summary = new ChangeSummary() { RowId = Guid.NewGuid() };
+			int totalRows = 0;
+			debug[latestStepFlag] = "Initial Setup";
+
+			//Validate selected Rating
+			var currentRating = RatingManager.Get( ratingRowID );
+			if ( currentRating == null )
+			{
+				summary.Messages.Error.Add( "Error: Unable to find Rating for identifier: " + ratingRowID );
+				return summary;
+			}
+			AppUser user = AccountServices.GetCurrentUser();
+			if ( user?.Id == 0 )
+			{
+				summary.Messages.Error.Add( "Error - a current user was not found. You must authenticated and authorized to use this function!" );
+				return summary;
+			}
+			//Valiate row count
+			if ( uploadedData.Rows.Count == 0 )
+			{
+				summary.Messages.Error.Add( "Error: No rows were found to process." );
+				return summary;
+			}
+			//save input file
+			if ( uploadedData.RawCSV?.Length > 0 )
+			{
+				LoggingHelper.WriteLogFile( 1, string.Format( "Rating_upload_{0}_{1}.csv", currentRating.Name.Replace( " ", "_" ), DateTime.Now.ToString( "hhmmss" ) ), uploadedData.RawCSV, "", false );
+
+				new BaseFactory().BulkLoadRMTL( currentRating.CodedNotation, uploadedData.RawCSV );
+			}
+
+
+			foreach( var row in uploadedData.Rows )
+            {
+				//look up rating task 
+				//row.Row_CodedNotation
+            };
 			return summary;
 		}
 		//
@@ -1545,15 +1596,16 @@ namespace Services
 			foreach( var uploaded in uploadedReferenceResourceMatchers_Task )
 			{
 				//only loose match: NAVPERS 18068F Vol II
-				//changed the date compare to a string, but didn't change
+				//22-03-24 mp - don't use date format, there can be values like FR 21-4
 				var matches = existingReferenceResourceMatchers.Where( m =>
 					uploaded.Flattened.Name == m.Flattened.Name 
-					&& ParseDateOrEmpty2( uploaded.Flattened.PublicationDate ) == ParseDateOrEmpty2( m.Flattened.PublicationDate ) 
+					&& uploaded.Flattened.PublicationDate == m.Flattened.PublicationDate
+					//&& ParseDateOrEmpty2( uploaded.Flattened.PublicationDate ) == ParseDateOrEmpty2( m.Flattened.PublicationDate ) 
 				).ToList();
-                var matches2 = existingReferenceResourceMatchers.Where( m =>
-                    uploaded.Flattened.Name == m.Flattened.Name
-                ).ToList();
-                HandleLooseMatchesFound( matches2, uploaded, looseMatchReferenceResourceMatchers_Task, summary, "Reference Resource (for Rating Task)", m => m?.Name );
+                //var matches2 = existingReferenceResourceMatchers.Where( m =>
+                //    uploaded.Flattened.Name == m.Flattened.Name
+                //).ToList();
+                HandleLooseMatchesFound( matches, uploaded, looseMatchReferenceResourceMatchers_Task, summary, "Reference Resource (for Rating Task)", m => m?.Name );
 			}
 			
 			var looseMatchReferenceResourceMatchers_Course = new List<SheetMatcher<ReferenceResource, MatchableReferenceResource>>();
@@ -1988,8 +2040,10 @@ namespace Services
 					m.HasWorkRole = existingWorkRoles.Concat( summary.ItemsToBeCreated.WorkRole ).Where( n => item.Flattened.HasWorkRole_Name.Contains( n.Name ) ).Select( n => n.RowId ).ToList();
 
 					m.HasReferenceResource = existingReferenceResources.Concat( summary.ItemsToBeCreated.ReferenceResource ).Where( n =>
-						item.Flattened.HasReferenceResource_Name == n.Name 
-						&& ParseDateOrEmpty( item.Flattened.HasReferenceResource_PublicationDate ) == ParseDateOrEmpty( n.PublicationDate )
+						item.Flattened.HasReferenceResource_Name == n.Name
+						//&& ParseDateOrEmpty( item.Flattened.HasReferenceResource_PublicationDate ) == ParseDateOrEmpty( n.PublicationDate )
+						//22-03-24 mp - just do string compare due to various formats
+						&& item.Flattened.HasReferenceResource_PublicationDate == n.PublicationDate 
 						&& sourceTypeConcepts.Where( o => n.ReferenceType.Contains( o.RowId ) ).Select( o => o.WorkElementType ).ToList().Contains( item.Flattened.ReferenceType_WorkElementType )
 					).Select( n => n.RowId ).FirstOrDefault();
 

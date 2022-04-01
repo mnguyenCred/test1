@@ -1,3 +1,5 @@
+USE [NavyRRL]
+GO
 
 /*
 select count(*) from ImportHistory
@@ -7,6 +9,21 @@ select count(*) from RatingTask
 
 select count(*) from [RatingTask.HasRating]
 --2617
+
+
+
+SELECT top 1000
+	a.[Id]
+      ,a.[RatingTaskId]
+      ,a.[JobId]
+      ,a.[BilletTitles]
+  FROM [dbo].[RatingTaskBillets] a
+  inner join ratingTask b on a.RatingTaskId = b.id 
+  where a.jobid > 108
+
+
+GO
+
 
 */
 Alter  VIEW [dbo].RatingTaskBillets
@@ -23,7 +40,9 @@ SELECT [Id]
   FROM [dbo].[RatingTask.HasJob] base
 
   CROSS APPLY (
-    SELECT distinct b.Name + '| '
+    SELECT 
+		distinct b.Name + '| '
+		--distinct b.Name + '~' + convert(varchar,b.id) + '| '
     FROM dbo.[RatingTask.HasJob]  a
 		inner join Job b on a.JobId = b.Id
     WHERE  base.[RatingTaskId] = a.[RatingTaskId]

@@ -20,32 +20,32 @@ GO
 
 SELECT [Id]
       ,[CTID]
-      ,[RowId]
+  --    ,[RowId]
       ,[Ratings]
       ,[BilletTitles]
       ,[CodedNotation] as TaskCodedNotation
-      ,[RankId]
+    --  ,[RankId]
       ,[Rank], [RankName]
-      ,[PayGradeType]
-      ,[LevelId]
+    --  ,[PayGradeType]
+    --  ,[LevelId]
       ,[Level]
       ,[FunctionalArea]
-      ,[ReferenceResourceId]
+     -- ,[ReferenceResourceId]
       ,[ReferenceResource]
       ,[SourceDate]
-      ,[HasReferenceResource]
+     -- ,[HasReferenceResource]
       ,[WorkElementTypeId]
       ,[WorkElementType], WorkElementTypeAlternateName
-      ,[ReferenceType]
+     -- ,[ReferenceType]
       ,[RatingTask]
       ,[TaskApplicabilityId]
       ,[TaskApplicability]
-      ,[ApplicabilityType]
+    --  ,[ApplicabilityType]
       ,[FormalTrainingGapId]
       ,[FormalTrainingGap]
-      ,[TrainingGapType]
+    --  ,[TrainingGapType]
       ,[CourseId]
-      ,[CourseUID]
+    --  ,[CourseUID]
       ,[CIN]
       ,[CourseName]
       ,[CourseTypes]
@@ -65,6 +65,9 @@ SELECT [Id]
       ,[ModifiedBy]
      -- ,[ModifiedByUID]
   FROM [dbo].[RatingTaskSummary] base
+  where ratings = 'STG'
+  order by id 
+
   where ( base.id in (select a.[RatingTaskId] from [RatingTask.WorkRole] a inner join WorkRole b on a.WorkRoleId = b.Id where b.Id in (30) )) 
     where FunctionalArea= ''
 	order by CodedNotation
@@ -75,13 +78,27 @@ SELECT [Id]
 	--[TaskApplicabilityId]= 77
 GO
 
-
-
+select base.*
+from   [dbo].[RatingTaskSummary] base
+inner join (
+SELECT [CourseId]
+     --,[AssessmentMethodConceptId]
+     
+  FROM [NavyRRL].[dbo].[Course.AssessmentType]
+  group by courseid having COUNT(*) > 1
+) courseAsmts on base.CourseId = courseAsmts.CourseId
 GO
 
-
+Knowledge/Performance Test Oral Board/Test 
 */
+/*
 
+Modifications
+22-03-28 mp - Added RatingTask.HasTrainingTask - as can have multiple now (really only applicable with a globally unique identifier)
+			- TBD - consider changing rating to have multiple rows where in multiple ratings
+				- now will show one per row
+				- review the query builder for this
+*/
 Alter  VIEW [dbo].RatingTaskSummary
 AS
 
@@ -89,11 +106,13 @@ SELECT
 --top 1000
 	a.Id,
 	a.CTID,
-	a.RowId,
-	isnull(rtr.Ratings,'') as Ratings,
-	''BilletTitles,
-	--isnull(rtb.BilletTitles,'') as BilletTitles,
-	a.CodedNotation 
+	a.RowId
+	,isnull(r.Name,'') as Ratings
+	,r.id as ratingId
+	--,isnull(rtr.Ratings,'') as Ratings
+	--,''BilletTitles,
+	,isnull(rtb.BilletTitles,'') as BilletTitles
+	,a.CodedNotation 
 	,a.[RankId]
 	, isnull(c1.CodedNotation,'') As [Rank]
 	, isnull(c1.Name,'') As [RankName]
@@ -157,7 +176,8 @@ SELECT
 		,g.CourseName
 		--can be multiple
 		,g.CourseTypes
-		,a.TrainingTaskId
+		,htt.TrainingTaskId
+		--,a.TrainingTaskId
 		,g.TrainingTask
 		,g.TrainingTaskUID as HasTrainingTask
 		--can be multiple
@@ -179,11 +199,13 @@ SELECT
 	  ,am.RowId as ModifiedByUID
 
    
-  FROM [dbo].[RatingTask] a
-  left join RatingTaskRatings rtr on a.Id = rtr.[RatingTaskId]
-  left Join RatingTaskBillets rtb on a.Id = rtb.RatingTaskId
-left join [ConceptScheme.Concept]	c1 on a.[RankId] = c1.Id
-left join [ConceptScheme.Concept]	c2 on a.[LevelId] = c2.Id
+	FROM [dbo].[RatingTask] a
+	left join [RatingTask.HasRating] rtr on a.Id = rtr.[RatingTaskId]
+	Left Join Rating r on rtr.RatingId = r.Id
+	--left join RatingTaskRatings rtr on a.Id = rtr.[RatingTaskId]
+	left Join RatingTaskBillets rtb on a.Id = rtb.RatingTaskId
+	left join [ConceptScheme.Concept]	c1 on a.[RankId] = c1.Id
+	left join [ConceptScheme.Concept]	c2 on a.[LevelId] = c2.Id
 --left join WorkRole					b on a.FunctionalAreaId = b.Id
 --left join FunctionalArea			b on a.FunctionalAreaId = b.Id
 left join ReferenceResource			c on a.ReferenceResourceId = c.Id
@@ -193,7 +215,10 @@ left join [ConceptScheme.Concept]	wet on a.WorkElementTypeId = wet.Id
 left join [ConceptScheme.Concept]	e on a.TaskApplicabilityId = e.Id
 left join [ConceptScheme.Concept]	f on a.FormalTrainingGapId = f.Id
 
-Left Join TrainingTaskSummary		g on a.TrainingTaskId = g.TrainingTaskId
+Left Join [ratingTask.HasTrainingTask] htt on a.Id = htt.RatingTaskId
+Left Join TrainingTaskSummary		g on htt.TrainingTaskId = g.TrainingTaskId
+--Left Join TrainingTaskSummary		g on a.TrainingTaskId = g.TrainingTaskId
+
 --Left Join [Course.Task]				g on a.TrainingTaskId = g.Id
 --Left Join [Course]				h on g.CourseId = h.Id
   Left Join Account_Summary ac on a.CreatedById = ac.Id

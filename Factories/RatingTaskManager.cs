@@ -120,8 +120,33 @@ namespace Factories
 
             return entity;
 		}
+        /// <summary>
+        /// Get a rating task by coded notation. Need to also use rating! or RatingId.
+        /// Start with getting a list. At some point could lead to sharing a rating task. 
+        /// </summary>
+        /// <param name="codedNotation"></param>
+        /// <param name="includingConcepts"></param>
+        /// <returns></returns>
+        public static AppEntity Get( string codedNotation, bool includingConcepts )
+        {
+            var entity = new AppEntity();
+            if ( string.IsNullOrWhiteSpace( codedNotation ) )
+                return entity;
 
-		public static AppEntity Get( Guid rowId, bool includingConcepts = false )
+            using ( var context = new DataEntities() )
+            {
+                var item = context.RatingTask
+                            .FirstOrDefault( s => s.CodedNotation == codedNotation );
+
+                if ( item != null && item.Id > 0 )
+                {
+                    MapFromDB( item, entity, includingConcepts );
+                }
+            }
+
+            return entity;
+        }
+        public static AppEntity Get( Guid rowId, bool includingConcepts = false )
 		{
 			var entity = new AppEntity();
 
@@ -399,10 +424,12 @@ namespace Factories
             {
                 template += ",'ALL'";
             }
+            //make configurable - this is still OK
             filter = string.Format( "base.id in (select a.[RatingTaskId] from [RatingTask.HasRating] a inner join Rating b on a.ratingId = b.Id where b.CodedNotation in ({0}) )", template );
             var results = RMTLSearch( filter, orderBy, pageNumber, pageSize, userId, ref totalRows );
 
             //no clear difference between the convert and select?
+            //for multiple training tasks, will have duplicate rows, so should still have one training task per rating task search result
             list = results.ConvertAll( m => new AppEntity() 
             { 
                 CTID = m.CTID,
@@ -744,10 +771,26 @@ namespace Factories
                 //OR
                 //output.TrainingGapType = ConceptSchemeManager.MapConcept( input.ConceptScheme_TrainingGap )?.RowId ?? Guid.Empty;
 			}
+
+            if ( input.RatingTask_HasTrainingTask?.Count > 0 )
+            {
+                foreach ( var item in input.RatingTask_HasTrainingTask )
+                {
+                    if ( item.Course_Task?.RowId != null )
+                        output.HasTrainingTaskList.Add( item.Course_Task.RowId );
+                }
+            }
         }
         #endregion
 
         #region === persistance ==================
+        /// <summary>
+        /// Save a RatingTask
+        /// 22-03-29 mp - now (well some day) there can be multiple training tasks for an RT
+        /// </summary>
+        /// <param name="input"></param>
+        /// <param name="status"></param>
+        /// <returns></returns>
         public bool Save( AppEntity input, ref ChangeSummary status )
         {
             bool isValid = true;
@@ -944,12 +987,172 @@ namespace Factories
                 HasRatingUpdate( input, ref status );
                 //RatingTask.HasJob
                 HasJobUpdate( input, ref status );
+
+                if ( UtilityManager.GetAppKeyValue( "handlingMultipleTrainingTasksPerRatingTask", false ) )
+                {
+                    TrainingTaskUpdate( input, ref status );
+                }
             }
             catch ( Exception ex )
             {
                 LoggingHelper.LogError( ex, thisClassName + "UpdateParts" );
             }
         }
+
+        #region Training task
+        /// <summary>
+        /// Handle multiple training tasks
+        /// Note there can only be one per upload row. However, have to be carefull to not delete a trainging task for a different rating
+        /// </summary>
+        /// <param name="input"></param>
+        /// <param name="status"></param>
+        /// <returns></returns>
+        public bool TrainingTaskUpdate( AppEntity input, ref ChangeSummary status )
+        {
+            status.HasSectionErrors = false;
+            var efEntity = new Data.Tables.RatingTask_HasTrainingTask();
+            var entityType = "RatingTask_HasTrainingTask";
+            using ( var context = new DataEntities() )
+            {
+                try
+                {
+                    if ( input.HasTrainingTaskList == null )
+                        input.HasTrainingTaskList = new List<Guid>();
+
+                    if ( input.HasTrainingTaskList?.Count == 0 )
+                    {
+                        if ( IsValidGuid( input.HasTrainingTask ))
+                        {
+                            input.HasTrainingTaskList.Add( input.HasTrainingTask );
+                        }
+                        else 
+                            input.HasTrainingTaskList = new List<Guid>();
+                    }
+                    //get existing
+                    var results =   from entity in context.RatingTask_HasTrainingTask
+                                    join related in context.Course_Task
+                                    on entity.TrainingTaskId equals related.Id
+                                    where entity.RatingTaskId == input.Id
+
+                                    select related;
+                    var existing = results?.ToList();
+                    #region deletes check
+                    if ( existing.Any() )
+                    {
+                        //if exists not in input, delete it
+                        foreach ( var e in existing )
+                        {
+                            var key = e.RowId;
+                            if ( IsValidGuid( key ) )
+                            {
+                                if ( !input.HasTrainingTaskList.Contains( ( Guid ) key ) )
+                                {
+                                    //need to check for a rating
+                                    //DeleteRatingTaskTrainingTask( input.Id, e.Id, ref status );
+                                }
+                            }
+                        }
+                    }
+                    #endregion
+                    //adds
+                    if ( input.HasTrainingTaskList != null )
+                    {
+                        foreach ( var child in input.HasTrainingTaskList )
+                        {
+                            //if not in existing, then add
+                            bool doingAdd = true;
+                            if ( existing?.Count > 0 )
+                            {
+                                var isfound = existing.Select( s => s.RowId == child ).ToList();
+                                if ( isfound.Any() )
+                                    doingAdd = false;
+                            }
+                            if ( doingAdd )
+                            {
+                                var related = TrainingTaskManager.Get( child );
+                                if ( related?.Id > 0 )
+                                {
+                                    //ReferenceConceptAdd( input, concept.Id, input.LastUpdatedById, ref status );
+                                    efEntity.RatingTaskId = input.Id;
+                                    efEntity.TrainingTaskId = related.Id;
+                                    efEntity.RowId = Guid.NewGuid();
+                                    efEntity.CreatedById = input.LastUpdatedById;
+                                    efEntity.Created = DateTime.Now;
+
+                                    context.RatingTask_HasTrainingTask.Add( efEntity );
+
+                                    // submit the change to database
+                                    int count = context.SaveChanges();
+                                    if ( count > 0 )
+                                    {
+                                        SiteActivity sa = new SiteActivity()
+                                        {
+                                            ActivityType = "RatingTask TrainingTask",
+                                            Activity = status.Action,
+                                            Event = "Add",
+                                            Comment = string.Format( "RatingTask TrainingTask was added. Name: {0}", FormatLongLabel( related.Description ) ),
+                                            ActionByUserId = input.LastUpdatedById,
+                                            ActivityObjectId = input.Id
+                                        };
+                                        new ActivityManager().SiteActivityAdd( sa );
+
+                                    }
+                                }
+                                else
+                                {
+                                    status.AddError( String.Format( "Error. For RatingTask: '{0}' ({1}) a HasTrainingTask was not found for Identifier: {2}", FormatLongLabel( input.Description ), input.Id, child ) );
+                                }
+                            }
+                        }
+                        //
+                        return true;
+                    }
+                }
+                catch ( Exception ex )
+                {
+                    string message = FormatExceptions( ex );
+                    LoggingHelper.LogError( ex, thisClassName + string.Format( ".HasTrainingTaskUpdate-'{0}', RatingTask: '{1}' ({2})", entityType, FormatLongLabel( input.Description ), input.Id ) );
+                    status.AddError( thisClassName + ".HasTrainingTaskUpdate(). Error - the save was not successful. \r\n" + message );
+                }
+            }
+            return false;
+        }
+
+        public bool DeleteRatingTaskTrainingTask( int ratingTaskId, int trainingTaskId, ref ChangeSummary status )
+        {
+            bool isValid = false;
+            if ( trainingTaskId == 0 )
+            {
+                //statusMessage = "Error - missing an identifier for the HasTrainingTask to remove";
+                return false;
+            }
+
+            using ( var context = new DataEntities() )
+            {
+                var efEntity = context.RatingTask_HasTrainingTask
+                                .FirstOrDefault( s => s.RatingTaskId == ratingTaskId && s.TrainingTaskId == trainingTaskId );
+
+                if ( efEntity != null && efEntity.Id > 0 )
+                {
+                    context.RatingTask_HasTrainingTask.Remove( efEntity );
+                    int count = context.SaveChanges();
+                    if ( count > 0 )
+                    {
+                        isValid = true;
+                    }
+                }
+                else
+                {
+                    //statusMessage = "Warning - the record was not found - probably because the target had been previously deleted";
+                    isValid = true;
+                }
+            }
+
+            return isValid;
+        }
+
+        #endregion
+        #region WorkRole
         public bool WorkRoleUpdate( AppEntity input, ref ChangeSummary status )
         {
             status.HasSectionErrors = false;
@@ -1054,7 +1257,7 @@ namespace Factories
             bool isValid = false;
             if ( workRoleId == 0 )
             {
-                //statusMessage = "Error - missing an identifier for the CourseConcept to remove";
+                //statusMessage = "Error - missing an identifier for the RatingTaskWorkRole( to remove";
                 return false;
             }
 
@@ -1081,7 +1284,7 @@ namespace Factories
 
             return isValid;
         }
-
+        #endregion
         public bool HasRatingUpdate( AppEntity input, ref ChangeSummary status )
         {
             status.HasSectionErrors = false;
@@ -1433,25 +1636,33 @@ namespace Factories
                 output.FormalTrainingGapId = ( int ) ConceptSchemeManager.GetConcept( input.TrainingGapType )?.Id;
             }
             //
-            if ( IsValidGuid( input.HasTrainingTask ) )
+            if (UtilityManager.GetAppKeyValue( "handlingMultipleTrainingTasksPerRatingTask", false ) )
             {
-                //this sucks, having to do lookups!
-                if ( output.TrainingTaskId != null && output.Course_Task?.RowId == input.HasTrainingTask )
+                output.TrainingTaskId = null;
+            } else
+            {
+                if ( IsValidGuid( input.HasTrainingTask ) )
                 {
-                    //no action
-                }
-                else
-                {
-                    var trainingTask = TrainingTaskManager.Get( input.HasTrainingTask );
-                    if ( trainingTask?.Id > 0 )
-                        output.TrainingTaskId = ( int ) trainingTask?.Id;
-                    else 
+                    //this sucks, having to do lookups!
+                    //if ( output.TrainingTaskId != null && output.Course_Task?.RowId == input.HasTrainingTaskOld )
+                    //{
+                    //    //no action
+                    //}
+                    //else
                     {
-                        status.AddError( thisClassName + String.Format(".MapToDB. RatingTask: '{0}'. The related training task '{1}' was not found", FormatLongLabel(input.Description), input.HasTrainingTask  ));
+                        var trainingTask = TrainingTaskManager.Get( input.HasTrainingTask );
+                        if ( trainingTask?.Id > 0 )
+                            output.TrainingTaskId = ( int ) trainingTask?.Id;
+                        else
+                        {
+                            status.AddError( thisClassName + String.Format( ".MapToDB. RatingTask: '{0}'. The related training task '{1}' was not found", FormatLongLabel( input.Description ), input.HasTrainingTask ) );
+                        }
                     }
                 }
-            } else
-                output.TrainingTaskId = null;
+                else
+                    output.TrainingTaskId = null;
+            }
+            
             //FunctionalAreaId
             //NOTE this can be multiple. Setting here for current demo code. will remove once the search stuff is adjusted
             //output.FunctionalAreaId = null;

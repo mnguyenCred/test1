@@ -58,7 +58,7 @@ namespace Factories
             return Save( parent, entity, ref status );
         }
 
-        public bool Save( ParentEntity parent, AppEntity entity, ref ChangeSummary status )
+        public bool Save( ParentEntity parent, AppEntity input, ref ChangeSummary status )
         {
             bool isValid = true;
             using ( var context = new DataEntities() )
@@ -67,15 +67,15 @@ namespace Factories
                 //or may want to assign and check for change (could be legit case change). 
                 //  use rowId if present - although the upload may have no way to determine if an existing task is being updated - 
                 DBEntity efEntity = new DBEntity();
-                if ( IsValidGuid( entity.RowId ) )
+                if ( IsValidGuid( input.RowId ) )
                 {
-                    efEntity = context.Course_Task.FirstOrDefault( s => s.RowId == entity.RowId );
+                    efEntity = context.Course_Task.FirstOrDefault( s => s.RowId == input.RowId );
                 }
 
                 if ( efEntity == null )
                 {
                     efEntity = context.Course_Task
-                        .FirstOrDefault( s => s.CourseId == parent.Id && s.Description.ToLower() == entity.Description.ToLower() );
+                        .FirstOrDefault( s => s.CourseId == parent.Id && s.Description.ToLower() == input.Description.ToLower() );
                 }
                 if ( efEntity?.Id > 0 )
                 {
@@ -83,11 +83,11 @@ namespace Factories
                     List<string> errors = new List<string>();
                     //this will include the extra props (like LifeCycleControlDocument, etc. for now)
                     //fill in fields that may not be in entity
-                    entity.RowId = efEntity.RowId;
-                    entity.Created = efEntity.Created;
-                    entity.CreatedById = ( efEntity.CreatedById ?? 0 );
-                    entity.Id = efEntity.Id;
-                    BaseFactory.AutoMap( entity, efEntity, errors );
+                    input.RowId = efEntity.RowId;
+                    input.Created = efEntity.Created;
+                    input.CreatedById = ( efEntity.CreatedById ?? 0 );
+                    input.Id = efEntity.Id;
+                    BaseFactory.AutoMap( input, efEntity, errors );
 
                     if ( HasStateChanged( context ) )
                     {
@@ -97,24 +97,27 @@ namespace Factories
                         //can be zero if no data changed
                         if ( count >= 0 )
                         {
-                            entity.LastUpdated = ( DateTime ) efEntity.LastUpdated;
+                            input.LastUpdated = ( DateTime ) efEntity.LastUpdated;
 
                             SiteActivity sa = new SiteActivity()
                             {
                                 ActivityType = "TrainingTask",
                                 Activity = status.Action,
                                 Event = "Update",
-                                Comment = string.Format( "TrainingTask was updated. Task: {0}", FormatLongLabel( entity.Description ) ),
-                                ActionByUserId = entity.LastUpdatedById,
-                                ActivityObjectId = entity.Id
+                                Comment = string.Format( "TrainingTask was updated. Task: {0}", FormatLongLabel( input.Description ) ),
+                                ActionByUserId = input.LastUpdatedById,
+                                ActivityObjectId = input.Id
                             };
                             new ActivityManager().SiteActivityAdd( sa );
+                            //TBD: will AssessmentMethodType still be on the course, or on the training task.
+                            TrainingTaskAssessmentMethodSave( input, input.AssessmentMethodType, ref status );
+
                         }
                         else
                         {
                             //?no info on error
 
-                            string message = string.Format( thisClassName + ".Save Failed", "Attempted to update a CourseTask. The process appeared to not work, but was not an exception, so we have no message, or no clue. Course: {0}, Id: {1}, Task: '{2}'", parent.Name, parent.Id, entity.Description );
+                            string message = string.Format( thisClassName + ".Save Failed", "Attempted to update a CourseTask. The process appeared to not work, but was not an exception, so we have no message, or no clue. Course: {0}, Id: {1}, Task: '{2}'", parent.Name, parent.Id, input.Description );
                             status.AddError( "Error - the update was not successful. " + message );
                             EmailManager.NotifyAdmin( thisClassName + ".CourseTaskSave Failed Failed", message );
                         }
@@ -123,14 +126,14 @@ namespace Factories
                 }
                 else
                 {
-                    var result = Add( parent, entity, ref status );
+                    var result = Add( parent, input, ref status );
                 }
 
             }
             return isValid;
         }
 
-        public bool Add( ParentEntity input, AppEntity task, ref ChangeSummary status )
+        public bool Add( ParentEntity parent, AppEntity input, ref ChangeSummary status )
         {
             var entityType = "CourseTask";
             var efEntity = new Data.Tables.Course_Task();
@@ -141,18 +144,18 @@ namespace Factories
             {
                 try
                 {
-                    if ( IsValidGuid( task.RowId ) )
-                        efEntity.RowId = task.RowId;
+                    if ( IsValidGuid( input.RowId ) )
+                        efEntity.RowId = input.RowId;
                     else
                         efEntity.RowId = Guid.NewGuid();
-                    if ( IsValidCtid( task.CTID ) )
-                        efEntity.CTID = task.CTID;
+                    if ( IsValidCtid( input.CTID ) )
+                        efEntity.CTID = input.CTID;
                     else
                         efEntity.CTID = "ce-" + efEntity.RowId.ToString().ToLower();
 
-                    efEntity.CourseId = input.Id;
-                    efEntity.Description = task.Description;
-                    efEntity.CreatedById = efEntity.LastUpdatedById = input.LastUpdatedById;
+                    efEntity.CourseId = parent.Id;
+                    efEntity.Description = input.Description;
+                    efEntity.CreatedById = efEntity.LastUpdatedById = parent.LastUpdatedById;
                     efEntity.Created = efEntity.LastUpdated = DateTime.Now;
 
                     context.Course_Task.Add( efEntity );
@@ -166,18 +169,21 @@ namespace Factories
                             ActivityType = "TrainingTask",
                             Activity = status.Action,
                             Event = "Add",
-                            Comment = string.Format( "TrainingTask was added. Task: {0}", FormatLongLabel( task.Description ) ),
-                            ActionByUserId = input.LastUpdatedById,
-                            ActivityObjectId = input.Id
+                            Comment = string.Format( "TrainingTask was added. Task: {0}", FormatLongLabel( input.Description ) ),
+                            ActionByUserId = parent.LastUpdatedById,
+                            ActivityObjectId = parent.Id
                         };
                         new ActivityManager().SiteActivityAdd( sa );
+                        //add assessments
+                        TrainingTaskAssessmentMethodSave( input, parent.AssessmentMethodType, ref status );
+
                         //
                         return true;
                     }
                     else
                     {
                         //?no info on error
-                        string message = thisClassName + string.Format( ". Add Failed", "Attempted to add a {0}. The process appeared to not work, but was not an exception, so we have no message, or no clue. Course: '{2}' ({3}) for task: '{4}', was added for by the import.", entityType, input.Name, input.Id, task.Description );
+                        string message = thisClassName + string.Format( ". Add Failed", "Attempted to add a {0}. The process appeared to not work, but was not an exception, so we have no message, or no clue. Course: '{2}' ({3}) for task: '{4}', was added for by the import.", entityType, parent.Name, parent.Id, input.Description );
                         status.AddError( thisClassName + String.Format( ".Add-'{0}' Error - the add was not successful. ", entityType ) + message );
                         EmailManager.NotifyAdmin( thisClassName + ". Add Failed", message );
                     }
@@ -185,11 +191,136 @@ namespace Factories
                 catch ( Exception ex )
                 {
                     string message = FormatExceptions( ex );
-                    LoggingHelper.LogError( ex, thisClassName + string.Format( ".Add-'{0}', Course: '{1}' ({2}) for task: '{3}'", entityType, input.Name, input.Id, task.Description ) );
+                    LoggingHelper.LogError( ex, thisClassName + string.Format( ".Add-'{0}', Course: '{1}' ({2}) for task: '{3}'", entityType, parent.Name, parent.Id, input.Description ) );
                     status.AddError( thisClassName + ".Add(). Error - the save was not successful. \r\n" + message );
                 }
             }
             return false;
+        }
+
+        public bool TrainingTaskAssessmentMethodSave( AppEntity input, List<Guid> concepts, ref ChangeSummary status )
+        {
+            bool success = false;
+            status.HasSectionErrors = false;
+            var efEntity = new Data.Tables.CourseTask_AssessmentType();
+            var entityType = "CourseTask_AssessmentType";
+
+            using ( var context = new DataEntities() )
+            {
+                try
+                {
+                    if ( concepts?.Count == 0 )
+                        concepts = new List<Guid>();
+                    //check existance
+                    var results =   from entity in context.CourseTask_AssessmentType
+                                    join concept in context.ConceptScheme_Concept
+                                    on entity.AssessmentMethodConceptId equals concept.Id
+                                    where entity.CourseTaskId == input.Id
+
+                                    select concept;
+
+                    //if ( existing == null )
+                    //    existing = new List<ConceptScheme_Concept>();  
+                    var existing = results?.ToList();
+
+                    #region deletes check
+                    if ( existing.Any() )
+                    {
+                        //if exists not in input, delete it
+                        foreach ( var e in existing )
+                        {
+                            var key = e.RowId;
+                            if ( IsValidGuid( key ) )
+                            {
+                                if ( !concepts.Contains( ( Guid ) key ) )
+                                {
+                                    DeleteTrainingAssessmentType( input.Id, e.Id, ref status );
+                                }
+                            }
+                        }
+                    }
+                    #endregion
+                    //adds
+                    if ( concepts != null )
+                    {
+                        foreach ( var child in concepts )
+                        {
+                            //if not in existing, then add
+                            bool doingAdd = true;
+                            if ( existing?.Count > 0 )
+                            {
+                                foreach ( var item in existing )
+                                {
+                                    if ( item.RowId == child )
+                                    {
+                                        doingAdd = false;
+                                        break;
+                                    }
+                                }
+                            }
+                            if ( doingAdd )
+                            {
+                                var concept = ConceptSchemeManager.GetConcept( child );
+                                if ( concept?.Id > 0 )
+                                {
+                                    efEntity.CourseTaskId = input.Id;
+                                    efEntity.AssessmentMethodConceptId = concept.Id;
+                                    efEntity.RowId = Guid.NewGuid();
+                                    efEntity.CreatedById = input.LastUpdatedById;
+                                    efEntity.Created = DateTime.Now;
+
+                                    context.CourseTask_AssessmentType.Add( efEntity );
+
+                                    int count = context.SaveChanges();
+                                }
+                                else
+                                {
+                                    status.AddError( String.Format( "Error. For TrainingTask: '{0}' ({1}) an AssessmentMethod entity was not found for Identifier: {2}", FormatLongLabel( input.Description ), input.Id, child ) );
+                                }
+                            }
+                        }
+                    }
+                }
+                catch ( Exception ex )
+                {
+                    string message = FormatExceptions( ex );
+                    LoggingHelper.LogError( ex, thisClassName + string.Format( ".TrainingTaskAssessmentMethodSave failed, Course: '{0}' ({1})", entityType, FormatLongLabel( input.Description ), input.Id ) );
+                    status.AddError( thisClassName + ".TrainingTaskAssessmentMethodSave(). Error - the save was not successful. \r\n" + message );
+                }
+            }
+            return success;
+        }
+        public bool DeleteTrainingAssessmentType( int courseId, int conceptId, ref ChangeSummary status )
+        {
+            bool isValid = false;
+            if ( conceptId == 0 )
+            {
+                //statusMessage = "Error - missing an identifier for the CourseConcept to remove";
+                return false;
+            }
+
+            using ( var context = new DataEntities() )
+            {
+                var efEntity = context.CourseTask_AssessmentType
+                                .FirstOrDefault( s => s.CourseTaskId == courseId && s.AssessmentMethodConceptId == conceptId );
+
+                if ( efEntity != null && efEntity.Id > 0 )
+                {
+                    context.CourseTask_AssessmentType.Remove( efEntity );
+                    int count = context.SaveChanges();
+                    if ( count > 0 )
+                    {
+                        isValid = true;
+                    }
+                }
+                else
+                {
+                    //statusMessage = "Warning - the record was not found - probably because the target had been previously deleted";
+                    isValid = true;
+                }
+            }
+
+            return isValid;
         }
 
         #endregion
@@ -234,22 +365,22 @@ namespace Factories
             return entity;
         }
 		//Not sure if there's a better way to get this?
-		public static AppEntity GetForRatingTask( int ratingTaskId )
-		{
-			var entity = new AppEntity();
+		//public static AppEntity GetForRatingTask( int ratingTaskId )
+		//{
+		//	var entity = new AppEntity();
 
-			using ( var context = new DataEntities() )
-			{
-				var item = context.Course_Task
-							.FirstOrDefault( s => s.RatingTask.Where( m => m.Id == ratingTaskId ).Count() > 0 );
+		//	using ( var context = new DataEntities() )
+		//	{
+		//		var item = context.Course_Task
+		//					.FirstOrDefault( s => s.RatingTask.Where( m => m.Id == ratingTaskId ).Count() > 0 );
 
-				if ( item != null && item.Id > 0 )
-				{
-					MapFromDB( item, entity );
-				}
-			}
-			return entity;
-		}
+		//		if ( item != null && item.Id > 0 )
+		//		{
+		//			MapFromDB( item, entity );
+		//		}
+		//	}
+		//	return entity;
+		//}
         /// <summary>
         /// Get all 
         /// May need a get all for a rating? Should not matter as this is external data?
@@ -281,6 +412,14 @@ namespace Factories
             }
             return list;
         }
+
+        /// <summary>
+        /// Get all training tasks for a rating
+        /// </summary>
+        /// <param name="ratingCodedNotation"></param>
+        /// <param name="includingAllSailorsTasks">This should soon be obsolete</param>
+        /// <param name="totalRows"></param>
+        /// <returns></returns>
         public static List<AppEntity> GetAllForRating( string ratingCodedNotation, bool includingAllSailorsTasks, ref int totalRows )
         {
             int pageNumber = 1;
@@ -292,6 +431,17 @@ namespace Factories
             int userId = 0;
             return GetAll( ratingCodedNotation, includingAllSailorsTasks, pageNumber, pageSize, ref totalRows );
         }
+
+
+        /// <summary>
+        /// Get all for a rating
+        /// </summary>
+        /// <param name="ratingCodedNotation"></param>
+        /// <param name="includingAllSailorsTasks"></param>
+        /// <param name="pageNumber"></param>
+        /// <param name="pageSize"></param>
+        /// <param name="totalRows"></param>
+        /// <returns></returns>
         public static List<AppEntity> GetAll( string ratingCodedNotation, bool includingAllSailorsTasks, int pageNumber, int pageSize, ref int totalRows )
         {
             //!!! this is very slow when getting 1600+ . Could have an async task to pre-cache
@@ -324,6 +474,8 @@ namespace Factories
             {
                 template += ",'ALL'";
             }
+            //22-03-29 mp - change to handle multiple training task per rating task.
+            //              - technically will still work as the view will have duplicate rows where there are multiple training tasks
             filter = string.Format( "base.id in (select a.[RatingTaskId] from [RatingTask.HasRating] a inner join Rating b on a.ratingId = b.Id where b.CodedNotation in ({0}) and (len([TrainingTask]) > 0 ))", template );
             var results = RatingTaskManager.RMTLSearch( filter, orderBy, pageNumber, pageSize, userId, ref totalRows );
 
@@ -429,16 +581,16 @@ namespace Factories
 
 					//Handle Rating Task Connection
 					var ratingTaskFilter = query.GetFilterByName( "navy:RatingTask" );
-					if( ratingTaskFilter != null && ratingTaskFilter.ItemIds?.Count() > 0 )
-					{
-						list = list.Where( s =>
-							s.RatingTask.Where( t =>
-								ratingTaskFilter.IsNegation ?
-									!ratingTaskFilter.ItemIds.Contains( t.Id ) :
-									ratingTaskFilter.ItemIds.Contains( t.Id )
-							).Count() > 0
-						);
-					}
+					//if( ratingTaskFilter != null && ratingTaskFilter.ItemIds?.Count() > 0 )
+					//{
+					//	list = list.Where( s =>
+					//		s.RatingTask.Where( t =>
+					//			ratingTaskFilter.IsNegation ?
+					//				!ratingTaskFilter.ItemIds.Contains( t.Id ) :
+					//				ratingTaskFilter.ItemIds.Contains( t.Id )
+					//		).Count() > 0
+					//	);
+					//}
 
 					//Get total
 					query.TotalResults = list.Count();
@@ -543,6 +695,17 @@ namespace Factories
                 }
             }
 
+            if ( input.CourseTask_AssessmentType != null )
+            {
+                foreach ( var item in input.CourseTask_AssessmentType )
+                {
+                    if ( item != null && item.ConceptScheme_Concept != null )
+                    {
+                        output.AssessmentMethodType.Add( item.ConceptScheme_Concept.RowId );
+                        output.AssessmentMethods.Add( item.ConceptScheme_Concept.Name );
+                    }
+                }
+            }
         }
 
         #endregion

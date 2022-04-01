@@ -42,7 +42,7 @@ namespace Models.Schema
 		/// DB: TrainingTaskId
 		/// </summary>
 		public Guid HasTrainingTask { get; set; }
-
+		public List<Guid> HasTrainingTaskList { get; set; } = new List<Guid>();
 		/// <summary>
 		/// GUID for the Reference Resource that this Rating Task came from (e.g. a reference to "NAVPERS 18068F Vol. II")<br />
 		/// From Column: Source
