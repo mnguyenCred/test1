@@ -108,6 +108,38 @@ namespace Models.Curation
 		/// Reset HasSectionErrors to false at the start of a new section of validation. Then check at the end of the section for any errors in the section
 		/// </summary>
 		public bool HasSectionErrors { get; set; }
+
+		//Helper Methods
+		public List<T> GetAll<T>()
+		{
+			try
+			{
+				return LookupGraph.Where( m => m.GetType() == typeof( T ) ).Select( m => ( T ) m ).ToList();
+			}
+			catch
+			{
+				return new List<T>();
+			}
+		}
+		public T LookupItem<T>( Guid rowID ) where T : Schema.BaseObject
+		{
+			try
+			{
+				return LookupGraph.FirstOrDefault( m => ( ( T ) m ).RowId == rowID ) as T;
+			}
+			catch
+			{
+				return null;
+			}
+		}
+		public void AppendItem<T>( T item ) where T : Schema.BaseObject
+		{
+			var existing = LookupItem<T>( item.RowId );
+			if( existing == null )
+			{
+				LookupGraph.Add( item );
+			}
+		}
 	}
 	//
 

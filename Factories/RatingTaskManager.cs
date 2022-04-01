@@ -25,100 +25,100 @@ using System.Linq.Expressions;
 
 namespace Factories
 {
-    public class RatingTaskManager : BaseFactory
-    {
-        public static new string thisClassName = "RatingTaskManager";
-        public static string cacheKey = "RatingTaskCache";
-        public static string cacheKeySummary = "RatingTaskSummaryCache";
-        #region Retrieval
-        /// <summary>
-        /// Don't know the input for sure. Could be ImportRMTL
-        /// check for an existing task using:
-        /// - PayGrade
-        /// - FunctionalArea (maybe not)
-        /// - Source/ReferenceResource
-        /// - RatingTask
-        /// A this point checking for GUIDs
-        /// </summary>
-        /// <param name="importEntity"></param>
-        /// <param name="includingConcepts"></param>
-        /// <returns></returns>
-        public static AppEntity Get( AppEntity importEntity, string currentRatingCodedNotation )
-        {
-            var entity = new AppEntity();
-            //will probably have to d
+	public class RatingTaskManager : BaseFactory
+	{
+		public static new string thisClassName = "RatingTaskManager";
+		public static string cacheKey = "RatingTaskCache";
+		public static string cacheKeySummary = "RatingTaskSummaryCache";
+		#region Retrieval
+		/// <summary>
+		/// Don't know the input for sure. Could be ImportRMTL
+		/// check for an existing task using:
+		/// - PayGrade
+		/// - FunctionalArea (maybe not)
+		/// - Source/ReferenceResource
+		/// - RatingTask
+		/// A this point checking for GUIDs
+		/// </summary>
+		/// <param name="importEntity"></param>
+		/// <param name="includingConcepts"></param>
+		/// <returns></returns>
+		public static AppEntity Get( AppEntity importEntity, string currentRatingCodedNotation )
+		{
+			var entity = new AppEntity();
+			//will probably have to d
 
-            using ( var context = new ViewContext() )
-            {
-                var item = new Data.Views.RatingTaskSummary();
-                //can't trust just coded notation, need to consider the current rating somewhere
-                if ( !string.IsNullOrWhiteSpace( importEntity.CodedNotation ) )
-                {
-                    item = context.RatingTaskSummary.FirstOrDefault( s => (s.CodedNotation ?? "").ToLower() == importEntity.CodedNotation.ToLower() && s.Ratings.Contains( currentRatingCodedNotation ) );
-                }
-                if ( item == null || item.Id == 0 )
-                {
-                    item = context.RatingTaskSummary
-                                .FirstOrDefault( s => s.PayGradeType == importEntity.PayGradeType
-                                //&& s.FunctionalAreaUID == importEntity.ReferenceType //NOW a list, so not helpful
-                                && s.HasReferenceResource == importEntity.HasReferenceResource
-                                && s.RatingTask.ToLower() == importEntity.Description.ToLower()
-                                );
-                }
-                if ( item != null && item.Id > 0 )
-                {
-                    //if exists, will just return the Id?
-                    //or do a get, and continue?
-                    entity = Get( item.Id, true );
-                }
-            }
+			using ( var context = new ViewContext() )
+			{
+				var item = new Data.Views.RatingTaskSummary();
+				//can't trust just coded notation, need to consider the current rating somewhere
+				if ( !string.IsNullOrWhiteSpace( importEntity.CodedNotation ) )
+				{
+					item = context.RatingTaskSummary.FirstOrDefault( s => ( s.CodedNotation ?? "" ).ToLower() == importEntity.CodedNotation.ToLower() && s.Ratings.Contains( currentRatingCodedNotation ) );
+				}
+				if ( item == null || item.Id == 0 )
+				{
+					item = context.RatingTaskSummary
+								.FirstOrDefault( s => s.PayGradeType == importEntity.PayGradeType
+								//&& s.FunctionalAreaUID == importEntity.ReferenceType //NOW a list, so not helpful
+								&& s.HasReferenceResource == importEntity.HasReferenceResource
+								&& s.RatingTask.ToLower() == importEntity.Description.ToLower()
+								);
+				}
+				if ( item != null && item.Id > 0 )
+				{
+					//if exists, will just return the Id?
+					//or do a get, and continue?
+					entity = Get( item.Id, true );
+				}
+			}
 
-            return entity;
-        }
+			return entity;
+		}
 
-        public static AppEntity Get( ImportRMTL importEntity )
-        {
-            var entity = new AppEntity();
-            //will probably have to d
+		public static AppEntity Get( ImportRMTL importEntity )
+		{
+			var entity = new AppEntity();
+			//will probably have to d
 
-            using ( var context = new ViewContext() )
-            {
-                var item = context.RatingTaskSummary
-                            .FirstOrDefault( s => s.Rank == importEntity.Rank
-                            && s.FunctionalArea == importEntity.Functional_Area
-                            && s.ReferenceResource == importEntity.Source
-                            && s.RatingTask.ToLower() == importEntity.Work_Element_Task.ToLower()
-                            );
+			using ( var context = new ViewContext() )
+			{
+				var item = context.RatingTaskSummary
+							.FirstOrDefault( s => s.Rank == importEntity.Rank
+							&& s.FunctionalArea == importEntity.Functional_Area
+							&& s.ReferenceResource == importEntity.Source
+							&& s.RatingTask.ToLower() == importEntity.Work_Element_Task.ToLower()
+							);
 
-                if ( item != null && item.Id > 0 )
-                {
-                    //if exists, will just return the Id?
-                    //or do a get, and continue?
-                    entity = Get( item.Id, true );
-                }
-            }
+				if ( item != null && item.Id > 0 )
+				{
+					//if exists, will just return the Id?
+					//or do a get, and continue?
+					entity = Get( item.Id, true );
+				}
+			}
 
-            return entity;
-        }
+			return entity;
+		}
 
-        public static AppEntity Get( int id, bool includingConcepts )
-        {
-            var entity = new AppEntity();
-            if ( id < 1 )
-                return entity;
+		public static AppEntity Get( int id, bool includingConcepts )
+		{
+			var entity = new AppEntity();
+			if ( id < 1 )
+				return entity;
 
-            using ( var context = new DataEntities() )
-            {
-                var item = context.RatingTask
-                            .SingleOrDefault( s => s.Id == id );
+			using ( var context = new DataEntities() )
+			{
+				var item = context.RatingTask
+							.SingleOrDefault( s => s.Id == id );
 
-                if ( item != null && item.Id > 0 )
-                {
-                    MapFromDB( item, entity, includingConcepts );
-                }
-            }
+				if ( item != null && item.Id > 0 )
+				{
+					MapFromDB( item, entity, includingConcepts );
+				}
+			}
 
-            return entity;
+			return entity;
 		}
 
 		public static AppEntity Get( Guid rowId, bool includingConcepts = false )
@@ -138,36 +138,56 @@ namespace Factories
 			return entity;
 		}
 
-        /// <summary>
-        /// It is not clear that we want a get all - tens of thousands
-        /// </summary>
-        /// <returns></returns>
-        public static List<AppEntity> GetAll()
-        {
-            var entity = new AppEntity();
-            var list = new List<AppEntity>();
+		/// <summary>
+		/// It is not clear that we want a get all - tens of thousands
+		/// </summary>
+		/// <returns></returns>
+		public static List<AppEntity> GetAll()
+		{
+			var entity = new AppEntity();
+			var list = new List<AppEntity>();
 
-            using ( var context = new DataEntities() )
-            {
-                var results = context.RatingTask
-                        .OrderBy( s => s.Id )
-                        .ToList();
-                if ( results?.Count > 0 )
-                {
-                    foreach ( var item in results )
-                    {
-                        if ( item != null && item.Id > 0 )
-                        {
-                            entity = new AppEntity();
-                            MapFromDB( item, entity, false );
-                            list.Add( ( entity ) );
-                        }
-                    }
-                }
+			using ( var context = new DataEntities() )
+			{
+				var results = context.RatingTask
+						.OrderBy( s => s.Id )
+						.ToList();
+				if ( results?.Count > 0 )
+				{
+					foreach ( var item in results )
+					{
+						if ( item != null && item.Id > 0 )
+						{
+							entity = new AppEntity();
+							MapFromDB( item, entity, false );
+							list.Add( ( entity ) );
+						}
+					}
+				}
 
-            }
-            return list;
-        }
+			}
+			return list;
+		}
+
+		//Find loose matches, so other code can figure out whether there are any exact matches
+		public static RatingTask GetForUpload( string ratingTaskDescription, Guid applicabilityTypeRowID, Guid sourceRowID, Guid sourceTypeRowID, Guid payGradeRowID, Guid trainingGapTypeRowID )
+		{
+			var result = new RatingTask();
+
+			using ( var context = new DataEntities() )
+			{
+				var matches = context.RatingTask.Where( m =>
+					m.Description.ToLower() == ratingTaskDescription.ToLower() &&
+					m.ConceptScheme_Applicability.RowId == applicabilityTypeRowID &&
+					m.ToReferenceResource.RowId == sourceRowID &&
+					//m.ConceptScheme_SourceType.RowId == sourceTypeRowID && //Needed because the NAVPERS I Source constitutes two source types (but maybe this is irrelevant because of applicability type?)
+					m.ConceptScheme_Rank.RowId == payGradeRowID &&
+					m.ConceptScheme_TrainingGap.RowId == trainingGapTypeRowID
+				);
+			}
+
+			return result;
+		}
 
 		public static List<AppEntity> Search( SearchQuery query )
 		{

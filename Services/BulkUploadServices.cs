@@ -2329,7 +2329,377 @@ namespace Services
 				row.WorkRole_Name
 			} );
 		}
-        //
-        #endregion
-    }
+		//
+		#endregion
+
+		#region ProcessUpload V3 (UploadableItem/Row by Row)
+
+		public static UploadableItemResult ProcessUploadedItem( UploadableItem item )
+		{
+			//Get the current transaction's summary, or create it if it doesn't exist
+			var summary = GetCachedChangeSummary( item.TransactionGUID );
+			if ( summary == null )
+			{
+				//Create a new summary object
+				summary = new ChangeSummary() { RowId = item.TransactionGUID };
+
+				//Pre-populate controlled vocabularies, since these will be used across all rows
+				summary.LookupGraph.AddRange( ConceptSchemeManager.GetAllConcepts( true ) );
+				summary.LookupGraph.AddRange( RatingManager.GetAll() );
+				summary.LookupGraph.AddRange( OrganizationManager.GetAll() );
+
+				//Cache the summary object
+				CacheChangeSummary( summary );
+			}
+
+
+			//Do something with the item and summary.  
+			//The summary will be stored in the cache and retrieved again so that it can be used for all of the rows. 
+			//At the end of the process, the summary will contain all of the changes, just like in V2.
+			//Since each row's result is being sent back to the client on a row-by-row basis, the client will also aggregate a list of statuses/changes for each row (no need to send back the summary itself).
+
+			//Processing TBD
+			//Get the controlled value items that show up in this row
+			//Everything in any uploaded sheet should appear here. If any of these are not found, it's an error
+			//Might also be an error if rowRating is the "ALL" Rating, now
+			var rowRating = summary.GetAll<Rating>().FirstOrDefault( m => m.CodedNotation?.ToLower() == item.Row.Rating_CodedNotation?.ToLower() );
+			var rowPayGrade = summary.GetAll<Concept>().FirstOrDefault( m => m.CodedNotation?.ToLower() == item.Row.PayGradeType_CodedNotation?.ToLower() );
+			var rowSourceType = summary.GetAll<Concept>().FirstOrDefault( m => m.WorkElementType?.ToLower() == item.Row.Shared_ReferenceType?.ToLower() );
+			var rowTaskApplicabilityType = summary.GetAll<Concept>().FirstOrDefault( m => m.Name?.ToLower() == item.Row.RatingTask_ApplicabilityType_Name?.ToLower() );
+			var rowTrainingGapType = summary.GetAll<Concept>().FirstOrDefault( m => m.Name?.ToLower() == item.Row.RatingTask_TrainingGapType_Name?.ToLower() );
+			//These should throw an error if not found, unless all of the course/training columns are N/A
+			var rowCourseType = summary.GetAll<Concept>().FirstOrDefault( m => m.Name?.ToLower() == item.Row.Course_CourseType_Name?.ToLower() );
+			var rowOrganizationCCA = summary.GetAll<Organization>().FirstOrDefault( m => m.Name?.ToLower() == item.Row.Course_CurriculumControlAuthority_Name?.ToLower() || m.AlternateName?.ToLower() == item.Row.Course_CurriculumControlAuthority_Name?.ToLower() );
+			var rowCourseSourceType = summary.GetAll<Concept>().FirstOrDefault( m => m.Name?.ToLower() == item.Row.Course_HasReferenceResource_Name?.ToLower() );
+			var rowAssessmentMethodType = summary.GetAll<Concept>().FirstOrDefault( m => m.Name?.ToLower() == item.Row.Course_AssessmentMethodType_Name?.ToLower() );
+
+			//Special handling for "All" ratings
+			var allRatingsRating = summary.GetAll<Rating>().FirstOrDefault( m => m.CodedNotation?.ToLower() == "all" );
+			var isAllRatingsRow = rowTaskApplicabilityType?.Name.ToLower().Contains( "all sailors" ) ?? false;
+
+			//Course Reference Resource always has a Reference Type of LCCD
+			var lccdReferenceType = summary.GetAll<Concept>().FirstOrDefault( m => m.Name.ToLower() == "lccd" );
+
+			//Get the variable items that show up in this row
+			//Things from sheets here may be new/edited
+			//First check the summary to see if it came in from an earlier row (or database). If not found in the summary, check the database. If not found there, assume it's new. Regardless, add it to the summary if it's not already in the summary.
+
+			//Billet Title
+			var rowBilletTitle = LookupOrGetFromDBOrCreateNew( summary,
+				//Find in summary
+				() => summary.GetAll<BilletTitle>()
+				.FirstOrDefault( m =>
+					m.Name?.ToLower() == item.Row.BilletTitle_Name?.ToLower()
+				),
+				//Or get from DB
+				() => JobManager.GetByName( item.Row.BilletTitle_Name ),
+				//Or create new
+				() => new BilletTitle()
+				{
+					RowId = Guid.NewGuid(),
+					Name = item.Row.BilletTitle_Name
+				},
+				//Store if newly created
+				(newItem) => { summary.ItemsToBeCreated.BilletTitle.Add( newItem ); }
+			);
+
+			//Work Role
+			var rowWorkRole = LookupOrGetFromDBOrCreateNew( summary,
+				//Find in summary
+				() => summary.GetAll<WorkRole>()
+				.FirstOrDefault( m =>
+					m.Name?.ToLower() == item.Row.WorkRole_Name?.ToLower()
+				),
+				//Or get from DB
+				() => WorkRoleManager.Get( item.Row.WorkRole_Name ),
+				//Or create new
+				() => new WorkRole()
+				{
+					RowId = Guid.NewGuid(),
+					Name = item.Row.WorkRole_Name
+				},
+				//Store if newly created
+				( newItem ) => { summary.ItemsToBeCreated.WorkRole.Add( newItem ); }
+			);
+
+			//Reference Resource (RatingTask)
+			var rowRatingTaskSource = LookupOrGetFromDBOrCreateNew( summary,
+				//Find in summary
+				() => summary.GetAll<ReferenceResource>()
+				.FirstOrDefault( m =>
+					m.Name?.ToLower() == item.Row.ReferenceResource_Name?.ToLower() &&
+					m.PublicationDate?.ToLower() == item.Row.ReferenceResource_PublicationDate?.ToLower() &&
+					m.ReferenceType.Contains( rowSourceType.RowId )
+				),
+				//Or get from DB
+				() => ReferenceResourceManager.Get( item.Row.ReferenceResource_Name, item.Row.ReferenceResource_PublicationDate ),
+				//Or create new
+				() => new ReferenceResource()
+				{
+					RowId = Guid.NewGuid(),
+					Name = item.Row.ReferenceResource_Name,
+					PublicationDate = item.Row.ReferenceResource_PublicationDate,
+					ReferenceType = new List<Guid>() { rowSourceType.RowId }
+				},
+				//Store if newly created
+				( newItem ) => { summary.ItemsToBeCreated.ReferenceResource.Add( newItem ); }
+			);
+
+			//Reference Resource (Course)
+			var rowCourseSource = LookupOrGetFromDBOrCreateNew( summary,
+				//Find in summary
+				() => summary.GetAll<ReferenceResource>()
+				.FirstOrDefault( m =>
+					m.Name?.ToLower() == item.Row.Course_HasReferenceResource_Name?.ToLower() &&
+					m.ReferenceType.Contains( lccdReferenceType.RowId )
+				),
+				//Or get from DB
+				() => ReferenceResourceManager.Get( item.Row.Course_HasReferenceResource_Name ),
+				//Or create new
+				() => new ReferenceResource()
+				{
+					RowId = Guid.NewGuid(),
+					Name = item.Row.Course_HasReferenceResource_Name,
+					ReferenceType = new List<Guid>() { lccdReferenceType.RowId }
+				},
+				//Store if newly created
+				( newItem ) => { summary.ItemsToBeCreated.ReferenceResource.Add( newItem ); },
+				//Skip all of this and set value to null if the following test is true
+				() => string.IsNullOrWhiteSpace( item.Row.Course_HasReferenceResource_Name ) || item.Row.Course_HasReferenceResource_Name.ToLower() == "n/a"
+			);
+
+			//Training Task
+			var rowTrainingTask = LookupOrGetFromDBOrCreateNew( summary,
+				//Find in summary
+				() => summary.GetAll<TrainingTask>()
+				.FirstOrDefault( m =>
+					 m.Description?.ToLower() == item.Row.TrainingTask_Description?.ToLower()
+				),
+				//Or get from DB
+				() => TrainingTaskManager.Get( item.Row.TrainingTask_Description ),
+				//Or create new
+				() => new TrainingTask()
+				{
+					RowId = Guid.NewGuid(),
+					Description = item.Row.TrainingTask_Description
+				},
+				//Store if newly created
+				( newItem ) => { summary.ItemsToBeCreated.TrainingTask.Add( newItem ); },
+				//Skip all of this and set value to null if the following test is true
+				() => string.IsNullOrWhiteSpace( item.Row.TrainingTask_Description ) || item.Row.TrainingTask_Description.ToLower() == "n/a"
+			);
+
+			//Course
+			var rowCourse = LookupOrGetFromDBOrCreateNew( summary,
+				//Find in summary
+				() => summary.GetAll<Course>()
+				.FirstOrDefault( m =>
+					 m.Name?.ToLower() == item.Row.Course_Name?.ToLower() &&
+					 m.CodedNotation?.ToLower() == item.Row.Course_CodedNotation?.ToLower() &&
+					 m.CourseType.Contains( rowCourseType.RowId ) &&
+					 m.CurriculumControlAuthority.Contains( rowOrganizationCCA.RowId )
+				),
+				//Or get from DB
+				() => CourseManager.GetForUpload( item.Row.Course_Name, item.Row.Course_CodedNotation, rowCourseType.RowId, rowOrganizationCCA.RowId ),
+				//Or create new
+				() => new Course()
+				{
+					RowId = Guid.NewGuid(),
+					Name = item.Row.Course_Name,
+					CodedNotation = item.Row.Course_CodedNotation,
+					CourseType = new List<Guid>() { rowCourseType.RowId }
+				},
+				//Store if newly created
+				( newItem ) => { summary.ItemsToBeCreated.Course.Add( newItem ); },
+				//Skip all of this and set value to null if the following test is true
+				() => string.IsNullOrWhiteSpace( item.Row.Course_Name ) || item.Row.Course_Name.ToLower() == "n/a"
+			);
+
+			//Rating Task
+			var rowRatingTask = LookupOrGetFromDBOrCreateNew( summary,
+				//Find in summary
+				() => summary.GetAll<RatingTask>()
+				.FirstOrDefault( m =>
+					m.Description?.ToLower() == item.Row.RatingTask_Description?.ToLower() &&
+					m.ApplicabilityType == rowTaskApplicabilityType.RowId &&
+					m.TrainingGapType == rowTrainingGapType.RowId &&
+					m.PayGradeType == rowPayGrade.RowId &&
+					m.ReferenceType == rowSourceType.RowId &&
+					m.HasReferenceResource == rowRatingTaskSource.RowId //Ensure rowRatingTaskSource is fully found/processed first or this lookup will fail
+				),
+				//Or get from DB
+				() => RatingTaskManager.GetForUpload( item.Row.RatingTask_Description, rowTaskApplicabilityType.RowId, rowRatingTaskSource.RowId, rowSourceType.RowId, rowPayGrade.RowId, rowTrainingGapType.RowId ),
+				//Or create new
+				() => new RatingTask()
+				{
+					RowId = Guid.NewGuid(),
+					Description = item.Row.RatingTask_Description,
+					ApplicabilityType = rowTaskApplicabilityType.RowId,
+					TrainingGapType = rowTrainingGapType.RowId,
+					ReferenceType = rowSourceType.RowId,
+					HasReferenceResource = rowRatingTaskSource.RowId,
+					Note = item.Row.Note //Should Note be part of the uniqueness checks?
+				},
+				//Store if newly created
+				( newItem ) => { summary.ItemsToBeCreated.RatingTask.Add( newItem ); }
+			);
+
+			//Now that we have figured out who all of the actors are...
+			//Handle cases where a new or existing item has associations added to it or removed from it (likely just added to it for now?)
+			//Billet Title
+			var rowBilletTitleStatus = UpdateStatus.Unmodified;
+			if ( !rowBilletTitle.HasRatingTask.Contains( rowRatingTask.RowId ) )
+			{
+				rowBilletTitleStatus = UpdateStatus.Modified;
+				rowBilletTitle.HasRatingTask.Add( rowRatingTask.RowId );
+				summary.AddedItemsToInnerListsForCopiesOfItems.BilletTitle.Add( new BilletTitle() { RowId = rowBilletTitle.RowId, HasRatingTask = new List<Guid>() { rowRatingTask.RowId } } );
+			}
+			rowBilletTitleStatus = summary.ItemsToBeCreated.BilletTitle.Contains( rowBilletTitle ) ? UpdateStatus.New : rowBilletTitleStatus;
+			if( rowBilletTitleStatus == UpdateStatus.Unmodified )
+			{
+				summary.UnchangedCount.BilletTitle++;
+			}
+
+			//Course
+			var rowCourseStatus = UpdateStatus.NotApplicable;
+			if( rowCourse != null )
+			{
+				rowCourseStatus = UpdateStatus.Unmodified;
+				if ( rowTrainingTask != null && !rowCourse.HasTrainingTask.Contains( rowTrainingTask.RowId ) )
+				{
+					rowCourseStatus = UpdateStatus.Modified;
+					rowCourse.HasTrainingTask.Add( rowTrainingTask.RowId );
+					summary.AddedItemsToInnerListsForCopiesOfItems.Course.Add( new Course() { RowId = rowCourse.RowId, HasTrainingTask = new List<Guid>() { rowTrainingTask.RowId } } );
+				}
+				if ( rowAssessmentMethodType != null && !rowCourse.AssessmentMethodType.Contains( rowAssessmentMethodType.RowId ) )
+				{
+					rowCourseStatus = UpdateStatus.Modified;
+					rowCourse.AssessmentMethodType.Add( rowAssessmentMethodType.RowId );
+					summary.AddedItemsToInnerListsForCopiesOfItems.Course.Add( new Course() { RowId = rowCourse.RowId, AssessmentMethodType = new List<Guid>() { rowAssessmentMethodType.RowId } } );
+				}
+				if( rowOrganizationCCA != null && !rowCourse.CurriculumControlAuthority.Contains( rowOrganizationCCA.RowId ) )
+				{
+					rowCourseStatus = UpdateStatus.Modified;
+					rowCourse.CurriculumControlAuthority.Add( rowOrganizationCCA.RowId );
+					summary.AddedItemsToInnerListsForCopiesOfItems.Course.Add( new Course() { RowId = rowCourse.RowId, CurriculumControlAuthority = new List<Guid>() { rowOrganizationCCA.RowId } } );
+				}
+				rowCourseStatus = summary.ItemsToBeCreated.Course.Contains( rowCourse ) ? UpdateStatus.New : rowCourseStatus;
+			}
+			if ( rowCourseStatus == UpdateStatus.Unmodified )
+			{
+				summary.UnchangedCount.Course++;
+			}
+
+			//Rating Task
+			var rowRatingTaskStatus = UpdateStatus.Unmodified;
+			if ( !rowRatingTask.HasRating.Contains( rowRating.RowId ) )
+			{
+				rowRatingTaskStatus = UpdateStatus.Modified;
+				rowRatingTask.HasRating.Add( rowRating.RowId );
+				summary.AddedItemsToInnerListsForCopiesOfItems.RatingTask.Add( new RatingTask() { RowId = rowRatingTask.RowId, HasRating = new List<Guid>() { rowRating.RowId } } );
+			}
+			if ( isAllRatingsRow && !rowRatingTask.HasRating.Contains( allRatingsRating.RowId ) )
+			{
+				rowRatingTaskStatus = UpdateStatus.Modified;
+				rowRatingTask.HasRating.Add( allRatingsRating.RowId );
+				summary.AddedItemsToInnerListsForCopiesOfItems.RatingTask.Add( new RatingTask() { RowId = rowRatingTask.RowId, HasRating = new List<Guid>() { allRatingsRating.RowId } } );
+			}
+			if ( !rowRatingTask.HasBilletTitle.Contains( rowBilletTitle.RowId ) )
+			{
+				rowRatingTaskStatus = UpdateStatus.Modified;
+				rowRatingTask.HasBilletTitle.Add( rowBilletTitle.RowId );
+				summary.AddedItemsToInnerListsForCopiesOfItems.RatingTask.Add( new RatingTask() { RowId = rowRatingTask.RowId, HasBilletTitle = new List<Guid>() { rowBilletTitle.RowId } } );
+			}
+			if ( !rowRatingTask.HasWorkRole.Contains( rowWorkRole.RowId ) )
+			{
+				rowRatingTaskStatus = UpdateStatus.Modified;
+				rowRatingTask.HasWorkRole.Add( rowWorkRole.RowId );
+				summary.AddedItemsToInnerListsForCopiesOfItems.RatingTask.Add( new RatingTask() { RowId = rowRatingTask.RowId, HasWorkRole = new List<Guid>() { rowWorkRole.RowId } } );
+			}
+			if ( rowTrainingTask != null && rowRatingTask.HasTrainingTask != rowTrainingTask.RowId )
+			{
+				rowRatingTaskStatus = UpdateStatus.Modified;
+				rowRatingTask.HasTrainingTask = rowTrainingTask.RowId;
+				summary.AddedItemsToInnerListsForCopiesOfItems.RatingTask.Add( new RatingTask() { RowId = rowRatingTask.RowId, HasTrainingTask = rowTrainingTask.RowId } );
+			}
+			rowRatingTaskStatus = summary.ItemsToBeCreated.RatingTask.Contains( rowRatingTask ) ? UpdateStatus.New : rowRatingTaskStatus;
+			if ( rowRatingTaskStatus == UpdateStatus.Unmodified )
+			{
+				summary.UnchangedCount.RatingTask++;
+			}
+
+
+			//TODO: Finish this part and wire it up in the interface
+			//Example for a row that contains an existing RatingTask that has been added to a Rating and a Billet Title, and the Billet Title is new
+			//Use the ID for the item(s) that were added/removed, and the client will look those up (so that we aren't returning the same item repeatedly)
+			var existingRatingSample = new Rating() { RowId = Guid.Parse( "635a1ac5-eeff-4942-b18c-22d55cfae395" ), Name = "Some Rating" };
+			summary.AppendItem( existingRatingSample );
+			var existingRatingTaskSample = new RatingTask() { RowId = Guid.Parse( "ee628900-2641-4c9e-8c68-695e99edbd69" ), Description = "Some existing task" };
+			summary.AppendItem( existingRatingTaskSample );
+			var newBilletTitleSample = new BilletTitle() { RowId = Guid.NewGuid(), Name = "Some New Billet Title" };
+			summary.AppendItem( newBilletTitleSample );
+			var result = new UploadableItemResult()
+			{
+				Valid = true,
+				NewItems = new List<object>()
+				{
+					newBilletTitleSample
+				},
+				Additions = new List<Triple>()
+				{
+					new Triple( existingRatingTaskSample.RowId, nameof(RatingTask.HasRating), existingRatingSample.RowId ),
+					new Triple( existingRatingTaskSample.RowId, nameof(RatingTask.HasBilletTitle), newBilletTitleSample.RowId )
+				}
+			};
+
+			
+			//Update the cached summary
+			CacheChangeSummary( summary );
+
+			//Return the result
+			return result;
+		}
+		private enum UpdateStatus { Unmodified, New, Modified, NotApplicable }
+		//
+
+		public static T LookupOrGetFromDBOrCreateNew<T>( ChangeSummary summary, Func<T> GetFromSummary, Func<T> GetFromDatabase, Func<T> CreateNew, Action<T> LogNewItem, Func<bool> ReturnNullIfTrue = null ) where T : BaseObject, new()
+		{
+			//If there is a method to check whether the item is null (e.g. the cell contains N/A), and that test comes back true, then skip the rest and return null
+			if ( ReturnNullIfTrue != null && ReturnNullIfTrue() )
+			{
+				return null;
+			}
+
+			//Otherwise, find it in the summary
+			var result = GetFromSummary();
+
+			//If not found in the summary...
+			if ( result == null )
+			{
+				//Find it in the database
+				result = GetFromDatabase();
+
+				//If not found in the database...
+				if ( result == null || result.Id == 0 )
+				{
+					//Create a new one (if applicable)
+					result = CreateNew();
+
+					//If newly created, put it into the summary's new items list
+					LogNewItem( result );
+				}
+
+				//If it's not null, put it into the summary's lookup graph
+				if ( result != null )
+				{
+					summary.AppendItem( result );
+				}
+			}
+
+			//Return the item (or null)
+			return result;
+		}
+
+		#endregion
+	}
 }

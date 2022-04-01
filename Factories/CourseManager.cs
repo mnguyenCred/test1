@@ -552,6 +552,28 @@ namespace Factories
             }
         }
 
+		public static AppEntity GetForUpload( string courseName, string courseCodedNotation, Guid courseTypeRowID, Guid courseCCARowID )
+		{
+			var result = new AppEntity();
+
+			using ( var context = new DataEntities() )
+			{
+				var matches = context.Course.Where( m =>
+					 m.Name.ToLower() == courseName.ToLower() &&
+					 m.CodedNotation.ToLower() == courseCodedNotation.ToLower() &&
+					 m.Course_CourseType.Where( n => n.RowId == courseTypeRowID ).Count() > 0 &&
+					 context.Organization.Where( n => n.RowId == courseCCARowID && m.CurriculumControlAuthorityId == n.Id ).Count() > 0
+				);
+
+				var course = matches.FirstOrDefault();
+				if( course != null )
+				{
+					MapFromDB( course, result );
+				}
+			}
+
+			return result;
+		}
         #endregion
 
         /// <summary>

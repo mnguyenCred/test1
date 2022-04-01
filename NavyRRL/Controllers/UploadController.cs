@@ -56,6 +56,48 @@ namespace NavyRRL.Controllers
 		}
 		//
 
+		public ActionResult UploadV3()
+		{
+			return View( "~/views/upload/uploadv3.cshtml" );
+		}
+		//
+
+		public ActionResult ProcessUploadedItem( UploadableItem item )
+		{
+			//Process the current row
+			var result = BulkUploadServices.ProcessUploadedItem( item );
+
+			//Return the response
+			return JsonResponse( result, true );
+		}
+		//
+
+		public ActionResult StoreRawCSV( UploadableItem item )
+		{
+			//Get the summary for this transaction
+			var summary = BulkUploadServices.GetCachedChangeSummary( item.TransactionGUID );
+
+			//Do something with the raw CSV
+			//item.RawCSV...
+
+			//Process the summary
+
+			//Return the response
+			return JsonResponse( null, true );
+		}
+		//
+
+		public ActionResult LookupGraphItem( Guid transactionGUID, Guid itemRowID )
+		{
+			//Find the item (or null)
+			var summary = BulkUploadServices.GetCachedChangeSummary( transactionGUID );
+			var item = summary?.LookupItem<SM.BaseObject>( itemRowID );
+
+			//Return it
+			return JsonResponse( item, true );
+		}
+		//
+
 		//Initial processing of the data before any changes are made to the database
 		//Expects the following arguments, but since we have to manually read them out of the request, we need to bypass MVC's default model binding
 		//CM.UploadableTable rawData, Guid ratingRowID

@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Text;
 
 using SM = Models.Schema;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
 
 namespace Models.Curation
 {
@@ -71,4 +73,70 @@ namespace Models.Curation
 		public string Note { get; set; }
 	}
 	//
+
+	//Used for row-by-row uploads
+	public class UploadableItem
+	{
+		public UploadableRow Row { get; set; }
+		public Guid TransactionGUID { get; set; }
+		public Guid RatingRowID { get; set; }
+		public string RawCSV { get; set; } //Only used on the last request, where the raw CSV is sent
+	}
+
+	//Response for row-by-row uploads
+	public class UploadableItemResult
+	{
+		public UploadableItemResult()
+		{
+			NewItems = new List<object>();
+			UnmodifiedItems = new List<Guid>();
+			Additions = new List<Triple>();
+			Removals = new List<Triple>();
+			TextChanges = new List<Triple>();
+			Valid = true;
+		}
+		public UploadableItemResult( List<object> newItems, List<Guid> unmodifiedItems, List<Triple> additions = null, List<Triple> removals = null, List<Triple> textChanges = null, bool valid = true, string message = "" )
+		{
+			NewItems = newItems;
+			UnmodifiedItems = unmodifiedItems;
+			Additions = additions;
+			Removals = removals;
+			TextChanges = textChanges;
+			Valid = valid;
+			Message = message;
+		}
+
+		public List<object> NewItems { get; set; }
+		public List<Guid> UnmodifiedItems { get; set; }
+		public List<Triple> Additions { get; set; }
+		public List<Triple> Removals { get; set; }
+		public List<Triple> TextChanges { get; set; }
+		public bool Valid { get; set; }
+		public string Message { get; set; }
+	}
+	//
+
+	public class Triple
+	{
+		public Triple() { }
+		public Triple( Guid subjectGUID, string predicate, Guid objectGUID )
+		{
+			Subject = subjectGUID;
+			Predicate = predicate;
+			Object = objectGUID;
+		}
+		public Triple( Guid subjectGUID, string predicate, string objectText )
+		{
+			Subject = subjectGUID;
+			Predicate = predicate;
+			ObjectText = objectText;
+		}
+
+		public Guid Subject { get; set; }
+		public string Predicate { get; set; }
+		public Guid Object { get; set; }
+		public string ObjectText { get; set; }
+	}
+	//
+
 }

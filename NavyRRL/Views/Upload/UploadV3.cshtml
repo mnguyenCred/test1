@@ -118,16 +118,16 @@
 
 	function convertRawCSVToCSVJSON() {
 		//Replace non-UTF-8 special characters with their UTF-8 equivalents
-		Manager.UTF8 = Manager.RawCSV;
+		Manager.UTF8CSV = Manager.RawCSV;
 		Static.CharacterMap.forEach(map => {
 			map.Match.forEach(badCharacter => {
-				Manager.UTF8 = Manager.UTF8.replace(new RegExp(badCharacter, "g"), map.UTF8);
+				Manager.UTF8CSV = Manager.UTF8CSV.replace(new RegExp(badCharacter, "g"), map.UTF8);
 			});
 		});
-		console.log("UTF-8 Replacements:", Manager.UTF8);
+		console.log("UTF-8 Replacements:", Manager.UTF8CSV);
 
 		//Convert the CSV into JSON rows
-		Manager.CSVText = Manager.UTF8.replace(/\r\n/g, "\n").replace(/""/g, "<INSERTQUOTE>");
+		Manager.CSVText = Manager.UTF8CSV.replace(/\r\n/g, "\n").replace(/""/g, "<INSERTQUOTE>");
 		var rows = [];
 		var currentRow = [];
 		var currentCell = [];
@@ -260,7 +260,7 @@
 			var requestData = {
 				RatingRowID: Manager.RatingRowID,
 				TransactionGUID: Manager.TransactionGUID,
-				UploadableRow: Manager.MappedRow
+				Row: Manager.ActiveItem.MappedRow
 			};
 
 			//Set progress and trigger the request
@@ -280,7 +280,7 @@
 			//Construct the request
 			var requestData = {
 				TransactionGUID: Manager.TransactionGUID,
-				RawCSV: Manager.RawCSV
+				RawCSV: Manager.UTF8CSV
 			};
 
 			//Do the upload. Regardless of the result, handle the finished queue

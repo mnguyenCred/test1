@@ -342,7 +342,7 @@ namespace Factories
         }
         #endregion
         #region Retrieval
-        public static AppEntity Get( string name )
+        public static AppEntity Get( string name, string publicationDate = null )
         {
             var entity = new AppEntity();
             if ( string.IsNullOrWhiteSpace( name ) )
@@ -350,9 +350,15 @@ namespace Factories
 
             using ( var context = new DataEntities() )
             {
-                var item = context.ReferenceResource
-                            .FirstOrDefault( s => s.Name.ToLower() == name.ToLower() );
+                var matches = context.ReferenceResource
+                            .Where( s => s.Name.ToLower() == name.ToLower() );
 
+				if ( !string.IsNullOrWhiteSpace( publicationDate ) )
+				{
+					matches = matches.Where( m => m.PublicationDate.ToLower() == publicationDate.ToLower() );
+				}
+
+				var item = matches.FirstOrDefault();
                 if ( item != null && item.Id > 0 )
                 {
                     MapFromDB( item, entity );
