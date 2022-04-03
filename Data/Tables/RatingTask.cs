@@ -22,6 +22,7 @@ namespace Data.Tables
             this.RmtlProject_BilletTask = new HashSet<RmtlProject_BilletTask>();
             this.RatingTask_WorkRole = new HashSet<RatingTask_WorkRole>();
             this.RatingTask_HasTrainingTask = new HashSet<RatingTask_HasTrainingTask>();
+            this.ClusterAnalysis = new HashSet<ClusterAnalysis>();
         }
     
         public int Id { get; set; }
@@ -59,5 +60,7 @@ namespace Data.Tables
         public virtual ICollection<RatingTask_WorkRole> RatingTask_WorkRole { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<RatingTask_HasTrainingTask> RatingTask_HasTrainingTask { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<ClusterAnalysis> ClusterAnalysis { get; set; }
     }
 }

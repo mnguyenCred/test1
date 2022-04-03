@@ -41,7 +41,8 @@ namespace Factories
                     //look up if no id
                     if ( entity.Id == 0 )
                     {
-                        var record = GetByCodedNotation( entity.CodedNotation );
+                        //how to check for existing?
+                        var record = GetExisting( entity );
                         if ( record?.Id > 0 )
                         {
                             entity.Id = record.Id;
@@ -93,7 +94,7 @@ namespace Factories
                                 //?no info on error
 
                                 isValid = false;
-                                string message = string.Format( thisClassName + ".Save Failed", "Attempted to update a ClusterAnalysis. The process appeared to not work, but was not an exception, so we have no message, or no clue. ClusterAnalysis: {0}, Id: {1}", entity.Name, entity.Id );
+                                string message = string.Format( thisClassName + ".Save Failed", "Attempted to update a ClusterAnalysis. The process appeared to not work, but was not an exception, so we have no message, or no clue. ClusterAnalysis: {0}, Id: {1}", entity.ClusterAnalysisTitle, entity.Id );
                                 status.AddError( "Error - the update was not successful. " + message );
                                 EmailManager.NotifyAdmin( thisClassName + ".Save Failed Failed", message );
                             }
@@ -111,7 +112,7 @@ namespace Factories
                                 ActivityType = "ClusterAnalysis",
                                 Activity = status.Action,
                                 Event = "Update",
-                                Comment = string.Format( "ClusterAnalysis was updated by the import. Name: {0}", entity.Name ),
+                                Comment = string.Format( "ClusterAnalysis was updated by the import. Name: {0}", entity.ClusterAnalysisTitle ),
                                 ActionByUserId = entity.LastUpdatedById,
                                 ActivityObjectId = entity.Id
                             };
@@ -128,13 +129,13 @@ namespace Factories
             }
             catch ( System.Data.Entity.Validation.DbEntityValidationException dbex )
             {
-                string message = HandleDBValidationError( dbex, thisClassName + string.Format( ".Save. id: {0}, Name: {1}", entity.Id, entity.Name ), "ClusterAnalysis" );
+                string message = HandleDBValidationError( dbex, thisClassName + string.Format( ".Save. id: {0}, ClusterAnalysisTitle: {1}", entity.Id, entity.ClusterAnalysisTitle ), "ClusterAnalysis" );
                 status.AddError( thisClassName + ".Save(). Error - the save was not successful. " + message );
             }
             catch ( Exception ex )
             {
                 string message = FormatExceptions( ex );
-                LoggingHelper.LogError( ex, thisClassName + string.Format( ".Save. id: {0}, Name: {1}", entity.Id, entity.Name ), true );
+                LoggingHelper.LogError( ex, thisClassName + string.Format( ".Save. id: {0}, Name: {1}", entity.Id, entity.ClusterAnalysisTitle ), true );
                 status.AddError( thisClassName + ".Save(). Error - the save was not successful. " + message );
                 isValid = false;
             }
@@ -186,7 +187,7 @@ namespace Factories
                             ActivityType = "ClusterAnalysis",
                             Activity = status.Action,
                             Event = "Add",
-                            Comment = string.Format( "ClusterAnalysis: '{0} was added.", entity.Name ),
+                            Comment = string.Format( "ClusterAnalysis: '{0} was added.", entity.ClusterAnalysisTitle ),
                             ActivityObjectId = entity.Id,
                             ActionByUserId = entity.LastUpdatedById
                         };
@@ -197,7 +198,7 @@ namespace Factories
                     {
                         //?no info on error
 
-                        string message = thisClassName + string.Format( ". Add Failed", "Attempted to add a ClusterAnalysis. The process appeared to not work, but was not an exception, so we have no message, or no clue. ClusterAnalysis: {0}, CodedNotation: {1}", entity.Name, entity.CodedNotation );
+                        string message = thisClassName + string.Format( ". Add Failed", "Attempted to add a ClusterAnalysis. The process appeared to not work, but was not an exception, so we have no message, or no clue. ClusterAnalysis: {0}, CodedNotation: {1}", entity.ClusterAnalysisTitle, entity.TrainingSolutionType );
                         status.AddError( thisClassName + ". Error - the add was not successful. " + message );
                         EmailManager.NotifyAdmin( thisClassName + ". Add Failed", message );
                     }
@@ -212,7 +213,7 @@ namespace Factories
                 catch ( Exception ex )
                 {
                     string message = FormatExceptions( ex );
-                    LoggingHelper.LogError( ex, thisClassName + string.Format( ".Add(), Name: {0}, CodedNotation: {1}", entity.Name, entity.CodedNotation ) );
+                    LoggingHelper.LogError( ex, thisClassName + string.Format( ".Add(), ClusterAnalysisTitle:{0}, entity.TrainingSolutionType: {1}", entity.ClusterAnalysisTitle, entity.TrainingSolutionType ) );
                     status.AddError( thisClassName + ".Add(). Error - the save was not successful. \r\n" + message );
                 }
             }
@@ -226,7 +227,7 @@ namespace Factories
             List<string> errors = new List<string>();
             //this will include the extra props (like LifeCycleControlDocument, etc. for now)
             BaseFactory.AutoMap( input, output, errors );
-            //
+            /*
             if ( IsValidGuid( input.HasReferenceResource ) )
             {
                 if ( output.LifeCycleControlDocumentId != null && output.ReferenceResource?.RowId == input.HasReferenceResource )
@@ -271,81 +272,28 @@ namespace Factories
                 }
 
             }
-        }
-        public static void MapToDB( AppFullEntity input, DBEntity output )
-        {
-            //watch for missing properties like rowId
-            List<string> errors = new List<string>();
-            //this will include the extra props (like LifeCycleControlDocument, etc. for now)
-            BaseFactory.AutoMap( input, output, errors );
-            //
-            if ( !string.IsNullOrWhiteSpace( input.LifeCycleControlDocument ) )
-            {
-                //can this be a concept scheme??
-                output.LifeCycleControlDocumentId = ConceptSchemeManager.GetConcept( input.LifeCycleControlDocument, ConceptSchemeManager.ConceptScheme_LifeCycleControlDocument )?.Id;
-            }
-            //
-
-            //if ( !string.IsNullOrWhiteSpace( input.Curriculum_Control_Authority ) )
-            //{
-            //    var org = OrganizationManager.Get( input.Curriculum_Control_Authority, true );
-            //    if ( org != null && org.Id > 0 )
-            //    {
-            //        output.CurriculumControlAuthorityId = org.Id;
-            //    } else
-            //    {
-            //        ChangeSummary status = new ChangeSummary();
-            //        org = new MSc.Organization()
-            //        {
-            //            Name = input.Curriculum_Control_Authority,
-            //            AlternateName = input.Curriculum_Control_Authority
-            //        };
-            //        var isValid = new OrganizationManager().Save( org, input.LastUpdatedById, ref status );
-            //        if ( isValid )
-            //        {
-            //            output.CurriculumControlAuthorityId = org.Id;
-            //        }
-            //    }
-            //}
+            */
         }
         #endregion
         #region Retrieval
-        //unlikely?
-        public static AppEntity Get( string name, bool includingTrainingTasks = false )
+
+        public static AppEntity GetExisting( AppEntity entity )
         {
-            var entity = new AppEntity();
-            if ( string.IsNullOrWhiteSpace( name ) )
-                return null;
+            var existing = new AppEntity();
+            //if ( string.IsNullOrWhiteSpace( codedNotation ) )
+            //    return null;
 
-            using ( var context = new DataEntities() )
-            {
-                var item = context.ClusterAnalysis
-                            .FirstOrDefault( s => s.Name.ToLower() == name.ToLower() );
+            //using ( var context = new DataEntities() )
+            //{
+            //    var item = context.ClusterAnalysis
+            //                .FirstOrDefault( s => s.CodedNotation.ToLower() == codedNotation.ToLower() );
 
-                if ( item != null && item.Id > 0 )
-                {
-                    MapFromDB( item, entity, includingTrainingTasks );
-                }
-            }
-            return entity;
-        }
-        public static AppEntity GetByCodedNotation( string codedNotation, bool includingTrainingTasks = false )
-        {
-            var entity = new AppEntity();
-            if ( string.IsNullOrWhiteSpace( codedNotation ) )
-                return null;
-
-            using ( var context = new DataEntities() )
-            {
-                var item = context.ClusterAnalysis
-                            .FirstOrDefault( s => s.CodedNotation.ToLower() == codedNotation.ToLower() );
-
-                if ( item != null && item.Id > 0 )
-                {
-                    MapFromDB( item, entity, includingTrainingTasks );
-                }
-            }
-            return entity;
+            //    if ( item != null && item.Id > 0 )
+            //    {
+            //        MapFromDB( item, existing );
+            //    }
+            //}
+            return existing;
         }
         public static AppEntity Get( Guid rowId, bool includingTrainingTasks = false )
         {
@@ -363,7 +311,7 @@ namespace Factories
             }
             return entity;
         }
-        public static AppEntity Get( int id, bool includingTrainingTasks = false )
+        public static AppEntity Get( int id )
         {
             var entity = new AppEntity();
             if ( id < 1 )
@@ -376,7 +324,7 @@ namespace Factories
 
                 if ( item != null && item.Id > 0 )
                 {
-                    MapFromDB( item, entity, includingTrainingTasks );
+                    MapFromDB( item, entity );
                 }
             }
 
@@ -387,7 +335,7 @@ namespace Factories
         /// May need a get all for a rating? Should not matter as this is external data?
         /// </summary>
         /// <returns></returns>
-        public static List<AppEntity> GetAll( bool includingTrainingTasks = false )
+        public static List<AppEntity> GetAll( )
         {
             var entity = new AppEntity();
             var list = new List<AppEntity>();
@@ -395,7 +343,7 @@ namespace Factories
             using ( var context = new DataEntities() )
             {
                 var results = context.ClusterAnalysis
-                        .OrderBy( s => s.Name )
+                        .OrderBy( s => s.Id )
                         .ToList();
                 if ( results?.Count > 0 )
                 {
@@ -404,7 +352,7 @@ namespace Factories
                         if ( item != null && item.Id > 0 )
                         {
                             entity = new AppEntity();
-                            MapFromDB( item, entity, includingTrainingTasks );
+                            MapFromDB( item, entity );
                             list.Add( ( entity ) );
                         }
                     }
@@ -428,18 +376,18 @@ namespace Factories
                 {
                     var list = from Results in context.ClusterAnalysis
                                select Results;
-                    if ( !string.IsNullOrWhiteSpace( filter ) )
-                    {
-                        list = from Results in list
-                                .Where( s =>
-                                ( s.Name.ToLower().Contains( filter.ToLower() ) ) ||
-                                ( s.CodedNotation.ToLower() == filter.ToLower() )
-                                )
-                               select Results;
-                    }
+                    //if ( !string.IsNullOrWhiteSpace( filter ) )
+                    //{
+                    //    list = from Results in list
+                    //            .Where( s =>
+                    //            ( s.Name.ToLower().Contains( filter.ToLower() ) ) ||
+                    //            ( s.CodedNotation.ToLower() == filter.ToLower() )
+                    //            )
+                    //           select Results;
+                    //}
                     query.TotalResults = list.Count();
                     //sort order not handled
-                    list = list.OrderBy( p => p.Name );
+                    list = list.OrderBy( p => p.Id );
 
                     //
                     var results = list.Skip( skip ).Take( query.PageSize )
@@ -474,6 +422,7 @@ namespace Factories
             {
                 output.RowId = input.RowId;
             }
+            /*
             if ( input.ClusterAnalysis_AssessmentType != null )
             {
                 foreach ( var item in input.ClusterAnalysis_AssessmentType )
@@ -543,6 +492,7 @@ namespace Factories
                     output.HasTrainingTask.Add( item.RowId );
                 }
             }
+            */
         }
 
         #endregion
@@ -559,16 +509,12 @@ namespace Factories
         {
             try
             {
-                //ClusterAnalysisTaskSave( input, ref status );
+                /*
                 new TrainingTaskManager().SaveList( input, false, ref status );
 
-                //22-01-24 - CCA is confirmed to be a single
-                //CurriculumControlAuthorityUpdate( input, ref status );
-                //ClusterAnalysisConceptSave( input, ConceptSchemeManager.ConceptScheme_ClusterAnalysisType, input.ClusterAnalysisTypes, "ClusterAnalysisType", ref status );
-                //ClusterAnalysisConceptSave( input, ConceptSchemeManager.ConceptScheme_CurrentAssessmentApproach, input.AssessmentMethodType, "AssessmentMethodType", ref status );
                 ClusterAnalysisTypeSave( input, input.ClusterAnalysisType, ref status );
                 ClusterAnalysisAssessmentMethodSave( input, input.AssessmentMethodType, ref status );
-
+                */
 
             }
             catch ( Exception ex )
@@ -577,344 +523,7 @@ namespace Factories
             }
         }
 
-        #region ClusterAnalysis concepts
-        public bool ClusterAnalysisAssessmentMethodSave( AppEntity input, List<Guid> concepts, ref ChangeSummary status )
-        {
-            bool success = false;
-            status.HasSectionErrors = false;
-            var efEntity = new Data.Tables.ClusterAnalysis_AssessmentType();
-            var entityType = "ClusterAnalysis_AssessmentType";
-
-            using ( var context = new DataEntities() )
-            {
-                try
-                {
-                    if ( concepts?.Count == 0 )
-                        concepts = new List<Guid>();
-                    //check existance
-                    var results =
-                                    from entity in context.ClusterAnalysis_AssessmentType
-                                    join concept in context.ConceptScheme_Concept
-                                    on entity.AssessmentMethodConceptId equals concept.Id
-                                    where entity.ClusterAnalysisId == input.Id
-
-                                    select concept;
-
-                    //if ( existing == null )
-                    //    existing = new List<ConceptScheme_Concept>();  
-                    var existing = results?.ToList();
-
-                    #region deletes check
-                    if ( existing.Any() )
-                    {
-                        //if exists not in input, delete it
-                        foreach ( var e in existing )
-                        {
-                            var key = e.RowId;
-                            if ( IsValidGuid( key ) )
-                            {
-                                if ( !concepts.Contains( ( Guid ) key ) )
-                                {
-                                    //DeleteClusterAnalysisAssessmentType( input.Id, e.Id, ref status );
-                                }
-                            }
-                        }
-                    }
-                    #endregion
-                    //adds
-                    if ( concepts != null )
-                    {
-                        foreach ( var child in concepts )
-                        {
-                            //if not in existing, then add
-                            bool doingAdd = true;
-                            if ( existing?.Count > 0 )
-                            {
-                                foreach ( var item in existing )
-                                {
-                                    if ( item.RowId == child )
-                                    {
-                                        doingAdd = false;
-                                        break;
-                                    }
-                                }
-                            }
-                            if ( doingAdd )
-                            {
-                                var concept = ConceptSchemeManager.GetConcept( child );
-                                if ( concept?.Id > 0 )
-                                {
-                                    efEntity.ClusterAnalysisId = input.Id;
-                                    efEntity.AssessmentMethodConceptId = concept.Id;
-                                    efEntity.RowId = Guid.NewGuid();
-                                    efEntity.CreatedById = input.LastUpdatedById;
-                                    efEntity.Created = DateTime.Now;
-
-                                    context.ClusterAnalysis_AssessmentType.Add( efEntity );
-
-                                    int count = context.SaveChanges();
-                                }
-                                else
-                                {
-                                    status.AddError( String.Format( "Error. For ClusterAnalysis: '{0}' ({1}) a ClusterAnalysis entity was not found for Identifier: {2}", input.Name, input.Id, child ) );
-                                }
-                            }
-                        }
-                    }
-                }
-                catch ( Exception ex )
-                {
-                    string message = FormatExceptions( ex );
-                    LoggingHelper.LogError( ex, thisClassName + string.Format( ".ClusterAnalysisAssessmentMethodSave failed, ClusterAnalysis: '{0}' ({1})", entityType, input.Name, input.Id ) );
-                    status.AddError( thisClassName + ".ClusterAnalysisAssessmentMethodSave(). Error - the save was not successful. \r\n" + message );
-                }
-            }
-            return success;
-        }
-        public bool DeleteClusterAnalysisAssessmentType( int ClusterAnalysisId, int conceptId, ref ChangeSummary status )
-        {
-            bool isValid = false;
-            if ( conceptId == 0 )
-            {
-                //statusMessage = "Error - missing an identifier for the ClusterAnalysisConcept to remove";
-                return false;
-            }
-
-            using ( var context = new DataEntities() )
-            {
-                var efEntity = context.ClusterAnalysis_AssessmentType
-                                .FirstOrDefault( s => s.ClusterAnalysisId == ClusterAnalysisId && s.AssessmentMethodConceptId == conceptId );
-
-                if ( efEntity != null && efEntity.Id > 0 )
-                {
-                    context.ClusterAnalysis_AssessmentType.Remove( efEntity );
-                    int count = context.SaveChanges();
-                    if ( count > 0 )
-                    {
-                        isValid = true;
-                    }
-                }
-                else
-                {
-                    //statusMessage = "Warning - the record was not found - probably because the target had been previously deleted";
-                    isValid = true;
-                }
-            }
-
-            return isValid;
-        }
-        /*
-        public bool ClusterAnalysisAssessmentMethodSave( AppEntity input, List<Guid> concepts, ref ChangeSummary status )
-        {
-            bool success = false;
-            status.HasSectionErrors = false;
-            var efEntity = new Data.Tables.ClusterAnalysis_AssessmentType();
-            var entityType = "ClusterAnalysis_AssessmentType";
-
-            using ( var context = new DataEntities() )
-            {
-                try
-                {
-                    if ( concepts?.Count == 0 )
-                        concepts = new List<Guid>();
-                    //check existance
-                    var existing = context.ClusterAnalysis_AssessmentType
-                        .Where( s => s.ClusterAnalysisId == input.Id )
-                        .ToList();
-                    if ( existing == null )
-                        existing = new List<ClusterAnalysis_AssessmentType>();
-
-                    #region deletes check
-                    if ( existing.Any() )
-                    {
-                        //if exists not in input, delete it
-                        foreach ( var e in existing )
-                        {
-                            var key = e?.ConceptScheme_Concept.RowId;
-                            if ( IsValidGuid( key ) )
-                            {
-                                if ( !concepts.Contains( ( Guid ) key ) )
-                                {
-                                    context.ClusterAnalysis_AssessmentType.Remove( e );
-                                    int dcount = context.SaveChanges();
-                                }
-                            }
-                        }
-                    }
-                    #endregion
-                    //adds
-                    if ( concepts != null )
-                    {
-                        foreach ( var child in concepts )
-                        {
-                            //if not in existing, then add
-                            bool doingAdd = true;
-                            if ( existing?.Count > 0 )
-                            {
-                                var isfound = existing.Select( s => s.ConceptScheme_Concept.RowId == child ).ToList();
-                                if ( !isfound.Any() )
-                                    doingAdd = false;
-                            }
-                            if ( doingAdd )
-                            {
-                                var concept = ConceptSchemeManager.GetConcept( child );
-                                if ( concept?.Id > 0 )
-                                {
-                                    efEntity.ClusterAnalysisId = input.Id;
-                                    efEntity.AssessmentMethodConceptId = concept.Id;
-                                    efEntity.RowId = Guid.NewGuid();
-                                    efEntity.CreatedById = input.LastUpdatedById;
-                                    efEntity.Created = DateTime.Now;
-
-                                    context.ClusterAnalysis_AssessmentType.Add( efEntity );
-
-                                    int count = context.SaveChanges();
-                                }
-                                else
-                                {
-                                    status.AddError( String.Format( "Error. For ClusterAnalysis: '{0}' ({1}) a ClusterAnalysis AssessmentMethod concept was not found for Identifier: {2}", input.Name, input.Id, child ) );
-                                }
-                            }
-                        }
-                    }
-                }
-                catch ( Exception ex )
-                {
-                    string message = FormatExceptions( ex );
-                    LoggingHelper.LogError( ex, thisClassName + string.Format( ".ClusterAnalysisAssessmentMethodSave failed, ClusterAnalysis: '{0}' ({1})", entityType, input.Name, input.Id ) );
-                    status.AddError( thisClassName + ".ClusterAnalysisAssessmentMethodSave(). Error - the save was not successful. \r\n" + message );
-                }
-            }
-            return success;
-        }
-        */
-        //
-        public bool ClusterAnalysisTypeSave( AppEntity input, List<Guid> concepts, ref ChangeSummary status )
-        {
-            bool success = false;
-            status.HasSectionErrors = false;
-            var efEntity = new Data.Tables.ClusterAnalysis_ClusterAnalysisType();
-            var entityType = "ClusterAnalysis_ClusterAnalysisType";
-
-            using ( var context = new DataEntities() )
-            {
-                try
-                {
-                    if ( concepts?.Count == 0 )
-                        concepts = new List<Guid>();
-                    //check existance
-                    var results =
-                                    from entity in context.ClusterAnalysis_ClusterAnalysisType
-                                    join concept in context.ConceptScheme_Concept
-                                    on entity.ClusterAnalysisTypeConceptId equals concept.Id
-                                    where entity.ClusterAnalysisId == input.Id
-
-                                    select concept;
-                    //if ( existing == null )
-                    //    existing = new List<ConceptScheme_Concept>();  
-                    var existing = results?.ToList();
-                    #region deletes check
-                    if ( existing != null && existing.Count() > 0 )
-                    {
-                        //if exists not in input, delete it
-                        foreach ( var e in existing )
-                        {
-                            var key = e.RowId;
-                            if ( IsValidGuid( key ) )
-                            {
-                                if ( !concepts.Contains( ( Guid ) key ) )
-                                {
-                                    //DeleteClusterAnalysisType( input.Id, e.Id, ref status );
-                                }
-                            }
-                        }
-                    }
-                    #endregion
-                    //adds
-                    if ( concepts != null )
-                    {
-                        foreach ( var child in concepts )
-                        {
-                            //if not in existing, then add
-                            bool doingAdd = true;
-                            if ( existing != null && existing.Count() > 0 )
-                            {
-                                foreach ( var item in existing )
-                                {
-                                    if ( item.RowId == child )
-                                    {
-                                        doingAdd = false;
-                                        break;
-                                    }
-                                }
-                            }
-                            if ( doingAdd )
-                            {
-                                var concept = ConceptSchemeManager.GetConcept( child );
-                                if ( concept?.Id > 0 )
-                                {
-                                    efEntity.ClusterAnalysisId = input.Id;
-                                    efEntity.ClusterAnalysisTypeConceptId = concept.Id;
-                                    efEntity.RowId = Guid.NewGuid();
-                                    efEntity.CreatedById = input.LastUpdatedById;
-                                    efEntity.Created = DateTime.Now;
-
-                                    context.ClusterAnalysis_ClusterAnalysisType.Add( efEntity );
-
-                                    int count = context.SaveChanges();
-                                }
-                                else
-                                {
-                                    status.AddError( String.Format( "Error. For ClusterAnalysis: '{0}' ({1}) a ClusterAnalysis ClusterAnalysisType was not found for Identifier: {2}", input.Name, input.Id, child ) );
-                                }
-                            }
-                        }
-                    }
-                }
-                catch ( Exception ex )
-                {
-                    string message = FormatExceptions( ex );
-                    LoggingHelper.LogError( ex, thisClassName + string.Format( ".ClusterAnalysisClusterAnalysisTypeSave failed, ClusterAnalysis: '{0}' ({1})", entityType, input.Name, input.Id ) );
-                    status.AddError( thisClassName + ".ClusterAnalysisClusterAnalysisTypeSave(). Error - the save was not successful. \r\n" + message );
-                }
-            }
-            return success;
-        }
-        public bool DeleteClusterAnalysisType( int ClusterAnalysisId, int conceptId, ref ChangeSummary status )
-        {
-            bool isValid = false;
-            if ( conceptId == 0 )
-            {
-                //statusMessage = "Error - missing an identifier for the ClusterAnalysisConcept to remove";
-                return false;
-            }
-
-            using ( var context = new DataEntities() )
-            {
-                var efEntity = context.ClusterAnalysis_ClusterAnalysisType
-                                .FirstOrDefault( s => s.ClusterAnalysisId == ClusterAnalysisId && s.ClusterAnalysisTypeConceptId == conceptId );
-
-                if ( efEntity != null && efEntity.Id > 0 )
-                {
-                    context.ClusterAnalysis_ClusterAnalysisType.Remove( efEntity );
-                    int count = context.SaveChanges();
-                    if ( count > 0 )
-                    {
-                        isValid = true;
-                    }
-                }
-                else
-                {
-                    //statusMessage = "Warning - the record was not found - probably because the target had been previously deleted";
-                    isValid = true;
-                }
-            }
-
-            return isValid;
-        }
-
-        #endregion
-
+ 
     }
 
 }

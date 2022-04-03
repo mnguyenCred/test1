@@ -83,6 +83,9 @@
     <Compile Include="Tables\AspNetUsers.cs">
       <DependentUpon>NavyRRLTables.tt</DependentUpon>
     </Compile>
+    <Compile Include="Tables\ClusterAnalysis.cs">
+      <DependentUpon>NavyRRLTables.tt</DependentUpon>
+    </Compile>
     <Compile Include="Tables\Codes_EntityType.cs">
       <DependentUpon>NavyRRLTables.tt</DependentUpon>
     </Compile>

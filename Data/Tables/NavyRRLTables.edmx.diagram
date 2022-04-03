@@ -83,6 +83,10 @@
         <EntityTypeShape EntityType="NavyRRLModel.CourseTask_AssessmentType" Width="1.5" PointX="11.25" PointY="12.75" FillColor="128, 255, 128" />
         <AssociationConnector Association="NavyRRLModel.FK_CourseTask_AssessmentType_Concept" />
         <AssociationConnector Association="NavyRRLModel.FK_CourseTask_AssessmentType_Course_Task" />
+        <EntityTypeShape EntityType="NavyRRLModel.ClusterAnalysis" Width="1.5" PointX="22.375" PointY="16.625" />
+        <AssociationConnector Association="NavyRRLModel.FK_ClusterAnalysis_ConceptScheme_Concept" />
+        <AssociationConnector Association="NavyRRLModel.FK_ClusterAnalysis_ConceptScheme_Concept1" />
+        <AssociationConnector Association="NavyRRLModel.FK_ClusterAnalysis_RatingTask" />
       </Diagram>
     </edmx:Diagrams>
   </edmx:Designer>

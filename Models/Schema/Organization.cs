@@ -21,6 +21,6 @@ namespace Models.Schema
 		/// <summary>
 		/// We may only have the alternate name. If so use for name and alternate name for now
 		/// </summary>
-		public string AlternateName { get; set; }
+		public string ShortName { get; set; }
 	}
 }

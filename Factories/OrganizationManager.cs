@@ -438,11 +438,13 @@ namespace Factories
             //
             List<string> errors = new List<string>();
             BaseFactory.AutoMap( input, output, errors );
+            //temp
+            output.ShortName = input.AlternateName;
             if ( appendingShortNameToName )
             {
-                if (!string.IsNullOrWhiteSpace(output.AlternateName)  && output.Name.IndexOf( output.AlternateName ) == -1 )
+                if (!string.IsNullOrWhiteSpace(output.ShortName)  && output.Name.IndexOf( output.ShortName ) == -1 )
                 {
-                    output.Name += " (" + output.AlternateName  + ")";
+                    output.Name += " (" + output.ShortName  + ")";
                 }
             }
             if ( input.RowId != output.RowId )

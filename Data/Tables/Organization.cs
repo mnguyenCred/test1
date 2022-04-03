@@ -27,21 +27,10 @@ namespace Data.Tables
         public string Description { get; set; }
         public string CTID { get; set; }
         public string SubjectWebpage { get; set; }
-        public Nullable<int> StatusId { get; set; }
-        public string CredentialRegistryId { get; set; }
-        public string ImageURL { get; set; }
         public System.DateTime Created { get; set; }
         public Nullable<int> CreatedById { get; set; }
         public System.DateTime LastUpdated { get; set; }
         public Nullable<int> LastUpdatedById { get; set; }
-        public string FoundingDate { get; set; }
-        public string AvailabilityListing { get; set; }
-        public string AgentPurpose { get; set; }
-        public string AgentPurposeDescription { get; set; }
-        public string MissionAndGoalsStatement { get; set; }
-        public string MissionAndGoalsStatementDescription { get; set; }
-        public Nullable<bool> ISQAOrganization { get; set; }
-        public Nullable<bool> IsThirdPartyOrganization { get; set; }
         public string AlternateName { get; set; }
     
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]

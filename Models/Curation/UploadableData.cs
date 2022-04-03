@@ -61,6 +61,7 @@ namespace Models.Curation
 		public string RatingTask_Description { get; set; }
 		public string RatingTask_ApplicabilityType_Name { get; set; }
 		public string RatingTask_TrainingGapType_Name { get; set; }
+
 		public string Course_CodedNotation { get; set; }
 		public string Course_Name { get; set; }
 		public string Course_CourseType_Name { get; set; }
@@ -69,6 +70,19 @@ namespace Models.Curation
 		public string TrainingTask_Description { get; set; }
 		public string Course_AssessmentMethodType_Name { get; set; }
 		public string Note { get; set; }
+
+
+		public string Training_Solution_Type { get; set; }
+		public string Cluster_Analysis_Title { get; set; }
+		public string Recommended_Modality { get; set; }
+		public string Development_Specification { get; set; }
+		public string Candidate_Platform { get; set; }
+		public string CFM_Placement { get; set; }
+		public string Priority_Placement { get; set; }
+		public string Development_Ratio { get; set; }
+		public string Development_Time { get; set; }
+		public string Cluster_Analysis_Notes { get; set; }
+
 	}
 	//
 }

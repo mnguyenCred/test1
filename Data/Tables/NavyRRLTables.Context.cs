@@ -57,5 +57,6 @@ namespace Data.Tables
         public virtual DbSet<Course_CourseType> Course_CourseType { get; set; }
         public virtual DbSet<RatingTask_HasTrainingTask> RatingTask_HasTrainingTask { get; set; }
         public virtual DbSet<CourseTask_AssessmentType> CourseTask_AssessmentType { get; set; }
+        public virtual DbSet<ClusterAnalysis> ClusterAnalysis { get; set; }
     }
 }
