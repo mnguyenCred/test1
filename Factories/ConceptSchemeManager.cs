@@ -214,6 +214,33 @@ namespace Factories
 
             return entity;
         }
+
+		//Get all Concepts in one request
+		public static List<Concept> GetAllConcepts( bool onlyActiveConcepts = true )
+		{
+			var result = new List<Concept>();
+
+			using( var context = new DataEntities() )
+			{
+				var matches = context.ConceptScheme_Concept.AsQueryable();
+				if ( onlyActiveConcepts )
+				{
+					matches = matches.Where( m => m.IsActive );
+				}
+				var dbConcepts = matches.ToList();
+
+				foreach( var dbConcept in dbConcepts )
+				{
+					var concept = new Concept();
+					AutoMap( dbConcept, concept );
+					result.Add( concept );
+				}
+			}
+
+			return result;
+		}
+		//
+
         /// <summary>
         /// Get all concept schemes
         /// May want to actually limit what all will return 

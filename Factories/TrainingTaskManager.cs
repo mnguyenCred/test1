@@ -328,8 +328,23 @@ namespace Factories
 
         #region Retrieval
 
+		public static AppEntity Get( string description )
+		{
+			var entity = new AppEntity();
 
-        public static AppEntity Get( Guid rowId)
+			using ( var context = new DataEntities() )
+			{
+				var item = context.Course_Task
+							.FirstOrDefault( s => s.Description.ToLower() == description.ToLower() );
+
+				if ( item != null && item.Id > 0 )
+				{
+					MapFromDB( item, entity );
+				}
+			}
+			return entity;
+		}
+		public static AppEntity Get( Guid rowId)
         {
             var entity = new AppEntity();
 

@@ -1,0 +1,455 @@
+﻿@using Services;
+@using Newtonsoft.Json;
+@{
+    ViewBag.Title = "Upload V3";
+	var allRatings = RatingServices.GetAll().OrderByDescending( m => m.CodedNotation.ToLower() == "all" ).ToList();
+}
+
+<script type="text/javascript">
+	//Core stuff
+	var UI = {};
+	var Static = {
+		CharacterMap: [
+			{ UTF8: '"', Match: ['“', '”', '\u201c', '\u201d', '\x93', '\x94'] },
+			{ UTF8: "'", Match: ['ʻ', 'ʼ', 'ʽ', '`', '´', '‘', '’', '\u2018', '\u2019', '\u00b4', '\u0060', '\x91', '\x92'] },
+			{ UTF8: "-", Match: ['–', '—', '·', '\u2013', '\u2014', '\x95', '\x96', '\x97'] }
+		]
+	};
+	var Manager = {};
+
+	$(document).ready(function () {
+		setupUI();
+		setupManager();
+	});
+	//
+
+	function setupUI() {
+		UI.InputBox = $(".inputBox");
+		UI.RatingSelector = $("[data-property='rating']");
+		UI.FileSelector = $("[data-property='file']");
+		UI.ProcessDataButton = $("[data-action='processData']");
+		UI.ProcessingBox = $(".processingBox");
+		UI.StatusBox = $(".statusBox");
+		UI.StatusText = $(".status");
+		UI.StatusSpinner = $(".statusSpinner");
+		UI.ProgressBarBox = $(".progressBarBox");
+		UI.ProgressBar = $(".progressBar");
+		UI.ProgressBarText = $(".progressBarText");
+		UI.SummaryBox = $(".summaryBox");
+
+		setStatus("Please select a Rating and a CSV File.");
+		setProgress("", 0);
+		UI.ProcessDataButton.on("click", function () {
+			processFileData();
+		});
+	}
+	//
+
+	function setupManager() {
+		Manager.RawCSV = "";
+		Manager.Rows = [];
+		Manager.Reader = new FileReader();
+
+		Manager.getFileHandle = function () {
+			return UI.FileSelector[0].files?.[0];
+		}
+
+		Manager.readFile = function (afterRead) {
+			Manager.Reader.onload = function () {
+				console.log("Read File Contents:", Manager.Reader.result);
+				afterRead?.(Manager.Reader.result);
+			}
+			Manager.Reader.readAsBinaryString(Manager.getFileHandle());
+		}
+	}
+	//
+
+	function setStatus(text, showSpinner) {
+		UI.StatusText.html(text);
+		showSpinner ? UI.StatusSpinner.show() : UI.StatusSpinner.hide();
+	}
+	//
+
+	function setProgress(text, percent) {
+		UI.ProgressBarText.html(text);
+		UI.ProgressBar.css("width", percent + "%");
+	}
+	//
+
+</script>
+<script type="text/javascript">
+	//File processing stuff
+	function processFileData() {
+		//Validate initial data
+		if (!UI.RatingSelector.val()) {
+			alert("Please select a rating.");
+			return;
+		}
+
+		var fileHandle = Manager.getFileHandle();
+		if (!fileHandle) {
+			alert("Please select a file to continue.");
+			return;
+		}
+
+		if (fileHandle.size >= 5242880) { //5MB
+			if (!confirm("Warning: The file you have selected is very large (about " + Math.round(fileHandle.size / (1024 * 1024)) + "MB).\n\nPlease double-check the contents of the file to ensure no unintended data is included.\n\nIf this data is correct, click OK to continue.")) {
+				return;
+			}
+		}
+
+		//Read the contents
+		Manager.readFile(function (rawData) {
+			//Validate the contents
+			Manager.RawCSV = rawData.trim();
+			if (Manager.RawCSV.split("\n").length > 50000) {
+				if (!confirm("Warning: The spreadsheet contains over 50,000 rows.\n\nThe system will attempt to skip any empty rows, but it is better to remove them before uploading.\n\nIf this data is correct, click OK to continue.")) {
+					return;
+				}
+			}
+
+			//Process the contents
+			convertRawCSVToCSVJSON();
+			mapCSVJSONToUploadableRow();
+			processMappedRows();
+		});
+	}
+	//
+
+	function convertRawCSVToCSVJSON() {
+		//Replace non-UTF-8 special characters with their UTF-8 equivalents
+		Manager.UTF8CSV = Manager.RawCSV;
+		Static.CharacterMap.forEach(map => {
+			map.Match.forEach(badCharacter => {
+				Manager.UTF8CSV = Manager.UTF8CSV.replace(new RegExp(badCharacter, "g"), map.UTF8);
+			});
+		});
+		console.log("UTF-8 Replacements:", Manager.UTF8CSV);
+
+		//Convert the CSV into JSON rows
+		Manager.CSVText = Manager.UTF8CSV.replace(/\r\n/g, "\n").replace(/""/g, "<INSERTQUOTE>");
+		var rows = [];
+		var currentRow = [];
+		var currentCell = [];
+		var isInQuotes = false;
+
+		//Process each character
+		Manager.CSVText.split("").forEach(function (character) {
+			if (character == '"') {
+				isInQuotes = !isInQuotes;
+			}
+			else if (isInQuotes) {
+				currentCell.push(character);
+			}
+			else if (character == ",") {
+				currentRow.push(joinCSVCellData(currentCell));
+				currentCell = [];
+			}
+			else if (character == "\n") {
+				currentRow.push(joinCSVCellData(currentCell));
+				currentCell = [];
+				rows.push(currentRow);
+				currentRow = [];
+			}
+			else {
+				currentCell.push(character);
+			}
+		});
+
+		//Don't forget stragglers at the end
+		currentRow.push(joinCSVCellData(currentCell));
+		rows.push(currentRow);
+
+		//Set Data
+		if (rows[0].some(cell => cell.length == 0)) { //Discard the first row if not every column is filled out (e.g. "PART I", , , ..."PART 2", , ...)
+			rows.shift(); 
+		}
+		Manager.CSVColumns = rows.shift(); //Set header row
+		Manager.CSVRows = rows; //The remaining rows
+
+		//Create flat JSON
+		Manager.CSVJSON = [];
+		Manager.CSVRows.forEach(row => {
+			//Skip empty rows
+			if (row.join("").trim().length > 0) {
+				//Assemble row data
+				var item = {};
+				Manager.CSVColumns.forEach((column, index) => {
+					item[column] = row[index];
+				});
+				Manager.CSVJSON.push(item);
+			}
+		});
+
+		console.log("CSV Processed", Manager.CSVJSON);
+	}
+	//
+
+	function joinCSVCellData(cell) {
+		return cell.join("").replace(/<INSERTQUOTE>/g, '"').trim().replace(/^N\/A$/g, "");
+	}
+	//
+
+	function mapCSVJSONToUploadableRow() {
+		Manager.MappedRows = Manager.CSVJSON.map((row, index) => {
+			return {
+				Row_Index: index,
+				Row_Identifier: row["Unique Identifier"], //Not used?
+				Row_CodedNotation: row["Index #"],
+				Rating_CodedNotation: row["Rating"],
+				PayGradeType_CodedNotation: row["Rank"],
+				Level_Name: row["Level (A/J/M)"], //Not used, seems to have changed to a single character and a column named "Level (A)" instead?
+				BilletTitle_Name: row["Billet Title"],
+				WorkRole_Name: row["Functional Area"],
+				ReferenceResource_Name: row["Source"],
+				ReferenceResource_PublicationDate: row["Date of Source"],
+				Shared_ReferenceType: row["Work Element Type"],
+				RatingTask_Description: row["Work Element (Task)"],
+				RatingTask_ApplicabilityType_Name: row["Task Applicability"],
+				RatingTask_TrainingGapType_Name: row["Formal Training Gap"],
+				Course_CodedNotation: row["CIN"],
+				Course_Name: row["Course Name"],
+				Course_CourseType_Name: row["Course Type (A/C/G/F/T)"],
+				Course_CurriculumControlAuthority_Name: row["Curriculum Control Authority (CCA)"],
+				Course_HasReferenceResource_Name: row["Life-Cycle Control Document"],
+				TrainingTask_Description: row["CTTL/PPP/TCCD Statement"],
+				Course_AssessmentMethodType_Name: row["Current Assessment Approach"],
+				Note: row["Notes"]
+			}
+		});
+
+		console.log("Mapped Rows", Manager.MappedRows);
+	}
+	//
+
+	function processMappedRows() {
+		//Setup the manager queue
+		Manager.ActiveItem = null;
+		Manager.FinishedQueue = [];
+		Manager.LookupGraph = [];
+		Manager.WaitingQueue = Manager.MappedRows.map(MappedRow => {
+			return {
+				Response: null,
+				Error: null,
+				MappedRow: MappedRow
+			};
+		});
+
+		//Get total items and other metadata for the transactions
+		Manager.TotalItems = Manager.WaitingQueue.length;
+		Manager.TransactionGUID = crypto.randomUUID();
+		Manager.RatingRowID = UI.RatingSelector.val();
+
+		//Disable the Process Data button and process the rows
+		UI.ProcessDataButton.prop("disabled", true);
+		setStatus("Processing Rows...", true);
+		processNextQueueItem();
+	}
+	//
+
+	function processNextQueueItem() {
+		//If there is an active item, store it in the finished queue
+		Manager.ActiveItem && Manager.FinishedQueue.push(Manager.ActiveItem);
+
+		//If there are more items to process, process the next item
+		if (Manager.WaitingQueue.length > 0) {
+			//Set the next item as the active item
+			Manager.ActiveItem = Manager.WaitingQueue.shift();
+
+			//Construct the request
+			var requestData = {
+				RatingRowID: Manager.RatingRowID,
+				TransactionGUID: Manager.TransactionGUID,
+				Row: Manager.ActiveItem.MappedRow
+			};
+
+			//Set progress and trigger the request
+			setProgress("Processing " + (Manager.FinishedQueue.length + 1) + " of " + Manager.TotalItems, (((Manager.FinishedQueue.length + 1) / (Manager.TotalItems || 1)) * 100).toFixed(2));
+			doPOSTRequest("@Url.Content("~/upload/processuploadeditem")", requestData, (response => {
+				//Once the request is finished, store the response for later and process the next item
+				Manager.ActiveItem.Response = response;
+				processNextQueueItem();
+			}), (error => {
+				//If there is an error, store the error for later and process the next item
+				Manager.ActiveItem.Error = { Status: error.status, StatusText: error.statusText };
+				processNextQueueItem();
+			}));
+		}
+		//If there are no more items to process, upload the raw CSV
+		else {
+			//Construct the request
+			var requestData = {
+				TransactionGUID: Manager.TransactionGUID,
+				RawCSV: Manager.UTF8CSV
+			};
+
+			//Do the upload. Regardless of the result, handle the finished queue
+			setProgress("Storing Raw CSV...", 100);
+			doPOSTRequest("@Url.Content("~/upload/storerawcsv")", requestData, (response => {
+				handleFinishedQueue();
+			}), (error => {
+				console.log("Error storing CSV", error);
+				handleFinishedQueue();
+			}));
+		}
+	}
+	//
+
+	function handleFinishedQueue() {
+		//Set status and progress, and reenable the process data button
+		setStatus("Finished processing. Please review the summary below. If you are satisfied with the data, click the Confirm Changes button to save the changes.");
+		setProgress("Finished", 100);
+		UI.ProcessDataButton.prop("disabled", false);
+
+		//Extract any new items and put them in the manager's cache so they can be looked up
+		Manager.LookupGraph = Manager.LookupGraph.concat(Manager.FinishedQueue.flatMap(m => m.Response?.Data?.NewItems).filter(m => Manager.LookupGraph.filter(n => n.RowId == m.RowId).length == 0));
+
+		//Render the summary
+		Manager.SummaryData = Manager.FinishedQueue;
+		renderSummary();
+	}
+	//
+
+	function renderSummary() {
+		console.log("Rendering summary", Manager.SummaryData);
+	}
+	//
+
+	//Lookup an item in the Manager's cache, or in the summary on the server
+	function lookupItem(rowID, success, error) {
+		//Find the Lookup object if it exists
+		var match = Manager.LookupGraph.filter(m => m.RowID == rowID)[0];
+		if (match) {
+			//Add the handlers and then process them
+			match.SuccessListeners.push(success);
+			match.ErrorListeners.push(error);
+			match.handleListeners();
+		}
+		//Otherwise, create a Lookup object
+		else {
+			//Create the Lookup object and add it to the Manager's cache
+			var Lookup = {
+				RowID: rowID,
+				Data: null,
+				Error: null,
+				SuccessListeners: [success],
+				ErrorListeners: [error]
+			};
+			//Pushing/popping the handler functions ensures that each one fires exactly once per lookup regardless of whether or not the lookup has loaded yet
+			Lookup.handleListeners = function () {
+				if (Lookup.Data) {
+					while (Lookup.SuccessListeners.length > 0) {
+						Lookup.SuccessListeners.pop()(Lookup.Data);
+					}
+				}
+				else if (Lookup.Error) {
+					while (Lookup.ErrorListeners.length > 0) {
+						Lookup.ErrorListeners.pop()(Lookup.Error);
+					}
+				}
+				//No "else" because nothing should happen if neither Data nor Error are present yet
+			};
+			Manager.LookupGraph.push(Lookup);
+
+			//Perform the lookup and process the handlers once a response is received
+			doGETRequest("@Url.Content( "~/upload/lookupgraphitem" )?transactionGUID=" + Manager.TransactionGUID + "&itemRowID=" + rowID, (response) => {
+				Lookup.Data = response.Valid ? response.Data : null;
+				Lookup.Error = response.Status;
+				Lookup.handleListeners();
+			}, (response) => {
+				Lookup.error = response;
+				Lookup.handleListeners();
+			});
+		}
+	}
+	//
+
+	//Generic GET Request
+	function doGETRequest(url, success, error) {
+		console.log("Sending GET Request", { url: url });
+		handleAJAX(url, success, error);
+	};
+	//
+
+	//Generic POST Request
+	function doPOSTRequest(url, data, success, error) {
+		handleAJAX(url, success, error, {
+			method: "POST",
+			headers: { 'Accept': 'application/json', 'Content-Type': 'application/json' },
+			body: JSON.stringify(data)
+		});
+	};
+	//
+
+	//Generic AJAX Request
+	function handleAJAX(url, success, error, params) {
+		fetch(url, params)
+			.then(response => {
+				console.log("Received Response", response);
+				if (response.ok) {
+					return response.text();
+				}
+				else {
+					throw response;
+				}
+			})
+			.then(text => {
+				var result = JSON.parse(text);
+				success?.(result);
+			})
+			.catch(response => {
+				console.log("Error", response);
+				error?.(response);
+			});
+	};
+	//
+</script>
+<style type="text/css">
+	html body .container { width: 98vw; }
+	select, input[type='file'], button { display: block; width: 100%; height: 30px; max-width: none; cursor: pointer; }
+	.spinner { display: inline-block; box-shadow: inset 4px 0 0 5px; border-radius: 50%; height: 20px; width: 20px; animation: spin 1s linear infinite; }
+	@@keyframes spin { 100% { transform: rotate(360deg); } }
+
+	.section { margin-bottom: 10px; }
+	.inputBox .fileBox { display: flex; background-color: #EEE; margin-top: 5px; }
+	.inputBox .fileBox input[type='file'] { flex: 1 1 auto; padding: 4px 5px; }
+	.inputBox .fileBox input[type='file']:hover, .inputBox .fileBox input[type='file']:focus { cursor: pointer; background-color: rgba(0,0,0,0.1); }
+	.inputBox .fileBox button { flex: 200px 0 0; }
+
+	.processingBox .statusBox { display: flex; align-items: center; padding: 0 10px; margin-bottom: 5px; }
+	.processingBox .statusBox .status { margin-right: 10px; }
+	.processingBox .progressBarBox { position: relative; background-color: #EEE; padding: 1px; height: 30px; }
+	.processingBox .progressBar { background-color: #8F9; height: 28px; width: 0%; }
+	.processingBox .progressBarText { position: absolute; top: 0; left: 0; padding: 5px 10px; }
+</style>
+
+<h1>Upload RMTL Data</h1>
+
+<div class="section inputBox">
+	<p>Select a Rating and choose a CSV (comma-separated values) file to upload. Do not include "All Sailor Tasks", since those have already been added to the system.</p>
+	@*<p><b style="color:#F00;">Important:</b> Ensure the file's character encoding is <b>UTF-8</b>. In Excel, this can be done via <b>"File" > "Save As" > "More options..." > "Save as type" > "CSV UTF-8"</b>.</p>*@
+	<select data-property="rating">
+		<option value="" disabled="disabled" selected="selected">Select a Rating...</option>
+		@foreach( var rating in allRatings )
+		{
+			<option value="@rating.RowId.ToString()">@rating.CodedNotation - @rating.Name</option>
+		}
+	</select>
+	<div class="fileBox">
+		<input type="file" data-property="file" />
+		<button data-action="processData">Process Data</button>
+	</div>
+</div>
+<div class="section processingBox">
+	<div class="statusBox">
+		<div class="status"></div>
+		<div class="spinner statusSpinner"></div>
+	</div>
+	<div class="progressBarBox">
+		<div class="progressBar"></div>
+		<div class="progressBarText"></div>
+	</div>
+</div>
+<div class="section summaryBox">
+
+</div>
