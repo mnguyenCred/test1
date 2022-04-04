@@ -100,6 +100,8 @@ namespace Models.Schema
 		public Concept TaskApplicabilityType { get; set; } = new Concept();
 		public Concept TaskTrainingGap { get; set; } = new Concept();
 		public Concept TaskReferenceType { get; set; } = new Concept();
+		//TBD - at least for upload
+		public ClusterAnalysis ClusterAnalysis { get; set; } = new ClusterAnalysis();
 	}
 	//
 
@@ -149,8 +151,9 @@ namespace Models.Schema
 		//Derived
 		public int ResultNumber { get; set; }
 		public string Ratings { get; set; }
+		public string RatingName { get; set; }
 		public List<Guid> HasRatings { get; set; } = new List<Guid>();
-		public string BilletTitles { get; set; }
+		public new string BilletTitles { get; set; }
 		public List<Guid> HasBilletTitles { get; set; } = new List<Guid>();
 		public string FormalTrainingGap { get; set; }
 		public string FunctionalArea { get; set; }
@@ -158,7 +161,7 @@ namespace Models.Schema
 		//codedNotation for Rank/PayGrade
 		public string Rank { get; set; }
 		public string RankName { get; set; }
-		public string ReferenceResource { get; set; }
+		public new string ReferenceResource { get; set; }
 		public string SourceDate { get; set; }
 		public string TaskApplicability { get; set; }
 		public string WorkElementType { get; set; }

@@ -31,6 +31,8 @@ namespace Models.Curation
 		public List<SM.ReferenceResource> ReferenceResource { get; set; }
 		public List<SM.TrainingTask> TrainingTask { get; set; }
 		public List<SM.WorkRole> WorkRole { get; set; }
+		//NOTE this may just be embedded in rating task
+		public List<SM.ClusterAnalysis> ClusterAnalysis { get; set; } = new List<SM.ClusterAnalysis>();
 	}
 	//
 

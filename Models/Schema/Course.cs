@@ -31,6 +31,7 @@ namespace Models.Schema
 		/// <summary>
 		/// List of GUIDs for the Organiation(s) that are Curriculum Control Authorities for this Course<br />
 		/// From Column: Curriculum Control Authority (CCA)
+		/// 22-01-24 Navy has confirmed that this should be single. We are leaving as a list for current processing, but will be saved as a single. 
 		/// </summary>
 		public List<Guid> CurriculumControlAuthority { get; set; }
 
@@ -55,6 +56,7 @@ namespace Models.Schema
 		/// <summary>
 		/// GUID for the Concept for the Assessment Method Type for this Course<br />
 		/// From Column: Current Assessment Approach
+		/// 22-03-30 Navy has confirmed that the asmt type is associated with the training task
 		/// </summary>
 		public List<Guid> AssessmentMethodType { get; set; }
 

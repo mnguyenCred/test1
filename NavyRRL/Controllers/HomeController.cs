@@ -46,7 +46,8 @@ namespace NavyRRL.Controllers
         [HttpPost]
         [AllowAnonymous]
         [ValidateAntiForgeryToken]
-        public async Task<ActionResult> ContactUs( ContactUsViewModel model )
+        //public async Task<ActionResult> ContactUs( ContactUsViewModel model )
+        public ActionResult ContactUs( ContactUsViewModel model )
         {
             if ( !ModelState.IsValid )
             {

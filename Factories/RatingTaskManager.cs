@@ -442,7 +442,7 @@ namespace Factories
             var template = string.Format("'{0}'", ratingCodedNotation.Trim());
             if (includingAllSailorsTasks)
             {
-                template += ",'ALL'";
+               // template += ",'ALL'";
             }
             //make configurable - this is still OK
             filter = string.Format( "base.id in (select a.[RatingTaskId] from [RatingTask.HasRating] a inner join Rating b on a.ratingId = b.Id where b.CodedNotation in ({0}) )", template );
@@ -636,17 +636,29 @@ namespace Factories
 						item.ResultNumber = resultNumber;
 						item.Id = GetRowColumn( dr, "Id", 0 );
 						item.RowId = GetGuidType( dr, "RowId" );
+                        //Ratings - coded notation
 						item.Ratings = dr["Ratings"].ToString();// GetRowColumn( dr, "Ratings", "" );
-                        
-                        if ( autocomplete ) 
-                            item.HasRatings = GetRatingGuids( item.Ratings );
-                        //do we need to populate HasRating (if so, could include in the pipe separated list of Ratings
+                        item.RatingName = dr["RatingName"].ToString();// GetRowColumn( dr, "RatingName", "" );
+                        //do we need to populate HasRatings (if so, could include in the pipe separated list of Ratings)
+                        //22-04-04 mp - search will now return a single HasRating
+                        var hasRatings = GetGuidType( dr, "HasRating");
+                        if (IsGuidValid( hasRatings ))
+                        {
+                            item.HasRatings.Add( hasRatings );
+                        }
+                        //Hmm autocomplete is always false? Is this obsolete?
+                        //if ( autocomplete )
+                        //{
+                        //    item.HasRatings = GetRatingGuids( item.Ratings );
+                        //}
+                        //BilletTitles
                         item.BilletTitles = dr["BilletTitles"].ToString();// GetRowColumn( dr, "BilletTitles", "" );
                         var bt= GetRowColumn( dr, "BilletTitles", "" );
                         //could save previous and then first check the previous
+                        //similarly, do we need a list of billet guids?
                         if ( autocomplete )
                             item.HasBilletTitles = GetBilletTitleGuids( item.BilletTitles );
-                        //similarly, do we need a list of billet guids?
+                        
 
                         item.Description = dr["RatingTask"].ToString();// GetRowColumn( dr, "RatingTask", "" );
                         item.Note = dr["Notes"].ToString();// GetRowColumn( dr, "Notes", "" );

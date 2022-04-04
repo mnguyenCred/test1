@@ -26,6 +26,12 @@ namespace Factories
         public static string cacheKey = "TrainingTaskCache";
 
         #region Persistance
+        /// <summary>
+        /// Save list of training tasks, from Course object
+        /// </summary>
+        /// <param name="input"></param>
+        /// <param name="doingDeletes"></param>
+        /// <param name="status"></param>
         public void SaveList( ParentEntity input, bool doingDeletes, ref ChangeSummary status )
         {
             //need to do the check for stuff to delete - or TBD if the process step figures out the proper stuff
@@ -110,6 +116,7 @@ namespace Factories
                             };
                             new ActivityManager().SiteActivityAdd( sa );
                             //TBD: will AssessmentMethodType still be on the course, or on the training task.
+                            //NOTE: if save comes from the standalone editor, there will be no asmts
                             TrainingTaskAssessmentMethodSave( input, input.AssessmentMethodType, ref status );
 
                         }

@@ -497,7 +497,7 @@ namespace Services
 				{
 
 					string exType = ex.GetType().ToString();
-					LoggingHelper.LogError( exType + " Exception in GetRowColumn( DataRow row, string column, string defaultValue ) for column: " + column + ". \r\n" + ex.Message.ToString(), true );
+					LoggingHelper.LogError( exType + " Exception in " + thisClassName + ".GetRowColumn( DataRow row, string column, string defaultValue ) for column: " + column + ". \r\n" + ex.Message.ToString(), true );
 				}
 				colValue = defaultValue;
 			}
@@ -530,7 +530,7 @@ namespace Services
 			{
 
 
-				LoggingHelper.LogError( "Exception in GetRowColumn( DataRow row, string column, int defaultValue ) for column: " + column + ". \r\n" + ex.Message.ToString(), true );
+				LoggingHelper.LogError( "Exception in " + thisClassName + ".GetRowColumn( DataRow row, string column, int defaultValue ) for column: " + column + ". \r\n" + ex.Message.ToString(), true );
 				colValue = defaultValue;
 				//throw ex;
 			}
@@ -563,7 +563,7 @@ namespace Services
 			catch ( Exception ex )
 			{
 
-				LoggingHelper.LogError( "Exception in GetRowColumn( DataRow row, string column, bool defaultValue ) for column: " + column + ". \r\n" + ex.Message.ToString(), true );
+				LoggingHelper.LogError( "Exception in " + thisClassName + ".GetRowColumn( DataRow row, string column, bool defaultValue ) for column: " + column + ". \r\n" + ex.Message.ToString(), true );
 				colValue = defaultValue;
 				//throw ex;
 			}
@@ -595,7 +595,7 @@ namespace Services
 			catch ( Exception ex )
 			{
 
-				LoggingHelper.LogError( "Exception in GetRowColumn( DataRow row, string column, System.DateTime defaultValue ) for column: " + column + ". \r\n" + ex.Message.ToString(), true );
+				LoggingHelper.LogError( "Exception in " + thisClassName + ".GetRowColumn( DataRow row, string column, System.DateTime defaultValue ) for column: " + column + ". \r\n" + ex.Message.ToString(), true );
 				colValue = defaultValue;
 			}
 			return colValue;
@@ -628,7 +628,7 @@ namespace Services
 			catch ( Exception ex )
 			{
 
-				LoggingHelper.LogError( "Exception in GetRowColumn( DataRow row, string column, decimal defaultValue ) for column: " + column + ". \r\n" + ex.Message.ToString(), true );
+				LoggingHelper.LogError( "Exception in " + thisClassName + ".GetRowColumn( DataRow row, string column, decimal defaultValue ) for column: " + column + ". \r\n" + ex.Message.ToString(), true );
 				colValue = defaultValue;
 			}
 			return colValue;
@@ -666,7 +666,7 @@ namespace Services
 			{
 
 				string exType = ex.GetType().ToString();
-				LoggingHelper.LogError( exType + " Exception in GetRowColumn( DataRowView row, string column, string defaultValue ) for column: " + column + ". \r\n" + ex.Message.ToString(), true );
+				LoggingHelper.LogError( exType + " Exception in " + thisClassName + ".GetRowColumn( DataRowView row, string column, string defaultValue ) for column: " + column + ". \r\n" + ex.Message.ToString(), true );
 				colValue = defaultValue;
 			}
 			return colValue;
@@ -698,7 +698,7 @@ namespace Services
 			catch ( Exception ex )
 			{
 
-				LoggingHelper.LogError( "Exception in GetRowColumn( DataRowView row, string column, int defaultValue ) for column: " + column + ". \r\n" + ex.Message.ToString(), true );
+				LoggingHelper.LogError( "Exception in " + thisClassName + ".GetRowColumn( DataRowView row, string column, int defaultValue ) for column: " + column + ". \r\n" + ex.Message.ToString(), true );
 				colValue = defaultValue;
 				//throw ex;
 			}

@@ -28,7 +28,7 @@ set @SortOrder = 'base.[Ratings], base.[Rank] DESC, base.[FunctionalArea] desc, 
 set @SortOrder = 'Ratings, Rank, BilletTitles, FunctionalArea'
 set @SortOrder = 'base.[WorkElementType] desc'
 --set @CurrentUserId = 108
-set @Filter = '  Rating = ''abf'' '
+
 
 set @Filter = ' base.id in (select a.[RatingTaskId] from [RatingTask.HasRating] a inner join Rating b on a.ratingId = b.Id where b.CodedNotation = ''qm'' )	'
 
@@ -39,8 +39,8 @@ set @Filter = ' base.RankId in (69, 70,71)'
 set @Filter = ' base.LevelId in (89) AND FunctionalAreaId in(2,5)'
 set @Filter = ' base.id in (select a.[RatingTaskId] from [RatingTask.HasRating] a inner join Rating b on a.ratingId = b.Id where b.Id in (77,78 ))	'
 set @Filter = ' ( base.WorkElementTypeId in ( 1120 ) )  '
- 
-set @Filter = ''
+ set @Filter = '  Ratings = ''abf'' '
+--set @Filter = ''
 
 set @StartPageIndex = 1
 set @PageSize = 100
@@ -234,7 +234,7 @@ SELECT
 	,b.RowId
 	,b.Created
 	,b.LastUpdated
-	,b.Ratings
+	,b.Ratings,b.RatingName, b.HasRating
 	,b.BilletTitles
       ,b.[CodedNotation]
       ,b.[RankId]

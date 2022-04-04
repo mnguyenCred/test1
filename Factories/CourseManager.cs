@@ -481,17 +481,17 @@ namespace Factories
             {
                 output.RowId = input.RowId;
             }
-            if (input.Course_AssessmentType != null)
-            {
-                foreach (var item in input.Course_AssessmentType )
-                {
-                    if ( item != null && item.ConceptScheme_Concept != null )
-                    {
-                        output.AssessmentMethodType.Add( item.ConceptScheme_Concept.RowId );
-                        output.AssessmentMethods.Add( item.ConceptScheme_Concept.Name );
-                    }
-                }
-            }
+            //if (input.Course_AssessmentType != null)
+            //{
+            //    foreach (var item in input.Course_AssessmentType )
+            //    {
+            //        if ( item != null && item.ConceptScheme_Concept != null )
+            //        {
+            //            output.AssessmentMethodType.Add( item.ConceptScheme_Concept.RowId );
+            //            output.AssessmentMethods.Add( item.ConceptScheme_Concept.Name );
+            //        }
+            //    }
+            //}
             //
             if ( input.Course_CourseType?.Count > 0 )
             {
@@ -589,6 +589,7 @@ namespace Factories
             try
             {
                 //CourseTaskSave( input, ref status );
+                //AssessmentMethod is passed as well
                 new TrainingTaskManager().SaveList( input, false, ref status );
 
                 //22-01-24 - CCA is confirmed to be a single
@@ -596,7 +597,8 @@ namespace Factories
                 //CourseConceptSave( input, ConceptSchemeManager.ConceptScheme_CourseType, input.CourseTypes, "CourseType", ref status );
                 //CourseConceptSave( input, ConceptSchemeManager.ConceptScheme_CurrentAssessmentApproach, input.AssessmentMethodType, "AssessmentMethodType", ref status );
                 CourseTypeSave( input, input.CourseType, ref status );
-                CourseAssessmentMethodSave( input, input.AssessmentMethodType, ref status );
+
+                //CourseAssessmentMethodSave( input, input.AssessmentMethodType, ref status );
 
 
             } catch ( Exception ex )

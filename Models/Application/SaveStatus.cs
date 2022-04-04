@@ -48,14 +48,14 @@ namespace Models.Application
 			HasErrors = true;
 			HasSectionErrors = true;
 		}
-		public void AddNote( string message )
-		{
-			Messages.Note.Add( message );
-		}
-		public void AddWarning( string message )
-		{
-			Messages.Warning.Add( message );
-		}
+		//public void AddNote( string message )
+		//{
+		//	Messages.Note.Add( message );
+		//}
+		//public void AddWarning( string message )
+		//{
+		//	Messages.Warning.Add( message );
+		//}
 		//public List<string> GetAllMessages()
 		//{
 		//	List<string> messages = new List<string>();

@@ -21,7 +21,7 @@ GO
 SELECT [Id]
       ,[CTID]
   --    ,[RowId]
-      ,[Ratings]
+      ,[Ratings], RatingName
       ,[BilletTitles]
       ,[CodedNotation] as TaskCodedNotation
     --  ,[RankId]
@@ -98,6 +98,8 @@ Modifications
 			- TBD - consider changing rating to have multiple rows where in multiple ratings
 				- now will show one per row
 				- review the query builder for this
+22-04-04 mp - as for ratings, change billet title processing to result in separate rows where more than one billet per task.
+			- otherwise the export could get messed up.
 */
 Alter  VIEW [dbo].RatingTaskSummary
 AS
@@ -107,11 +109,13 @@ SELECT
 	a.Id,
 	a.CTID,
 	a.RowId
-	,isnull(r.Name,'') as Ratings
+	,isnull(r.Name,'') as RatingName
+	,isnull(r.CodedNotation,'') as Ratings, r.RowId as HasRating
 	,r.id as ratingId
 	--,isnull(rtr.Ratings,'') as Ratings
 	--,''BilletTitles,
-	,isnull(rtb.BilletTitles,'') as BilletTitles
+	--,isnull(rtb.BilletTitles,'') as BilletTitles
+	,isnull(bt.Name,'') as BilletTitles
 	,a.CodedNotation 
 	,a.[RankId]
 	, isnull(c1.CodedNotation,'') As [Rank]
@@ -123,12 +127,12 @@ SELECT
 	--,a.[FunctionalAreaId]
 	--, isnull(b.name,'missing') As FunctionalArea
 	--,b.RowId as FunctionalAreaUID
-		,CASE
+	,CASE
 		WHEN WorkRoles IS NULL THEN ''
 		WHEN len(WorkRoles) = 0 THEN ''
 		ELSE left(WorkRoles,len(WorkRoles)-1)
 		END AS FunctionalArea
-	--		
+	--		SOURCE
 	--,a.[SourceId]
 	,a.ReferenceResourceId
 	, isnull(c.name,'') As ReferenceResource
@@ -200,21 +204,27 @@ SELECT
 
    
 	FROM [dbo].[RatingTask] a
+	--Rating
 	left join [RatingTask.HasRating] rtr on a.Id = rtr.[RatingTaskId]
-	Left Join Rating r on rtr.RatingId = r.Id
+		Left Join Rating r on rtr.RatingId = r.Id
+	--BilletTitles
 	--left join RatingTaskRatings rtr on a.Id = rtr.[RatingTaskId]
-	left Join RatingTaskBillets rtb on a.Id = rtb.RatingTaskId
+	--22-04-04 - allow multiple rows
+	--left Join RatingTaskBillets rtb1 on a.Id = rtb1.RatingTaskId
+	left join dbo.[RatingTask.HasJob] rtb on a.id = rtb.RatingTaskId
+		left join Job bt on rtb.JobId = bt.id 
+	--Rank
 	left join [ConceptScheme.Concept]	c1 on a.[RankId] = c1.Id
+	--Level
 	left join [ConceptScheme.Concept]	c2 on a.[LevelId] = c2.Id
 --left join WorkRole					b on a.FunctionalAreaId = b.Id
 --left join FunctionalArea			b on a.FunctionalAreaId = b.Id
 left join ReferenceResource			c on a.ReferenceResourceId = c.Id
---left join Source					c on a.SourceId = c.Id
+--WorkElementType	
 left join [ConceptScheme.Concept]	wet on a.WorkElementTypeId = wet.Id
---left join WorkElementType			d on a.WorkElementTypeId = d.Id
 left join [ConceptScheme.Concept]	e on a.TaskApplicabilityId = e.Id
 left join [ConceptScheme.Concept]	f on a.FormalTrainingGapId = f.Id
-
+--TrainingTask. 22-03-28 - can now (even eventually) be multiple
 Left Join [ratingTask.HasTrainingTask] htt on a.Id = htt.RatingTaskId
 Left Join TrainingTaskSummary		g on htt.TrainingTaskId = g.TrainingTaskId
 --Left Join TrainingTaskSummary		g on a.TrainingTaskId = g.TrainingTaskId

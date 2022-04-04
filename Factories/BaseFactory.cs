@@ -516,11 +516,17 @@ namespace Factories
         public static Guid GetGuidType( DataRow dr, string property )
         {
             string guid = GetRowColumn( dr, property );
-            if ( !string.IsNullOrEmpty( guid ) )
+            if ( !string.IsNullOrEmpty( guid ) && IsValidGuid( guid) )
                 return new Guid( guid );
             else
                 return new Guid();
         } //
+        /// <summary>
+        /// Get guids for a list of ratings
+        /// Using a cache as needed
+        /// </summary>
+        /// <param name="property"></param>
+        /// <returns></returns>
         public static List<Guid> GetRatingGuids( string property )
         {
             if ( string.IsNullOrEmpty( property ) )
@@ -567,9 +573,9 @@ namespace Factories
                 }
             } 
 
-            {
-                ratings = RatingManager.GetAll();
-            }
+            //otherwise get all ratings
+            ratings = RatingManager.GetAll();
+            
             output = ratings.FirstOrDefault( s => s.CodedNotation == rating );
             //
             //add to cache

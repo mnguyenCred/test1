@@ -45,6 +45,18 @@ namespace Models.Curation
 		public string ApplicabilityType_Name { get; set; }
 		public string TrainingGapType_Name { get; set; }
 		public string ReferenceType_WorkElementType { get; set; }
+
+		//tbd include cluster analysis here as direct one to one
+		public string Training_Solution_Type { get; set; }
+		public string Cluster_Analysis_Title { get; set; }
+		public string Recommended_Modality { get; set; }
+		public string Development_Specification { get; set; }
+		public string Candidate_Platform { get; set; }
+		public string CFM_Placement { get; set; }
+		public string Priority_Placement { get; set; }
+		public string Development_Ratio { get; set; }
+		public string Development_Time { get; set; }
+		public string Cluster_Analysis_Notes { get; set; }
 	}
 	//
 
