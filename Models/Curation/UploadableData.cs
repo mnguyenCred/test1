@@ -3,8 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 
 using SM = Models.Schema;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Converters;
+using Newtonsoft.Json.Linq;
 
 namespace Models.Curation
 {
@@ -104,14 +103,17 @@ namespace Models.Curation
 	{
 		public UploadableItemResult()
 		{
-			NewItems = new List<object>();
+			NewItems = new List<JObject>();
 			UnmodifiedItems = new List<Guid>();
 			Additions = new List<Triple>();
 			Removals = new List<Triple>();
 			TextChanges = new List<Triple>();
 			Valid = true;
+			Errors = new List<string>();
+			Warnings = new List<string>();
+			ExistingItems = new List<JObject>();
 		}
-		public UploadableItemResult( List<object> newItems, List<Guid> unmodifiedItems, List<Triple> additions = null, List<Triple> removals = null, List<Triple> textChanges = null, bool valid = true, string message = "" )
+		public UploadableItemResult( List<JObject> newItems, List<Guid> unmodifiedItems, List<Triple> additions = null, List<Triple> removals = null, List<Triple> textChanges = null, bool valid = true, string message = "" )
 		{
 			NewItems = newItems;
 			UnmodifiedItems = unmodifiedItems;
@@ -120,15 +122,21 @@ namespace Models.Curation
 			TextChanges = textChanges;
 			Valid = valid;
 			Message = message;
+			Errors = new List<string>();
+			Warnings = new List<string>();
+			ExistingItems = new List<JObject>();
 		}
 
-		public List<object> NewItems { get; set; }
+		public List<JObject> NewItems { get; set; }
+		public List<JObject> ExistingItems { get; set; }
 		public List<Guid> UnmodifiedItems { get; set; }
 		public List<Triple> Additions { get; set; }
 		public List<Triple> Removals { get; set; }
 		public List<Triple> TextChanges { get; set; }
 		public bool Valid { get; set; }
 		public string Message { get; set; }
+		public List<string> Errors { get; set; }
+		public List<string> Warnings { get; set; }
 	}
 	//
 

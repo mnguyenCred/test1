@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Navy.Utilities;
 
 using System.Runtime.Caching;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Models.Application;
 using Models.Schema;
@@ -2595,6 +2596,9 @@ namespace Services
 
 		public static UploadableItemResult ProcessUploadedItem( UploadableItem item )
 		{
+			//Hold the result
+			var result = new UploadableItemResult() { Valid = true };
+
 			//Get the current transaction's summary, or create it if it doesn't exist
 			var summary = GetCachedChangeSummary( item.TransactionGUID );
 			if ( summary == null )
@@ -2621,30 +2625,59 @@ namespace Services
 			//Get the controlled value items that show up in this row
 			//Everything in any uploaded sheet should appear here. If any of these are not found, it's an error
 			//Might also be an error if rowRating is the "ALL" Rating, now
-			var rowRating = summary.GetAll<Rating>().FirstOrDefault( m => m.CodedNotation?.ToLower() == item.Row.Rating_CodedNotation?.ToLower() );
-			var rowPayGrade = summary.GetAll<Concept>().FirstOrDefault( m => m.CodedNotation?.ToLower() == item.Row.PayGradeType_CodedNotation?.ToLower() );
-			var rowSourceType = summary.GetAll<Concept>().FirstOrDefault( m => m.WorkElementType?.ToLower() == item.Row.Shared_ReferenceType?.ToLower() );
-			var rowTaskApplicabilityType = summary.GetAll<Concept>().FirstOrDefault( m => m.Name?.ToLower() == item.Row.RatingTask_ApplicabilityType_Name?.ToLower() );
-			var rowTrainingGapType = summary.GetAll<Concept>().FirstOrDefault( m => m.Name?.ToLower() == item.Row.RatingTask_TrainingGapType_Name?.ToLower() );
+			var rowRating = GetDataOrError<Rating>( summary, ( m ) => m.CodedNotation?.ToLower() == item.Row.Rating_CodedNotation?.ToLower(), result, "Rating not found in database: " + item.Row.Rating_CodedNotation ?? "" );
+			var rowPayGrade = GetDataOrError<Concept>( summary, ( m ) => m.CodedNotation?.ToLower() == item.Row.PayGradeType_CodedNotation?.ToLower(), result, "Rank not found in database: " + item.Row.PayGradeType_CodedNotation ?? "" );
+			var rowSourceType = GetDataOrError<Concept>( summary, ( m ) => m.WorkElementType?.ToLower() == item.Row.Shared_ReferenceType?.ToLower(), result, "Work Element Type not found in database: " + item.Row.Shared_ReferenceType ?? "" );
+			var rowTaskApplicabilityType = GetDataOrError<Concept>( summary, ( m ) => m.Name?.ToLower() == item.Row.RatingTask_ApplicabilityType_Name?.ToLower(), result, "Task Applicability Type not found in database: " + item.Row.RatingTask_ApplicabilityType_Name ?? "" );
+			var rowTrainingGapType = GetDataOrError<Concept>( summary, ( m ) => m.Name?.ToLower() == item.Row.RatingTask_TrainingGapType_Name?.ToLower(), result, "Training Gap Type not found in database: " + item.Row.RatingTask_TrainingGapType_Name ?? "" );
+			
+			//If any of the above are null, log an error and skip the rest
+			if( new List<object>() { rowRating, rowPayGrade, rowSourceType, rowTaskApplicabilityType, rowTrainingGapType }.Where(m => m == null).Count() > 0 )
+			{
+				result.Message = "Unable to continue: One or more critical errors found";
+				return result;
+			}
+
 			//These should throw an error if not found, unless all of the course/training columns are N/A
-			var rowCourseType = summary.GetAll<Concept>().FirstOrDefault( m => m.Name?.ToLower() == item.Row.Course_CourseType_Name?.ToLower() );
-			var rowOrganizationCCA = summary.GetAll<Organization>().FirstOrDefault( m => m.Name?.ToLower() == item.Row.Course_CurriculumControlAuthority_Name?.ToLower() || m.ShortName?.ToLower() == item.Row.Course_CurriculumControlAuthority_Name?.ToLower() );
-			var rowCourseSourceType = summary.GetAll<Concept>().FirstOrDefault( m => m.Name?.ToLower() == item.Row.Course_HasReferenceResource_Name?.ToLower() );
-			var rowAssessmentMethodType = summary.GetAll<Concept>().FirstOrDefault( m => m.Name?.ToLower() == item.Row.Course_AssessmentMethodType_Name?.ToLower() );
+			var shouldNotHaveTrainingData = rowTrainingGapType.Name?.ToLower() == "yes";
+			var rowCourseType = GetDataOrError<Concept>( summary, ( m ) => m.Name?.ToLower() == item.Row.Course_CourseType_Name?.ToLower(), result, "Course Type not found in database: " + item.Row.Course_CourseType_Name ?? "" );
+			var rowOrganizationCCA = GetDataOrError<Organization>( summary, ( m ) => (m.Name != null && m.Name.ToLower() == item.Row.Course_CurriculumControlAuthority_Name?.ToLower()) || (m.AlternateName != null && m.AlternateName.ToLower() == item.Row.Course_CurriculumControlAuthority_Name?.ToLower()), result, "Curriculum Control Authority not found in database: " + item.Row.Course_CurriculumControlAuthority_Name ?? "" );
+			var rowCourseSourceType = GetDataOrError<Concept>( summary, ( m ) => m.Name?.ToLower() == item.Row.Course_HasReferenceResource_Name?.ToLower(), result, "Life-Cycle Control Document Type not found in database: " + item.Row.Course_HasReferenceResource_Name ?? "" );
+			var rowAssessmentMethodType = GetDataOrError<Concept>( summary, ( m ) => m.Name?.ToLower() == item.Row.Course_AssessmentMethodType_Name?.ToLower(), result, "Assessment Method Type not found in database: " + item.Row.Course_AssessmentMethodType_Name ?? "" );
+			
+			//If the Training Gap Type is "Yes", then treat all course/training data as null, but check to see if it exists first (above) to facilitate the warning statement below
+			if( shouldNotHaveTrainingData )
+			{
+				var hasDataWhenItShouldNot = new List<object>() { rowCourseType, rowOrganizationCCA, rowCourseSourceType, rowAssessmentMethodType }.Where( m => m != null ).ToList();
+				if ( hasDataWhenItShouldNot.Count() > 0 || !string.IsNullOrWhiteSpace( item.Row.TrainingTask_Description ) )
+				{
+					result.Warnings.Add( "Incomplete course/training data found. All course/training related columns should either have data or be marked as \"N/A\". Since the Training Gap Type is \"Yes\", the incomplete data will be treated as \"N/A\"." );
+					rowCourseType = null;
+					rowOrganizationCCA = null;
+					rowCourseSourceType = null;
+					rowAssessmentMethodType = null;
+				}
+
+				//Remove false errors
+				result.Errors = new List<string>();
+			}
+			//Otherwise, return an error if any course/training data is missing
+			else if( new List<object>() { rowCourseType, rowOrganizationCCA, rowCourseSourceType, rowAssessmentMethodType }.Where( m => m == null ).Count() > 0 || string.IsNullOrWhiteSpace( item.Row.TrainingTask_Description ) )
+			{
+				result.Message =  "Incomplete course/training data found. All course/training related columns should either have data or be marked as \"N/A\". Since the Training Gap Type is \"" + rowTrainingGapType.Name + "\", this is an error and processing this row cannot continue.";
+				return result;
+			}
 
 			//Special handling for "All" ratings
-			var allRatingsRating = summary.GetAll<Rating>().FirstOrDefault( m => m.CodedNotation?.ToLower() == "all" );
+			var allRatingsRating = GetDataOrError<Rating>( summary, ( m ) => m.CodedNotation?.ToLower() == "all", result, "Rating Type of \"ALL\" not found in database." );
 			var isAllRatingsRow = rowTaskApplicabilityType?.Name.ToLower().Contains( "all sailors" ) ?? false;
-
-			//Course Reference Resource always has a Reference Type of LCCD
-			var lccdReferenceType = summary.GetAll<Concept>().FirstOrDefault( m => m.Name.ToLower() == "lccd" );
 
 			//Get the variable items that show up in this row
 			//Things from sheets here may be new/edited
 			//First check the summary to see if it came in from an earlier row (or database). If not found in the summary, check the database. If not found there, assume it's new. Regardless, add it to the summary if it's not already in the summary.
 
 			//Billet Title
-			var rowBilletTitle = LookupOrGetFromDBOrCreateNew( summary,
+			var rowBilletTitle = LookupOrGetFromDBOrCreateNew( summary, result,
 				//Find in summary
 				() => summary.GetAll<BilletTitle>()
 				.FirstOrDefault( m =>
@@ -2663,7 +2696,7 @@ namespace Services
 			);
 
 			//Work Role
-			var rowWorkRole = LookupOrGetFromDBOrCreateNew( summary,
+			var rowWorkRole = LookupOrGetFromDBOrCreateNew( summary, result,
 				//Find in summary
 				() => summary.GetAll<WorkRole>()
 				.FirstOrDefault( m =>
@@ -2682,7 +2715,7 @@ namespace Services
 			);
 
 			//Reference Resource (RatingTask)
-			var rowRatingTaskSource = LookupOrGetFromDBOrCreateNew( summary,
+			var rowRatingTaskSource = LookupOrGetFromDBOrCreateNew( summary, result,
 				//Find in summary
 				() => summary.GetAll<ReferenceResource>()
 				.FirstOrDefault( m =>
@@ -2705,12 +2738,13 @@ namespace Services
 			);
 
 			//Reference Resource (Course)
-			var rowCourseSource = LookupOrGetFromDBOrCreateNew( summary,
+			//Reference Resource for a Course might not actually be a Reference Resource, but just a Reference Type - TBD
+			var rowCourseSource = LookupOrGetFromDBOrCreateNew( summary, result,
 				//Find in summary
 				() => summary.GetAll<ReferenceResource>()
 				.FirstOrDefault( m =>
 					m.Name?.ToLower() == item.Row.Course_HasReferenceResource_Name?.ToLower() &&
-					m.ReferenceType.Contains( lccdReferenceType.RowId )
+					m.ReferenceType.Contains( rowCourseSourceType.RowId )
 				),
 				//Or get from DB
 				() => ReferenceResourceManager.Get( item.Row.Course_HasReferenceResource_Name ),
@@ -2719,7 +2753,7 @@ namespace Services
 				{
 					RowId = Guid.NewGuid(),
 					Name = item.Row.Course_HasReferenceResource_Name,
-					ReferenceType = new List<Guid>() { lccdReferenceType.RowId }
+					ReferenceType = new List<Guid>() { rowCourseSourceType.RowId }
 				},
 				//Store if newly created
 				( newItem ) => { summary.ItemsToBeCreated.ReferenceResource.Add( newItem ); },
@@ -2728,7 +2762,7 @@ namespace Services
 			);
 
 			//Training Task
-			var rowTrainingTask = LookupOrGetFromDBOrCreateNew( summary,
+			var rowTrainingTask = LookupOrGetFromDBOrCreateNew( summary, result,
 				//Find in summary
 				() => summary.GetAll<TrainingTask>()
 				.FirstOrDefault( m =>
@@ -2749,7 +2783,7 @@ namespace Services
 			);
 
 			//Course
-			var rowCourse = LookupOrGetFromDBOrCreateNew( summary,
+			var rowCourse = LookupOrGetFromDBOrCreateNew( summary, result,
 				//Find in summary
 				() => summary.GetAll<Course>()
 				.FirstOrDefault( m =>
@@ -2775,7 +2809,7 @@ namespace Services
 			);
 
 			//Rating Task
-			var rowRatingTask = LookupOrGetFromDBOrCreateNew( summary,
+			var rowRatingTask = LookupOrGetFromDBOrCreateNew( summary, result,
 				//Find in summary
 				() => summary.GetAll<RatingTask>()
 				.FirstOrDefault( m =>
@@ -2805,112 +2839,31 @@ namespace Services
 
 			//Now that we have figured out who all of the actors are...
 			//Handle cases where a new or existing item has associations added to it or removed from it (likely just added to it for now?)
+			
 			//Billet Title
-			var rowBilletTitleStatus = UpdateStatus.Unmodified;
-			if ( !rowBilletTitle.HasRatingTask.Contains( rowRatingTask.RowId ) )
-			{
-				rowBilletTitleStatus = UpdateStatus.Modified;
-				rowBilletTitle.HasRatingTask.Add( rowRatingTask.RowId );
-				summary.AddedItemsToInnerListsForCopiesOfItems.BilletTitle.Add( new BilletTitle() { RowId = rowBilletTitle.RowId, HasRatingTask = new List<Guid>() { rowRatingTask.RowId } } );
-			}
-			rowBilletTitleStatus = summary.ItemsToBeCreated.BilletTitle.Contains( rowBilletTitle ) ? UpdateStatus.New : rowBilletTitleStatus;
-			if( rowBilletTitleStatus == UpdateStatus.Unmodified )
-			{
-				summary.UnchangedCount.BilletTitle++;
-			}
+			UpdateSummaryAndResultForItemProperty( summary, summary.ItemsToBeCreated.BilletTitle, summary.AddedItemsToInnerListsForCopiesOfItems.BilletTitle, result, rowBilletTitle, nameof( BilletTitle.HasRatingTask ), rowRatingTask );
 
 			//Course
-			var rowCourseStatus = UpdateStatus.NotApplicable;
-			if( rowCourse != null )
-			{
-				rowCourseStatus = UpdateStatus.Unmodified;
-				if ( rowTrainingTask != null && !rowCourse.HasTrainingTask.Contains( rowTrainingTask.RowId ) )
-				{
-					rowCourseStatus = UpdateStatus.Modified;
-					rowCourse.HasTrainingTask.Add( rowTrainingTask.RowId );
-					summary.AddedItemsToInnerListsForCopiesOfItems.Course.Add( new Course() { RowId = rowCourse.RowId, HasTrainingTask = new List<Guid>() { rowTrainingTask.RowId } } );
-				}
-				if ( rowAssessmentMethodType != null && !rowCourse.AssessmentMethodType.Contains( rowAssessmentMethodType.RowId ) )
-				{
-					rowCourseStatus = UpdateStatus.Modified;
-					rowCourse.AssessmentMethodType.Add( rowAssessmentMethodType.RowId );
-					summary.AddedItemsToInnerListsForCopiesOfItems.Course.Add( new Course() { RowId = rowCourse.RowId, AssessmentMethodType = new List<Guid>() { rowAssessmentMethodType.RowId } } );
-				}
-				if( rowOrganizationCCA != null && !rowCourse.CurriculumControlAuthority.Contains( rowOrganizationCCA.RowId ) )
-				{
-					rowCourseStatus = UpdateStatus.Modified;
-					rowCourse.CurriculumControlAuthority.Add( rowOrganizationCCA.RowId );
-					summary.AddedItemsToInnerListsForCopiesOfItems.Course.Add( new Course() { RowId = rowCourse.RowId, CurriculumControlAuthority = new List<Guid>() { rowOrganizationCCA.RowId } } );
-				}
-				rowCourseStatus = summary.ItemsToBeCreated.Course.Contains( rowCourse ) ? UpdateStatus.New : rowCourseStatus;
-			}
-			if ( rowCourseStatus == UpdateStatus.Unmodified )
-			{
-				summary.UnchangedCount.Course++;
-			}
+			UpdateSummaryAndResultForItemProperty( summary, summary.ItemsToBeCreated.Course, summary.AddedItemsToInnerListsForCopiesOfItems.Course, result, rowCourse, nameof( Course.HasTrainingTask ), rowTrainingTask );
+			UpdateSummaryAndResultForItemProperty( summary, summary.ItemsToBeCreated.Course, summary.AddedItemsToInnerListsForCopiesOfItems.Course, result, rowCourse, nameof( Course.AssessmentMethodType ), rowAssessmentMethodType );
+			UpdateSummaryAndResultForItemProperty( summary, summary.ItemsToBeCreated.Course, summary.AddedItemsToInnerListsForCopiesOfItems.Course, result, rowCourse, nameof( Course.CurriculumControlAuthority ), rowOrganizationCCA );
+
+			//Training Task
+			//Will probably add Assessment Method Type here once the schema change is made
 
 			//Rating Task
-			var rowRatingTaskStatus = UpdateStatus.Unmodified;
-			if ( !rowRatingTask.HasRating.Contains( rowRating.RowId ) )
-			{
-				rowRatingTaskStatus = UpdateStatus.Modified;
-				rowRatingTask.HasRating.Add( rowRating.RowId );
-				summary.AddedItemsToInnerListsForCopiesOfItems.RatingTask.Add( new RatingTask() { RowId = rowRatingTask.RowId, HasRating = new List<Guid>() { rowRating.RowId } } );
-			}
-			if ( isAllRatingsRow && !rowRatingTask.HasRating.Contains( allRatingsRating.RowId ) )
-			{
-				rowRatingTaskStatus = UpdateStatus.Modified;
-				rowRatingTask.HasRating.Add( allRatingsRating.RowId );
-				summary.AddedItemsToInnerListsForCopiesOfItems.RatingTask.Add( new RatingTask() { RowId = rowRatingTask.RowId, HasRating = new List<Guid>() { allRatingsRating.RowId } } );
-			}
-			if ( !rowRatingTask.HasBilletTitle.Contains( rowBilletTitle.RowId ) )
-			{
-				rowRatingTaskStatus = UpdateStatus.Modified;
-				rowRatingTask.HasBilletTitle.Add( rowBilletTitle.RowId );
-				summary.AddedItemsToInnerListsForCopiesOfItems.RatingTask.Add( new RatingTask() { RowId = rowRatingTask.RowId, HasBilletTitle = new List<Guid>() { rowBilletTitle.RowId } } );
-			}
-			if ( !rowRatingTask.HasWorkRole.Contains( rowWorkRole.RowId ) )
-			{
-				rowRatingTaskStatus = UpdateStatus.Modified;
-				rowRatingTask.HasWorkRole.Add( rowWorkRole.RowId );
-				summary.AddedItemsToInnerListsForCopiesOfItems.RatingTask.Add( new RatingTask() { RowId = rowRatingTask.RowId, HasWorkRole = new List<Guid>() { rowWorkRole.RowId } } );
-			}
+			UpdateSummaryAndResultForItemProperty( summary, summary.ItemsToBeCreated.RatingTask, summary.AddedItemsToInnerListsForCopiesOfItems.RatingTask, result, rowRatingTask, nameof( RatingTask.HasRating ), rowRating );
+			UpdateSummaryAndResultForItemProperty( summary, summary.ItemsToBeCreated.RatingTask, summary.AddedItemsToInnerListsForCopiesOfItems.RatingTask, result, rowRatingTask, nameof( RatingTask.HasRating ), allRatingsRating );
+			UpdateSummaryAndResultForItemProperty( summary, summary.ItemsToBeCreated.RatingTask, summary.AddedItemsToInnerListsForCopiesOfItems.RatingTask, result, rowRatingTask, nameof( RatingTask.HasBilletTitle ), rowBilletTitle );
+			UpdateSummaryAndResultForItemProperty( summary, summary.ItemsToBeCreated.RatingTask, summary.AddedItemsToInnerListsForCopiesOfItems.RatingTask, result, rowRatingTask, nameof( RatingTask.HasWorkRole ), rowWorkRole );
+			//UpdateSummaryAndResultForItemProperty( summary.AddedItemsToInnerListsForCopiesOfItems.RatingTask, result, rowRatingTask, nameof( RatingTask.HasTrainingTask ), rowTrainingTask ); //Use this instead once the change for RatingTask/TrainingTask has been made
 			if ( rowTrainingTask != null && rowRatingTask.HasTrainingTask != rowTrainingTask.RowId )
 			{
-				rowRatingTaskStatus = UpdateStatus.Modified;
 				rowRatingTask.HasTrainingTask = rowTrainingTask.RowId;
+				//AppendItemToExistingItemList( summary.AddedItemsToInnerListsForCopiesOfItems.RatingTask, rowRatingTask.RowId, ( m ) => m.HasTrainingTask.Add( rowTrainingTask.RowId ) );
 				summary.AddedItemsToInnerListsForCopiesOfItems.RatingTask.Add( new RatingTask() { RowId = rowRatingTask.RowId, HasTrainingTask = rowTrainingTask.RowId } );
+				result.Additions.Add( new Triple( rowRatingTask.RowId, nameof( rowRatingTask.HasTrainingTask ), rowTrainingTask.RowId ) );
 			}
-			rowRatingTaskStatus = summary.ItemsToBeCreated.RatingTask.Contains( rowRatingTask ) ? UpdateStatus.New : rowRatingTaskStatus;
-			if ( rowRatingTaskStatus == UpdateStatus.Unmodified )
-			{
-				summary.UnchangedCount.RatingTask++;
-			}
-
-
-			//TODO: Finish this part and wire it up in the interface
-			//Example for a row that contains an existing RatingTask that has been added to a Rating and a Billet Title, and the Billet Title is new
-			//Use the ID for the item(s) that were added/removed, and the client will look those up (so that we aren't returning the same item repeatedly)
-			var existingRatingSample = new Rating() { RowId = Guid.Parse( "635a1ac5-eeff-4942-b18c-22d55cfae395" ), Name = "Some Rating" };
-			summary.AppendItem( existingRatingSample );
-			var existingRatingTaskSample = new RatingTask() { RowId = Guid.Parse( "ee628900-2641-4c9e-8c68-695e99edbd69" ), Description = "Some existing task" };
-			summary.AppendItem( existingRatingTaskSample );
-			var newBilletTitleSample = new BilletTitle() { RowId = Guid.NewGuid(), Name = "Some New Billet Title" };
-			summary.AppendItem( newBilletTitleSample );
-			var result = new UploadableItemResult()
-			{
-				Valid = true,
-				NewItems = new List<object>()
-				{
-					newBilletTitleSample
-				},
-				Additions = new List<Triple>()
-				{
-					new Triple( existingRatingTaskSample.RowId, nameof(RatingTask.HasRating), existingRatingSample.RowId ),
-					new Triple( existingRatingTaskSample.RowId, nameof(RatingTask.HasBilletTitle), newBilletTitleSample.RowId )
-				}
-			};
-
 			
 			//Update the cached summary
 			CacheChangeSummary( summary );
@@ -2918,10 +2871,9 @@ namespace Services
 			//Return the result
 			return result;
 		}
-		private enum UpdateStatus { Unmodified, New, Modified, NotApplicable }
 		//
 
-		public static T LookupOrGetFromDBOrCreateNew<T>( ChangeSummary summary, Func<T> GetFromSummary, Func<T> GetFromDatabase, Func<T> CreateNew, Action<T> LogNewItem, Func<bool> ReturnNullIfTrue = null ) where T : BaseObject, new()
+		public static T LookupOrGetFromDBOrCreateNew<T>( ChangeSummary summary, UploadableItemResult result, Func<T> GetFromSummary, Func<T> GetFromDatabase, Func<T> CreateNew, Action<T> LogNewItem, Func<bool> ReturnNullIfTrue = null ) where T : BaseObject, new()
 		{
 			//If there is a method to check whether the item is null (e.g. the cell contains N/A), and that test comes back true, then skip the rest and return null
 			if ( ReturnNullIfTrue != null && ReturnNullIfTrue() )
@@ -2930,34 +2882,114 @@ namespace Services
 			}
 
 			//Otherwise, find it in the summary
-			var result = GetFromSummary();
+			var targetItem = GetFromSummary();
 
 			//If not found in the summary...
-			if ( result == null )
+			if ( targetItem == null )
 			{
 				//Find it in the database
-				result = GetFromDatabase();
+				targetItem = GetFromDatabase();
 
 				//If not found in the database...
-				if ( result == null || result.Id == 0 )
+				if ( targetItem == null || targetItem.Id == 0 )
 				{
 					//Create a new one (if applicable)
-					result = CreateNew();
+					targetItem = CreateNew();
 
 					//If newly created, put it into the summary's new items list
-					LogNewItem( result );
+					LogNewItem( targetItem );
+
+					//Also put it into the result's new items list. The client will handle the fact that data gets appended to this item later (in this and/or subsequent rows) after it's been serialized as a JObject.
+					result.NewItems.Add( JObjectify( targetItem ) );
+				}
+				//If found in the database...
+				else
+				{
+					//Note that it came from the database to help code distinguish between existing items and items from previous rows in the current upload session
+					summary.ItemsLoadedFromDatabase.Add( targetItem.RowId );
+
+					//Also put it into the result's existing items list
+					result.ExistingItems.Add( JObjectify( targetItem ) );
 				}
 
 				//If it's not null, put it into the summary's lookup graph
-				if ( result != null )
+				if ( targetItem != null )
 				{
-					summary.AppendItem( result );
+					summary.AppendItem( targetItem );
 				}
 			}
 
 			//Return the item (or null)
-			return result;
+			return targetItem;
 		}
+		//
+
+		public static JObject JObjectify<T>( T rowItem ) where T: BaseObject
+		{
+			if( rowItem != null )
+			{
+				var newItem = JObject.FromObject( rowItem, new JsonSerializer() { NullValueHandling = NullValueHandling.Ignore, Formatting = Formatting.None, DefaultValueHandling = DefaultValueHandling.Ignore } );
+				newItem[ "@type" ] = rowItem.GetType().Name;
+				return newItem;
+			}
+
+			return null;
+		}
+		//
+
+		public static T GetDataOrError<T>( ChangeSummary summary, Func<T, bool> MatchWith, UploadableItemResult result, string errorMessage ) where T : BaseObject
+		{
+			var data = summary.GetAll<T>().FirstOrDefault( m => MatchWith( m ) );
+			if( data == null )
+			{
+				result.Errors.Add( errorMessage );
+			}
+
+			return data;
+		}
+		//
+
+		public static void UpdateSummaryAndResultForItemProperty<T1, T2>( ChangeSummary summary, List<T1> summaryItemsToBeCreatedList, List<T1> summaryAddedReferencesToExistingItemsList, UploadableItemResult result, T1 rowItem, string GUIDListPropertyName, T2 referenceToBeAppended ) where T1 : BaseObject, new() where T2 : BaseObject
+		{
+			//If the row item and the reference are not null...
+			if( rowItem != null && referenceToBeAppended != null )
+			{
+				//Get the list property for the row item (e.g. BilletTitle.HasRatingTask)
+				var listProperty = typeof( T1 ).GetProperty( GUIDListPropertyName );
+				//Get the list itself
+				var list = ( List<Guid> ) listProperty.GetValue( rowItem );
+
+				//If the list doesn't already contain the GUID of the item to be added...
+				if ( !list.Contains( referenceToBeAppended.RowId ) )
+				{
+					//Add the reference to the list itself (in the data, which will also update the item in the summary's new item list)
+					list.Add( referenceToBeAppended.RowId );
+
+					//For summary tracking, check to see if the item came from the database (e.g. truly already exists) or if it's from a previous row in the current upload session
+					if ( summary.ItemsLoadedFromDatabase.Contains( rowItem.RowId ) )
+					{
+						//Find the update tracking reference for the existing item
+						var match = summaryAddedReferencesToExistingItemsList.FirstOrDefault( m => m.RowId == rowItem.RowId );
+						//If found, append the GUID to the list property for the match item (not the row item)
+						if( match != null )
+						{
+							( ( List<Guid> ) listProperty.GetValue( match ) ).Add( referenceToBeAppended.RowId );
+						}
+						//Otherwise, create a new reference to that item, add the GUID to the list property for the new reference (not the row item), and add the new reference to the summary's list of changes for an existing item
+						else
+						{
+							match = new T1() { RowId = rowItem.RowId };
+							listProperty.SetValue( match, new List<Guid>() { referenceToBeAppended.RowId } ); //Avoid null reference for uninitialized List<Guid> by setting the value here
+							summaryAddedReferencesToExistingItemsList.Add( match );
+						}
+					}
+
+					//Now that the summary has been updated, also update the result for the current request
+					result.Additions.Add( new Triple( rowItem.RowId, GUIDListPropertyName, referenceToBeAppended.RowId ) );
+				}
+			}
+		}
+		//
 
 		#endregion
 	}

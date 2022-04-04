@@ -227,9 +227,10 @@
 		Manager.ActiveItem = null;
 		Manager.FinishedQueue = [];
 		Manager.LookupGraph = [];
+		Manager.Requests = [];
 		Manager.WaitingQueue = Manager.MappedRows.map(MappedRow => {
 			return {
-				Response: null,
+				Data: null,
 				Error: null,
 				MappedRow: MappedRow
 			};
@@ -267,11 +268,17 @@
 			setProgress("Processing " + (Manager.FinishedQueue.length + 1) + " of " + Manager.TotalItems, (((Manager.FinishedQueue.length + 1) / (Manager.TotalItems || 1)) * 100).toFixed(2));
 			doPOSTRequest("@Url.Content("~/upload/processuploadeditem")", requestData, (response => {
 				//Once the request is finished, store the response for later and process the next item
-				Manager.ActiveItem.Response = response;
+				if (response.Valid) {
+					Manager.ActiveItem.Data = response.Data;
+					updateManagerLookupGraph(response.Data);
+				}
+				else {
+					Manager.ActiveItem.Error = { Type: "ServerError", Status: response.Status, Response: response };
+				}
 				processNextQueueItem();
 			}), (error => {
 				//If there is an error, store the error for later and process the next item
-				Manager.ActiveItem.Error = { Status: error.status, StatusText: error.statusText };
+				Manager.ActiveItem.Error = { Type: "HTTPError", Status: error.status, StatusText: error.statusText };
 				processNextQueueItem();
 			}));
 		}
@@ -295,14 +302,36 @@
 	}
 	//
 
+	function updateManagerLookupGraph(data) {
+		data.ExistingItems.forEach(item => {
+			item.Meta = {
+				IsNew: false,
+				Additions: []
+			};
+			appendLookupItem(item);
+		});
+		data.NewItems.forEach(item => {
+			item.Meta = {
+				IsNew: true,
+				Additions: []
+			};
+			appendLookupItem(item);
+		});
+		data.Additions.forEach(addition => {
+			lookupItem(addition.Subject, (item) => {
+				item.Meta.Additions.push(addition);
+			}, (error) => {
+				console.log("Error looking up item for addition", { addition: addition, error: error });
+			});
+		});
+	}
+	//
+
 	function handleFinishedQueue() {
 		//Set status and progress, and reenable the process data button
 		setStatus("Finished processing. Please review the summary below. If you are satisfied with the data, click the Confirm Changes button to save the changes.");
 		setProgress("Finished", 100);
 		UI.ProcessDataButton.prop("disabled", false);
-
-		//Extract any new items and put them in the manager's cache so they can be looked up
-		Manager.LookupGraph = Manager.LookupGraph.concat(Manager.FinishedQueue.flatMap(m => m.Response?.Data?.NewItems).filter(m => Manager.LookupGraph.filter(n => n.RowId == m.RowId).length == 0));
 
 		//Render the summary
 		Manager.SummaryData = Manager.FinishedQueue;
@@ -318,49 +347,67 @@
 	//Lookup an item in the Manager's cache, or in the summary on the server
 	function lookupItem(rowID, success, error) {
 		//Find the Lookup object if it exists
-		var match = Manager.LookupGraph.filter(m => m.RowID == rowID)[0];
+		var match = Manager.LookupGraph.filter(m => m.RowId == rowID)[0];
 		if (match) {
-			//Add the handlers and then process them
-			match.SuccessListeners.push(success);
-			match.ErrorListeners.push(error);
-			match.handleListeners();
+			success(match);
 		}
-		//Otherwise, create a Lookup object
+		//Otherwise, ask the server
 		else {
-			//Create the Lookup object and add it to the Manager's cache
-			var Lookup = {
-				RowID: rowID,
-				Data: null,
-				Error: null,
-				SuccessListeners: [success],
-				ErrorListeners: [error]
-			};
-			//Pushing/popping the handler functions ensures that each one fires exactly once per lookup regardless of whether or not the lookup has loaded yet
-			Lookup.handleListeners = function () {
-				if (Lookup.Data) {
-					while (Lookup.SuccessListeners.length > 0) {
-						Lookup.SuccessListeners.pop()(Lookup.Data);
-					}
-				}
-				else if (Lookup.Error) {
-					while (Lookup.ErrorListeners.length > 0) {
-						Lookup.ErrorListeners.pop()(Lookup.Error);
-					}
-				}
-				//No "else" because nothing should happen if neither Data nor Error are present yet
-			};
-			Manager.LookupGraph.push(Lookup);
+			//If there's already a pending request for this data, append the success and error handlers to that request
+			var existingRequest = Manager.Requests.filter(m => m.TargetRowID == rowID);
+			if (existingRequest != null) {
+				existingRequest.SuccessListeners.push(success);
+				existingRequest.ErrorListeners.push(error);
+				existingRequest.handleListeners(); //Ensures no handlers get missed
+			}
+			//Otherwise, create a new request and process it
+			else {
+				//Create the request
+				var Request = {
+					TargetRowID: rowID,
+					Data: null,
+					Error: null,
+					SuccessListeners: [success],
+					ErrorListeners: [error]
+				};
+				Manager.Requests.push(Request);
 
-			//Perform the lookup and process the handlers once a response is received
-			doGETRequest("@Url.Content( "~/upload/lookupgraphitem" )?transactionGUID=" + Manager.TransactionGUID + "&itemRowID=" + rowID, (response) => {
-				Lookup.Data = response.Valid ? response.Data : null;
-				Lookup.Error = response.Status;
-				Lookup.handleListeners();
-			}, (response) => {
-				Lookup.error = response;
-				Lookup.handleListeners();
-			});
+				//Handlers for when the data/error is loaded
+				Lookup.handleListeners = function () {
+					if (Lookup.Data) {
+						appendLookupItem(Lookup.Data);
+						while (Lookup.SuccessListeners.length > 0) {
+							Lookup.SuccessListeners.pop()(Lookup.Data);
+						}
+					}
+					else if (Lookup.Error) {
+						appendLookupItem({ RowId: rowID, Name: "Error", Description: "Error", Meta: { Error: Lookup.Error } });
+						while (Lookup.ErrorListeners.length > 0) {
+							Lookup.ErrorListeners.pop()(Lookup.Error);
+						}
+					}
+					//No "else" because nothing should happen if neither Data nor Error are present yet
+				};
+
+				//Perform the lookup and process the handlers once a response is received
+				doGETRequest("@Url.Content( "~/upload/lookupgraphitem" )?transactionGUID=" + Manager.TransactionGUID + "&itemRowID=" + rowID, (response) => {
+					Lookup.Data = response.Valid ? response.Data : null;
+					Lookup.Error = response.Status;
+					Lookup.handleListeners();
+				}, (response) => {
+					Lookup.error = response;
+					Lookup.handleListeners();
+				});
+			}
 		}
+	}
+	//
+
+	function appendLookupItem(data) {
+		if (Manager.LookupGraph.filter(m => m.RowId == data.RowId).length == 0) {
+			Manager.LookupGraph.push(data);
+		}
+		//
 	}
 	//
 
