@@ -20,6 +20,7 @@ namespace Models.Curation
 			Messages = new Messages();
 			LookupGraph = new List<object>();
 			PossibleDuplicates = new List<PossibleDuplicateSet>();
+			ItemsLoadedFromDatabase = new List<Guid>();
 		}
 		public string Action { get; set; } = "Upload";
 		public string Rating { get; set; }
@@ -56,6 +57,11 @@ namespace Models.Curation
 		/// Set of counts of items where no changes were detected.
 		/// </summary>
 		public ItemCounts UnchangedCount { get; set; }
+
+		/// <summary>
+		/// Used to help code distinguish between items that came from the database and items that came from previous rows in an upload session
+		/// </summary>
+		public List<Guid> ItemsLoadedFromDatabase { get; set; }
 
 		/// <summary>
 		/// Container for a variety of messages.

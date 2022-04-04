@@ -93,8 +93,10 @@ namespace NavyRRL.Controllers
 			var summary = BulkUploadServices.GetCachedChangeSummary( transactionGUID );
 			var item = summary?.LookupItem<SM.BaseObject>( itemRowID );
 
+			var itemWithType = BulkUploadServices.JObjectify( item );
+
 			//Return it
-			return JsonResponse( item, true );
+			return JsonResponse( itemWithType, true );
 		}
 		//
 
