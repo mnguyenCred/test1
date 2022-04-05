@@ -52,16 +52,17 @@ namespace Models.Schema
 		public Guid HasReferenceResource { get; set; }
 
 		/// <summary>
-		/// List of GUIDs for the Concepts for the LCCD Type(s) for this Course<br />
+		/// GUID for the Concepts for the LCCD Type for this Course<br />
 		/// From Column: Life-Cycle Control Document
 		/// </summary>
-		public List<Guid> LifeCycleControlDocumentType { get; set; }
+		public Guid LifeCycleControlDocumentType { get; set; }
 
 		/// <summary>
 		/// List of GUIDs for the Concept for the Course Type(s) for this Course<br />
 		/// From Column: Course Type (A/C/G/F/T)
 		/// </summary>
 		public List<Guid> CourseType { get; set; }
+
 		/// <summary>
 		/// GUID for the Concept for the Assessment Method Type for this Course<br />
 		/// From Column: Current Assessment Approach<br />

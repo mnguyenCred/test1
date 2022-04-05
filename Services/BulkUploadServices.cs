@@ -1785,7 +1785,7 @@ namespace Services
 			var existingCourseMatchers = GetSheetMatchersFromExisting<Course, MatchableCourse>( existingCourses );
 			foreach( var matcher in existingCourseMatchers )
 			{
-				matcher.Flattened.LifeCycleControlDocumentType_CodedNotation = existingReferenceResources.Where( m => matcher.Data.LifeCycleControlDocumentType.Contains( m.RowId ) ).Select( m => m.CodedNotation ).FirstOrDefault();
+				matcher.Flattened.LifeCycleControlDocumentType_CodedNotation = existingReferenceResources.Where( m => matcher.Data.LifeCycleControlDocumentType == m.RowId ).Select( m => m.CodedNotation ).FirstOrDefault();
 				matcher.Flattened.CourseType_Name = courseTypeConcepts.Where( m => matcher.Data.CourseType.Contains( m.RowId ) ).Select( m => m.Name ).ToList();
 				matcher.Flattened.CurriculumControlAuthority_Name = existingOrganizations.Where( m => matcher.Data.CurriculumControlAuthority.Contains( m.RowId ) ).Select( m => m.Name ).ToList();
 				matcher.Flattened.HasTrainingTask_Description = existingTrainingTasks.Where( m => matcher.Data.HasTrainingTask.Contains( m.RowId ) ).Select( m => m.Description ).ToList();
@@ -2777,7 +2777,7 @@ namespace Services
 					Name = item.Row.Course_Name,
 					CodedNotation = item.Row.Course_CodedNotation,
 					CourseType = new List<Guid>() { rowCourseType.RowId },
-					LifeCycleControlDocumentType = new List<Guid>() { rowCourseSourceType.RowId }
+					LifeCycleControlDocumentType = rowCourseSourceType.RowId
 				},
 				//Store if newly created
 				( newItem ) => { summary.ItemsToBeCreated.Course.Add( newItem ); },
