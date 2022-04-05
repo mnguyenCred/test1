@@ -12,7 +12,6 @@ namespace Models.Schema
 			HasTrainingTask = new List<Guid>();
 			AssessmentMethodType = new List<Guid>();
 			CourseType = new List<Guid>();
-			LifeCycleControlDocumentType = new List<Guid>();
 		}
 
 		/// <summary>
