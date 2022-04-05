@@ -12,6 +12,7 @@ namespace Models.Schema
 			HasTrainingTask = new List<Guid>();
 			AssessmentMethodType = new List<Guid>();
 			CourseType = new List<Guid>();
+			LifeCycleControlDocumentType = new List<Guid>();
 		}
 
 		/// <summary>
@@ -44,9 +45,17 @@ namespace Models.Schema
 
 		/// <summary>
 		/// GUID for the Reference Resource for this Course<br />
+		/// From Column: Life-Cycle Control Document<br />
+		/// Do not use!
+		/// </summary>
+		[Obsolete]
+		public Guid HasReferenceResource { get; set; }
+
+		/// <summary>
+		/// List of GUIDs for the Concepts for the LCCD Type(s) for this Course<br />
 		/// From Column: Life-Cycle Control Document
 		/// </summary>
-		public Guid HasReferenceResource { get; set; }
+		public List<Guid> LifeCycleControlDocumentType { get; set; }
 
 		/// <summary>
 		/// List of GUIDs for the Concept for the Course Type(s) for this Course<br />
@@ -55,9 +64,11 @@ namespace Models.Schema
 		public List<Guid> CourseType { get; set; }
 		/// <summary>
 		/// GUID for the Concept for the Assessment Method Type for this Course<br />
-		/// From Column: Current Assessment Approach
-		/// 22-03-30 Navy has confirmed that the asmt type is associated with the training task
+		/// From Column: Current Assessment Approach<br />
+		/// 22-03-30 Navy has confirmed that the asmt type is associated with the training task<br />
+		/// Do not use!
 		/// </summary>
+		[Obsolete]
 		public List<Guid> AssessmentMethodType { get; set; }
 
 		/// <summary>

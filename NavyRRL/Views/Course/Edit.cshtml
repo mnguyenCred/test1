@@ -6,9 +6,10 @@
 	var title = Model.Id > 0 ? "Editing Course" : "New Course";
 	ViewBag.Title = title;
 	var courseTypeList = Factories.ConceptSchemeManager.GetbyShortUri( Factories.ConceptSchemeManager.ConceptScheme_CourseType ).Concepts.Select( m => SimpleItemHelper.GetSimpleItem( m ) ).ToList();
-	var assessmentMethodTypeList = Factories.ConceptSchemeManager.GetbyShortUri( Factories.ConceptSchemeManager.ConceptScheme_CurrentAssessmentApproach ).Concepts.Select( m => SimpleItemHelper.GetSimpleItem( m ) ).ToList();
+	//var assessmentMethodTypeList = Factories.ConceptSchemeManager.GetbyShortUri( Factories.ConceptSchemeManager.ConceptScheme_CurrentAssessmentApproach ).Concepts.Select( m => SimpleItemHelper.GetSimpleItem( m ) ).ToList();
 	var ccaList = Factories.OrganizationManager.GetAll().Select( m => SimpleItemHelper.GetSimpleItem( m ) ).ToList();
-	var referenceResourceList = Factories.ReferenceResourceManager.GetAll().Select( m => SimpleItemHelper.GetSimpleItem( m ) ).ToList();
+	//var referenceResourceList = Factories.ReferenceResourceManager.GetAll().Select( m => SimpleItemHelper.GetSimpleItem( m ) ).ToList();
+	var lccdList = Factories.ConceptSchemeManager.GetbyShortUri( Factories.ConceptSchemeManager.ConceptScheme_LifeCycleControlDocument ).Concepts.Select( m => SimpleItemHelper.GetSimpleItem( m ) ).ToList();
 }
 
 @Html.Partial( "~/Views/Shared/_FormHelperV1.cshtml" )
@@ -32,18 +33,26 @@
 					};
 				}
 			},
+			@*
 			HasReferenceResource: function (Field) {
 				Field.Items = @Html.Raw( JsonConvert.SerializeObject( referenceResourceList, Formatting.None ) );
 				Field.renderItems();
 			},
+			*@
 			CourseType: function (Field) {
 				Field.Items = @Html.Raw( JsonConvert.SerializeObject( courseTypeList, Formatting.None ) );
 				Field.renderItems();
 			},
+			LifeCycleControlDocumentType: function (Field) {
+				Field.Items = @Html.Raw( JsonConvert.SerializeObject( lccdList, Formatting.None ) );
+				Field.renderItems();
+			},
+			@*
 			AssessmentMethodType: function (Field) {
 				Field.Items = @Html.Raw( JsonConvert.SerializeObject( assessmentMethodTypeList, Formatting.None ) );
 				Field.renderItems();
 			},
+			*@
 			CurriculumControlAuthority: function (Field) {
 				Field.Items = @Html.Raw( JsonConvert.SerializeObject( ccaList, Formatting.None ) );
 				Field.renderItems();
@@ -85,9 +94,10 @@
 <form-item data-path="Course.Description" data-ui="textarea" data-label="Description"></form-item>
 
 <form-item data-path="Course.CodedNotation" data-ui="text" data-label="Code"></form-item>
-<form-item data-path="Course.HasReferenceResource" data-ui="select" data-label="Source" data-config="HasReferenceResource"></form-item>
+@*<form-item data-path="Course.HasReferenceResource" data-ui="select" data-label="Source" data-config="HasReferenceResource"></form-item>*@
 <form-item data-path="Course.CourseType" data-ui="checkboxlist" data-label="Course Type" data-config="CourseType"></form-item>
-<form-item data-path="Course.AssessmentMethodType" data-ui="checkboxlist" data-label="Assessment Method Type" data-config="AssessmentMethodType"></form-item>
+<form-item data-path="Course.LifeCycleControlDocumentType" data-ui="checkboxlist" data-label="Life-Cycle Control Document Type" data-config="LifeCycleControlDocumentType"></form-item>
+@*<form-item data-path="Course.AssessmentMethodType" data-ui="checkboxlist" data-label="Assessment Method Type" data-config="AssessmentMethodType"></form-item>*@
 <form-item data-path="Course.CurriculumControlAuthority" data-ui="checkboxlist" data-label="Curriculum Control Authority" data-config="CurriculumControlAuthority"></form-item>
 <form-item data-path="Course.HasTrainingTask_Add" data-ui="searchselectdeferred" data-label="Add Training Tasks" data-config="HasTrainingTask_Add"></form-item>
 <form-item data-path="Course.HasTrainingTask_Remove" data-ui="searchselectdeferred" data-label="Remove Training Tasks" data-config="HasTrainingTask_Remove"></form-item>

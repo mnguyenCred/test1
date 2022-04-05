@@ -88,7 +88,7 @@ namespace Models.Curation
 	{
 		public List<string> CurriculumControlAuthority_Name { get; set; }
 		public List<string> HasTrainingTask_Description { get; set; }
-		public string HasReferenceResource_Name { get; set; }
+		public string LifeCycleControlDocumentType_CodedNotation { get; set; }
 		public List<string> CourseType_Name { get; set; }
 		public List<string> AssessmentMethodType_Name { get; set; }
 	}

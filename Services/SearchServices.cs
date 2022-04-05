@@ -61,7 +61,7 @@ namespace Services
 						Course_CodedNotation = item.CIN,
 						Course_Name = item.CourseName,
 						Course_CourseType_Name = item.CourseType,
-						Course_HasReferenceResource_Name = item.LifeCycleControlDocument,
+						Course_LifeCycleControlDocumentType_CodedNotation = item.LifeCycleControlDocument,
 						Course_CurriculumControlAuthority_Name = item.CurriculumControlAuthority,
 						TrainingTask_Description = item.TrainingTask,
 						Course_AssessmentMethodType_Name = item.CurrentAssessmentApproach,

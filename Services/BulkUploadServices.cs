@@ -131,7 +131,7 @@ namespace Services
 				row.Course_Name = NullifyNotApplicable( row.Course_Name );
 				row.Course_CourseType_Name = NullifyNotApplicable( row.Course_CourseType_Name );
 				row.Course_CurriculumControlAuthority_Name = NullifyNotApplicable( row.Course_CurriculumControlAuthority_Name );
-				row.Course_HasReferenceResource_Name = NullifyNotApplicable( row.Course_HasReferenceResource_Name );
+				row.Course_LifeCycleControlDocumentType_CodedNotation = NullifyNotApplicable( row.Course_LifeCycleControlDocumentType_CodedNotation );
 				//this can be multiple now - check
 				row.Course_AssessmentMethodType_Name = NullifyNotApplicable( row.Course_AssessmentMethodType_Name );
 
@@ -364,17 +364,17 @@ namespace Services
 
 				//Course Source (The Reference Resource for the course, distinct from the Reference Resource for the task in another column)
 				ReferenceResource courseSource = null;
-				if ( !string.IsNullOrWhiteSpace( row.Course_HasReferenceResource_Name ) )
+				if ( !string.IsNullOrWhiteSpace( row.Course_LifeCycleControlDocumentType_CodedNotation ) )
 				{
 					courseSource = graph.ReferenceResource.FirstOrDefault( m =>
-						m.Name == row.Course_HasReferenceResource_Name
+						m.CodedNotation == row.Course_LifeCycleControlDocumentType_CodedNotation
 					);
 					if( courseSource == null )
 					{
 						courseSource = new ReferenceResource() 
 						{ 
 							RowId = Guid.NewGuid(), 
-							Name = row.Course_HasReferenceResource_Name 
+							CodedNotation = row.Course_LifeCycleControlDocumentType_CodedNotation
 						};
 						graph.ReferenceResource.Add( courseSource );
 						result.ItemsToBeCreated.ReferenceResource.Add( courseSource );
@@ -1573,7 +1573,7 @@ namespace Services
 			var uploadedReferenceResourceMatchers_Course = GetSheetMatchers<ReferenceResource, MatchableReferenceResource>( uploadedRows, GetRowMatchHelper_ReferenceResource_Course );
 			foreach( var matcher in uploadedReferenceResourceMatchers_Course )
 			{
-				matcher.Flattened.Name = matcher.Rows.Select( m => m.Course_HasReferenceResource_Name ).FirstOrDefault();
+				matcher.Flattened.Name = matcher.Rows.Select( m => m.Course_LifeCycleControlDocumentType_CodedNotation ).FirstOrDefault();
 			}
 
 			//Remove empty rows
@@ -1771,7 +1771,7 @@ namespace Services
 				matcher.Flattened.Name = matcher.Rows.Select( m => m.Course_Name ).FirstOrDefault();
 				matcher.Flattened.CodedNotation = matcher.Rows.Select( m => m.Course_CodedNotation ).FirstOrDefault();
 				//
-				matcher.Flattened.HasReferenceResource_Name = matcher.Rows.Select( m => m.Course_HasReferenceResource_Name ).FirstOrDefault();
+				matcher.Flattened.LifeCycleControlDocumentType_CodedNotation = matcher.Rows.Select( m => m.Course_LifeCycleControlDocumentType_CodedNotation ).FirstOrDefault();
 				matcher.Flattened.CourseType_Name = matcher.Rows.Select( m => m.Course_CourseType_Name ).Distinct().ToList();
 				matcher.Flattened.CurriculumControlAuthority_Name = matcher.Rows.Select( m => m.Course_CurriculumControlAuthority_Name ).Distinct().ToList();
 				matcher.Flattened.HasTrainingTask_Description = matcher.Rows.Select( m => m.TrainingTask_Description ).Distinct().ToList();
@@ -1785,11 +1785,11 @@ namespace Services
 			var existingCourseMatchers = GetSheetMatchersFromExisting<Course, MatchableCourse>( existingCourses );
 			foreach( var matcher in existingCourseMatchers )
 			{
-				matcher.Flattened.HasReferenceResource_Name = existingReferenceResources.Where( m => matcher.Data.HasReferenceResource == m.RowId ).Select( m => m.Name ).FirstOrDefault();
+				matcher.Flattened.LifeCycleControlDocumentType_CodedNotation = existingReferenceResources.Where( m => matcher.Data.LifeCycleControlDocumentType.Contains( m.RowId ) ).Select( m => m.CodedNotation ).FirstOrDefault();
 				matcher.Flattened.CourseType_Name = courseTypeConcepts.Where( m => matcher.Data.CourseType.Contains( m.RowId ) ).Select( m => m.Name ).ToList();
 				matcher.Flattened.CurriculumControlAuthority_Name = existingOrganizations.Where( m => matcher.Data.CurriculumControlAuthority.Contains( m.RowId ) ).Select( m => m.Name ).ToList();
 				matcher.Flattened.HasTrainingTask_Description = existingTrainingTasks.Where( m => matcher.Data.HasTrainingTask.Contains( m.RowId ) ).Select( m => m.Description ).ToList();
-				matcher.Flattened.AssessmentMethodType_Name = assessmentMethodTypeConcepts.Where( m => matcher.Data.AssessmentMethodType.Contains( m.RowId ) ).Select( m => m.Name ).ToList();
+				//matcher.Flattened.AssessmentMethodType_Name = assessmentMethodTypeConcepts.Where( m => matcher.Data.AssessmentMethodType.Contains( m.RowId ) ).Select( m => m.Name ).ToList();
 			}
 
 			//Get loose matches
@@ -1799,7 +1799,7 @@ namespace Services
 				var matches = existingCourseMatchers.Where( m =>
 					uploaded.Flattened.Name == m.Flattened.Name &&
 					uploaded.Flattened.CodedNotation == m.Flattened.CodedNotation &&
-					uploaded.Flattened.HasReferenceResource_Name == m.Flattened.HasReferenceResource_Name &&
+					uploaded.Flattened.LifeCycleControlDocumentType_CodedNotation == m.Flattened.LifeCycleControlDocumentType_CodedNotation &&
 					uploaded.Flattened.CourseType_Name == m.Flattened.CourseType_Name
 				).ToList();
 
@@ -1834,9 +1834,9 @@ namespace Services
 					m => {
 						m.CurriculumControlAuthority = newCCAs.Select( n => n.RowId ).ToList();
 						m.HasTrainingTask = newTrainingTasks.Select( n => n.RowId ).ToList();
-						m.AssessmentMethodType = newAssessmentMethods.Select( n => n.RowId ).ToList();
+						//m.AssessmentMethodType = newAssessmentMethods.Select( n => n.RowId ).ToList();
 					},
-					m => m.CurriculumControlAuthority.Count() > 0 || m.HasTrainingTask.Count() > 0 || m.AssessmentMethodType.Count() > 0,
+					m => m.CurriculumControlAuthority.Count() > 0 || m.HasTrainingTask.Count() > 0,// || m.AssessmentMethodType.Count() > 0,
 					summary.AddedItemsToInnerListsForCopiesOfItems.Course
 				);
 
@@ -1851,9 +1851,9 @@ namespace Services
 					m => {
 						m.CurriculumControlAuthority = removedCCAs.Select( n => n.RowId ).ToList();
 						m.HasTrainingTask = removedTrainingTasks.Select( n => n.RowId ).ToList();
-						m.AssessmentMethodType = removedAssessmentMethods.Select( n => n.RowId ).ToList();
+						//m.AssessmentMethodType = removedAssessmentMethods.Select( n => n.RowId ).ToList();
 					},
-					m => m.CurriculumControlAuthority.Count() > 0 || m.HasTrainingTask.Count() > 0 || m.AssessmentMethodType.Count() > 0,
+					m => m.CurriculumControlAuthority.Count() > 0 || m.HasTrainingTask.Count() > 0,// || m.AssessmentMethodType.Count() > 0,
 					summary.RemovedItemsFromInnerListsForCopiesOfItems.Course
 				);
 
@@ -1866,11 +1866,11 @@ namespace Services
 				CreateNewItem( summary.ItemsToBeCreated.Course, m => {
 					m.Name = item.Flattened.Name;
 					m.CodedNotation = item.Flattened.CodedNotation;
-					m.HasReferenceResource = existingReferenceResources.Concat( summary.ItemsToBeCreated.ReferenceResource ).Where( n => item.Flattened.HasReferenceResource_Name == n.Name ).Select( n => n.RowId ).FirstOrDefault();
+					//m.HasReferenceResource = existingReferenceResources.Concat( summary.ItemsToBeCreated.ReferenceResource ).Where( n => item.Flattened.LifeCycleControlDocumentType_CodedNotation == n.CodedNotation ).Select( n => n.RowId ).FirstOrDefault();
 					m.CourseType = courseTypeConcepts.Where( n => item.Flattened.CourseType_Name.Contains( n.Name ) ).Select( n => n.RowId ).ToList();
 					m.CurriculumControlAuthority = existingOrganizations.Concat( summary.ItemsToBeCreated.Organization ).Where( n => item.Flattened.CurriculumControlAuthority_Name.Contains( n.Name ) ).Select( n => n.RowId ).ToList();
 					m.HasTrainingTask = existingTrainingTasks.Concat( summary.ItemsToBeCreated.TrainingTask ).Where( n => item.Flattened.HasTrainingTask_Description.Contains( n.Description ) ).Select( n => n.RowId ).ToList();
-					m.AssessmentMethodType = assessmentMethodTypeConcepts.Where( n => item.Flattened.AssessmentMethodType_Name.Contains( n.Name ) ).Select( n => n.RowId ).ToList();
+					//m.AssessmentMethodType = assessmentMethodTypeConcepts.Where( n => item.Flattened.AssessmentMethodType_Name.Contains( n.Name ) ).Select( n => n.RowId ).ToList();
 				} );
 			}
 
@@ -2532,7 +2532,7 @@ namespace Services
 		{
 			return GetMergedRowMatchHelper( new List<string>() 
 			{ 
-				row.Course_HasReferenceResource_Name, 
+				row.Course_LifeCycleControlDocumentType_CodedNotation, 
 				row.Course_CodedNotation, 
 				row.Course_Name, 
 				row.Course_CourseType_Name, 
@@ -2571,7 +2571,7 @@ namespace Services
 		{
 			return GetMergedRowMatchHelper( new List<string>()
 			{
-				row.Course_HasReferenceResource_Name
+				row.Course_LifeCycleControlDocumentType_CodedNotation
 			} );
 		}
 		private static string GetRowMatchHelper_TrainingTask( UploadableRow row )
@@ -2642,7 +2642,7 @@ namespace Services
 			var shouldNotHaveTrainingData = rowTrainingGapType.Name?.ToLower() == "yes";
 			var rowCourseType = GetDataOrError<Concept>( summary, ( m ) => m.Name?.ToLower() == item.Row.Course_CourseType_Name?.ToLower(), result, "Course Type not found in database: " + item.Row.Course_CourseType_Name ?? "" );
 			var rowOrganizationCCA = GetDataOrError<Organization>( summary, ( m ) => (m.Name != null && m.Name.ToLower() == item.Row.Course_CurriculumControlAuthority_Name?.ToLower()) || (m.ShortName != null && m.ShortName.ToLower() == item.Row.Course_CurriculumControlAuthority_Name?.ToLower()), result, "Curriculum Control Authority not found in database: " + item.Row.Course_CurriculumControlAuthority_Name ?? "" );
-			var rowCourseSourceType = GetDataOrError<Concept>( summary, ( m ) => m.Name?.ToLower() == item.Row.Course_HasReferenceResource_Name?.ToLower(), result, "Life-Cycle Control Document Type not found in database: " + item.Row.Course_HasReferenceResource_Name ?? "" );
+			var rowCourseSourceType = GetDataOrError<Concept>( summary, ( m ) => m.Name?.ToLower() == item.Row.Course_LifeCycleControlDocumentType_CodedNotation?.ToLower(), result, "Life-Cycle Control Document Type not found in database: " + item.Row.Course_LifeCycleControlDocumentType_CodedNotation ?? "" );
 			var rowAssessmentMethodType = GetDataOrError<Concept>( summary, ( m ) => m.Name?.ToLower() == item.Row.Course_AssessmentMethodType_Name?.ToLower(), result, "Assessment Method Type not found in database: " + item.Row.Course_AssessmentMethodType_Name ?? "" );
 			
 			//If the Training Gap Type is "Yes", then treat all course/training data as null, but check to see if it exists first (above) to facilitate the warning statement below
@@ -2714,7 +2714,7 @@ namespace Services
 				( newItem ) => { summary.ItemsToBeCreated.WorkRole.Add( newItem ); }
 			);
 
-			//Reference Resource (RatingTask)
+			//Reference Resource for RatingTask
 			var rowRatingTaskSource = LookupOrGetFromDBOrCreateNew( summary, result,
 				//Find in summary
 				() => summary.GetAll<ReferenceResource>()
@@ -2735,30 +2735,6 @@ namespace Services
 				},
 				//Store if newly created
 				( newItem ) => { summary.ItemsToBeCreated.ReferenceResource.Add( newItem ); }
-			);
-
-			//Reference Resource (Course)
-			//Reference Resource for a Course might not actually be a Reference Resource, but just a Reference Type - TBD
-			var rowCourseSource = LookupOrGetFromDBOrCreateNew( summary, result,
-				//Find in summary
-				() => summary.GetAll<ReferenceResource>()
-				.FirstOrDefault( m =>
-					m.Name?.ToLower() == item.Row.Course_HasReferenceResource_Name?.ToLower() &&
-					m.ReferenceType.Contains( rowCourseSourceType.RowId )
-				),
-				//Or get from DB
-				() => ReferenceResourceManager.Get( item.Row.Course_HasReferenceResource_Name ),
-				//Or create new
-				() => new ReferenceResource()
-				{
-					RowId = Guid.NewGuid(),
-					Name = item.Row.Course_HasReferenceResource_Name,
-					ReferenceType = new List<Guid>() { rowCourseSourceType.RowId }
-				},
-				//Store if newly created
-				( newItem ) => { summary.ItemsToBeCreated.ReferenceResource.Add( newItem ); },
-				//Skip all of this and set value to null if the following test is true
-				() => string.IsNullOrWhiteSpace( item.Row.Course_HasReferenceResource_Name ) || item.Row.Course_HasReferenceResource_Name.ToLower() == "n/a"
 			);
 
 			//Training Task
@@ -2800,7 +2776,8 @@ namespace Services
 					RowId = Guid.NewGuid(),
 					Name = item.Row.Course_Name,
 					CodedNotation = item.Row.Course_CodedNotation,
-					CourseType = new List<Guid>() { rowCourseType.RowId }
+					CourseType = new List<Guid>() { rowCourseType.RowId },
+					LifeCycleControlDocumentType = new List<Guid>() { rowCourseSourceType.RowId }
 				},
 				//Store if newly created
 				( newItem ) => { summary.ItemsToBeCreated.Course.Add( newItem ); },
@@ -2845,25 +2822,17 @@ namespace Services
 
 			//Course
 			UpdateSummaryAndResultForItemProperty( summary, summary.ItemsToBeCreated.Course, summary.AddedItemsToInnerListsForCopiesOfItems.Course, result, rowCourse, nameof( Course.HasTrainingTask ), rowTrainingTask );
-			UpdateSummaryAndResultForItemProperty( summary, summary.ItemsToBeCreated.Course, summary.AddedItemsToInnerListsForCopiesOfItems.Course, result, rowCourse, nameof( Course.AssessmentMethodType ), rowAssessmentMethodType );
 			UpdateSummaryAndResultForItemProperty( summary, summary.ItemsToBeCreated.Course, summary.AddedItemsToInnerListsForCopiesOfItems.Course, result, rowCourse, nameof( Course.CurriculumControlAuthority ), rowOrganizationCCA );
 
 			//Training Task
-			//Will probably add Assessment Method Type here once the schema change is made
+			UpdateSummaryAndResultForItemProperty( summary, summary.ItemsToBeCreated.TrainingTask, summary.AddedItemsToInnerListsForCopiesOfItems.TrainingTask, result, rowTrainingTask, nameof( TrainingTask.AssessmentMethodType ), rowAssessmentMethodType );
 
 			//Rating Task
 			UpdateSummaryAndResultForItemProperty( summary, summary.ItemsToBeCreated.RatingTask, summary.AddedItemsToInnerListsForCopiesOfItems.RatingTask, result, rowRatingTask, nameof( RatingTask.HasRating ), rowRating );
 			UpdateSummaryAndResultForItemProperty( summary, summary.ItemsToBeCreated.RatingTask, summary.AddedItemsToInnerListsForCopiesOfItems.RatingTask, result, rowRatingTask, nameof( RatingTask.HasRating ), allRatingsRating );
 			UpdateSummaryAndResultForItemProperty( summary, summary.ItemsToBeCreated.RatingTask, summary.AddedItemsToInnerListsForCopiesOfItems.RatingTask, result, rowRatingTask, nameof( RatingTask.HasBilletTitle ), rowBilletTitle );
 			UpdateSummaryAndResultForItemProperty( summary, summary.ItemsToBeCreated.RatingTask, summary.AddedItemsToInnerListsForCopiesOfItems.RatingTask, result, rowRatingTask, nameof( RatingTask.HasWorkRole ), rowWorkRole );
-			//UpdateSummaryAndResultForItemProperty( summary.AddedItemsToInnerListsForCopiesOfItems.RatingTask, result, rowRatingTask, nameof( RatingTask.HasTrainingTask ), rowTrainingTask ); //Use this instead once the change for RatingTask/TrainingTask has been made
-			if ( rowTrainingTask != null && rowRatingTask.HasTrainingTask != rowTrainingTask.RowId )
-			{
-				rowRatingTask.HasTrainingTask = rowTrainingTask.RowId;
-				//AppendItemToExistingItemList( summary.AddedItemsToInnerListsForCopiesOfItems.RatingTask, rowRatingTask.RowId, ( m ) => m.HasTrainingTask.Add( rowTrainingTask.RowId ) );
-				summary.AddedItemsToInnerListsForCopiesOfItems.RatingTask.Add( new RatingTask() { RowId = rowRatingTask.RowId, HasTrainingTask = rowTrainingTask.RowId } );
-				result.Additions.Add( new Triple( rowRatingTask.RowId, nameof( rowRatingTask.HasTrainingTask ), rowTrainingTask.RowId ) );
-			}
+			UpdateSummaryAndResultForItemProperty( summary, summary.ItemsToBeCreated.RatingTask, summary.AddedItemsToInnerListsForCopiesOfItems.RatingTask, result, rowRatingTask, nameof( RatingTask.HasTrainingTaskList ), rowTrainingTask );
 			
 			//Update the cached summary
 			CacheChangeSummary( summary );

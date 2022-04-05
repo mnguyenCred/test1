@@ -23,6 +23,7 @@ namespace Models.Schema
 		/// From Column: TBD
 		/// </summary>
 		public string CodedNotation { get; set; }
+
 		/// <summary>
 		/// May or may not belong on Rating Task (might belong in RMTL Project data instead?)<br />
 		/// From Column: Notes
@@ -38,11 +39,19 @@ namespace Models.Schema
 
 		/// <summary>
 		/// GUID for the Training Task for this Rating Task<br />
-		/// From Column: CTTL/PPP/TCCD Statement
-		/// DB: TrainingTaskId
+		/// From Column: CTTL/PPP/TCCD Statement<br />
+		/// DB: TrainingTaskId<br />
+		/// Do not use!
 		/// </summary>
+		[Obsolete]
 		public Guid HasTrainingTask { get; set; }
+
+		/// <summary>
+		/// List of GUIDs for the Training Task(s) for this Rating Task<br />
+		/// From Column: CTTL/PPP/TCCD Statement
+		/// </summary>
 		public List<Guid> HasTrainingTaskList { get; set; } = new List<Guid>();
+
 		/// <summary>
 		/// GUID for the Reference Resource that this Rating Task came from (e.g. a reference to "NAVPERS 18068F Vol. II")<br />
 		/// From Column: Source

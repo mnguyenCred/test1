@@ -211,7 +211,7 @@
 				Course_Name: row["Course Name"],
 				Course_CourseType_Name: row["Course Type (A/C/G/F/T)"],
 				Course_CurriculumControlAuthority_Name: row["Curriculum Control Authority (CCA)"],
-				Course_HasReferenceResource_Name: row["Life-Cycle Control Document"],
+				Course_LifeCycleControlDocumentType_CodedNotation: row["Life-Cycle Control Document"],
 				TrainingTask_Description: row["CTTL/PPP/TCCD Statement"],
 				Course_AssessmentMethodType_Name: row["Current Assessment Approach"],
 				Note: row["Notes"]
@@ -278,7 +278,8 @@
 				processNextQueueItem();
 			}), (error => {
 				//If there is an error, store the error for later and process the next item
-				Manager.ActiveItem.Error = { Type: "HTTPError", Status: error.status, StatusText: error.statusText };
+				console.log("Server Error while processing row", JSON.parse(JSON.stringify(Manager.ActiveItem)));
+				Manager.ActiveItem.Error = { Type: "HTTPError", Status: error.status, StatusText: error.statusText, RowIndex: Manager.ActiveItem.MappedRow.Row_Index, RowData: JSON.parse(JSON.stringify(Manager.ActiveItem.MappedRow)) };
 				processNextQueueItem();
 			}));
 		}
@@ -340,7 +341,8 @@
 	//
 
 	function renderSummary() {
-		console.log("Rendering summary", Manager.SummaryData);
+		console.log("Rendering Summary (Check Manager.SummaryData for details)", Manager.SummaryData.map(m => m.Data));
+		console.log("Errors (If Any)", Manager.SummaryData.filter(m => m.Error != null).map(m => m.Error));
 	}
 	//
 
@@ -413,7 +415,6 @@
 
 	//Generic GET Request
 	function doGETRequest(url, success, error) {
-		console.log("Sending GET Request", { url: url });
 		handleAJAX(url, success, error);
 	};
 	//
@@ -432,7 +433,6 @@
 	function handleAJAX(url, success, error, params) {
 		fetch(url, params)
 			.then(response => {
-				console.log("Received Response", response);
 				if (response.ok) {
 					return response.text();
 				}

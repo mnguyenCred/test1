@@ -5,8 +5,8 @@
 @{
 	var title = Model.Id > 0 ? "Editing Rating Task" : "New Rating Task";
 	ViewBag.Title = title;
-	var currentTrainingTask = Factories.TrainingTaskManager.GetForRatingTask( Model.Id );
-	currentTrainingTask = currentTrainingTask.Id == 0 ? null : currentTrainingTask;
+	//var currentTrainingTask = Factories.TrainingTaskManager.GetForRatingTask( Model.Id );
+	//currentTrainingTask = currentTrainingTask.Id == 0 ? null : currentTrainingTask;
 	var referenceResourceList = Factories.ReferenceResourceManager.GetAll(); //Don't use SimpleItem here so we can access the ReferenceType array
 	var referenceResourceTypeList = Factories.ConceptSchemeManager.GetbyShortUri( Factories.ConceptSchemeManager.ConceptScheme_ReferenceResource ).Concepts.Select( m => SimpleItemHelper.GetSimpleItem( m ) ).ToList();
 	var payGradeTypeList = Factories.ConceptSchemeManager.GetbyShortUri( Factories.ConceptSchemeManager.ConceptScheme_Pay_Grade ).Concepts.Select( m => SimpleItemHelper.GetSimpleItem( m ) ).ToList();
@@ -128,6 +128,26 @@
 				//Show existing items
 				Field.Search.doSearch();
 			},
+			HasTrainingTaskList_Add: function (Field) {
+				//Search to add new valid Training Tasks
+				Field.Search.SearchURL = "@Url.Content( "~/trainingtask/dosearch" )";
+				Field.Search.modifyQuery = function (query) {
+					//Where Training Tasks are NOT already associated with this Rating Task...
+					query.Filters.push({ Name: "navy:RatingTask", ItemIds: [Data.Source.Id], IsNegation: true });
+				}
+			},
+			HasTrainingTaskList_Remove: function (Field) {
+				//Search to remove already added Training Tasks
+				Field.Search.SearchURL = "@Url.Content( "~/trainingtask/dosearch" )";
+				Field.Search.modifyQuery = function (query) {
+					//Where Training Tasks are already associated with this Rating Task...
+					query.Filters.push({ Name: "navy:RatingTask", ItemIds: [Data.Source.Id] });
+				}
+
+				//Show existing items
+				Field.Search.doSearch();
+			}
+			@*
 			HasTrainingTask: function (Field) {
 				Field.SelectedItems = [@Html.Raw( currentTrainingTask == null ? "" : JsonConvert.SerializeObject( currentTrainingTask, Formatting.None ) )];
 				Field.Search.SearchURL = "@Url.Content( "~/trainingtask/dosearch" )";
@@ -151,7 +171,7 @@
 				};
 				//Show the current item
 				Field.Selected.doSearch();
-			}
+			}*@
 
 		}
 	};
@@ -199,5 +219,7 @@
 <form-item data-path="RatingTask.HasBilletTitle_Remove" data-ui="searchselectdeferred" data-label="Remove Billet Titles" data-config="HasBilletTitle_Remove"></form-item>
 <form-item data-path="RatingTask.HasWorkRole_Add" data-ui="searchselectdeferred" data-label="Add Functional Areas" data-config="HasWorkRole_Add"></form-item>
 <form-item data-path="RatingTask.HasWorkRole_Remove" data-ui="searchselectdeferred" data-label="Remove Functional Areas" data-config="HasWorkRole_Remove"></form-item>
-<form-item data-path="RatingTask.HasTrainingTask" data-ui="searchselectdeferred" data-label="Associated Training Task (Limit 1)" data-config="HasTrainingTask"></form-item>
+@*<form-item data-path="RatingTask.HasTrainingTask" data-ui="searchselectdeferred" data-label="Associated Training Task (Limit 1)" data-config="HasTrainingTask"></form-item>*@
+<form-item data-path="RatingTask.HasTrainingTaskList_Add" data-ui="searchselectdeferred" data-label="Add Associated Training Tasks" data-config="HasTrainingTaskList_Add"></form-item>
+<form-item data-path="RatingTask.HasTrainingTaskList_Remove" data-ui="searchselectdeferred" data-label="Remove Associated Training Tasks" data-config="HasTrainingTaskList_Remove"></form-item>
 <form-item data-path="RatingTask.SaveButton" data-ui="savebutton" data-label="Save Changes" data-config="SaveButton"></form-item>

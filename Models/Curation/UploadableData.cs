@@ -68,7 +68,7 @@ namespace Models.Curation
 		public string Course_CodedNotation { get; set; }
 		public string Course_Name { get; set; }
 		public string Course_CourseType_Name { get; set; }
-		public string Course_HasReferenceResource_Name { get; set; }
+		public string Course_LifeCycleControlDocumentType_CodedNotation { get; set; }
 		public string Course_CurriculumControlAuthority_Name { get; set; }
 		public string TrainingTask_Description { get; set; }
 		public string Course_AssessmentMethodType_Name { get; set; }
