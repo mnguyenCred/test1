@@ -67,6 +67,7 @@ namespace Models.Schema
 		/// From Column: Current Assessment Approach<br />
 		/// 22-03-30 Navy has confirmed that the asmt type is associated with the training task<br />
 		/// Do not use!
+		/// TBD - the asmt types will be passed to training task manager for now
 		/// </summary>
 		[Obsolete]
 		public List<Guid> AssessmentMethodType { get; set; }

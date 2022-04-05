@@ -1786,6 +1786,7 @@ namespace Services
 			foreach( var matcher in existingCourseMatchers )
 			{
 				matcher.Flattened.LifeCycleControlDocumentType_CodedNotation = existingReferenceResources.Where( m => matcher.Data.LifeCycleControlDocumentType.Contains( m.RowId ) ).Select( m => m.CodedNotation ).FirstOrDefault();
+
 				matcher.Flattened.CourseType_Name = courseTypeConcepts.Where( m => matcher.Data.CourseType.Contains( m.RowId ) ).Select( m => m.Name ).ToList();
 				matcher.Flattened.CurriculumControlAuthority_Name = existingOrganizations.Where( m => matcher.Data.CurriculumControlAuthority.Contains( m.RowId ) ).Select( m => m.Name ).ToList();
 				matcher.Flattened.HasTrainingTask_Description = existingTrainingTasks.Where( m => matcher.Data.HasTrainingTask.Contains( m.RowId ) ).Select( m => m.Description ).ToList();
