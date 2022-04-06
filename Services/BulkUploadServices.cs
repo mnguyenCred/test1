@@ -2783,7 +2783,8 @@ namespace Services
 					Name = item.Row.Course_Name,
 					CodedNotation = item.Row.Course_CodedNotation,
 					CourseType = new List<Guid>() { rowCourseType.RowId },
-					LifeCycleControlDocumentType = rowCourseSourceType.RowId
+					LifeCycleControlDocumentType = rowCourseSourceType.RowId,
+					CurriculumControlAuthority = new List<Guid>() { rowOrganizationCCA.RowId }
 				},
 				//Store if newly created
 				( newItem ) => { summary.ItemsToBeCreated.Course.Add( newItem ); },
