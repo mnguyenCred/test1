@@ -82,13 +82,15 @@ namespace NavyRRL.Controllers
 			if ( item.RawCSV?.Length > 0 )
 			{
 				var currentRating = Factories.RatingManager.Get( item.RatingRowID );
-				if ( currentRating == null )
+				if ( currentRating?.Id == 0 )
 				{
 					summary.Messages.Error.Add( "Error: Could save input file, as was unable to find Rating for identifier: " + item.RatingRowID );
 					//return summary;
 				}
 				else
 				{
+					currentRating = new SM.Rating() { CodedNotation = "QM", Name = "QM" };
+
 					LoggingHelper.WriteLogFile( 1, string.Format( "Rating_upload_{0}_{1}.csv", currentRating.Name.Replace( " ", "_" ), DateTime.Now.ToString( "hhmmss" ) ), item.RawCSV, "", false );
 
 					new Factories.BaseFactory().BulkLoadRMTL( currentRating.CodedNotation, item.RawCSV );
@@ -125,17 +127,17 @@ namespace NavyRRL.Controllers
 
 			//Process the summary
 			var status = new SaveStatus();
-			//Services.BulkUploadServices.ApplyChangeSummary( summary, ref status );
+			Services.BulkUploadServices.ApplyChangeSummary( summary, ref status );
 
 			//Status isn't used, so read messages from summary instead
 			//Don't need to send back the entire summary
 
 			//Temp - simulate processing
-			System.Threading.Thread.Sleep( 5000 );
-			summary.Messages.Error.Add( "Test Error 1" );
-			summary.Messages.Error.Add( "Test Error 2" );
-			summary.Messages.Create.Add( "Test Create" );
-			summary.Messages.Warning.Add( "Test Warning" );
+			//System.Threading.Thread.Sleep( 5000 );
+			//summary.Messages.Error.Add( "Test Error 1" );
+			//summary.Messages.Error.Add( "Test Error 2" );
+			//summary.Messages.Create.Add( "Test Create" );
+			//summary.Messages.Warning.Add( "Test Warning" );
 			
 			var confirmation = new JObject()
 			{

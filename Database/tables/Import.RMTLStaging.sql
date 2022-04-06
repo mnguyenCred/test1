@@ -1,16 +1,21 @@
 USE [NavyRRL]
 GO
 
-/****** Object:  Table [dbo].[Import.RMTLStaging]    Script Date: 4/1/2022 1:27:04 PM ******/
+ALTER TABLE [dbo].[Import.RMTLStaging] DROP CONSTRAINT [DF_Import.RMTLStaging_Created]
+GO
+
+/****** Object:  Table [dbo].[Import.RMTLStaging]    Script Date: 4/6/2022 4:15:21 PM ******/
+IF  EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[Import.RMTLStaging]') AND type in (N'U'))
+DROP TABLE [dbo].[Import.RMTLStaging]
+GO
+
+/****** Object:  Table [dbo].[Import.RMTLStaging]    Script Date: 4/6/2022 4:15:21 PM ******/
 SET ANSI_NULLS ON
 GO
 
 SET QUOTED_IDENTIFIER ON
 GO
-/*
-Drop TABLE [dbo].[Import.RMTLStaging]
 
-*/
 CREATE TABLE [dbo].[Import.RMTLStaging](
 	[Unique_Identifier] [varchar](50) NOT NULL,
 	[Rating] [varchar](50) NOT NULL,
@@ -31,6 +36,7 @@ CREATE TABLE [dbo].[Import.RMTLStaging](
 	[Life_Cycle_Control_Document] [varchar](max) NULL,
 	[CTTL_PPP_TCCD_Statement] [varchar](max) NULL,
 	[Current_Assessment_Approach] [varchar](max) NULL,
+	[Part2Notes] [nvarchar](max) NULL,
 	[Training_Solution_Type] [nvarchar](500) NULL,
 	[Cluster_Analysis_Title] [nvarchar](500) NULL,
 	[Recommended_Modality] [nvarchar](500) NULL,
@@ -40,8 +46,8 @@ CREATE TABLE [dbo].[Import.RMTLStaging](
 	[Priority_Placement] [nvarchar](500) NULL,
 	[Development_Ratio] [nvarchar](500) NULL,
 	[Development_Time] [nvarchar](500) NULL,
-	[ClusterAnalysisNotes] [nvarchar](max) NULL,
-	[EstimatedInstructionalTime] [varchar](50) NULL,
+	[EstimatedInstructionalTime] [nvarchar](500) NULL,
+	[Part3Notes] [nvarchar](max) NULL,
 	[Id] [int] IDENTITY(1,1) NOT NULL,
 	[Created] [datetime] NULL,
  CONSTRAINT [PK_Import.RMTLStaging] PRIMARY KEY CLUSTERED 
@@ -53,5 +59,4 @@ GO
 
 ALTER TABLE [dbo].[Import.RMTLStaging] ADD  CONSTRAINT [DF_Import.RMTLStaging_Created]  DEFAULT (getdate()) FOR [Created]
 GO
-
 

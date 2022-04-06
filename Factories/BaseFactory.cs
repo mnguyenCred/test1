@@ -24,6 +24,7 @@ using Newtonsoft.Json;
 using System.Reflection;
 using System.Collections.Specialized;
 using Models.Search;
+using Models.Curation;
 using System.IO;
 
 namespace Factories
@@ -145,6 +146,12 @@ namespace Factories
 
             try
             {
+                //check if includes part III
+                bool hasPart3 = false;
+                if (rawInput.IndexOf( "Cluster Analysis Title" ) > 0 )
+                {
+                    hasPart3 = true;
+                }
                 //using ( CsvReader csv = new CsvReader( new StreamReader( filepath2, System.Text.Encoding.UTF7 ), true ) )
                 using ( CsvReader csv = new CsvReader( new StringReader( rawInput ), true ) )
                 {
@@ -156,7 +163,7 @@ namespace Factories
                     //need a means to skip the first row
                     string[] headers = csv.GetFieldHeaders();
                     //check if headers[?] contain column?
-                    var headings = GetHeadings();
+                    var headings = GetHeadings( hasPart3 );
                     foreach ( var item in headings )
                     {
                         dt.Columns.Add( new DataColumn( item ) );
@@ -164,6 +171,7 @@ namespace Factories
                     //validate headers
                     while ( csv.ReadNextRecord() )
                     {
+                        var skipRow = false;
                         cntr++;
                         if ( cntr == 6 )
                         {
@@ -177,10 +185,11 @@ namespace Factories
                         }
 
                         row = dt.NewRow();
+                        //set/reset destination
                         var dest = new string[dt.Columns.Count];
                         for ( int i = dest.GetLowerBound( 0 ); i <= dest.GetUpperBound( 0 ); i++ )
                             dest.SetValue( "", i );
-
+                        var entity = new UploadableRow();
                         //use header columns rather than hard-code index numbers to enable flexibility
                         for ( int i = 0; i < fieldCount; i++ )
                         {
@@ -195,6 +204,11 @@ namespace Factories
                                 //skip
                                 //continue;
                             }
+                            if ( csv[i] == "Index #" )
+                            {
+                                skipRow = true; 
+                                break;
+                            }
 
                             dest[i] = csv[i];
 
@@ -202,33 +216,38 @@ namespace Factories
                             //may want to make case insensitive!
                             //OR
                             var header = headings[i].ToLower();
+                            /*
+                            switch ( header )
+                            {
+                                case "rating":
+                                    entity.Rating_CodedNotation = csv[i];
+                                    break;
+                                case "unique_identifier":
+                                    entity.Row_CodedNotation = csv[i];
+                                    break;
+                                case "rank":
+                                    entity.PayGradeType_CodedNotation = csv[i];
+                                    break;
+                                case "level":
+                                    entity.Level_Name = csv[i];
+                                    break;
+                                case "Work_Element_Task":
+                                    entity.RatingTask_Description = csv[i];
+                                    break;
 
-                            //switch ( header )
-                            //{
-                            //    case "rating":
-                            //        //will need to add an externalId property
-                            //        entity.Note = csv[i];
-                            //        break;
-                            //    case "unique_identifier":
-                            //        entity.CodedNotation = csv[i];
-                            //        break;
-                            //    case "rank":
-                            //        entity.Identifier = csv[i];
-                            //        break;
 
-                            //    case "Work_Element_Task":
-                            //        entity.Description = csv[i];
-                            //        break;
-
-
-                            //    default:
-                            //        //action?
-                            //        LoggingHelper.DoTrace( 1, string.Format( "AppTestProject.TestMethod1. Unknown header {0}", headers[i] ) );
-                            //        break;
-                            //}
+                                default:
+                                    //action?
+                                    LoggingHelper.DoTrace( 1, string.Format( thisClassName + ".BulkLoadRMTL. Unknown header {0}", headers[i] ) );
+                                    break;
+                            }
+                            */
                         }
-                        row.ItemArray = dest;
-                        dt.Rows.Add( row );
+                        if ( !skipRow )
+                        {
+                            row.ItemArray = dest;
+                            dt.Rows.Add( row );
+                        }
                         //
                         //output.Add( entity );
 
@@ -288,6 +307,48 @@ namespace Factories
                 "Life_Cycle_Control_Document",
                 "CTTL_PPP_TCCD_Statement",
                 "Current_Assessment_Approach",
+            };
+            return heading;
+        }
+        public List<string> GetHeadings( bool hasPart3 )
+        {
+            /*
+	
+
+			*/
+            var heading = new List<string>()
+            {
+              "Unique_Identifier",
+              "Rating",
+                "Rank",
+                "Level_A_J_M" ,
+                "Billet_Title",
+                "Functional_Area",
+                "Source",
+                "Date_of_Source",
+                "Work_Element_Type",
+                "Work_Element_Task",
+                "Task_Applicability",
+                "Formal_Training_Gap",
+                "CIN",
+                "Course_Name",
+                "Course_Type_A_C_G_F_T",
+                "Curriculum_Control_Authority_CCA",
+                "Life_Cycle_Control_Document",
+                "CTTL_PPP_TCCD_Statement",
+                "Current_Assessment_Approach",
+                "Part2Notes",
+                "Training_Solution_Type"
+                  ,"Cluster_Analysis_Title"
+                  ,"Recommended_Modality"
+                  ,"Development_Specification"
+                  ,"Candidate_Platform"
+                  ,"CFM_Placement"
+                  ,"Priority_Placement"
+                  ,"Development_Ratio"
+                  ,"Development_Time"
+                  ,"EstimatedInstructionalTime" //may not be present?
+                  ,"Part3Notes"
             };
             return heading;
         }
