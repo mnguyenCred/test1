@@ -1702,8 +1702,7 @@ namespace Services
 			//Processing
 			//Validation - Checks that should skip processing the row's data if there is an error
 			//Don't allow a row to be processed if it has the same row identifier as a previous row
-			var exists = summary.GetAll<RatingTask>().FirstOrDefault( m => m.CodedNotation?.ToLower() == item.Row.Row_CodedNotation?.ToLower() );
-			if ( exists != null )
+			if ( summary.GetAll<RatingTask>().FirstOrDefault( m => m.CodedNotation?.ToLower() == item.Row.Row_CodedNotation?.ToLower() ) != null )
 			{
 				result.Errors.Add( string.Format( "Row: {0}. The row Unique Idenitifier: '{1}' was used on a previous row.", item.Row.Row_Index, item.Row.Row_CodedNotation ) );
 				result.Errors.Add( "Reuse of a row's Unique Identifier is not allowed. Processing this row cannot continue." );
