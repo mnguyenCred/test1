@@ -218,7 +218,7 @@
 		Manager.MappedRows = Manager.CSVJSON.map((row, index) => {
 			return {
 				Row_Index: index,
-				Row_Identifier: row["Unique Identifier"], //Not used?
+				Row_Identifier: row["Unique Identifier"], 
 				Row_CodedNotation: row["Index #"],
 				Rating_CodedNotation: row["Rating"],
 				PayGradeType_CodedNotation: row["Rank"],
@@ -238,7 +238,18 @@
 				Course_LifeCycleControlDocumentType_CodedNotation: row["Life-Cycle Control Document"],
 				TrainingTask_Description: row["CTTL/PPP/TCCD Statement"],
 				Course_AssessmentMethodType_Name: row["Current Assessment Approach"],
-				Note: row["Notes"]
+				Note: row["Notes"],
+
+				Training_Solution_Type: row["Training Solution Type"],
+				Cluster_Analysis_Title: row["Cluster Analysis Title"],
+				Recommended_Modality: row["Recommended Modality"],
+				Development_Specification: row["Development Specification"],
+				Candidate_Platform: row["Candidate Platform"],
+				CFM_Placement: row["CFM Placement"],
+				Priority_Placement: row["Priority Placement"],
+				Development_Ratio: row["Development Ratio"],
+				Development_Time: row["Development Time (duration in hours)"],
+				Cluster_Analysis_Notes: row["Cluster Analysis Notes"],
 			}
 		});
 

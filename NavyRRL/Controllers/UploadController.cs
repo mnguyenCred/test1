@@ -79,7 +79,21 @@ namespace NavyRRL.Controllers
 
 			//Do something with the raw CSV
 			//item.RawCSV...
+			if ( item.RawCSV?.Length > 0 )
+			{
+				var currentRating = Factories.RatingManager.Get( item.RatingRowID );
+				if ( currentRating == null )
+				{
+					summary.Messages.Error.Add( "Error: Could save input file, as was unable to find Rating for identifier: " + item.RatingRowID );
+					//return summary;
+				}
+				else
+				{
+					LoggingHelper.WriteLogFile( 1, string.Format( "Rating_upload_{0}_{1}.csv", currentRating.Name.Replace( " ", "_" ), DateTime.Now.ToString( "hhmmss" ) ), item.RawCSV, "", false );
 
+					new Factories.BaseFactory().BulkLoadRMTL( currentRating.CodedNotation, item.RawCSV );
+				}
+			}
 			//Process the summary
 
 			//Return the response

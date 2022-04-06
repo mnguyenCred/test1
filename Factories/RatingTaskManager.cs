@@ -195,7 +195,7 @@ namespace Factories
 		}
 
 		//Find loose matches, so other code can figure out whether there are any exact matches
-		public static RatingTask GetForUpload( string ratingTaskDescription, Guid applicabilityTypeRowID, Guid sourceRowID, Guid sourceTypeRowID, Guid payGradeRowID, Guid trainingGapTypeRowID )
+		public static RatingTask GetForUpload( int ratingId, string ratingTaskDescription, Guid applicabilityTypeRowID, Guid sourceRowID, Guid sourceTypeRowID, Guid payGradeRowID, Guid trainingGapTypeRowID )
 		{
 			var result = new RatingTask();
 
@@ -209,12 +209,86 @@ namespace Factories
 					m.ConceptScheme_Rank.RowId == payGradeRowID &&
 					m.ConceptScheme_TrainingGap.RowId == trainingGapTypeRowID
 				);
-			}
+                if ( matches != null && matches.Count() > 0 )
+                {
+                    //need to check rating
+                    foreach( var item in matches)
+                    {
+                        //if (item.RatingTask_HasRating.Contains('' ))
+                        MapFromDB( item, result );
+                        if ( matches.Count() == 1 )
+                            break;
+
+                    }
+                }
+                
+            }
 
 			return result;
 		}
+        public static RatingTask GetForUpload( string ratingCodedNotation, string codedNotation )
+        {
+            var result = new RatingTask();
+            if ( string.IsNullOrWhiteSpace( codedNotation ))
+            {
+                return result;
+            }
+            using ( var context = new DataEntities() )
+            {
+                try
+                {                    
+                    //get existing
+                    var results = from ratingTask in context.RatingTask
+                                  join hasRating in context.RatingTask_HasRating
+                                    on ratingTask.Id equals hasRating.RatingTaskId
+                                  join rating in context.Rating
+                                    on hasRating.RatingId equals rating.Id
+                                  where ratingTask.CodedNotation.ToLower() == codedNotation.ToLower()
+                                  && rating.CodedNotation.ToLower() == ratingCodedNotation.ToLower()
 
-		public static List<AppEntity> Search( SearchQuery query )
+                                  select ratingTask;
+                    var existing = results?.ToList();
+                    if ( existing != null && existing.Count() > 0 )
+                    {
+                        if ( existing.Count() == 1 ) {
+                            MapFromDB( existing[0], result );
+                        } else
+                        {
+                            //this should not be possible - as long as there is a check to prevent duplicate RT codes in an upload!
+                        }
+                    }
+                     
+                }
+                catch ( Exception ex )
+                {
+                    string message = FormatExceptions( ex );
+                    LoggingHelper.LogError( ex, thisClassName + string.Format( ".GetForUpload()- ratingCodedNotation:'{0}', codedNotation: '{1}' ", ratingCodedNotation, codedNotation) );
+                }
+            }
+
+            //using ( var context = new ViewContext() )
+            //{
+            //    var item = new Data.Views.RatingTaskSummary();
+            //    //can't trust just coded notation, need to consider the current rating
+            //   // should not get a list, but need to handle
+            //        item = context.RatingTaskSummary.FirstOrDefault( s => 
+            //                ( s.CodedNotation ?? "" ).ToLower() == codedNotation.ToLower() 
+            //                    && s.Ratings == ratingCodedNotation 
+            //                 );
+            
+             
+            //    if ( item != null && item.Id > 0 )
+            //    {
+            //        //if exists, map and return
+            //        MapFromDB(item, result);
+            //    }
+            //}
+
+
+            return result;
+        }
+        
+        public static List<AppEntity> Search( SearchQuery query )
 		{
 			var output = new List<AppEntity>();
 			var skip = ( query.PageNumber - 1 ) * query.PageSize;
@@ -729,7 +803,7 @@ namespace Factories
 		} //
 
 
-		public static void MapFromDB( DBEntity input, AppEntity output, bool includingConcepts )
+		public static void MapFromDB( DBEntity input, AppEntity output, bool includingConcepts = false )
         {
             //test automap
             List<string> errors = new List<string>();
