@@ -2626,7 +2626,7 @@ namespace Services
 			//At the end of the process, the summary will contain all of the changes, just like in V2.
 			//Since each row's result is being sent back to the client on a row-by-row basis, the client will also aggregate a list of statuses/changes for each row (no need to send back the summary itself).
 
-			//Processing TBD
+			//Processing
 			//Get the controlled value items that show up in this row
 			//Everything in any uploaded sheet should appear here. If any of these are not found, it's an error
 			//Might also be an error if rowRating is the "ALL" Rating, now
