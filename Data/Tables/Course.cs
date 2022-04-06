@@ -20,7 +20,6 @@ namespace Data.Tables
             this.Course_Task = new HashSet<Course_Task>();
             this.Course_AssessmentType = new HashSet<Course_AssessmentType>();
             this.Course_CourseType = new HashSet<Course_CourseType>();
-            this.Course_Organization = new HashSet<Course_Organization>();
         }
     
         public int Id { get; set; }
@@ -36,6 +35,7 @@ namespace Data.Tables
         public byte[] RowVersion { get; set; }
         public string CodedNotation { get; set; }
         public Nullable<int> CurriculumControlAuthorityId { get; set; }
+        public Nullable<int> LifeCycleControlDocumentTypeId { get; set; }
     
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<Course_Task> Course_Task { get; set; }
@@ -45,7 +45,6 @@ namespace Data.Tables
         public virtual ICollection<Course_CourseType> Course_CourseType { get; set; }
         public virtual ReferenceResource ReferenceResource { get; set; }
         public virtual Organization Organization { get; set; }
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<Course_Organization> Course_Organization { get; set; }
+        public virtual ConceptScheme_Concept ConceptScheme_Concept { get; set; }
     }
 }

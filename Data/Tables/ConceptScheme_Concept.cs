@@ -28,6 +28,7 @@ namespace Data.Tables
             this.CourseTask_AssessmentType = new HashSet<CourseTask_AssessmentType>();
             this.ClusterAnalysis = new HashSet<ClusterAnalysis>();
             this.ClusterAnalysis1 = new HashSet<ClusterAnalysis>();
+            this.Course = new HashSet<Course>();
         }
     
         public int Id { get; set; }
@@ -69,5 +70,7 @@ namespace Data.Tables
         public virtual ICollection<ClusterAnalysis> ClusterAnalysis { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<ClusterAnalysis> ClusterAnalysis1 { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<Course> Course { get; set; }
     }
 }
