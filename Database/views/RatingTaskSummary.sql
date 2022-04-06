@@ -110,8 +110,10 @@ SELECT
 	a.CTID,
 	a.RowId
 	,isnull(r.Name,'') as RatingName
-	,isnull(r.CodedNotation,'') as Ratings, r.RowId as HasRating
-	,r.id as ratingId
+		--this will now always be single
+		,isnull(r.CodedNotation,'') as Ratings
+		,r.RowId as HasRating
+		,r.id as ratingId
 	--,isnull(rtr.Ratings,'') as Ratings
 	--,''BilletTitles,
 	--,isnull(rtb.BilletTitles,'') as BilletTitles

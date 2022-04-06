@@ -2598,7 +2598,7 @@ namespace Services
 		{
 			//Hold the result
 			var result = new UploadableItemResult() { Valid = true };
-
+			
 			//Get the current transaction's summary, or create it if it doesn't exist
 			var summary = GetCachedChangeSummary( item.TransactionGUID );
 			if ( summary == null )
@@ -2615,7 +2615,12 @@ namespace Services
 				CacheChangeSummary( summary );
 			}
 
-
+			AppUser user = AccountServices.GetCurrentUser();
+			if ( user?.Id == 0 )
+			{
+				result.Message = "Error - a current user was not found. You must authenticated and authorized to use this function!";
+				return result;
+			}
 			//Do something with the item and summary.  
 			//The summary will be stored in the cache and retrieved again so that it can be used for all of the rows. 
 			//At the end of the process, the summary will contain all of the changes, just like in V2.
@@ -2714,7 +2719,7 @@ namespace Services
 				( newItem ) => { summary.ItemsToBeCreated.WorkRole.Add( newItem ); }
 			);
 
-			//Reference Resource for RatingTask
+			//Source/Reference Resource for RatingTask
 			var rowRatingTaskSource = LookupOrGetFromDBOrCreateNew( summary, result,
 				//Find in summary
 				() => summary.GetAll<ReferenceResource>()
@@ -2736,6 +2741,7 @@ namespace Services
 				//Store if newly created
 				( newItem ) => { summary.ItemsToBeCreated.ReferenceResource.Add( newItem ); }
 			);
+
 
 			//Training Task
 			var rowTrainingTask = LookupOrGetFromDBOrCreateNew( summary, result,
@@ -2784,39 +2790,78 @@ namespace Services
 				//Skip all of this and set value to null if the following test is true
 				() => string.IsNullOrWhiteSpace( item.Row.Course_Name ) || item.Row.Course_Name.ToLower() == "n/a"
 			);
+			//check if coded notation exists
+			var exists = summary.GetAll<RatingTask>()
+				.FirstOrDefault( m => m.CodedNotation?.ToLower() == item.Row.Row_CodedNotation?.ToLower());
+			if ( exists != null )
+            {
+				result.Errors.Add( string.Format("Row: {0}. The row Unique Idenitifier: '{1}' was used on a previous row.", item.Row.Row_Index, item.Row.Row_CodedNotation) );
+			}
 
 			//Rating Task
-			var rowRatingTask = LookupOrGetFromDBOrCreateNew( summary, result,
-				//Find in summary
-				() => summary.GetAll<RatingTask>()
-				.FirstOrDefault( m =>
-					m.Description?.ToLower() == item.Row.RatingTask_Description?.ToLower() &&
-					m.ApplicabilityType == rowTaskApplicabilityType.RowId &&
-					m.TrainingGapType == rowTrainingGapType.RowId &&
-					m.PayGradeType == rowPayGrade.RowId &&
-					m.ReferenceType == rowSourceType.RowId &&
-					m.HasReferenceResource == rowRatingTaskSource.RowId //Ensure rowRatingTaskSource is fully found/processed first or this lookup will fail
-				),
-				//Or get from DB
-				() => RatingTaskManager.GetForUpload( item.Row.RatingTask_Description, rowTaskApplicabilityType.RowId, rowRatingTaskSource.RowId, rowSourceType.RowId, rowPayGrade.RowId, rowTrainingGapType.RowId ),
-				//Or create new
-				() => new RatingTask()
-				{
-					RowId = Guid.NewGuid(),
-					Description = item.Row.RatingTask_Description,
-					ApplicabilityType = rowTaskApplicabilityType.RowId,
-					TrainingGapType = rowTrainingGapType.RowId,
-					ReferenceType = rowSourceType.RowId,
-					HasReferenceResource = rowRatingTaskSource.RowId,
-					Note = item.Row.Note //Should Note be part of the uniqueness checks?
+			if ( user.LastName == "parsons" )
+			{
+				var rowRatingTask = LookupOrGetFromDBOrCreateNew( summary, result,
+					//Find in summary
+					() => summary.GetAll<RatingTask>()
+					.FirstOrDefault( m =>
+						m.Description?.ToLower() == item.Row.RatingTask_Description?.ToLower() &&
+						m.ApplicabilityType == rowTaskApplicabilityType.RowId &&
+						m.TrainingGapType == rowTrainingGapType.RowId &&
+						m.PayGradeType == rowPayGrade.RowId &&
+						m.ReferenceType == rowSourceType.RowId &&
+						m.HasReferenceResource == rowRatingTaskSource.RowId //Ensure rowRatingTaskSource is fully found/processed first or this lookup will fail
+					),
+					//Or get from DB
+					() => RatingTaskManager.GetForUpload( rowRating.CodedNotation, item.Row.Row_CodedNotation ),
+					//Or create new
+					() => new RatingTask()
+					{
+						RowId = Guid.NewGuid(),
+						Description = item.Row.RatingTask_Description,
+						ApplicabilityType = rowTaskApplicabilityType.RowId,
+						TrainingGapType = rowTrainingGapType.RowId,
+						ReferenceType = rowSourceType.RowId,
+						HasReferenceResource = rowRatingTaskSource.RowId,
+						Note = item.Row.Note //Should Note be part of the uniqueness checks?
 				},
-				//Store if newly created
-				( newItem ) => { summary.ItemsToBeCreated.RatingTask.Add( newItem ); }
-			);
-
+					//Store if newly created
+					( newItem ) => { summary.ItemsToBeCreated.RatingTask.Add( newItem ); }
+				);
+			}
+			else
+			{
+				var rowRatingTask2 = LookupOrGetFromDBOrCreateNew( summary, result,
+					//Find in summary
+					() => summary.GetAll<RatingTask>()
+					.FirstOrDefault( m =>
+						m.Description?.ToLower() == item.Row.RatingTask_Description?.ToLower() &&
+						m.ApplicabilityType == rowTaskApplicabilityType.RowId &&
+						m.TrainingGapType == rowTrainingGapType.RowId &&
+						m.PayGradeType == rowPayGrade.RowId &&
+						m.ReferenceType == rowSourceType.RowId &&
+						m.HasReferenceResource == rowRatingTaskSource.RowId //Ensure rowRatingTaskSource is fully found/processed first or this lookup will fail
+					),
+					//Or get from DB
+					() => RatingTaskManager.GetForUpload( rowRating.Id, item.Row.RatingTask_Description, rowTaskApplicabilityType.RowId, rowRatingTaskSource.RowId, rowSourceType.RowId, rowPayGrade.RowId, rowTrainingGapType.RowId ),
+					//Or create new
+					() => new RatingTask()
+					{
+						RowId = Guid.NewGuid(),
+						Description = item.Row.RatingTask_Description,
+						ApplicabilityType = rowTaskApplicabilityType.RowId,
+						TrainingGapType = rowTrainingGapType.RowId,
+						ReferenceType = rowSourceType.RowId,
+						HasReferenceResource = rowRatingTaskSource.RowId,
+						Note = item.Row.Note //Should Note be part of the uniqueness checks?
+					},
+					//Store if newly created
+					( newItem ) => { summary.ItemsToBeCreated.RatingTask.Add( newItem ); }
+				);
+			}
 			//Now that we have figured out who all of the actors are...
 			//Handle cases where a new or existing item has associations added to it or removed from it (likely just added to it for now?)
-			
+
 			//Billet Title
 			UpdateSummaryAndResultForItemProperty( summary, summary.ItemsToBeCreated.BilletTitle, summary.AddedItemsToInnerListsForCopiesOfItems.BilletTitle, result, rowBilletTitle, nameof( BilletTitle.HasRatingTask ), rowRatingTask );
 
