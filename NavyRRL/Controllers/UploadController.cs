@@ -100,6 +100,38 @@ namespace NavyRRL.Controllers
 		}
 		//
 
+		public ActionResult ConfirmChangesV3( Guid transactionGUID )
+		{
+			//Get the summary
+			var summary = BulkUploadServices.GetCachedChangeSummary( transactionGUID );
+			if(summary == null )
+			{
+				return JsonResponse( null, false, new List<string>() { "Unable to find cached change summary. Please upload the data again." } );
+			}
+
+			//Process the summary
+			var status = new SaveStatus();
+			//Services.BulkUploadServices.ApplyChangeSummary( summary, ref status );
+
+			//Status isn't used, so read messages from summary instead
+			//Don't need to send back the entire summary
+
+			//Temp - simulate processing
+			System.Threading.Thread.Sleep( 5000 );
+			summary.Messages.Error.Add( "Test Error 1" );
+			summary.Messages.Error.Add( "Test Error 2" );
+			summary.Messages.Create.Add( "Test Create" );
+			summary.Messages.Warning.Add( "Test Warning" );
+			
+			var confirmation = new JObject()
+			{
+				{ "Messages", JObject.FromObject( summary.Messages ) }
+			};
+			return JsonResponse( confirmation, true );
+		}
+		//
+
+
 		//Initial processing of the data before any changes are made to the database
 		//Expects the following arguments, but since we have to manually read them out of the request, we need to bypass MVC's default model binding
 		//CM.UploadableTable rawData, Guid ratingRowID

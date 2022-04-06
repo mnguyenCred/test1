@@ -40,12 +40,19 @@
 		UI.SummaryBox = $(".summaryBox");
 		UI.NewItemsLists = $(".newItemsList");
 		UI.AdditionsLists = $(".additionsList");
+		UI.ConfirmChangesButton = $("[data-action='confirmChanges']");
+		UI.FixErrorsMessage = $(".fixErrorsMessage");
 
 		setStatus("Please select a Rating and a CSV File.");
 		setProgress("", 0);
 		UI.ProcessDataButton.on("click", function () {
 			processFileData();
 		});
+		UI.ConfirmChangesButton.on("click", function () {
+			confirmChanges();
+		});
+		UI.ConfirmChangesButton.hide();
+		UI.FixErrorsMessage.hide();
 	}
 	//
 
@@ -121,6 +128,13 @@
 				return;
 			}
 		}
+
+		//Disable buttons
+		disableButtons();
+
+		//Disable confirmation
+		UI.ConfirmChangesButton.hide();
+		UI.FixErrorsMessage.hide();
 
 		//Read the contents
 		Manager.readFile(function (rawData) {
@@ -252,6 +266,8 @@
 		Manager.FinishedQueue = [];
 		Manager.LookupGraph = [];
 		Manager.Requests = [];
+		Manager.HasErrors = false;
+		Manager.Confirmation = null;
 		Manager.WaitingQueue = Manager.MappedRows.map(MappedRow => {
 			return {
 				Data: null,
@@ -360,19 +376,31 @@
 
 	function handleFinishedQueue() {
 		//Set status and progress, and reenable the process data button
-		setStatus("Finished processing. Please review the summary below. If you are satisfied with the data, click the Confirm Changes button to save the changes.");
+		setStatus("Finished processing. Please review the summary below. If you are satisfied with the data, click the \"Confirm and Save Changes\" button to save the changes.");
 		setProgress("Finished", 100);
-		UI.ProcessDataButton.prop("disabled", false);
 
 		//Render the summary
 		Manager.SummaryData = Manager.FinishedQueue;
 		renderSummary();
+
+		//Enable buttons
+		enableButtons();
+
+		//Enable change confirmation if there are no errors
+		if (Manager.HasErrors) {
+			UI.ConfirmChangesButton.hide();
+			UI.FixErrorsMessage.show();
+			return;
+		}
+		else {
+			UI.ConfirmChangesButton.show();
+			UI.FixErrorsMessage.hide();
+		}
 	}
 	//
 
 	function renderSummary() {
 		console.log("Rendering Summary (Check Manager.SummaryData for details)", Manager.SummaryData.map(m => m.Data));
-		console.log("Errors (If Any)", Manager.SummaryData.filter(m => m.Error != null).map(m => m.Error));
 
 		var validRows = Manager.SummaryData.filter(row => row.Data);
 		var serverErrorRows = Manager.SummaryData.filter(row => row.Error);
@@ -381,6 +409,7 @@
 		var existingItems = validRows.flatMap(row => row.Data.ExistingItems);
 		var allItems = newItems.concat(existingItems);
 		var existingItemsWithAdditions = existingItems.filter(item => item.Meta.IsNew == false && item.Meta.Additions.length > 0);
+		Manager.HasErrors = serverErrorRows.length > 0 || processingErrorRows.length > 0;
 
 		//Summary Tab
 		//Table
@@ -486,9 +515,7 @@
 	function renderListItems(containerList, type, allItems, innerRenderMethod, cssClass) {
 		var container = containerList.filter("[data-type='" + type + "']");
 		var items = filterByType(type, allItems);
-		if (items.length == 0) {
-			container.html("<p class=\"noItems\">No Items</p>");
-		}
+		container.html("<div class=\"itemCount\">" + (items.length + " Total Items") + "</div>");
 		items.forEach(item => {
 			var box = $("<div class=\"listItem " + cssClass + "\" data-type=\"" + type + "\"><div class=\"spinner\"></div></div>").appendTo(container);
 			setTimeout(function () {
@@ -609,6 +636,83 @@
 	}
 	//
 
+	function confirmChanges() {
+		if (Manager.HasErrors) {
+			alert("You must correct the errors listed on the Summary tab before you can save the changes.");
+			return;
+		}
+
+		//Set status and disable buttons
+		setStatus("Saving...", true);
+		setProgress("", 100);
+		disableButtons();
+
+		doGETRequest("@Url.Content( "~/upload/confirmchangesv3?transactionGUID=" )" + Manager.TransactionGUID, (response) => {
+			//Handle response
+			if (response.Valid) {
+				setStatus("Processing complete");
+				setProgress("Finished", 100);
+				Manager.Confirmation = response.Data;
+				UI.ConfirmChangesButton.hide();
+				UI.FixErrorsMessage.hide();
+				renderConfirmation();
+			}
+			else {
+				alert("There was an error processing the confirmation: " + response.Status.join("\n"));
+			}
+
+			//Enable buttons
+			enableButtons();
+		}, (error) => {
+			//Handle error
+			alert("There was an error processing the confirmation: " + error);
+			setStatus("There was an error processing the confirmation: " + error);
+			console.log("Unable to save changes", error);
+
+			//Enable buttons
+			enableButtons();
+		});
+	}
+	//
+
+	function renderConfirmation() {
+		console.log("Rendering Confirmation", Manager.Confirmation);
+
+		UI.SummaryBox.html("");
+		renderMessageSection(UI.SummaryBox, "Errors", "Errors that occurred while saving changes", renderConfirmationMessageList(Manager.Confirmation.Messages.Error));
+		renderMessageSection(UI.SummaryBox, "Warnings", "Warnings that were raised while saving changes", renderConfirmationMessageList(Manager.Confirmation.Messages.Warning));
+		renderMessageSection(UI.SummaryBox, "Potential Duplicates", "Potential duplicates detected while saving changes", renderConfirmationMessageList(Manager.Confirmation.Messages.Duplicate));
+		renderMessageSection(UI.SummaryBox, "Created Items", "Items created while saving changes", renderConfirmationMessageList(Manager.Confirmation.Messages.Create));
+		renderMessageSection(UI.SummaryBox, "Deleted Items", "Items deleted while saving changes", renderConfirmationMessageList(Manager.Confirmation.Messages.Delete));
+		renderMessageSection(UI.SummaryBox, "References Added", "References added to existing items while saving changes", renderConfirmationMessageList(Manager.Confirmation.Messages.AddItem));
+		renderMessageSection(UI.SummaryBox, "References Removed", "References removed from existing items while saving changes", renderConfirmationMessageList(Manager.Confirmation.Messages.RemoveItem));
+		renderMessageSection(UI.SummaryBox, "Notes", "General notes generated while saving changes", renderConfirmationMessageList(Manager.Confirmation.Messages.Note));
+
+		//Let everything render, then alert the user
+		setTimeout(function () {
+			alert("Changes have been saved. Please review the summary for details.");
+		}, 500);
+	}
+	//
+
+	function renderConfirmationMessageList(list) {
+		return list?.length == 0 ? "" : list.map(m => "<div class=\"confirmationMessage\">" + m + "</div>").join("");
+	}
+	//
+
+	function disableButtons() {
+		UI.FileSelector.prop("disabled", true);
+		UI.ProcessDataButton.prop("disabled", true);
+		UI.ConfirmChangesButton.prop("disabled", true);
+	}
+	//
+
+	function enableButtons() {
+		UI.FileSelector.prop("disabled", false);
+		UI.ProcessDataButton.prop("disabled", false);
+		UI.ConfirmChangesButton.prop("disabled", false);
+	}
+
 	//Generic GET Request
 	function doGETRequest(url, success, error) {
 		handleAJAX(url, success, error);
@@ -695,7 +799,8 @@
 	.listItem .propertySet .property .propertyContent .reference { margin: 10px 0; border-left: 5px solid #CCC; }
 	.listItem .propertySet .property .propertyContent .reference .referenceText { padding: 0 5px; }
 
-	.noItems { padding: 10px; font-style: italic; }
+	.itemCount { padding: 5px; font-weight: bold; }
+	.fixErrorsMessage { padding: 10px 20px; margin: 5px; background-color: #FCC; }
 </style>
 
 <h1>Upload RMTL Data</h1>
@@ -731,6 +836,8 @@
 			<div class="tab">
 				<h3 class="tabHeader">Summary</h3>
 				<div class="tabContent summaryBox"></div>
+				<div class="fixErrorsMessage">You must correct the errors listed above before you can save these changes.</div>
+				<button class="confirmChangesButton" data-action="confirmChanges">Confirm and Save Changes</button>
 			</div>
 			<div class="tab">
 				<h3 class="tabHeader">New Items</h3>
