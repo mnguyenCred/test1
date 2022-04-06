@@ -339,6 +339,7 @@
 			//Construct the request
 			var requestData = {
 				TransactionGUID: Manager.TransactionGUID,
+				RatingRowID: Manager.RatingRowID,
 				RawCSV: Manager.UTF8CSV
 			};
 
@@ -699,7 +700,7 @@
 		renderMessageSection(UI.SummaryBox, "References Removed", "References removed from existing items while saving changes", renderConfirmationMessageList(Manager.Confirmation.Messages.RemoveItem));
 		renderMessageSection(UI.SummaryBox, "Notes", "General notes generated while saving changes", renderConfirmationMessageList(Manager.Confirmation.Messages.Note));
 
-		//Let everything render, then alert the user
+		//Let everything render (some of it is async), then alert the user
 		setTimeout(function () {
 			alert("Changes have been saved. Please review the summary for details.");
 		}, 500);
