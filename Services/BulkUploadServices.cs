@@ -2664,7 +2664,7 @@ namespace Services
 			//Otherwise, return an error if any course/training data is missing
 			else if( new List<object>() { rowCourseType, rowOrganizationCCA, rowCourseSourceType, rowAssessmentMethodType }.Where( m => m == null ).Count() > 0 || string.IsNullOrWhiteSpace( item.Row.TrainingTask_Description ) )
 			{
-				result.Message =  "Incomplete course/training data found. All course/training related columns should either have data or be marked as \"N/A\". Since the Training Gap Type is \"" + rowTrainingGapType.Name + "\", this is an error and processing this row cannot continue.";
+				result.Errors.Add( "Incomplete course/training data found. All course/training related columns should either have data or be marked as \"N/A\". Since the Training Gap Type is \"" + rowTrainingGapType.Name + "\", this is an error and processing this row cannot continue." );
 				return result;
 			}
 

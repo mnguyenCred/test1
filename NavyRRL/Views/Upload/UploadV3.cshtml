@@ -20,6 +20,7 @@
 	$(document).ready(function () {
 		setupUI();
 		setupManager();
+		setupTabs();
 	});
 	//
 
@@ -35,7 +36,10 @@
 		UI.ProgressBarBox = $(".progressBarBox");
 		UI.ProgressBar = $(".progressBar");
 		UI.ProgressBarText = $(".progressBarText");
+		UI.ResultsBox = $(".resultsBox");
 		UI.SummaryBox = $(".summaryBox");
+		UI.NewItemsLists = $(".newItemsList");
+		UI.AdditionsLists = $(".additionsList");
 
 		setStatus("Please select a Rating and a CSV File.");
 		setProgress("", 0);
@@ -73,6 +77,26 @@
 	function setProgress(text, percent) {
 		UI.ProgressBarText.html(text);
 		UI.ProgressBar.css("width", percent + "%");
+	}
+	//
+
+	function setupTabs() {
+		$(".tabBox").not(".tabBoxSetup").each(function () {
+			var box = $(this);
+			var buttonsBox = box.find("> .tabButtons");
+			var tabs = box.find("> .tabList > .tab");
+			box.addClass("tabBoxSetup");
+			tabs.each(function () {
+				var tab = $(this);
+				var header = tab.find("> .tabHeader");
+				var button = $("<button class=\"tabButton\">" + header.text() + "</button>").appendTo(buttonsBox);
+				button.on("click", function () {
+					tabs.removeClass("selected").filter(tab).addClass("selected");
+					buttonsBox.find("button").removeClass("selected").filter(button).addClass("selected");
+				});
+			});
+			buttonsBox.find("button").first().trigger("click");
+		});
 	}
 	//
 
@@ -320,7 +344,13 @@
 		});
 		data.Additions.forEach(addition => {
 			lookupItem(addition.Subject, (item) => {
-				item.Meta.Additions.push(addition);
+				if (item.Meta.IsNew) {
+					item[addition.Predicate] = item[addition.Predicate] || [];
+					item[addition.Predicate].push(addition.Object);
+				}
+				else {
+					item.Meta.Additions.push(addition);
+				}
 			}, (error) => {
 				console.log("Error looking up item for addition", { addition: addition, error: error });
 			});
@@ -343,6 +373,172 @@
 	function renderSummary() {
 		console.log("Rendering Summary (Check Manager.SummaryData for details)", Manager.SummaryData.map(m => m.Data));
 		console.log("Errors (If Any)", Manager.SummaryData.filter(m => m.Error != null).map(m => m.Error));
+
+		var validRows = Manager.SummaryData.filter(row => row.Data);
+		var serverErrorRows = Manager.SummaryData.filter(row => row.Error);
+		var processingErrorRows = validRows.filter(row => row.Data.Errors.length > 0);
+		var newItems = validRows.flatMap(row => row.Data.NewItems);
+		var existingItems = validRows.flatMap(row => row.Data.ExistingItems);
+		var allItems = newItems.concat(existingItems);
+		var existingItemsWithAdditions = existingItems.filter(item => item.Meta.IsNew == false && item.Meta.Additions.length > 0);
+
+		//Summary Tab
+		//Table
+		UI.SummaryBox.html("");
+		var summaryTable = $("<table class=\"summaryTable\"><thead></thead><tbody></tbody></table>").appendTo(UI.SummaryBox);
+		summaryTable.find("thead").append(
+			tableRow(["Total Rows", "Rows with Server Errors", "Rows with Processing Errors"], "<th>", "</th>")
+		);
+		summaryTable.find("tbody").append(
+			tableRow([Manager.SummaryData.length, serverErrorRows.length, processingErrorRows.length])
+		);
+
+		var breakdownTable = $("<table class=\"summaryTable\"><thead></thead><tbody></tbody></table>").appendTo(UI.SummaryBox);
+		breakdownTable.find("thead").append(
+			tableRow(["Type", "Total Items", "New Items", "Existing Items", "Existing Items with Additions"], "<th>", "</th>")
+		);
+		breakdownTable.find("tbody").append(
+			tableRow(["All", allItems.length, newItems.length, existingItems.length, existingItemsWithAdditions.length]) +
+			breakdownRow("Billet Title", "BilletTitle") +
+			breakdownRow("Functional Area", "WorkRole") +
+			breakdownRow("Rating Task", "RatingTask") +
+			breakdownRow("Training Task", "TrainingTask") +
+			breakdownRow("Course", "Course") +
+			breakdownRow("Reference Resource", "ReferenceResource")
+		);
+
+		//Messaging
+		renderMessageSection(UI.SummaryBox, "Server Errors", "Errors that caused processing a row to stop unexpectedly", serverErrorRows.map(m => messageWithHeaderAndList("Error on Row " + (m.MappedRow.Row_Index + 1) + ":", [m.Error?.status + " " + (m.Error?.statusText || "Error")])));
+		renderMessageSection(UI.SummaryBox, "Processing Errors", "Errors encountered while processing the data", processingErrorRows.map(m => messageWithHeaderAndList("Error(s) on Row " + (m.MappedRow.Row_Index + 1) + ":", m.Data.Errors)).join(""));
+		renderMessageSection(UI.SummaryBox, "Warnings", "Issues detected while processing the data", validRows.filter(m => m.Data.Warnings.length > 0).map(m => messageWithHeaderAndList("Warning(s) on Row " + (m.MappedRow.Row_Index + 1) + ":", m.Data.Warnings)).join(""));
+		renderMessageSection(UI.SummaryBox, "Messages", "Miscellaneous messages", validRows.filter(m => m.Data.Message?.length > 0).map(m => messageWithHeaderAndList("Message on Row " + (m.MappedRow.Row_Index + 1) + ":", [m.Data.Message])).join(""));
+
+		//Render New Items
+		renderClassAndPropertySets(renderItemsList, UI.NewItemsLists, newItems);
+
+		//Render Additions to Existing Items
+		renderClassAndPropertySets(renderAdditionsList, UI.AdditionsLists, existingItemsWithAdditions);
+
+		//Helper Functions
+		function breakdownRow(label, type) {
+			return tableRow([label, filterByType(type, allItems).length, filterByType(type, newItems).length, filterByType(type, existingItems).length, filterByType(type, existingItemsWithAdditions).length]);
+		}
+
+	}
+	//
+
+	function tableRow(items, openingTag, closingTag) {
+		return "<tr>" + items.map(item => (openingTag || "<td>") + item + (closingTag || "</td>")).join("") + "</tr>";
+	}
+	//
+
+	function renderMessageSection(container, title, description, content) {
+		if (content.length > 0) {
+			container.append("<div class=\"messageSection\"><h4 class=\"messageSectionHeader\">" + title + "</h4><p class=\"messageSectionDescription\">" + description + "</p><div class=\"messageSectionContent\">" + content + "</div></div>");
+		}
+	}
+	//
+
+	function messageWithHeaderAndList(header, list) {
+		return list.length == 0 ? "" : "<div class=\"messageSet\"><div class=\"messageSetHeader\">" + header + "</div><div class=\"messageSetList\">" + list.map(m => "<div class=\"messageSetListItem\">" + m + "</div>").join("") + "</div></div>";
+	}
+	//
+
+	function renderClassAndPropertySets(renderFunction, htmlBoxes, itemsData) {
+		htmlBoxes.html("");
+		renderFunction(htmlBoxes, "BilletTitle", itemsData, ["Name"], ["HasRatingTask|Related Rating Tasks"]);
+		renderFunction(htmlBoxes, "WorkRole", itemsData, ["CodedNotation|Code", "Name"], []);
+		renderFunction(htmlBoxes, "RatingTask", itemsData, ["CodedNotation|Code", "Description"], ["HasTrainingTaskList|Related Training Tasks", "PayGradeType|Rank", "ApplicabilityType|Applicability Type", "TrainingGapType|Training Gap Type", "HasReferenceResource|Source", "HasRating|Related Ratings", "HasBilletTitle|Related Billet Titles"]);
+		renderFunction(htmlBoxes, "TrainingTask", itemsData, ["Description"], ["AssessmentMethodType|Assessment Method Type"]);
+		renderFunction(htmlBoxes, "Course", itemsData, ["CodedNotation|Course Identification Number", "Name"], ["HasTrainingTask|Related Training Tasks", "CourseType|Course Type", "LifeCycleControlDocumentType|Life-Cycle Control Document Type", "CurriculumControlAuthority|Curriculum Control Authority"]);
+		renderFunction(htmlBoxes, "ReferenceResource", itemsData, ["Name", "PublicationDate|Publication Date"], ["ReferenceType|Reference Type"]);
+	}
+	//
+
+	function filterByType(type, items) {
+		return items.filter(m => m["@@type"] == type);
+	}
+	//
+
+	function renderItemsList(containerList, type, allItems, textProperties, referenceProperties) {
+		renderListItems(containerList, type, allItems, (box, item) => {
+			renderPropertySet(box, item, textProperties, referenceProperties);
+		}, "newItem");
+	}
+	//
+
+	function renderAdditionsList(containerList, type, allItems, textProperties, referenceProperties) {
+		renderListItems(containerList, type, allItems, (box, item) => {
+			//Build a new object so as not to disturb the existing one
+			var temp = {};
+			textProperties.forEach(property => {
+				item[property] && (temp[property] = item[property]);
+			});
+			referenceProperties.forEach(property => {
+				var additions = item.Meta.Additions.filter(m => m.Predicate == property).map(m => m.Object);
+				additions.length > 0 && (temp[property] = additions);
+			})
+			renderPropertySet(box, temp, textProperties, referenceProperties);
+		}, "additionsItem");
+	}
+	//
+
+	function renderListItems(containerList, type, allItems, innerRenderMethod, cssClass) {
+		var container = containerList.filter("[data-type='" + type + "']");
+		var items = filterByType(type, allItems);
+		if (items.length == 0) {
+			container.html("<p class=\"noItems\">No Items</p>");
+		}
+		items.forEach(item => {
+			var box = $("<div class=\"listItem " + cssClass + "\" data-type=\"" + type + "\"><div class=\"spinner\"></div></div>").appendTo(container);
+			setTimeout(function () {
+				box.html("");
+				innerRenderMethod(box, item);
+			}, 0);
+		});
+	}
+	//
+
+	function renderPropertySet(box, item, textProperties, referenceProperties) {
+		var wrapper = $("<div class=\"propertySet textProperties\"></div>").appendTo(box);
+		textProperties.forEach(property => {
+			renderProperty(wrapper, property, item, renderTextProperty);
+		});
+		var wrapper = $("<div class=\"propertySet referenceProperties\"></div>").appendTo(box);
+		referenceProperties.forEach(property => {
+			renderProperty(wrapper, property, item, renderReferenceProperty, true);
+		});
+	}
+	//
+
+	function renderProperty(box, property, item, renderMethod, showCount) {
+		var propertyName = property.split("|")[0];
+		var propertyLabel = property.split("|")[1] ?? propertyName;
+		if (item[propertyName]) {
+			var container = $("<div class=\"property\" data-property=\"" + propertyName + "\"></div>").appendTo(box);
+			var label = $("<div class=\"propertyLabel\">" + propertyLabel + (showCount && Array.isArray(item[propertyName]) ? " (" + item[propertyName].length + " Items)" : "") + "</div>").appendTo(container);
+			var content = $("<div class=\"propertyContent\"></div>").appendTo(container);
+			renderMethod(content, item[propertyName]);
+		}
+	}
+	//
+
+	function renderTextProperty(box, value) {
+		box.html(value);
+	}
+	//
+
+	function renderReferenceProperty(box, value) {
+		var valueList = Array.isArray(value) ? value : [value];
+		valueList.forEach(valueItem => {
+			var itemBox = $("<div class=\"reference\">" + valueList.length + " Items... <div class=\"spinner\"></div></div>").appendTo(box);
+			lookupItem(valueItem, (data) => {
+				itemBox.html("<div class=\"referenceText\">" + (data.Name || data.CodedNotation || data.Description) + "</div>");
+				//renderPropertySet(itemBox, data, [ data.Name ? "Name" : data.CodedNotation ? "CodedNotation|Code" : "Description"], []);
+			}, (error) => {
+				itemBox.html("Error: " + error);
+			});
+		})
 	}
 	//
 
@@ -356,7 +552,7 @@
 		//Otherwise, ask the server
 		else {
 			//If there's already a pending request for this data, append the success and error handlers to that request
-			var existingRequest = Manager.Requests.filter(m => m.TargetRowID == rowID);
+			var existingRequest = Manager.Requests.filter(m => m.TargetRowID == rowID)[0];
 			if (existingRequest != null) {
 				existingRequest.SuccessListeners.push(success);
 				existingRequest.ErrorListeners.push(error);
@@ -375,17 +571,17 @@
 				Manager.Requests.push(Request);
 
 				//Handlers for when the data/error is loaded
-				Lookup.handleListeners = function () {
-					if (Lookup.Data) {
-						appendLookupItem(Lookup.Data);
-						while (Lookup.SuccessListeners.length > 0) {
-							Lookup.SuccessListeners.pop()(Lookup.Data);
+				Request.handleListeners = function () {
+					if (Request.Data) {
+						appendLookupItem(Request.Data);
+						while (Request.SuccessListeners.length > 0) {
+							Request.SuccessListeners.pop()(Request.Data);
 						}
 					}
-					else if (Lookup.Error) {
-						appendLookupItem({ RowId: rowID, Name: "Error", Description: "Error", Meta: { Error: Lookup.Error } });
-						while (Lookup.ErrorListeners.length > 0) {
-							Lookup.ErrorListeners.pop()(Lookup.Error);
+					else if (Request.Error) {
+						appendLookupItem({ RowId: rowID, Name: "Error", Description: "Error", Meta: { Error: Request.Error } });
+						while (Request.ErrorListeners.length > 0) {
+							Request.ErrorListeners.pop()(Request.Error);
 						}
 					}
 					//No "else" because nothing should happen if neither Data nor Error are present yet
@@ -393,12 +589,12 @@
 
 				//Perform the lookup and process the handlers once a response is received
 				doGETRequest("@Url.Content( "~/upload/lookupgraphitem" )?transactionGUID=" + Manager.TransactionGUID + "&itemRowID=" + rowID, (response) => {
-					Lookup.Data = response.Valid ? response.Data : null;
-					Lookup.Error = response.Status;
-					Lookup.handleListeners();
+					Request.Data = response.Valid ? response.Data : null;
+					Request.Error = response.Status;
+					Request.handleListeners();
 				}, (response) => {
-					Lookup.error = response;
-					Lookup.handleListeners();
+					Request.error = response;
+					Request.handleListeners();
 				});
 			}
 		}
@@ -456,6 +652,7 @@
 	select, input[type='file'], button { display: block; width: 100%; height: 30px; max-width: none; cursor: pointer; }
 	.spinner { display: inline-block; box-shadow: inset 4px 0 0 5px; border-radius: 50%; height: 20px; width: 20px; animation: spin 1s linear infinite; }
 	@@keyframes spin { 100% { transform: rotate(360deg); } }
+	table { min-width: 800px; }
 
 	.section { margin-bottom: 10px; }
 	.inputBox .fileBox { display: flex; background-color: #EEE; margin-top: 5px; }
@@ -468,13 +665,43 @@
 	.processingBox .progressBarBox { position: relative; background-color: #EEE; padding: 1px; height: 30px; }
 	.processingBox .progressBar { background-color: #8F9; height: 28px; width: 0%; }
 	.processingBox .progressBarText { position: absolute; top: 0; left: 0; padding: 5px 10px; }
+
+	.tabBox .tabButtons { display: flex; margin-bottom: 10px; }
+	.tabBox .tabButtons button { flex: 0 0 200px; }
+	.tabBox .tabButtons button.selected { background-color: #555; color: #FFF; }
+	.tabBox .tabList .tab { }
+	.tabBox .tabList .tab:not(.selected) { display: none; }
+	.tabBox .tabList .tab .tabHeader {  }
+
+	.summaryTable { border: 1px solid #555; margin-bottom: 10px; }
+	.summaryTable th { border: 1px solid #CCC; padding: 5px 10px; background-color: #DDD; text-align: center; }
+	.summaryTable td { border: 1px solid #CCC; padding: 5px 10px; text-align: center; }
+
+	.messageSection { padding: 5px; margin-bottom: 10px; }
+	.messageSection .messageSectionHeader { margin-bottom: 0; }
+	.messageSection .messageSectionContent { padding: 0 10px; }
+	.messageSection .messageSectionContent .messageSet { margin-bottom: 5px; }
+	.messageSection .messageSectionContent .messageSet .messageSetHeader { font-weight: bold; }
+	.messageSection .messageSectionContent .messageSet .messageSetList { padding: 0 10px; }
+
+	.listItem { padding: 5px; border-top: 1px solid #CCC; }
+	.listItem > .propertySet { display: grid; gap: 10px 20px; grid-template-columns: repeat(auto-fill, 500px); }
+	.listItem[data-type='BilletTitle'] > .propertySet { grid-template-columns: auto; }
+	.listItem .propertySet:empty { display: none; }
+	.listItem .propertySet .property { padding: 5px; }
+	.listItem .propertySet.textProperties .property[data-property='Description'] { grid-column: span 2; }
+	.listItem .propertySet .property .propertyLabel { font-size: 10px; opacity: 0.8; font-weight: bold; border-bottom: 1px dashed #CCC; }
+	.listItem .propertySet .property .propertyContent { padding: 0 5px; font-size: 12px; }
+	.listItem .propertySet .property .propertyContent .reference { margin: 10px 0; border-left: 5px solid #CCC; }
+	.listItem .propertySet .property .propertyContent .reference .referenceText { padding: 0 5px; }
+
+	.noItems { padding: 10px; font-style: italic; }
 </style>
 
 <h1>Upload RMTL Data</h1>
 
 <div class="section inputBox">
 	<p>Select a Rating and choose a CSV (comma-separated values) file to upload. Do not include "All Sailor Tasks", since those have already been added to the system.</p>
-	@*<p><b style="color:#F00;">Important:</b> Ensure the file's character encoding is <b>UTF-8</b>. In Excel, this can be done via <b>"File" > "Save As" > "More options..." > "Save as type" > "CSV UTF-8"</b>.</p>*@
 	<select data-property="rating">
 		<option value="" disabled="disabled" selected="selected">Select a Rating...</option>
 		@foreach( var rating in allRatings )
@@ -497,6 +724,82 @@
 		<div class="progressBarText"></div>
 	</div>
 </div>
-<div class="section summaryBox">
-
+<div class="section resultsBox">
+	<div class="tabBox">
+		<div class="tabButtons"></div>
+		<div class="tabList">
+			<div class="tab">
+				<h3 class="tabHeader">Summary</h3>
+				<div class="tabContent summaryBox"></div>
+			</div>
+			<div class="tab">
+				<h3 class="tabHeader">New Items</h3>
+				<div class="tabContent newItemsBox">
+					<div class="tabBox">
+						<div class="tabButtons"></div>
+						<div class="tabList">
+							<div class="tab">
+								<h4 class="tabHeader">Billet Title</h4>
+								<div class="tabContent newItemsList" data-type="BilletTitle"></div>
+							</div>
+							<div class="tab">
+								<h4 class="tabHeader">Functional Area</h4>
+								<div class="tabContent newItemsList" data-type="WorkRole"></div>
+							</div>
+							<div class="tab">
+								<h4 class="tabHeader">Rating Task</h4>
+								<div class="tabContent newItemsList" data-type="RatingTask"></div>
+							</div>
+							<div class="tab">
+								<h4 class="tabHeader">Training Task</h4>
+								<div class="tabContent newItemsList" data-type="TrainingTask"></div>
+							</div>
+							<div class="tab">
+								<h4 class="tabHeader">Course</h4>
+								<div class="tabContent newItemsList" data-type="Course"></div>
+							</div>
+							<div class="tab">
+								<h4 class="tabHeader">Reference Resource</h4>
+								<div class="tabContent newItemsList" data-type="ReferenceResource"></div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+			<div class="tab">
+				<h3 class="tabHeader">Additions to Existing Items</h3>
+				<div class="tabContent additionsBox">
+					<div class="tabBox">
+						<div class="tabButtons"></div>
+						<div class="tabList">
+							<div class="tab">
+								<h4 class="tabHeader">Billet Title</h4>
+								<div class="tabContent additionsList" data-type="BilletTitle"></div>
+							</div>
+							<div class="tab">
+								<h4 class="tabHeader">Functional Area</h4>
+								<div class="tabContent additionsList" data-type="WorkRole"></div>
+							</div>
+							<div class="tab">
+								<h4 class="tabHeader">Rating Task</h4>
+								<div class="tabContent additionsList" data-type="RatingTask"></div>
+							</div>
+							<div class="tab">
+								<h4 class="tabHeader">Training Task</h4>
+								<div class="tabContent additionsList" data-type="TrainingTask"></div>
+							</div>
+							<div class="tab">
+								<h4 class="tabHeader">Course</h4>
+								<div class="tabContent additionsList" data-type="Course"></div>
+							</div>
+							<div class="tab">
+								<h4 class="tabHeader">Reference Resource</h4>
+								<div class="tabContent additionsList" data-type="ReferenceResource"></div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
 </div>

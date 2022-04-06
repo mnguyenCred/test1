@@ -104,7 +104,6 @@ namespace Models.Curation
 		public UploadableItemResult()
 		{
 			NewItems = new List<JObject>();
-			UnmodifiedItems = new List<Guid>();
 			Additions = new List<Triple>();
 			Removals = new List<Triple>();
 			TextChanges = new List<Triple>();
@@ -116,7 +115,6 @@ namespace Models.Curation
 		public UploadableItemResult( List<JObject> newItems, List<Guid> unmodifiedItems, List<Triple> additions = null, List<Triple> removals = null, List<Triple> textChanges = null, bool valid = true, string message = "" )
 		{
 			NewItems = newItems;
-			UnmodifiedItems = unmodifiedItems;
 			Additions = additions;
 			Removals = removals;
 			TextChanges = textChanges;
@@ -129,7 +127,6 @@ namespace Models.Curation
 
 		public List<JObject> NewItems { get; set; }
 		public List<JObject> ExistingItems { get; set; }
-		public List<Guid> UnmodifiedItems { get; set; }
 		public List<Triple> Additions { get; set; }
 		public List<Triple> Removals { get; set; }
 		public List<Triple> TextChanges { get; set; }
