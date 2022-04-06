@@ -45,12 +45,42 @@ GO
 
 
 INSERT INTO [dbo].[ConceptScheme.Concept]
-           ([ConceptSchemeId]           ,[Name]           ,[CTID]
+           ([ConceptSchemeId]           ,[Name]           ,[CTID],CodedNotation
            ,[IsActive]           ,[Created]           ,[CreatedById]           ,[LastUpdated]           ,[LastUpdatedById]
 		   )
      VALUES
-           (21           ,'VSIM'           ,'ce-' + lower(NewId())           
+           (21           ,'Visual Simulation'           ,'ce-' + lower(NewId()) ,'VSIM'          
 		   ,1           ,getdate(), 1           ,getdate(), 1
 		   )
 GO
 
+
+INSERT INTO [dbo].[ConceptScheme.Concept]
+           ([ConceptSchemeId]           ,[Name]           ,[CTID],CodedNotation
+           ,[IsActive]           ,[Created]           ,[CreatedById]           ,[LastUpdated]           ,[LastUpdatedById]
+		   )
+     VALUES
+           (21           ,'Virtual World'           ,'ce-' + lower(NewId()) ,'Virtual World'          
+		   ,1           ,getdate(), 1           ,getdate(), 1
+		   )
+GO
+
+
+INSERT INTO [dbo].[ConceptScheme.Concept]
+           ([ConceptSchemeId]           ,[Name]           ,[CTID],CodedNotation
+           ,[IsActive]           ,[Created]           ,[CreatedById]           ,[LastUpdated]           ,[LastUpdatedById]
+		   )
+     VALUES
+           (21           ,'IFIT'           ,'ce-' + lower(NewId()) ,'IFIT'          
+		   ,1           ,getdate(), 1           ,getdate(), 1
+		   )
+GO
+INSERT INTO [dbo].[ConceptScheme.Concept]
+           ([ConceptSchemeId]           ,[Name]           ,[CTID],CodedNotation
+           ,[IsActive]           ,[Created]           ,[CreatedById]           ,[LastUpdated]           ,[LastUpdatedById]
+		   )
+     VALUES
+           (21           ,'SDIT'           ,'ce-' + lower(NewId()) ,'SDIT'          
+		   ,1           ,getdate(), 1           ,getdate(), 1
+		   )
+GO
