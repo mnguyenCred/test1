@@ -2627,6 +2627,16 @@ namespace Services
 			//Since each row's result is being sent back to the client on a row-by-row basis, the client will also aggregate a list of statuses/changes for each row (no need to send back the summary itself).
 
 			//Processing
+			//Validation - Checks that should skip processing the row's data if there is an error
+			//Don't allow a row to be processed if it has the same row identifier as a previous row
+			var exists = summary.GetAll<RatingTask>().FirstOrDefault( m => m.CodedNotation?.ToLower() == item.Row.Row_CodedNotation?.ToLower() );
+			if ( exists != null )
+			{
+				result.Errors.Add( string.Format( "Row: {0}. The row Unique Idenitifier: '{1}' was used on a previous row.", item.Row.Row_Index, item.Row.Row_CodedNotation ) );
+				result.Errors.Add( "Reuse of a row's Unique Identifier is not allowed. Processing this row cannot continue." );
+				return result;
+			}
+
 			//Get the controlled value items that show up in this row
 			//Everything in any uploaded sheet should appear here. If any of these are not found, it's an error
 			//Might also be an error if rowRating is the "ALL" Rating, now
@@ -2639,7 +2649,7 @@ namespace Services
 			//If any of the above are null, log an error and skip the rest
 			if( new List<object>() { rowRating, rowPayGrade, rowSourceType, rowTaskApplicabilityType, rowTrainingGapType }.Where(m => m == null).Count() > 0 )
 			{
-				result.Message = "Unable to continue: One or more critical errors found";
+				result.Errors.Add("One or more controlled vocabulary values was not found in the database. Processing this row cannot continue.");
 				return result;
 			}
 
@@ -2677,6 +2687,7 @@ namespace Services
 			var allRatingsRating = GetDataOrError<Rating>( summary, ( m ) => m.CodedNotation?.ToLower() == "all", result, "Rating Type of \"ALL\" not found in database." );
 			var isAllRatingsRow = rowTaskApplicabilityType?.Name.ToLower().Contains( "all sailors" ) ?? false;
 
+			//After Validation, process the row's contents
 			//Get the variable items that show up in this row
 			//Things from sheets here may be new/edited
 			//First check the summary to see if it came in from an earlier row (or database). If not found in the summary, check the database. If not found there, assume it's new. Regardless, add it to the summary if it's not already in the summary.
@@ -2791,13 +2802,6 @@ namespace Services
 				//Skip all of this and set value to null if the following test is true
 				() => string.IsNullOrWhiteSpace( item.Row.Course_Name ) || item.Row.Course_Name.ToLower() == "n/a"
 			);
-			//check if coded notation exists
-			var exists = summary.GetAll<RatingTask>()
-				.FirstOrDefault( m => m.CodedNotation?.ToLower() == item.Row.Row_CodedNotation?.ToLower());
-			if ( exists != null )
-            {
-				result.Errors.Add( string.Format("Row: {0}. The row Unique Idenitifier: '{1}' was used on a previous row.", item.Row.Row_Index, item.Row.Row_CodedNotation) );
-			}
 
 			//Rating Task
 			if ( user.LastName == "parsons" )
@@ -2860,6 +2864,7 @@ namespace Services
 					( newItem ) => { summary.ItemsToBeCreated.RatingTask.Add( newItem ); }
 				);
 			}
+
 			//Now that we have figured out who all of the actors are...
 			//Handle cases where a new or existing item has associations added to it or removed from it (likely just added to it for now?)
 
