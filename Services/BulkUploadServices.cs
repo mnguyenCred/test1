@@ -1918,6 +1918,7 @@ namespace Services
 						TrainingGapType = rowTrainingGapType.RowId,
 						ReferenceType = rowSourceType.RowId,
 						HasReferenceResource = rowRatingTaskSource.RowId,
+						PayGradeType = rowPayGrade.RowId,
 						Note = item.Row.Note //Should Note be part of the uniqueness checks?
 				},
 					//Store if newly created
@@ -1948,6 +1949,7 @@ namespace Services
 						TrainingGapType = rowTrainingGapType.RowId,
 						ReferenceType = rowSourceType.RowId,
 						HasReferenceResource = rowRatingTaskSource.RowId,
+						PayGradeType = rowPayGrade.RowId,
 						Note = item.Row.Note //Should Note be part of the uniqueness checks?
 					},
 					//Store if newly created
