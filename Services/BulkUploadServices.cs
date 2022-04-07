@@ -1760,10 +1760,27 @@ namespace Services
 			//should concept scheme be included in searches (any possible name collisons?)
 			var rowCourseLCCDType = GetDataOrError<Concept>( summary, ( m ) => m.Name?.ToLower() == item.Row.Course_LifeCycleControlDocumentType_CodedNotation?.ToLower() || m.CodedNotation?.ToLower() == item.Row.Course_LifeCycleControlDocumentType_CodedNotation?.ToLower(), result, "Life-Cycle Control Document Type not found in database: " + item.Row.Course_LifeCycleControlDocumentType_CodedNotation ?? "" );
 
-			var rowAssessmentMethodType = GetDataOrError<Concept>( summary, ( m ) => m.Name?.ToLower() == item.Row.Course_AssessmentMethodType_Name?.ToLower(), result, "Assessment Method Type not found in database: " + item.Row.Course_AssessmentMethodType_Name ?? "" );
-			
+			//
+			Concept rowAssessmentMethodType = null;
+			List<Guid> rowAssessmentMethodTypes = null;
+			if ( item.Row.Course_AssessmentMethodType_Name != null )
+			{
+				rowAssessmentMethodTypes = new List<Guid>();
+				string[] list = item.Row.Course_AssessmentMethodType_Name.Split( ',' );
+				foreach ( var asmtMethod in list )
+				{
+					var assessmentMethodType = GetDataOrError<Concept>( summary, ( m ) => m.Name?.ToLower() == asmtMethod?.Trim().ToLower(), result, "Assessment Method Type not found in database: " + asmtMethod ?? "" );
+					if ( assessmentMethodType?.Id > 0 )
+					{
+						rowAssessmentMethodTypes.Add( assessmentMethodType.RowId );
+						rowAssessmentMethodType = assessmentMethodType;
+					}
+				}
+			}
+			//var rowAssessmentMethodTypeOLD = GetDataOrError<Concept>( summary, ( m ) => m.Name?.ToLower() == item.Row.Course_AssessmentMethodType_Name?.ToLower(), result, "Assessment Method Type not found in database: " + item.Row.Course_AssessmentMethodType_Name ?? "" );
+
 			//If the Training Gap Type is "Yes", then treat all course/training data as null, but check to see if it exists first (above) to facilitate the warning statement below
-			if( shouldNotHaveTrainingData )
+			if ( shouldNotHaveTrainingData )
 			{
 				var hasDataWhenItShouldNot = new List<object>() { rowCourseType, rowOrganizationCCA, rowCourseLCCDType, rowAssessmentMethodType }.Where( m => m != null ).ToList();
 				if ( hasDataWhenItShouldNot.Count() > 0 || !string.IsNullOrWhiteSpace( item.Row.TrainingTask_Description ) )
