@@ -121,7 +121,7 @@ namespace Factories
         #region BulkCopy
         public void BulkLoadRMTL( string rating, string rawInput )
         {
-
+            //need a means to skip if using a smaller test file?
             List<string> messages = new List<string>();
             int cntr = 0;
             var output = new List<RatingTask>();
@@ -210,7 +210,8 @@ namespace Factories
                                 //skip
                                 //continue;
                             }
-                            if ( csv[i] == "Index #" )
+                            //also check for blank rows somehow
+                            if ( csv[i] == "Index #" || csv[i] == "Unique Identifier" )
                             {
                                 skipRow = true; 
                                 break;

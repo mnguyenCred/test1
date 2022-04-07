@@ -204,7 +204,19 @@ namespace Services
 			}
 			if ( summary.AddedItemsToInnerListsForCopiesOfItems != null )
 			{
-				//what to do with these?
+				//what to do with these? will be existing parents with child updates like course and training task
+				if ( summary.AddedItemsToInnerListsForCopiesOfItems.Course?.Count > 0 )
+				{
+					//is training task part of course, see there is a separate TrainingTask in UploadableData. the latter has no course Id/RowId to make an association?
+					var courseMgr = new CourseManager();
+					foreach ( var item in summary.AddedItemsToInnerListsForCopiesOfItems.Course )
+					{
+						//is all data present?
+						item.CreatedById = item.LastUpdatedById = user.Id;
+						//do we want a full save here, or just focus on training tassks?
+						courseMgr.Save( item, ref summary );
+					}
+				}
 			}
 			//changes
 			//not sure how different
@@ -359,8 +371,8 @@ namespace Services
 				summary.Messages.Error.Add( "Error: No rows were found to process." );
 				return summary;
 			}
-			//save input file
-			if ( uploadedData.RawCSV?.Length > 0 )
+			//save input file. check number of rows to determine if should save (mostly to skip clearing from database)
+			if ( uploadedData.RawCSV?.Length > 0 && uploadedData.Rows.Count > 500 )
 			{
 				LoggingHelper.WriteLogFile( 1, string.Format( "Rating_upload_{0}_{1}.csv", currentRating.Name.Replace(" ","_"), DateTime.Now.ToString( "hhmmss" ) ), uploadedData.RawCSV, "", false );
 
@@ -1719,13 +1731,17 @@ namespace Services
 				result.Errors.Add( "Reuse of a row's Unique Identifier is not allowed. Processing this row cannot continue." );
 				return result;
 			}
+			if (item.Row.Row_Index == 270)
+            {
 
+            }
 			//Get the controlled value items that show up in this row
 			//Everything in any uploaded sheet should appear here. If any of these are not found, it's an error
 			//Might also be an error if rowRating is the "ALL" Rating, now
 			var rowRating = GetDataOrError<Rating>( summary, ( m ) => m.CodedNotation?.ToLower() == item.Row.Rating_CodedNotation?.ToLower(), result, "Rating not found in database: " + item.Row.Rating_CodedNotation ?? "" );
 			var rowPayGrade = GetDataOrError<Concept>( summary, ( m ) => m.CodedNotation?.ToLower() == item.Row.PayGradeType_CodedNotation?.ToLower(), result, "Rank not found in database: " + item.Row.PayGradeType_CodedNotation ?? "" );
 			var rowSourceType = GetDataOrError<Concept>( summary, ( m ) => m.WorkElementType?.ToLower() == item.Row.Shared_ReferenceType?.ToLower(), result, "Work Element Type not found in database: " + item.Row.Shared_ReferenceType ?? "" );
+			
 			var rowTaskApplicabilityType = GetDataOrError<Concept>( summary, ( m ) => m.Name?.ToLower() == item.Row.RatingTask_ApplicabilityType_Name?.ToLower(), result, "Task Applicability Type not found in database: " + item.Row.RatingTask_ApplicabilityType_Name ?? "" );
 			var rowTrainingGapType = GetDataOrError<Concept>( summary, ( m ) => m.Name?.ToLower() == item.Row.RatingTask_TrainingGapType_Name?.ToLower(), result, "Training Gap Type not found in database: " + item.Row.RatingTask_TrainingGapType_Name ?? "" );
 			
@@ -1745,7 +1761,7 @@ namespace Services
 			var rowAssessmentMethodTypeList = GetDataListOrError<Concept>( summary, ( m ) => SplitAndTrim( item.Row.Course_AssessmentMethodType_Name?.ToLower(), "," ).Contains( m.Name?.ToLower() ), result, "Assessment Method Type not found in database: " + item.Row.Course_AssessmentMethodType_Name ?? "" );
 			
 			//If the Training Gap Type is "Yes", then treat all course/training data as null, but check to see if it exists first (above) to facilitate the warning statement below
-			if( shouldNotHaveTrainingData )
+			if ( shouldNotHaveTrainingData )
 			{
 				var hasDataWhenItShouldNot = new List<object>() { rowCourseType, rowOrganizationCCA, rowCourseLCCDType }.Concat( rowAssessmentMethodTypeList ).Where( m => m != null ).ToList();
 				if ( hasDataWhenItShouldNot.Count() > 0 || !string.IsNullOrWhiteSpace( item.Row.TrainingTask_Description ) )
@@ -1891,11 +1907,28 @@ namespace Services
 			);
 
 			//Rating Task
+			//check for duplicate row
+			var taskExists = summary.GetAll<RatingTask>()
+					.FirstOrDefault( m =>
+						m.Description?.ToLower() == item.Row.RatingTask_Description?.ToLower() &&
+						m.ApplicabilityType == rowTaskApplicabilityType.RowId &&
+						m.TrainingGapType == rowTrainingGapType.RowId &&
+						m.PayGradeType == rowPayGrade.RowId &&
+						m.ReferenceType == rowSourceType.RowId &&
+						m.HasReferenceResource == rowRatingTaskSource.RowId //Ensure rowRatingTaskSource is fully found/processed first or this lookup will fail
+					);
+
+			if ( taskExists != null )
+            {
+				//actually will need to get the exact row(s)
+				result.Errors.Add( string.Format( "For Unique Idenitifier: '{0}' the Rating Task data is the same as for a previous row: {1}.", item.Row.Row_CodedNotation, taskExists.CodedNotation ) );
+				return result;
+			}
 			var rowRatingTask = new RatingTask();
-			if ( user.LastName == "Parsons" )
+			if ( UtilityManager.GetAppKeyValue( "ratingTaskUsingCodedNotationForLookups",false) )
 			{
 				rowRatingTask = LookupOrGetFromDBOrCreateNew( summary, result,
-					//Find in summary
+					//Find in summary - if found would be a duplicate
 					() => summary.GetAll<RatingTask>()
 					.FirstOrDefault( m =>
 						m.Description?.ToLower() == item.Row.RatingTask_Description?.ToLower() &&
@@ -1911,13 +1944,14 @@ namespace Services
 					() => new RatingTask()
 					{
 						RowId = Guid.NewGuid(),
+						CodedNotation = item.Row.Row_CodedNotation,
+						PayGradeType = rowPayGrade.RowId,
 						Description = item.Row.RatingTask_Description,
 						ApplicabilityType = rowTaskApplicabilityType.RowId,
 						TrainingGapType = rowTrainingGapType.RowId,
 						ReferenceType = rowSourceType.RowId,
 						HasReferenceResource = rowRatingTaskSource.RowId,
-						PayGradeType = rowPayGrade.RowId,
-						Note = item.Row.Note //Should Note be part of the uniqueness checks?
+						Note = item.Row.Note //Should Note be part of the uniqueness checks? No
 				},
 					//Store if newly created
 					( newItem ) => { summary.ItemsToBeCreated.RatingTask.Add( newItem ); }
