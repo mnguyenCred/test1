@@ -1838,8 +1838,7 @@ namespace Services
 				{
 					RowId = Guid.NewGuid(),
 					Name = item.Row.ReferenceResource_Name,
-					PublicationDate = item.Row.ReferenceResource_PublicationDate,
-					ReferenceType = new List<Guid>() { rowSourceType.RowId }
+					PublicationDate = item.Row.ReferenceResource_PublicationDate
 				},
 				//Store if newly created
 				( newItem ) => { summary.ItemsToBeCreated.ReferenceResource.Add( newItem ); }
@@ -1885,9 +1884,7 @@ namespace Services
 					RowId = Guid.NewGuid(),
 					Name = item.Row.Course_Name,
 					CodedNotation = item.Row.Course_CodedNotation,
-					CourseType = new List<Guid>() { rowCourseType.RowId },
-					LifeCycleControlDocumentType = rowCourseLCCDType.RowId,
-					CurriculumControlAuthority = new List<Guid>() { rowOrganizationCCA.RowId }
+					LifeCycleControlDocumentType = rowCourseLCCDType.RowId
 				},
 				//Store if newly created
 				( newItem ) => { summary.ItemsToBeCreated.Course.Add( newItem ); },
@@ -1964,9 +1961,13 @@ namespace Services
 			//Billet Title
 			UpdateSummaryAndResultForItemProperty( summary, summary.ItemsToBeCreated.BilletTitle, summary.AddedItemsToInnerListsForCopiesOfItems.BilletTitle, result, rowBilletTitle, nameof( BilletTitle.HasRatingTask ), rowRatingTask );
 
+			//Reference Resource
+			UpdateSummaryAndResultForItemProperty( summary, summary.ItemsToBeCreated.ReferenceResource, summary.AddedItemsToInnerListsForCopiesOfItems.ReferenceResource, result, rowRatingTaskSource, nameof( ReferenceResource.ReferenceType ), rowSourceType );
+
 			//Course
 			UpdateSummaryAndResultForItemProperty( summary, summary.ItemsToBeCreated.Course, summary.AddedItemsToInnerListsForCopiesOfItems.Course, result, rowCourse, nameof( Course.HasTrainingTask ), rowTrainingTask );
 			UpdateSummaryAndResultForItemProperty( summary, summary.ItemsToBeCreated.Course, summary.AddedItemsToInnerListsForCopiesOfItems.Course, result, rowCourse, nameof( Course.CurriculumControlAuthority ), rowOrganizationCCA );
+			UpdateSummaryAndResultForItemProperty( summary, summary.ItemsToBeCreated.Course, summary.AddedItemsToInnerListsForCopiesOfItems.Course, result, rowCourse, nameof( Course.CourseType ), rowCourseType );
 
 			//Training Task
 			UpdateSummaryAndResultForItemProperty( summary, summary.ItemsToBeCreated.TrainingTask, summary.AddedItemsToInnerListsForCopiesOfItems.TrainingTask, result, rowTrainingTask, nameof( TrainingTask.AssessmentMethodType ), rowAssessmentMethodType );
@@ -2046,6 +2047,12 @@ namespace Services
 				{
 					summary.AppendItem( targetItem );
 				}
+			}
+
+			//Track it in the row regardless of whether or not it's already in the summary (helps the client figure out which items showed up on which rows at the end)
+			if( targetItem != null )
+			{
+				result.RowItems.Add( targetItem.RowId );
 			}
 
 			//Return the item (or null)
