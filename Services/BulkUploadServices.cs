@@ -1742,10 +1742,7 @@ namespace Services
 				result.Errors.Add( "Reuse of a row's Unique Identifier is not allowed. Processing this row cannot continue." );
 				return result;
 			}
-			if (item.Row.Row_Index == 270)
-            {
 
-            }
 			//Get the controlled value items that show up in this row
 			//Everything in any uploaded sheet should appear here. If any of these are not found, it's an error
 			//Might also be an error if rowRating is the "ALL" Rating, now
@@ -1767,48 +1764,28 @@ namespace Services
 			var shouldNotHaveTrainingData = rowTrainingGapType.Name?.ToLower() == "yes";
 			var rowCourseType = GetDataOrError<Concept>( summary, ( m ) => m.Name?.ToLower() == item.Row.Course_CourseType_Name?.ToLower(), result, "Course Type not found in database: " + item.Row.Course_CourseType_Name ?? "" );
 			var rowOrganizationCCA = GetDataOrError<Organization>( summary, ( m ) => (m.Name != null && m.Name.ToLower() == item.Row.Course_CurriculumControlAuthority_Name?.ToLower()) || (m.ShortName != null && m.ShortName.ToLower() == item.Row.Course_CurriculumControlAuthority_Name?.ToLower()), result, "Curriculum Control Authority not found in database: " + item.Row.Course_CurriculumControlAuthority_Name ?? "" );
-			//may need to check name or codedNotation. ex: when add full names for TCCD(Training Course Control Document),CTTL(Course Training Task Lists) or training solution: Structured On the Job Training OR SOJT
-			//should concept scheme be included in searches (any possible name collisons?)
+			//Should concept scheme be included in searches (any possible name collisons?)
 			var rowCourseLCCDType = GetDataOrError<Concept>( summary, ( m ) => m.Name?.ToLower() == item.Row.Course_LifeCycleControlDocumentType_CodedNotation?.ToLower() || m.CodedNotation?.ToLower() == item.Row.Course_LifeCycleControlDocumentType_CodedNotation?.ToLower(), result, "Life-Cycle Control Document Type not found in database: " + item.Row.Course_LifeCycleControlDocumentType_CodedNotation ?? "" );
-
-			//
-			Concept rowAssessmentMethodType = null;
-			List<Guid> rowAssessmentMethodTypes = null;
-			if ( item.Row.Course_AssessmentMethodType_Name != null )
-			{
-				rowAssessmentMethodTypes = new List<Guid>();
-				string[] list = item.Row.Course_AssessmentMethodType_Name.Split( ',' );
-				foreach ( var asmtMethod in list )
-				{
-					var assessmentMethodType = GetDataOrError<Concept>( summary, ( m ) => m.Name?.ToLower() == asmtMethod?.Trim().ToLower(), result, "Assessment Method Type not found in database: " + asmtMethod ?? "" );
-					if ( assessmentMethodType?.Id > 0 )
-					{
-						rowAssessmentMethodTypes.Add( assessmentMethodType.RowId );
-						rowAssessmentMethodType = assessmentMethodType;
-					}
-				}
-			}
-			//var rowAssessmentMethodTypeOLD = GetDataOrError<Concept>( summary, ( m ) => m.Name?.ToLower() == item.Row.Course_AssessmentMethodType_Name?.ToLower(), result, "Assessment Method Type not found in database: " + item.Row.Course_AssessmentMethodType_Name ?? "" );
-
+			var rowAssessmentMethodTypeList = GetDataListOrError<Concept>( summary, ( m ) => SplitAndTrim( item.Row.Course_AssessmentMethodType_Name?.ToLower(), "," ).Contains( m.Name?.ToLower() ), result, "Assessment Method Type not found in database: " + item.Row.Course_AssessmentMethodType_Name ?? "" );
+			
 			//If the Training Gap Type is "Yes", then treat all course/training data as null, but check to see if it exists first (above) to facilitate the warning statement below
 			if ( shouldNotHaveTrainingData )
 			{
-				var hasDataWhenItShouldNot = new List<object>() { rowCourseType, rowOrganizationCCA, rowCourseLCCDType, rowAssessmentMethodType }.Where( m => m != null ).ToList();
+				var hasDataWhenItShouldNot = new List<object>() { rowCourseType, rowOrganizationCCA, rowCourseLCCDType }.Concat( rowAssessmentMethodTypeList ).Where( m => m != null ).ToList();
 				if ( hasDataWhenItShouldNot.Count() > 0 || !string.IsNullOrWhiteSpace( item.Row.TrainingTask_Description ) )
 				{
 					result.Warnings.Add( "Incomplete course/training data found. All course/training related columns should either have data or be marked as \"N/A\". Since the Training Gap Type is \"Yes\", the incomplete data will be treated as \"N/A\"." );
 					rowCourseType = null;
 					rowOrganizationCCA = null;
 					rowCourseLCCDType = null;
-					rowAssessmentMethodTypes = null;
-					rowAssessmentMethodType = null;
+					rowAssessmentMethodTypeList = new List<Concept>();
 				}
 
 				//Remove false errors
 				result.Errors = new List<string>();
 			}
 			//Otherwise, return an error if any course/training data is missing
-			else if( new List<object>() { rowCourseType, rowOrganizationCCA, rowCourseLCCDType, rowAssessmentMethodType }.Where( m => m == null ).Count() > 0 || string.IsNullOrWhiteSpace( item.Row.TrainingTask_Description ) )
+			else if( new List<object>() { rowCourseType, rowOrganizationCCA, rowCourseLCCDType, rowAssessmentMethodTypeList }.Where( m => m == null ).Count() > 0 || string.IsNullOrWhiteSpace( item.Row.TrainingTask_Description ) )
 			{
 				result.Errors.Add( "Incomplete course/training data found. All course/training related columns should either have data or be marked as \"N/A\". Since the Training Gap Type is \"" + rowTrainingGapType.Name + "\", this is an error and processing this row cannot continue." );
 				return result;
@@ -1823,6 +1800,33 @@ namespace Services
 			{
 				return result;
 			}
+
+			//Check for duplicate Rating Task (minus Row Unique Identifier) from a previous row, after the related concepts etc. above have been figured out
+			var tempRatingTaskSource = summary.GetAll<ReferenceResource>()
+				.FirstOrDefault( m =>
+					m.Name?.ToLower() == item.Row.ReferenceResource_Name?.ToLower() &&
+					m.PublicationDate?.ToLower() == item.Row.ReferenceResource_PublicationDate?.ToLower() &&
+					m.ReferenceType.Contains( rowSourceType.RowId )
+				) ??
+				ReferenceResourceManager.Get( item.Row.ReferenceResource_Name, item.Row.ReferenceResource_PublicationDate ) ??
+				new ReferenceResource();
+			var existingPreviousRatingTask = summary.GetAll<RatingTask>()
+				.FirstOrDefault( m =>
+					m.Description?.ToLower() == item.Row.RatingTask_Description?.ToLower() &&
+					m.ApplicabilityType == rowTaskApplicabilityType.RowId &&
+					m.TrainingGapType == rowTrainingGapType.RowId &&
+					m.PayGradeType == rowPayGrade.RowId &&
+					m.ReferenceType == rowSourceType.RowId &&
+					m.HasReferenceResource == tempRatingTaskSource.RowId
+				);
+			if ( existingPreviousRatingTask != null )
+			{
+				//Actually will need to get the exact row(s)
+				result.Errors.Add( string.Format( "For Unique Identifier: '{0}' the Rating Task data is the same as for a previous row with Unique Identifier: {1}.", item.Row.Row_CodedNotation, existingPreviousRatingTask.CodedNotation ) );
+				result.Errors.Add( "Duplicate Rating Tasks are not allowed. Processing this row cannot continue." );
+				return result;
+			}
+
 
 			//After Validation, process the row's contents
 			//Get the variable items that show up in this row
@@ -1889,7 +1893,6 @@ namespace Services
 				( newItem ) => { summary.ItemsToBeCreated.ReferenceResource.Add( newItem ); }
 			);
 
-
 			//Training Task
 			var rowTrainingTask = LookupOrGetFromDBOrCreateNew( summary, result,
 				//Find in summary
@@ -1903,8 +1906,7 @@ namespace Services
 				() => new TrainingTask()
 				{
 					RowId = Guid.NewGuid(),
-					Description = item.Row.TrainingTask_Description,
-					AssessmentMethodType = rowAssessmentMethodTypes
+					Description = item.Row.TrainingTask_Description
 				},
 				//Store if newly created
 				( newItem ) => { summary.ItemsToBeCreated.TrainingTask.Add( newItem ); },
@@ -1939,23 +1941,6 @@ namespace Services
 			);
 
 			//Rating Task
-			//check for duplicate row
-			var taskExists = summary.GetAll<RatingTask>()
-					.FirstOrDefault( m =>
-						m.Description?.ToLower() == item.Row.RatingTask_Description?.ToLower() &&
-						m.ApplicabilityType == rowTaskApplicabilityType.RowId &&
-						m.TrainingGapType == rowTrainingGapType.RowId &&
-						m.PayGradeType == rowPayGrade.RowId &&
-						m.ReferenceType == rowSourceType.RowId &&
-						m.HasReferenceResource == rowRatingTaskSource.RowId //Ensure rowRatingTaskSource is fully found/processed first or this lookup will fail
-					);
-
-			if ( taskExists != null )
-            {
-				//actually will need to get the exact row(s)
-				result.Errors.Add( string.Format( "For Unique Idenitifier: '{0}' the Rating Task data is the same as for a previous row: {1}.", item.Row.Row_CodedNotation, taskExists.CodedNotation ) );
-				return result;
-			}
 			var rowRatingTask = new RatingTask();
 			if ( UtilityManager.GetAppKeyValue( "ratingTaskUsingCodedNotationForLookups",false) )
 			{
@@ -2037,8 +2022,10 @@ namespace Services
 			UpdateSummaryAndResultForItemProperty( summary, summary.ItemsToBeCreated.Course, summary.AddedItemsToInnerListsForCopiesOfItems.Course, result, rowCourse, nameof( Course.CourseType ), rowCourseType );
 
 			//Training Task
-			//TODO - handle multiple asmt methods
-			UpdateSummaryAndResultForItemProperty( summary, summary.ItemsToBeCreated.TrainingTask, summary.AddedItemsToInnerListsForCopiesOfItems.TrainingTask, result, rowTrainingTask, nameof( TrainingTask.AssessmentMethodType ), rowAssessmentMethodType );
+			foreach( var rowAssessmentMethodType in rowAssessmentMethodTypeList )
+			{
+				UpdateSummaryAndResultForItemProperty( summary, summary.ItemsToBeCreated.TrainingTask, summary.AddedItemsToInnerListsForCopiesOfItems.TrainingTask, result, rowTrainingTask, nameof( TrainingTask.AssessmentMethodType ), rowAssessmentMethodType );
+			}
 
 			//Rating Task
 			//If the Rating for this row is "ALL", then tag the task with both the Rating selected from the drop-down list in the UI and the "ALL" Rating
@@ -2143,9 +2130,15 @@ namespace Services
 
 		public static T GetDataOrError<T>( ChangeSummary summary, Func<T, bool> MatchWith, UploadableItemResult result, string errorMessage ) where T : BaseObject
 		{
-			//check for existance in LookupGraph
-			var data = summary.GetAll<T>().FirstOrDefault( m => MatchWith( m ) );
-			if( data == null )
+			return GetDataListOrError( summary, MatchWith, result, errorMessage ).FirstOrDefault();
+		}
+		//
+
+		public static List<T> GetDataListOrError<T>(ChangeSummary summary, Func<T, bool> MatchWith, UploadableItemResult result, string errorMessage) where T : BaseObject
+		{
+			//Check for existence in LookupGraph
+			var data = summary.GetAll<T>().Where( m => MatchWith( m ) ).ToList();
+			if ( data.Count() == 0 )
 			{
 				result.Errors.Add( errorMessage );
 			}
@@ -2195,6 +2188,13 @@ namespace Services
 			}
 		}
 		//
+
+		public static List<string> SplitAndTrim( string text, string splitOn )
+		{
+			return text == null ? new List<string>() : text.Split( new string[] { splitOn }, StringSplitOptions.RemoveEmptyEntries ).Select( m => m.Trim() ).ToList();
+		}
+		//
+
 
 		#endregion
 
