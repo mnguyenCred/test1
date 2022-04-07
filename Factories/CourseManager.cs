@@ -278,6 +278,14 @@ namespace Factories
                 }
 
             }
+
+
+            if ( IsValidGuid(input.LifeCycleControlDocumentType) )
+            {
+                output.LifeCycleControlDocumentTypeId = ( int ) ConceptSchemeManager.GetConcept( input.LifeCycleControlDocumentType )?.Id;
+            }
+            else
+                output.LifeCycleControlDocumentTypeId = null;
         }
         public static void MapToDB( AppFullEntity input, DBEntity output )
         {

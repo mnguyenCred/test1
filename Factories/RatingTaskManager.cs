@@ -1729,7 +1729,7 @@ namespace Factories
                         output.WorkElementTypeId = ( int ) entity?.Id;
                     else
                     {
-                        status.AddError( thisClassName + String.Format( ".MapToDB. RatingTask: '{0}'. The related WorkElementType (ReferenceType) '{1}' was not found", FormatLongLabel( input.Description ), input.HasTrainingTask ) );
+                        status.AddError( thisClassName + String.Format( ".MapToDB. RatingTask: '{0}'. The related WorkElementType (ReferenceType) '{1}' was not found", FormatLongLabel( input.Description ), input.ReferenceType ) );
                     }
                 }
                 
@@ -1745,29 +1745,30 @@ namespace Factories
             if (UtilityManager.GetAppKeyValue( "handlingMultipleTrainingTasksPerRatingTask", false ) )
             {
                 output.TrainingTaskId = null;
-            } else
-            {
-                if ( IsValidGuid( input.HasTrainingTask ) )
-                {
-                    //this sucks, having to do lookups!
-                    //if ( output.TrainingTaskId != null && output.Course_Task?.RowId == input.HasTrainingTaskOld )
-                    //{
-                    //    //no action
-                    //}
-                    //else
-                    {
-                        var trainingTask = TrainingTaskManager.Get( input.HasTrainingTask );
-                        if ( trainingTask?.Id > 0 )
-                            output.TrainingTaskId = ( int ) trainingTask?.Id;
-                        else
-                        {
-                            status.AddError( thisClassName + String.Format( ".MapToDB. RatingTask: '{0}'. The related training task '{1}' was not found", FormatLongLabel( input.Description ), input.HasTrainingTask ) );
-                        }
-                    }
-                }
-                else
-                    output.TrainingTaskId = null;
-            }
+            } 
+            //else
+            //{
+            //    if ( IsValidGuid( input.HasTrainingTask ) )
+            //    {
+            //        //this sucks, having to do lookups!
+            //        //if ( output.TrainingTaskId != null && output.Course_Task?.RowId == input.HasTrainingTaskOld )
+            //        //{
+            //        //    //no action
+            //        //}
+            //        //else
+            //        {
+            //            var trainingTask = TrainingTaskManager.Get( input.HasTrainingTask );
+            //            if ( trainingTask?.Id > 0 )
+            //                output.TrainingTaskId = ( int ) trainingTask?.Id;
+            //            else
+            //            {
+            //                status.AddError( thisClassName + String.Format( ".MapToDB. RatingTask: '{0}'. The related training task '{1}' was not found", FormatLongLabel( input.Description ), input.HasTrainingTask ) );
+            //            }
+            //        }
+            //    }
+            //    else
+            //        output.TrainingTaskId = null;
+            //}
             
             //FunctionalAreaId
             //NOTE this can be multiple. Setting here for current demo code. will remove once the search stuff is adjusted

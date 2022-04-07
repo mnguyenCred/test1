@@ -133,12 +133,18 @@ namespace Factories
             //may want to do this by rating? for concurrent use
             var query1 = "truncate table [Import.RMTLStaging]";
             var query2 = string.Format( "DELETE FROM [dbo].[Import.RMTLStaging] WHERE [Rating]='{0}'", rating );
-
-            using ( SqlConnection connection = new SqlConnection( connectionString ) )
+            try
             {
-                SqlCommand command = new SqlCommand( query1, connection );
-                command.Connection.Open();
-                command.ExecuteNonQuery();
+                using ( SqlConnection connection = new SqlConnection( connectionString ) )
+                {
+                    SqlCommand command = new SqlCommand( query2, connection );
+                    command.Connection.Open();
+                    command.ExecuteNonQuery();
+                }
+            }catch ( Exception ex )
+            {
+                var msg = FormatExceptions( ex );
+                LoggingHelper.DoTrace( 5, string.Format( thisClassName + ".BulkLoadRMTL. Error on database clear. " + msg ) );
             }
             DataTable dt = new DataTable();
             DataRow row;

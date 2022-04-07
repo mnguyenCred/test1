@@ -47,7 +47,7 @@ INSERT INTO [dbo].[ConceptScheme.Concept]
            ,[IsActive]           ,[Created]           ,[CreatedById]           ,[LastUpdated]           ,[LastUpdatedById]
 		   )
      VALUES
-           (25           ,'Cirriculum Review ???'           ,'ce-' + lower(NewId()), ''           
+           (25           ,'Curriculum Review'           ,'ce-' + lower(NewId()), 'Curriculum Review'           
 		   ,1           ,getdate(), 1           ,getdate(), 1
 		   )
 GO

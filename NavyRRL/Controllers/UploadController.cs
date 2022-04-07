@@ -89,7 +89,7 @@ namespace NavyRRL.Controllers
 				}
 				else
 				{
-					currentRating = new SM.Rating() { CodedNotation = "QM", Name = "QM" };
+					//currentRating = new SM.Rating() { CodedNotation = "QM", Name = "QM" };
 
 					LoggingHelper.WriteLogFile( 1, string.Format( "Rating_upload_{0}_{1}.csv", currentRating.Name.Replace( " ", "_" ), DateTime.Now.ToString( "hhmmss" ) ), item.RawCSV, "", false );
 

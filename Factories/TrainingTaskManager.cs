@@ -104,7 +104,6 @@ namespace Factories
                         if ( count >= 0 )
                         {
                             input.LastUpdated = ( DateTime ) efEntity.LastUpdated;
-
                             SiteActivity sa = new SiteActivity()
                             {
                                 ActivityType = "TrainingTask",
@@ -117,7 +116,8 @@ namespace Factories
                             new ActivityManager().SiteActivityAdd( sa );
                             //TBD: will AssessmentMethodType still be on the course, or on the training task.
                             //NOTE: if save comes from the standalone editor, there will be no asmts
-                            TrainingTaskAssessmentMethodSave( input, input.AssessmentMethodType, ref status );
+                         
+                            TrainingTaskAssessmentMethodSave( input, ref status );
 
                         }
                         else
@@ -182,7 +182,8 @@ namespace Factories
                         };
                         new ActivityManager().SiteActivityAdd( sa );
                         //add assessments
-                        TrainingTaskAssessmentMethodSave( input, parent.AssessmentMethodType, ref status );
+                        input.Id = efEntity.Id;
+                        TrainingTaskAssessmentMethodSave( input, ref status );
 
                         //
                         return true;
@@ -205,7 +206,14 @@ namespace Factories
             return false;
         }
 
-        public bool TrainingTaskAssessmentMethodSave( AppEntity input, List<Guid> concepts, ref ChangeSummary status )
+        /// <summary>
+        /// the asmt methods will be passed in the trainingTask now
+        /// </summary>
+        /// <param name="input"></param>
+        /// <param name="concepts"></param>
+        /// <param name="status"></param>
+        /// <returns></returns>
+        public bool TrainingTaskAssessmentMethodSave( AppEntity input, ref ChangeSummary status )
         {
             bool success = false;
             status.HasSectionErrors = false;
@@ -216,8 +224,8 @@ namespace Factories
             {
                 try
                 {
-                    if ( concepts?.Count == 0 )
-                        concepts = new List<Guid>();
+                    if ( input.AssessmentMethodType?.Count == 0 )
+                        input.AssessmentMethodType = new List<Guid>();
                     //check existance
                     var results =   from entity in context.CourseTask_AssessmentType
                                     join concept in context.ConceptScheme_Concept
@@ -239,7 +247,7 @@ namespace Factories
                             var key = e.RowId;
                             if ( IsValidGuid( key ) )
                             {
-                                if ( !concepts.Contains( ( Guid ) key ) )
+                                if ( !input.AssessmentMethodType.Contains( ( Guid ) key ) )
                                 {
                                     DeleteTrainingAssessmentType( input.Id, e.Id, ref status );
                                 }
@@ -248,9 +256,9 @@ namespace Factories
                     }
                     #endregion
                     //adds
-                    if ( concepts != null )
+                    if ( input.AssessmentMethodType != null )
                     {
-                        foreach ( var child in concepts )
+                        foreach ( var child in input.AssessmentMethodType )
                         {
                             //if not in existing, then add
                             bool doingAdd = true;
@@ -297,6 +305,99 @@ namespace Factories
             }
             return success;
         }
+        public bool TrainingTaskAssessmentMethodSave( AppEntity input, List<Guid> concepts, ref ChangeSummary status )
+        {
+            bool success = false;
+            status.HasSectionErrors = false;
+            var efEntity = new Data.Tables.CourseTask_AssessmentType();
+            var entityType = "CourseTask_AssessmentType";
+
+            using ( var context = new DataEntities() )
+            {
+                try
+                {
+                    if ( input.AssessmentMethodType?.Count == 0 )
+                        input.AssessmentMethodType = new List<Guid>();
+                    //check existance
+                    var results = from entity in context.CourseTask_AssessmentType
+                                  join concept in context.ConceptScheme_Concept
+                                  on entity.AssessmentMethodConceptId equals concept.Id
+                                  where entity.CourseTaskId == input.Id
+
+                                  select concept;
+
+                    //if ( existing == null )
+                    //    existing = new List<ConceptScheme_Concept>();  
+                    var existing = results?.ToList();
+
+                    #region deletes check
+                    if ( existing.Any() )
+                    {
+                        //if exists not in input, delete it
+                        foreach ( var e in existing )
+                        {
+                            var key = e.RowId;
+                            if ( IsValidGuid( key ) )
+                            {
+                                if ( !input.AssessmentMethodType.Contains( ( Guid ) key ) )
+                                {
+                                    DeleteTrainingAssessmentType( input.Id, e.Id, ref status );
+                                }
+                            }
+                        }
+                    }
+                    #endregion
+                    //adds
+                    if ( input.AssessmentMethodType != null )
+                    {
+                        foreach ( var child in input.AssessmentMethodType )
+                        {
+                            //if not in existing, then add
+                            bool doingAdd = true;
+                            if ( existing?.Count > 0 )
+                            {
+                                foreach ( var item in existing )
+                                {
+                                    if ( item.RowId == child )
+                                    {
+                                        doingAdd = false;
+                                        break;
+                                    }
+                                }
+                            }
+                            if ( doingAdd )
+                            {
+                                var concept = ConceptSchemeManager.GetConcept( child );
+                                if ( concept?.Id > 0 )
+                                {
+                                    efEntity.CourseTaskId = input.Id;
+                                    efEntity.AssessmentMethodConceptId = concept.Id;
+                                    efEntity.RowId = Guid.NewGuid();
+                                    efEntity.CreatedById = input.LastUpdatedById;
+                                    efEntity.Created = DateTime.Now;
+
+                                    context.CourseTask_AssessmentType.Add( efEntity );
+
+                                    int count = context.SaveChanges();
+                                }
+                                else
+                                {
+                                    status.AddError( String.Format( "Error. For TrainingTask: '{0}' ({1}) an AssessmentMethod entity was not found for Identifier: {2}", FormatLongLabel( input.Description ), input.Id, child ) );
+                                }
+                            }
+                        }
+                    }
+                }
+                catch ( Exception ex )
+                {
+                    string message = FormatExceptions( ex );
+                    LoggingHelper.LogError( ex, thisClassName + string.Format( ".TrainingTaskAssessmentMethodSave failed, Course: '{0}' ({1})", entityType, FormatLongLabel( input.Description ), input.Id ) );
+                    status.AddError( thisClassName + ".TrainingTaskAssessmentMethodSave(). Error - the save was not successful. \r\n" + message );
+                }
+            }
+            return success;
+        }
+
         public bool DeleteTrainingAssessmentType( int courseId, int conceptId, ref ChangeSummary status )
         {
             bool isValid = false;

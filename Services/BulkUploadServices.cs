@@ -1699,6 +1699,22 @@ namespace Services
 			//At the end of the process, the summary will contain all of the changes, just like in V2.
 			//Since each row's result is being sent back to the client on a row-by-row basis, the client will also aggregate a list of statuses/changes for each row (no need to send back the summary itself).
 
+			//must have a valid unique identifier
+			//could allow a switch
+			if ( !string.IsNullOrWhiteSpace(item.Row.Row_CodedNotation) )
+            {
+				if (UtilityManager.IsInteger( item.Row.Row_CodedNotation ) )
+                {
+					//error
+					result.Errors.Add( string.Format( "Row: {0}. A valid row Unique Idenitifier (ex. NEC1-006) must be provided and not an integer ({1}).", item.Row.Row_Index, item.Row.Row_CodedNotation ) );
+					return result;
+				}
+            } else
+            {
+				//error
+				result.Errors.Add( string.Format( "Row: {0}. A valid row Unique Idenitifier (ex. NEC1-006) must be provided.", item.Row.Row_Index ) );
+				return result;
+			}
 			//Processing
 			//Validation - Checks that should skip processing the row's data if there is an error
 			//Don't allow a row to be processed if it has the same row identifier as a previous row
@@ -1730,19 +1746,22 @@ namespace Services
 			var shouldNotHaveTrainingData = rowTrainingGapType.Name?.ToLower() == "yes";
 			var rowCourseType = GetDataOrError<Concept>( summary, ( m ) => m.Name?.ToLower() == item.Row.Course_CourseType_Name?.ToLower(), result, "Course Type not found in database: " + item.Row.Course_CourseType_Name ?? "" );
 			var rowOrganizationCCA = GetDataOrError<Organization>( summary, ( m ) => (m.Name != null && m.Name.ToLower() == item.Row.Course_CurriculumControlAuthority_Name?.ToLower()) || (m.ShortName != null && m.ShortName.ToLower() == item.Row.Course_CurriculumControlAuthority_Name?.ToLower()), result, "Curriculum Control Authority not found in database: " + item.Row.Course_CurriculumControlAuthority_Name ?? "" );
-			var rowCourseSourceType = GetDataOrError<Concept>( summary, ( m ) => m.Name?.ToLower() == item.Row.Course_LifeCycleControlDocumentType_CodedNotation?.ToLower(), result, "Life-Cycle Control Document Type not found in database: " + item.Row.Course_LifeCycleControlDocumentType_CodedNotation ?? "" );
+			//may need to check name or codedNotation. ex: when add full names for TCCD(Training Course Control Document),CTTL(Course Training Task Lists) or training solution: Structured On the Job Training OR SOJT
+			//should concept scheme be included in searches (any possible name collisons?)
+			var rowCourseLCCDType = GetDataOrError<Concept>( summary, ( m ) => m.Name?.ToLower() == item.Row.Course_LifeCycleControlDocumentType_CodedNotation?.ToLower(), result, "Life-Cycle Control Document Type not found in database: " + item.Row.Course_LifeCycleControlDocumentType_CodedNotation ?? "" );
+
 			var rowAssessmentMethodType = GetDataOrError<Concept>( summary, ( m ) => m.Name?.ToLower() == item.Row.Course_AssessmentMethodType_Name?.ToLower(), result, "Assessment Method Type not found in database: " + item.Row.Course_AssessmentMethodType_Name ?? "" );
 			
 			//If the Training Gap Type is "Yes", then treat all course/training data as null, but check to see if it exists first (above) to facilitate the warning statement below
 			if( shouldNotHaveTrainingData )
 			{
-				var hasDataWhenItShouldNot = new List<object>() { rowCourseType, rowOrganizationCCA, rowCourseSourceType, rowAssessmentMethodType }.Where( m => m != null ).ToList();
+				var hasDataWhenItShouldNot = new List<object>() { rowCourseType, rowOrganizationCCA, rowCourseLCCDType, rowAssessmentMethodType }.Where( m => m != null ).ToList();
 				if ( hasDataWhenItShouldNot.Count() > 0 || !string.IsNullOrWhiteSpace( item.Row.TrainingTask_Description ) )
 				{
 					result.Warnings.Add( "Incomplete course/training data found. All course/training related columns should either have data or be marked as \"N/A\". Since the Training Gap Type is \"Yes\", the incomplete data will be treated as \"N/A\"." );
 					rowCourseType = null;
 					rowOrganizationCCA = null;
-					rowCourseSourceType = null;
+					rowCourseLCCDType = null;
 					rowAssessmentMethodType = null;
 				}
 
@@ -1750,7 +1769,7 @@ namespace Services
 				result.Errors = new List<string>();
 			}
 			//Otherwise, return an error if any course/training data is missing
-			else if( new List<object>() { rowCourseType, rowOrganizationCCA, rowCourseSourceType, rowAssessmentMethodType }.Where( m => m == null ).Count() > 0 || string.IsNullOrWhiteSpace( item.Row.TrainingTask_Description ) )
+			else if( new List<object>() { rowCourseType, rowOrganizationCCA, rowCourseLCCDType, rowAssessmentMethodType }.Where( m => m == null ).Count() > 0 || string.IsNullOrWhiteSpace( item.Row.TrainingTask_Description ) )
 			{
 				result.Errors.Add( "Incomplete course/training data found. All course/training related columns should either have data or be marked as \"N/A\". Since the Training Gap Type is \"" + rowTrainingGapType.Name + "\", this is an error and processing this row cannot continue." );
 				return result;
@@ -1867,7 +1886,7 @@ namespace Services
 					Name = item.Row.Course_Name,
 					CodedNotation = item.Row.Course_CodedNotation,
 					CourseType = new List<Guid>() { rowCourseType.RowId },
-					LifeCycleControlDocumentType = rowCourseSourceType.RowId,
+					LifeCycleControlDocumentType = rowCourseLCCDType.RowId,
 					CurriculumControlAuthority = new List<Guid>() { rowOrganizationCCA.RowId }
 				},
 				//Store if newly created
@@ -1955,6 +1974,7 @@ namespace Services
 			//Rating Task
 			UpdateSummaryAndResultForItemProperty( summary, summary.ItemsToBeCreated.RatingTask, summary.AddedItemsToInnerListsForCopiesOfItems.RatingTask, result, rowRatingTask, nameof( RatingTask.HasRating ), rowRating );
 			UpdateSummaryAndResultForItemProperty( summary, summary.ItemsToBeCreated.RatingTask, summary.AddedItemsToInnerListsForCopiesOfItems.RatingTask, result, rowRatingTask, nameof( RatingTask.HasRating ), allRatingsRating );
+
 			UpdateSummaryAndResultForItemProperty( summary, summary.ItemsToBeCreated.RatingTask, summary.AddedItemsToInnerListsForCopiesOfItems.RatingTask, result, rowRatingTask, nameof( RatingTask.HasBilletTitle ), rowBilletTitle );
 			UpdateSummaryAndResultForItemProperty( summary, summary.ItemsToBeCreated.RatingTask, summary.AddedItemsToInnerListsForCopiesOfItems.RatingTask, result, rowRatingTask, nameof( RatingTask.HasWorkRole ), rowWorkRole );
 			UpdateSummaryAndResultForItemProperty( summary, summary.ItemsToBeCreated.RatingTask, summary.AddedItemsToInnerListsForCopiesOfItems.RatingTask, result, rowRatingTask, nameof( RatingTask.HasTrainingTaskList ), rowTrainingTask );
@@ -2033,6 +2053,7 @@ namespace Services
 
 		public static T GetDataOrError<T>( ChangeSummary summary, Func<T, bool> MatchWith, UploadableItemResult result, string errorMessage ) where T : BaseObject
 		{
+			//check for existance in LookupGraph
 			var data = summary.GetAll<T>().FirstOrDefault( m => MatchWith( m ) );
 			if( data == null )
 			{
