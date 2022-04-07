@@ -232,8 +232,8 @@
 		Manager.MappedRows = Manager.CSVJSON.map((row, index) => {
 			return {
 				Row_Index: index,
-				Row_Identifier: row["Unique Identifier"], 
-				Row_CodedNotation: row["Index #"],
+				Row_Identifier: row["Index #"], 
+				Row_CodedNotation: [row["Unique Identifier"] || row["Unique ID"] || row["Index #"]].find(m => m && isNaN(m)) || "", //Find the Unique Identifier in one of these three columns, ignoring values that are purely numeric
 				Rating_CodedNotation: row["Rating"],
 				PayGradeType_CodedNotation: row["Rank"],
 				Level_Name: row["Level (A/J/M)"], //Not used, seems to have changed to a single character and a column named "Level (A)" instead?
