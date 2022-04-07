@@ -204,7 +204,19 @@ namespace Services
 			}
 			if ( summary.AddedItemsToInnerListsForCopiesOfItems != null )
 			{
-				//what to do with these?
+				//what to do with these? will be existing parents with child updates like course and training task
+				if ( summary.AddedItemsToInnerListsForCopiesOfItems.Course?.Count > 0 )
+				{
+					//is training task part of course, see there is a separate TrainingTask in UploadableData. the latter has no course Id/RowId to make an association?
+					var courseMgr = new CourseManager();
+					foreach ( var item in summary.AddedItemsToInnerListsForCopiesOfItems.Course )
+					{
+						//is all data present?
+						item.CreatedById = item.LastUpdatedById = user.Id;
+						//do we want a full save here, or just focus on training tassks?
+						courseMgr.Save( item, ref summary );
+					}
+				}
 			}
 			//changes
 			//not sure how different
@@ -359,8 +371,8 @@ namespace Services
 				summary.Messages.Error.Add( "Error: No rows were found to process." );
 				return summary;
 			}
-			//save input file
-			if ( uploadedData.RawCSV?.Length > 0 )
+			//save input file. check number of rows to determine if should save (mostly to skip clearing from database)
+			if ( uploadedData.RawCSV?.Length > 0 && uploadedData.Rows.Count > 500 )
 			{
 				LoggingHelper.WriteLogFile( 1, string.Format( "Rating_upload_{0}_{1}.csv", currentRating.Name.Replace(" ","_"), DateTime.Now.ToString( "hhmmss" ) ), uploadedData.RawCSV, "", false );
 
@@ -1706,13 +1718,13 @@ namespace Services
 				if (UtilityManager.IsInteger( item.Row.Row_CodedNotation ) )
                 {
 					//error
-					result.Errors.Add( string.Format( "Row: {0}. A valid row Unique Idenitifier (ex. NEC1-006) must be provided and not an integer ({1}).", item.Row.Row_Index, item.Row.Row_CodedNotation ) );
+					result.Errors.Add( string.Format( "A valid row Unique Idenitifier (ex. NEC1-006) must be provided and not an integer ({0).", item.Row.Row_CodedNotation ) );
 					return result;
 				}
             } else
             {
 				//error
-				result.Errors.Add( string.Format( "Row: {0}. A valid row Unique Idenitifier (ex. NEC1-006) must be provided.", item.Row.Row_Index ) );
+				result.Errors.Add( string.Format( "A valid row Unique Idenitifier (ex. NEC1-006) must be provided.", item.Row.Row_Index ) );
 				return result;
 			}
 			//Processing
@@ -1720,17 +1732,21 @@ namespace Services
 			//Don't allow a row to be processed if it has the same row identifier as a previous row
 			if ( summary.GetAll<RatingTask>().FirstOrDefault( m => m.CodedNotation?.ToLower() == item.Row.Row_CodedNotation?.ToLower() ) != null )
 			{
-				result.Errors.Add( string.Format( "Row: {0}. The row Unique Idenitifier: '{1}' was used on a previous row.", item.Row.Row_Index, item.Row.Row_CodedNotation ) );
+				result.Errors.Add( string.Format( "The row Unique Idenitifier: '{0}' was used on a previous row.", item.Row.Row_CodedNotation ) );
 				result.Errors.Add( "Reuse of a row's Unique Identifier is not allowed. Processing this row cannot continue." );
 				return result;
 			}
+			if (item.Row.Row_Index == 270)
+            {
 
+            }
 			//Get the controlled value items that show up in this row
 			//Everything in any uploaded sheet should appear here. If any of these are not found, it's an error
 			//Might also be an error if rowRating is the "ALL" Rating, now
 			var rowRating = GetDataOrError<Rating>( summary, ( m ) => m.CodedNotation?.ToLower() == item.Row.Rating_CodedNotation?.ToLower(), result, "Rating not found in database: " + item.Row.Rating_CodedNotation ?? "" );
 			var rowPayGrade = GetDataOrError<Concept>( summary, ( m ) => m.CodedNotation?.ToLower() == item.Row.PayGradeType_CodedNotation?.ToLower(), result, "Rank not found in database: " + item.Row.PayGradeType_CodedNotation ?? "" );
 			var rowSourceType = GetDataOrError<Concept>( summary, ( m ) => m.WorkElementType?.ToLower() == item.Row.Shared_ReferenceType?.ToLower(), result, "Work Element Type not found in database: " + item.Row.Shared_ReferenceType ?? "" );
+			
 			var rowTaskApplicabilityType = GetDataOrError<Concept>( summary, ( m ) => m.Name?.ToLower() == item.Row.RatingTask_ApplicabilityType_Name?.ToLower(), result, "Task Applicability Type not found in database: " + item.Row.RatingTask_ApplicabilityType_Name ?? "" );
 			var rowTrainingGapType = GetDataOrError<Concept>( summary, ( m ) => m.Name?.ToLower() == item.Row.RatingTask_TrainingGapType_Name?.ToLower(), result, "Training Gap Type not found in database: " + item.Row.RatingTask_TrainingGapType_Name ?? "" );
 			
@@ -1748,8 +1764,24 @@ namespace Services
 			//may need to check name or codedNotation. ex: when add full names for TCCD(Training Course Control Document),CTTL(Course Training Task Lists) or training solution: Structured On the Job Training OR SOJT
 			//should concept scheme be included in searches (any possible name collisons?)
 			var rowCourseLCCDType = GetDataOrError<Concept>( summary, ( m ) => m.Name?.ToLower() == item.Row.Course_LifeCycleControlDocumentType_CodedNotation?.ToLower(), result, "Life-Cycle Control Document Type not found in database: " + item.Row.Course_LifeCycleControlDocumentType_CodedNotation ?? "" );
-
-			var rowAssessmentMethodType = GetDataOrError<Concept>( summary, ( m ) => m.Name?.ToLower() == item.Row.Course_AssessmentMethodType_Name?.ToLower(), result, "Assessment Method Type not found in database: " + item.Row.Course_AssessmentMethodType_Name ?? "" );
+			//
+			Concept rowAssessmentMethodType = null;
+			List<Guid> rowAssessmentMethodTypes = null;
+			if ( item.Row.Course_AssessmentMethodType_Name != null )
+			{
+				rowAssessmentMethodTypes = new List<Guid>();
+				string[] list = item.Row.Course_AssessmentMethodType_Name.Split( ',' );
+				foreach( var asmtMethod in list)
+                {
+					var assessmentMethodType = GetDataOrError<Concept>( summary, ( m ) => m.Name?.ToLower() == asmtMethod?.Trim().ToLower(), result, "Assessment Method Type not found in database: " + asmtMethod ?? "" );
+					if ( assessmentMethodType?.Id > 0 )
+                    {
+						rowAssessmentMethodTypes.Add( assessmentMethodType.RowId );
+						rowAssessmentMethodType = assessmentMethodType;
+					}
+				}
+			}
+			//var rowAssessmentMethodTypeOLD = GetDataOrError<Concept>( summary, ( m ) => m.Name?.ToLower() == item.Row.Course_AssessmentMethodType_Name?.ToLower(), result, "Assessment Method Type not found in database: " + item.Row.Course_AssessmentMethodType_Name ?? "" );
 			
 			//If the Training Gap Type is "Yes", then treat all course/training data as null, but check to see if it exists first (above) to facilitate the warning statement below
 			if( shouldNotHaveTrainingData )
@@ -1761,6 +1793,7 @@ namespace Services
 					rowCourseType = null;
 					rowOrganizationCCA = null;
 					rowCourseLCCDType = null;
+					rowAssessmentMethodTypes = null;
 					rowAssessmentMethodType = null;
 				}
 
@@ -1776,6 +1809,7 @@ namespace Services
 
 			//Special handling for "All" ratings
 			var allRatingsRating = GetDataOrError<Rating>( summary, ( m ) => m.CodedNotation?.ToLower() == "all", result, "Rating Type of \"ALL\" not found in database." );
+			//not used:
 			var isAllRatingsRow = rowTaskApplicabilityType?.Name.ToLower().Contains( "all sailors" ) ?? false;
 
 			//After Validation, process the row's contents
@@ -1858,7 +1892,8 @@ namespace Services
 				() => new TrainingTask()
 				{
 					RowId = Guid.NewGuid(),
-					Description = item.Row.TrainingTask_Description
+					Description = item.Row.TrainingTask_Description,
+					AssessmentMethodType = rowAssessmentMethodTypes
 				},
 				//Store if newly created
 				( newItem ) => { summary.ItemsToBeCreated.TrainingTask.Add( newItem ); },
@@ -1895,11 +1930,28 @@ namespace Services
 			);
 
 			//Rating Task
+			//check for duplicate row
+			var taskExists = summary.GetAll<RatingTask>()
+					.FirstOrDefault( m =>
+						m.Description?.ToLower() == item.Row.RatingTask_Description?.ToLower() &&
+						m.ApplicabilityType == rowTaskApplicabilityType.RowId &&
+						m.TrainingGapType == rowTrainingGapType.RowId &&
+						m.PayGradeType == rowPayGrade.RowId &&
+						m.ReferenceType == rowSourceType.RowId &&
+						m.HasReferenceResource == rowRatingTaskSource.RowId //Ensure rowRatingTaskSource is fully found/processed first or this lookup will fail
+					);
+
+			if ( taskExists != null )
+            {
+				//actually will need to get the exact row(s)
+				result.Errors.Add( string.Format( "For Unique Idenitifier: '{0}' the Rating Task data is the same as for a previous row: {1}.", item.Row.Row_CodedNotation, taskExists.CodedNotation ) );
+				return result;
+			}
 			var rowRatingTask = new RatingTask();
-			if ( user.LastName == "Parsons" )
+			if ( UtilityManager.GetAppKeyValue( "ratingTaskUsingCodedNotationForLookups",false) )
 			{
 				rowRatingTask = LookupOrGetFromDBOrCreateNew( summary, result,
-					//Find in summary
+					//Find in summary - if found would be a duplicate
 					() => summary.GetAll<RatingTask>()
 					.FirstOrDefault( m =>
 						m.Description?.ToLower() == item.Row.RatingTask_Description?.ToLower() &&
@@ -1915,12 +1967,14 @@ namespace Services
 					() => new RatingTask()
 					{
 						RowId = Guid.NewGuid(),
+						CodedNotation = item.Row.Row_CodedNotation,
+						PayGradeType = rowPayGrade.RowId,
 						Description = item.Row.RatingTask_Description,
 						ApplicabilityType = rowTaskApplicabilityType.RowId,
 						TrainingGapType = rowTrainingGapType.RowId,
 						ReferenceType = rowSourceType.RowId,
 						HasReferenceResource = rowRatingTaskSource.RowId,
-						Note = item.Row.Note //Should Note be part of the uniqueness checks?
+						Note = item.Row.Note //Should Note be part of the uniqueness checks? No
 				},
 					//Store if newly created
 					( newItem ) => { summary.ItemsToBeCreated.RatingTask.Add( newItem ); }
@@ -1968,11 +2022,13 @@ namespace Services
 			UpdateSummaryAndResultForItemProperty( summary, summary.ItemsToBeCreated.Course, summary.AddedItemsToInnerListsForCopiesOfItems.Course, result, rowCourse, nameof( Course.CurriculumControlAuthority ), rowOrganizationCCA );
 
 			//Training Task
+			//TODO - handle multiple asmt methods
 			UpdateSummaryAndResultForItemProperty( summary, summary.ItemsToBeCreated.TrainingTask, summary.AddedItemsToInnerListsForCopiesOfItems.TrainingTask, result, rowTrainingTask, nameof( TrainingTask.AssessmentMethodType ), rowAssessmentMethodType );
 
 			//Rating Task
 			UpdateSummaryAndResultForItemProperty( summary, summary.ItemsToBeCreated.RatingTask, summary.AddedItemsToInnerListsForCopiesOfItems.RatingTask, result, rowRatingTask, nameof( RatingTask.HasRating ), rowRating );
-			UpdateSummaryAndResultForItemProperty( summary, summary.ItemsToBeCreated.RatingTask, summary.AddedItemsToInnerListsForCopiesOfItems.RatingTask, result, rowRatingTask, nameof( RatingTask.HasRating ), allRatingsRating );
+			//22-04-07 mp - skip all ratings
+			//UpdateSummaryAndResultForItemProperty( summary, summary.ItemsToBeCreated.RatingTask, summary.AddedItemsToInnerListsForCopiesOfItems.RatingTask, result, rowRatingTask, nameof( RatingTask.HasRating ), allRatingsRating );
 
 			UpdateSummaryAndResultForItemProperty( summary, summary.ItemsToBeCreated.RatingTask, summary.AddedItemsToInnerListsForCopiesOfItems.RatingTask, result, rowRatingTask, nameof( RatingTask.HasBilletTitle ), rowBilletTitle );
 			UpdateSummaryAndResultForItemProperty( summary, summary.ItemsToBeCreated.RatingTask, summary.AddedItemsToInnerListsForCopiesOfItems.RatingTask, result, rowRatingTask, nameof( RatingTask.HasWorkRole ), rowWorkRole );

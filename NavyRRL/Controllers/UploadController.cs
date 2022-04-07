@@ -93,7 +93,10 @@ namespace NavyRRL.Controllers
 
 					LoggingHelper.WriteLogFile( 1, string.Format( "Rating_upload_{0}_{1}.csv", currentRating.Name.Replace( " ", "_" ), DateTime.Now.ToString( "hhmmss" ) ), item.RawCSV, "", false );
 
-					new Factories.BaseFactory().BulkLoadRMTL( currentRating.CodedNotation, item.RawCSV );
+					if ( item.RawCSV.Length > 300000 )
+					{
+						new Factories.BaseFactory().BulkLoadRMTL( currentRating.CodedNotation, item.RawCSV );
+					}
 				}
 			}
 			//Process the summary

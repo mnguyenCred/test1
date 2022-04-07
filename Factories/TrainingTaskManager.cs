@@ -67,75 +67,84 @@ namespace Factories
         public bool Save( ParentEntity parent, AppEntity input, ref ChangeSummary status )
         {
             bool isValid = true;
-            using ( var context = new DataEntities() )
+            try
             {
-                //check existance
-                //or may want to assign and check for change (could be legit case change). 
-                //  use rowId if present - although the upload may have no way to determine if an existing task is being updated - 
-                DBEntity efEntity = new DBEntity();
-                if ( IsValidGuid( input.RowId ) )
+                using ( var context = new DataEntities() )
                 {
-                    efEntity = context.Course_Task.FirstOrDefault( s => s.RowId == input.RowId );
-                }
-
-                if ( efEntity == null )
-                {
-                    efEntity = context.Course_Task
-                        .FirstOrDefault( s => s.CourseId == parent.Id && s.Description.ToLower() == input.Description.ToLower() );
-                }
-                if ( efEntity?.Id > 0 )
-                {
-                    //update
-                    List<string> errors = new List<string>();
-                    //this will include the extra props (like LifeCycleControlDocument, etc. for now)
-                    //fill in fields that may not be in entity
-                    input.RowId = efEntity.RowId;
-                    input.Created = efEntity.Created;
-                    input.CreatedById = ( efEntity.CreatedById ?? 0 );
-                    input.Id = efEntity.Id;
-                    BaseFactory.AutoMap( input, efEntity, errors );
-
-                    if ( HasStateChanged( context ) )
+                    //check existance
+                    //or may want to assign and check for change (could be legit case change). 
+                    //  use rowId if present - although the upload may have no way to determine if an existing task is being updated - 
+                    DBEntity efEntity = new DBEntity();
+                    if ( IsValidGuid( input.RowId ) )
                     {
-                        efEntity.LastUpdatedById = parent.LastUpdatedById;
-                        efEntity.LastUpdated = DateTime.Now;
-                        var count = context.SaveChanges();
-                        //can be zero if no data changed
-                        if ( count >= 0 )
-                        {
-                            input.LastUpdated = ( DateTime ) efEntity.LastUpdated;
-                            SiteActivity sa = new SiteActivity()
-                            {
-                                ActivityType = "TrainingTask",
-                                Activity = status.Action,
-                                Event = "Update",
-                                Comment = string.Format( "TrainingTask was updated. Task: {0}", FormatLongLabel( input.Description ) ),
-                                ActionByUserId = input.LastUpdatedById,
-                                ActivityObjectId = input.Id
-                            };
-                            new ActivityManager().SiteActivityAdd( sa );
-                            //TBD: will AssessmentMethodType still be on the course, or on the training task.
-                            //NOTE: if save comes from the standalone editor, there will be no asmts
-                         
-                            TrainingTaskAssessmentMethodSave( input, ref status );
-
-                        }
-                        else
-                        {
-                            //?no info on error
-
-                            string message = string.Format( thisClassName + ".Save Failed", "Attempted to update a CourseTask. The process appeared to not work, but was not an exception, so we have no message, or no clue. Course: {0}, Id: {1}, Task: '{2}'", parent.Name, parent.Id, input.Description );
-                            status.AddError( "Error - the update was not successful. " + message );
-                            EmailManager.NotifyAdmin( thisClassName + ".CourseTaskSave Failed Failed", message );
-                        }
-
+                        efEntity = context.Course_Task.FirstOrDefault( s => s.RowId == input.RowId );
                     }
-                }
-                else
-                {
-                    var result = Add( parent, input, ref status );
-                }
 
+                    if ( efEntity == null )
+                    {
+                        efEntity = context.Course_Task
+                            .FirstOrDefault( s => s.CourseId == parent.Id && s.Description.ToLower() == input.Description.ToLower() );
+                    }
+                    if ( efEntity?.Id > 0 )
+                    {
+                        //update
+                        List<string> errors = new List<string>();
+                        //this will include the extra props (like LifeCycleControlDocument, etc. for now)
+                        //fill in fields that may not be in entity
+                        input.RowId = efEntity.RowId;
+                        input.Created = efEntity.Created;
+                        input.CreatedById = ( efEntity.CreatedById ?? 0 );
+                        input.Id = efEntity.Id;
+                        BaseFactory.AutoMap( input, efEntity, errors );
+
+                        if ( HasStateChanged( context ) )
+                        {
+                            efEntity.LastUpdatedById = parent.LastUpdatedById;
+                            efEntity.LastUpdated = DateTime.Now;
+                            var count = context.SaveChanges();
+                            //can be zero if no data changed
+                            if ( count >= 0 )
+                            {
+                                input.LastUpdated = ( DateTime ) efEntity.LastUpdated;
+                                SiteActivity sa = new SiteActivity()
+                                {
+                                    ActivityType = "TrainingTask",
+                                    Activity = status.Action,
+                                    Event = "Update",
+                                    Comment = string.Format( "TrainingTask was updated. Task: {0}", FormatLongLabel( input.Description ) ),
+                                    ActionByUserId = input.LastUpdatedById,
+                                    ActivityObjectId = input.Id
+                                };
+                                new ActivityManager().SiteActivityAdd( sa );
+                                //TBD: will AssessmentMethodType still be on the course, or on the training task.
+                                //NOTE: if save comes from the standalone editor, there will be no asmts
+
+                                TrainingTaskAssessmentMethodSave( input, ref status );
+
+                            }
+                            else
+                            {
+                                //?no info on error
+
+                                string message = string.Format( thisClassName + ".Save Failed", "Attempted to update a CourseTask. The process appeared to not work, but was not an exception, so we have no message, or no clue. Course: {0}, Id: {1}, Task: '{2}'", parent.Name, parent.Id, input.Description );
+                                status.AddError( "Error - the update was not successful. " + message );
+                                EmailManager.NotifyAdmin( thisClassName + ".CourseTaskSave Failed Failed", message );
+                            }
+
+                        }
+                    }
+                    else
+                    {
+                        var result = Add( parent, input, ref status );
+                    }
+
+                }
+            }
+            catch ( Exception ex )
+            {
+                var msg = FormatExceptions( ex );
+                LoggingHelper.LogError( ex, thisClassName + ".Save" );
+                status.AddError( "Error - the Save was not successful. " + msg );
             }
             return isValid;
         }
