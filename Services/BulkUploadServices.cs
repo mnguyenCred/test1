@@ -1731,10 +1731,7 @@ namespace Services
 				result.Errors.Add( "Reuse of a row's Unique Identifier is not allowed. Processing this row cannot continue." );
 				return result;
 			}
-			if (item.Row.Row_Index == 270)
-            {
 
-            }
 			//Get the controlled value items that show up in this row
 			//Everything in any uploaded sheet should appear here. If any of these are not found, it's an error
 			//Might also be an error if rowRating is the "ALL" Rating, now
@@ -1792,6 +1789,33 @@ namespace Services
 			{
 				return result;
 			}
+
+			//Check for duplicate Rating Task (minus Row Unique Identifier) from a previous row, after the related concepts etc. above have been figured out
+			var tempRatingTaskSource = summary.GetAll<ReferenceResource>()
+				.FirstOrDefault( m =>
+					m.Name?.ToLower() == item.Row.ReferenceResource_Name?.ToLower() &&
+					m.PublicationDate?.ToLower() == item.Row.ReferenceResource_PublicationDate?.ToLower() &&
+					m.ReferenceType.Contains( rowSourceType.RowId )
+				) ??
+				ReferenceResourceManager.Get( item.Row.ReferenceResource_Name, item.Row.ReferenceResource_PublicationDate ) ??
+				new ReferenceResource();
+			var existingPreviousRatingTask = summary.GetAll<RatingTask>()
+				.FirstOrDefault( m =>
+					m.Description?.ToLower() == item.Row.RatingTask_Description?.ToLower() &&
+					m.ApplicabilityType == rowTaskApplicabilityType.RowId &&
+					m.TrainingGapType == rowTrainingGapType.RowId &&
+					m.PayGradeType == rowPayGrade.RowId &&
+					m.ReferenceType == rowSourceType.RowId &&
+					m.HasReferenceResource == tempRatingTaskSource.RowId
+				);
+			if ( existingPreviousRatingTask != null )
+			{
+				//Actually will need to get the exact row(s)
+				result.Errors.Add( string.Format( "For Unique Identifier: '{0}' the Rating Task data is the same as for a previous row with Unique Identifier: {1}.", item.Row.Row_CodedNotation, existingPreviousRatingTask.CodedNotation ) );
+				result.Errors.Add( "Duplicate Rating Tasks are not allowed. Processing this row cannot continue." );
+				return result;
+			}
+
 
 			//After Validation, process the row's contents
 			//Get the variable items that show up in this row
@@ -1858,7 +1882,6 @@ namespace Services
 				( newItem ) => { summary.ItemsToBeCreated.ReferenceResource.Add( newItem ); }
 			);
 
-
 			//Training Task
 			var rowTrainingTask = LookupOrGetFromDBOrCreateNew( summary, result,
 				//Find in summary
@@ -1907,23 +1930,6 @@ namespace Services
 			);
 
 			//Rating Task
-			//check for duplicate row
-			var taskExists = summary.GetAll<RatingTask>()
-					.FirstOrDefault( m =>
-						m.Description?.ToLower() == item.Row.RatingTask_Description?.ToLower() &&
-						m.ApplicabilityType == rowTaskApplicabilityType.RowId &&
-						m.TrainingGapType == rowTrainingGapType.RowId &&
-						m.PayGradeType == rowPayGrade.RowId &&
-						m.ReferenceType == rowSourceType.RowId &&
-						m.HasReferenceResource == rowRatingTaskSource.RowId //Ensure rowRatingTaskSource is fully found/processed first or this lookup will fail
-					);
-
-			if ( taskExists != null )
-            {
-				//actually will need to get the exact row(s)
-				result.Errors.Add( string.Format( "For Unique Idenitifier: '{0}' the Rating Task data is the same as for a previous row: {1}.", item.Row.Row_CodedNotation, taskExists.CodedNotation ) );
-				return result;
-			}
 			var rowRatingTask = new RatingTask();
 			if ( UtilityManager.GetAppKeyValue( "ratingTaskUsingCodedNotationForLookups",false) )
 			{
