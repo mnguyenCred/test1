@@ -17,8 +17,11 @@ go
 
 USE [NavyRRL]
 GO
+use Navy_RRL_220405
+go
 
-SELECT [Id]
+SELECT top 1000
+	[Id]
       ,[CTID]
   --    ,[RowId]
       ,[Ratings], RatingName
@@ -65,7 +68,8 @@ SELECT [Id]
       ,[ModifiedBy]
      -- ,[ModifiedByUID]
   FROM [dbo].[RatingTaskSummary] base
-  where ratings = 'STG'
+  where CodedNotation = 'PQ42-005'
+  and ratings = 'STG'
   order by id 
 
   where ( base.id in (select a.[RatingTaskId] from [RatingTask.WorkRole] a inner join WorkRole b on a.WorkRoleId = b.Id where b.Id in (30) )) 
@@ -117,7 +121,7 @@ SELECT
 	--,isnull(rtr.Ratings,'') as Ratings
 	--,''BilletTitles,
 	--,isnull(rtb.BilletTitles,'') as BilletTitles
-	,isnull(bt.Name,'') as BilletTitles
+	,isnull(job.Name,'') as BilletTitles
 	,a.CodedNotation 
 	,a.[RankId]
 	, isnull(c1.CodedNotation,'') As [Rank]
@@ -214,7 +218,7 @@ SELECT
 	--22-04-04 - allow multiple rows
 	--left Join RatingTaskBillets rtb1 on a.Id = rtb1.RatingTaskId
 	left join dbo.[RatingTask.HasJob] rtb on a.id = rtb.RatingTaskId
-		left join Job bt on rtb.JobId = bt.id 
+		left join Job job on rtb.JobId = job.Id 
 	--Rank
 	left join [ConceptScheme.Concept]	c1 on a.[RankId] = c1.Id
 	--Level

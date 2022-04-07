@@ -27,7 +27,7 @@ SELECT [CourseId]
       ,[TrainingTaskId]
       ,[TrainingTask]
       ,[TrainingTaskUID]
-      ,[LifeCycleControlDocumentId]
+      ,[LifeCycleControlDocumentTypeId]
       ,[LifeCycleControlDocument]
       ,[LifeCycleControlDocumentUID]
       ,[CourseTypes]
@@ -67,9 +67,10 @@ SELECT base.[Id] as CourseId
 	else b.name end as CurriculumControlAuthority
 	, b.RowId as CurriculumControlAuthorityUID
 	--
-	,base.[LifeCycleControlDocumentId]
-	,d.Name as LifeCycleControlDocument
-	,d.RowId as LifeCycleControlDocumentUID
+	--,base.[LifeCycleControlDocumentId]
+	,base.LifeCycleControlDocumentTypeId
+	,d.Concept as LifeCycleControlDocument
+	,d.ConceptUID as LifeCycleControlDocumentUID
 	--
 	,CASE
 		WHEN CourseTypes IS NULL THEN ''
@@ -98,7 +99,9 @@ SELECT base.[Id] as CourseId
   Left join Organization b on base.CurriculumControlAuthorityId = b.Id
   --left join [dbo].[Course.Concept]	c on base.Id = c.courseId
 	--LCCD
-	Left join ReferenceResource d on base.[LifeCycleControlDocumentId] = d.Id 
+	inner join [ConceptSchemeSummary] d on base.LifeCycleControlDocumentTypeId = d.conceptid
+
+	--Left join ReferenceResource d on base.[LifeCycleControlDocumentId] = d.Id 
 	--
 
 
@@ -129,15 +132,7 @@ SELECT base.[Id] as CourseId
     WHERE  base.Id = a.Id
     FOR XML Path('') 
 ) AMT (AssessmentMethodTypes)
--- orgs
---    CROSS APPLY (
---    SELECT distinct d.Name + ' | '
---    FROM dbo.[Course]  a
---		Inner join [dbo].[Course.Organization]	c on a.Id = c.CourseId
---		inner join Organization d on c.OrganizationId= d.Id 
---    WHERE  base.Id = a.Id
---    FOR XML Path('') 
---) ORG (Organizations)
+
   go
   grant select on TrainingTaskSummary to public
   go

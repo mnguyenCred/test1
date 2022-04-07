@@ -19,7 +19,7 @@ SELECT [Id]
       ,[Description]
       ,[CurriculumControlAuthorityId]
       ,[CurriculumControlAuthority]
-      ,[LifeCycleControlDocumentId]
+      ,[LifeCycleControlDocumentTypeId]
       ,[LifeCycleControlDocument]
       ,[LifeCycleControlDocumentUID]
       ,[CourseTypes]
@@ -50,7 +50,8 @@ SELECT base.[Id]
 	,base.[CurriculumControlAuthorityId]
 	, b.Name as CurriculumControlAuthority
 	--
-	,base.[LifeCycleControlDocumentId]
+	--,base.[LifeCycleControlDocumentId]
+	,base.LifeCycleControlDocumentTypeId
 	,d.Concept as LifeCycleControlDocument
 	,d.ConceptUID as LifeCycleControlDocumentUID
 	,CASE
@@ -72,9 +73,8 @@ SELECT base.[Id]
 	--,base.[CurrentAssessmentApproach]
   FROM [dbo].[Course] base
   inner join Organization b on base.CurriculumControlAuthorityId = b.Id
-  --left join [dbo].[Course.Concept]	c on base.Id = c.courseId
 	--LCCD
-	inner join [ConceptSchemeSummary] d on base.[LifeCycleControlDocumentId] = d.conceptid
+	inner join [ConceptSchemeSummary] d on base.LifeCycleControlDocumentTypeId = d.conceptid
 
 
     CROSS APPLY (

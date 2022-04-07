@@ -217,6 +217,17 @@ namespace Services
 						courseMgr.Save( item, ref summary );
 					}
 				}
+
+				if ( summary.AddedItemsToInnerListsForCopiesOfItems.BilletTitle?.Count > 0 )
+				{
+					var mgr = new JobManager();
+					foreach ( var item in summary.AddedItemsToInnerListsForCopiesOfItems.BilletTitle )
+					{
+						//this will have HasRatingTasks. We save from the other side RatingTask.HasJob
+						//item.CreatedById = item.LastUpdatedById = user.Id;
+						//mgr.Save( item, ref summary );
+					}
+				}
 			}
 			//changes
 			//not sure how different
@@ -1997,6 +2008,7 @@ namespace Services
 					() => new RatingTask()
 					{
 						RowId = Guid.NewGuid(),
+						CodedNotation = item.Row.Row_CodedNotation,
 						Description = item.Row.RatingTask_Description,
 						ApplicabilityType = rowTaskApplicabilityType.RowId,
 						TrainingGapType = rowTrainingGapType.RowId,

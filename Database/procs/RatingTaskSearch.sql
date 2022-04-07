@@ -39,7 +39,7 @@ set @Filter = ' base.RankId in (69, 70,71)'
 set @Filter = ' base.LevelId in (89) AND FunctionalAreaId in(2,5)'
 set @Filter = ' base.id in (select a.[RatingTaskId] from [RatingTask.HasRating] a inner join Rating b on a.ratingId = b.Id where b.Id in (77,78 ))	'
 set @Filter = ' ( base.WorkElementTypeId in ( 1120 ) )  '
- set @Filter = '  Ratings = ''abf'' '
+ set @Filter = '  Ratings = ''ps'' '
 --set @Filter = ''
 
 set @StartPageIndex = 1
