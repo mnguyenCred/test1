@@ -1700,39 +1700,34 @@ namespace Services
 				CacheChangeSummary( summary );
 			}
 
+			//Validate user
 			AppUser user = AccountServices.GetCurrentUser();
 			if ( user?.Id == 0 )
 			{
-				result.Message = "Error - a current user was not found. You must authenticated and authorized to use this function!";
+				result.Errors.Add( "Error - a current user was not found. You must authenticated and authorized to use this function!" );
 				return result;
 			}
+
 			//Do something with the item and summary.  
 			//The summary will be stored in the cache and retrieved again so that it can be used for all of the rows. 
 			//At the end of the process, the summary will contain all of the changes, just like in V2.
 			//Since each row's result is being sent back to the client on a row-by-row basis, the client will also aggregate a list of statuses/changes for each row (no need to send back the summary itself).
 
-			//must have a valid unique identifier
-			//could allow a switch
-			if ( !string.IsNullOrWhiteSpace(item.Row.Row_CodedNotation) )
-            {
-				if (UtilityManager.IsInteger( item.Row.Row_CodedNotation ) )
-                {
-					//error
-					result.Errors.Add( string.Format( "A valid row Unique Idenitifier (ex. NEC1-006) must be provided and not an integer ({0).", item.Row.Row_CodedNotation ) );
-					return result;
-				}
-            } else
-            {
-				//error
-				result.Errors.Add( string.Format( "A valid row Unique Idenitifier (ex. NEC1-006) must be provided.", item.Row.Row_Index ) );
-				return result;
-			}
 			//Processing
 			//Validation - Checks that should skip processing the row's data if there is an error
+
+			//Must have a valid row Unique Identifier
+			if( string.IsNullOrWhiteSpace(item.Row.Row_CodedNotation) || UtilityManager.IsInteger( item.Row.Row_CodedNotation ) )
+			{
+				result.Errors.Add( "Invalid row Unique Identifier: " + ( string.IsNullOrWhiteSpace( item.Row.Row_CodedNotation ) ? "(Empty)" : item.Row.Row_CodedNotation ) );
+				result.Errors.Add( "A valid row Unique Identifier (e.g., \"NEC1-006\") must be provided, and must not be a number." );
+				return result;
+			}
+
 			//Don't allow a row to be processed if it has the same row identifier as a previous row
 			if ( summary.GetAll<RatingTask>().FirstOrDefault( m => m.CodedNotation?.ToLower() == item.Row.Row_CodedNotation?.ToLower() ) != null )
 			{
-				result.Errors.Add( string.Format( "The row Unique Idenitifier: '{0}' was used on a previous row.", item.Row.Row_CodedNotation ) );
+				result.Errors.Add( string.Format( "The row Unique Identifier: '{0}' was used on a previous row.", item.Row.Row_CodedNotation ) );
 				result.Errors.Add( "Reuse of a row's Unique Identifier is not allowed. Processing this row cannot continue." );
 				return result;
 			}
@@ -1763,25 +1758,9 @@ namespace Services
 			var rowOrganizationCCA = GetDataOrError<Organization>( summary, ( m ) => (m.Name != null && m.Name.ToLower() == item.Row.Course_CurriculumControlAuthority_Name?.ToLower()) || (m.ShortName != null && m.ShortName.ToLower() == item.Row.Course_CurriculumControlAuthority_Name?.ToLower()), result, "Curriculum Control Authority not found in database: " + item.Row.Course_CurriculumControlAuthority_Name ?? "" );
 			//may need to check name or codedNotation. ex: when add full names for TCCD(Training Course Control Document),CTTL(Course Training Task Lists) or training solution: Structured On the Job Training OR SOJT
 			//should concept scheme be included in searches (any possible name collisons?)
-			var rowCourseLCCDType = GetDataOrError<Concept>( summary, ( m ) => m.Name?.ToLower() == item.Row.Course_LifeCycleControlDocumentType_CodedNotation?.ToLower(), result, "Life-Cycle Control Document Type not found in database: " + item.Row.Course_LifeCycleControlDocumentType_CodedNotation ?? "" );
-			//
-			Concept rowAssessmentMethodType = null;
-			List<Guid> rowAssessmentMethodTypes = null;
-			if ( item.Row.Course_AssessmentMethodType_Name != null )
-			{
-				rowAssessmentMethodTypes = new List<Guid>();
-				string[] list = item.Row.Course_AssessmentMethodType_Name.Split( ',' );
-				foreach( var asmtMethod in list)
-                {
-					var assessmentMethodType = GetDataOrError<Concept>( summary, ( m ) => m.Name?.ToLower() == asmtMethod?.Trim().ToLower(), result, "Assessment Method Type not found in database: " + asmtMethod ?? "" );
-					if ( assessmentMethodType?.Id > 0 )
-                    {
-						rowAssessmentMethodTypes.Add( assessmentMethodType.RowId );
-						rowAssessmentMethodType = assessmentMethodType;
-					}
-				}
-			}
-			//var rowAssessmentMethodTypeOLD = GetDataOrError<Concept>( summary, ( m ) => m.Name?.ToLower() == item.Row.Course_AssessmentMethodType_Name?.ToLower(), result, "Assessment Method Type not found in database: " + item.Row.Course_AssessmentMethodType_Name ?? "" );
+			var rowCourseLCCDType = GetDataOrError<Concept>( summary, ( m ) => m.Name?.ToLower() == item.Row.Course_LifeCycleControlDocumentType_CodedNotation?.ToLower() || m.CodedNotation?.ToLower() == item.Row.Course_LifeCycleControlDocumentType_CodedNotation?.ToLower(), result, "Life-Cycle Control Document Type not found in database: " + item.Row.Course_LifeCycleControlDocumentType_CodedNotation ?? "" );
+
+			var rowAssessmentMethodType = GetDataOrError<Concept>( summary, ( m ) => m.Name?.ToLower() == item.Row.Course_AssessmentMethodType_Name?.ToLower(), result, "Assessment Method Type not found in database: " + item.Row.Course_AssessmentMethodType_Name ?? "" );
 			
 			//If the Training Gap Type is "Yes", then treat all course/training data as null, but check to see if it exists first (above) to facilitate the warning statement below
 			if( shouldNotHaveTrainingData )
@@ -1809,8 +1788,13 @@ namespace Services
 
 			//Special handling for "All" ratings
 			var allRatingsRating = GetDataOrError<Rating>( summary, ( m ) => m.CodedNotation?.ToLower() == "all", result, "Rating Type of \"ALL\" not found in database." );
-			//not used:
+			var selectedRowRating = GetDataOrError<Rating>( summary, ( m ) => m.CodedNotation?.ToLower() == item.Row.Rating_CodedNotation?.ToLower(), result, "The Rating for this row was not found in the database." );
+			var selectedUIRating = GetDataOrError<Rating>( summary, ( m ) => m.RowId == item.RatingRowID, result, "The selected Rating was not found in the database." ); //Shouldn't be possible
 			var isAllRatingsRow = rowTaskApplicabilityType?.Name.ToLower().Contains( "all sailors" ) ?? false;
+			if( allRatingsRating == null || selectedRowRating == null || selectedUIRating == null )
+			{
+				return result;
+			}
 
 			//After Validation, process the row's contents
 			//Get the variable items that show up in this row
@@ -1871,8 +1855,7 @@ namespace Services
 				{
 					RowId = Guid.NewGuid(),
 					Name = item.Row.ReferenceResource_Name,
-					PublicationDate = item.Row.ReferenceResource_PublicationDate,
-					ReferenceType = new List<Guid>() { rowSourceType.RowId }
+					PublicationDate = item.Row.ReferenceResource_PublicationDate
 				},
 				//Store if newly created
 				( newItem ) => { summary.ItemsToBeCreated.ReferenceResource.Add( newItem ); }
@@ -1919,9 +1902,7 @@ namespace Services
 					RowId = Guid.NewGuid(),
 					Name = item.Row.Course_Name,
 					CodedNotation = item.Row.Course_CodedNotation,
-					CourseType = new List<Guid>() { rowCourseType.RowId },
-					LifeCycleControlDocumentType = rowCourseLCCDType.RowId,
-					CurriculumControlAuthority = new List<Guid>() { rowOrganizationCCA.RowId }
+					LifeCycleControlDocumentType = rowCourseLCCDType.RowId
 				},
 				//Store if newly created
 				( newItem ) => { summary.ItemsToBeCreated.Course.Add( newItem ); },
@@ -2004,6 +1985,7 @@ namespace Services
 						TrainingGapType = rowTrainingGapType.RowId,
 						ReferenceType = rowSourceType.RowId,
 						HasReferenceResource = rowRatingTaskSource.RowId,
+						PayGradeType = rowPayGrade.RowId,
 						Note = item.Row.Note //Should Note be part of the uniqueness checks?
 					},
 					//Store if newly created
@@ -2017,19 +1999,37 @@ namespace Services
 			//Billet Title
 			UpdateSummaryAndResultForItemProperty( summary, summary.ItemsToBeCreated.BilletTitle, summary.AddedItemsToInnerListsForCopiesOfItems.BilletTitle, result, rowBilletTitle, nameof( BilletTitle.HasRatingTask ), rowRatingTask );
 
+			//Reference Resource
+			UpdateSummaryAndResultForItemProperty( summary, summary.ItemsToBeCreated.ReferenceResource, summary.AddedItemsToInnerListsForCopiesOfItems.ReferenceResource, result, rowRatingTaskSource, nameof( ReferenceResource.ReferenceType ), rowSourceType );
+
 			//Course
 			UpdateSummaryAndResultForItemProperty( summary, summary.ItemsToBeCreated.Course, summary.AddedItemsToInnerListsForCopiesOfItems.Course, result, rowCourse, nameof( Course.HasTrainingTask ), rowTrainingTask );
 			UpdateSummaryAndResultForItemProperty( summary, summary.ItemsToBeCreated.Course, summary.AddedItemsToInnerListsForCopiesOfItems.Course, result, rowCourse, nameof( Course.CurriculumControlAuthority ), rowOrganizationCCA );
+			UpdateSummaryAndResultForItemProperty( summary, summary.ItemsToBeCreated.Course, summary.AddedItemsToInnerListsForCopiesOfItems.Course, result, rowCourse, nameof( Course.CourseType ), rowCourseType );
 
 			//Training Task
 			//TODO - handle multiple asmt methods
 			UpdateSummaryAndResultForItemProperty( summary, summary.ItemsToBeCreated.TrainingTask, summary.AddedItemsToInnerListsForCopiesOfItems.TrainingTask, result, rowTrainingTask, nameof( TrainingTask.AssessmentMethodType ), rowAssessmentMethodType );
 
 			//Rating Task
-			UpdateSummaryAndResultForItemProperty( summary, summary.ItemsToBeCreated.RatingTask, summary.AddedItemsToInnerListsForCopiesOfItems.RatingTask, result, rowRatingTask, nameof( RatingTask.HasRating ), rowRating );
-			//22-04-07 mp - skip all ratings
-			//UpdateSummaryAndResultForItemProperty( summary, summary.ItemsToBeCreated.RatingTask, summary.AddedItemsToInnerListsForCopiesOfItems.RatingTask, result, rowRatingTask, nameof( RatingTask.HasRating ), allRatingsRating );
-
+			//If the Rating for this row is "ALL", then tag the task with both the Rating selected from the drop-down list in the UI and the "ALL" Rating
+			if ( isAllRatingsRow && allRatingsRating.CodedNotation == selectedRowRating.CodedNotation )
+			{
+				UpdateSummaryAndResultForItemProperty( summary, summary.ItemsToBeCreated.RatingTask, summary.AddedItemsToInnerListsForCopiesOfItems.RatingTask, result, rowRatingTask, nameof( RatingTask.HasRating ), selectedUIRating );
+				UpdateSummaryAndResultForItemProperty( summary, summary.ItemsToBeCreated.RatingTask, summary.AddedItemsToInnerListsForCopiesOfItems.RatingTask, result, rowRatingTask, nameof( RatingTask.HasRating ), allRatingsRating );
+			}
+			//Else if Applicability Type is "All Sailors" and the Rating for this row is something other than "ALL", then tag the task with both the Rating for this row and the "ALL" Rating
+			else if( isAllRatingsRow && allRatingsRating.CodedNotation != selectedRowRating.CodedNotation )
+			{
+				UpdateSummaryAndResultForItemProperty( summary, summary.ItemsToBeCreated.RatingTask, summary.AddedItemsToInnerListsForCopiesOfItems.RatingTask, result, rowRatingTask, nameof( RatingTask.HasRating ), rowRating );
+				UpdateSummaryAndResultForItemProperty( summary, summary.ItemsToBeCreated.RatingTask, summary.AddedItemsToInnerListsForCopiesOfItems.RatingTask, result, rowRatingTask, nameof( RatingTask.HasRating ), allRatingsRating );
+			}
+			//Otherwise, tag the task with the Rating for this Row
+			else
+			{
+				UpdateSummaryAndResultForItemProperty( summary, summary.ItemsToBeCreated.RatingTask, summary.AddedItemsToInnerListsForCopiesOfItems.RatingTask, result, rowRatingTask, nameof( RatingTask.HasRating ), rowRating );
+			}
+			//Other Rating Task fields
 			UpdateSummaryAndResultForItemProperty( summary, summary.ItemsToBeCreated.RatingTask, summary.AddedItemsToInnerListsForCopiesOfItems.RatingTask, result, rowRatingTask, nameof( RatingTask.HasBilletTitle ), rowBilletTitle );
 			UpdateSummaryAndResultForItemProperty( summary, summary.ItemsToBeCreated.RatingTask, summary.AddedItemsToInnerListsForCopiesOfItems.RatingTask, result, rowRatingTask, nameof( RatingTask.HasWorkRole ), rowWorkRole );
 			UpdateSummaryAndResultForItemProperty( summary, summary.ItemsToBeCreated.RatingTask, summary.AddedItemsToInnerListsForCopiesOfItems.RatingTask, result, rowRatingTask, nameof( RatingTask.HasTrainingTaskList ), rowTrainingTask );
@@ -2086,6 +2086,12 @@ namespace Services
 				{
 					summary.AppendItem( targetItem );
 				}
+			}
+
+			//Track it in the row regardless of whether or not it's already in the summary (helps the client figure out which items showed up on which rows at the end)
+			if( targetItem != null )
+			{
+				result.RowItems.Add( targetItem.RowId );
 			}
 
 			//Return the item (or null)

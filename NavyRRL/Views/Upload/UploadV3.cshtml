@@ -321,7 +321,7 @@
 				//Once the request is finished, store the response for later and process the next item
 				if (response.Valid) {
 					Manager.ActiveItem.Data = response.Data;
-					updateManagerLookupGraph(response.Data);
+					updateManagerLookupGraph(response.Data, Manager.ActiveItem.MappedRow);
 				}
 				else {
 					Manager.ActiveItem.Error = { Type: "ServerError", Status: response.Status, Response: response };
@@ -355,7 +355,7 @@
 	}
 	//
 
-	function updateManagerLookupGraph(data) {
+	function updateManagerLookupGraph(data, MappedRow) {
 		data.ExistingItems.forEach(item => {
 			item.Meta = {
 				IsNew: false,
@@ -383,6 +383,15 @@
 				console.log("Error looking up item for addition", { addition: addition, error: error });
 			});
 		});
+		data.RowItems.forEach(rowID => {
+			lookupItem(rowID, (item) => {
+				item.Meta = item.Meta || {};
+				item.Meta.RowIndices = item.Meta.RowIndices || [];
+				item.Meta.RowIndices.push(MappedRow.Row_Index);
+			}, (error) => {
+				console.log("Error looking up item for row match", { data: data, rowID: rowID, row: MappedRow, error: error });
+			});
+		});
 	}
 	//
 
@@ -393,6 +402,7 @@
 
 		//Render the summary
 		Manager.SummaryData = Manager.FinishedQueue;
+		scanForPotentialDuplicates();
 		renderSummary();
 
 		//Enable buttons
@@ -408,6 +418,73 @@
 			UI.ConfirmChangesButton.show();
 			UI.FixErrorsMessage.hide();
 		}
+	}
+	//
+
+	function scanForPotentialDuplicates() {
+		//Reset Potential Duplicates array and get all items
+		Manager.PotentialDuplicates = [];
+		var allItems = Manager.SummaryData.filter(row => row.Data).flatMap(m => m.Data.NewItems.concat(m.Data.ExistingItems));
+
+		//Scan for duplicates for each type based on the given properties
+		scanForDuplicateItems(allItems, "BilletTitle", [ "Name" ]);
+		scanForDuplicateItems(allItems, "WorkRole", [ "Name" ]);
+		scanForDuplicateItems(allItems, "ReferenceResource", [ "Name", "PublicationDate" ]);
+		scanForDuplicateItems(allItems, "TrainingTask", [ "Description" ]);
+		scanForDuplicateItems(allItems, "Course", [ "Name", "CodedNotation" ]);
+		scanForDuplicateItems(allItems, "RatingTask", [ "Description" ]);
+	}
+	//
+
+	function scanForDuplicateItems(allItems, type, properties) {
+		//Get all items of the specified type and construct an object that tracks that item + the property/column pairs and other useful data
+		var items = allItems.filter(m => m["@@type"] == type).map(item => {
+			//Construct the object
+			var Matchable = {
+				Properties: properties,
+				Data: item,
+				Test: {}
+			};
+
+			//Construct a test object to make match checking faster/easier
+			properties.forEach(property => {
+				Matchable.Test[property] = getBasicString(item[property]);
+			});
+
+			//Cheat by comparing one big heavily normalized string instead of multiple properties
+			Matchable.Match = JSON.stringify(Matchable.Test);
+
+			//Return the matchable object
+			return Matchable;
+		});
+
+		//For each item in the list of all items for this type...
+		while (items.length > 0) {
+			//Take the first item out of the list
+			var current = items.shift();
+
+			//Find other items that match it
+			var matches = items.filter(item => item.Match == current.Match);
+
+			//If there are any matches...
+			if (matches.length > 0) {
+				//Construct an object that tracks the duplicate set
+				Manager.PotentialDuplicates.push({
+					Type: type,
+					Items: [current].concat(matches),
+					RowIndices: (current.Data.Meta.RowIndices || []).concat(matches.flatMap(m => m.Data.Meta.RowIndices || []))
+				});
+			}
+
+			//Remove those matches from the list of items so they don't appear twice
+			items = items.filter(m => !matches.includes(m));
+		}
+	}
+	//
+
+	function getBasicString(value) {
+		value = !value ? "" : Array.isArray(value) ? value.sort().join("|") : value;
+		return value.toString().toLowerCase().replace(/[^a-z0-9 ]/g, " ").replace(/ +/g, " ").trim();
 	}
 	//
 
@@ -449,7 +526,7 @@
 		);
 
 		//Messaging
-		renderMessageSection(UI.SummaryBox, "Server Errors", "Errors that caused processing a row to stop unexpectedly", serverErrorRows.map(m => messageWithHeaderAndList("Error on Row " + (m.MappedRow.Row_Index + 1) + ":", [m.Error?.status + " " + (m.Error?.statusText || "Error")])));
+		renderMessageSection(UI.SummaryBox, "Server Errors", "Errors that caused processing a row to stop unexpectedly", serverErrorRows.map(m => messageWithHeaderAndList("Error on Row " + (m.MappedRow.Row_Index + 1) + ":", [m.Error?.status + " " + (m.Error?.statusText || "Error")])).join(""));
 		renderMessageSection(UI.SummaryBox, "Processing Errors", "Errors encountered while processing the data", processingErrorRows.map(m => messageWithHeaderAndList("Error(s) on Row " + (m.MappedRow.Row_Index + 1) + ":", m.Data.Errors)).join(""));
 		renderMessageSection(UI.SummaryBox, "Warnings", "Issues detected while processing the data", validRows.filter(m => m.Data.Warnings.length > 0).map(m => messageWithHeaderAndList("Warning(s) on Row " + (m.MappedRow.Row_Index + 1) + ":", m.Data.Warnings)).join(""));
 		renderMessageSection(UI.SummaryBox, "Messages", "Miscellaneous messages", validRows.filter(m => m.Data.Message?.length > 0).map(m => messageWithHeaderAndList("Message on Row " + (m.MappedRow.Row_Index + 1) + ":", [m.Data.Message])).join(""));

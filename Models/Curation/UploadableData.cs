@@ -111,6 +111,7 @@ namespace Models.Curation
 			Errors = new List<string>();
 			Warnings = new List<string>();
 			ExistingItems = new List<JObject>();
+			RowItems = new List<Guid>();
 		}
 		public UploadableItemResult( List<JObject> newItems, List<Guid> unmodifiedItems, List<Triple> additions = null, List<Triple> removals = null, List<Triple> textChanges = null, bool valid = true, string message = "" )
 		{
@@ -123,6 +124,7 @@ namespace Models.Curation
 			Errors = new List<string>();
 			Warnings = new List<string>();
 			ExistingItems = new List<JObject>();
+			RowItems = new List<Guid>();
 		}
 
 		public List<JObject> NewItems { get; set; }
@@ -134,6 +136,7 @@ namespace Models.Curation
 		public string Message { get; set; }
 		public List<string> Errors { get; set; }
 		public List<string> Warnings { get; set; }
+		public List<Guid> RowItems { get; set; }
 	}
 	//
 
