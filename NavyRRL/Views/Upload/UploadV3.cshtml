@@ -361,14 +361,16 @@
 		data.ExistingItems.forEach(item => {
 			item.Meta = {
 				IsNew: false,
-				Additions: []
+				Additions: [],
+				TextChanges: []
 			};
 			appendLookupItem(item);
 		});
 		data.NewItems.forEach(item => {
 			item.Meta = {
 				IsNew: true,
-				Additions: []
+				Additions: [],
+				TextChanges: []
 			};
 			appendLookupItem(item);
 		});
@@ -384,6 +386,15 @@
 			}, (error) => {
 				console.log("Error looking up item for addition", { addition: addition, error: error });
 			});
+		});
+		data.TextChanges.forEach(textChange => {
+			lookupItem(textChange.Subject, (item) => {
+				item.Meta.TextChanges = item.Meta.TextChanges || [];
+				item.Meta.TextChanges.push(textChange);
+				data.Warnings.push("Detected text change in " + item["@@type"] + " " + textChange.Predicate + " from \"" + item[textChange.Predicate] + "\" to \"" + textChange.ObjectText + "\".");
+			}, (error) => {
+				console.log("Error looking up item for text change", { textChange: textChange, error: error });
+			})
 		});
 		data.RowItems.forEach(rowID => {
 			lookupItem(rowID, (item) => {
@@ -404,6 +415,7 @@
 
 		//Render the summary
 		Manager.SummaryData = Manager.FinishedQueue;
+		scanForUnintendedCharacters();
 		scanForPotentialDuplicates();
 		renderSummary();
 
@@ -419,6 +431,26 @@
 		else {
 			UI.ConfirmChangesButton.show();
 			UI.FixErrorsMessage.hide();
+		}
+	}
+	//
+
+	function scanForUnintendedCharacters() {
+		Manager.SummaryData.forEach(Row => {
+			Row.Data?.NewItems?.forEach(Item => {
+				["Name", "Description", "CodedNotation"].filter(property => Item[property]).forEach(property => {
+					findUnintendedCharacter(Item, property, Row.Data.Warnings, "  ", "Detected double spaces");
+					findUnintendedCharacter(Item, property, Row.Data.Warnings, "\t", "Detected tab character");
+					findUnintendedCharacter(Item, property, Row.Data.Warnings, "\n", "Detected line break");
+				})
+			});
+		});
+	}
+	//
+
+	function findUnintendedCharacter(item, property, warnings, text, errorPrefix) {
+		if (item[property]?.includes(text)) {
+			warnings?.push(errorPrefix + " in " + item["@@type"] + " " + property + ": \"<span class=\"textError\">" + item[property].replace(new RegExp(text, "g"), "<span class=\"highlight\">" + text + "</span>") + "</span>\"");
 		}
 	}
 	//
@@ -501,6 +533,7 @@
 		var allItems = newItems.concat(existingItems);
 		var existingItemsWithAdditions = existingItems.filter(item => item.Meta.IsNew == false && item.Meta.Additions.length > 0);
 		var duplicateItems = Manager.PotentialDuplicates.flatMap(m => m.Items).flatMap(m => m.Data);
+		var textChangeItems = existingItems.filter(item => item.Meta.TextChanges?.length > 0);
 		Manager.HasErrors = serverErrorRows.length > 0 || processingErrorRows.length > 0;
 
 		//Summary Tab
@@ -516,10 +549,10 @@
 
 		var breakdownTable = $("<table class=\"summaryTable\"><thead></thead><tbody></tbody></table>").appendTo(UI.SummaryBox);
 		breakdownTable.find("thead").append(
-			tableRow(["Type", "Total Items", "Potential Duplicates", "New Items", "Existing Items", "Existing Items with Additions"], "<th>", "</th>")
+			tableRow(["Type", "Total Items", "Potential Duplicates", "New Items", "Existing Items", "Existing Items with Text Changes", "Existing Items with Additions"], "<th>", "</th>")
 		);
 		breakdownTable.find("tbody").append(
-			tableRow(["All", allItems.length, duplicateItems.length, newItems.length, existingItems.length, existingItemsWithAdditions.length]) +
+			tableRow(["All", allItems.length, duplicateItems.length, newItems.length, existingItems.length, textChangeItems.length, existingItemsWithAdditions.length]) +
 			breakdownRow("Billet Title", "BilletTitle") +
 			breakdownRow("Functional Area", "WorkRole") +
 			breakdownRow("Rating Task", "RatingTask") +
@@ -545,7 +578,15 @@
 
 		//Helper Functions
 		function breakdownRow(label, type) {
-			return tableRow([label, filterByType(type, allItems).length, filterByType(type, duplicateItems).length, filterByType(type, newItems).length, filterByType(type, existingItems).length, filterByType(type, existingItemsWithAdditions).length]);
+			return tableRow([
+				label,
+				filterByType(type, allItems).length,
+				filterByType(type, duplicateItems).length,
+				filterByType(type, newItems).length,
+				filterByType(type, existingItems).length,
+				filterByType(type, textChangeItems).length,
+				filterByType(type, existingItemsWithAdditions).length
+			]);
 		}
 
 	}
@@ -916,6 +957,8 @@
 	.messageSection .messageSectionContent .messageSet { margin-bottom: 5px; }
 	.messageSection .messageSectionContent .messageSet .messageSetHeader { font-weight: bold; }
 	.messageSection .messageSectionContent .messageSet .messageSetList { padding: 0 10px; }
+	.messageSection .textError { white-space: pre-wrap; }
+	.messageSection .highlight { background-color: #FF0; }
 
 	.duplicateSet { padding: 5px 10px; border-top: 1px solid #CCC; }
 	.duplicateSet .duplicateSetHeader { font-weight: bold; }
