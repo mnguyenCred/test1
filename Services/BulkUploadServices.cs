@@ -2040,121 +2040,6 @@ namespace Services
 			);
 
 			//Rating Task
-			var rowRatingTask = new RatingTask();
-			if ( UtilityManager.GetAppKeyValue( "ratingTaskUsingCodedNotationForLookups",false) )
-			{
-				rowRatingTask = LookupOrGetFromDBOrCreateNew( summary, result,
-					//Find in summary - if found would be a duplicate
-					() => summary.GetAll<RatingTask>()
-					.FirstOrDefault( m =>
-						m.Description?.ToLower() == item.Row.RatingTask_Description?.ToLower() &&
-						m.ApplicabilityType == rowTaskApplicabilityType.RowId &&
-						m.TrainingGapType == rowTrainingGapType.RowId &&
-						m.PayGradeType == rowPayGrade.RowId &&
-						m.ReferenceType == rowSourceType.RowId &&
-						m.HasReferenceResource == rowRatingTaskSource.RowId //Ensure rowRatingTaskSource is fully found/processed first or this lookup will fail
-					),
-					//Or get from DB
-					() => RatingTaskManager.GetForUpload( rowRating.CodedNotation, item.Row.Row_CodedNotation ),
-					//Or create new
-					() => new RatingTask()
-					{
-						RowId = Guid.NewGuid(),
-						CodedNotation = item.Row.Row_CodedNotation,
-						PayGradeType = rowPayGrade.RowId,
-						Description = item.Row.RatingTask_Description,
-						ApplicabilityType = rowTaskApplicabilityType.RowId,
-						TrainingGapType = rowTrainingGapType.RowId,
-						ReferenceType = rowSourceType.RowId,
-						HasReferenceResource = rowRatingTaskSource.RowId,
-						Note = item.Row.Note //Should Note be part of the uniqueness checks? No
-				},
-					//Store if newly created
-					( newItem ) => { summary.ItemsToBeCreated.RatingTask.Add( newItem ); }
-				);
-			}
-			else
-			{
-				rowRatingTask = LookupOrGetFromDBOrCreateNew( summary, result,
-					//Find in summary
-					() => summary.GetAll<RatingTask>()
-					.FirstOrDefault( m =>
-						m.Description?.ToLower() == item.Row.RatingTask_Description?.ToLower() &&
-						m.ApplicabilityType == rowTaskApplicabilityType.RowId &&
-						m.TrainingGapType == rowTrainingGapType.RowId &&
-						m.PayGradeType == rowPayGrade.RowId &&
-						m.ReferenceType == rowSourceType.RowId &&
-						m.HasReferenceResource == rowRatingTaskSource.RowId //Ensure rowRatingTaskSource is fully found/processed first or this lookup will fail
-					),
-					//Or get from DB
-					() => RatingTaskManager.GetForUpload( rowRating.Id, item.Row.RatingTask_Description, rowTaskApplicabilityType.RowId, rowRatingTaskSource.RowId, rowSourceType.RowId, rowPayGrade.RowId, rowTrainingGapType.RowId ),
-					//Or create new
-					() => new RatingTask()
-					{
-						RowId = Guid.NewGuid(),
-						CodedNotation = item.Row.Row_CodedNotation,
-						Description = item.Row.RatingTask_Description,
-						ApplicabilityType = rowTaskApplicabilityType.RowId,
-						TrainingGapType = rowTrainingGapType.RowId,
-						ReferenceType = rowSourceType.RowId,
-						HasReferenceResource = rowRatingTaskSource.RowId,
-						PayGradeType = rowPayGrade.RowId,
-						Note = item.Row.Note //Should Note be part of the uniqueness checks?
-					},
-					//Store if newly created
-					( newItem ) => { summary.ItemsToBeCreated.RatingTask.Add( newItem ); }
-				);
-			}
-			//cluster analysis
-			//
-			bool isValid = true;
-			int priorityPlacement = UtilityManager.MapInteger( item.Row.Priority_Placement, ref isValid );
-			if ( priorityPlacement > 9 )
-            {
-				//warning
-				result.Warnings.Add( string.Format("Priority Placement ({0}) is invalid. valid values are 1 through 9.", priorityPlacement) );
-			};
-			int development_Time = UtilityManager.MapInteger( item.Row.Development_Time, ref isValid );
-			decimal estimatedInstructionalTime = UtilityManager.MapDecimal( item.Row.EstimatedInstructionalTime, ref isValid );
-			
-				
-			var rowClusterAnalysis= LookupOrGetFromDBOrCreateNew( summary, result,
-				//Find in summary
-				() => summary.GetAll<ClusterAnalysis>()
-				.FirstOrDefault( m =>
-					 m.RatingTaskRowId == rowRatingTask.RowId
-				),
-				//Or get from DB
-				() => ClusterAnalysisManager.GetForUpload( rowRatingTask.RowId ),
-				//Or create new
-				() => new ClusterAnalysis()
-				{
-					RowId = Guid.NewGuid(),
-					RatingTaskRowId= rowRatingTask.RowId,
-					TrainingSolutionType = item.Row.Training_Solution_Type,
-					TrainingSolutionTypeId = rowTrainingSolutionType.Id,
-
-					ClusterAnalysisTitle = item.Row.Cluster_Analysis_Title,
-					RecommendedModality = item.Row.Recommended_Modality,
-					RecommendedModalityId = rowRecommendModalityType.Id,
-
-					DevelopmentSpecification = item.Row.Development_Specification,
-					DevelopmentSpecificationId = rowDevelopmentSpecificationType.Id,
-
-					CandidatePlatform = item.Row.Candidate_Platform,
-					CFMPlacement = item.Row.CFM_Placement,
-					PriorityPlacement = priorityPlacement,
-					DevelopmentRatio = item.Row.Development_Ratio,
-					DevelopmentTime = development_Time,
-					EstimatedInstructionalTime = estimatedInstructionalTime,
-					Notes = item.Row.Cluster_Analysis_Notes
-				},
-				//Store if newly created
-				( newItem ) => { summary.ItemsToBeCreated.ClusterAnalysis.Add( newItem ); },
-				//Skip all of this and set value to null if the following test is true
-				//may be exceptions
-				() => string.IsNullOrWhiteSpace( item.Row.Cluster_Analysis_Title ) || item.Row.Cluster_Analysis_Title.ToLower() == "n/a"
-			);
 			var rowRatingTask = LookupOrGetFromDBOrCreateNew( summary, result,
 				//Find in summary - if found would be a duplicate
 				() => summary.GetAll<RatingTask>()
@@ -2186,10 +2071,64 @@ namespace Services
 					ReferenceType = rowSourceType.RowId,
 					HasReferenceResource = rowRatingTaskSource.RowId,
 					Note = item.Row.Note //Should Note be part of the uniqueness checks? No
-								},
+				},
 				//Store if newly created
 				( newItem ) => { summary.ItemsToBeCreated.RatingTask.Add( newItem ); }
 			);
+			
+
+			//cluster analysis
+			//
+			bool isValid = true;
+			int priorityPlacement = UtilityManager.MapInteger( item.Row.Priority_Placement, ref isValid );
+			if ( priorityPlacement > 9 )
+            {
+				//warning
+				result.Warnings.Add( string.Format("Priority Placement ({0}) is invalid. valid values are 1 through 9.", priorityPlacement) );
+			};
+			int development_Time = UtilityManager.MapInteger( item.Row.Development_Time, ref isValid );
+			decimal estimatedInstructionalTime = UtilityManager.MapDecimal( item.Row.EstimatedInstructionalTime, ref isValid );			
+				
+			var rowClusterAnalysis= LookupOrGetFromDBOrCreateNew( summary, result,
+				//Find in summary
+				() => summary.GetAll<ClusterAnalysis>()
+				.FirstOrDefault( m =>
+					 m.RatingTaskRowId == rowRatingTask.RowId
+				),
+				//Or get from DB
+				() => ClusterAnalysisManager.GetForUpload( rowRatingTask.RowId ),
+				//No text changes to log
+				( existing ) => { },
+				//Or create new
+				() => new ClusterAnalysis()
+				{
+					RowId = Guid.NewGuid(),
+					RatingTaskRowId= rowRatingTask.RowId,
+					TrainingSolutionType = item.Row.Training_Solution_Type,
+					TrainingSolutionTypeId = rowTrainingSolutionType.Id,
+
+					ClusterAnalysisTitle = item.Row.Cluster_Analysis_Title,
+					RecommendedModality = item.Row.Recommended_Modality,
+					RecommendedModalityId = rowRecommendModalityType.Id,
+
+					DevelopmentSpecification = item.Row.Development_Specification,
+					DevelopmentSpecificationId = rowDevelopmentSpecificationType.Id,
+
+					CandidatePlatform = item.Row.Candidate_Platform,
+					CFMPlacement = item.Row.CFM_Placement,
+					PriorityPlacement = priorityPlacement,
+					DevelopmentRatio = item.Row.Development_Ratio,
+					DevelopmentTime = development_Time,
+					EstimatedInstructionalTime = estimatedInstructionalTime,
+					Notes = item.Row.Cluster_Analysis_Notes
+				},
+				//Store if newly created
+				( newItem ) => { summary.ItemsToBeCreated.ClusterAnalysis.Add( newItem ); },
+				//Skip all of this and set value to null if the following test is true
+				//may be exceptions
+				() => string.IsNullOrWhiteSpace( item.Row.Cluster_Analysis_Title ) || item.Row.Cluster_Analysis_Title.ToLower() == "n/a"
+			);
+			
 
 			//Now that we have figured out who all of the actors are...
 			//Handle cases where a new or existing item has associations added to it or removed from it (likely just added to it for now?)
