@@ -843,8 +843,8 @@ namespace Factories
             {
                 foreach ( var item in input.RatingTask_WorkRole )
                 {
-                    if ( item.WorkRole1?.RowId != null )
-                        output.HasWorkRole.Add( item.WorkRole1.RowId );
+                    if ( item.WorkRole?.RowId != null )
+                        output.HasWorkRole.Add( item.WorkRole.RowId );
                 }
             }
             if ( input.RankId > 0 )
@@ -1127,6 +1127,7 @@ namespace Factories
 
                     if ( input.HasTrainingTaskList?.Count == 0 )
                     {
+                        //temp handling of old approach
                         if ( IsValidGuid( input.HasTrainingTask ))
                         {
                             input.HasTrainingTaskList.Add( input.HasTrainingTask );

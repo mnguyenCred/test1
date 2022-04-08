@@ -9,6 +9,7 @@ namespace Models.Schema
 		public BilletTitle()
 		{
 			HasRatingTask = new List<Guid>();
+			HasRatingTaskByCode = new List<string>();
 		}
 
 		/// <summary>
@@ -36,7 +37,7 @@ namespace Models.Schema
 		/// </summary>
 		public List<Guid> HasRatingTask { get; set; }
 
-		public List<string> HasRatingTaskByCode { get; set; }
+		public List<string> HasRatingTaskByCode { get; set; } 
 	}
 	//
 

@@ -58,9 +58,9 @@ namespace Services
 			new ActivityServices().AddActivity( sa );
 			DateTime saveStarted = DateTime.Now;
 			var saveDuration = new TimeSpan();
-			//now what
+			#region Handle ItemsToBeCreated
 			//go thru all non-rating task
-			if (summary.ItemsToBeCreated != null)
+			if ( summary.ItemsToBeCreated != null)
             {
 				//all dependent data has to be done first
 
@@ -122,7 +122,7 @@ namespace Services
 						foreach( var item in summary.ItemsToBeCreated.TrainingTask )
                         {
 							item.CreatedById = item.LastUpdatedById = user.Id;
-							//there is no associate with the course? Need to store the CIN with training task
+							//there is no association with the course? Need to store the CIN with training task
 							//trainTaskMgr.Save( item, ref summary );
 						}
 					}
@@ -164,7 +164,7 @@ namespace Services
 						}
 					}
 				}
-				//ClusterAnalysis?? will be directly related to rating task
+				//
 				if ( summary.ItemsToBeCreated.RatingTask?.Count > 0 )
 				{
 					var mgr = new RatingTaskManager();
@@ -182,26 +182,57 @@ namespace Services
 						if ( summary.ItemsToBeCreated.BilletTitle?.Count > 0 )
 						{
 							//get billets that reference this task
+							//this could be more for the reverse relationship
 							var results = summary.ItemsToBeCreated.BilletTitle.Where( p => p.HasRatingTask.Contains(item.RowId) ).ToList();
 
 							if ( results.Count > 0 )
 							{
-								item.HasBilletTitle.AddRange( results.Select( p => p.RowId ) );
+								//yes this just results in a duplicate
+								//item.HasBilletTitle.AddRange( results.Select( p => p.RowId ) );
 							} else
                             {
+								//is there an alternative? should it have been found in hasRatingTask
+								//there would only be one?
+								/*
 								var resultsByCode = summary.ItemsToBeCreated.BilletTitle.Where( p => p.HasRatingTaskByCode.Contains( item.CodedNotation ) ).ToList();
 								if( resultsByCode.Count > 0 )
 								{
 									//this will always be one (one per row). Alternate would be to do a set based approach after all rating tasks are created. 
 									item.HasBilletTitle.AddRange( resultsByCode.Select( p => p.RowId ) );
 								}
+								*/
 							}
 						}
 						item.CreatedById = item.LastUpdatedById = user.Id;
 						mgr.Save( item, ref summary );
 					}
 				}
+
+				//ClusterAnalysis?? will be directly related to rating task
+				if ( summary.ItemsToBeCreated.ClusterAnalysis?.Count > 0 )
+				{
+
+					//is training task part of course, see there is a separate TrainingTask in UploadableData. the latter has no course Id/RowId to make an association?
+					var mgr = new ClusterAnalysisManager();
+					foreach ( var item in summary.ItemsToBeCreated.ClusterAnalysis )
+					{						
+						item.CreatedById = item.LastUpdatedById = user.Id;
+						mgr.Save( item, ref summary );
+					}
+					//if ( UtilityManager.GetAppKeyValue( "listingInputRecords", false ) || UtilityManager.GetAppKeyValue( "environment" ) == "development" )
+					//{
+					//	foreach ( var item in summary.ItemsToBeCreated.Course )
+					//	{
+					//		LoggingHelper.DoTrace( 6, String.Format( "Course: {0}, CIN: {1}.", item.Name, item.CodedNotation ), false );
+					//	}
+					//}
+				}
 			}
+
+
+			#endregion
+			#region Handle AddedItemsToInnerListsForCopiesOfItems
+
 			if ( summary.AddedItemsToInnerListsForCopiesOfItems != null )
 			{
 				//what to do with these? will be existing parents with child updates like course and training task
@@ -213,23 +244,67 @@ namespace Services
 					{
 						//is all data present?
 						item.CreatedById = item.LastUpdatedById = user.Id;
-						//do we want a full save here, or just focus on training tassks?
-						courseMgr.Save( item, ref summary );
+						//do we want a full save here, or just focus on training tasks?
+						//don't have the full course (just rowId), just parts, so 
+						//may need to get the core record. See what is needed for parts
+						var basicRecord = CourseManager.Get( item.RowId, false );
+						item.Id = basicRecord.Id;
+						item.Name = basicRecord.Name;
+						//other?
+
+						courseMgr.UpdateParts( item, summary );
 					}
 				}
 
 				if ( summary.AddedItemsToInnerListsForCopiesOfItems.BilletTitle?.Count > 0 )
 				{
 					var mgr = new JobManager();
-					foreach ( var item in summary.AddedItemsToInnerListsForCopiesOfItems.BilletTitle )
+					//this will have HasRatingTasks. We save from the other side RatingTask.HasJob
+					//foreach ( var item in summary.AddedItemsToInnerListsForCopiesOfItems.BilletTitle )
+					//{						
+					//	//item.CreatedById = item.LastUpdatedById = user.Id;
+					//	//mgr.Save( item, ref summary );
+					//}
+				}
+
+
+				if ( summary.AddedItemsToInnerListsForCopiesOfItems.TrainingTask?.Count > 0 )
+				{
+					var mgr = new TrainingTaskManager();
+					foreach ( var item in summary.AddedItemsToInnerListsForCopiesOfItems.TrainingTask )
 					{
-						//this will have HasRatingTasks. We save from the other side RatingTask.HasJob
-						//item.CreatedById = item.LastUpdatedById = user.Id;
-						//mgr.Save( item, ref summary );
+						//TBD. Only item would be AssessmentMethodType
+						item.CreatedById = item.LastUpdatedById = user.Id;
+						//may need to get the core record. See what is needed for parts
+						var basicRecord = TrainingTaskManager.Get( item.RowId );
+						item.Id = basicRecord.Id;
+						item.Description = basicRecord.Description;
+						//TBD on if deletes will be an issue?
+						mgr.TrainingTaskAssessmentMethodSave( item, ref summary );
+					}
+				}
+				//
+
+				if ( summary.AddedItemsToInnerListsForCopiesOfItems.RatingTask?.Count > 0 )
+				{
+					var mgr = new RatingTaskManager();
+					foreach ( var item in summary.AddedItemsToInnerListsForCopiesOfItems.RatingTask )
+					{
+						//TBD. Only item would be AssessmentMethodType
+						item.CreatedById = item.LastUpdatedById = user.Id;
+						//may need to get the core record. See what is needed for parts
+						var basicRecord = RatingTaskManager.Get( item.RowId );
+						item.Id = basicRecord.Id;
+						item.Description = basicRecord.Description;
+						//TBD on if deletes will be an issue?
+						mgr.UpdateParts( item, summary );
 					}
 				}
 			}
-			//changes
+
+			#endregion
+			//
+			#region Handle ItemsToBeChanged
 			//not sure how different
 			if ( summary.ItemsToBeChanged != null )
 			{
@@ -325,15 +400,15 @@ namespace Services
 					}
 				}
 			}
+			#endregion
 
-
-			//changes
+			#region Handle ItemsToBeDeleted
 			//not sure how different
 			if ( summary.ItemsToBeDeleted != null )
 			{
 
 			}
-
+			#endregion
 			//copy messages
 
 			//duration
@@ -1742,7 +1817,11 @@ namespace Services
 				result.Errors.Add( "Reuse of a row's Unique Identifier is not allowed. Processing this row cannot continue." );
 				return result;
 			}
+			//
+			if ( item.Row.Row_CodedNotation == "PQ18-018" || item.Row.Row_CodedNotation == "PQ3-019x" || item.Row.Row_CodedNotation == "PQ3-046x" )
+			{
 
+            }
 			//Get the controlled value items that show up in this row
 			//Everything in any uploaded sheet should appear here. If any of these are not found, it's an error
 			//Might also be an error if rowRating is the "ALL" Rating, now
@@ -1752,9 +1831,13 @@ namespace Services
 			
 			var rowTaskApplicabilityType = GetDataOrError<Concept>( summary, ( m ) => m.Name?.ToLower() == item.Row.RatingTask_ApplicabilityType_Name?.ToLower(), result, "Task Applicability Type not found in database: " + item.Row.RatingTask_ApplicabilityType_Name ?? "" );
 			var rowTrainingGapType = GetDataOrError<Concept>( summary, ( m ) => m.Name?.ToLower() == item.Row.RatingTask_TrainingGapType_Name?.ToLower(), result, "Training Gap Type not found in database: " + item.Row.RatingTask_TrainingGapType_Name ?? "" );
-			
+			//cluster analysis concepts
+			var rowTrainingSolutionType = GetDataOrError<Concept>( summary, ( m ) => m.SchemeUri == ConceptSchemeManager.ConceptScheme_TrainingSolutionType && m.Name?.ToLower() == item.Row.Training_Solution_Type?.ToLower(), result, "Training Solution Type not found in database: " + item.Row.Training_Solution_Type ?? "" );
+			var rowRecommendModalityType = GetDataOrError<Concept>( summary, ( m ) => m.SchemeUri == ConceptSchemeManager.ConceptScheme_RecommendedModality && m.Name?.ToLower() == item.Row.Recommended_Modality?.ToLower(), result, "Recommended Modality Type not found in database: " + item.Row.Training_Solution_Type ?? "" );
+			var rowDevelopmentSpecificationType = GetDataOrError<Concept>( summary, ( m ) => m.SchemeUri == ConceptSchemeManager.ConceptScheme_DevelopmentSpecification && m.Name?.ToLower() == item.Row.Development_Specification?.ToLower(), result, "Development Specification Type not found in database: " + item.Row.Development_Specification ?? "" );
+
 			//If any of the above are null, log an error and skip the rest
-			if( new List<object>() { rowRating, rowPayGrade, rowSourceType, rowTaskApplicabilityType, rowTrainingGapType }.Where(m => m == null).Count() > 0 )
+			if ( new List<object>() { rowRating, rowPayGrade, rowSourceType, rowTaskApplicabilityType, rowTrainingGapType }.Where(m => m == null).Count() > 0 )
 			{
 				result.Errors.Add("One or more controlled vocabulary values was not found in the database. Processing this row cannot continue.");
 				return result;
@@ -1763,9 +1846,14 @@ namespace Services
 			//These should throw an error if not found, unless all of the course/training columns are N/A
 			var shouldNotHaveTrainingData = rowTrainingGapType.Name?.ToLower() == "yes";
 			var rowCourseType = GetDataOrError<Concept>( summary, ( m ) => m.Name?.ToLower() == item.Row.Course_CourseType_Name?.ToLower(), result, "Course Type not found in database: " + item.Row.Course_CourseType_Name ?? "" );
-			var rowOrganizationCCA = GetDataOrError<Organization>( summary, ( m ) => (m.Name != null && m.Name.ToLower() == item.Row.Course_CurriculumControlAuthority_Name?.ToLower()) || (m.ShortName != null && m.ShortName.ToLower() == item.Row.Course_CurriculumControlAuthority_Name?.ToLower()), result, "Curriculum Control Authority not found in database: " + item.Row.Course_CurriculumControlAuthority_Name ?? "" );
+
+			var rowOrganizationCCA = GetDataOrError<Organization>( summary, ( m ) => (m.Name != null && m.Name.ToLower() == item.Row.Course_CurriculumControlAuthority_Name?.ToLower()) || (m.ShortName != null && m.ShortName.ToLower() == item.Row.Course_CurriculumControlAuthority_Name?.ToLower()), result, "Curriculum Control Authority not found in database: " + item.Row.Course_CurriculumControlAuthority_Name ?? "missing" );
+
 			//Should concept scheme be included in searches (any possible name collisons?)
+			//Needs to skip nulls
 			var rowCourseLCCDType = GetDataOrError<Concept>( summary, ( m ) => m.Name?.ToLower() == item.Row.Course_LifeCycleControlDocumentType_CodedNotation?.ToLower() || m.CodedNotation?.ToLower() == item.Row.Course_LifeCycleControlDocumentType_CodedNotation?.ToLower(), result, "Life-Cycle Control Document Type not found in database: " + item.Row.Course_LifeCycleControlDocumentType_CodedNotation ?? "" );
+			if ( item.Row.Course_LifeCycleControlDocumentType_CodedNotation == null )
+				rowCourseLCCDType = null;
 			var rowAssessmentMethodTypeList = GetDataListOrError<Concept>( summary, ( m ) => SplitAndTrim( item.Row.Course_AssessmentMethodType_Name?.ToLower(), "," ).Contains( m.Name?.ToLower() ), result, "Assessment Method Type not found in database: " + item.Row.Course_AssessmentMethodType_Name ?? "" );
 			
 			//If the Training Gap Type is "Yes", then treat all course/training data as null, but check to see if it exists first (above) to facilitate the warning statement below
@@ -1779,6 +1867,7 @@ namespace Services
 					rowOrganizationCCA = null;
 					rowCourseLCCDType = null;
 					rowAssessmentMethodTypeList = new List<Concept>();
+					item.Row.TrainingTask_Description = "";
 				}
 
 				//Remove false errors
@@ -2006,6 +2095,56 @@ namespace Services
 					( newItem ) => { summary.ItemsToBeCreated.RatingTask.Add( newItem ); }
 				);
 			}
+			//cluster analysis
+			//
+			bool isValid = true;
+			int priorityPlacement = UtilityManager.MapInteger( item.Row.Priority_Placement, ref isValid );
+			if ( priorityPlacement > 9 )
+            {
+				//warning
+				result.Warnings.Add( string.Format("Priority Placement ({0}) is invalid. valid values are 1 through 9.", priorityPlacement) );
+			};
+			int development_Time = UtilityManager.MapInteger( item.Row.Development_Time, ref isValid );
+			decimal estimatedInstructionalTime = UtilityManager.MapDecimal( item.Row.EstimatedInstructionalTime, ref isValid );
+			
+				
+			var rowClusterAnalysis= LookupOrGetFromDBOrCreateNew( summary, result,
+				//Find in summary
+				() => summary.GetAll<ClusterAnalysis>()
+				.FirstOrDefault( m =>
+					 m.RatingTaskRowId == rowRatingTask.RowId
+				),
+				//Or get from DB
+				() => ClusterAnalysisManager.GetForUpload( rowRatingTask.RowId ),
+				//Or create new
+				() => new ClusterAnalysis()
+				{
+					RowId = Guid.NewGuid(),
+					RatingTaskRowId= rowRatingTask.RowId,
+					TrainingSolutionType = item.Row.Training_Solution_Type,
+					TrainingSolutionTypeId = rowTrainingSolutionType.Id,
+
+					ClusterAnalysisTitle = item.Row.Cluster_Analysis_Title,
+					RecommendedModality = item.Row.Recommended_Modality,
+					RecommendedModalityId = rowRecommendModalityType.Id,
+
+					DevelopmentSpecification = item.Row.Development_Specification,
+					DevelopmentSpecificationId = rowDevelopmentSpecificationType.Id,
+
+					CandidatePlatform = item.Row.Candidate_Platform,
+					CFMPlacement = item.Row.CFM_Placement,
+					PriorityPlacement = priorityPlacement,
+					DevelopmentRatio = item.Row.Development_Ratio,
+					DevelopmentTime = development_Time,
+					EstimatedInstructionalTime = estimatedInstructionalTime,
+					Notes = item.Row.Cluster_Analysis_Notes
+				},
+				//Store if newly created
+				( newItem ) => { summary.ItemsToBeCreated.ClusterAnalysis.Add( newItem ); },
+				//Skip all of this and set value to null if the following test is true
+				//may be exceptions
+				() => string.IsNullOrWhiteSpace( item.Row.Cluster_Analysis_Title ) || item.Row.Cluster_Analysis_Title.ToLower() == "n/a"
+			);
 
 			//Now that we have figured out who all of the actors are...
 			//Handle cases where a new or existing item has associations added to it or removed from it (likely just added to it for now?)
@@ -2049,7 +2188,9 @@ namespace Services
 			UpdateSummaryAndResultForItemProperty( summary, summary.ItemsToBeCreated.RatingTask, summary.AddedItemsToInnerListsForCopiesOfItems.RatingTask, result, rowRatingTask, nameof( RatingTask.HasBilletTitle ), rowBilletTitle );
 			UpdateSummaryAndResultForItemProperty( summary, summary.ItemsToBeCreated.RatingTask, summary.AddedItemsToInnerListsForCopiesOfItems.RatingTask, result, rowRatingTask, nameof( RatingTask.HasWorkRole ), rowWorkRole );
 			UpdateSummaryAndResultForItemProperty( summary, summary.ItemsToBeCreated.RatingTask, summary.AddedItemsToInnerListsForCopiesOfItems.RatingTask, result, rowRatingTask, nameof( RatingTask.HasTrainingTaskList ), rowTrainingTask );
-			
+
+			//anything for ClusterAnalysis????
+
 			//Update the cached summary
 			CacheChangeSummary( summary );
 

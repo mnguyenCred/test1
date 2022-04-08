@@ -84,7 +84,7 @@ namespace Models.Schema
 		public int CurriculumControlAuthorityId { get; set; }
 		public string OrganizationName { get; set; }
 		public string LifeCycleControlDocument { get; set; }
-		public int LifeCycleControlDocumentId { get; set; }
+		public int LifeCycleControlDocumentTypeId { get; set; }
 
 	}
 	//

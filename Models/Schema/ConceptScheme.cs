@@ -50,6 +50,7 @@ namespace Models.Schema
 		/// AKA skos:inScheme
 		/// </summary>
 		public Guid InScheme { get; set; }
+		public string SchemeUri { get; set; }
 
 		public bool IsActive { get; set; }
 

@@ -9,6 +9,7 @@ namespace Models.Schema
     public class ClusterAnalysis : BaseObject
     {
         public int RatingTaskId { get; set; }
+        public Guid RatingTaskRowId { get; set; }
 
         public int TrainingSolutionTypeId { get; set; }
         /// <summary>
@@ -21,13 +22,13 @@ namespace Models.Schema
         /// Temp
         /// </summary>
         public string RecommendedModality { get; set; }
-
+        public int DevelopmentSpecificationId { get; set; }
         public string DevelopmentSpecification { get; set; }
         public string CandidatePlatform { get; set; }
         public string CFMPlacement { get; set; }
 
 
-        public string PriorityPlacement { get; set; }
+        public int PriorityPlacement { get; set; }
         /// <summary>
         /// TBD
         /// </summary>

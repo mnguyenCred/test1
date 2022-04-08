@@ -234,7 +234,7 @@ namespace Factories
             List<string> errors = new List<string>();
             //this will include the extra props (like LifeCycleControlDocument, etc. for now)
             BaseFactory.AutoMap( input, output, errors );
-            //
+            /*
             if ( IsValidGuid( input.HasReferenceResource ) )
             {
                 if ( output.LifeCycleControlDocumentId != null && output.ReferenceResource?.RowId == input.HasReferenceResource )
@@ -255,7 +255,7 @@ namespace Factories
             {
                 output.LifeCycleControlDocumentId = null;
             }
-            //
+            */
             //this may be removed if there can be multiple CCA
             //22-01-24 - Navy confirmed only one!
             if ( input.CurriculumControlAuthority?.Count > 0 )
@@ -297,7 +297,7 @@ namespace Factories
             if ( !string.IsNullOrWhiteSpace( input.LifeCycleControlDocument ) )
             {
                 //can this be a concept scheme??
-                output.LifeCycleControlDocumentId = ConceptSchemeManager.GetConcept( input.LifeCycleControlDocument, ConceptSchemeManager.ConceptScheme_LifeCycleControlDocument )?.Id;
+                output.LifeCycleControlDocumentTypeId = ConceptSchemeManager.GetConcept( input.LifeCycleControlDocument, ConceptSchemeManager.ConceptScheme_LifeCycleControlDocument )?.Id;
             }
             //
 
@@ -527,13 +527,21 @@ namespace Factories
                 }
             }
             //
-            if ( input.LifeCycleControlDocumentId != null )
+            //if ( input.LifeCycleControlDocumentId != null )
+            //{
+            //    output.LifeCycleControlDocumentId = (int)input.LifeCycleControlDocumentId;
+            //    if ( input.ReferenceResource?.Id > 0 )
+            //    {
+            //        output.LifeCycleControlDocument = input.ReferenceResource.Name;
+            //        output.HasReferenceResource = input.ReferenceResource.RowId;
+            //    }
+            //}
+            if ( input.LifeCycleControlDocumentTypeId != null )
             {
-                output.LifeCycleControlDocumentId = (int)input.LifeCycleControlDocumentId;
-                if ( input.ReferenceResource?.Id > 0 )
+                output.LifeCycleControlDocumentTypeId = ( int ) input.LifeCycleControlDocumentTypeId;
+                if ( input.LifeCycleControlDocument_Concept?.Id > 0 )
                 {
-                    output.LifeCycleControlDocument = input.ReferenceResource.Name;
-                    output.HasReferenceResource = input.ReferenceResource.RowId;
+                    output.LifeCycleControlDocument = input.LifeCycleControlDocument_Concept.Name;
                 }
             }
             //
@@ -616,131 +624,6 @@ namespace Factories
         }
 
         #region Course concepts
-        public bool CourseAssessmentMethodSave( AppEntity input, List<Guid> concepts, ref ChangeSummary status )
-        {
-            bool success = false;
-            status.HasSectionErrors = false;
-            var efEntity = new Data.Tables.Course_AssessmentType();
-            var entityType = "Course_AssessmentType";
-
-            using ( var context = new DataEntities() )
-            {
-                try
-                {
-                    if ( concepts?.Count == 0 )
-                        concepts = new List<Guid>();
-                    //check existance
-                    var results =
-                                    from entity in context.Course_AssessmentType
-                                    join concept in context.ConceptScheme_Concept
-                                    on entity.AssessmentMethodConceptId equals concept.Id
-                                    where entity.CourseId == input.Id
-
-                                    select concept;
-
-                    //if ( existing == null )
-                    //    existing = new List<ConceptScheme_Concept>();  
-                    var existing = results?.ToList();
-
-                    #region deletes check
-                    if ( existing.Any() )
-                    {
-                        //if exists not in input, delete it
-                        foreach ( var e in existing )
-                        {
-                            var key = e.RowId;
-                            if ( IsValidGuid( key ) )
-                            {
-                                if ( !concepts.Contains( ( Guid ) key ) )
-                                {
-                                    //DeleteCourseAssessmentType( input.Id, e.Id, ref status );
-                                }
-                            }
-                        }
-                    }
-                    #endregion
-                    //adds
-                    if ( concepts != null )
-                    {
-                        foreach ( var child in concepts )
-                        {
-                            //if not in existing, then add
-                            bool doingAdd = true;
-                            if ( existing?.Count > 0 )
-                            {
-                                foreach ( var item in existing )
-                                {
-                                    if ( item.RowId == child )
-                                    {
-                                        doingAdd = false;
-                                        break;
-                                    }
-                                }
-                            }
-                            if ( doingAdd )
-                            {
-                                var concept = ConceptSchemeManager.GetConcept( child );
-                                if ( concept?.Id > 0 )
-                                {
-                                    efEntity.CourseId = input.Id;
-                                    efEntity.AssessmentMethodConceptId = concept.Id;
-                                    efEntity.RowId = Guid.NewGuid();
-                                    efEntity.CreatedById = input.LastUpdatedById;
-                                    efEntity.Created = DateTime.Now;
-
-                                    context.Course_AssessmentType.Add( efEntity );
-
-                                    int count = context.SaveChanges();
-                                }
-                                else
-                                {
-                                    status.AddError( String.Format( "Error. For Course: '{0}' ({1}) a Course entity was not found for Identifier: {2}", input.Name, input.Id, child ) );
-                                }
-                            }
-                        }
-                    }
-                }
-                catch ( Exception ex )
-                {
-                    string message = FormatExceptions( ex );
-                    LoggingHelper.LogError( ex, thisClassName + string.Format( ".CourseAssessmentMethodSave failed, Course: '{0}' ({1})", entityType, input.Name, input.Id ) );
-                    status.AddError( thisClassName + ".CourseAssessmentMethodSave(). Error - the save was not successful. \r\n" + message );
-                }
-            }
-            return success;
-        }
-        public bool DeleteCourseAssessmentType( int courseId, int conceptId, ref ChangeSummary status )
-        {
-            bool isValid = false;
-            if ( conceptId == 0 )
-            {
-                //statusMessage = "Error - missing an identifier for the CourseConcept to remove";
-                return false;
-            }
-
-            using ( var context = new DataEntities() )
-            {
-                var efEntity = context.Course_AssessmentType
-                                .FirstOrDefault( s => s.CourseId == courseId && s.AssessmentMethodConceptId == conceptId );
-
-                if ( efEntity != null && efEntity.Id > 0 )
-                {
-                    context.Course_AssessmentType.Remove( efEntity );
-                    int count = context.SaveChanges();
-                    if ( count > 0 )
-                    {
-                        isValid = true;
-                    }
-                }
-                else
-                {
-                    //statusMessage = "Warning - the record was not found - probably because the target had been previously deleted";
-                    isValid = true;
-                }
-            }
-
-            return isValid;
-        }
         /*
         public bool CourseAssessmentMethodSave( AppEntity input, List<Guid> concepts, ref ChangeSummary status )
         {

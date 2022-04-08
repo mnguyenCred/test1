@@ -713,19 +713,20 @@ namespace Factories
 
 					//Handle Rating Task Connection
 					var ratingTaskFilter = query.GetFilterByName( "navy:RatingTask" );
-					//if( ratingTaskFilter != null && ratingTaskFilter.ItemIds?.Count() > 0 )
-					//{
-					//	list = list.Where( s =>
-					//		s.RatingTask.Where( t =>
-					//			ratingTaskFilter.IsNegation ?
-					//				!ratingTaskFilter.ItemIds.Contains( t.Id ) :
-					//				ratingTaskFilter.ItemIds.Contains( t.Id )
-					//		).Count() > 0
-					//	);
-					//}
+                    if ( ratingTaskFilter != null && ratingTaskFilter.ItemIds?.Count() > 0 )
+                    {
+                        //not sure yet. get training task for a rating task
+                        list = list.Where( s =>
+                            s.RatingTask_HasTrainingTask.Where( t =>
+                                ratingTaskFilter.IsNegation ?
+                                    !ratingTaskFilter.ItemIds.Contains( t.RatingTaskId ) :
+                                    ratingTaskFilter.ItemIds.Contains( t.RatingTaskId )
+                            ).Count() > 0
+                        );
+                    }
 
-					//Get total
-					query.TotalResults = list.Count();
+                    //Get total
+                    query.TotalResults = list.Count();
 
 					//Sort
 					list = list.OrderBy( p => p.Description );

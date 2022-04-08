@@ -39,7 +39,7 @@ namespace NavyRRL.Controllers
             {
 
             }
-			return View( "~/views/upload/uploadv2.cshtml" );
+			return View( "~/views/upload/uploadv3.cshtml" );
         }
 		//
 

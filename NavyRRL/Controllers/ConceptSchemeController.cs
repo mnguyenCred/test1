@@ -31,7 +31,7 @@ namespace NavyRRL.Controllers
 		public ActionResult Detail( int id )
 		{
 			AuthenticateOrRedirect( "You must be authenticated and authorized to view Concept Scheme data." );
-			var data = Factories.ConceptSchemeManager.Get( id );
+			var data = Factories.ConceptSchemeManager.Get( id, true );
 			return View( data );
 		}
 		//

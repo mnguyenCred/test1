@@ -129,27 +129,11 @@ namespace Factories
             SqlConnection con = new SqlConnection( connectionString );
             LoggingHelper.DoTrace( 6, string.Format( thisClassName + ".BulkLoadRMTL. Starting bulk load for rating: {0}", rating ) );
 
-            //truncate the destination
-            //may want to do this by rating? for concurrent use
-            var query1 = "truncate table [Import.RMTLStaging]";
-            var query2 = string.Format( "DELETE FROM [dbo].[Import.RMTLStaging] WHERE [Rating]='{0}'", rating );
-            try
-            {
-                using ( SqlConnection connection = new SqlConnection( connectionString ) )
-                {
-                    SqlCommand command = new SqlCommand( query2, connection );
-                    command.Connection.Open();
-                    command.ExecuteNonQuery();
-                }
-            }catch ( Exception ex )
-            {
-                var msg = FormatExceptions( ex );
-                LoggingHelper.DoTrace( 5, string.Format( thisClassName + ".BulkLoadRMTL. Error on database clear. " + msg ) );
-            }
+            
             DataTable dt = new DataTable();
             DataRow row;
             DateTime saveStarted = DateTime.Now;
-
+            bool completedRead = true;
             try
             {
                 //check if includes part III
@@ -185,7 +169,7 @@ namespace Factories
                             //continue;
                         }
                         //check for two header lines
-                        if ( cntr == 17 )
+                        if ( cntr == 958 )
                         {
                             //break;
                         }
@@ -205,19 +189,25 @@ namespace Factories
                             }
                             LoggingHelper.DoTrace( 7, string.Format( "Reading: {0} = {1};", headings[i], csv[i] ) );
                          
-                            if ( i == 18 )
+                            if ( i == 8 )
                             {
                                 //skip
                                 //continue;
                             }
                             //also check for blank rows somehow
-                            if ( csv[i] == "Index #" || csv[i] == "Unique Identifier" )
+                            if ( cntr < 5 && (csv[i] == "Index #" || csv[i] == "Unique Identifier" ))
                             {
                                 skipRow = true; 
                                 break;
                             }
-
-                            dest[i] = csv[i];
+                            try
+                            {
+                                dest[i] = csv[i];
+                            }
+                            catch
+                            {
+                                dest[i] = "Error encountered";
+                            }
 
 
                             //may want to make case insensitive!
@@ -264,19 +254,51 @@ namespace Factories
             }
             catch ( Exception ex )
             {
+                completedRead = false;
                 LoggingHelper.DoTrace( 1, string.Format( thisClassName + ".BulkLoadRMTL. {0}", ex.Message ) );
-            }
+                LoggingHelper.LogError( ex, thisClassName + ".BulkUploadRmtl" );
+                //should have a note where the upload may not be complete, or should we stop?
+                //could be a rational for not doing a delete if an error was encountered? 
+                //or get a database count and compare to the upload count
+                //continue if there is a significant amt
+                if ( dt.Rows?.Count < 200 )
+                    return;
 
+            } finally
+            {
+                
+            }
+            
+            //truncate the destination
+            //may want to do this by rating? for concurrent use
+            var query1 = "truncate table [Import.RMTLStaging]";
+            var query2 = string.Format( "DELETE FROM [dbo].[Import.RMTLStaging] WHERE [Rating]='{0}'", rating );
             try
             {
-                SqlBulkCopy bc = new SqlBulkCopy( con.ConnectionString, SqlBulkCopyOptions.TableLock );
-                bc.DestinationTableName = "[Import.RMTLStaging]";
-                bc.BatchSize = dt.Rows.Count;
-                con.Open();
-                bc.WriteToServer( dt );
-                bc.Close();
-                con.Close();
-
+                using ( SqlConnection connection = new SqlConnection( connectionString ) )
+                {
+                    SqlCommand command = new SqlCommand( query2, connection );
+                    command.Connection.Open();
+                    command.ExecuteNonQuery();
+                }
+            }
+            catch ( Exception ex )
+            {
+                var msg = FormatExceptions( ex );
+                LoggingHelper.DoTrace( 5, string.Format( thisClassName + ".BulkLoadRMTL. Error on database clear. " + msg ) );
+            }
+            try
+            {
+                if ( dt.Rows?.Count > 0 )
+                {
+                    SqlBulkCopy bc = new SqlBulkCopy( con.ConnectionString, SqlBulkCopyOptions.TableLock );
+                    bc.DestinationTableName = "[Import.RMTLStaging]";
+                    bc.BatchSize = dt.Rows.Count;
+                    con.Open();
+                    bc.WriteToServer( dt );
+                    bc.Close();
+                    con.Close();
+                }
             }
             catch ( Exception ex )
             {
@@ -353,8 +375,8 @@ namespace Factories
                   ,"CFM_Placement"
                   ,"Priority_Placement"
                   ,"Development_Ratio"
-                  ,"Development_Time"
                   ,"EstimatedInstructionalTime" //may not be present?
+                  ,"Development_Time"
                   ,"Part3Notes"
             };
             return heading;
