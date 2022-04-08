@@ -38,6 +38,7 @@
 		UI.ProgressBarText = $(".progressBarText");
 		UI.ResultsBox = $(".resultsBox");
 		UI.SummaryBox = $(".summaryBox");
+		UI.DuplicatesBox = $(".duplicatesBox");
 		UI.NewItemsLists = $(".newItemsList");
 		UI.AdditionsLists = $(".additionsList");
 		UI.ConfirmChangesButton = $("[data-action='confirmChanges']");
@@ -147,6 +148,7 @@
 			}
 
 			//Process the contents
+			UI.SummaryBox.html("");
 			convertRawCSVToCSVJSON();
 			mapCSVJSONToUploadableRow();
 			processMappedRows();
@@ -429,7 +431,7 @@
 		//Scan for duplicates for each type based on the given properties
 		scanForDuplicateItems(allItems, "BilletTitle", [ "Name" ]);
 		scanForDuplicateItems(allItems, "WorkRole", [ "Name" ]);
-		scanForDuplicateItems(allItems, "ReferenceResource", [ "Name", "PublicationDate" ]);
+		scanForDuplicateItems(allItems, "ReferenceResource", [ "Name", "PublicationDate", "ReferenceType" ]);
 		scanForDuplicateItems(allItems, "TrainingTask", [ "Description" ]);
 		scanForDuplicateItems(allItems, "Course", [ "Name", "CodedNotation" ]);
 		scanForDuplicateItems(allItems, "RatingTask", [ "Description" ]);
@@ -498,6 +500,7 @@
 		var existingItems = validRows.flatMap(row => row.Data.ExistingItems);
 		var allItems = newItems.concat(existingItems);
 		var existingItemsWithAdditions = existingItems.filter(item => item.Meta.IsNew == false && item.Meta.Additions.length > 0);
+		var duplicateItems = Manager.PotentialDuplicates.flatMap(m => m.Items).flatMap(m => m.Data);
 		Manager.HasErrors = serverErrorRows.length > 0 || processingErrorRows.length > 0;
 
 		//Summary Tab
@@ -513,10 +516,10 @@
 
 		var breakdownTable = $("<table class=\"summaryTable\"><thead></thead><tbody></tbody></table>").appendTo(UI.SummaryBox);
 		breakdownTable.find("thead").append(
-			tableRow(["Type", "Total Items", "New Items", "Existing Items", "Existing Items with Additions"], "<th>", "</th>")
+			tableRow(["Type", "Total Items", "Potential Duplicates", "New Items", "Existing Items", "Existing Items with Additions"], "<th>", "</th>")
 		);
 		breakdownTable.find("tbody").append(
-			tableRow(["All", allItems.length, newItems.length, existingItems.length, existingItemsWithAdditions.length]) +
+			tableRow(["All", allItems.length, duplicateItems.length, newItems.length, existingItems.length, existingItemsWithAdditions.length]) +
 			breakdownRow("Billet Title", "BilletTitle") +
 			breakdownRow("Functional Area", "WorkRole") +
 			breakdownRow("Rating Task", "RatingTask") +
@@ -525,11 +528,14 @@
 			breakdownRow("Reference Resource", "ReferenceResource")
 		);
 
-		//Messaging
-		renderMessageSection(UI.SummaryBox, "Server Errors", "Errors that caused processing a row to stop unexpectedly", serverErrorRows.map(m => messageWithHeaderAndList("Error on Row " + (m.MappedRow.Row_Index + 1) + ":", [m.Error?.status + " " + (m.Error?.statusText || "Error")])).join(""));
-		renderMessageSection(UI.SummaryBox, "Processing Errors", "Errors encountered while processing the data", processingErrorRows.map(m => messageWithHeaderAndList("Error(s) on Row " + (m.MappedRow.Row_Index + 1) + ":", m.Data.Errors)).join(""));
-		renderMessageSection(UI.SummaryBox, "Warnings", "Issues detected while processing the data", validRows.filter(m => m.Data.Warnings.length > 0).map(m => messageWithHeaderAndList("Warning(s) on Row " + (m.MappedRow.Row_Index + 1) + ":", m.Data.Warnings)).join(""));
-		renderMessageSection(UI.SummaryBox, "Messages", "Miscellaneous messages", validRows.filter(m => m.Data.Message?.length > 0).map(m => messageWithHeaderAndList("Message on Row " + (m.MappedRow.Row_Index + 1) + ":", [m.Data.Message])).join(""));
+		//Render Messages
+		renderMessageSection(UI.SummaryBox, "Server Errors", "Errors that caused processing a row to stop unexpectedly", serverErrorRows.map(m => messageWithHeaderAndList("Error on Row " + getRowNumber(m.MappedRow.Row_Index) + ":", [m.Error?.status + " " + (m.Error?.statusText || "Error")])).join(""));
+		renderMessageSection(UI.SummaryBox, "Processing Errors", "Errors encountered while processing the data", processingErrorRows.map(m => messageWithHeaderAndList("Error(s) on Row " + getRowNumber(m.MappedRow.Row_Index) + ":", m.Data.Errors)).join(""));
+		renderMessageSection(UI.SummaryBox, "Warnings", "Issues detected while processing the data", validRows.filter(m => m.Data.Warnings.length > 0).map(m => messageWithHeaderAndList("Warning(s) on Row " + getRowNumber(m.MappedRow.Row_Index) + ":", m.Data.Warnings)).join(""));
+		renderMessageSection(UI.SummaryBox, "Messages", "Miscellaneous messages", validRows.filter(m => m.Data.Message?.length > 0).map(m => messageWithHeaderAndList("Message on Row " + getRowNumber(m.MappedRow.Row_Index) + ":", [m.Data.Message])).join(""));
+
+		//Render Potential Duplicates
+		renderAllDuplicateSets();
 
 		//Render New Items
 		renderClassAndPropertySets(renderItemsList, UI.NewItemsLists, newItems);
@@ -539,7 +545,7 @@
 
 		//Helper Functions
 		function breakdownRow(label, type) {
-			return tableRow([label, filterByType(type, allItems).length, filterByType(type, newItems).length, filterByType(type, existingItems).length, filterByType(type, existingItemsWithAdditions).length]);
+			return tableRow([label, filterByType(type, allItems).length, filterByType(type, duplicateItems).length, filterByType(type, newItems).length, filterByType(type, existingItems).length, filterByType(type, existingItemsWithAdditions).length]);
 		}
 
 	}
@@ -559,6 +565,34 @@
 
 	function messageWithHeaderAndList(header, list) {
 		return list.length == 0 ? "" : "<div class=\"messageSet\"><div class=\"messageSetHeader\">" + header + "</div><div class=\"messageSetList\">" + list.map(m => "<div class=\"messageSetListItem\">" + m + "</div>").join("") + "</div></div>";
+	}
+	//
+
+	function renderAllDuplicateSets() {
+		UI.DuplicatesBox.html("<div class=\"itemCount\">" + (Manager.PotentialDuplicates.length + " Sets of Potential Duplicates") + "</div>");
+		renderDuplicateSets(UI.DuplicatesBox, "BilletTitle", "Billet Titles", Manager.PotentialDuplicates, ["Name"], ["HasRatingTask|Related Rating Tasks"]);
+		renderDuplicateSets(UI.DuplicatesBox, "WorkRole", "Functional Areas", Manager.PotentialDuplicates, ["CodedNotation|Code", "Name"], []);
+		renderDuplicateSets(UI.DuplicatesBox, "RatingTask", "Rating Tasks", Manager.PotentialDuplicates, ["CodedNotation|Code", "Description"], ["HasTrainingTaskList|Related Training Tasks", "PayGradeType|Rank", "ApplicabilityType|Applicability Type", "TrainingGapType|Training Gap Type", "HasReferenceResource|Source", "HasRating|Related Ratings", "HasBilletTitle|Related Billet Titles"]);
+		renderDuplicateSets(UI.DuplicatesBox, "TrainingTask", "Training Tasks", Manager.PotentialDuplicates, ["Description"], ["AssessmentMethodType|Assessment Method Type"]);
+		renderDuplicateSets(UI.DuplicatesBox, "Course", "Courses", Manager.PotentialDuplicates, ["CodedNotation|Course Identification Number", "Name"], ["HasTrainingTask|Related Training Tasks", "CourseType|Course Type", "LifeCycleControlDocumentType|Life-Cycle Control Document Type", "CurriculumControlAuthority|Curriculum Control Authority"]);
+		renderDuplicateSets(UI.DuplicatesBox, "ReferenceResource", "Sources", Manager.PotentialDuplicates, ["Name", "PublicationDate|Publication Date"], ["ReferenceType|Reference Type"]);
+	}
+	//
+
+	function renderDuplicateSets(container, type, label, allItems, textProperties, referenceProperties) {
+		var duplicateSets = allItems.filter(m => m.Type == type);
+		duplicateSets.forEach(duplicateSet => {
+			var setBox = $("<div class=\"duplicateSet\"></div>").appendTo(container);
+			var setBoxHeader = $("<div class=\"duplicateSetHeader\">" + duplicateSet.Items.length + " Duplicate " + label + "</div>").appendTo(setBox);
+			//var rowList = $("<div class=\"duplicateRowList\">Found on rows: " + duplicateSet.RowIndices.map(m => getRowNumber(m)).join(", ") + "</div>").appendTo(setBox);
+			duplicateSet.Items.forEach(item => {
+				var itemBox = $("<div class=\"duplicateSetItem\"></div>").appendTo(setBox);
+				var itemRowList = $("<div class=\"duplicateRowList\">Found on rows: " + item.Data.Meta.RowIndices.map(m => getRowNumber(m)).join(", ") + "</div>").appendTo(itemBox);
+				var itemDataBox = $("<div class=\"duplicateItemData listItem\" data-type=\"" + type + "\"></div>").appendTo(itemBox);
+				renderPropertySet(itemDataBox, item.Data, textProperties, referenceProperties);
+			});
+		});
+
 	}
 	//
 
@@ -590,11 +624,13 @@
 			//Build a new object so as not to disturb the existing one
 			var temp = {};
 			textProperties.forEach(property => {
-				item[property] && (temp[property] = item[property]);
+				var propertyName = property.split("|")[0];
+				item[propertyName] && (temp[propertyName] = item[propertyName]);
 			});
 			referenceProperties.forEach(property => {
-				var additions = item.Meta.Additions.filter(m => m.Predicate == property).map(m => m.Object);
-				additions.length > 0 && (temp[property] = additions);
+				var propertyName = property.split("|")[0];
+				var additions = item.Meta.Additions.filter(m => m.Predicate == propertyName).map(m => m.Object);
+				additions.length > 0 && (temp[propertyName] = additions);
 			})
 			renderPropertySet(box, temp, textProperties, referenceProperties);
 		}, "additionsItem");
@@ -647,10 +683,9 @@
 	function renderReferenceProperty(box, value) {
 		var valueList = Array.isArray(value) ? value : [value];
 		valueList.forEach(valueItem => {
-			var itemBox = $("<div class=\"reference\">" + valueList.length + " Items... <div class=\"spinner\"></div></div>").appendTo(box);
+			var itemBox = $("<div class=\"reference\" data-reference=\"" + valueItem + "\">" + valueList.length + " Items... <div class=\"spinner\"></div></div>").appendTo(box);
 			lookupItem(valueItem, (data) => {
-				itemBox.html("<div class=\"referenceText\">" + (data.Name || data.CodedNotation || data.Description) + "</div>");
-				//renderPropertySet(itemBox, data, [ data.Name ? "Name" : data.CodedNotation ? "CodedNotation|Code" : "Description"], []);
+				itemBox.html("<div class=\"referenceText\">" + (data.Name || data.Description || data.CodedNotation) + "</div>");
 			}, (error) => {
 				itemBox.html("Error: " + error);
 			});
@@ -705,11 +740,12 @@
 
 				//Perform the lookup and process the handlers once a response is received
 				doGETRequest("@Url.Content( "~/upload/lookupgraphitem" )?transactionGUID=" + Manager.TransactionGUID + "&itemRowID=" + rowID, (response) => {
-					Request.Data = response.Valid ? response.Data : null;
+					Request.Data = response.Valid ? response.Data : {
+						RowId: rowID, Name: "Error/Not Found (Row ID " + rowID + ")", Description: "Data not found (Row ID " + rowID + ")", Meta: { Error: "Data not found (Row ID " + rowID + ")" } };
 					Request.Error = response.Status;
 					Request.handleListeners();
 				}, (response) => {
-					Request.error = response;
+					Request.Error = response;
 					Request.handleListeners();
 				});
 			}
@@ -802,6 +838,10 @@
 		UI.ConfirmChangesButton.prop("disabled", false);
 	}
 
+	function getRowNumber(rowIndex) {
+		return rowIndex + 3; //Account for 0-based indexing and having two header rows
+	}
+
 	//Generic GET Request
 	function doGETRequest(url, success, error) {
 		handleAJAX(url, success, error);
@@ -845,7 +885,7 @@
 	select, input[type='file'], button { display: block; width: 100%; height: 30px; max-width: none; cursor: pointer; }
 	.spinner { display: inline-block; box-shadow: inset 4px 0 0 5px; border-radius: 50%; height: 20px; width: 20px; animation: spin 1s linear infinite; }
 	@@keyframes spin { 100% { transform: rotate(360deg); } }
-	table { min-width: 800px; }
+	table { min-width: 900px; }
 
 	.section { margin-bottom: 10px; }
 	.inputBox .fileBox { display: flex; background-color: #EEE; margin-top: 5px; }
@@ -877,6 +917,10 @@
 	.messageSection .messageSectionContent .messageSet .messageSetHeader { font-weight: bold; }
 	.messageSection .messageSectionContent .messageSet .messageSetList { padding: 0 10px; }
 
+	.duplicateSet { padding: 5px 10px; border-top: 1px solid #CCC; }
+	.duplicateSet .duplicateSetHeader { font-weight: bold; }
+	.duplicateSet .duplicateSetItem { border-left: 5px solid #CCC; padding: 0 5px; margin: 5px 0 0 20px; }
+
 	.listItem { padding: 5px; border-top: 1px solid #CCC; }
 	.listItem > .propertySet { display: grid; gap: 10px 20px; grid-template-columns: repeat(auto-fill, 500px); }
 	.listItem[data-type='BilletTitle'] > .propertySet { grid-template-columns: auto; }
@@ -888,7 +932,7 @@
 	.listItem .propertySet .property .propertyContent .reference { margin: 10px 0; border-left: 5px solid #CCC; }
 	.listItem .propertySet .property .propertyContent .reference .referenceText { padding: 0 5px; }
 
-	.itemCount { padding: 5px; font-weight: bold; }
+	.itemCount { padding: 10px 5px; font-weight: bold; }
 	.fixErrorsMessage { padding: 10px 20px; margin: 5px; background-color: #FCC; }
 </style>
 
@@ -927,6 +971,10 @@
 				<div class="tabContent summaryBox"></div>
 				<div class="fixErrorsMessage">You must correct the errors listed above before you can save these changes.</div>
 				<button class="confirmChangesButton" data-action="confirmChanges">Confirm and Save Changes</button>
+			</div>
+			<div class="tab">
+				<h3 class="tabHeader">Potential Duplicates</h3>
+				<div class="tabContent duplicatesBox"></div>
 			</div>
 			<div class="tab">
 				<h3 class="tabHeader">New Items</h3>
