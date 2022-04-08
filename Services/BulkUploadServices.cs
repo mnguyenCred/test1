@@ -1931,6 +1931,8 @@ namespace Services
 				),
 				//Or get from DB
 				() => JobManager.GetByName( item.Row.BilletTitle_Name ),
+				//No text changes to log
+				( existing ) => { },
 				//Or create new
 				() => new BilletTitle()
 				{
@@ -1950,6 +1952,8 @@ namespace Services
 				),
 				//Or get from DB
 				() => WorkRoleManager.Get( item.Row.WorkRole_Name ),
+				//No text changes to log
+				( existing ) => { },
 				//Or create new
 				() => new WorkRole()
 				{
@@ -1971,6 +1975,8 @@ namespace Services
 				),
 				//Or get from DB
 				() => ReferenceResourceManager.Get( item.Row.ReferenceResource_Name, item.Row.ReferenceResource_PublicationDate ),
+				//No text changes to log
+				( existing ) => { },
 				//Or create new
 				() => new ReferenceResource()
 				{
@@ -1991,6 +1997,8 @@ namespace Services
 				),
 				//Or get from DB
 				() => TrainingTaskManager.Get( item.Row.TrainingTask_Description ),
+				//No text changes to log (yet?)
+				( existing ) => { },
 				//Or create new
 				() => new TrainingTask()
 				{
@@ -2015,6 +2023,8 @@ namespace Services
 				),
 				//Or get from DB
 				() => CourseManager.GetForUpload( item.Row.Course_Name, item.Row.Course_CodedNotation, rowCourseType.RowId, rowOrganizationCCA.RowId ),
+				//No text changes to log
+				( existing ) => { },
 				//Or create new
 				() => new Course()
 				{
@@ -2145,6 +2155,41 @@ namespace Services
 				//may be exceptions
 				() => string.IsNullOrWhiteSpace( item.Row.Cluster_Analysis_Title ) || item.Row.Cluster_Analysis_Title.ToLower() == "n/a"
 			);
+			var rowRatingTask = LookupOrGetFromDBOrCreateNew( summary, result,
+				//Find in summary - if found would be a duplicate
+				() => summary.GetAll<RatingTask>()
+				.FirstOrDefault( m =>
+					m.Description?.ToLower() == item.Row.RatingTask_Description?.ToLower() &&
+					m.ApplicabilityType == rowTaskApplicabilityType.RowId &&
+					m.TrainingGapType == rowTrainingGapType.RowId &&
+					m.PayGradeType == rowPayGrade.RowId &&
+					m.ReferenceType == rowSourceType.RowId &&
+					m.HasReferenceResource == rowRatingTaskSource.RowId //Ensure rowRatingTaskSource is fully found/processed first or this lookup will fail
+				),
+				//Or get from DB
+				() => UtilityManager.GetAppKeyValue( "ratingTaskUsingCodedNotationForLookups", false ) ?
+					RatingTaskManager.GetForUpload( rowRating.CodedNotation, item.Row.Row_CodedNotation ) :
+					RatingTaskManager.GetForUpload( rowRating.Id, item.Row.RatingTask_Description, rowTaskApplicabilityType.RowId, rowRatingTaskSource.RowId, rowSourceType.RowId, rowPayGrade.RowId, rowTrainingGapType.RowId ),
+				//Log text changes
+				( existing ) => {
+					HandleTextChanges( summary, summary.ItemsToBeChanged.RatingTask, result, existing, nameof( RatingTask.Description ), item.Row.RatingTask_Description );
+				},
+				//Or create new
+				() => new RatingTask()
+				{
+					RowId = Guid.NewGuid(),
+					CodedNotation = item.Row.Row_CodedNotation,
+					PayGradeType = rowPayGrade.RowId,
+					Description = item.Row.RatingTask_Description,
+					ApplicabilityType = rowTaskApplicabilityType.RowId,
+					TrainingGapType = rowTrainingGapType.RowId,
+					ReferenceType = rowSourceType.RowId,
+					HasReferenceResource = rowRatingTaskSource.RowId,
+					Note = item.Row.Note //Should Note be part of the uniqueness checks? No
+								},
+				//Store if newly created
+				( newItem ) => { summary.ItemsToBeCreated.RatingTask.Add( newItem ); }
+			);
 
 			//Now that we have figured out who all of the actors are...
 			//Handle cases where a new or existing item has associations added to it or removed from it (likely just added to it for now?)
@@ -2199,7 +2244,7 @@ namespace Services
 		}
 		//
 
-		public static T LookupOrGetFromDBOrCreateNew<T>( ChangeSummary summary, UploadableItemResult result, Func<T> GetFromSummary, Func<T> GetFromDatabase, Func<T> CreateNew, Action<T> LogNewItem, Func<bool> ReturnNullIfTrue = null ) where T : BaseObject, new()
+		public static T LookupOrGetFromDBOrCreateNew<T>( ChangeSummary summary, UploadableItemResult result, Func<T> GetFromSummary, Func<T> GetFromDatabase, Action<T> LogTextChanges, Func<T> CreateNew, Action<T> LogNewItem, Func<bool> ReturnNullIfTrue = null ) where T : BaseObject, new()
 		{
 			//If there is a method to check whether the item is null (e.g. the cell contains N/A), and that test comes back true, then skip the rest and return null
 			if ( ReturnNullIfTrue != null && ReturnNullIfTrue() )
@@ -2233,6 +2278,9 @@ namespace Services
 				{
 					//Note that it came from the database to help code distinguish between existing items and items from previous rows in the current upload session
 					summary.ItemsLoadedFromDatabase.Add( targetItem.RowId );
+
+					//Track text changes (if applicable)
+					LogTextChanges( targetItem );
 
 					//Also put it into the result's existing items list
 					result.ExistingItems.Add( JObjectify( targetItem ) );
@@ -2329,6 +2377,42 @@ namespace Services
 			}
 		}
 		//
+
+		public static void HandleTextChanges<T>( ChangeSummary summary, List<T> summaryChangeTrackingList, UploadableItemResult result, T existing, string propertyName, string rowPropertyValue ) where T : BaseObject, new()
+		{
+			//Get the property
+			var property = typeof( T ).GetProperty( propertyName );
+			if ( property != null )
+			{
+				//Get the value for the property for the existing data
+				var existingPropertyValue = ( string ) property.GetValue( existing );
+
+				//If both the existing value and the value from the row are null/empty, skip the rest and return
+				if( string.IsNullOrWhiteSpace( existingPropertyValue ) && string.IsNullOrWhiteSpace( rowPropertyValue ) )
+				{
+					return;
+				}
+
+				//If both the existing value and the value from the row are (effectively) identical, skip the rest and return
+				if( existingPropertyValue?.ToLower() == rowPropertyValue?.ToLower() )
+				{
+					return;
+				}
+
+				//Otherwise, handle the change
+				//Track it in the summary
+				var match = summaryChangeTrackingList.FirstOrDefault( m => m.RowId == existing.RowId );
+				if( match == null )
+				{
+					match = new T() { RowId = existing.RowId };
+					summaryChangeTrackingList.Add( match );
+				}
+				property.SetValue( match, rowPropertyValue );
+
+				//Track it in the row result
+				result.TextChanges.Add( new Triple( existing.RowId, propertyName, rowPropertyValue ) );
+			}
+		}
 
 		public static List<string> SplitAndTrim( string text, string splitOn )
 		{

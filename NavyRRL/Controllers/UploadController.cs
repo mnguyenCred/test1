@@ -112,10 +112,18 @@ namespace NavyRRL.Controllers
 			var summary = BulkUploadServices.GetCachedChangeSummary( transactionGUID );
 			var item = summary?.LookupItem<SM.BaseObject>( itemRowID );
 
-			var itemWithType = BulkUploadServices.JObjectify( item );
-
-			//Return it
-			return JsonResponse( itemWithType, true );
+			//Handle the rest
+			if( item != null && item.Id > 0 )
+			{
+				//Append the @type and return the data
+				var itemWithType = BulkUploadServices.JObjectify( item );
+				return JsonResponse( itemWithType, true );
+			}
+			else
+			{
+				//Return error
+				return JsonResponse( null, false, new List<string>() { "Unable to find data for GUID: " + itemRowID.ToString() } );
+			}
 		}
 		//
 
