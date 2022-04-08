@@ -12,29 +12,26 @@ namespace Data.Tables
     using System;
     using System.Collections.Generic;
     
-    public partial class Course_Task
+    public partial class Entity
     {
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2214:DoNotCallOverridableMethodsInConstructors")]
-        public Course_Task()
+        public Entity()
         {
-            this.CourseTask_AssessmentType = new HashSet<CourseTask_AssessmentType>();
-            this.RatingTask_HasTrainingTask = new HashSet<RatingTask_HasTrainingTask>();
+            this.Entity_Comment = new HashSet<Entity_Comment>();
+            this.Entity_Concept = new HashSet<Entity_Concept>();
         }
     
         public int Id { get; set; }
-        public System.Guid RowId { get; set; }
-        public int CourseId { get; set; }
-        public string Description { get; set; }
-        public string CTID { get; set; }
-        public System.DateTime Created { get; set; }
-        public Nullable<int> CreatedById { get; set; }
-        public System.DateTime LastUpdated { get; set; }
-        public Nullable<int> LastUpdatedById { get; set; }
+        public System.Guid EntityUid { get; set; }
+        public int EntityTypeId { get; set; }
+        public Nullable<System.DateTime> Created { get; set; }
+        public Nullable<int> EntityBaseId { get; set; }
+        public string EntityBaseName { get; set; }
+        public Nullable<System.DateTime> LastUpdated { get; set; }
     
-        public virtual Course Course { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<CourseTask_AssessmentType> CourseTask_AssessmentType { get; set; }
+        public virtual ICollection<Entity_Comment> Entity_Comment { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<RatingTask_HasTrainingTask> RatingTask_HasTrainingTask { get; set; }
+        public virtual ICollection<Entity_Concept> Entity_Concept { get; set; }
     }
 }

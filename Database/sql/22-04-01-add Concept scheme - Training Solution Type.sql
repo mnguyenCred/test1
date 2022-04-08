@@ -86,11 +86,11 @@ INSERT INTO [dbo].[ConceptScheme.Concept]
 GO
 
 INSERT INTO [dbo].[ConceptScheme.Concept]
-           ([ConceptSchemeId]           ,[Name]           ,[CTID]
+           ([ConceptSchemeId]           ,[Name]           ,[CTID], CodedNotation
            ,[IsActive]           ,[Created]           ,[CreatedById]           ,[LastUpdated]           ,[LastUpdatedById]
 		   )
      VALUES
-           (20           ,'SOJT'           ,'ce-' + lower(NewId())           
+           (20           ,'Structured On the Job Training'           ,'ce-' + lower(NewId())  ,'SOJT'         
 		   ,1           ,getdate(), 1           ,getdate(), 1
 		   )
 GO

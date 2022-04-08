@@ -12,16 +12,15 @@ namespace Data.Tables
     using System;
     using System.Collections.Generic;
     
-    public partial class Course_AssessmentType
+    public partial class Course_Organization
     {
         public int Id { get; set; }
         public System.Guid RowId { get; set; }
         public int CourseId { get; set; }
-        public int AssessmentMethodConceptId { get; set; }
+        public int OrganizationId { get; set; }
         public System.DateTime Created { get; set; }
         public Nullable<int> CreatedById { get; set; }
     
-        public virtual ConceptScheme_Concept ConceptScheme_Concept { get; set; }
-        public virtual Course Course { get; set; }
+        public virtual Organization Organization { get; set; }
     }
 }

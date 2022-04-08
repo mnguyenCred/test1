@@ -1,106 +1,14 @@
 USE [NavyRRL]
 GO
 /*
-INSERT INTO [dbo].[ConceptScheme]
-           ([Id]
-           ,[Name]
-           ,[Description]
-           ,[RowId]
-           ,[CTID]
-           ,[SchemaUri]
-           ,[Created]
-           ,[LastUpdated]
-)
-     VALUES
-           (17,'Life Cycle Control Document'
-           ,NULL
-           ,newId()
-           ,'ce-'+lower(newId())
-           ,'navy:LifeCycleControlDocument'
-           ,GETDATE()
-           ,GETDATE()
-           )
-GO
 
-INSERT INTO [dbo].[ConceptScheme.Concept]
-           ([RowId] ,[ConceptSchemeId]
-           ,[Label]
-           ,[CTID] ,[CodedNotation]
-           ,[Created]  ,[LastUpdated])
-     VALUES
-           (newId() ,17
-           ,'A'
-           ,'ce-'+lower(newId())
-           ,'A'
-            ,GETDATE(),GETDATE())
-GO
-INSERT INTO [dbo].[ConceptScheme.Concept]
-           ([RowId] ,[ConceptSchemeId]
-           ,[Label]
-           ,[CTID] ,[CodedNotation]
-           ,[Created]  ,[LastUpdated])
-     VALUES
-           (newId() ,17
-           ,'TCCD'
-           ,'ce-'+lower(newId())
-           ,'TCCD'
-            ,GETDATE(),GETDATE())
-GO
-INSERT INTO [dbo].[ConceptScheme.Concept]
-           ([RowId] ,[ConceptSchemeId]
-           ,[Label]
-           ,[CTID] ,[CodedNotation]
-           ,[Created]  ,[LastUpdated])
-     VALUES
-           (newId() ,17
-           ,'CTTL'
-           ,'ce-'+lower(newId())
-           ,'CTTL'
-            ,GETDATE(),GETDATE())
-GO
 
-INSERT INTO [dbo].[ConceptScheme.Concept]
-           ([RowId] ,[ConceptSchemeId]
-           ,[Label]
-           ,[CTID] ,[CodedNotation]
-           ,[Created]  ,[LastUpdated])
-     VALUES
-           (newId() ,17
-           ,'Cirriculum Review'
-           ,'ce-'+lower(newId())
-           ,'CR'
-            ,GETDATE(),GETDATE())
-GO
 
-INSERT INTO [dbo].[ConceptScheme.Concept]
-           ([RowId] ,[ConceptSchemeId]
-           ,[Label]
-           ,[CTID] ,[CodedNotation]
-           ,[Created]  ,[LastUpdated])
-     VALUES
-           (newId() ,17
-           ,'Cirriculum Review'
-           ,'ce-'+lower(newId())
-           ,'CR'
-            ,GETDATE(),GETDATE())
-GO
-INSERT INTO [dbo].[ConceptScheme.Concept]
-           ([RowId] ,[ConceptSchemeId]
-           ,[Label]
-           ,[CTID] ,[CodedNotation]
-           ,[Created]  ,[LastUpdated])
-     VALUES
-           (newId() ,17
-           ,'PPP Table'
-           ,'ce-'+lower(newId())
-           ,'PPP'
-            ,GETDATE(),GETDATE())
-GO
-*/
 -- new reference resource
+OBSOLETE 
 INSERT INTO [dbo].[ConceptScheme.Concept]
            ([RowId] ,[ConceptSchemeId]
-           ,[Label]
+           ,Name
            ,[CTID] ,[CodedNotation]
 		   ,Description
            ,[Created]  ,[LastUpdated])
@@ -114,7 +22,7 @@ INSERT INTO [dbo].[ConceptScheme.Concept]
 GO
 INSERT INTO [dbo].[ConceptScheme.Concept]
            ([RowId] ,[ConceptSchemeId]
-           ,[Label]
+           ,Name
            ,[CTID] ,[CodedNotation]
 		   ,Description
            ,[Created]  ,[LastUpdated])
@@ -126,43 +34,43 @@ INSERT INTO [dbo].[ConceptScheme.Concept]
 		   ,''
             ,GETDATE(),GETDATE())
 GO
-
+*/
 
 --=============================================
 -- updates
 
 
 UPDATE [dbo].[ConceptScheme.Concept]
-   SET [Label] = 'Maintenance Index Page'
+   SET Name = 'Maintenance Index Page'
       ,[CodedNotation] = 'MIP'
       ,[Description] = NULL
 
- WHERE label = 'MIP'
+ WHERE Name = 'MIP'
  GO
  UPDATE [dbo].[ConceptScheme.Concept]
-   SET [Label] = 'Navy Education and Training'
+   SET Name = 'Navy Education and Training'
       ,[CodedNotation] = 'NAVEDTRA'
       ,[Description] = '300 Series PQS Watch Station'
- WHERE label = 'NAVEDTRA'
+ WHERE Name = 'NAVEDTRA'
  GO
   UPDATE [dbo].[ConceptScheme.Concept]
-   SET [Label] = 'Navy Personnel, Volume I'
+   SET Name = 'Navy Personnel, Volume I'
       ,[CodedNotation] = 'NAVPERS I'
       ,[Description] = 'NAVPERS 18068F Vol I'
- WHERE label = 'NAVPERS I'
+ WHERE Name = 'NAVPERS I'
  GO
  --
    UPDATE [dbo].[ConceptScheme.Concept]
-   SET [Label] = 'Navy Personnel, Volume II'
+   SET Name = 'Navy Personnel, Volume II'
       ,[CodedNotation] = 'NAVPERS II'
       ,[Description] = 'NAVPERS 18068F Vol II'
- WHERE label = 'NAVPERS II'
+ WHERE Name = 'NAVPERS II'
  GO
  --
     UPDATE [dbo].[ConceptScheme.Concept]
-   SET [Label] = 'Subject Matter Expert Panel Input'
+   SET Name = 'Subject Matter Expert Panel Input'
       ,[CodedNotation] = 'SME'
       ,[Description] = 'Subject Matter Expert Panel Input'
- WHERE label = 'SME'
+ WHERE Name = 'SME'
  GO
 

@@ -18,6 +18,7 @@ namespace Data.Tables
         public Organization()
         {
             this.Course = new HashSet<Course>();
+            this.Course_Organization = new HashSet<Course_Organization>();
         }
     
         public int Id { get; set; }
@@ -26,13 +27,15 @@ namespace Data.Tables
         public string Description { get; set; }
         public string CTID { get; set; }
         public string SubjectWebpage { get; set; }
+        public string AlternateName { get; set; }
         public System.DateTime Created { get; set; }
         public Nullable<int> CreatedById { get; set; }
         public System.DateTime LastUpdated { get; set; }
         public Nullable<int> LastUpdatedById { get; set; }
-        public string AlternateName { get; set; }
     
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<Course> Course { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<Course_Organization> Course_Organization { get; set; }
     }
 }

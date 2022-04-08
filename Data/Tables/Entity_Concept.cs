@@ -12,15 +12,16 @@ namespace Data.Tables
     using System;
     using System.Collections.Generic;
     
-    public partial class Codes_EntityType
+    public partial class Entity_Concept
     {
         public int Id { get; set; }
-        public string Title { get; set; }
-        public string Description { get; set; }
-        public Nullable<bool> IsActive { get; set; }
-        public string SchemaUrl { get; set; }
-        public Nullable<System.DateTime> Created { get; set; }
-        public Nullable<int> Totals { get; set; }
-        public string RegistryResourceType { get; set; }
+        public System.Guid RowId { get; set; }
+        public int EntityId { get; set; }
+        public int ConceptId { get; set; }
+        public System.DateTime Created { get; set; }
+        public Nullable<int> CreatedById { get; set; }
+    
+        public virtual ConceptScheme_Concept ConceptScheme_Concept { get; set; }
+        public virtual Entity Entity { get; set; }
     }
 }

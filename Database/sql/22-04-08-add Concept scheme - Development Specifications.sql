@@ -1,6 +1,7 @@
 USE [NavyRRL]
 GO
---22-04-05-add Concept scheme - LifeCycleControlDocumentType
+--22-04-08-add Concept scheme - Development Specifications
+
 INSERT INTO [dbo].[ConceptScheme]
            ([Id]
            ,[Name]
@@ -11,53 +12,60 @@ INSERT INTO [dbo].[ConceptScheme]
            ,[LastUpdated],[LastUpdatedById]
 		   )
      VALUES
-           (17
-           ,'LifeCycle Control Document Type'
-           ,'LifeCycle control document types for courses.'
+           (23
+           ,'Development Specifications'
+           ,'Development Specifications for cluster analysis'
            ,'ce-' + lower(NewId())
-           ,'navy:LifeCycleControlDocumentType'
+           ,'navy:DevelopmentSpecification'
            ,getdate(), 1
            ,getdate(), 1
 		   )
 GO
 
---CTTL, TCCD, not sure about Cirriculum Review
 --
+--???
 INSERT INTO [dbo].[ConceptScheme.Concept]
-           ([ConceptSchemeId]           ,[Name]           ,[CTID], CodedNotation
+           ([ConceptSchemeId]           ,[Name]           ,[CTID]
            ,[IsActive]           ,[Created]           ,[CreatedById]           ,[LastUpdated]           ,[LastUpdatedById]
 		   )
      VALUES
-           (17           ,'CTTL'           ,'ce-' + lower(NewId()), 'CTTL'           
-		   ,1           ,getdate(), 1           ,getdate(), 1
-		   )
-GO
-INSERT INTO [dbo].[ConceptScheme.Concept]
-           ([ConceptSchemeId]           ,[Name]           ,[CTID], CodedNotation
-           ,[IsActive]           ,[Created]           ,[CreatedById]           ,[LastUpdated]           ,[LastUpdatedById]
-		   )
-     VALUES
-           (17           ,'TCCD'           ,'ce-' + lower(NewId()), 'TCCD'           
-		   ,1           ,getdate(), 1           ,getdate(), 1
-		   )
-GO
---??
-INSERT INTO [dbo].[ConceptScheme.Concept]
-           ([ConceptSchemeId]           ,[Name]           ,[CTID], CodedNotation
-           ,[IsActive]           ,[Created]           ,[CreatedById]           ,[LastUpdated]           ,[LastUpdatedById]
-		   )
-     VALUES
-           (17           ,'Curriculum Review'           ,'ce-' + lower(NewId()), 'Curriculum Review'           
+           (23           ,'ICW-1/xAPI/H5P/MELD'           ,'ce-' + lower(NewId())           
 		   ,1           ,getdate(), 1           ,getdate(), 1
 		   )
 GO
 
 INSERT INTO [dbo].[ConceptScheme.Concept]
-           ([ConceptSchemeId]           ,[Name]           ,[CTID], CodedNotation
+           ([ConceptSchemeId]           ,[Name]           ,[CTID]
            ,[IsActive]           ,[Created]           ,[CreatedById]           ,[LastUpdated]           ,[LastUpdatedById]
 		   )
      VALUES
-           (17           ,'PPP Table'           ,'ce-' + lower(NewId()), 'PPP'           
+           (23           ,'ICW-2/xAPI/H5P/Unity/MELD'           ,'ce-' + lower(NewId())           
 		   ,1           ,getdate(), 1           ,getdate(), 1
 		   )
 GO
+
+
+INSERT INTO [dbo].[ConceptScheme.Concept]
+           ([ConceptSchemeId]           ,[Name]           ,[CTID]
+           ,[IsActive]           ,[Created]           ,[CreatedById]           ,[LastUpdated]           ,[LastUpdatedById]
+		   )
+     VALUES
+           (23           ,'ICW-3/xAPI/H5P/Unity/MELD'           ,'ce-' + lower(NewId())          
+		   ,1           ,getdate(), 1           ,getdate(), 1
+		   )
+GO
+
+
+INSERT INTO [dbo].[ConceptScheme.Concept]
+           ([ConceptSchemeId]           ,[Name]           ,[CTID]
+           ,[IsActive]           ,[Created]           ,[CreatedById]           ,[LastUpdated]           ,[LastUpdatedById]
+		   )
+     VALUES
+           (23           ,'ICW-4/xAPI/H5P/Unity/MELD'           ,'ce-' + lower(NewId())          
+		   ,1           ,getdate(), 1           ,getdate(), 1
+		   )
+GO
+
+
+--=================
+

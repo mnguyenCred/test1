@@ -17,10 +17,10 @@ namespace Data.Tables
         public int Id { get; set; }
         public System.Guid RowId { get; set; }
         public int RatingTaskId { get; set; }
-        public int TrainingSolutionTypeId { get; set; }
+        public Nullable<int> TrainingSolutionTypeId { get; set; }
         public string ClusterAnalysisTitle { get; set; }
         public Nullable<int> RecommendedModalityId { get; set; }
-        public string DevelopmentSpecification { get; set; }
+        public Nullable<int> DevelopmentSpecificationId { get; set; }
         public string CandidatePlatform { get; set; }
         public string CFMPlacement { get; set; }
         public Nullable<int> PriorityPlacement { get; set; }
@@ -35,9 +35,11 @@ namespace Data.Tables
         public Nullable<int> LastUpdatedById { get; set; }
         public string TrainingSolutionType { get; set; }
         public string RecommendedModality { get; set; }
+        public string DevelopmentSpecification { get; set; }
     
         public virtual ConceptScheme_Concept ConceptScheme_Concept { get; set; }
-        public virtual ConceptScheme_Concept ConceptScheme_Concept1 { get; set; }
         public virtual RatingTask RatingTask { get; set; }
+        public virtual ConceptScheme_Concept ConceptScheme_Concept1 { get; set; }
+        public virtual ConceptScheme_Concept ConceptScheme_Concept2 { get; set; }
     }
 }

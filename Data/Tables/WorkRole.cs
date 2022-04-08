@@ -17,7 +17,7 @@ namespace Data.Tables
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2214:DoNotCallOverridableMethodsInConstructors")]
         public WorkRole()
         {
-            this.RatingTask_WorkRole1 = new HashSet<RatingTask_WorkRole>();
+            this.RatingTask_WorkRole = new HashSet<RatingTask_WorkRole>();
         }
     
         public int Id { get; set; }
@@ -33,6 +33,6 @@ namespace Data.Tables
         public Nullable<int> LastUpdatedById { get; set; }
     
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<RatingTask_WorkRole> RatingTask_WorkRole1 { get; set; }
+        public virtual ICollection<RatingTask_WorkRole> RatingTask_WorkRole { get; set; }
     }
 }

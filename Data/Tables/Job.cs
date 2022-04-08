@@ -17,11 +17,12 @@ namespace Data.Tables
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2214:DoNotCallOverridableMethodsInConstructors")]
         public Job()
         {
-            this.RmtlProject_Billet = new HashSet<RmtlProject_Billet>();
             this.RatingTask_HasJob = new HashSet<RatingTask_HasJob>();
+            this.RmtlProject_Billet = new HashSet<RmtlProject_Billet>();
         }
     
         public int Id { get; set; }
+        public System.Guid RowId { get; set; }
         public string CTID { get; set; }
         public string Name { get; set; }
         public string CodedNotation { get; set; }
@@ -29,18 +30,17 @@ namespace Data.Tables
         public string Description { get; set; }
         public string ShortName30 { get; set; }
         public string ShortName14 { get; set; }
-        public System.DateTime Created { get; set; }
-        public System.DateTime LastUpdated { get; set; }
-        public System.Guid RowId { get; set; }
-        public Nullable<int> CreatedById { get; set; }
-        public Nullable<int> LastUpdatedById { get; set; }
         public Nullable<int> RatingId { get; set; }
+        public System.DateTime Created { get; set; }
+        public Nullable<int> CreatedById { get; set; }
+        public System.DateTime LastUpdated { get; set; }
+        public Nullable<int> LastUpdatedById { get; set; }
         public Nullable<System.Guid> HasRating { get; set; }
     
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<RmtlProject_Billet> RmtlProject_Billet { get; set; }
+        public virtual Rating Rating { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<RatingTask_HasJob> RatingTask_HasJob { get; set; }
-        public virtual Rating Rating { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<RmtlProject_Billet> RmtlProject_Billet { get; set; }
     }
 }
