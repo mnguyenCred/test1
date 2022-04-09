@@ -242,25 +242,34 @@ namespace Factories
             //{
             //    output.TrainingSolutionTypeId = ( int ) ConceptSchemeManager.GetConcept( input.TrainingSolutionTypeId )?.Id;
             //}
-            if ( !string.IsNullOrWhiteSpace( input.TrainingSolutionType ) )
-            {
-                if ( input.TrainingSolutionType == "NEC Refresher" )
-                    output.TrainingSolutionTypeId = 1131;
-                else
-                {
-                    //ConceptSchemeManager.ConceptScheme_TrainingSolutionType, 
-                    output.TrainingSolutionTypeId = ( int ) ConceptSchemeManager.GetConcept( "navy:TrainingSolutionType", input.TrainingSolutionType )?.Id;
-                }
-            }
-            //else
-            //    output.TrainingSolutionTypeId = null;
+            if ( input.TrainingSolutionTypeId > 0 )
+                output.TrainingSolutionTypeId = input.TrainingSolutionTypeId;
 
-            if ( !string.IsNullOrWhiteSpace( input.RecommendedModality ) )
+            else if ( !string.IsNullOrWhiteSpace( input.TrainingSolutionType ) )
             {
-                //temp,then  ConceptSchemeManager.ConceptScheme_RecommendedModality
-                output.RecommendedModalityId = ( int ) ConceptSchemeManager.GetConcept( "navy:RecommendedModality",input.RecommendedModality )?.Id;
+                output.TrainingSolutionTypeId = ( int ) ConceptSchemeManager.GetConcept( ConceptSchemeManager.ConceptScheme_TrainingSolutionType, input.TrainingSolutionType )?.Id;
             }
+            else
+                output.TrainingSolutionTypeId = null;
 
+            if ( input.RecommendedModalityId > 0 )
+                output.RecommendedModalityId = input.RecommendedModalityId;
+
+            else if ( !string.IsNullOrWhiteSpace( input.RecommendedModality ) )
+            {
+                //
+                output.RecommendedModalityId = ( int ) ConceptSchemeManager.GetConcept( ConceptSchemeManager.ConceptScheme_RecommendedModality, input.RecommendedModality )?.Id;
+            }
+            else
+                output.RecommendedModalityId = null;
+
+            if ( input.DevelopmentSpecificationId > 0 )
+                output.DevelopmentSpecificationId = input.DevelopmentSpecificationId;
+
+            else if ( !string.IsNullOrWhiteSpace( input.DevelopmentSpecification ) )
+            {
+                output.DevelopmentSpecificationId = ( int ) ConceptSchemeManager.GetConcept( ConceptSchemeManager.ConceptScheme_DevelopmentSpecification, input.DevelopmentSpecification )?.Id;
+            }
             //if ( !string.IsNullOrWhiteSpace( input.CFMPlacement ) )
             //{
             //    output.CFMPlacementId = ( int ) ConceptSchemeManager.GetConcept( ConceptSchemeManager.ConceptScheme_CFMPlacement, input.CFMPlacement )?.Id;

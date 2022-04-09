@@ -300,6 +300,19 @@ namespace Services
 						mgr.UpdateParts( item, summary );
 					}
 				}
+
+				if ( summary.AddedItemsToInnerListsForCopiesOfItems.ClusterAnalysis?.Count > 0 )
+				{
+
+					//not sure about this, no inner
+					var mgr = new ClusterAnalysisManager();
+					foreach ( var item in summary.AddedItemsToInnerListsForCopiesOfItems.ClusterAnalysis )
+					{
+						item.CreatedById = item.LastUpdatedById = user.Id;
+						mgr.Save( item, ref summary );
+					}
+				
+				}
 			}
 
 			#endregion
@@ -323,7 +336,7 @@ namespace Services
 					var mgr = new ReferenceResourceManager();
 					foreach ( var item in summary.ItemsToBeChanged.ReferenceResource )
 					{
-						item.CreatedById = item.LastUpdatedById = user.Id;
+						item.LastUpdatedById = user.Id;
 						mgr.Save( item, ref summary );
 					}
 				}
@@ -360,7 +373,7 @@ namespace Services
 					var mgr = new WorkRoleManager();
 					foreach ( var item in summary.ItemsToBeChanged.WorkRole )
 					{
-						item.CreatedById = item.LastUpdatedById = user.Id;
+						item.LastUpdatedById = user.Id;
 						mgr.Save( item, ref summary );
 					}
 				}
@@ -370,7 +383,7 @@ namespace Services
 					var mgr = new JobManager();
 					foreach ( var item in summary.ItemsToBeChanged.BilletTitle )
 					{
-						item.CreatedById = item.LastUpdatedById = user.Id;
+						item.LastUpdatedById = user.Id;
 						mgr.Save( item, ref summary );
 					}
 				}
@@ -395,7 +408,19 @@ namespace Services
 							var results = summary.ItemsToBeCreated.BilletTitle.Where( p => p.HasRatingTask.Contains( item.RowId ) ).ToList();
 							item.HasBilletTitle.AddRange( results.Select( p => p.RowId ) );
 						}
-						item.CreatedById = item.LastUpdatedById = user.Id;
+						item.LastUpdatedById = user.Id;
+						//ISSUE THE FULL RATING TASK IS NOT HERE. HOW TO DO A PROPER SAVE?
+						mgr.Save( item, ref summary );
+					}
+				}
+
+
+				if ( summary.ItemsToBeChanged.ClusterAnalysis?.Count > 0 )
+				{
+					var mgr = new ClusterAnalysisManager();
+					foreach ( var item in summary.ItemsToBeChanged.ClusterAnalysis )
+					{
+						item.LastUpdatedById = user.Id;
 						mgr.Save( item, ref summary );
 					}
 				}
@@ -1832,9 +1857,11 @@ namespace Services
 			var rowTaskApplicabilityType = GetDataOrError<Concept>( summary, ( m ) => m.Name?.ToLower() == item.Row.RatingTask_ApplicabilityType_Name?.ToLower(), result, "Task Applicability Type not found in database: " + item.Row.RatingTask_ApplicabilityType_Name ?? "" );
 			var rowTrainingGapType = GetDataOrError<Concept>( summary, ( m ) => m.Name?.ToLower() == item.Row.RatingTask_TrainingGapType_Name?.ToLower(), result, "Training Gap Type not found in database: " + item.Row.RatingTask_TrainingGapType_Name ?? "" );
 			//cluster analysis concepts
-			var rowTrainingSolutionType = GetDataOrError<Concept>( summary, ( m ) => m.SchemeUri == ConceptSchemeManager.ConceptScheme_TrainingSolutionType && m.Name?.ToLower() == item.Row.Training_Solution_Type?.ToLower(), result, "Training Solution Type not found in database: " + item.Row.Training_Solution_Type ?? "" );
-			var rowRecommendModalityType = GetDataOrError<Concept>( summary, ( m ) => m.SchemeUri == ConceptSchemeManager.ConceptScheme_RecommendedModality && m.Name?.ToLower() == item.Row.Recommended_Modality?.ToLower(), result, "Recommended Modality Type not found in database: " + item.Row.Training_Solution_Type ?? "" );
-			var rowDevelopmentSpecificationType = GetDataOrError<Concept>( summary, ( m ) => m.SchemeUri == ConceptSchemeManager.ConceptScheme_DevelopmentSpecification && m.Name?.ToLower() == item.Row.Development_Specification?.ToLower(), result, "Development Specification Type not found in database: " + item.Row.Development_Specification ?? "" );
+			var rowTrainingSolutionType = GetDataOrError<Concept>( summary, ( m ) => m.SchemeUri == ConceptSchemeManager.ConceptScheme_TrainingSolutionType && m.Name?.ToLower() == item.Row.Training_Solution_Type?.ToLower(), result, "Training Solution Type not found in database: " + item.Row.Training_Solution_Type ?? "", item.Row.Training_Solution_Type );
+
+			var rowRecommendModalityType = GetDataOrError<Concept>( summary, ( m ) => m.SchemeUri == ConceptSchemeManager.ConceptScheme_RecommendedModality && (m.Name?.ToLower() == item.Row.Recommended_Modality?.ToLower() || m.CodedNotation?.ToLower() == item.Row.Recommended_Modality?.ToLower() ), result, "Recommended Modality Type not found in database: " + item.Row.Recommended_Modality ?? "", item.Row.Recommended_Modality );
+
+			var rowDevelopmentSpecificationType = GetDataOrError<Concept>( summary, ( m ) => m.SchemeUri == ConceptSchemeManager.ConceptScheme_DevelopmentSpecification && m.Name?.ToLower() == item.Row.Development_Specification?.ToLower(), result, "Development Specification Type not found in database: " + item.Row.Development_Specification ?? "", item.Row.Development_Specification );
 
 			//If any of the above are null, log an error and skip the rest
 			if ( new List<object>() { rowRating, rowPayGrade, rowSourceType, rowTaskApplicabilityType, rowTrainingGapType }.Where(m => m == null).Count() > 0 )
@@ -1851,7 +1878,10 @@ namespace Services
 
 			//Should concept scheme be included in searches (any possible name collisons?)
 			//Needs to skip nulls
-			var rowCourseLCCDType = GetDataOrError<Concept>( summary, ( m ) => m.Name?.ToLower() == item.Row.Course_LifeCycleControlDocumentType_CodedNotation?.ToLower() || m.CodedNotation?.ToLower() == item.Row.Course_LifeCycleControlDocumentType_CodedNotation?.ToLower(), result, "Life-Cycle Control Document Type not found in database: " + item.Row.Course_LifeCycleControlDocumentType_CodedNotation ?? "" );
+			var rowCourseLCCDType = GetDataOrError<Concept>( summary, ( m ) => 
+				m.Name?.ToLower() == item.Row.Course_LifeCycleControlDocumentType_CodedNotation?.ToLower() || m.CodedNotation?.ToLower() == item.Row.Course_LifeCycleControlDocumentType_CodedNotation?.ToLower(), 
+					result, 
+					"Life-Cycle Control Document Type not found in database: " + item.Row.Course_LifeCycleControlDocumentType_CodedNotation ?? "" );
 			if ( item.Row.Course_LifeCycleControlDocumentType_CodedNotation == null )
 				rowCourseLCCDType = null;
 			var rowAssessmentMethodTypeList = GetDataListOrError<Concept>( summary, ( m ) => SplitAndTrim( item.Row.Course_AssessmentMethodType_Name?.ToLower(), "," ).Contains( m.Name?.ToLower() ), result, "Assessment Method Type not found in database: " + item.Row.Course_AssessmentMethodType_Name ?? "" );
@@ -2088,7 +2118,13 @@ namespace Services
 			};
 			int development_Time = UtilityManager.MapInteger( item.Row.Development_Time, ref isValid );
 			decimal estimatedInstructionalTime = UtilityManager.MapDecimal( item.Row.EstimatedInstructionalTime, ref isValid );			
-				
+			if ( item.Row.Recommended_Modality != null)
+            {
+
+            }
+			//( existing ) => {
+			//	HandleTextChanges( summary, summary.ItemsToBeChanged.ClusterAnalysis, result, existing, nameof( ClusterAnalysis.ClusterAnalysisTitle ), item.Row.Cluster_Analysis_Title );
+			//},
 			var rowClusterAnalysis= LookupOrGetFromDBOrCreateNew( summary, result,
 				//Find in summary
 				() => summary.GetAll<ClusterAnalysis>()
@@ -2097,7 +2133,7 @@ namespace Services
 				),
 				//Or get from DB
 				() => ClusterAnalysisManager.GetForUpload( rowRatingTask.RowId ),
-				//No text changes to log
+				//Log text changes
 				( existing ) => { },
 				//Or create new
 				() => new ClusterAnalysis()
@@ -2105,14 +2141,14 @@ namespace Services
 					RowId = Guid.NewGuid(),
 					RatingTaskRowId= rowRatingTask.RowId,
 					TrainingSolutionType = item.Row.Training_Solution_Type,
-					TrainingSolutionTypeId = rowTrainingSolutionType.Id,
+					TrainingSolutionTypeId = (int)rowTrainingSolutionType?.Id,
 
 					ClusterAnalysisTitle = item.Row.Cluster_Analysis_Title,
 					RecommendedModality = item.Row.Recommended_Modality,
-					RecommendedModalityId = rowRecommendModalityType.Id,
+					RecommendedModalityId = (int)rowRecommendModalityType?.Id,
 
 					DevelopmentSpecification = item.Row.Development_Specification,
-					DevelopmentSpecificationId = rowDevelopmentSpecificationType.Id,
+					DevelopmentSpecificationId = (int)rowDevelopmentSpecificationType?.Id,
 
 					CandidatePlatform = item.Row.Candidate_Platform,
 					CFMPlacement = item.Row.CFM_Placement,
@@ -2128,7 +2164,13 @@ namespace Services
 				//may be exceptions
 				() => string.IsNullOrWhiteSpace( item.Row.Cluster_Analysis_Title ) || item.Row.Cluster_Analysis_Title.ToLower() == "n/a"
 			);
-			
+			//how are updates done?
+			if ( item.Row.Recommended_Modality != null )
+			{
+				rowClusterAnalysis.ClusterAnalysisTitle = item.Row.Cluster_Analysis_Title;
+				summary.ItemsToBeChanged.ClusterAnalysis.Add( rowClusterAnalysis );
+
+			}
 
 			//Now that we have figured out who all of the actors are...
 			//Handle cases where a new or existing item has associations added to it or removed from it (likely just added to it for now?)
@@ -2174,6 +2216,7 @@ namespace Services
 			UpdateSummaryAndResultForItemProperty( summary, summary.ItemsToBeCreated.RatingTask, summary.AddedItemsToInnerListsForCopiesOfItems.RatingTask, result, rowRatingTask, nameof( RatingTask.HasTrainingTaskList ), rowTrainingTask );
 
 			//anything for ClusterAnalysis????
+			
 
 			//Update the cached summary
 			CacheChangeSummary( summary );
@@ -2255,7 +2298,13 @@ namespace Services
 			return null;
 		}
 		//
+		public static T GetDataOrError<T>( ChangeSummary summary, Func<T, bool> MatchWith, UploadableItemResult result, string errorMessage, object source ) where T : BaseObject
+		{
+			if (source == null) 
+				return null;
 
+			return GetDataListOrError( summary, MatchWith, result, errorMessage ).FirstOrDefault();
+		}
 		public static T GetDataOrError<T>( ChangeSummary summary, Func<T, bool> MatchWith, UploadableItemResult result, string errorMessage ) where T : BaseObject
 		{
 			return GetDataListOrError( summary, MatchWith, result, errorMessage ).FirstOrDefault();

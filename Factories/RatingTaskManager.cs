@@ -1017,6 +1017,13 @@ namespace Factories
             {
                 try
                 {
+                    if ( !IsValidGuid( entity.PayGradeType ) || !IsValidGuid( entity.ApplicabilityType ) )
+                    {
+                        //probably an issue for updating
+                        status.AddError( "Incomplete data was encountered trying to add a RatingTask - probably related to how updates are being done!!!" );
+                        return 0;
+                    }
+                        
                     MapToDB( entity, efEntity, ref status );
 
                     if ( IsValidGuid( entity.RowId ) )
