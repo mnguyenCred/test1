@@ -1854,18 +1854,18 @@ namespace Services
 			//Get the controlled value items that show up in this row
 			//Everything in any uploaded sheet should appear here. If any of these are not found, it's an error
 			//Might also be an error if rowRating is the "ALL" Rating, now
-			var rowRating = GetDataOrError<Rating>( summary, ( m ) => m.CodedNotation?.ToLower() == item.Row.Rating_CodedNotation?.ToLower(), result, "Rating not found in database: " + item.Row.Rating_CodedNotation ?? "" );
-			var rowPayGrade = GetDataOrError<Concept>( summary, ( m ) => m.CodedNotation?.ToLower() == item.Row.PayGradeType_CodedNotation?.ToLower(), result, "Rank not found in database: " + item.Row.PayGradeType_CodedNotation ?? "" );
-			var rowSourceType = GetDataOrError<Concept>( summary, ( m ) => m.WorkElementType?.ToLower() == item.Row.Shared_ReferenceType?.ToLower(), result, "Work Element Type not found in database: " + item.Row.Shared_ReferenceType ?? "" );
+			var rowRating = GetDataOrError<Rating>( summary, ( m ) => m.CodedNotation?.ToLower() == item.Row.Rating_CodedNotation?.ToLower(), result, "Rating not found in database: \"" + (item.Row.Rating_CodedNotation ?? "") + "\"" );
+			var rowPayGrade = GetDataOrError<Concept>( summary, ( m ) => m.CodedNotation?.ToLower() == item.Row.PayGradeType_CodedNotation?.ToLower(), result, "Rank not found in database: \"" + (item.Row.PayGradeType_CodedNotation ?? "") + "\"" );
+			var rowSourceType = GetDataOrError<Concept>( summary, ( m ) => m.WorkElementType?.ToLower() == item.Row.Shared_ReferenceType?.ToLower(), result, "Work Element Type not found in database: \"" + (item.Row.Shared_ReferenceType ?? "") + "\"" );
 			
-			var rowTaskApplicabilityType = GetDataOrError<Concept>( summary, ( m ) => m.Name?.ToLower() == item.Row.RatingTask_ApplicabilityType_Name?.ToLower(), result, "Task Applicability Type not found in database: " + item.Row.RatingTask_ApplicabilityType_Name ?? "" );
-			var rowTrainingGapType = GetDataOrError<Concept>( summary, ( m ) => m.Name?.ToLower() == item.Row.RatingTask_TrainingGapType_Name?.ToLower(), result, "Training Gap Type not found in database: " + item.Row.RatingTask_TrainingGapType_Name ?? "" );
+			var rowTaskApplicabilityType = GetDataOrError<Concept>( summary, ( m ) => m.Name?.ToLower() == item.Row.RatingTask_ApplicabilityType_Name?.ToLower(), result, "Task Applicability Type not found in database: \"" + (item.Row.RatingTask_ApplicabilityType_Name ?? "") + "\"" );
+			var rowTrainingGapType = GetDataOrError<Concept>( summary, ( m ) => m.Name?.ToLower() == item.Row.RatingTask_TrainingGapType_Name?.ToLower(), result, "Training Gap Type not found in database: \"" + (item.Row.RatingTask_TrainingGapType_Name ?? "") + "\"" );
 			//cluster analysis concepts
-			var rowTrainingSolutionType = GetDataOrError<Concept>( summary, ( m ) => m.SchemeUri == ConceptSchemeManager.ConceptScheme_TrainingSolutionType && m.Name?.ToLower() == item.Row.Training_Solution_Type?.ToLower(), result, "Training Solution Type not found in database: " + item.Row.Training_Solution_Type ?? "", item.Row.Training_Solution_Type );
+			var rowTrainingSolutionType = GetDataOrError<Concept>( summary, ( m ) => m.SchemeUri == ConceptSchemeManager.ConceptScheme_TrainingSolutionType && m.Name?.ToLower() == item.Row.Training_Solution_Type?.ToLower(), result, "Training Solution Type not found in database: \"" + (item.Row.Training_Solution_Type ?? "") + "\"", item.Row.Training_Solution_Type );
 
-			var rowRecommendModalityType = GetDataOrError<Concept>( summary, ( m ) => m.SchemeUri == ConceptSchemeManager.ConceptScheme_RecommendedModality && (m.Name?.ToLower() == item.Row.Recommended_Modality?.ToLower() || m.CodedNotation?.ToLower() == item.Row.Recommended_Modality?.ToLower() ), result, "Recommended Modality Type not found in database: " + item.Row.Recommended_Modality ?? "", item.Row.Recommended_Modality );
+			var rowRecommendModalityType = GetDataOrError<Concept>( summary, ( m ) => m.SchemeUri == ConceptSchemeManager.ConceptScheme_RecommendedModality && (m.Name?.ToLower() == item.Row.Recommended_Modality?.ToLower() || m.CodedNotation?.ToLower() == item.Row.Recommended_Modality?.ToLower() ), result, "Recommended Modality Type not found in database: \"" + (item.Row.Recommended_Modality ?? "") + "\"", item.Row.Recommended_Modality );
 
-			var rowDevelopmentSpecificationType = GetDataOrError<Concept>( summary, ( m ) => m.SchemeUri == ConceptSchemeManager.ConceptScheme_DevelopmentSpecification && m.Name?.ToLower() == item.Row.Development_Specification?.ToLower(), result, "Development Specification Type not found in database: " + item.Row.Development_Specification ?? "", item.Row.Development_Specification );
+			var rowDevelopmentSpecificationType = GetDataOrError<Concept>( summary, ( m ) => m.SchemeUri == ConceptSchemeManager.ConceptScheme_DevelopmentSpecification && m.Name?.ToLower() == item.Row.Development_Specification?.ToLower(), result, "Development Specification Type not found in database: \"" + (item.Row.Development_Specification ?? "") + "\"", item.Row.Development_Specification );
 
 			//If any of the above are null, log an error and skip the rest
 			if ( new List<object>() { rowRating, rowPayGrade, rowSourceType, rowTaskApplicabilityType, rowTrainingGapType }.Where(m => m == null).Count() > 0 )
@@ -1878,22 +1878,17 @@ namespace Services
 			var shouldNotHaveTrainingData = rowTrainingGapType.Name?.ToLower() == "yes";
 			var rowCourseType = GetDataOrError<Concept>( summary, ( m ) => m.Name?.ToLower() == item.Row.Course_CourseType_Name?.ToLower(), result, "Course Type not found in database: " + item.Row.Course_CourseType_Name ?? "", item.Row.Course_CourseType_Name );
 
-			var rowOrganizationCCA = GetDataOrError<Organization>( summary, ( m ) => (m.Name != null && m.Name.ToLower() == item.Row.Course_CurriculumControlAuthority_Name?.ToLower()) || (m.ShortName != null && m.ShortName.ToLower() == item.Row.Course_CurriculumControlAuthority_Name?.ToLower()), result, "Curriculum Control Authority not found in database: " + item.Row.Course_CurriculumControlAuthority_Name ?? "missing" );
+			var rowOrganizationCCA = GetDataOrError<Organization>( summary, ( m ) => (m.Name != null && m.Name.ToLower() == item.Row.Course_CurriculumControlAuthority_Name?.ToLower()) || (m.ShortName != null && m.ShortName.ToLower() == item.Row.Course_CurriculumControlAuthority_Name?.ToLower()), result, "Curriculum Control Authority not found in database: \"" + (item.Row.Course_CurriculumControlAuthority_Name ?? "") + "\"" );
 
 			//Should concept scheme be included in searches (any possible name collisons?)
 			//Needs to skip nulls
+			//Nulls are handled
 			var rowCourseLCCDType = GetDataOrError<Concept>( summary, ( m ) => 
 				m.Name?.ToLower() == item.Row.Course_LifeCycleControlDocumentType_CodedNotation?.ToLower() || m.CodedNotation?.ToLower() == item.Row.Course_LifeCycleControlDocumentType_CodedNotation?.ToLower(), 
 					result, 
-					"Life-Cycle Control Document Type not found in database: " + item.Row.Course_LifeCycleControlDocumentType_CodedNotation ?? "" );
-			if ( item.Row.Course_LifeCycleControlDocumentType_CodedNotation == null )
-				rowCourseLCCDType = null;
-			var rowAssessmentMethodTypeList = new List<Concept>();
-			if ( item.Row.Course_AssessmentMethodType_Name != null && item.Row.Course_AssessmentMethodType_Name.ToLower()  != "n/a" )
-			{
-				rowAssessmentMethodTypeList = GetDataListOrError<Concept>( summary, ( m ) => SplitAndTrim( item.Row.Course_AssessmentMethodType_Name?.ToLower(), "," ).Contains( m.Name?.ToLower() ), result, "Assessment Method Type not found in database: " + item.Row.Course_AssessmentMethodType_Name ?? "" );
-			}
-			
+					"Life-Cycle Control Document Type not found in database: \"" + (item.Row.Course_LifeCycleControlDocumentType_CodedNotation ?? "") + "\"" );
+			var rowAssessmentMethodTypeList = GetDataListOrError<Concept>( summary, ( m ) => SplitAndTrim( item.Row.Course_AssessmentMethodType_Name?.ToLower(), "," ).Contains( m.Name?.ToLower() ), result, "Assessment Method Type not found in database: \"" + (item.Row.Course_AssessmentMethodType_Name ?? "") + "\"" );
+
 			//If the Training Gap Type is "Yes", then treat all course/training data as null, but check to see if it exists first (above) to facilitate the warning statement below
 			if ( shouldNotHaveTrainingData )
 			{
@@ -1912,7 +1907,7 @@ namespace Services
 				result.Errors = new List<string>();
 			}
 			//Otherwise, return an error if any course/training data is missing
-			else if( new List<object>() { rowCourseType, rowOrganizationCCA, rowCourseLCCDType, rowAssessmentMethodTypeList }.Where( m => m == null ).Count() > 0 || string.IsNullOrWhiteSpace( item.Row.TrainingTask_Description ) )
+			else if( new List<object>() { rowCourseType, rowOrganizationCCA, rowCourseLCCDType }.Where( m => m == null ).Count() > 0 || string.IsNullOrWhiteSpace( item.Row.TrainingTask_Description ) || rowAssessmentMethodTypeList.Count() == 0 || result.Errors.Count() > 0 )
 			{
 				result.Errors.Add( "Incomplete course/training data found. All course/training related columns should either have data or be marked as \"N/A\". Since the Training Gap Type is \"" + rowTrainingGapType.Name + "\", this is an error and processing this row cannot continue." );
 				return result;
