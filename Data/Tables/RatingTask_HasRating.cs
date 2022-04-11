@@ -15,10 +15,10 @@ namespace Data.Tables
     public partial class RatingTask_HasRating
     {
         public int Id { get; set; }
+        public System.Guid RowId { get; set; }
         public int RatingTaskId { get; set; }
         public int RatingId { get; set; }
         public System.DateTime Created { get; set; }
-        public System.Guid RowId { get; set; }
         public Nullable<int> CreatedById { get; set; }
     
         public virtual Rating Rating { get; set; }

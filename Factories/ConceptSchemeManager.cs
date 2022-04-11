@@ -33,7 +33,12 @@ namespace Factories
         public static string ConceptScheme_ReferenceResource = "navy:ReferenceResource";
         public static string ConceptScheme_TaskApplicability = "navy:TaskApplicability";
         public static string ConceptScheme_TrainingGap = "navy:TrainingGap";
-
+        public static string ConceptScheme_TrainingSolutionType = "navy:TrainingSolutionType";
+        public static string ConceptScheme_RecommendedModality = "navy:RecommendedModality";
+        public static string ConceptScheme_DevelopmentSpecification = "navy:DevelopmentSpecification";
+        public static string ConceptScheme_CFMPlacement = "navy:CFMPlacement";
+        //navy:RecommendedModality
+        //navy:CFMPlacement
         #region ConceptScheme
         #region ConceptScheme - Persistance
         //unlikely
@@ -195,7 +200,7 @@ namespace Factories
             }
             return entity;
         }
-        public static AppEntity Get( int id )
+        public static AppEntity Get( int id, bool forDetailView = false )
         {
             var entity = new AppEntity();
             if ( id < 1 )
@@ -233,6 +238,7 @@ namespace Factories
 				{
 					var concept = new Concept();
 					AutoMap( dbConcept, concept );
+                    concept.SchemeUri = dbConcept.ConceptScheme.SchemaUri;
 					result.Add( concept );
 				}
 			}
@@ -334,10 +340,7 @@ namespace Factories
             {
                 output.RowId = input.RowId;
             }
-            //output.Id = input.Id;
-            //output.Name = input.Name;
-            //output.RowId = input.RowId;
-            //output.Description = input.Description;
+            //
             if (input.ConceptScheme_Concept?.Count > 0)
             {
                 foreach( var item  in input.ConceptScheme_Concept )
@@ -352,6 +355,8 @@ namespace Factories
 
                     }
                 }
+                //consider best sort order now
+                output.Concepts = output.Concepts.OrderBy( m => m.ListId ).ThenBy(m => m.Name ).ToList();
             }
             //
 
@@ -716,7 +721,7 @@ namespace Factories
                             if ( item != null && item.Id > 0 )
                             {
                                 entity = new Concept();
-                                MapFromDB( item, entity );
+                                MapFromDB( item, entity, false, true );
                                 output.Add( ( entity ) );
                             }
                         }
@@ -730,7 +735,7 @@ namespace Factories
             }
             return output;
         }
-        public static void MapFromDB( ConceptScheme_Concept input, Concept output, bool usingWorkElementTypeForName = false )
+        public static void MapFromDB( ConceptScheme_Concept input, Concept output, bool usingWorkElementTypeForName = false, bool forSearchResults = false )
         {
             List<string> errors = new List<string>();
             BaseFactory.AutoMap( input, output, errors );
@@ -744,6 +749,10 @@ namespace Factories
             }
             output.ConceptSchemeId = (int)input.ConceptScheme?.Id;
 			output.InScheme = input.ConceptScheme != null ? input.ConceptScheme.RowId : Guid.Empty;
+            if (forSearchResults)
+            {
+                output.Name += !string.IsNullOrWhiteSpace(input.ConceptScheme?.Name) ? " (" + input.ConceptScheme?.Name + ")" : "";
+            }
             //if ( input != null && input.Id > 0 )
             //{
             //    output.Id = input.Id;

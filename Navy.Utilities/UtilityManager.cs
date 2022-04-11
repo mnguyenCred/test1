@@ -934,7 +934,23 @@ namespace Navy.Utilities
             return result;
 
         }
+        public static int MapInteger( string stringToTest, ref bool isValid )
+        {
+            int newVal = 0;
+            isValid = false;
+            try
+            {
+                isValid = Int32.TryParse( stringToTest, NumberStyles.Any,
+                    NumberFormatInfo.InvariantInfo, out newVal );
+            }
+            catch
+            {
 
+                isValid = false;
+            }
+            return newVal;
+
+        }
         /// <summary>
         /// IsNumeric - test if passed string is numeric
         /// </summary>
@@ -957,7 +973,23 @@ namespace Navy.Utilities
             return result;
 
         }
+        public static decimal MapDecimal( string stringToTest, ref bool isValid )
+        {
+            decimal newVal =0;
+            isValid = false;
+            try
+            {
+                isValid = decimal.TryParse( stringToTest, NumberStyles.Any,
+                    NumberFormatInfo.InvariantInfo, out newVal );
+            }
+            catch
+            {
 
+                isValid = false;
+            }
+            return newVal;
+
+        }
 
         /// <summary>
         /// IsDate - test if passed string is a valid date

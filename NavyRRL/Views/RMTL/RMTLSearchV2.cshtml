@@ -109,7 +109,24 @@
 			{ Label: "Life-Cycle Control Document", ResultMap: "Course_LifeCycleControlDocumentType_CodedNotation", SortOrder: "LifeCycleControlDocument", Category: "course", CssClass: "lccd", Set: "PART II" },
 			{ Label: "CTTL/PPP/TCCD Statement", ResultMap: "TrainingTask_Description", SortOrder: "TrainingTask", Category: "course", CssClass: "trainingTaskDescription", Set: "PART II" },
 			{ Label: "Course Assessment Approach", ResultMap: "Course_AssessmentMethodType_Name", SortOrder: "AssessmentMethodTypes", Category: "course", CssClass: "assessmentMethodType", Set: "PART II" },
-			{ Label: "Notes", ResultMap: "Note", SortOrder: "Notes", Category: "course", CssClass: "note" }
+			{ Label: "Notes", ResultMap: "Note", SortOrder: "Notes", Category: "course", CssClass: "note", Set: "PART II" },
+
+
+			{ Label: "Training Solution Type", ResultMap: "Training_Solution_Type", SortOrder: "TrainingSolutionType", Category: "part3", CssClass: "trainingSolutionType", Set: "PART III" },
+			{
+				Label: "Cluster Analysis Title", ResultMap: "Cluster_Analysis_Title", SortOrder: "ClusterAnalysisTitle", Category: "part3", CssClass: "cluster_Analysis_Title", Set: "PART III" },
+			{ Label: "Recommended Modality", ResultMap: "Recommended_Modality", SortOrder: "RecommendedModality", Category: "part3", CssClass: "Recommended_Modality", Set: "PART III" },
+
+			{ Label: "Development Specification", ResultMap: "Development_Specification", SortOrder: "DevelopmentSpecification", Category: "part3", CssClass: "Development_Specification", Set: "PART III" },
+			{ Label: "Candidate Platform", ResultMap: "Candidate_Platform", SortOrder: "CandidatePlatform", Category: "part3", CssClass: "Candidate_Platform", Set: "PART III" },
+			{ Label: "CFM Placement", ResultMap: "CFM_Placement", SortOrder: "CFMPlacement", Category: "part3", CssClass: "CFM_Placement", Set: "PART III" },
+
+
+			{ Label: "Priority Placement", ResultMap: "Priority_Placement", SortOrder: "PriorityPlacement", Category: "part3", CssClass: "Priority_Placement", Set: "PART III" },
+			{ Label: "Development Ratio", ResultMap: "Development_Ratio", SortOrder: "DevelopmentRatio", Category: "part3", CssClass: "Development_Ratio", Set: "PART III" },
+			{ Label: "Estimated Instructional Time", ResultMap: "Estimated_Instructional_Time", SortOrder: "EstimatedInstructionalTime", Category: "part3", CssClass: "Estimated_Instructional_Time", Set: "PART III" },
+			{ Label: "Development Time", ResultMap: "Development_Time", SortOrder: "DevelopmentTime", Category: "part3", CssClass: "Development_Time", Set: "PART III" },
+			{ Label: "Part III Notes", ResultMap: "Cluster_Analysis_Notes", SortOrder: "ClusterAnalysisNotes", Category: "part3", CssClass: "part3note", Set: "PART III" }
 		],
 		Prefilled: {
 			Rating: @Html.Raw(JsonConvert.SerializeObject(ratingFilter, Formatting.None)),
@@ -594,6 +611,7 @@
 	table th.overall { background-color: #CCF; }
 	table th.ratingTask { background-color: #FC5; }
 	table th.course { background-color: #FEA; }
+	table th.part3 { background-color: #9cc2e5; }
 	table .rating { min-width: 100px; max-width: 100px; }
 	table .payGrade { min-width: 100px; max-width: 100px; }
 	table .level { min-width: 100px; max-width: 100px; }

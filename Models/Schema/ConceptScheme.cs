@@ -50,8 +50,15 @@ namespace Models.Schema
 		/// AKA skos:inScheme
 		/// </summary>
 		public Guid InScheme { get; set; }
+		public string SchemeUri { get; set; }
 
 		public bool IsActive { get; set; }
+		/// <summary>
+		/// used for sort order.
+		/// Most concepts will default to the same value(25). 
+		/// Order by ListId, then name. Where concepts need to be order by other (essentially) name, use ListId to group. 
+		/// </summary>
+		public int ListId { get; set; }
 
 		/// <summary>
 		/// Helps figure out which value from the spreadsheet this Concept aligns to

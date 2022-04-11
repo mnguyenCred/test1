@@ -98,6 +98,8 @@ namespace Models.Schema
 
 
 		public string Identifier { get; set; }
+		//Upload
+		public string BilletTitle { get; set; }
 
 		//Embedded data
 		//Consider moving these to a separate class so they don't result in a lot of extra data being sent between client and server
@@ -185,6 +187,57 @@ namespace Models.Schema
 		public string CurriculumControlAuthority { get; set; }
 		public string LifeCycleControlDocument { get; set; }
 		public string Notes { get; set; }
+
+		//Cluster analysis
+		public string TrainingSolutionType { get; set; }
+		public string ClusterAnalysisTitle { get; set; }
+		public string RecommendedModality { get; set; }
+		public string DevelopmentSpecification { get; set; }
+		public string CandidatePlatform { get; set; }
+		public string CFMPlacement { get; set; }
+
+
+		public int PriorityPlacement { get; set; }
+		public string Priority_Placement 
+		{ 
+			get 
+			{
+				if ( PriorityPlacement > 0 )
+					return PriorityPlacement.ToString();
+				else
+					return "";
+			}
+		}
+		
+		public string DevelopmentRatio { get; set; }
+		//
+
+		public decimal EstimatedInstructionalTime { get; set; }
+		public string Estimated_Instructional_Time
+		{
+			get
+			{
+				if ( EstimatedInstructionalTime > 0 )
+					return EstimatedInstructionalTime.ToString();
+				else
+					return "";
+			}
+		}
+		/// <summary>
+		/// duration in hours
+		/// </summary>
+		public int DevelopmentTime { get; set; }
+		public string Development_Time
+		{
+			get
+			{
+				if ( DevelopmentTime > 0 )
+					return DevelopmentTime.ToString();
+				else
+					return "";
+			}
+		}
+		public string ClusterAnalysisNotes { get; set; }
 	}
 	//
 }

@@ -1,7 +1,33 @@
 USE [NavyRRL]
 GO
 
-/****** Object:  Table [dbo].[ClusterAnalysis]    Script Date: 4/1/2022 1:19:48 PM ******/
+ALTER TABLE [dbo].[ClusterAnalysis] DROP CONSTRAINT [FK_ClusterAnalysis_TrainingSolution.Concept]
+GO
+
+ALTER TABLE [dbo].[ClusterAnalysis] DROP CONSTRAINT [FK_ClusterAnalysis_RecommendedModality.Concept1]
+GO
+
+ALTER TABLE [dbo].[ClusterAnalysis] DROP CONSTRAINT [FK_ClusterAnalysis_RatingTask]
+GO
+
+ALTER TABLE [dbo].[ClusterAnalysis] DROP CONSTRAINT [DF_ClusterAnalysis_LastUpdated]
+GO
+
+ALTER TABLE [dbo].[ClusterAnalysis] DROP CONSTRAINT [DF_ClusterAnalysis_Created]
+GO
+
+ALTER TABLE [dbo].[ClusterAnalysis] DROP CONSTRAINT [DF_ClusterAnalysis_CTID]
+GO
+
+ALTER TABLE [dbo].[ClusterAnalysis] DROP CONSTRAINT [DF_ClusterAnalysis_RowId]
+GO
+
+/****** Object:  Table [dbo].[ClusterAnalysis]    Script Date: 4/8/2022 5:12:18 PM ******/
+IF  EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[ClusterAnalysis]') AND type in (N'U'))
+DROP TABLE [dbo].[ClusterAnalysis]
+GO
+
+/****** Object:  Table [dbo].[ClusterAnalysis]    Script Date: 4/8/2022 5:12:18 PM ******/
 SET ANSI_NULLS ON
 GO
 
@@ -12,11 +38,11 @@ CREATE TABLE [dbo].[ClusterAnalysis](
 	[Id] [int] IDENTITY(1,1) NOT NULL,
 	[RowId] [uniqueidentifier] NOT NULL,
 	[RatingTaskId] [int] NOT NULL,
-	[TrainingSolutionTypeId] [int] NOT NULL,
-	[ClusterAnalysisTitle] [nvarchar](500) NOT NULL,
+	[TrainingSolutionTypeId] [int] NULL,
+	[ClusterAnalysisTitle] [nvarchar](500) NULL,
 	[RecommendedModalityId] [int] NULL,
-	[DevelopmentSpecification] [varchar](200) NULL,
-	[CandidatePlatform] [nvarchar](100) NOT NULL,
+	[DevelopmentSpecificationId] [int] NULL,
+	[CandidatePlatform] [nvarchar](100) NULL,
 	[CFMPlacement] [varchar](100) NULL,
 	[PriorityPlacement] [int] NULL,
 	[DevelopmentRatio] [varchar](100) NULL,
@@ -30,6 +56,7 @@ CREATE TABLE [dbo].[ClusterAnalysis](
 	[LastUpdatedById] [int] NULL,
 	[TrainingSolutionType] [varchar](100) NULL,
 	[RecommendedModality] [varchar](100) NULL,
+	[DevelopmentSpecification] [varchar](200) NULL,
  CONSTRAINT [PK_ClusterAnalysis] PRIMARY KEY CLUSTERED 
 (
 	[Id] ASC
@@ -49,20 +76,6 @@ GO
 ALTER TABLE [dbo].[ClusterAnalysis] ADD  CONSTRAINT [DF_ClusterAnalysis_LastUpdated]  DEFAULT (getdate()) FOR [LastUpdated]
 GO
 
-ALTER TABLE [dbo].[ClusterAnalysis]  WITH CHECK ADD  CONSTRAINT [FK_ClusterAnalysis_ConceptScheme.Concept] FOREIGN KEY([TrainingSolutionTypeId])
-REFERENCES [dbo].[ConceptScheme.Concept] ([Id])
-GO
-
-ALTER TABLE [dbo].[ClusterAnalysis] CHECK CONSTRAINT [FK_ClusterAnalysis_ConceptScheme.Concept]
-GO
-
-ALTER TABLE [dbo].[ClusterAnalysis]  WITH CHECK ADD  CONSTRAINT [FK_ClusterAnalysis_ConceptScheme.Concept1] FOREIGN KEY([RecommendedModalityId])
-REFERENCES [dbo].[ConceptScheme.Concept] ([Id])
-GO
-
-ALTER TABLE [dbo].[ClusterAnalysis] CHECK CONSTRAINT [FK_ClusterAnalysis_ConceptScheme.Concept1]
-GO
-
 ALTER TABLE [dbo].[ClusterAnalysis]  WITH CHECK ADD  CONSTRAINT [FK_ClusterAnalysis_RatingTask] FOREIGN KEY([RatingTaskId])
 REFERENCES [dbo].[RatingTask] ([Id])
 ON UPDATE CASCADE
@@ -70,6 +83,20 @@ ON DELETE CASCADE
 GO
 
 ALTER TABLE [dbo].[ClusterAnalysis] CHECK CONSTRAINT [FK_ClusterAnalysis_RatingTask]
+GO
+
+ALTER TABLE [dbo].[ClusterAnalysis]  WITH CHECK ADD  CONSTRAINT [FK_ClusterAnalysis_RecommendedModality.Concept1] FOREIGN KEY([RecommendedModalityId])
+REFERENCES [dbo].[ConceptScheme.Concept] ([Id])
+GO
+
+ALTER TABLE [dbo].[ClusterAnalysis] CHECK CONSTRAINT [FK_ClusterAnalysis_RecommendedModality.Concept1]
+GO
+
+ALTER TABLE [dbo].[ClusterAnalysis]  WITH CHECK ADD  CONSTRAINT [FK_ClusterAnalysis_TrainingSolution.Concept] FOREIGN KEY([TrainingSolutionTypeId])
+REFERENCES [dbo].[ConceptScheme.Concept] ([Id])
+GO
+
+ALTER TABLE [dbo].[ClusterAnalysis] CHECK CONSTRAINT [FK_ClusterAnalysis_TrainingSolution.Concept]
 GO
 
 

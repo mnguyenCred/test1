@@ -59,13 +59,25 @@ SELECT top 1000
       ,[CurriculumControlAuthority]
       ,[LifeCycleControlDocument]
       ,[Notes]
-      ,[Created]
-      ,[CreatedById]
-      ,[CreatedBy]
+	  --
+ ,[TrainingSolutionTypeId]
+      ,[TrainingSolutionType]
+      ,[ClusterAnalysisTitle]
+      ,[RecommendedModalityId]
+      ,[RecommentedModality]
+      ,[RecommentedModalityCodedNotation]
+      ,[DevelopmentSpecificationId]
+      ,[DevelopmentSpecification]
+      ,[CandidatePlatform]
+      ,[CFMPlacement]
+      ,[PriorityPlacement]
+      ,[DevelopmentRatio]
+      ,[EstimatedInstructionalTime]
+      ,[DevelopmentTime]
+	  --
+      ,[Created]      ,[CreatedById]      ,[CreatedBy]
      -- ,[CreatedByUID]
-      ,[LastUpdated]
-      ,[LastUpdatedById]
-      ,[ModifiedBy]
+      ,[LastUpdated]      ,[LastUpdatedById]      ,[ModifiedBy]
      -- ,[ModifiedByUID]
   FROM [dbo].[RatingTaskSummary] base
   where CodedNotation = 'PQ42-005'
@@ -200,7 +212,28 @@ SELECT
 		,g.LifeCycleControlDocument
 
 	,a.Notes
+	--Part III
+	,cas.[TrainingSolutionTypeId]
+	,cas.[TrainingSolutionType]
+      
+	,cas.[ClusterAnalysisTitle]
 
+	,cas.[RecommendedModalityId]
+	,cas.RecommendedModality RecommendedModality
+	,cas.RecommentedModalityCodedNotation
+      
+	,cas.[DevelopmentSpecificationId]
+	,cas.DevelopmentSpecification
+
+	,cas.[CandidatePlatform]
+	,cas.[CFMPlacement]
+	,cas.[PriorityPlacement]
+	,cas.[DevelopmentRatio]
+	,cas.[EstimatedInstructionalTime]
+	,cas.[DevelopmentTime]
+	,cas.Notes as ClusterAnalysisNotes
+
+	--
       ,a.[Created] --as TaskCreated,
       ,a.[CreatedById], ac.FullName as CreatedBy
 	  ,ac.RowId as CreatedByUID
@@ -240,7 +273,8 @@ Left Join TrainingTaskSummary		g on htt.TrainingTaskId = g.TrainingTaskId
   Left Join Account_Summary ac on a.CreatedById = ac.Id
   Left Join Account_Summary am on a.LastUpdatedById = am.Id
   --
-  
+  left Join [ClusterAnalysisSummary] cas on a.Id = cas.ratingTaskId
+
     CROSS APPLY (
 	SELECT distinct d.Name + '~' + convert(varchar(50),d.RowId) + ' | '
     FROM dbo.RatingTask  rt

@@ -24,8 +24,8 @@ namespace Data.Tables
         public int RmtlProjectId { get; set; }
         public int JobId { get; set; }
         public System.DateTime Created { get; set; }
-        public System.DateTime LastUpdated { get; set; }
         public Nullable<int> CreatedById { get; set; }
+        public System.DateTime LastUpdated { get; set; }
         public Nullable<int> LastUpdatedById { get; set; }
         public System.Guid RowId { get; set; }
     

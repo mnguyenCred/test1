@@ -727,7 +727,7 @@ namespace Factories
                         //}
                         //BilletTitles
                         item.BilletTitles = dr["BilletTitles"].ToString();// GetRowColumn( dr, "BilletTitles", "" );
-                        var bt= GetRowColumn( dr, "BilletTitles", "" );
+                        //var bt= GetRowColumn( dr, "BilletTitles", "" );
                         //could save previous and then first check the previous
                         //similarly, do we need a list of billet guids?
                         if ( autocomplete )
@@ -739,11 +739,11 @@ namespace Factories
                         item.CTID = dr["CTID"].ToString();// GetRowPossibleColumn( dr, "CTID", "" );
                                                            //
                         item.Created = GetRowColumn( dr, "Created", DateTime.MinValue );
-						item.Creator = GetRowPossibleColumn( dr, "CreatedBy","" );
-						item.CreatedBy = GetGuidType( dr, "CreatedByUID" );
+						item.Creator = dr["CreatedBy"].ToString(); //GetRowPossibleColumn( dr, "CreatedBy","" );
+						//item.CreatedBy = GetGuidType( dr, "CreatedByUID" );
 						item.LastUpdated = GetRowColumn( dr, "LastUpdated", DateTime.MinValue );
-						item.ModifiedBy = GetRowPossibleColumn( dr, "ModifiedBy", "" );
-						item.LastUpdatedBy = GetGuidType( dr, "ModifiedByUID" );
+						item.ModifiedBy = dr["ModifiedBy"].ToString(); //GetRowPossibleColumn( dr, "ModifiedBy", "" );
+						//item.LastUpdatedBy = GetGuidType( dr, "ModifiedByUID" );
 
 						item.CodedNotation = dr["CodedNotation"].ToString();// GetRowPossibleColumn( dr, "CodedNotation", "" );
                                           //
@@ -754,7 +754,7 @@ namespace Factories
                         item.Level = dr["Level"].ToString();// GetRowPossibleColumn( dr, "Level", "" );
                         //FunctionalArea  - not a pipe separated list 
                         //22-01-23 - what to do about the HasWorkRole list. Could include and split out here?
-                        item.FunctionalArea = GetRowColumn( dr, "FunctionalArea", "" );
+                        item.FunctionalArea = dr["FunctionalArea"].ToString(); //GetRowColumn( dr, "FunctionalArea", "" );
                         if ( !string.IsNullOrWhiteSpace( item.FunctionalArea ) ) 
                         {
                             var workRoleList = "";
@@ -764,11 +764,11 @@ namespace Factories
                         //
                         //
                         //item.ReferenceResource = dr["ReferenceResource"].ToString().Trim();
-                        item.ReferenceResource = GetRowColumn( dr, "ReferenceResource", "" );
+                        item.ReferenceResource = dr["ReferenceResource"].ToString(); //GetRowColumn( dr, "ReferenceResource", "" );
                         item.SourceDate = dr["SourceDate"].ToString();// GetRowColumn( dr, "SourceDate", "" );
                         item.HasReferenceResource = GetGuidType( dr, "HasReferenceResource" );
 						//
-						item.WorkElementType = GetRowPossibleColumn( dr, "WorkElementType", "" );
+						item.WorkElementType = dr["WorkElementType"].ToString(); //GetRowPossibleColumn( dr, "WorkElementType", "" );
                         item.WorkElementTypeAlternateName = dr["WorkElementTypeAlternateName"].ToString();
                         item.ReferenceType = GetGuidType( dr, "ReferenceType" );
 						//
@@ -784,11 +784,27 @@ namespace Factories
                         item.CurrentAssessmentApproach = dr["AssessmentMethodTypes"].ToString().Trim();// GetRowPossibleColumn( dr, "AssessmentMethodTypes", "" );
                                                                                      //
                         item.TrainingTask = dr["TrainingTask"].ToString();// GetRowPossibleColumn( dr, "TrainingTask", "" );
-                        item.HasTrainingTask = GetGuidType( dr, "HasTrainingTask" );
+                        //item.HasTrainingTask = GetGuidType( dr, "HasTrainingTask" );
+
+
 						//
 						item.CurriculumControlAuthority = dr["CurriculumControlAuthority"].ToString().Trim();// GetRowPossibleColumn( dr, "CurriculumControlAuthority", "" );
                         item.LifeCycleControlDocument = dr["LifeCycleControlDocument"].ToString().Trim();// GetRowPossibleColumn( dr, "LifeCycleControlDocument", "" );
                         item.Notes = dr["Notes"].ToString();
+                        //Part III
+                        item.TrainingSolutionType = dr["TrainingSolutionType"].ToString().Trim(); ;
+                        item.ClusterAnalysisTitle = dr["ClusterAnalysisTitle"].ToString().Trim(); ;
+                        item.RecommendedModality = dr[ "RecommendedModality"].ToString().Trim(); ;
+                        item.DevelopmentSpecification = dr["DevelopmentSpecification"].ToString().Trim(); ;
+
+                        item.CandidatePlatform = dr["CandidatePlatform"].ToString().Trim(); ;
+                        item.CFMPlacement = dr["CFMPlacement"].ToString().Trim(); ;
+                        item.PriorityPlacement = GetRowPossibleColumn( dr, "PriorityPlacement", 0 );
+                        item.DevelopmentRatio = dr["DevelopmentRatio"].ToString().Trim(); ;
+
+                        item.EstimatedInstructionalTime = GetRowPossibleColumn( dr, "EstimatedInstructionalTime", 0.0M );
+                        item.DevelopmentTime = GetRowPossibleColumn( dr, "DevelopmentTime", 0 );
+                        item.ClusterAnalysisNotes = dr["ClusterAnalysisNotes"].ToString().Trim(); ;
 
                         list.Add( item );
 					}
@@ -843,8 +859,8 @@ namespace Factories
             {
                 foreach ( var item in input.RatingTask_WorkRole )
                 {
-                    if ( item.WorkRole1?.RowId != null )
-                        output.HasWorkRole.Add( item.WorkRole1.RowId );
+                    if ( item.WorkRole?.RowId != null )
+                        output.HasWorkRole.Add( item.WorkRole.RowId );
                 }
             }
             if ( input.RankId > 0 )
@@ -1017,6 +1033,13 @@ namespace Factories
             {
                 try
                 {
+                    if ( !IsValidGuid( entity.PayGradeType ) || !IsValidGuid( entity.ApplicabilityType ) )
+                    {
+                        //probably an issue for updating
+                        status.AddError( "Incomplete data was encountered trying to add a RatingTask - probably related to how updates are being done!!!" );
+                        return 0;
+                    }
+                        
                     MapToDB( entity, efEntity, ref status );
 
                     if ( IsValidGuid( entity.RowId ) )
@@ -1127,6 +1150,7 @@ namespace Factories
 
                     if ( input.HasTrainingTaskList?.Count == 0 )
                     {
+                        //temp handling of old approach
                         if ( IsValidGuid( input.HasTrainingTask ))
                         {
                             input.HasTrainingTaskList.Add( input.HasTrainingTask );

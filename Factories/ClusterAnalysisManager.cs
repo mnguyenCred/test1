@@ -34,6 +34,17 @@ namespace Factories
             entity.LastUpdatedById = entity.CreatedById;
             try
             {
+                if ( entity.RatingTaskId < 1)
+                {
+                    var ratingTask = RatingTaskManager.Get( entity.RatingTaskRowId );
+                    if ( ratingTask?.Id > 0 )
+                        entity.RatingTaskId = ratingTask.Id;
+                    else
+                    {
+                        status.AddError( String.Format("A valid rating task identifier was not provided for Cluster Analysis record ({0}).", entity.RowId ));
+                        return false;
+                    }
+                }
                 using ( var context = new DataEntities() )
                 {
                     //if ( ValidateProfile( entity, ref status ) == false )
@@ -42,6 +53,7 @@ namespace Factories
                     if ( entity.Id == 0 )
                     {
                         //how to check for existing?
+                        //just by rating task id for now
                         var record = GetExisting( entity );
                         if ( record?.Id > 0 )
                         {
@@ -62,11 +74,10 @@ namespace Factories
                         }
                     }
                     //update
-                    //TODO - consider if necessary, or interferes with anything
-                    //      - don't really want to include all training tasks
+                    //TODO - ???
                     context.Configuration.LazyLoadingEnabled = false;
                     DBEntity efEntity = context.ClusterAnalysis
-                            .SingleOrDefault( s => s.Id == entity.Id );
+                            .FirstOrDefault( s => s.Id == entity.Id );
 
                     if ( efEntity != null && efEntity.Id > 0 )
                     {
@@ -225,75 +236,82 @@ namespace Factories
             status.HasSectionErrors = false;
             //watch for missing properties like rowId
             List<string> errors = new List<string>();
-            //this will include the extra props (like LifeCycleControlDocument, etc. for now)
+            //
             BaseFactory.AutoMap( input, output, errors );
-            /*
-            if ( IsValidGuid( input.HasReferenceResource ) )
+            //if ( IsValidGuid( input.TrainingSolutionType ) )
+            //{
+            //    output.TrainingSolutionTypeId = ( int ) ConceptSchemeManager.GetConcept( input.TrainingSolutionTypeId )?.Id;
+            //}
+            if ( input.TrainingSolutionTypeId > 0 )
+                output.TrainingSolutionTypeId = input.TrainingSolutionTypeId;
+
+            else if ( !string.IsNullOrWhiteSpace( input.TrainingSolutionType ) )
             {
-                if ( output.LifeCycleControlDocumentId != null && output.ReferenceResource?.RowId == input.HasReferenceResource )
-                {
-                    //no action
-                }
-                else
-                {
-                    var entity = ReferenceResourceManager.Get( input.HasReferenceResource );
-                    if ( entity?.Id > 0 )
-                        output.LifeCycleControlDocumentId = ( int ) entity?.Id;
-                    else
-                    {
-                        status.AddError( thisClassName + String.Format( ".MapToDB. ClusterAnalysis: '{0}'. The related HasReferenceResource '{1}' was not found", input.Name, input.HasReferenceResource ) );
-                    }
-                }
+                output.TrainingSolutionTypeId = ( int ) ConceptSchemeManager.GetConcept( ConceptSchemeManager.ConceptScheme_TrainingSolutionType, input.TrainingSolutionType )?.Id;
             }
             else
-            {
-                output.LifeCycleControlDocumentId = null;
-            }
-            //
-            //this may be removed if there can be multiple CCA
-            //22-01-24 - Navy confirmed only one!
-            if ( input.CurriculumControlAuthority?.Count > 0 )
-            {
-                foreach ( var item in input.CurriculumControlAuthority )
-                {
-                    //all org adds will occur before here
-                    var org = OrganizationManager.Get( item );
-                    if ( org != null && org.Id > 0 )
-                    {
-                        //TODO - now using ClusterAnalysis.Organization
-                        output.CurriculumControlAuthorityId = org.Id;
-                        //only can handle one here
-                    }
-                    else
-                    {
-                        //should not have a new org here
-                        //NO, all new orgs will have been added first, so this would be an error
-                    }
-                }
+                output.TrainingSolutionTypeId = null;
 
+            if ( input.RecommendedModalityId > 0 )
+                output.RecommendedModalityId = input.RecommendedModalityId;
+
+            else if ( !string.IsNullOrWhiteSpace( input.RecommendedModality ) )
+            {
+                //
+                output.RecommendedModalityId = ( int ) ConceptSchemeManager.GetConcept( ConceptSchemeManager.ConceptScheme_RecommendedModality, input.RecommendedModality )?.Id;
             }
-            */
+            else
+                output.RecommendedModalityId = null;
+
+            if ( input.DevelopmentSpecificationId > 0 )
+                output.DevelopmentSpecificationId = input.DevelopmentSpecificationId;
+
+            else if ( !string.IsNullOrWhiteSpace( input.DevelopmentSpecification ) )
+            {
+                output.DevelopmentSpecificationId = ( int ) ConceptSchemeManager.GetConcept( ConceptSchemeManager.ConceptScheme_DevelopmentSpecification, input.DevelopmentSpecification )?.Id;
+            }
+            //if ( !string.IsNullOrWhiteSpace( input.CFMPlacement ) )
+            //{
+            //    output.CFMPlacementId = ( int ) ConceptSchemeManager.GetConcept( ConceptSchemeManager.ConceptScheme_CFMPlacement, input.CFMPlacement )?.Id;
+            //}
         }
         #endregion
         #region Retrieval
 
         public static AppEntity GetExisting( AppEntity entity )
         {
+            //just by rating task id for now
             var existing = new AppEntity();
-            //if ( string.IsNullOrWhiteSpace( codedNotation ) )
-            //    return null;
+            if ( entity.RatingTaskId == 0 )
+                return null;
 
-            //using ( var context = new DataEntities() )
-            //{
-            //    var item = context.ClusterAnalysis
-            //                .FirstOrDefault( s => s.CodedNotation.ToLower() == codedNotation.ToLower() );
+            using ( var context = new DataEntities() )
+            {
+                var item = context.ClusterAnalysis
+                            .FirstOrDefault( s => s.RatingTaskId == entity.RatingTaskId );
 
-            //    if ( item != null && item.Id > 0 )
-            //    {
-            //        MapFromDB( item, existing );
-            //    }
-            //}
+                if ( item != null && item.Id > 0 )
+                {
+                    MapFromDB( item, existing );
+                }
+            }
             return existing;
+        }
+        public static AppEntity GetForUpload( Guid rowRatingTaskRowId )
+        {
+            var entity = new AppEntity();
+
+            using ( var context = new DataEntities() )
+            {
+                var item = context.ClusterAnalysis
+                            .FirstOrDefault( s => s.RatingTask.RowId == rowRatingTaskRowId );
+
+                if ( item != null && item.Id > 0 )
+                {
+                    MapFromDB( item, entity );
+                }
+            }
+            return entity;
         }
         public static AppEntity Get( Guid rowId, bool includingTrainingTasks = false )
         {
@@ -510,10 +528,7 @@ namespace Factories
             try
             {
                 /*
-                new TrainingTaskManager().SaveList( input, false, ref status );
-
-                ClusterAnalysisTypeSave( input, input.ClusterAnalysisType, ref status );
-                ClusterAnalysisAssessmentMethodSave( input, input.AssessmentMethodType, ref status );
+                ???????????????????????
                 */
 
             }

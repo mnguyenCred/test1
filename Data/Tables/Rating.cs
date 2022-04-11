@@ -17,8 +17,8 @@ namespace Data.Tables
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2214:DoNotCallOverridableMethodsInConstructors")]
         public Rating()
         {
-            this.RatingTask_HasRating = new HashSet<RatingTask_HasRating>();
             this.Job = new HashSet<Job>();
+            this.RatingTask_HasRating = new HashSet<RatingTask_HasRating>();
         }
     
         public int Id { get; set; }
@@ -26,20 +26,20 @@ namespace Data.Tables
         public string Name { get; set; }
         public string CodedNotation { get; set; }
         public string Description { get; set; }
+        public string MainEntityOfPage { get; set; }
         public string Version { get; set; }
         public string RatingUploadDate { get; set; }
         public string RatingPublicationDate { get; set; }
         public string Image { get; set; }
-        public System.DateTime Created { get; set; }
-        public System.DateTime LastUpdated { get; set; }
         public System.Guid RowId { get; set; }
-        public string MainEntityOfPage { get; set; }
+        public System.DateTime Created { get; set; }
         public Nullable<int> CreatedById { get; set; }
+        public System.DateTime LastUpdated { get; set; }
         public Nullable<int> LastUpdatedById { get; set; }
     
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<RatingTask_HasRating> RatingTask_HasRating { get; set; }
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<Job> Job { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<RatingTask_HasRating> RatingTask_HasRating { get; set; }
     }
 }

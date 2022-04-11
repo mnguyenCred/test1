@@ -12,19 +12,16 @@ namespace Data.Tables
     using System;
     using System.Collections.Generic;
     
-    public partial class Comment
+    public partial class Entity_Comment
     {
         public int Id { get; set; }
-        public System.Guid RowId { get; set; }
-        public Nullable<int> RmtlProjectId { get; set; }
-        public System.Guid AppliesTo { get; set; }
-        public string Description { get; set; }
-        public Nullable<int> StatusTypeId { get; set; }
+        public int EntityId { get; set; }
+        public string Comment { get; set; }
         public System.DateTime Created { get; set; }
+        public Nullable<System.DateTime> LastUpdated { get; set; }
         public Nullable<int> CreatedById { get; set; }
-        public System.DateTime LastUpdated { get; set; }
         public Nullable<int> LastUpdatedById { get; set; }
     
-        public virtual RMTLProject RMTLProject { get; set; }
+        public virtual Entity Entity { get; set; }
     }
 }
