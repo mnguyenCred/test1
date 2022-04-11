@@ -2175,10 +2175,10 @@ namespace Services
 
 					ClusterAnalysisTitle = item.Row.Cluster_Analysis_Title,
 					RecommendedModality = item.Row.Recommended_Modality,
-					RecommendedModalityId = (int)rowRecommendModalityType?.Id,
+					RecommendedModalityId = rowRecommendModalityType != null ? ( int)(rowRecommendModalityType?.Id) : 0,
 
 					DevelopmentSpecification = item.Row.Development_Specification,
-					DevelopmentSpecificationId = (int)rowDevelopmentSpecificationType?.Id,
+					DevelopmentSpecificationId = rowDevelopmentSpecificationType != null ? ( int)rowDevelopmentSpecificationType?.Id : 0,
 
 					CandidatePlatform = item.Row.Candidate_Platform,
 					CFMPlacement = item.Row.CFM_Placement,
@@ -2186,7 +2186,7 @@ namespace Services
 					DevelopmentRatio = item.Row.Development_Ratio,
 					DevelopmentTime = development_Time,
 					EstimatedInstructionalTime = estimatedInstructionalTime,
-					Notes = item.Row.Cluster_Analysis_Notes
+					Notes = item.Row.Cluster_Analysis_Notes ?? ""
 				},
 				//Store if newly created
 				( newItem ) => { summary.ItemsToBeCreated.ClusterAnalysis.Add( newItem ); },
