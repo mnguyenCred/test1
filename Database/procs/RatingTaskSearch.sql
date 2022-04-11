@@ -40,6 +40,7 @@ set @Filter = ' base.LevelId in (89) AND FunctionalAreaId in(2,5)'
 set @Filter = ' base.id in (select a.[RatingTaskId] from [RatingTask.HasRating] a inner join Rating b on a.ratingId = b.Id where b.Id in (77,78 ))	'
 set @Filter = ' ( base.WorkElementTypeId in ( 1120 ) )  '
  set @Filter = '  Ratings = ''ps'' '
+ set @Filter = '  trainingSolutionType = ''Block Zero Addition'' '
 --set @Filter = ''
 
 set @StartPageIndex = 1
@@ -279,6 +280,26 @@ SELECT
 
 	  --
       ,b.[Notes]
+	  -- Part III
+	,b.[TrainingSolutionTypeId]
+	,b.[TrainingSolutionType]
+      
+	,b.[ClusterAnalysisTitle]
+
+	,b.[RecommendedModalityId]
+	,b.RecommendedModality as RecommendedModality
+	,b.RecommentedModalityCodedNotation
+      
+	,b.[DevelopmentSpecificationId]
+	,b.DevelopmentSpecification
+
+	,b.[CandidatePlatform]
+	,b.[CFMPlacement]
+	,b.[PriorityPlacement]
+	,b.[DevelopmentRatio]
+	,b.[EstimatedInstructionalTime]
+	,b.[DevelopmentTime]
+	,b.ClusterAnalysisNotes
 	  --
       ,[CreatedById]
       ,[CreatedBy],CreatedByUID

@@ -66,6 +66,17 @@ namespace Services
 						TrainingTask_Description = item.TrainingTask,
 						Course_AssessmentMethodType_Name = item.CurrentAssessmentApproach,
 						Note = item.Note,
+						Training_Solution_Type = item.TrainingSolutionType,
+						Cluster_Analysis_Title = item.ClusterAnalysisTitle,
+						Recommended_Modality = item.RecommendedModality,
+						Development_Specification = item.DevelopmentSpecification,
+						Candidate_Platform = item.CandidatePlatform,
+						CFM_Placement = item.CFMPlacement,
+						Priority_Placement = item.Priority_Placement,
+						Development_Ratio = item.DevelopmentRatio,
+						Estimated_Instructional_Time = item.Estimated_Instructional_Time,
+						Development_Time = item.Development_Time,
+						Cluster_Analysis_Notes = item.ClusterAnalysisNotes,
 					},
 					Extra = new JObject()
 					{

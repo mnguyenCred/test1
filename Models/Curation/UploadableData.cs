@@ -83,7 +83,7 @@ namespace Models.Curation
 		public string CFM_Placement { get; set; }
 		public string Priority_Placement { get; set; }
 		public string Development_Ratio { get; set; }
-		public string EstimatedInstructionalTime { get; set; }
+		public string Estimated_Instructional_Time { get; set; }
 		public string Development_Time { get; set; }
 		
 		public string Cluster_Analysis_Notes { get; set; }

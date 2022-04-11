@@ -156,7 +156,7 @@
           <Property Name="CodedNotation" Type="varchar" MaxLength="50" />
           <Property Name="AlternateLabel" Type="varchar" MaxLength="500" />
           <Property Name="Description" Type="varchar(max)" />
-          <Property Name="ListId" Type="int" />
+          <Property Name="ListId" Type="int" Nullable="false" />
           <Property Name="IsActive" Type="bit" Nullable="false" />
           <Property Name="Created" Type="datetime" Nullable="false" />
           <Property Name="CreatedById" Type="int" />
@@ -1732,7 +1732,7 @@
           <Property Name="CodedNotation" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
           <Property Name="AlternateLabel" Type="String" MaxLength="500" FixedLength="false" Unicode="false" />
           <Property Name="Description" Type="String" MaxLength="Max" FixedLength="false" Unicode="false" />
-          <Property Name="ListId" Type="Int32" />
+          <Property Name="ListId" Type="Int32" Nullable="false" />
           <Property Name="IsActive" Type="Boolean" Nullable="false" />
           <Property Name="Created" Type="DateTime" Nullable="false" Precision="3" />
           <Property Name="CreatedById" Type="Int32" />
@@ -1744,7 +1744,7 @@
           <NavigationProperty Name="CourseTask_AssessmentType" Relationship="NavyRRLModel.FK_CourseTask_AssessmentType_Concept" FromRole="ConceptScheme_Concept" ToRole="CourseTask_AssessmentType" />
           <NavigationProperty Name="Entity_Concept" Relationship="NavyRRLModel.FK_Entity_Concept_ConceptScheme_Concept" FromRole="ConceptScheme_Concept" ToRole="Entity_Concept" />
           <NavigationProperty Name="RatingTask" Relationship="NavyRRLModel.FK_RatingLevelTask_Level" FromRole="ConceptScheme_Concept" ToRole="RatingTask" />
-          <NavigationProperty Name="RatingTask1" Relationship="NavyRRLModel.FK_RatingLevelTask_Rank" FromRole="ConceptScheme_Concept" ToRole="RatingTask" />
+          <NavigationProperty Name="RatingTask1" Relationship="NavyRRLModel.FK_RatingTask_ConceptWorkElelment" FromRole="ConceptScheme_Concept" ToRole="RatingTask" />
           <NavigationProperty Name="RatingTask2" Relationship="NavyRRLModel.FK_RatingLevelTask_TaskApplicability" FromRole="ConceptScheme_Concept" ToRole="RatingTask" />
           <NavigationProperty Name="RatingTask3" Relationship="NavyRRLModel.FK_RatingLevelTask_TrainingGap" FromRole="ConceptScheme_Concept" ToRole="RatingTask" />
           <NavigationProperty Name="RatingTask4" Relationship="NavyRRLModel.FK_RatingTask_ConceptWorkElelment" FromRole="ConceptScheme_Concept" ToRole="RatingTask" />

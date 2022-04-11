@@ -1847,6 +1847,10 @@ namespace Services
 			{
 
             }
+			if ( item.Row.Row_Index == 8 || item.Row.Row_Index == 1000 )
+			{
+
+			}
 			//Get the controlled value items that show up in this row
 			//Everything in any uploaded sheet should appear here. If any of these are not found, it's an error
 			//Might also be an error if rowRating is the "ALL" Rating, now
@@ -1872,7 +1876,7 @@ namespace Services
 
 			//These should throw an error if not found, unless all of the course/training columns are N/A
 			var shouldNotHaveTrainingData = rowTrainingGapType.Name?.ToLower() == "yes";
-			var rowCourseType = GetDataOrError<Concept>( summary, ( m ) => m.Name?.ToLower() == item.Row.Course_CourseType_Name?.ToLower(), result, "Course Type not found in database: " + item.Row.Course_CourseType_Name ?? "" );
+			var rowCourseType = GetDataOrError<Concept>( summary, ( m ) => m.Name?.ToLower() == item.Row.Course_CourseType_Name?.ToLower(), result, "Course Type not found in database: " + item.Row.Course_CourseType_Name ?? "", item.Row.Course_CourseType_Name );
 
 			var rowOrganizationCCA = GetDataOrError<Organization>( summary, ( m ) => (m.Name != null && m.Name.ToLower() == item.Row.Course_CurriculumControlAuthority_Name?.ToLower()) || (m.ShortName != null && m.ShortName.ToLower() == item.Row.Course_CurriculumControlAuthority_Name?.ToLower()), result, "Curriculum Control Authority not found in database: " + item.Row.Course_CurriculumControlAuthority_Name ?? "missing" );
 
@@ -1884,7 +1888,11 @@ namespace Services
 					"Life-Cycle Control Document Type not found in database: " + item.Row.Course_LifeCycleControlDocumentType_CodedNotation ?? "" );
 			if ( item.Row.Course_LifeCycleControlDocumentType_CodedNotation == null )
 				rowCourseLCCDType = null;
-			var rowAssessmentMethodTypeList = GetDataListOrError<Concept>( summary, ( m ) => SplitAndTrim( item.Row.Course_AssessmentMethodType_Name?.ToLower(), "," ).Contains( m.Name?.ToLower() ), result, "Assessment Method Type not found in database: " + item.Row.Course_AssessmentMethodType_Name ?? "" );
+			var rowAssessmentMethodTypeList = new List<Concept>();
+			if ( item.Row.Course_AssessmentMethodType_Name != null && item.Row.Course_AssessmentMethodType_Name.ToLower()  != "n/a" )
+			{
+				rowAssessmentMethodTypeList = GetDataListOrError<Concept>( summary, ( m ) => SplitAndTrim( item.Row.Course_AssessmentMethodType_Name?.ToLower(), "," ).Contains( m.Name?.ToLower() ), result, "Assessment Method Type not found in database: " + item.Row.Course_AssessmentMethodType_Name ?? "" );
+			}
 			
 			//If the Training Gap Type is "Yes", then treat all course/training data as null, but check to see if it exists first (above) to facilitate the warning statement below
 			if ( shouldNotHaveTrainingData )
@@ -1920,32 +1928,54 @@ namespace Services
 				return result;
 			}
 
-			//Check for duplicate Rating Task (minus Row Unique Identifier) from a previous row, after the related concepts etc. above have been figured out
-			var tempRatingTaskSource = summary.GetAll<ReferenceResource>()
-				.FirstOrDefault( m =>
-					m.Name?.ToLower() == item.Row.ReferenceResource_Name?.ToLower() &&
-					m.PublicationDate?.ToLower() == item.Row.ReferenceResource_PublicationDate?.ToLower() &&
-					m.ReferenceType.Contains( rowSourceType.RowId )
-				) ??
-				ReferenceResourceManager.Get( item.Row.ReferenceResource_Name, item.Row.ReferenceResource_PublicationDate ) ??
-				new ReferenceResource();
-			var existingPreviousRatingTask = summary.GetAll<RatingTask>()
-				.FirstOrDefault( m =>
-					m.Description?.ToLower() == item.Row.RatingTask_Description?.ToLower() &&
-					m.ApplicabilityType == rowTaskApplicabilityType.RowId &&
-					m.TrainingGapType == rowTrainingGapType.RowId &&
-					m.PayGradeType == rowPayGrade.RowId &&
-					m.ReferenceType == rowSourceType.RowId &&
-					m.HasReferenceResource == tempRatingTaskSource.RowId
-				);
-			if ( existingPreviousRatingTask != null )
-			{
-				//Actually will need to get the exact row(s)
-				result.Errors.Add( string.Format( "For Unique Identifier: '{0}' the Rating Task data is the same as for a previous row with Unique Identifier: {1}.", item.Row.Row_CodedNotation, existingPreviousRatingTask.CodedNotation ) );
-				result.Errors.Add( "Duplicate Rating Tasks are not allowed. Processing this row cannot continue." );
-				return result;
-			}
+			var doingDuplicateChecks = UtilityManager.GetAppKeyValue( "doingRatingTaskDuplicateChecks", true );
+			var includingBilletTitleInDuplicateChecks = UtilityManager.GetAppKeyValue( "includingBilletTitleInDuplicatesChecks", false );
 
+			if ( doingDuplicateChecks )
+			{
+				//Check for duplicate Rating Task (minus Row Unique Identifier) from a previous row, after the related concepts etc. above have been figured out
+				var tempRatingTaskSource = summary.GetAll<ReferenceResource>()
+					.FirstOrDefault( m =>
+						m.Name?.ToLower() == item.Row.ReferenceResource_Name?.ToLower() &&
+						m.PublicationDate?.ToLower() == item.Row.ReferenceResource_PublicationDate?.ToLower() &&
+						m.ReferenceType.Contains( rowSourceType.RowId )
+					) ??
+					ReferenceResourceManager.Get( item.Row.ReferenceResource_Name, item.Row.ReferenceResource_PublicationDate ) ??
+					new ReferenceResource();
+				var existingPreviousRatingTask = new RatingTask();
+				if ( includingBilletTitleInDuplicateChecks )
+                {
+					existingPreviousRatingTask = summary.GetAll<RatingTask>()
+					.FirstOrDefault( m =>
+						m.Description?.ToLower() == item.Row.RatingTask_Description?.ToLower() &&
+						m.ApplicabilityType == rowTaskApplicabilityType.RowId &&
+						m.TrainingGapType == rowTrainingGapType.RowId &&
+						m.PayGradeType == rowPayGrade.RowId &&
+						m.ReferenceType == rowSourceType.RowId &&
+						m.HasReferenceResource == tempRatingTaskSource.RowId &&
+						m.BilletTitle.ToLower() == item.Row.BilletTitle_Name.ToLower() //how to ensure this is populated?
+					);
+				} else
+                {
+					existingPreviousRatingTask = summary.GetAll<RatingTask>()
+					.FirstOrDefault( m =>
+						m.Description?.ToLower() == item.Row.RatingTask_Description?.ToLower() &&
+						m.ApplicabilityType == rowTaskApplicabilityType.RowId &&
+						m.TrainingGapType == rowTrainingGapType.RowId &&
+						m.PayGradeType == rowPayGrade.RowId &&
+						m.ReferenceType == rowSourceType.RowId &&
+						m.HasReferenceResource == tempRatingTaskSource.RowId
+					);
+				}
+				
+				if ( existingPreviousRatingTask != null )
+				{
+					//Actually will need to get the exact row(s)
+					result.Errors.Add( string.Format( "For Unique Identifier: '{0}' the Rating Task data is the same as for a previous row with Unique Identifier: {1}.", item.Row.Row_CodedNotation, existingPreviousRatingTask.CodedNotation ) );
+					result.Errors.Add( "Duplicate Rating Tasks are not allowed. Processing this row cannot continue." );
+					return result;
+				}
+			}
 
 			//After Validation, process the row's contents
 			//Get the variable items that show up in this row
@@ -2117,7 +2147,7 @@ namespace Services
 				result.Warnings.Add( string.Format("Priority Placement ({0}) is invalid. valid values are 1 through 9.", priorityPlacement) );
 			};
 			int development_Time = UtilityManager.MapInteger( item.Row.Development_Time, ref isValid );
-			decimal estimatedInstructionalTime = UtilityManager.MapDecimal( item.Row.EstimatedInstructionalTime, ref isValid );			
+			decimal estimatedInstructionalTime = UtilityManager.MapDecimal( item.Row.Estimated_Instructional_Time, ref isValid );			
 			if ( item.Row.Recommended_Modality != null)
             {
 

@@ -40,7 +40,7 @@ namespace Data.Tables
         public string CodedNotation { get; set; }
         public string AlternateLabel { get; set; }
         public string Description { get; set; }
-        public Nullable<int> ListId { get; set; }
+        public int ListId { get; set; }
         public bool IsActive { get; set; }
         public System.DateTime Created { get; set; }
         public Nullable<int> CreatedById { get; set; }

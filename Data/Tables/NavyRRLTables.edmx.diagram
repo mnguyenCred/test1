@@ -4,14 +4,14 @@
   <edmx:Designer xmlns="http://schemas.microsoft.com/ado/2009/11/edmx">
     <!-- Diagram content (shape and connector positions) -->
     <edmx:Diagrams>
-      <Diagram DiagramId="1cbd21b9a0474d02b074dae2db684a6a" Name="Diagram1" ZoomLevel="98">
+      <Diagram DiagramId="1cbd21b9a0474d02b074dae2db684a6a" Name="Diagram1" ZoomLevel="74">
         <EntityTypeShape EntityType="NavyRRLModel.Course_Concept" Width="2.625" PointX="12.375" PointY="10.875" FillColor="128, 255, 128" />
         <AssociationConnector Association="NavyRRLModel.FK_Course_Concept_ConceptScheme_Concept" />
         <AssociationConnector Association="NavyRRLModel.FK_Course_Concept_Course" />
         <AssociationConnector Association="NavyRRLModel.FK_RatingTask_ReferenceResource" />
         <EntityTypeShape EntityType="NavyRRLModel.Account" Width="1.5" PointX="0.75" PointY="1.125" />
-        <EntityTypeShape EntityType="NavyRRLModel.AspNetRoles" Width="1.5" PointX="8.75" PointY="0.75" />
-        <EntityTypeShape EntityType="NavyRRLModel.AspNetUsers" Width="1.5" PointX="1.5" PointY="21" />
+        <EntityTypeShape EntityType="NavyRRLModel.AspNetRoles" Width="1.5" PointX="23.875" PointY="9.125" />
+        <EntityTypeShape EntityType="NavyRRLModel.AspNetUsers" Width="1.5" PointX="18" PointY="7.25" />
         <EntityTypeShape EntityType="NavyRRLModel.Comment" Width="1.5" PointX="12" PointY="31.375" />
         <EntityTypeShape EntityType="NavyRRLModel.ConceptScheme" Width="1.5" PointX="3" PointY="1" />
         <EntityTypeShape EntityType="NavyRRLModel.ConceptScheme_Concept" Width="1.5" PointX="0.75" PointY="14.125" />
@@ -21,9 +21,9 @@
         <EntityTypeShape EntityType="NavyRRLModel.Course_Task" Width="1.5" PointX="5.25" PointY="23.375" FillColor="128, 255, 128" />
         <EntityTypeShape EntityType="NavyRRLModel.CourseTask_AssessmentType" Width="1.5" PointX="8.5" PointY="21.125" />
         <EntityTypeShape EntityType="NavyRRLModel.Entity" Width="1.5" PointX="3.75" PointY="10.625" />
-        <EntityTypeShape EntityType="NavyRRLModel.Entity_Comment" Width="1.5" PointX="6" PointY="1.75" />
+        <EntityTypeShape EntityType="NavyRRLModel.Entity_Comment" Width="1.5" PointX="3.875" PointY="6.625" />
         <EntityTypeShape EntityType="NavyRRLModel.Entity_Concept" Width="1.5" PointX="6" PointY="11.75" />
-        <EntityTypeShape EntityType="NavyRRLModel.Import_RMTLStaging" Width="1.5" PointX="14.75" PointY="0.75" />
+        <EntityTypeShape EntityType="NavyRRLModel.Import_RMTLStaging" Width="1.5" PointX="23.375" PointY="0.875" />
         <EntityTypeShape EntityType="NavyRRLModel.Job" Width="1.5" PointX="12" PointY="7.75" />
         <EntityTypeShape EntityType="NavyRRLModel.Organization" Width="1.5" PointX="0.75" PointY="9.25" />
         <EntityTypeShape EntityType="NavyRRLModel.Rating" Width="1.5" PointX="9.75" PointY="7.875" />
@@ -83,11 +83,11 @@
         <AssociationConnector Association="NavyRRLModel.FK_ClusterAnalysis_RecommendedModality_Concept1" />
         <AssociationConnector Association="NavyRRLModel.FK_ClusterAnalysis_TrainingSolution_Concept" />
         <EntityTypeShape EntityType="NavyRRLModel.ActivityLog" Width="1.5" PointX="11.375" PointY="0.75" />
-        <EntityTypeShape EntityType="NavyRRLModel.AspNetUserRoles" Width="1.5" PointX="17" PointY="11.375" />
-        <EntityTypeShape EntityType="NavyRRLModel.ImportRMTL" Width="1.5" PointX="19.375" PointY="0.75" />
+        <EntityTypeShape EntityType="NavyRRLModel.AspNetUserRoles" Width="1.5" PointX="21.875" PointY="8.625" />
+        <EntityTypeShape EntityType="NavyRRLModel.ImportRMTL" Width="1.5" PointX="26.625" PointY="1.125" />
         <AssociationConnector Association="NavyRRLModel.FK_AspNetUserRoles_AspNetRoles" />
         <AssociationConnector Association="NavyRRLModel.FK_AspNetUserRoles_AspNetUsers" />
-        <EntityTypeShape EntityType="NavyRRLModel.System_ProxyCodes" Width="1.5" PointX="19.375" PointY="11.75" />
+        <EntityTypeShape EntityType="NavyRRLModel.System_ProxyCodes" Width="1.5" PointX="27.125" PointY="12" />
         <AssociationConnector Association="NavyRRLModel.FK_ConceptScheme_Concept_ConceptScheme" />
         </Diagram>
     </edmx:Diagrams>

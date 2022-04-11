@@ -180,73 +180,74 @@ namespace Factories
                         for ( int i = dest.GetLowerBound( 0 ); i <= dest.GetUpperBound( 0 ); i++ )
                             dest.SetValue( "", i );
                         var entity = new UploadableRow();
-                        //use header columns rather than hard-code index numbers to enable flexibility
-                        for ( int i = 0; i < fieldCount; i++ )
+                        try
                         {
-                            if ( i >= dest.Length )
+                            //use header columns rather than hard-code index numbers to enable flexibility
+                            for ( int i = 0; i < fieldCount; i++ )
                             {
-                                break;
-                            }
-                            LoggingHelper.DoTrace( 7, string.Format( "Reading: {0} = {1};", headings[i], csv[i] ) );
-                         
-                            if ( i == 8 )
-                            {
-                                //skip
-                                //continue;
-                            }
-                            //also check for blank rows somehow
-                            if ( cntr < 5 && (csv[i] == "Index #" || csv[i] == "Unique Identifier" ))
-                            {
-                                skipRow = true; 
-                                break;
-                            }
-                            try
-                            {
+                                if ( i >= dest.Length )
+                                {
+                                    break;
+                                }
+                                LoggingHelper.DoTrace( 7, string.Format( "Reading: {0} = {1};", headings[i], csv[i] ) );
+
+                                if ( i == 8 )
+                                {
+                                    //skip
+                                    //continue;
+                                }
+                                //also check for blank rows somehow
+                                if ( cntr < 5 && ( csv[i] == "Index #" || csv[i] == "Unique Identifier" ) )
+                                {
+                                    skipRow = true;
+                                    break;
+                                }
                                 dest[i] = csv[i];
+
+
+                                //may want to make case insensitive!
+                                //OR
+                                var header = headings[i].ToLower();
+                                /*
+                                switch ( header )
+                                {
+                                    case "rating":
+                                        entity.Rating_CodedNotation = csv[i];
+                                        break;
+                                    case "unique_identifier":
+                                        entity.Row_CodedNotation = csv[i];
+                                        break;
+                                    case "rank":
+                                        entity.PayGradeType_CodedNotation = csv[i];
+                                        break;
+                                    case "level":
+                                        entity.Level_Name = csv[i];
+                                        break;
+                                    case "Work_Element_Task":
+                                        entity.RatingTask_Description = csv[i];
+                                        break;
+
+
+                                    default:
+                                        //action?
+                                        LoggingHelper.DoTrace( 1, string.Format( thisClassName + ".BulkLoadRMTL. Unknown header {0}", headers[i] ) );
+                                        break;
+                                }
+                                */
                             }
-                            catch
+                            if ( !skipRow )
                             {
-                                dest[i] = "Error encountered";
+                                row.ItemArray = dest;
+                                dt.Rows.Add( row );
                             }
-
-
-                            //may want to make case insensitive!
-                            //OR
-                            var header = headings[i].ToLower();
-                            /*
-                            switch ( header )
-                            {
-                                case "rating":
-                                    entity.Rating_CodedNotation = csv[i];
-                                    break;
-                                case "unique_identifier":
-                                    entity.Row_CodedNotation = csv[i];
-                                    break;
-                                case "rank":
-                                    entity.PayGradeType_CodedNotation = csv[i];
-                                    break;
-                                case "level":
-                                    entity.Level_Name = csv[i];
-                                    break;
-                                case "Work_Element_Task":
-                                    entity.RatingTask_Description = csv[i];
-                                    break;
-
-
-                                default:
-                                    //action?
-                                    LoggingHelper.DoTrace( 1, string.Format( thisClassName + ".BulkLoadRMTL. Unknown header {0}", headers[i] ) );
-                                    break;
-                            }
-                            */
+                            //
+                            //output.Add( entity );
                         }
-                        if ( !skipRow )
+                        catch
                         {
-                            row.ItemArray = dest;
-                            dt.Rows.Add( row );
+                            //no action
                         }
-                        //
-                        //output.Add( entity );
+                        
 
                     }
                 }
@@ -605,7 +606,9 @@ namespace Factories
         } //
         public static Guid GetGuidType( DataRow dr, string property )
         {
-            string guid = GetRowColumn( dr, property );
+            string guid2 = GetRowColumn( dr, property );
+            string guid = dr[property].ToString();
+
             if ( !string.IsNullOrEmpty( guid ) && IsValidGuid( guid) )
                 return new Guid( guid );
             else

@@ -356,6 +356,7 @@ namespace Factories
                     }
                 }
                 //consider best sort order now
+                output.Concepts = output.Concepts.OrderBy( m => m.ListId ).ThenBy(m => m.Name ).ToList();
             }
             //
 
