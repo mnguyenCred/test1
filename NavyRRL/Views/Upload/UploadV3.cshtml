@@ -613,7 +613,7 @@
 		UI.DuplicatesBox.html("<div class=\"itemCount\">" + (Manager.PotentialDuplicates.length + " Sets of Potential Duplicates") + "</div>");
 		renderDuplicateSets(UI.DuplicatesBox, "BilletTitle", "Billet Titles", Manager.PotentialDuplicates, ["Name"], ["HasRatingTask|Related Rating Tasks"]);
 		renderDuplicateSets(UI.DuplicatesBox, "WorkRole", "Functional Areas", Manager.PotentialDuplicates, ["CodedNotation|Code", "Name"], []);
-		renderDuplicateSets(UI.DuplicatesBox, "RatingTask", "Rating Tasks", Manager.PotentialDuplicates, ["CodedNotation|Code", "Description"], ["HasTrainingTaskList|Related Training Tasks", "PayGradeType|Rank", "ApplicabilityType|Applicability Type", "TrainingGapType|Training Gap Type", "HasReferenceResource|Source", "HasRating|Related Ratings", "HasBilletTitle|Related Billet Titles"]);
+		renderDuplicateSets(UI.DuplicatesBox, "RatingTask", "Rating Tasks", Manager.PotentialDuplicates, ["CodedNotation|Code", "Description"], ["HasTrainingTaskList|Related Training Tasks", "PayGradeType|Rank", "ApplicabilityType|Applicability Type", "TrainingGapType|Training Gap Type", "HasReferenceResource|Source", "HasRating|Related Ratings", "HasBilletTitle|Related Billet Titles", "HasWorkRole|Related Functional Areas"]);
 		renderDuplicateSets(UI.DuplicatesBox, "TrainingTask", "Training Tasks", Manager.PotentialDuplicates, ["Description"], ["AssessmentMethodType|Assessment Method Type"]);
 		renderDuplicateSets(UI.DuplicatesBox, "Course", "Courses", Manager.PotentialDuplicates, ["CodedNotation|Course Identification Number", "Name"], ["HasTrainingTask|Related Training Tasks", "CourseType|Course Type", "LifeCycleControlDocumentType|Life-Cycle Control Document Type", "CurriculumControlAuthority|Curriculum Control Authority"]);
 		renderDuplicateSets(UI.DuplicatesBox, "ReferenceResource", "Sources", Manager.PotentialDuplicates, ["Name", "PublicationDate|Publication Date"], ["ReferenceType|Reference Type"]);
@@ -641,7 +641,7 @@
 		htmlBoxes.html("");
 		renderFunction(htmlBoxes, "BilletTitle", itemsData, ["Name"], ["HasRatingTask|Related Rating Tasks"]);
 		renderFunction(htmlBoxes, "WorkRole", itemsData, ["CodedNotation|Code", "Name"], []);
-		renderFunction(htmlBoxes, "RatingTask", itemsData, ["CodedNotation|Code", "Description"], ["HasTrainingTaskList|Related Training Tasks", "PayGradeType|Rank", "ApplicabilityType|Applicability Type", "TrainingGapType|Training Gap Type", "HasReferenceResource|Source", "HasRating|Related Ratings", "HasBilletTitle|Related Billet Titles"]);
+		renderFunction(htmlBoxes, "RatingTask", itemsData, ["CodedNotation|Code", "Description"], ["HasTrainingTaskList|Related Training Tasks", "PayGradeType|Rank", "ApplicabilityType|Applicability Type", "TrainingGapType|Training Gap Type", "HasReferenceResource|Source", "HasRating|Related Ratings", "HasBilletTitle|Related Billet Titles", "HasWorkRole|Related Functional Areas"]);
 		renderFunction(htmlBoxes, "TrainingTask", itemsData, ["Description"], ["AssessmentMethodType|Assessment Method Type"]);
 		renderFunction(htmlBoxes, "Course", itemsData, ["CodedNotation|Course Identification Number", "Name"], ["HasTrainingTask|Related Training Tasks", "CourseType|Course Type", "LifeCycleControlDocumentType|Life-Cycle Control Document Type", "CurriculumControlAuthority|Curriculum Control Authority"]);
 		renderFunction(htmlBoxes, "ReferenceResource", itemsData, ["Name", "PublicationDate|Publication Date"], ["ReferenceType|Reference Type"]);

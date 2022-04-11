@@ -1835,6 +1835,7 @@ namespace Services
 				return result;
 			}
 
+			/*
 			//Don't allow a row to be processed if it has the same row identifier as a previous row
 			if ( summary.GetAll<RatingTask>().FirstOrDefault( m => m.CodedNotation?.ToLower() == item.Row.Row_CodedNotation?.ToLower() ) != null )
 			{
@@ -1842,6 +1843,7 @@ namespace Services
 				result.Errors.Add( "Reuse of a row's Unique Identifier is not allowed. Processing this row cannot continue." );
 				return result;
 			}
+			*/
 			//
 			if ( item.Row.Row_CodedNotation == "PQ18-018" || item.Row.Row_CodedNotation == "PQ3-019x" || item.Row.Row_CodedNotation == "PQ3-046x" )
 			{
