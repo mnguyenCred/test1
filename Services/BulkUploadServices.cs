@@ -1843,7 +1843,7 @@ namespace Services
 				return result;
 			}
 			//
-			if ( item.Row.Row_CodedNotation == "PQ18-018" || item.Row.Row_CodedNotation == "PQ3-019x" || item.Row.Row_CodedNotation == "PQ3-046x" )
+			if ( item.Row?.Row_CodedNotation == "PQ18-018" || item.Row?.Row_CodedNotation == "PQ3-019x" || item.Row?.Row_CodedNotation == "PQ3-046x" )
 			{
 
             }
@@ -1900,7 +1900,7 @@ namespace Services
 				var hasDataWhenItShouldNot = new List<object>() { rowCourseType, rowOrganizationCCA, rowCourseLCCDType }.Concat( rowAssessmentMethodTypeList ).Where( m => m != null ).ToList();
 				if ( hasDataWhenItShouldNot.Count() > 0 || !string.IsNullOrWhiteSpace( item.Row.TrainingTask_Description ) )
 				{
-					result.Warnings.Add( "Incomplete course/training data found. All course/training related columns should either have data or be marked as \"N/A\". Since the Training Gap Type is \"Yes\", the incomplete data will be treated as \"N/A\"." );
+					result.Warnings.Add( String.Format("{0}. Incomplete course/training data found. All course/training related columns should either have data or be marked as \"N/A\". Since the Training Gap Type is \"Yes\", the incomplete data will be treated as \"N/A\".", item.Row?.Row_CodedNotation) );
 					rowCourseType = null;
 					rowOrganizationCCA = null;
 					rowCourseLCCDType = null;

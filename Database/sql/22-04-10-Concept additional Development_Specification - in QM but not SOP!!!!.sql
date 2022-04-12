@@ -20,7 +20,7 @@ INSERT INTO [dbo].[ConceptScheme.Concept]
 		   ,[CTID]           ,[IsActive]           ,[Created]           ,[CreatedById]           ,[LastUpdated]           ,[LastUpdatedById]
 		   )
      VALUES
-           (23           ,'Performance Support/ Video','',	'' , 25          
+           (25           ,'Performance Support/ Video','',	'Performance Support/ Video (NOT IN SOP)' , 25          
 		   ,'ce-c4c6e5fd-7a74-4498-a5b0-e729acfc0e67'   ,1           ,getdate(), 1           ,getdate(), 1
 		   )
 GO
