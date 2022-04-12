@@ -1846,7 +1846,7 @@ namespace Services
 			}
 			*/
 			//
-			if ( item.Row.Row_CodedNotation == "PQ18-018" || item.Row.Row_CodedNotation == "PQ3-019x" || item.Row.Row_CodedNotation == "PQ3-046x" )
+			if ( item.Row?.Row_CodedNotation == "PQ18-018" || item.Row?.Row_CodedNotation == "PQ3-019x" || item.Row?.Row_CodedNotation == "PQ3-046x" )
 			{
 
             }
@@ -1890,7 +1890,13 @@ namespace Services
 				m.Name?.ToLower() == item.Row.Course_LifeCycleControlDocumentType_CodedNotation?.ToLower() || m.CodedNotation?.ToLower() == item.Row.Course_LifeCycleControlDocumentType_CodedNotation?.ToLower(), 
 					result, 
 					"Life-Cycle Control Document Type not found in database: \"" + (item.Row.Course_LifeCycleControlDocumentType_CodedNotation ?? "") + "\"" );
-			var rowAssessmentMethodTypeList = GetDataListOrError<Concept>( summary, ( m ) => SplitAndTrim( item.Row.Course_AssessmentMethodType_Name?.ToLower(), "," ).Contains( m.Name?.ToLower() ), result, "Assessment Method Type not found in database: \"" + (item.Row.Course_AssessmentMethodType_Name ?? "") + "\"" );
+            var rowAssessmentMethodTypeList = GetDataListOrError<Concept>( summary, ( m ) => SplitAndTrim( item.Row.Course_AssessmentMethodType_Name?.ToLower(), "," ).Contains( m.Name?.ToLower() ), result, "Assessment Method Type not found in database: \"" + ( item.Row.Course_AssessmentMethodType_Name ?? "" ) + "\"" );
+            //
+   //         var rowAssessmentMethodTypeList = new List<Concept>();
+			//if ( item.Row.Course_AssessmentMethodType_Name != null && item.Row.Course_AssessmentMethodType_Name.ToLower() != "n/a" )
+			//{
+			//	rowAssessmentMethodTypeList = GetDataListOrError<Concept>( summary, ( m ) => SplitAndTrim( item.Row.Course_AssessmentMethodType_Name?.ToLower(), "," ).Contains( m.Name?.ToLower() ), result, "Assessment Method Type not found in database: " + item.Row.Course_AssessmentMethodType_Name ?? "" );
+			//}
 
 			//If the Training Gap Type is "Yes", then treat all course/training data as null, but check to see if it exists first (above) to facilitate the warning statement below
 			if ( shouldNotHaveTrainingData )
@@ -1898,7 +1904,7 @@ namespace Services
 				var hasDataWhenItShouldNot = new List<object>() { rowCourseType, rowOrganizationCCA, rowCourseLCCDType }.Concat( rowAssessmentMethodTypeList ).Where( m => m != null ).ToList();
 				if ( hasDataWhenItShouldNot.Count() > 0 || !string.IsNullOrWhiteSpace( item.Row.TrainingTask_Description ) )
 				{
-					result.Warnings.Add( "Incomplete course/training data found. All course/training related columns should either have data or be marked as \"N/A\". Since the Training Gap Type is \"Yes\", the incomplete data will be treated as \"N/A\"." );
+					result.Warnings.Add( String.Format("{0}. Incomplete course/training data found. All course/training related columns should either have data or be marked as \"N/A\". Since the Training Gap Type is \"Yes\", the incomplete data will be treated as \"N/A\".", item.Row?.Row_CodedNotation) );
 					rowCourseType = null;
 					rowOrganizationCCA = null;
 					rowCourseLCCDType = null;
@@ -1968,10 +1974,16 @@ namespace Services
 				
 				if ( existingPreviousRatingTask != null )
 				{
-					//Actually will need to get the exact row(s)
-					result.Errors.Add( string.Format( "For Unique Identifier: '{0}' the Rating Task data is the same as for a previous row with Unique Identifier: {1}.", item.Row.Row_CodedNotation, existingPreviousRatingTask.CodedNotation ) );
-					result.Errors.Add( "Duplicate Rating Tasks are not allowed. Processing this row cannot continue." );
-					return result;
+					if ( UtilityManager.GetAppKeyValue( "treatingRatingTaskDuplicateAsError", true ) )
+					{
+						result.Errors.Add( string.Format( "For Unique Identifier: '{0}' the Rating Task data is the same as for a previous row with Unique Identifier: {1}.", item.Row.Row_CodedNotation, existingPreviousRatingTask.CodedNotation ) );
+						result.Errors.Add( "Duplicate Rating Tasks are not allowed. Processing this row cannot continue." );
+						return result;
+					}
+					else
+					{
+						result.Warnings.Add( string.Format( "For Unique Identifier: '{0}' the Rating Task data is the same as for a previous row with Unique Identifier: {1}.", item.Row.Row_CodedNotation, existingPreviousRatingTask.CodedNotation ) );
+					}
 				}
 			}
 
