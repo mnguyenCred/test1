@@ -1889,7 +1889,13 @@ namespace Services
 				m.Name?.ToLower() == item.Row.Course_LifeCycleControlDocumentType_CodedNotation?.ToLower() || m.CodedNotation?.ToLower() == item.Row.Course_LifeCycleControlDocumentType_CodedNotation?.ToLower(), 
 					result, 
 					"Life-Cycle Control Document Type not found in database: \"" + (item.Row.Course_LifeCycleControlDocumentType_CodedNotation ?? "") + "\"" );
-			var rowAssessmentMethodTypeList = GetDataListOrError<Concept>( summary, ( m ) => SplitAndTrim( item.Row.Course_AssessmentMethodType_Name?.ToLower(), "," ).Contains( m.Name?.ToLower() ), result, "Assessment Method Type not found in database: \"" + (item.Row.Course_AssessmentMethodType_Name ?? "") + "\"" );
+            var rowAssessmentMethodTypeList = GetDataListOrError<Concept>( summary, ( m ) => SplitAndTrim( item.Row.Course_AssessmentMethodType_Name?.ToLower(), "," ).Contains( m.Name?.ToLower() ), result, "Assessment Method Type not found in database: \"" + ( item.Row.Course_AssessmentMethodType_Name ?? "" ) + "\"" );
+            //
+   //         var rowAssessmentMethodTypeList = new List<Concept>();
+			//if ( item.Row.Course_AssessmentMethodType_Name != null && item.Row.Course_AssessmentMethodType_Name.ToLower() != "n/a" )
+			//{
+			//	rowAssessmentMethodTypeList = GetDataListOrError<Concept>( summary, ( m ) => SplitAndTrim( item.Row.Course_AssessmentMethodType_Name?.ToLower(), "," ).Contains( m.Name?.ToLower() ), result, "Assessment Method Type not found in database: " + item.Row.Course_AssessmentMethodType_Name ?? "" );
+			//}
 
 			//If the Training Gap Type is "Yes", then treat all course/training data as null, but check to see if it exists first (above) to facilitate the warning statement below
 			if ( shouldNotHaveTrainingData )
@@ -1967,10 +1973,16 @@ namespace Services
 				
 				if ( existingPreviousRatingTask != null )
 				{
-					//Actually will need to get the exact row(s)
-					result.Errors.Add( string.Format( "For Unique Identifier: '{0}' the Rating Task data is the same as for a previous row with Unique Identifier: {1}.", item.Row.Row_CodedNotation, existingPreviousRatingTask.CodedNotation ) );
-					result.Errors.Add( "Duplicate Rating Tasks are not allowed. Processing this row cannot continue." );
-					return result;
+					if ( UtilityManager.GetAppKeyValue( "treatingRatingTaskDuplicateAsError", true ) )
+					{
+						result.Errors.Add( string.Format( "For Unique Identifier: '{0}' the Rating Task data is the same as for a previous row with Unique Identifier: {1}.", item.Row.Row_CodedNotation, existingPreviousRatingTask.CodedNotation ) );
+						result.Errors.Add( "Duplicate Rating Tasks are not allowed. Processing this row cannot continue." );
+						return result;
+					}
+					else
+					{
+						result.Warnings.Add( string.Format( "For Unique Identifier: '{0}' the Rating Task data is the same as for a previous row with Unique Identifier: {1}.", item.Row.Row_CodedNotation, existingPreviousRatingTask.CodedNotation ) );
+					}
 				}
 			}
 
