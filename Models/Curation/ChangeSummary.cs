@@ -131,7 +131,7 @@ namespace Models.Curation
 		{
 			try
 			{
-				return LookupGraph.FirstOrDefault( m => ( ( T ) m ).RowId == rowID ) as T;
+				return LookupGraph.FirstOrDefault( m => ( ( Schema.BaseObject ) m ).RowId == rowID ) as T;
 			}
 			catch
 			{

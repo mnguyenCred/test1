@@ -94,6 +94,12 @@ namespace NavyRRL.Controllers
 			//Get the summary for this transaction
 			var summary = BulkUploadServices.GetCachedChangeSummary( transactionGUID );
 
+			//Temp for testing - remove this
+			var errors = new List<string>();
+			var final = BulkUploadServices.GetCombinedChangesForSummary( summary, errors );
+			var debuggerHere = "";
+			//End Temp for testing - remove this
+
 			//Do something with the raw CSV
 			//item.RawCSV...
 			if ( rawCSV?.Length > 0 )

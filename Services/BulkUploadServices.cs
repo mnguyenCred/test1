@@ -15,6 +15,7 @@ using Models.Curation;
 using Factories;
 using System.Data;
 using System.Data.SqlClient;
+using System.Reflection;
 
 namespace Services
 {
@@ -2087,9 +2088,15 @@ namespace Services
 			);
 
 			//Rating Task
+			//TODO: It seems that a task is being loaded from the database, and put into the summary, but not being found in the summary on subsequent rows. Investigate this.
 			var rowRatingTask = LookupOrGetFromDBOrCreateNew( summary, result,
 				//Find in summary - if found would be a duplicate
-				() => summary.GetAll<RatingTask>()
+				() => UtilityManager.GetAppKeyValue( "ratingTaskUsingCodedNotationForLookups", false ) ?
+				summary.GetAll<RatingTask>().FirstOrDefault(m => 
+					m.HasRating.Contains(rowRating.RowId) &&
+					m.CodedNotation == item.Row.Row_CodedNotation
+				) :
+				summary.GetAll<RatingTask>()
 				.FirstOrDefault( m =>
 					m.Description?.ToLower() == item.Row.RatingTask_Description?.ToLower() &&
 					m.ApplicabilityType == rowTaskApplicabilityType.RowId &&
@@ -2307,6 +2314,7 @@ namespace Services
 			return null;
 		}
 		//
+
 		public static T GetDataOrError<T>( ChangeSummary summary, Func<T, bool> MatchWith, UploadableItemResult result, string errorMessage, object source ) where T : BaseObject
 		{
 			if (source == null) 
@@ -2417,7 +2425,131 @@ namespace Services
 		}
 		//
 
+		public static UploadableData GetCombinedChangesForSummary( ChangeSummary summary, List<string> errors )
+		{
+			var result = new UploadableData();
+			errors = errors ?? new List<string>();
 
+			result.BilletTitle = GetCombinedChangesForSummaryByType( summary, summary.ItemsToBeChanged.BilletTitle, summary.AddedItemsToInnerListsForCopiesOfItems.BilletTitle,
+				new List<string>() { 
+					nameof( BilletTitle.Name ), 
+					nameof( BilletTitle.HasRatingTask ) 
+				}, errors );
+			result.WorkRole = GetCombinedChangesForSummaryByType( summary, summary.ItemsToBeChanged.WorkRole, summary.AddedItemsToInnerListsForCopiesOfItems.WorkRole,
+				new List<string>() { 
+					nameof( WorkRole.Name ) 
+				}, errors );
+			result.ReferenceResource = GetCombinedChangesForSummaryByType( summary, summary.ItemsToBeChanged.ReferenceResource, summary.AddedItemsToInnerListsForCopiesOfItems.ReferenceResource,
+				new List<string>() { 
+					nameof( ReferenceResource.Name ), 
+					nameof( ReferenceResource.PublicationDate ), 
+					nameof( ReferenceResource.ReferenceType ) 
+				}, errors );
+			result.Course = GetCombinedChangesForSummaryByType( summary, summary.ItemsToBeChanged.Course, summary.AddedItemsToInnerListsForCopiesOfItems.Course,
+				new List<string>() { 
+					nameof( Course.Name ), 
+					nameof( Course.CodedNotation ), 
+					nameof( Course.CurriculumControlAuthority ), 
+					nameof( Course.CourseType ), 
+					nameof( Course.HasTrainingTask ) 
+				}, errors );
+			result.TrainingTask = GetCombinedChangesForSummaryByType( summary, summary.ItemsToBeChanged.TrainingTask, summary.AddedItemsToInnerListsForCopiesOfItems.TrainingTask,
+				new List<string>() { 
+					nameof( TrainingTask.Description ), 
+					nameof( TrainingTask.AssessmentMethodType ) 
+				}, errors );
+			result.RatingTask = GetCombinedChangesForSummaryByType( summary, summary.ItemsToBeChanged.RatingTask, summary.AddedItemsToInnerListsForCopiesOfItems.RatingTask,
+				new List<string>() { 
+					nameof( RatingTask.Description ), 
+					nameof( RatingTask.HasRating ), 
+					nameof( RatingTask.HasBilletTitle ), 
+					nameof( RatingTask.HasTrainingTaskList ), 
+					nameof( RatingTask.HasWorkRole ) 
+				}, errors );
+
+			return result;
+		}
+		//
+
+		public static List<T> GetCombinedChangesForSummaryByType<T>( ChangeSummary summary, List<T> directPropertiesList, List<T> guidAdditionsList, List<string> propertyNamesToUpdate, List<string> errors ) where T : BaseObject
+		{
+			var result = new List<T>();
+			var allProperties = typeof( T ).GetProperties().Where( m => propertyNamesToUpdate.Contains( m.Name) ).ToList();
+
+			//Text properties
+			ApplyChanges<T, string>( result, directPropertiesList, summary, allProperties.Where( m => m.PropertyType == typeof( string ) ).ToList(), 
+				( value ) => { 
+					return !string.IsNullOrWhiteSpace( value ); 
+				}, 
+				(oldValue, newValue) => { 
+					return newValue; 
+				},
+				errors
+			);
+
+			//Added items to List<Guid> properties
+			ApplyChanges<T, List<Guid>>( result, guidAdditionsList, summary, allProperties.Where( m => m.PropertyType == typeof( List<Guid> ) ).ToList(), 
+				( value ) => { return value != null && value.Count() > 0; }, 
+				( oldValue, newValue ) => { 
+					return ( oldValue ?? new List<Guid>() ).Concat( newValue ).Distinct().ToList(); 
+				},
+				errors
+			);
+
+			//Int properties (not sure if these are being tracked?)
+			ApplyChanges<T, int>( result, directPropertiesList, summary, allProperties.Where( m => m.PropertyType == typeof( int ) ).ToList(),
+				( value ) => { return value > 0; },
+				( oldValue, newValue ) => {
+					return newValue;
+				},
+				errors
+			);
+
+			//Decimal? properties (not sure if these are being tracked?)
+			ApplyChanges<T, int>( result, directPropertiesList, summary, allProperties.Where( m => m.PropertyType == typeof( decimal? ) ).ToList(),
+				( value ) => { return value > 0; },
+				( oldValue, newValue ) => {
+					return newValue;
+				},
+				errors
+			);
+
+			return result;
+		}
+		//
+
+		public static void ApplyChanges<T1, T2>( List<T1> container, List<T1> changesList, ChangeSummary summary, List<PropertyInfo> properties, Func<T2, bool> ValidateValue, Func<T2, T2, T2> UpdateValue, List<string> errors ) where T1: BaseObject
+		{
+			foreach( var item in changesList )
+			{
+				var match = container.FirstOrDefault( m => m.RowId == item.RowId );
+				if( match == null )
+				{
+					match = summary.LookupItem<T1>( item.RowId );
+					if( match == null ) //Shouldn't be possible
+					{
+						errors.Add( "Error: No match found in summary for " + typeof( T1 ).Name + ": " + item.RowId ); 
+						continue;
+					}
+					else
+					{
+						container.Add( match );
+					}
+				}
+
+				foreach( var property in properties )
+				{
+					var oldValue = ( T2 ) property.GetValue( match );
+					var newValue = ( T2 ) property.GetValue( item );
+					if ( ValidateValue( newValue ) && property.CanWrite )
+					{
+						var updatedValue = UpdateValue( oldValue, newValue );
+						property.SetValue( match, updatedValue );
+					}
+				}
+			}
+		}
+		//
 		#endregion
 
 		private static Concept FindConceptOrError( List<Concept> haystack, Concept needle, string warningLabel, string warningValue, List<string> warningMessages )

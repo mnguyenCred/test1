@@ -628,7 +628,7 @@
 			//var rowList = $("<div class=\"duplicateRowList\">Found on rows: " + duplicateSet.RowIndices.map(m => getRowNumber(m)).join(", ") + "</div>").appendTo(setBox);
 			duplicateSet.Items.forEach(item => {
 				var itemBox = $("<div class=\"duplicateSetItem\"></div>").appendTo(setBox);
-				var itemRowList = $("<div class=\"duplicateRowList\">Found on rows: " + item.Data.Meta.RowIndices.map(m => getRowNumber(m)).join(", ") + "</div>").appendTo(itemBox);
+				var itemRowList = $("<div class=\"duplicateRowList\">Found on rows: " + (item.Data.Meta.RowIndices || []).map(m => getRowNumber(m)).join(", ") + "</div>").appendTo(itemBox);
 				var itemDataBox = $("<div class=\"duplicateItemData listItem\" data-type=\"" + type + "\"></div>").appendTo(itemBox);
 				renderPropertySet(itemDataBox, item.Data, textProperties, referenceProperties);
 			});
