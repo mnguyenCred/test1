@@ -72,30 +72,47 @@ namespace NavyRRL.Controllers
 		}
 		//
 
-		public ActionResult StoreRawCSV( UploadableItem item )
+		public ActionResult StoreRawCSV()
 		{
+			//Get the raw request JSON
+			Request.InputStream.Position = 0;
+			var rawJSON = new StreamReader( Request.InputStream ).ReadToEnd();
+
+			//Read it into a JToken
+			//Have to do it this way to keep Newtonsoft from messing with the dates for some stupid reason
+			JToken token;
+			using ( var reader = new JsonTextReader( new StringReader( rawJSON ) ) { DateParseHandling = DateParseHandling.None } )
+			{
+				token = JToken.Load( reader );
+			}
+
+			//Extract the data from the request
+			var transactionGUID = token[ "TransactionGUID" ].ToObject<Guid>();
+			var ratingRowID = token[ "RatingRowID" ].ToObject<Guid>();
+			var rawCSV = token[ "RawCSV" ].ToString();
+
 			//Get the summary for this transaction
-			var summary = BulkUploadServices.GetCachedChangeSummary( item.TransactionGUID );
+			var summary = BulkUploadServices.GetCachedChangeSummary( transactionGUID );
 
 			//Do something with the raw CSV
 			//item.RawCSV...
-			if ( item.RawCSV?.Length > 0 )
+			if ( rawCSV?.Length > 0 )
 			{
-				var currentRating = Factories.RatingManager.Get( item.RatingRowID );
+				var currentRating = Factories.RatingManager.Get( ratingRowID );
 				if ( currentRating?.Id == 0 )
 				{
-					summary.Messages.Error.Add( "Error: Could save input file, as was unable to find Rating for identifier: " + item.RatingRowID );
+					summary.Messages.Error.Add( "Error: Could save input file, as was unable to find Rating for identifier: " + ratingRowID );
 					//return summary;
 				}
 				else
 				{
 					//currentRating = new SM.Rating() { CodedNotation = "QM", Name = "QM" };
 
-					LoggingHelper.WriteLogFile( 1, string.Format( "Rating_upload_{0}_{1}.csv", currentRating.Name.Replace( " ", "_" ), DateTime.Now.ToString( "hhmmss" ) ), item.RawCSV, "", false );
+					LoggingHelper.WriteLogFile( 1, string.Format( "Rating_upload_{0}_{1}.csv", currentRating.Name.Replace( " ", "_" ), DateTime.Now.ToString( "hhmmss" ) ), rawCSV, "", false );
 
-					if ( item.RawCSV.Length > 300000 )
+					if ( rawCSV.Length > 300000 )
 					{
-						new Factories.BaseFactory().BulkLoadRMTL( currentRating.CodedNotation, item.RawCSV );
+						new Factories.BaseFactory().BulkLoadRMTL( currentRating.CodedNotation, rawCSV );
 					}
 				}
 			}

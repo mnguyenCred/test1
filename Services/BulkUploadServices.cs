@@ -1835,6 +1835,7 @@ namespace Services
 				return result;
 			}
 
+			/*
 			//Don't allow a row to be processed if it has the same row identifier as a previous row
 			if ( summary.GetAll<RatingTask>().FirstOrDefault( m => m.CodedNotation?.ToLower() == item.Row.Row_CodedNotation?.ToLower() ) != null )
 			{
@@ -1842,6 +1843,7 @@ namespace Services
 				result.Errors.Add( "Reuse of a row's Unique Identifier is not allowed. Processing this row cannot continue." );
 				return result;
 			}
+			*/
 			//
 			if ( item.Row?.Row_CodedNotation == "PQ18-018" || item.Row?.Row_CodedNotation == "PQ3-019x" || item.Row?.Row_CodedNotation == "PQ3-046x" )
 			{
@@ -1854,18 +1856,18 @@ namespace Services
 			//Get the controlled value items that show up in this row
 			//Everything in any uploaded sheet should appear here. If any of these are not found, it's an error
 			//Might also be an error if rowRating is the "ALL" Rating, now
-			var rowRating = GetDataOrError<Rating>( summary, ( m ) => m.CodedNotation?.ToLower() == item.Row.Rating_CodedNotation?.ToLower(), result, "Rating not found in database: " + item.Row.Rating_CodedNotation ?? "" );
-			var rowPayGrade = GetDataOrError<Concept>( summary, ( m ) => m.CodedNotation?.ToLower() == item.Row.PayGradeType_CodedNotation?.ToLower(), result, "Rank not found in database: " + item.Row.PayGradeType_CodedNotation ?? "" );
-			var rowSourceType = GetDataOrError<Concept>( summary, ( m ) => m.WorkElementType?.ToLower() == item.Row.Shared_ReferenceType?.ToLower(), result, "Work Element Type not found in database: " + item.Row.Shared_ReferenceType ?? "" );
+			var rowRating = GetDataOrError<Rating>( summary, ( m ) => m.CodedNotation?.ToLower() == item.Row.Rating_CodedNotation?.ToLower(), result, "Rating not found in database: \"" + (item.Row.Rating_CodedNotation ?? "") + "\"" );
+			var rowPayGrade = GetDataOrError<Concept>( summary, ( m ) => m.CodedNotation?.ToLower() == item.Row.PayGradeType_CodedNotation?.ToLower(), result, "Rank not found in database: \"" + (item.Row.PayGradeType_CodedNotation ?? "") + "\"" );
+			var rowSourceType = GetDataOrError<Concept>( summary, ( m ) => m.WorkElementType?.ToLower() == item.Row.Shared_ReferenceType?.ToLower(), result, "Work Element Type not found in database: \"" + (item.Row.Shared_ReferenceType ?? "") + "\"" );
 			
-			var rowTaskApplicabilityType = GetDataOrError<Concept>( summary, ( m ) => m.Name?.ToLower() == item.Row.RatingTask_ApplicabilityType_Name?.ToLower(), result, "Task Applicability Type not found in database: " + item.Row.RatingTask_ApplicabilityType_Name ?? "" );
-			var rowTrainingGapType = GetDataOrError<Concept>( summary, ( m ) => m.Name?.ToLower() == item.Row.RatingTask_TrainingGapType_Name?.ToLower(), result, "Training Gap Type not found in database: " + item.Row.RatingTask_TrainingGapType_Name ?? "" );
+			var rowTaskApplicabilityType = GetDataOrError<Concept>( summary, ( m ) => m.Name?.ToLower() == item.Row.RatingTask_ApplicabilityType_Name?.ToLower(), result, "Task Applicability Type not found in database: \"" + (item.Row.RatingTask_ApplicabilityType_Name ?? "") + "\"" );
+			var rowTrainingGapType = GetDataOrError<Concept>( summary, ( m ) => m.Name?.ToLower() == item.Row.RatingTask_TrainingGapType_Name?.ToLower(), result, "Training Gap Type not found in database: \"" + (item.Row.RatingTask_TrainingGapType_Name ?? "") + "\"" );
 			//cluster analysis concepts
-			var rowTrainingSolutionType = GetDataOrError<Concept>( summary, ( m ) => m.SchemeUri == ConceptSchemeManager.ConceptScheme_TrainingSolutionType && m.Name?.ToLower() == item.Row.Training_Solution_Type?.ToLower(), result, "Training Solution Type not found in database: " + item.Row.Training_Solution_Type ?? "", item.Row.Training_Solution_Type );
+			var rowTrainingSolutionType = GetDataOrError<Concept>( summary, ( m ) => m.SchemeUri == ConceptSchemeManager.ConceptScheme_TrainingSolutionType && m.Name?.ToLower() == item.Row.Training_Solution_Type?.ToLower(), result, "Training Solution Type not found in database: \"" + (item.Row.Training_Solution_Type ?? "") + "\"", item.Row.Training_Solution_Type );
 
-			var rowRecommendModalityType = GetDataOrError<Concept>( summary, ( m ) => m.SchemeUri == ConceptSchemeManager.ConceptScheme_RecommendedModality && (m.Name?.ToLower() == item.Row.Recommended_Modality?.ToLower() || m.CodedNotation?.ToLower() == item.Row.Recommended_Modality?.ToLower() ), result, "Recommended Modality Type not found in database: " + item.Row.Recommended_Modality ?? "", item.Row.Recommended_Modality );
+			var rowRecommendModalityType = GetDataOrError<Concept>( summary, ( m ) => m.SchemeUri == ConceptSchemeManager.ConceptScheme_RecommendedModality && (m.Name?.ToLower() == item.Row.Recommended_Modality?.ToLower() || m.CodedNotation?.ToLower() == item.Row.Recommended_Modality?.ToLower() ), result, "Recommended Modality Type not found in database: \"" + (item.Row.Recommended_Modality ?? "") + "\"", item.Row.Recommended_Modality );
 
-			var rowDevelopmentSpecificationType = GetDataOrError<Concept>( summary, ( m ) => m.SchemeUri == ConceptSchemeManager.ConceptScheme_DevelopmentSpecification && m.Name?.ToLower() == item.Row.Development_Specification?.ToLower(), result, "Development Specification Type not found in database: " + item.Row.Development_Specification ?? "", item.Row.Development_Specification );
+			var rowDevelopmentSpecificationType = GetDataOrError<Concept>( summary, ( m ) => m.SchemeUri == ConceptSchemeManager.ConceptScheme_DevelopmentSpecification && m.Name?.ToLower() == item.Row.Development_Specification?.ToLower(), result, "Development Specification Type not found in database: \"" + (item.Row.Development_Specification ?? "") + "\"", item.Row.Development_Specification );
 
 			//If any of the above are null, log an error and skip the rest
 			if ( new List<object>() { rowRating, rowPayGrade, rowSourceType, rowTaskApplicabilityType, rowTrainingGapType }.Where(m => m == null).Count() > 0 )
@@ -1878,22 +1880,17 @@ namespace Services
 			var shouldNotHaveTrainingData = rowTrainingGapType.Name?.ToLower() == "yes";
 			var rowCourseType = GetDataOrError<Concept>( summary, ( m ) => m.Name?.ToLower() == item.Row.Course_CourseType_Name?.ToLower(), result, "Course Type not found in database: " + item.Row.Course_CourseType_Name ?? "", item.Row.Course_CourseType_Name );
 
-			var rowOrganizationCCA = GetDataOrError<Organization>( summary, ( m ) => (m.Name != null && m.Name.ToLower() == item.Row.Course_CurriculumControlAuthority_Name?.ToLower()) || (m.ShortName != null && m.ShortName.ToLower() == item.Row.Course_CurriculumControlAuthority_Name?.ToLower()), result, "Curriculum Control Authority not found in database: " + item.Row.Course_CurriculumControlAuthority_Name ?? "missing" );
+			var rowOrganizationCCA = GetDataOrError<Organization>( summary, ( m ) => (m.Name != null && m.Name.ToLower() == item.Row.Course_CurriculumControlAuthority_Name?.ToLower()) || (m.ShortName != null && m.ShortName.ToLower() == item.Row.Course_CurriculumControlAuthority_Name?.ToLower()), result, "Curriculum Control Authority not found in database: \"" + (item.Row.Course_CurriculumControlAuthority_Name ?? "") + "\"" );
 
 			//Should concept scheme be included in searches (any possible name collisons?)
 			//Needs to skip nulls
+			//Nulls are handled
 			var rowCourseLCCDType = GetDataOrError<Concept>( summary, ( m ) => 
 				m.Name?.ToLower() == item.Row.Course_LifeCycleControlDocumentType_CodedNotation?.ToLower() || m.CodedNotation?.ToLower() == item.Row.Course_LifeCycleControlDocumentType_CodedNotation?.ToLower(), 
 					result, 
-					"Life-Cycle Control Document Type not found in database: " + item.Row.Course_LifeCycleControlDocumentType_CodedNotation ?? "" );
-			if ( item.Row.Course_LifeCycleControlDocumentType_CodedNotation == null )
-				rowCourseLCCDType = null;
-			var rowAssessmentMethodTypeList = new List<Concept>();
-			if ( item.Row.Course_AssessmentMethodType_Name != null && item.Row.Course_AssessmentMethodType_Name.ToLower()  != "n/a" )
-			{
-				rowAssessmentMethodTypeList = GetDataListOrError<Concept>( summary, ( m ) => SplitAndTrim( item.Row.Course_AssessmentMethodType_Name?.ToLower(), "," ).Contains( m.Name?.ToLower() ), result, "Assessment Method Type not found in database: " + item.Row.Course_AssessmentMethodType_Name ?? "" );
-			}
-			
+					"Life-Cycle Control Document Type not found in database: \"" + (item.Row.Course_LifeCycleControlDocumentType_CodedNotation ?? "") + "\"" );
+			var rowAssessmentMethodTypeList = GetDataListOrError<Concept>( summary, ( m ) => SplitAndTrim( item.Row.Course_AssessmentMethodType_Name?.ToLower(), "," ).Contains( m.Name?.ToLower() ), result, "Assessment Method Type not found in database: \"" + (item.Row.Course_AssessmentMethodType_Name ?? "") + "\"" );
+
 			//If the Training Gap Type is "Yes", then treat all course/training data as null, but check to see if it exists first (above) to facilitate the warning statement below
 			if ( shouldNotHaveTrainingData )
 			{
@@ -1912,7 +1909,7 @@ namespace Services
 				result.Errors = new List<string>();
 			}
 			//Otherwise, return an error if any course/training data is missing
-			else if( new List<object>() { rowCourseType, rowOrganizationCCA, rowCourseLCCDType, rowAssessmentMethodTypeList }.Where( m => m == null ).Count() > 0 || string.IsNullOrWhiteSpace( item.Row.TrainingTask_Description ) )
+			else if( new List<object>() { rowCourseType, rowOrganizationCCA, rowCourseLCCDType }.Where( m => m == null ).Count() > 0 || string.IsNullOrWhiteSpace( item.Row.TrainingTask_Description ) || rowAssessmentMethodTypeList.Count() == 0 || result.Errors.Count() > 0 )
 			{
 				result.Errors.Add( "Incomplete course/training data found. All course/training related columns should either have data or be marked as \"N/A\". Since the Training Gap Type is \"" + rowTrainingGapType.Name + "\", this is an error and processing this row cannot continue." );
 				return result;
@@ -1991,8 +1988,6 @@ namespace Services
 				),
 				//Or get from DB
 				() => JobManager.GetByName( item.Row.BilletTitle_Name ),
-				//No text changes to log
-				( existing ) => { },
 				//Or create new
 				() => new BilletTitle()
 				{
@@ -2012,8 +2007,6 @@ namespace Services
 				),
 				//Or get from DB
 				() => WorkRoleManager.Get( item.Row.WorkRole_Name ),
-				//No text changes to log
-				( existing ) => { },
 				//Or create new
 				() => new WorkRole()
 				{
@@ -2035,8 +2028,6 @@ namespace Services
 				),
 				//Or get from DB
 				() => ReferenceResourceManager.Get( item.Row.ReferenceResource_Name, item.Row.ReferenceResource_PublicationDate ),
-				//No text changes to log
-				( existing ) => { },
 				//Or create new
 				() => new ReferenceResource()
 				{
@@ -2057,8 +2048,6 @@ namespace Services
 				),
 				//Or get from DB
 				() => TrainingTaskManager.Get( item.Row.TrainingTask_Description ),
-				//No text changes to log (yet?)
-				( existing ) => { },
 				//Or create new
 				() => new TrainingTask()
 				{
@@ -2083,8 +2072,6 @@ namespace Services
 				),
 				//Or get from DB
 				() => CourseManager.GetForUpload( item.Row.Course_Name, item.Row.Course_CodedNotation, rowCourseType.RowId, rowOrganizationCCA.RowId ),
-				//No text changes to log
-				( existing ) => { },
 				//Or create new
 				() => new Course()
 				{
@@ -2115,10 +2102,6 @@ namespace Services
 				() => UtilityManager.GetAppKeyValue( "ratingTaskUsingCodedNotationForLookups", false ) ?
 					RatingTaskManager.GetForUpload( rowRating.CodedNotation, item.Row.Row_CodedNotation ) :
 					RatingTaskManager.GetForUpload( rowRating.Id, item.Row.RatingTask_Description, rowTaskApplicabilityType.RowId, rowRatingTaskSource.RowId, rowSourceType.RowId, rowPayGrade.RowId, rowTrainingGapType.RowId ),
-				//Log text changes
-				( existing ) => {
-					HandleTextChanges( summary, summary.ItemsToBeChanged.RatingTask, result, existing, nameof( RatingTask.Description ), item.Row.RatingTask_Description );
-				},
 				//Or create new
 				() => new RatingTask()
 				{
@@ -2163,8 +2146,6 @@ namespace Services
 				),
 				//Or get from DB
 				() => ClusterAnalysisManager.GetForUpload( rowRatingTask.RowId ),
-				//Log text changes
-				( existing ) => { },
 				//Or create new
 				() => new ClusterAnalysis()
 				{
@@ -2244,6 +2225,7 @@ namespace Services
 			UpdateSummaryAndResultForItemProperty( summary, summary.ItemsToBeCreated.RatingTask, summary.AddedItemsToInnerListsForCopiesOfItems.RatingTask, result, rowRatingTask, nameof( RatingTask.HasBilletTitle ), rowBilletTitle );
 			UpdateSummaryAndResultForItemProperty( summary, summary.ItemsToBeCreated.RatingTask, summary.AddedItemsToInnerListsForCopiesOfItems.RatingTask, result, rowRatingTask, nameof( RatingTask.HasWorkRole ), rowWorkRole );
 			UpdateSummaryAndResultForItemProperty( summary, summary.ItemsToBeCreated.RatingTask, summary.AddedItemsToInnerListsForCopiesOfItems.RatingTask, result, rowRatingTask, nameof( RatingTask.HasTrainingTaskList ), rowTrainingTask );
+			HandleTextChanges( summary, summary.ItemsToBeChanged.RatingTask, result, rowRatingTask, nameof( RatingTask.Description ), item.Row.RatingTask_Description );
 
 			//anything for ClusterAnalysis????
 			
@@ -2256,7 +2238,7 @@ namespace Services
 		}
 		//
 
-		public static T LookupOrGetFromDBOrCreateNew<T>( ChangeSummary summary, UploadableItemResult result, Func<T> GetFromSummary, Func<T> GetFromDatabase, Action<T> LogTextChanges, Func<T> CreateNew, Action<T> LogNewItem, Func<bool> ReturnNullIfTrue = null ) where T : BaseObject, new()
+		public static T LookupOrGetFromDBOrCreateNew<T>( ChangeSummary summary, UploadableItemResult result, Func<T> GetFromSummary, Func<T> GetFromDatabase, Func<T> CreateNew, Action<T> LogNewItem, Func<bool> ReturnNullIfTrue = null ) where T : BaseObject, new()
 		{
 			//If there is a method to check whether the item is null (e.g. the cell contains N/A), and that test comes back true, then skip the rest and return null
 			if ( ReturnNullIfTrue != null && ReturnNullIfTrue() )
@@ -2290,9 +2272,6 @@ namespace Services
 				{
 					//Note that it came from the database to help code distinguish between existing items and items from previous rows in the current upload session
 					summary.ItemsLoadedFromDatabase.Add( targetItem.RowId );
-
-					//Track text changes (if applicable)
-					LogTextChanges( targetItem );
 
 					//Also put it into the result's existing items list
 					result.ExistingItems.Add( JObjectify( targetItem ) );
