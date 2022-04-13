@@ -21,6 +21,7 @@ namespace Models.Curation
 			LookupGraph = new List<object>();
 			PossibleDuplicates = new List<PossibleDuplicateSet>();
 			ItemsLoadedFromDatabase = new List<Guid>();
+			FinalizedChanges = new UploadableData();
 		}
 		public string Action { get; set; } = "Upload";
 		public string Rating { get; set; }
@@ -35,6 +36,8 @@ namespace Models.Curation
 		/// For changes to the List<>s of existing items, see the AddedItemsToInnerListsForCopiesOfItems and RemovedItemsFromInnerListsForCopiesOfItems properties.
 		/// </summary>
 		public UploadableData ItemsToBeChanged { get; set; }
+
+		public UploadableData FinalizedChanges { get; set; }
 
 		/// <summary>
 		/// Set of copies of existing items (the copy will have the same RowId as the original).<br />

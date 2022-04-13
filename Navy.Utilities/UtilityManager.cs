@@ -934,6 +934,12 @@ namespace Navy.Utilities
             return result;
 
         }
+		public static int MapIntegerOrDefault( string stringToTest, int defaultValue = 0 )
+		{
+			var isValid = true;
+			var value = MapInteger( stringToTest, ref isValid );
+			return isValid ? value : defaultValue;
+		}
         public static int MapInteger( string stringToTest, ref bool isValid )
         {
             int newVal = 0;
@@ -972,8 +978,14 @@ namespace Navy.Utilities
             }
             return result;
 
-        }
-        public static decimal MapDecimal( string stringToTest, ref bool isValid )
+		}
+		public static decimal MapDecimalOrDefault( string stringToTest, decimal defaultValue = 0 )
+		{
+			var isValid = true;
+			var value = MapDecimal( stringToTest, ref isValid );
+			return isValid ? value : defaultValue;
+		}
+		public static decimal MapDecimal( string stringToTest, ref bool isValid )
         {
             decimal newVal =0;
             isValid = false;

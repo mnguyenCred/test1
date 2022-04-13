@@ -65,7 +65,7 @@ namespace NavyRRL.Controllers
 		public ActionResult ProcessUploadedItem( UploadableItem item )
 		{
 			//Process the current row
-			var result = BulkUploadServices.ProcessUploadedItem( item );
+			var result = BulkUploadServices.ProcessUploadedItemV4( item );
 
 			//Return the response
 			return JsonResponse( result, true );
@@ -95,8 +95,8 @@ namespace NavyRRL.Controllers
 			var summary = BulkUploadServices.GetCachedChangeSummary( transactionGUID );
 
 			//Temp for testing - remove this
-			var errors = new List<string>();
-			var final = BulkUploadServices.GetCombinedChangesForSummary( summary, errors );
+			var finalNewItems = summary.ItemsToBeCreated;
+			var finalChangedItems = summary.FinalizedChanges;
 			var debuggerHere = "";
 			//End Temp for testing - remove this
 

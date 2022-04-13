@@ -2100,22 +2100,22 @@ namespace Services
 			);
 
 			//Rating Task
-			//TODO: It seems that a task is being loaded from the database, and put into the summary, but not being found in the summary on subsequent rows. Investigate this.
 			var rowRatingTask = LookupOrGetFromDBOrCreateNew( summary, result,
 				//Find in summary - if found would be a duplicate
-				() => UtilityManager.GetAppKeyValue( "ratingTaskUsingCodedNotationForLookups", false ) ?
-				summary.GetAll<RatingTask>().FirstOrDefault(m => 
-					m.HasRating.Contains(rowRating.RowId) &&
-					m.CodedNotation == item.Row.Row_CodedNotation
-				) :
-				summary.GetAll<RatingTask>()
-				.FirstOrDefault( m =>
-					m.Description?.ToLower() == item.Row.RatingTask_Description?.ToLower() &&
-					m.ApplicabilityType == rowTaskApplicabilityType.RowId &&
-					m.TrainingGapType == rowTrainingGapType.RowId &&
-					m.PayGradeType == rowPayGrade.RowId &&
-					m.ReferenceType == rowSourceType.RowId &&
-					m.HasReferenceResource == rowRatingTaskSource.RowId //Ensure rowRatingTaskSource is fully found/processed first or this lookup will fail
+				() => summary.GetAll<RatingTask>().FirstOrDefault( m =>
+					UtilityManager.GetAppKeyValue( "ratingTaskUsingCodedNotationForLookups", false ) ?
+					(
+						m.HasRating.Contains( rowRating.RowId ) &&
+						m.CodedNotation == item.Row.Row_CodedNotation
+					) :
+					(
+						m.Description?.ToLower() == item.Row.RatingTask_Description?.ToLower() &&
+						m.ApplicabilityType == rowTaskApplicabilityType.RowId &&
+						m.TrainingGapType == rowTrainingGapType.RowId &&
+						m.PayGradeType == rowPayGrade.RowId &&
+						m.ReferenceType == rowSourceType.RowId &&
+						m.HasReferenceResource == rowRatingTaskSource.RowId //Ensure rowRatingTaskSource is fully found/processed first or this lookup will fail
+					)
 				),
 				//Or get from DB
 				() => UtilityManager.GetAppKeyValue( "ratingTaskUsingCodedNotationForLookups", false ) ?
@@ -2327,10 +2327,12 @@ namespace Services
 		}
 		//
 
-		public static T GetDataOrError<T>( ChangeSummary summary, Func<T, bool> MatchWith, UploadableItemResult result, string errorMessage, object source ) where T : BaseObject
+		public static T GetDataOrError<T>( ChangeSummary summary, Func<T, bool> MatchWith, UploadableItemResult result, string errorMessage, string source ) where T : BaseObject
 		{
-			if (source == null) 
+			if ( string.IsNullOrWhiteSpace( source ) )
+			{
 				return null;
+			}
 
 			return GetDataListOrError( summary, MatchWith, result, errorMessage ).FirstOrDefault();
 		}
@@ -2427,7 +2429,7 @@ namespace Services
 				property.SetValue( match, rowPropertyValue );
 
 				//Track it in the row result
-				result.TextChanges.Add( new Triple( existing.RowId, propertyName, rowPropertyValue ) );
+				result.ValueChanges.Add( new Triple( existing.RowId, propertyName, rowPropertyValue ) );
 			}
 		}
 
@@ -2562,6 +2564,586 @@ namespace Services
 			}
 		}
 		//
+		#endregion
+
+		#region ProcessUpload V4 (Row by Row, but simpler)
+
+		public static UploadableItemResult ProcessUploadedItemV4( UploadableItem item )
+		{
+			//Hold the result
+			var result = new UploadableItemResult() { Valid = true };
+
+			//Get the current transaction's summary, or create it if it doesn't exist
+			var summary = GetCachedChangeSummary( item.TransactionGUID );
+			if ( summary == null )
+			{
+				//Create a new summary object
+				summary = new ChangeSummary() { RowId = item.TransactionGUID };
+
+				//Pre-populate controlled vocabularies, since these will be used across all rows
+				summary.LookupGraph.AddRange( ConceptSchemeManager.GetAllConcepts( true ) );
+				summary.LookupGraph.AddRange( RatingManager.GetAll() );
+				summary.LookupGraph.AddRange( OrganizationManager.GetAll() );
+
+				//Cache the summary object
+				CacheChangeSummary( summary );
+			}
+
+			//Validate user
+			AppUser user = AccountServices.GetCurrentUser();
+			if ( user?.Id == 0 )
+			{
+				result.Errors.Add( "Error - a current user was not found. You must authenticated and authorized to use this function!" );
+				return result;
+			}
+
+			//Do something with the item and summary.  
+			//The summary will be stored in the cache and retrieved again so that it can be used for all of the rows. 
+			//At the end of the process, the summary will contain a list of updated entities (all changes applied) that should be ready to save to the database
+
+			//Processing
+			//Validation - Checks that should skip processing the row's data if there is an error
+
+			//Must have a valid row Unique Identifier
+			if ( string.IsNullOrWhiteSpace( item.Row.Row_CodedNotation ) || UtilityManager.IsInteger( item.Row.Row_CodedNotation ) )
+			{
+				result.Errors.Add( "Invalid row Unique Identifier: " + ( string.IsNullOrWhiteSpace( item.Row.Row_CodedNotation ) ? "(Empty)" : item.Row.Row_CodedNotation ) );
+				result.Errors.Add( "A valid row Unique Identifier (e.g., \"NEC1-006\") must be provided, and must not be a number." );
+				return result;
+			}
+
+			//Part I
+			//Get the controlled value items that show up in this row
+			//Everything in any uploaded sheet should appear here. If any of these are not found, it's an error
+			var rowRating = GetDataOrError<Rating>( summary, ( m ) => 
+				m.CodedNotation?.ToLower() == item.Row.Rating_CodedNotation?.ToLower(), 
+				result, 
+				"Rating indicated by this row was not found in database: \"" + TextOrNA( item.Row.Rating_CodedNotation ) + "\"",
+				item.Row.Rating_CodedNotation
+			);
+			var selectedRating = GetDataOrError<Rating>( summary, ( m ) => 
+				m.RowId == item.RatingRowID, 
+				result, 
+				"Selected Rating not found in database: \"" + item.RatingRowID + "\""
+			);
+			var rowPayGrade = GetDataOrError<Concept>( summary, ( m ) => 
+				m.CodedNotation?.ToLower() == item.Row.PayGradeType_CodedNotation?.ToLower(), 
+				result, 
+				"Rank not found in database: \"" + TextOrNA( item.Row.PayGradeType_CodedNotation ) + "\"",
+				item.Row.PayGradeType_CodedNotation
+			);
+			var rowSourceType = GetDataOrError<Concept>( summary, ( m ) => 
+				m.WorkElementType?.ToLower() == item.Row.Shared_ReferenceType?.ToLower(), 
+				result, 
+				"Work Element Type not found in database: \"" + TextOrNA( item.Row.Shared_ReferenceType ) + "\"",
+				item.Row.Shared_ReferenceType
+			);
+			var rowTaskApplicabilityType = GetDataOrError<Concept>( summary, ( m ) => 
+				m.Name?.ToLower() == item.Row.RatingTask_ApplicabilityType_Name?.ToLower(), 
+				result, 
+				"Task Applicability Type not found in database: \"" + TextOrNA( item.Row.RatingTask_ApplicabilityType_Name ) + "\"",
+				item.Row.RatingTask_ApplicabilityType_Name
+			);
+			var rowTrainingGapType = GetDataOrError<Concept>( summary, ( m ) => 
+				m.Name?.ToLower() == item.Row.RatingTask_TrainingGapType_Name?.ToLower(), 
+				result, 
+				"Training Gap Type not found in database: \"" + TextOrNA( item.Row.RatingTask_TrainingGapType_Name ) + "\"",
+				item.Row.RatingTask_TrainingGapType_Name
+			);
+			
+			//If any of the above are null, log an error and skip the rest
+			if ( new List<object>() { rowRating, rowPayGrade, rowSourceType, rowTaskApplicabilityType, rowTrainingGapType, selectedRating }.Where( m => m == null ).Count() > 0 )
+			{
+				result.Errors.Add( "One or more controlled vocabulary values was not found in the database. Processing this row cannot continue." );
+				return result;
+			}
+
+			//Always use the Rating selected in the interface
+			if( rowRating.RowId != selectedRating.RowId )
+			{
+				result.Warnings.Add( "The Rating for this row (" + rowRating.CodedNotation + " - " + rowRating.Name + ") does not match the Rating selected for this upload (" + selectedRating.CodedNotation + " - " + selectedRating.Name + "). The selected Rating will be used instead." );
+				rowRating = selectedRating;
+			}
+
+			//Part II
+			//These should throw an error if not found, unless all of the course/training columns are N/A
+			var shouldNotHaveTrainingData = rowTrainingGapType.Name?.ToLower() == "yes";
+			var rowCourseType = GetDataOrError<Concept>( summary, ( m ) => 
+				m.SchemeUri == ConceptSchemeManager.ConceptScheme_CourseType &&
+				m.Name?.ToLower() == item.Row.Course_CourseType_Name?.ToLower(), 
+				result, 
+				"Course Type not found in database: \"" + TextOrNA( item.Row.Course_CourseType_Name ), 
+				item.Row.Course_CourseType_Name 
+			);
+			var rowOrganizationCCA = GetDataOrError<Organization>( summary, ( m ) =>
+				( !string.IsNullOrWhiteSpace( m.Name ) && m.Name.ToLower() == item.Row.Course_CurriculumControlAuthority_Name?.ToLower() ) ||
+				( !string.IsNullOrWhiteSpace( m.ShortName ) && m.ShortName.ToLower() == item.Row.Course_CurriculumControlAuthority_Name?.ToLower() ),
+				result,
+				"Curriculum Control Authority not found in database: \"" + TextOrNA( item.Row.Course_CurriculumControlAuthority_Name ) + "\""
+			);
+			var rowCourseLCCDType = GetDataOrError<Concept>( summary, ( m ) =>
+				m.SchemeUri == ConceptSchemeManager.ConceptScheme_LifeCycleControlDocument &&
+				(
+					( !string.IsNullOrWhiteSpace( m.Name ) && m.Name?.ToLower() == item.Row.Course_LifeCycleControlDocumentType_CodedNotation?.ToLower() ) ||
+					( !string.IsNullOrWhiteSpace( m.CodedNotation ) && m.CodedNotation?.ToLower() == item.Row.Course_LifeCycleControlDocumentType_CodedNotation?.ToLower() )
+				),
+				result,
+				"Life-Cycle Control Document Type not found in database: \"" + TextOrNA( item.Row.Course_LifeCycleControlDocumentType_CodedNotation ) + "\""
+			);
+			var rowAssessmentMethodTypeList = GetDataListOrError<Concept>( summary, ( m ) => 
+				SplitAndTrim( item.Row.Course_AssessmentMethodType_Name?.ToLower(), "," ).Contains( m.Name?.ToLower() ), 
+				result, 
+				"Assessment Method Type not found in database: \"" + TextOrNA( item.Row.Course_AssessmentMethodType_Name ) + "\""
+			);
+
+			//If the Training Gap Type is "Yes", then treat all course/training data as null, but check to see if it exists first (above) to facilitate the warning statement below
+			if ( shouldNotHaveTrainingData )
+			{
+				var hasDataWhenItShouldNot = new List<object>() { rowCourseType, rowOrganizationCCA, rowCourseLCCDType }.Concat( rowAssessmentMethodTypeList ).Where( m => m != null ).ToList();
+				if ( hasDataWhenItShouldNot.Count() > 0 || !string.IsNullOrWhiteSpace( item.Row.TrainingTask_Description ) )
+				{
+					result.Warnings.Add( String.Format( "{0}. Incomplete course/training data found. All course/training related columns should either have data or be marked as \"N/A\". Since the Training Gap Type is \"Yes\", the incomplete data will be treated as \"N/A\".", item.Row?.Row_CodedNotation ) );
+					rowCourseType = null;
+					rowOrganizationCCA = null;
+					rowCourseLCCDType = null;
+					rowAssessmentMethodTypeList = new List<Concept>();
+					item.Row.TrainingTask_Description = "";
+				}
+
+				//Remove false errors
+				result.Errors = new List<string>();
+			}
+			//Otherwise, return an error if any course/training data is missing
+			else if ( new List<object>() { rowCourseType, rowOrganizationCCA, rowCourseLCCDType }.Where( m => m == null ).Count() > 0 || string.IsNullOrWhiteSpace( item.Row.TrainingTask_Description ) || rowAssessmentMethodTypeList.Count() == 0 || result.Errors.Count() > 0 )
+			{
+				result.Errors.Add( "Incomplete course/training data found. All course/training related columns should either have data or be marked as \"N/A\". Since the Training Gap Type is \"" + rowTrainingGapType.Name + "\", this is an error and processing this row cannot continue." );
+				return result;
+			}
+
+			//Part III
+			//Cluster Analysis
+			var rowTrainingSolutionType = GetDataOrError<Concept>( summary, ( m ) => 
+				m.SchemeUri == ConceptSchemeManager.ConceptScheme_TrainingSolutionType && 
+				m.Name?.ToLower() == item.Row.Training_Solution_Type?.ToLower(), 
+				result, 
+				"Training Solution Type not found in database: \"" + TextOrNA( item.Row.Training_Solution_Type ) + "\"", 
+				item.Row.Training_Solution_Type 
+			);
+			var rowRecommendModalityType = GetDataOrError<Concept>( summary, ( m ) => 
+				m.SchemeUri == ConceptSchemeManager.ConceptScheme_RecommendedModality && 
+				( m.Name?.ToLower() == item.Row.Recommended_Modality?.ToLower() || m.CodedNotation?.ToLower() == item.Row.Recommended_Modality?.ToLower() ), 
+				result, 
+				"Recommended Modality Type not found in database: \"" + TextOrNA( item.Row.Recommended_Modality ) + "\"", 
+				item.Row.Recommended_Modality 
+			);
+			var rowDevelopmentSpecificationType = GetDataOrError<Concept>( summary, ( m ) => 
+				m.SchemeUri == ConceptSchemeManager.ConceptScheme_DevelopmentSpecification && 
+				m.Name?.ToLower() == item.Row.Development_Specification?.ToLower(), 
+				result, 
+				"Development Specification Type not found in database: \"" + TextOrNA( item.Row.Development_Specification ) + "\"", 
+				item.Row.Development_Specification 
+			);
+			var priorityPlacement = UtilityManager.MapIntegerOrDefault( item.Row.Priority_Placement );
+			var developmentTime = UtilityManager.MapIntegerOrDefault( item.Row.Development_Time );
+			var estimatedInstructionalTime = UtilityManager.MapDecimalOrDefault( item.Row.Estimated_Instructional_Time );
+
+			//If errors/warnings should happen due to Cluster Analysis data, do so here
+			//Return here before the row is processed if row processing should not occur
+			if ( priorityPlacement > 9 )
+			{
+				result.Warnings.Add( string.Format( "Priority Placement ({0}) is invalid. valid values are 1 through 9.", priorityPlacement ) );
+			}
+
+
+			//Additional validation checks after all of the vocabularies have been figured out
+			if ( UtilityManager.GetAppKeyValue( "doingRatingTaskDuplicateChecks", true ) )
+			{
+				//Check for duplicate Rating Task (minus Row Unique Identifier) from a previous row
+				//Need to determine the task source and billet title for this row in order for the checks to work properly
+				var tempRatingTaskSource = summary.GetAll<ReferenceResource>()
+					.FirstOrDefault( m =>
+						m.Name?.ToLower() == item.Row.ReferenceResource_Name?.ToLower() &&
+						m.PublicationDate?.ToLower() == item.Row.ReferenceResource_PublicationDate?.ToLower() &&
+						m.ReferenceType.Contains( rowSourceType.RowId )
+					) ??
+					ReferenceResourceManager.Get( item.Row.ReferenceResource_Name, item.Row.ReferenceResource_PublicationDate ) ??
+					new ReferenceResource();
+
+				var tempBilletTitle = summary.GetAll<BilletTitle>().FirstOrDefault( m => m.Name.ToLower() == item.Row.BilletTitle_Name?.ToLower() ) ??
+					JobManager.GetByName( item.Row.BilletTitle_Name ) ??
+					new BilletTitle();
+
+				var existingPreviousRatingTask = summary.GetAll<RatingTask>()
+					.FirstOrDefault( m =>
+						m.Description?.ToLower() == item.Row.RatingTask_Description?.ToLower() &&
+						m.ApplicabilityType == rowTaskApplicabilityType.RowId &&
+						m.TrainingGapType == rowTrainingGapType.RowId &&
+						m.PayGradeType == rowPayGrade.RowId &&
+						m.ReferenceType == rowSourceType.RowId &&
+						m.HasReferenceResource == tempRatingTaskSource.RowId &&
+						( UtilityManager.GetAppKeyValue( "includingBilletTitleInDuplicatesChecks", false ) ? m.HasBilletTitle.Contains( tempBilletTitle.RowId ) : true )
+					);
+
+				if ( existingPreviousRatingTask != null )
+				{
+					if ( UtilityManager.GetAppKeyValue( "treatingRatingTaskDuplicateAsError", true ) )
+					{
+						result.Errors.Add( string.Format( "For Unique Identifier: '{0}' the Rating Task data is the same as for a previous row with Unique Identifier: {1}.", item.Row.Row_CodedNotation, existingPreviousRatingTask.CodedNotation ) );
+						result.Errors.Add( "Duplicate Rating Tasks are not allowed. Processing this row cannot continue." );
+						return result;
+					}
+					else
+					{
+						result.Warnings.Add( string.Format( "For Unique Identifier: '{0}' the Rating Task data is the same as for a previous row with Unique Identifier: {1}.", item.Row.Row_CodedNotation, existingPreviousRatingTask.CodedNotation ) );
+					}
+				}
+			}
+
+			//Explicitly indicate the properties for each class that are used to do lookups and duplicate checks. 
+			//These properties cannot be overwritten (single-value) but can be appended to (multi-value) in this upload (since they are used to do lookups).
+			//These properties will also be used to create new instances of their respective entities.
+			var lookupBilletTitle = new List<string>() { nameof( BilletTitle.Name ) };
+			var lookupWorkRole = new List<string>() { nameof( WorkRole.Name ) };
+			var lookupReferenceResource = new List<string>() { nameof( ReferenceResource.Name ), nameof( ReferenceResource.PublicationDate ), nameof( ReferenceResource.ReferenceType ) };
+			var lookupTrainingTask = new List<string>() { nameof( TrainingTask.Description ) };
+			var lookupCourse = new List<string>() { nameof( Course.Name ), nameof( Course.CodedNotation ), nameof( Course.CourseType ), nameof( Course.CurriculumControlAuthority ) };
+			var lookupRatingTask = new List<string>() { nameof( RatingTask.CodedNotation ), nameof( RatingTask.HasRating ) };
+			var lookupClusterAnalysis = new List<string>() { nameof( ClusterAnalysis.RatingTaskRowId ) };
+
+			//Explicitly indicate the properties for each class that are to be updated with this row's data. 
+			//These properties can be overwritten (single-value) or appended to (multi-value) as part of this upload.
+			//These properties will also be used to create new instances of their respective entities.
+			var updateBilletTitle = new List<string>() { nameof( BilletTitle.HasRatingTask ) };
+			var updateWorkRole = new List<string>() {  };
+			var updateReferenceResource = new List<string>() { nameof( ReferenceResource.ReferenceType ) };
+			var updateTrainingTask = new List<string>() { nameof( TrainingTask.AssessmentMethodType ) };
+			var updateCourse = new List<string>() { nameof( Course.HasTrainingTask ), nameof( Course.CourseType ), nameof( Course.CurriculumControlAuthority ) };
+			var updateRatingTask = new List<string>() { nameof( RatingTask.Description ), nameof( RatingTask.HasRating ), nameof( RatingTask.HasBilletTitle ), nameof( RatingTask.HasWorkRole ), nameof( RatingTask.HasTrainingTaskList ) };
+			var updateClusterAnalysis = new List<string>() { nameof( ClusterAnalysis.TrainingSolutionType ), nameof( ClusterAnalysis.TrainingSolutionTypeId ), nameof( ClusterAnalysis.ClusterAnalysisTitle ) }; //Others
+
+			//After Validation, process the row's contents
+			//Get the variable items that show up in this row
+			//Things from sheets here may be new/edited
+			//First check the summary to see if it came in from an earlier row (or database). If not found in the summary, check the database. If not found there, assume it's new. Regardless, add it to the summary if it's not already in the summary.
+			//When creating a new instance of a class, only include the properties that should never change after its creation (ie the ones used to look it up).
+			//Properties that can be updated by subsequent rows or subsequent uploads should go in the next section instead
+
+			//Billet Title
+			var rowBilletTitle = LookupOrGetFromDBOrCreateNew( summary, result,
+				//Find in summary
+				() => summary.GetAll<BilletTitle>()
+				.FirstOrDefault( m =>
+					m.Name?.ToLower() == item.Row.BilletTitle_Name?.ToLower()
+				),
+				//Or get from DB
+				() => JobManager.GetByName( item.Row.BilletTitle_Name ),
+				//Or create new
+				() => new BilletTitle()
+				{
+					RowId = Guid.NewGuid(),
+					Name = item.Row.BilletTitle_Name
+				},
+				//Store if newly created
+				( newItem ) => { summary.ItemsToBeCreated.BilletTitle.Add( newItem ); }
+			);
+
+			//Work Role
+			var rowWorkRole = LookupOrGetFromDBOrCreateNew( summary, result,
+				//Find in summary
+				() => summary.GetAll<WorkRole>()
+				.FirstOrDefault( m =>
+					m.Name?.ToLower() == item.Row.WorkRole_Name?.ToLower()
+				),
+				//Or get from DB
+				() => WorkRoleManager.Get( item.Row.WorkRole_Name ),
+				//Or create new
+				() => new WorkRole()
+				{
+					RowId = Guid.NewGuid(),
+					Name = item.Row.WorkRole_Name
+				},
+				//Store if newly created
+				( newItem ) => { summary.ItemsToBeCreated.WorkRole.Add( newItem ); }
+			);
+
+			//Reference Resource
+			var rowRatingTaskSource = LookupOrGetFromDBOrCreateNew( summary, result,
+				//Find in summary
+				() => summary.GetAll<ReferenceResource>()
+				.FirstOrDefault( m =>
+					m.Name?.ToLower() == item.Row.ReferenceResource_Name?.ToLower() &&
+					m.PublicationDate?.ToLower() == item.Row.ReferenceResource_PublicationDate?.ToLower() &&
+					m.ReferenceType.Contains( rowSourceType.RowId )
+				),
+				//Or get from DB
+				() => ReferenceResourceManager.Get( item.Row.ReferenceResource_Name, item.Row.ReferenceResource_PublicationDate ),
+				//Or create new
+				() => new ReferenceResource()
+				{
+					RowId = Guid.NewGuid(),
+					Name = item.Row.ReferenceResource_Name,
+					PublicationDate = item.Row.ReferenceResource_PublicationDate
+					//Other properties are handled in the next section
+				},
+				//Store if newly created
+				( newItem ) => { summary.ItemsToBeCreated.ReferenceResource.Add( newItem ); }
+			);
+
+			//Training Task
+			var rowTrainingTask = LookupOrGetFromDBOrCreateNew( summary, result,
+				//Find in summary
+				() => summary.GetAll<TrainingTask>()
+				.FirstOrDefault( m =>
+					 m.Description?.ToLower() == item.Row.TrainingTask_Description?.ToLower()
+				),
+				//Or get from DB
+				() => TrainingTaskManager.Get( item.Row.TrainingTask_Description ),
+				//Or create new
+				() => new TrainingTask()
+				{
+					RowId = Guid.NewGuid(),
+					Description = item.Row.TrainingTask_Description
+				},
+				//Store if newly created
+				( newItem ) => { summary.ItemsToBeCreated.TrainingTask.Add( newItem ); },
+				//Skip all of this and set value to null if the following test is true
+				() => string.IsNullOrWhiteSpace( item.Row.TrainingTask_Description ) || item.Row.TrainingTask_Description.ToLower() == "n/a"
+			);
+
+			//Course
+			var rowCourse = LookupOrGetFromDBOrCreateNew( summary, result,
+				//Find in summary
+				() => summary.GetAll<Course>()
+				.FirstOrDefault( m =>
+					 m.Name?.ToLower() == item.Row.Course_Name?.ToLower() &&
+					 m.CodedNotation?.ToLower() == item.Row.Course_CodedNotation?.ToLower() &&
+					 m.CourseType.Contains( rowCourseType.RowId ) &&
+					 m.CurriculumControlAuthority.Contains( rowOrganizationCCA.RowId )
+				),
+				//Or get from DB
+				() => CourseManager.GetForUpload( item.Row.Course_Name, item.Row.Course_CodedNotation, rowCourseType.RowId, rowOrganizationCCA.RowId ),
+				//Or create new
+				() => new Course()
+				{
+					RowId = Guid.NewGuid(),
+					Name = item.Row.Course_Name,
+					CodedNotation = item.Row.Course_CodedNotation
+					//Other properties are handled in the next section
+				},
+				//Store if newly created
+				( newItem ) => { summary.ItemsToBeCreated.Course.Add( newItem ); },
+				//Skip all of this and set value to null if the following test is true
+				() => string.IsNullOrWhiteSpace( item.Row.Course_Name ) || item.Row.Course_Name.ToLower() == "n/a"
+			);
+
+			//Rating Task
+			var rowRatingTask = LookupOrGetFromDBOrCreateNew( summary, result,
+				//Find in summary - if found would be a duplicate
+				() => null, //Force it to either be looked up from the database or created new, per decision on 2022-4-12 (Each row = one unique rating task, regardless of anything else)
+				//Or get from DB
+				() => UtilityManager.GetAppKeyValue( "ratingTaskUsingCodedNotationForLookups", false ) ?
+					RatingTaskManager.GetForUpload( rowRating.CodedNotation, item.Row.Row_CodedNotation ) :
+					RatingTaskManager.GetForUpload( rowRating.Id, item.Row.RatingTask_Description, rowTaskApplicabilityType.RowId, rowRatingTaskSource.RowId, rowSourceType.RowId, rowPayGrade.RowId, rowTrainingGapType.RowId ),
+				//Or create new
+				() => new RatingTask()
+				{
+					RowId = Guid.NewGuid(),
+					CodedNotation = item.Row.Row_CodedNotation
+					//Other properties are handled in the next section
+				},
+				//Store if newly created
+				( newItem ) => { summary.ItemsToBeCreated.RatingTask.Add( newItem ); }
+			);
+
+			//Cluster Analysis
+			var rowClusterAnalysis = LookupOrGetFromDBOrCreateNew( summary, result,
+				//Find in summary
+				() => summary.GetAll<ClusterAnalysis>()
+				.FirstOrDefault( m =>
+					 m.RatingTaskRowId == rowRatingTask.RowId
+				),
+				//Or get from DB
+				() => ClusterAnalysisManager.GetForUpload( rowRatingTask.RowId ),
+				//Or create new
+				() => new ClusterAnalysis()
+				{
+					RowId = Guid.NewGuid(),
+					RatingTaskRowId = rowRatingTask.RowId
+					//Other properties are handled in the next section
+				},
+				//Store if newly created
+				( newItem ) => { summary.ItemsToBeCreated.ClusterAnalysis.Add( newItem ); },
+				//Skip all of this and set value to null if the following test is true
+				//May be exceptions
+				() => string.IsNullOrWhiteSpace( item.Row.Cluster_Analysis_Title ) || item.Row.Cluster_Analysis_Title.ToLower() == "n/a"
+			);
+
+
+			//Now that all of the actors for this row have been found, created, and tracked...
+			//Update them with the data from this row
+
+			//Billet Title
+			HandleGuidListAddition( summary, summary.FinalizedChanges.BilletTitle, result, rowBilletTitle, nameof( BilletTitle.HasRatingTask ), rowRatingTask );
+
+			//Work Role
+			//No changes to track!
+
+			//Reference Resource
+			HandleGuidListAddition( summary, summary.FinalizedChanges.ReferenceResource, result, rowRatingTaskSource, nameof( ReferenceResource.ReferenceType ), rowSourceType );
+
+			//Training Task
+			foreach ( var rowAssessmentMethodType in rowAssessmentMethodTypeList )
+			{
+				HandleGuidListAddition( summary, summary.FinalizedChanges.TrainingTask, result, rowTrainingTask, nameof( TrainingTask.AssessmentMethodType ), rowAssessmentMethodType );
+			}
+
+			//Course
+			HandleGuidListAddition( summary, summary.FinalizedChanges.Course, result, rowCourse, nameof( Course.HasTrainingTask ), rowTrainingTask );
+			HandleGuidListAddition( summary, summary.FinalizedChanges.Course, result, rowCourse, nameof( Course.CourseType ), rowCourseType );
+			HandleGuidListAddition( summary, summary.FinalizedChanges.Course, result, rowCourse, nameof( Course.CurriculumControlAuthority ), rowOrganizationCCA );
+			HandleValueChange( summary, summary.FinalizedChanges.Course, result, rowCourse, nameof( Course.LifeCycleControlDocumentType ), ( rowCourseLCCDType ?? new Concept() ).RowId );
+
+			//Rating Task
+			HandleGuidListAddition( summary, summary.FinalizedChanges.RatingTask, result, rowRatingTask, nameof( RatingTask.HasRating ), rowRating );
+			HandleGuidListAddition( summary, summary.FinalizedChanges.RatingTask, result, rowRatingTask, nameof( RatingTask.HasBilletTitle ), rowBilletTitle );
+			HandleGuidListAddition( summary, summary.FinalizedChanges.RatingTask, result, rowRatingTask, nameof( RatingTask.HasWorkRole ), rowWorkRole );
+			HandleGuidListAddition( summary, summary.FinalizedChanges.RatingTask, result, rowRatingTask, nameof( RatingTask.HasTrainingTaskList ), rowTrainingTask );
+			HandleValueChange( summary, summary.FinalizedChanges.RatingTask, result, rowRatingTask, nameof( RatingTask.Description ), item.Row.RatingTask_Description );
+			HandleValueChange( summary, summary.FinalizedChanges.RatingTask, result, rowRatingTask, nameof( RatingTask.PayGradeType ), ( rowPayGrade ?? new Concept() ).RowId );
+			HandleValueChange( summary, summary.FinalizedChanges.RatingTask, result, rowRatingTask, nameof( RatingTask.ApplicabilityType ), ( rowTaskApplicabilityType ?? new Concept() ).RowId );
+			HandleValueChange( summary, summary.FinalizedChanges.RatingTask, result, rowRatingTask, nameof( RatingTask.TrainingGapType ), ( rowTrainingGapType ?? new Concept() ).RowId );
+			HandleValueChange( summary, summary.FinalizedChanges.RatingTask, result, rowRatingTask, nameof( RatingTask.ReferenceType ), ( rowSourceType ?? new Concept() ).RowId );
+			HandleValueChange( summary, summary.FinalizedChanges.RatingTask, result, rowRatingTask, nameof( RatingTask.HasReferenceResource ), ( rowRatingTaskSource ?? new ReferenceResource() ).RowId );
+			HandleValueChange( summary, summary.FinalizedChanges.RatingTask, result, rowRatingTask, nameof( RatingTask.Note ), item.Row.Note ?? "" );
+
+			//Cluster Analysis
+			HandleValueChange( summary, summary.FinalizedChanges.ClusterAnalysis, result, rowClusterAnalysis, nameof( ClusterAnalysis.ClusterAnalysisTitle ), item.Row.Cluster_Analysis_Title );
+			HandleValueChange( summary, summary.FinalizedChanges.ClusterAnalysis, result, rowClusterAnalysis, nameof( ClusterAnalysis.RatingTaskRowId ), (rowRatingTask ?? new RatingTask()).RowId );
+			HandleValueChange( summary, summary.FinalizedChanges.ClusterAnalysis, result, rowClusterAnalysis, nameof( ClusterAnalysis.TrainingSolutionType ), item.Row.Training_Solution_Type );
+			HandleValueChange( summary, summary.FinalizedChanges.ClusterAnalysis, result, rowClusterAnalysis, nameof( ClusterAnalysis.TrainingSolutionTypeId ), ( rowTrainingSolutionType ?? new Concept() ).Id );
+			HandleValueChange( summary, summary.FinalizedChanges.ClusterAnalysis, result, rowClusterAnalysis, nameof( ClusterAnalysis.RecommendedModality ), item.Row.Recommended_Modality );
+			HandleValueChange( summary, summary.FinalizedChanges.ClusterAnalysis, result, rowClusterAnalysis, nameof( ClusterAnalysis.RecommendedModalityId ), ( rowRecommendModalityType ?? new Concept() ).Id );
+			HandleValueChange( summary, summary.FinalizedChanges.ClusterAnalysis, result, rowClusterAnalysis, nameof( ClusterAnalysis.DevelopmentSpecification ), item.Row.Development_Specification );
+			HandleValueChange( summary, summary.FinalizedChanges.ClusterAnalysis, result, rowClusterAnalysis, nameof( ClusterAnalysis.DevelopmentSpecificationId ), ( rowDevelopmentSpecificationType ?? new Concept() ).Id );
+			HandleValueChange( summary, summary.FinalizedChanges.ClusterAnalysis, result, rowClusterAnalysis, nameof( ClusterAnalysis.CandidatePlatform ), item.Row.Candidate_Platform );
+			HandleValueChange( summary, summary.FinalizedChanges.ClusterAnalysis, result, rowClusterAnalysis, nameof( ClusterAnalysis.CFMPlacement ), item.Row.CFM_Placement );
+			HandleValueChange( summary, summary.FinalizedChanges.ClusterAnalysis, result, rowClusterAnalysis, nameof( ClusterAnalysis.PriorityPlacement ), priorityPlacement );
+			HandleValueChange( summary, summary.FinalizedChanges.ClusterAnalysis, result, rowClusterAnalysis, nameof( ClusterAnalysis.DevelopmentRatio ), item.Row.Development_Ratio );
+			HandleValueChange( summary, summary.FinalizedChanges.ClusterAnalysis, result, rowClusterAnalysis, nameof( ClusterAnalysis.DevelopmentTime ), developmentTime );
+			HandleValueChange( summary, summary.FinalizedChanges.ClusterAnalysis, result, rowClusterAnalysis, nameof( ClusterAnalysis.EstimatedInstructionalTime ), estimatedInstructionalTime );
+			HandleValueChange( summary, summary.FinalizedChanges.ClusterAnalysis, result, rowClusterAnalysis, nameof( ClusterAnalysis.Notes ), item.Row.Cluster_Analysis_Notes ?? "" );
+
+			//Update the cached summary
+			CacheChangeSummary( summary );
+
+			//Return the result
+			return result;
+		}
+		//
+
+		private static void HandleGuidListAddition<T1, T2>( ChangeSummary summary, List<T1> finalizedChangesList, UploadableItemResult result, T1 rowItem, string propertyName, T2 referenceToBeAppended ) where T1 : BaseObject where T2 : BaseObject
+		{
+			//Skip if either the rowItem or the referenceToBeAppended are null
+			if( rowItem == null || referenceToBeAppended == null )
+			{
+				return;
+			}
+
+			//Get the property to check/update
+			var property = typeof( T1 ).GetProperty( propertyName );
+
+			//Get the current value for that property
+			var currentValueList = ( List<Guid> ) property.GetValue( rowItem );
+
+			//If the current list of GUIDs does not contain the target GUID...
+			if ( !currentValueList.Contains( referenceToBeAppended.RowId ) )
+			{
+				//Add it to the list and update the value
+				//The magic of passing by reference means that this will update the object in the summary
+				currentValueList.Add( referenceToBeAppended.RowId );
+				property.SetValue( rowItem, currentValueList );
+
+				//Track the addition in the result
+				//This will be aggregated client-side into the new item's data
+				result.Additions.Add( new Triple( rowItem.RowId, propertyName, referenceToBeAppended.RowId ) );
+
+				//Update the finalized changes list if applicable
+				ReplaceItemInFinalizedChangesListIfApplicable( summary, rowItem, finalizedChangesList );
+			}
+		}
+		//
+
+		private static void HandleValueChange<T1, T2>( ChangeSummary summary, List<T1> finalizedChangesList, UploadableItemResult result, T1 rowItem, string propertyName, T2 newValue ) where T1 : BaseObject
+		{
+			//Skip if the rowItem is null
+			if( rowItem == null )
+			{
+				return;
+			}
+
+			//Get the property to check/update
+			var property = typeof( T1 ).GetProperty( propertyName );
+
+			//Get the current value for that property
+			var currentValue = ( T2 ) property.GetValue( rowItem );
+
+			//If both values are null or both values are the same, do nothing and return
+			if( currentValue == null && newValue == null || currentValue?.ToString().ToLower() == newValue?.ToString().ToLower() )
+			{
+				return;
+			}
+
+			//If the new value is null, warn the user
+			if( newValue == null || (property.PropertyType == typeof(Guid) && newValue?.ToString() == Guid.Empty.ToString()) )
+			{
+				result.Warnings.Add( "New value for property " + propertyName + " is null or empty!" );
+			}
+
+			//Set the value
+			//This will update the rowItem in the summary
+			property.SetValue( rowItem, newValue );
+
+			//Track the change in the result
+			if( property.PropertyType == typeof( Guid ) )
+			{
+				var guidValue = Guid.Empty;
+				if( Guid.TryParse(newValue?.ToString(), out guidValue ) )
+				{
+					result.ReferenceChanges.Add( new Triple( rowItem.RowId, propertyName, guidValue ) );
+				}
+				else
+				{
+					result.Errors.Add( "Error parsing GUID reference for item: " + rowItem.RowId + ", property: " + propertyName + ", value: " + newValue?.ToString() );
+					result.ValueChanges.Add( new Triple( rowItem.RowId, propertyName, newValue?.ToString().ToLower() ) );
+				}
+			}
+			else
+			{
+				result.ValueChanges.Add( new Triple( rowItem.RowId, propertyName, newValue?.ToString().ToLower() ) );
+			}
+
+			//Update the finalized changes list if applicable
+			ReplaceItemInFinalizedChangesListIfApplicable( summary, rowItem, finalizedChangesList );
+		}
+		//
+
+		private static void ReplaceItemInFinalizedChangesListIfApplicable<T>( ChangeSummary summary, T rowItem, List<T> finalizedChangesList ) where T : BaseObject
+		{
+			//If the item already existed in the database, update the finalized changes list too
+			if ( rowItem != null && summary.ItemsLoadedFromDatabase.Contains( rowItem.RowId ) )
+			{
+				//Remove the rowItem from the finalized changes list (if it was there) and add the freshly updated version
+				//This is done to ensure the finalized changes list always has the most up to date version, since the summary gets loaded from the cache and thus the update by reference doesn't work here
+				finalizedChangesList.Remove( finalizedChangesList.FirstOrDefault( m => m.RowId == rowItem.RowId ) );
+				finalizedChangesList.Add( rowItem );
+			}
+		}
+		//
+
+		private static string TextOrNA( string text )
+		{
+			return string.IsNullOrWhiteSpace( text ) ? "N/A" : text;
+		}
 		#endregion
 
 		private static Concept FindConceptOrError( List<Concept> haystack, Concept needle, string warningLabel, string warningValue, List<string> warningMessages )
