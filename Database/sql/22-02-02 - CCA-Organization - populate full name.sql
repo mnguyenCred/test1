@@ -229,14 +229,27 @@ GO
 --   SET  [Name] = 'Surface Warfare Schools Command'
 -- WHERE [AlternateName]='SWSC'
 --GO
---Missing
+/*
+Missing
 CENSERVSUPP
 CENSEABEESFACENG
 SWSCOLCOM
 CENSAFE
+
+*/
 --TBD
 --UPDATE [dbo].[Organization]
 --   SET  [Name] = Name + ' (' + [AlternateName] + ')'
 
 --GO
+-- ====================================
+--select 'ce-' + LOWER(newId())
 
+INSERT INTO [dbo].[Organization]
+           ( [Name],[AlternateName],[CTID]           
+           ,[Created],[CreatedById],[LastUpdated],[LastUpdatedById])
+     VALUES
+           ('CSCS - TBD','CSCS','ce-ec934eb6-4976-4775-a743-7df2f0c38403'
+           ,GETDATE(),1, GETDATE(), 1  )
+GO
+--===================

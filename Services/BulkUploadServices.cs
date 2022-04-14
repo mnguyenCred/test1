@@ -233,7 +233,8 @@ namespace Services
 
 			#endregion
 			#region Handle AddedItemsToInnerListsForCopiesOfItems
-
+			//obsolete
+			/*
 			if ( summary.AddedItemsToInnerListsForCopiesOfItems != null )
 			{
 				//what to do with these? will be existing parents with child updates like course and training task
@@ -315,7 +316,7 @@ namespace Services
 				
 				}
 			}
-
+			*/
 			#endregion
 			//
 			#region Handle FinalizedChanges
@@ -363,10 +364,7 @@ namespace Services
 						item.CreatedById = item.LastUpdatedById = user.Id;
 						courseMgr.Save( item, ref summary );
 					}
-				} else
-                {
-					//check tasks
-                }
+				} 
 
 
 				if ( summary.FinalizedChanges.WorkRole?.Count > 0 )
@@ -2626,6 +2624,8 @@ namespace Services
 				result, 
 				"Selected Rating not found in database: \"" + item.RatingRowID + "\""
 			);
+			summary.Rating = rowRating.CodedNotation;
+
 			var rowPayGrade = GetDataOrError<Concept>( summary, ( m ) => 
 				m.CodedNotation?.ToLower() == item.Row.PayGradeType_CodedNotation?.ToLower(), 
 				result, 
@@ -2672,7 +2672,6 @@ namespace Services
 			//Part II
 			//These should throw an error if not found, unless all of the course/training columns are N/A
 			var shouldNotHaveTrainingData = rowTrainingGapType.Name?.ToLower() == "yes";
-			//course type can be a list
 			var rowCourseType = GetDataOrError<Concept>( summary, ( m ) => 
 				m.SchemeUri == ConceptSchemeManager.ConceptScheme_CourseType &&
 				m.Name?.ToLower() == item.Row.Course_CourseType_Name?.ToLower(), 

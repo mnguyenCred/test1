@@ -223,20 +223,6 @@ namespace Factories
             try
             {
                 ReferenceTypeUpdate( input, ref status );
-                //
-                //if ( input.ReferenceType != null )
-                //{
-                //    foreach ( var item in input.ReferenceType )
-                //    {
-                //        var concept = ConceptSchemeManager.GetConcept( item );
-                //        if ( concept?.Id > 0 )
-                //            ReferenceConceptAdd( input, concept.Id, input.LastUpdatedById, ref status );
-                //        else
-                //        {
-                //            status.AddError( String.Format( "Error. For ReferenceResource: '{0}' ({1}) a ReferenceResource referenceType concept was not found for Identifier: {2}", input.Name, input.Id, item ) );
-                //        }
-                //    }
-                //}
 
             }
             catch ( Exception ex )
