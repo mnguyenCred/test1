@@ -84,9 +84,10 @@ namespace Factories
                         entity.Id = efEntity.Id;
 
                         MapToDB( entity, efEntity, status );
-
+                        bool hasChanges = false;
                         if ( HasStateChanged( context ) )
                         {
+                            hasChanges = true;
                             efEntity.LastUpdated = DateTime.Now;
                             efEntity.LastUpdatedById = entity.LastUpdatedById;
                             count = context.SaveChanges();
@@ -113,17 +114,19 @@ namespace Factories
                             //just in case 
                             if ( entity.Id > 0 )
                                 UpdateParts( entity, status );
-
-                            SiteActivity sa = new SiteActivity()
+                            if (hasChanges)
                             {
-                                ActivityType = "Course",
-                                Activity = status.Action,
-                                Event = "Update",
-                                Comment = string.Format( "Course was updated by the import. Name: {0}", entity.Name ),
-                                ActionByUserId = entity.LastUpdatedById,
-                                ActivityObjectId = entity.Id
-                            };
-                            new ActivityManager().SiteActivityAdd( sa );
+                                SiteActivity sa = new SiteActivity()
+                                {
+                                    ActivityType = "Course",
+                                    Activity = status.Action,
+                                    Event = "Update",
+                                    Comment = string.Format( "Course was updated by the import. Name: {0}", entity.Name ),
+                                    ActionByUserId = entity.LastUpdatedById,
+                                    ActivityObjectId = entity.Id
+                                };
+                                new ActivityManager().SiteActivityAdd( sa );
+                            }                            
                         }
                     }
                     else

@@ -233,7 +233,8 @@ namespace Services
 
 			#endregion
 			#region Handle AddedItemsToInnerListsForCopiesOfItems
-
+			//obsolete
+			/*
 			if ( summary.AddedItemsToInnerListsForCopiesOfItems != null )
 			{
 				//what to do with these? will be existing parents with child updates like course and training task
@@ -315,7 +316,7 @@ namespace Services
 				
 				}
 			}
-
+			*/
 			#endregion
 			//
 			#region Handle FinalizedChanges
@@ -363,10 +364,7 @@ namespace Services
 						item.CreatedById = item.LastUpdatedById = user.Id;
 						courseMgr.Save( item, ref summary );
 					}
-				} else
-                {
-					//check tasks
-                }
+				} 
 
 
 				if ( summary.FinalizedChanges.WorkRole?.Count > 0 )
@@ -2639,6 +2637,8 @@ namespace Services
 				"Selected Rating not found in database: \"" + item.RatingRowID + "\"",
 				item.RatingRowID.ToString()
 			);
+			summary.Rating = rowRating.CodedNotation;
+
 			var rowPayGrade = GetDataOrError<Concept>( summary, ( m ) => 
 				m.CodedNotation?.ToLower() == item.Row.PayGradeType_CodedNotation?.ToLower(), 
 				result, 

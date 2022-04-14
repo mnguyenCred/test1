@@ -54,16 +54,18 @@ namespace Factories
 				//can't trust just coded notation, need to consider the current rating somewhere
 				if ( !string.IsNullOrWhiteSpace( importEntity.CodedNotation ) )
 				{
-					item = context.RatingTaskSummary.FirstOrDefault( s => ( s.CodedNotation ?? "" ).ToLower() == importEntity.CodedNotation.ToLower() && s.Ratings.Contains( currentRatingCodedNotation ) );
+					item = context.RatingTaskSummary.FirstOrDefault( s => ( s.CodedNotation ?? "" ).ToLower() == importEntity.CodedNotation.ToLower() 
+                                && s.Ratings.Contains( currentRatingCodedNotation ) );
 				}
 				if ( item == null || item.Id == 0 )
 				{
-					item = context.RatingTaskSummary
-								.FirstOrDefault( s => s.PayGradeType == importEntity.PayGradeType
-								//&& s.FunctionalAreaUID == importEntity.ReferenceType //NOW a list, so not helpful
-								&& s.HasReferenceResource == importEntity.HasReferenceResource
-								&& s.RatingTask.ToLower() == importEntity.Description.ToLower()
-								);
+                    //22-04-14 - TBD - not sure we want to do this approach - risky
+					//item = context.RatingTaskSummary
+					//			.FirstOrDefault( s => s.PayGradeType == importEntity.PayGradeType
+					//			//&& s.FunctionalAreaUID == importEntity.ReferenceType //NOW a list, so not helpful
+					//			&& s.HasReferenceResource == importEntity.HasReferenceResource
+					//			&& s.RatingTask.ToLower() == importEntity.Description.ToLower()
+					//			);
 				}
 				if ( item != null && item.Id > 0 )
 				{
@@ -961,9 +963,10 @@ namespace Factories
                             input.Id = efEntity.Id;
 
                             MapToDB( input, efEntity, ref status );
-
+                            bool hasChanged = false;
                             if ( HasStateChanged( context ) )
                             {
+                                hasChanged = true;
                                 efEntity.LastUpdated = DateTime.Now;
                                 efEntity.LastUpdatedById = input.LastUpdatedById;
                                 count = context.SaveChanges();
@@ -989,16 +992,19 @@ namespace Factories
                             {
                                 //update parts
                                 UpdateParts( input, status );
-                                SiteActivity sa = new SiteActivity()
+                                if ( hasChanged )
                                 {
-                                    ActivityType = "RatingTask",
-                                    Activity = status.Action,
-                                    Event = "Update",
-                                    Comment = string.Format( "RatingTask was updated. Name: {0}", FormatLongLabel( input.Description ) ),
-                                    ActionByUserId = input.LastUpdatedById,
-                                    ActivityObjectId = input.Id
-                                };
-                                new ActivityManager().SiteActivityAdd( sa );
+                                    SiteActivity sa = new SiteActivity()
+                                    {
+                                        ActivityType = "RatingTask",
+                                        Activity = status.Action,
+                                        Event = "Update",
+                                        Comment = string.Format( "RatingTask was updated. Name: {0}", FormatLongLabel( input.Description ) ),
+                                        ActionByUserId = input.LastUpdatedById,
+                                        ActivityObjectId = input.Id
+                                    };
+                                    new ActivityManager().SiteActivityAdd( sa );
+                                }
                             }
                         }
                         else
