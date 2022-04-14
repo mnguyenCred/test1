@@ -2890,10 +2890,12 @@ namespace Services
 			);
 
 			//Only look for Part II data if there is supposed to be any
+			TrainingTask rowTrainingTask = null;
+			Course rowCourse = null;
 			if ( hasCourseAndTrainingData )
 			{
 				//Training Task
-				var rowTrainingTask = LookupOrGetFromDBOrCreateNew( summary, result,
+				rowTrainingTask = LookupOrGetFromDBOrCreateNew( summary, result,
 					//Find in summary
 					() => summary.GetAll<TrainingTask>()
 					.FirstOrDefault( m =>
@@ -2914,7 +2916,7 @@ namespace Services
 				);
 
 				//Course
-				var rowCourse = LookupOrGetFromDBOrCreateNew( summary, result,
+				rowCourse = LookupOrGetFromDBOrCreateNew( summary, result,
 					//Find in summary
 					() => summary.GetAll<Course>()
 					.FirstOrDefault( m =>
