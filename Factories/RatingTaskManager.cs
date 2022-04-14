@@ -1236,7 +1236,7 @@ namespace Factories
                                 }
                                 else
                                 {
-                                    status.AddError( String.Format( "Error. For RatingTask: '{0}' ({1}) a HasTrainingTask was not found for Identifier: {2}", FormatLongLabel( input.Description ), input.Id, child ) );
+                                    status.AddError( String.Format( "Error. For RatingTask: '{0}' ({1} code: {2}) a HasTrainingTask was not found for Identifier: {3}", FormatLongLabel( input.Description ), input.Id, input.CodedNotation, child ) );
                                 }
                             }
                         }

@@ -82,10 +82,14 @@ namespace Services
 						item.CreatedById = item.LastUpdatedById = user.Id;
 						mgr.Save( item, ref summary );
 					}
-					//foreach ( var item in summary.ItemsToBeCreated.ReferenceResource )
-					//{
-					//	Navy.Utilities.LoggingHelper.DoTrace( 6, item.Name );
-					//}
+                    
+					if ( UtilityManager.GetAppKeyValue( "listingInputRecords", false ) || UtilityManager.GetAppKeyValue( "environment" ) == "development" )
+					{
+						foreach ( var item in summary.ItemsToBeCreated.ReferenceResource )
+						{
+							LoggingHelper.DoTrace( 6, String.Format( "ReferenceResource: Name: {0}, Date: {1}, rowId: {2}.", item.Name, item.PublicationDate, item.RowId ), false );
+						}
+					}
 				}
 
 
@@ -161,7 +165,7 @@ namespace Services
 						//make configurable
 						foreach ( var item in summary.ItemsToBeCreated.BilletTitle )
 						{
-							LoggingHelper.DoTrace( 6, "BilletTitle: " + item.Name, false );
+							LoggingHelper.DoTrace( 6, "BilletTitle ItemsToBeCreated: " + item.Name, false );
 						}
 					}
 				}
