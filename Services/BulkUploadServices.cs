@@ -2578,7 +2578,7 @@ namespace Services
 			if ( summary == null )
 			{
 				//Create a new summary object
-				summary = new ChangeSummary() { RowId = item.TransactionGUID };
+				summary = new ChangeSummary() { RowId = item.TransactionGUID, RatingRowId = item.RatingRowID };
 
 				//Pre-populate controlled vocabularies, since these will be used across all rows
 				summary.LookupGraph.AddRange( ConceptSchemeManager.GetAllConcepts( true ) );
@@ -3087,8 +3087,8 @@ namespace Services
 			//Get the current value for that property
 			var currentValue = ( T2 ) property.GetValue( rowItem );
 
-			//If both values are null or both values are the same, do nothing and return
-			if( currentValue == null && newValue == null || currentValue?.ToString().ToLower() == newValue?.ToString().ToLower() )
+			//If both values are null/whitespace or both values are the same, do nothing and return
+			if ( ( string.IsNullOrWhiteSpace( currentValue?.ToString() ) && string.IsNullOrWhiteSpace( newValue?.ToString() ) ) || ( currentValue?.ToString().ToLower() == newValue?.ToString().ToLower() ) )
 			{
 				return;
 			}
