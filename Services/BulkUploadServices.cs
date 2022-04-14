@@ -2800,27 +2800,12 @@ namespace Services
 				}
 			}
 
-			//Explicitly indicate the properties for each class that are used to do lookups and duplicate checks. 
-			//These properties cannot be overwritten (single-value) but can be appended to (multi-value) in this upload (since they are used to do lookups).
-			//These properties will also be used to create new instances of their respective entities.
-			var lookupBilletTitle = new List<string>() { nameof( BilletTitle.Name ) };
-			var lookupWorkRole = new List<string>() { nameof( WorkRole.Name ) };
-			var lookupReferenceResource = new List<string>() { nameof( ReferenceResource.Name ), nameof( ReferenceResource.PublicationDate ), nameof( ReferenceResource.ReferenceType ) };
-			var lookupTrainingTask = new List<string>() { nameof( TrainingTask.Description ) };
-			var lookupCourse = new List<string>() { nameof( Course.Name ), nameof( Course.CodedNotation ), nameof( Course.CourseType ), nameof( Course.CurriculumControlAuthority ) };
-			var lookupRatingTask = new List<string>() { nameof( RatingTask.CodedNotation ), nameof( RatingTask.HasRating ) };
-			var lookupClusterAnalysis = new List<string>() { nameof( ClusterAnalysis.RatingTaskRowId ) };
-
-			//Explicitly indicate the properties for each class that are to be updated with this row's data. 
-			//These properties can be overwritten (single-value) or appended to (multi-value) as part of this upload.
-			//These properties will also be used to create new instances of their respective entities.
-			var updateBilletTitle = new List<string>() { nameof( BilletTitle.HasRatingTask ) };
-			var updateWorkRole = new List<string>() {  };
-			var updateReferenceResource = new List<string>() { nameof( ReferenceResource.ReferenceType ) };
-			var updateTrainingTask = new List<string>() { nameof( TrainingTask.AssessmentMethodType ) };
-			var updateCourse = new List<string>() { nameof( Course.HasTrainingTask ), nameof( Course.CourseType ), nameof( Course.CurriculumControlAuthority ) };
-			var updateRatingTask = new List<string>() { nameof( RatingTask.Description ), nameof( RatingTask.HasRating ), nameof( RatingTask.HasBilletTitle ), nameof( RatingTask.HasWorkRole ), nameof( RatingTask.HasTrainingTaskList ) };
-			var updateClusterAnalysis = new List<string>() { nameof( ClusterAnalysis.TrainingSolutionType ), nameof( ClusterAnalysis.TrainingSolutionTypeId ), nameof( ClusterAnalysis.ClusterAnalysisTitle ) }; //Others
+			//If there are any errors, return before the rest of the row's data is processed
+			if( result.Errors.Count() > 0 )
+			{
+				result.Errors.Add( "One or more critical errors were encountered while processing this row." );
+				return result;
+			}
 
 			//After Validation, process the row's contents
 			//Get the variable items that show up in this row
@@ -2922,7 +2907,7 @@ namespace Services
 					 m.CurriculumControlAuthority.Contains( rowOrganizationCCA.RowId )
 				),
 				//Or get from DB
-				() => CourseManager.GetForUpload( item.Row.Course_Name, item.Row.Course_CodedNotation, rowCourseType.RowId, rowOrganizationCCA.RowId ),
+				() => CourseManager.GetByCodedNotation( item.Row.Course_CodedNotation, false ),
 				//Or create new
 				() => new Course()
 				{
