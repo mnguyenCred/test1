@@ -318,40 +318,40 @@ namespace Services
 
 			#endregion
 			//
-			#region Handle ItemsToBeChanged
-			//not sure how different
-			if ( summary.ItemsToBeChanged != null )
+			#region Handle FinalizedChanges
+			//22-04-14 now using FinalizedChanges  instead of ItemsToBeChanged
+			if ( summary.FinalizedChanges != null )
 			{
-				if ( summary.ItemsToBeChanged.Organization?.Count > 0 )
+				if ( summary.FinalizedChanges.Organization?.Count > 0 )
 				{
 					var orgMgr = new OrganizationManager();
-					foreach ( var item in summary.ItemsToBeChanged.Organization )
+					foreach ( var item in summary.FinalizedChanges.Organization )
 					{
 						item.CreatedById = item.LastUpdatedById = user.Id;
 						orgMgr.Save( item, user.Id, ref summary );
 					}
 				}
 				//
-				if ( summary.ItemsToBeChanged.ReferenceResource?.Count > 0 )
+				if ( summary.FinalizedChanges.ReferenceResource?.Count > 0 )
 				{
 					var mgr = new ReferenceResourceManager();
-					foreach ( var item in summary.ItemsToBeChanged.ReferenceResource )
+					foreach ( var item in summary.FinalizedChanges.ReferenceResource )
 					{
 						item.LastUpdatedById = user.Id;
 						mgr.Save( item, ref summary );
 					}
 				}
 				//
-				if ( summary.ItemsToBeChanged.Course?.Count > 0 )
+				if ( summary.FinalizedChanges.Course?.Count > 0 )
 				{
 					//is training task part of course, see there is a separate TrainingTask in UploadableData. the latter has no course Id/RowId to make an association?
 					var courseMgr = new CourseManager();
-					foreach ( var item in summary.ItemsToBeChanged.Course )
+					foreach ( var item in summary.FinalizedChanges.Course )
 					{
 						//get all tasks for this course
-						if ( summary.ItemsToBeChanged.TrainingTask?.Count > 0 )
+						if ( summary.FinalizedChanges.TrainingTask?.Count > 0 )
 						{
-							var results = summary.ItemsToBeChanged.TrainingTask.Where( p => item.HasTrainingTask.Any( p2 => p2 == p.RowId ) );
+							var results = summary.FinalizedChanges.TrainingTask.Where( p => item.HasTrainingTask.Any( p2 => p2 == p.RowId ) );
 							item.TrainingTasks.AddRange( results );
 						}
 						//just in case, do we need to also get created?
@@ -369,37 +369,37 @@ namespace Services
                 }
 
 
-				if ( summary.ItemsToBeChanged.WorkRole?.Count > 0 )
+				if ( summary.FinalizedChanges.WorkRole?.Count > 0 )
 				{
 					var mgr = new WorkRoleManager();
-					foreach ( var item in summary.ItemsToBeChanged.WorkRole )
+					foreach ( var item in summary.FinalizedChanges.WorkRole )
 					{
 						item.LastUpdatedById = user.Id;
 						mgr.Save( item, ref summary );
 					}
 				}
 
-				if ( summary.ItemsToBeChanged.BilletTitle?.Count > 0 )
+				if ( summary.FinalizedChanges.BilletTitle?.Count > 0 )
 				{
 					var mgr = new JobManager();
-					foreach ( var item in summary.ItemsToBeChanged.BilletTitle )
+					foreach ( var item in summary.FinalizedChanges.BilletTitle )
 					{
 						item.LastUpdatedById = user.Id;
 						mgr.Save( item, ref summary );
 					}
 				}
 
-				if ( summary.ItemsToBeChanged.RatingTask?.Count > 0 )
+				if ( summary.FinalizedChanges.RatingTask?.Count > 0 )
 				{
 					var mgr = new RatingTaskManager();
-					foreach ( var item in summary.ItemsToBeChanged.RatingTask )
+					foreach ( var item in summary.FinalizedChanges.RatingTask )
 					{
 						//not sure what to do for billets here?
 						//get all billets for this task
-						if ( summary.ItemsToBeChanged.BilletTitle?.Count > 0 )
+						if ( summary.FinalizedChanges.BilletTitle?.Count > 0 )
 						{
 							//get billets that reference this task
-							var results = summary.ItemsToBeChanged.BilletTitle.Where( p => p.HasRatingTask.Contains( item.RowId ) ).ToList();
+							var results = summary.FinalizedChanges.BilletTitle.Where( p => p.HasRatingTask.Contains( item.RowId ) ).ToList();
 							item.HasBilletTitle.AddRange( results.Select( p => p.RowId ) );
 						}
 						//do we need to check the created as well?
@@ -416,10 +416,10 @@ namespace Services
 				}
 
 
-				if ( summary.ItemsToBeChanged.ClusterAnalysis?.Count > 0 )
+				if ( summary.FinalizedChanges.ClusterAnalysis?.Count > 0 )
 				{
 					var mgr = new ClusterAnalysisManager();
-					foreach ( var item in summary.ItemsToBeChanged.ClusterAnalysis )
+					foreach ( var item in summary.FinalizedChanges.ClusterAnalysis )
 					{
 						item.LastUpdatedById = user.Id;
 						mgr.Save( item, ref summary );
@@ -2632,6 +2632,7 @@ namespace Services
 				"Rank not found in database: \"" + TextOrNA( item.Row.PayGradeType_CodedNotation ) + "\"",
 				item.Row.PayGradeType_CodedNotation
 			);
+			//WorkElementType
 			var rowSourceType = GetDataOrError<Concept>( summary, ( m ) => 
 				m.WorkElementType?.ToLower() == item.Row.Shared_ReferenceType?.ToLower(), 
 				result, 
@@ -2650,7 +2651,9 @@ namespace Services
 				"Training Gap Type not found in database: \"" + TextOrNA( item.Row.RatingTask_TrainingGapType_Name ) + "\"",
 				item.Row.RatingTask_TrainingGapType_Name
 			);
-			
+			//?? is billet title also required?
+			//also functional area, source, and date of source?
+
 			//If any of the above are null, log an error and skip the rest
 			if ( new List<object>() { rowRating, rowPayGrade, rowSourceType, rowTaskApplicabilityType, rowTrainingGapType, selectedRating }.Where( m => m == null ).Count() > 0 )
 			{
