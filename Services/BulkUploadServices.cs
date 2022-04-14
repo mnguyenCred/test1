@@ -2889,58 +2889,52 @@ namespace Services
 				( newItem ) => { summary.ItemsToBeCreated.ReferenceResource.Add( newItem ); }
 			);
 
-			//Only look for Part II data if there is supposed to be any
-			TrainingTask rowTrainingTask = null;
-			Course rowCourse = null;
-			if ( hasCourseAndTrainingData )
-			{
-				//Training Task
-				rowTrainingTask = LookupOrGetFromDBOrCreateNew( summary, result,
-					//Find in summary
-					() => summary.GetAll<TrainingTask>()
-					.FirstOrDefault( m =>
-						 m.Description?.ToLower() == item.Row.TrainingTask_Description?.ToLower()
-					),
-					//Or get from DB
-					() => TrainingTaskManager.Get( item.Row.TrainingTask_Description ),
-					//Or create new
-					() => new TrainingTask()
-					{
-						RowId = Guid.NewGuid(),
-						Description = item.Row.TrainingTask_Description
-					},
-					//Store if newly created
-					( newItem ) => { summary.ItemsToBeCreated.TrainingTask.Add( newItem ); },
-					//Skip all of this and set value to null if the following test is true
-					() => string.IsNullOrWhiteSpace( item.Row.TrainingTask_Description ) || item.Row.TrainingTask_Description.ToLower() == "n/a"
-				);
-
-				//Course
-				rowCourse = LookupOrGetFromDBOrCreateNew( summary, result,
-					//Find in summary
-					() => summary.GetAll<Course>()
-					.FirstOrDefault( m =>
-						 m.Name?.ToLower() == item.Row.Course_Name?.ToLower() &&
-						 m.CodedNotation?.ToLower() == item.Row.Course_CodedNotation?.ToLower() &&
-						 m.CourseType.Contains( rowCourseType.RowId ) &&
-						 m.CurriculumControlAuthority.Contains( rowOrganizationCCA.RowId )
-					),
-					//Or get from DB
-					() => CourseManager.GetByCodedNotation( item.Row.Course_CodedNotation, false ),
-					//Or create new
-					() => new Course()
-					{
-						RowId = Guid.NewGuid(),
-						Name = item.Row.Course_Name,
-						CodedNotation = item.Row.Course_CodedNotation
-					//Other properties are handled in the next section
+			//Training Task
+			var rowTrainingTask = LookupOrGetFromDBOrCreateNew( summary, result,
+				//Find in summary
+				() => summary.GetAll<TrainingTask>()
+				.FirstOrDefault( m =>
+					 m.Description?.ToLower() == item.Row.TrainingTask_Description?.ToLower()
+				),
+				//Or get from DB
+				() => TrainingTaskManager.Get( item.Row.TrainingTask_Description ),
+				//Or create new
+				() => new TrainingTask()
+				{
+					RowId = Guid.NewGuid(),
+					Description = item.Row.TrainingTask_Description
 				},
-					//Store if newly created
-					( newItem ) => { summary.ItemsToBeCreated.Course.Add( newItem ); },
-					//Skip all of this and set value to null if the following test is true
-					() => string.IsNullOrWhiteSpace( item.Row.Course_Name ) || item.Row.Course_Name.ToLower() == "n/a"
-				);
-			}
+				//Store if newly created
+				( newItem ) => { summary.ItemsToBeCreated.TrainingTask.Add( newItem ); },
+				//Skip all of this and set value to null if the following test is true
+				() => !hasCourseAndTrainingData || string.IsNullOrWhiteSpace( item.Row.TrainingTask_Description ) || item.Row.TrainingTask_Description.ToLower() == "n/a"
+			);
+
+			//Course
+			var rowCourse = LookupOrGetFromDBOrCreateNew( summary, result,
+				//Find in summary
+				() => summary.GetAll<Course>()
+				.FirstOrDefault( m =>
+					 m.Name?.ToLower() == item.Row.Course_Name?.ToLower() &&
+					 m.CodedNotation?.ToLower() == item.Row.Course_CodedNotation?.ToLower() &&
+					 m.CourseType.Contains( rowCourseType.RowId ) &&
+					 m.CurriculumControlAuthority.Contains( rowOrganizationCCA.RowId )
+				),
+				//Or get from DB
+				() => CourseManager.GetByCodedNotation( item.Row.Course_CodedNotation, false ),
+				//Or create new
+				() => new Course()
+				{
+					RowId = Guid.NewGuid(),
+					Name = item.Row.Course_Name,
+					CodedNotation = item.Row.Course_CodedNotation
+						//Other properties are handled in the next section
+					},
+				//Store if newly created
+				( newItem ) => { summary.ItemsToBeCreated.Course.Add( newItem ); },
+				//Skip all of this and set value to null if the following test is true
+				() => !hasCourseAndTrainingData || string.IsNullOrWhiteSpace( item.Row.Course_Name ) || item.Row.Course_Name.ToLower() == "n/a"
+			);
 
 			//Rating Task
 			var rowRatingTask = LookupOrGetFromDBOrCreateNew( summary, result,
