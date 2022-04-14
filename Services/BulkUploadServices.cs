@@ -2325,18 +2325,21 @@ namespace Services
 		}
 		//
 
-		public static T GetDataOrError<T>( ChangeSummary summary, Func<T, bool> MatchWith, UploadableItemResult result, string errorMessage, string source ) where T : BaseObject
+		public static T GetDataOrError<T>( ChangeSummary summary, Func<T, bool> MatchWith, UploadableItemResult result, string errorMessage, string source, bool addErrorIfNullOrWhiteSpace = true ) where T : BaseObject
 		{
-			return GetDataListOrError( summary, MatchWith, result, errorMessage, source ).FirstOrDefault();
+			return GetDataListOrError( summary, MatchWith, result, errorMessage, source, addErrorIfNullOrWhiteSpace ).FirstOrDefault();
 		}
 		//
 
-		public static List<T> GetDataListOrError<T>( ChangeSummary summary, Func<T, bool> MatchWith, UploadableItemResult result, string errorMessage, string source ) where T : BaseObject
+		public static List<T> GetDataListOrError<T>( ChangeSummary summary, Func<T, bool> MatchWith, UploadableItemResult result, string errorMessage, string source, bool addErrorIfNullOrWhiteSpace = true ) where T : BaseObject
 		{
 			if ( string.IsNullOrWhiteSpace( source ) )
 			{
-				result.Errors.Add( errorMessage );
-				new List<T>();
+				if( addErrorIfNullOrWhiteSpace )
+				{
+					result.Errors.Add( errorMessage );
+				}
+				return new List<T>();
 			}
 
 			//Check for existence in LookupGraph
@@ -2759,21 +2762,24 @@ namespace Services
 				m.Name?.ToLower() == item.Row.Training_Solution_Type?.ToLower(), 
 				result, 
 				"Training Solution Type not found in database: \"" + TextOrNA( item.Row.Training_Solution_Type ) + "\"", 
-				item.Row.Training_Solution_Type 
+				item.Row.Training_Solution_Type,
+				false
 			);
 			var rowRecommendModalityType = GetDataOrError<Concept>( summary, ( m ) => 
 				m.SchemeUri == ConceptSchemeManager.ConceptScheme_RecommendedModality && 
 				( m.Name?.ToLower() == item.Row.Recommended_Modality?.ToLower() || m.CodedNotation?.ToLower() == item.Row.Recommended_Modality?.ToLower() ), 
 				result, 
 				"Recommended Modality Type not found in database: \"" + TextOrNA( item.Row.Recommended_Modality ) + "\"", 
-				item.Row.Recommended_Modality 
+				item.Row.Recommended_Modality,
+				false
 			);
 			var rowDevelopmentSpecificationType = GetDataOrError<Concept>( summary, ( m ) => 
 				m.SchemeUri == ConceptSchemeManager.ConceptScheme_DevelopmentSpecification && 
 				m.Name?.ToLower() == item.Row.Development_Specification?.ToLower(), 
 				result, 
 				"Development Specification Type not found in database: \"" + TextOrNA( item.Row.Development_Specification ) + "\"", 
-				item.Row.Development_Specification 
+				item.Row.Development_Specification,
+				false
 			);
 			var priorityPlacement = UtilityManager.MapIntegerOrDefault( item.Row.Priority_Placement );
 			var developmentTime = UtilityManager.MapIntegerOrDefault( item.Row.Development_Time );
@@ -2785,10 +2791,6 @@ namespace Services
 			{
 				result.Warnings.Add( string.Format( "Priority Placement ({0}) is invalid. valid values are 1 through 9.", priorityPlacement ) );
 			}
-
-			//Temporarily(?) ignore errors with Cluster Analysis data
-			//Since previous errors cause a return statement, the only errors present here will have come from Cluster Analysis, meaning we can just clear them out here
-			result.Errors = new List<string>();
 
 
 			//Additional validation checks after all of the vocabularies have been figured out
