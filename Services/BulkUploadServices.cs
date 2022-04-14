@@ -2661,8 +2661,9 @@ namespace Services
 			//Always use the Rating selected in the interface
 			if( rowRating.RowId != selectedRating.RowId )
 			{
-				result.Warnings.Add( "The Rating for this row (" + rowRating.CodedNotation + " - " + rowRating.Name + ") does not match the Rating selected for this upload (" + selectedRating.CodedNotation + " - " + selectedRating.Name + "). The selected Rating will be used instead." );
-				rowRating = selectedRating;
+				result.Errors.Add( "The Rating for this row (" + rowRating.CodedNotation + " - " + rowRating.Name + ") does not match the Rating selected for this upload (" + selectedRating.CodedNotation + " - " + selectedRating.Name + "). Processing this row cannot continue." );
+				//rowRating = selectedRating;
+				return result;
 			}
 
 			//Part II
