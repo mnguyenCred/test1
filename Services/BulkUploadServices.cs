@@ -1892,7 +1892,7 @@ namespace Services
 				m.Name?.ToLower() == item.Row.Course_LifeCycleControlDocumentType_CodedNotation?.ToLower() || m.CodedNotation?.ToLower() == item.Row.Course_LifeCycleControlDocumentType_CodedNotation?.ToLower(), 
 					result, 
 					"Life-Cycle Control Document Type not found in database: \"" + (item.Row.Course_LifeCycleControlDocumentType_CodedNotation ?? "") + "\"" );
-            var rowAssessmentMethodTypeList = GetDataListOrError<Concept>( summary, ( m ) => SplitAndTrim( item.Row.Course_AssessmentMethodType_Name?.ToLower(), "," ).Contains( m.Name?.ToLower() ), result, "Assessment Method Type not found in database: \"" + ( item.Row.Course_AssessmentMethodType_Name ?? "" ) + "\"" );
+            var rowAssessmentMethodTypeList = GetDataListOrError<Concept>( summary, ( m ) => SplitAndTrim( item.Row.Course_AssessmentMethodType_Name?.ToLower(), "," ).Contains( m.Name?.ToLower() ), result, "Assessment Method Type not found in database: \"" + ( item.Row.Course_AssessmentMethodType_Name ?? "" ) + "\"", item.Row.Course_AssessmentMethodType_Name );
             //
    //         var rowAssessmentMethodTypeList = new List<Concept>();
 			//if ( item.Row.Course_AssessmentMethodType_Name != null && item.Row.Course_AssessmentMethodType_Name.ToLower() != "n/a" )
@@ -2329,23 +2329,23 @@ namespace Services
 		}
 		//
 
-		public static T GetDataOrError<T>( ChangeSummary summary, Func<T, bool> MatchWith, UploadableItemResult result, string errorMessage, string source ) where T : BaseObject
+		public static T GetDataOrError<T>( ChangeSummary summary, Func<T, bool> MatchWith, UploadableItemResult result, string errorMessage, string source, bool addErrorIfNullOrWhiteSpace = true ) where T : BaseObject
 		{
-			if ( string.IsNullOrWhiteSpace( source ) )
-			{
-				return null;
-			}
-
-			return GetDataListOrError( summary, MatchWith, result, errorMessage ).FirstOrDefault();
-		}
-		public static T GetDataOrError<T>( ChangeSummary summary, Func<T, bool> MatchWith, UploadableItemResult result, string errorMessage ) where T : BaseObject
-		{
-			return GetDataListOrError( summary, MatchWith, result, errorMessage ).FirstOrDefault();
+			return GetDataListOrError( summary, MatchWith, result, errorMessage, source, addErrorIfNullOrWhiteSpace ).FirstOrDefault();
 		}
 		//
 
-		public static List<T> GetDataListOrError<T>(ChangeSummary summary, Func<T, bool> MatchWith, UploadableItemResult result, string errorMessage) where T : BaseObject
+		public static List<T> GetDataListOrError<T>( ChangeSummary summary, Func<T, bool> MatchWith, UploadableItemResult result, string errorMessage, string source, bool addErrorIfNullOrWhiteSpace = true ) where T : BaseObject
 		{
+			if ( string.IsNullOrWhiteSpace( source ) )
+			{
+				if( addErrorIfNullOrWhiteSpace )
+				{
+					result.Errors.Add( errorMessage );
+				}
+				return new List<T>();
+			}
+
 			//Check for existence in LookupGraph
 			var data = summary.GetAll<T>().Where( m => MatchWith( m ) ).ToList();
 			if ( data.Count() == 0 )
@@ -2354,6 +2354,21 @@ namespace Services
 			}
 
 			return data;
+		}
+		//
+
+		//Only used in V3
+		[Obsolete]
+		public static T GetDataOrError<T>( ChangeSummary summary, Func<T, bool> MatchWith, UploadableItemResult result, string errorMessage ) where T : BaseObject
+		{
+			//Check for existence in LookupGraph
+			var data = summary.GetAll<T>().Where( m => MatchWith( m ) ).ToList();
+			if ( data.Count() == 0 )
+			{
+				result.Errors.Add( errorMessage );
+			}
+
+			return data.FirstOrDefault();
 		}
 		//
 
@@ -2626,7 +2641,8 @@ namespace Services
 			var selectedRating = GetDataOrError<Rating>( summary, ( m ) => 
 				m.RowId == item.RatingRowID, 
 				result, 
-				"Selected Rating not found in database: \"" + item.RatingRowID + "\""
+				"Selected Rating not found in database: \"" + item.RatingRowID + "\"",
+				item.RatingRowID.ToString()
 			);
 			summary.Rating = rowRating.CodedNotation;
 
@@ -2656,7 +2672,7 @@ namespace Services
 				item.Row.RatingTask_TrainingGapType_Name
 			);
 			//?? is billet title also required?
-			//also functional area, source, and date of source?
+			//also functional area, source, and date of source? //Those are handled below
 
 			//If any of the above are null, log an error and skip the rest
 			if ( new List<object>() { rowRating, rowPayGrade, rowSourceType, rowTaskApplicabilityType, rowTrainingGapType, selectedRating }.Where( m => m == null ).Count() > 0 )
@@ -2688,7 +2704,8 @@ namespace Services
 				( !string.IsNullOrWhiteSpace( m.Name ) && m.Name.ToLower() == item.Row.Course_CurriculumControlAuthority_Name?.ToLower() ) ||
 				( !string.IsNullOrWhiteSpace( m.ShortName ) && m.ShortName.ToLower() == item.Row.Course_CurriculumControlAuthority_Name?.ToLower() ),
 				result,
-				"Curriculum Control Authority not found in database: \"" + TextOrNA( item.Row.Course_CurriculumControlAuthority_Name ) + "\""
+				"Curriculum Control Authority not found in database: \"" + TextOrNA( item.Row.Course_CurriculumControlAuthority_Name ) + "\"",
+				item.Row.Course_CurriculumControlAuthority_Name
 			);
 			var rowCourseLCCDType = GetDataOrError<Concept>( summary, ( m ) =>
 				m.SchemeUri == ConceptSchemeManager.ConceptScheme_LifeCycleControlDocument &&
@@ -2697,12 +2714,14 @@ namespace Services
 					( !string.IsNullOrWhiteSpace( m.CodedNotation ) && m.CodedNotation?.ToLower() == item.Row.Course_LifeCycleControlDocumentType_CodedNotation?.ToLower() )
 				),
 				result,
-				"Life-Cycle Control Document Type not found in database: \"" + TextOrNA( item.Row.Course_LifeCycleControlDocumentType_CodedNotation ) + "\""
+				"Life-Cycle Control Document Type not found in database: \"" + TextOrNA( item.Row.Course_LifeCycleControlDocumentType_CodedNotation ) + "\"",
+				item.Row.Course_LifeCycleControlDocumentType_CodedNotation
 			);
 			var rowAssessmentMethodTypeList = GetDataListOrError<Concept>( summary, ( m ) => 
 				SplitAndTrim( item.Row.Course_AssessmentMethodType_Name?.ToLower(), "," ).Contains( m.Name?.ToLower() ), 
 				result, 
-				"Assessment Method Type not found in database: \"" + TextOrNA( item.Row.Course_AssessmentMethodType_Name ) + "\""
+				"Assessment Method Type not found in database: \"" + TextOrNA( item.Row.Course_AssessmentMethodType_Name ) + "\"",
+				item.Row.Course_AssessmentMethodType_Name
 			);
 
 			//If the Training Gap Type is "Yes", then treat all course/training data as null, but check to see if it exists first (above) to facilitate the warning statement below
@@ -2741,26 +2760,30 @@ namespace Services
 
 			//Part III
 			//Cluster Analysis
+			var hasClusterAnalysisData = false;
 			var rowTrainingSolutionType = GetDataOrError<Concept>( summary, ( m ) => 
 				m.SchemeUri == ConceptSchemeManager.ConceptScheme_TrainingSolutionType && 
 				m.Name?.ToLower() == item.Row.Training_Solution_Type?.ToLower(), 
 				result, 
 				"Training Solution Type not found in database: \"" + TextOrNA( item.Row.Training_Solution_Type ) + "\"", 
-				item.Row.Training_Solution_Type 
+				item.Row.Training_Solution_Type,
+				false
 			);
 			var rowRecommendModalityType = GetDataOrError<Concept>( summary, ( m ) => 
 				m.SchemeUri == ConceptSchemeManager.ConceptScheme_RecommendedModality && 
 				( m.Name?.ToLower() == item.Row.Recommended_Modality?.ToLower() || m.CodedNotation?.ToLower() == item.Row.Recommended_Modality?.ToLower() ), 
 				result, 
 				"Recommended Modality Type not found in database: \"" + TextOrNA( item.Row.Recommended_Modality ) + "\"", 
-				item.Row.Recommended_Modality 
+				item.Row.Recommended_Modality,
+				false
 			);
 			var rowDevelopmentSpecificationType = GetDataOrError<Concept>( summary, ( m ) => 
 				m.SchemeUri == ConceptSchemeManager.ConceptScheme_DevelopmentSpecification && 
 				m.Name?.ToLower() == item.Row.Development_Specification?.ToLower(), 
 				result, 
 				"Development Specification Type not found in database: \"" + TextOrNA( item.Row.Development_Specification ) + "\"", 
-				item.Row.Development_Specification 
+				item.Row.Development_Specification,
+				false
 			);
 			var priorityPlacement = UtilityManager.MapIntegerOrDefault( item.Row.Priority_Placement );
 			var developmentTime = UtilityManager.MapIntegerOrDefault( item.Row.Development_Time );
