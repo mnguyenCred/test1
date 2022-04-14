@@ -47,6 +47,7 @@ namespace Services
 				{
 					Data = new UploadableRow()
 					{
+						Row_CodedNotation = item.CodedNotation,
 						Rating_CodedNotation = item.Ratings,
 						PayGradeType_CodedNotation = item.Rank,
 						Level_Name = item.Level,
