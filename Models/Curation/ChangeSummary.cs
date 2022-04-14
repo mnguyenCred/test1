@@ -25,6 +25,8 @@ namespace Models.Curation
 		}
 		public string Action { get; set; } = "Upload";
 		public string Rating { get; set; }
+		public Guid RatingRowId { get; set; }
+
 		/// <summary>
 		/// Set of items that don't exist and will be created.
 		/// </summary>
@@ -37,6 +39,9 @@ namespace Models.Curation
 		/// </summary>
 		public UploadableData ItemsToBeChanged { get; set; }
 
+		/// <summary>
+		/// Contains the original data with the changes applied
+		/// </summary>
 		public UploadableData FinalizedChanges { get; set; }
 
 		/// <summary>

@@ -2576,7 +2576,7 @@ namespace Services
 			if ( summary == null )
 			{
 				//Create a new summary object
-				summary = new ChangeSummary() { RowId = item.TransactionGUID };
+				summary = new ChangeSummary() { RowId = item.TransactionGUID, RatingRowId = item.RatingRowID };
 
 				//Pre-populate controlled vocabularies, since these will be used across all rows
 				summary.LookupGraph.AddRange( ConceptSchemeManager.GetAllConcepts( true ) );
@@ -2672,6 +2672,7 @@ namespace Services
 			//Part II
 			//These should throw an error if not found, unless all of the course/training columns are N/A
 			var shouldNotHaveTrainingData = rowTrainingGapType.Name?.ToLower() == "yes";
+			var hasCourseAndTrainingData = false;
 			var rowCourseType = GetDataOrError<Concept>( summary, ( m ) => 
 				m.SchemeUri == ConceptSchemeManager.ConceptScheme_CourseType &&
 				m.Name?.ToLower() == item.Row.Course_CourseType_Name?.ToLower(), 
@@ -2718,10 +2719,20 @@ namespace Services
 				result.Errors = new List<string>();
 			}
 			//Otherwise, return an error if any course/training data is missing
-			else if ( new List<object>() { rowCourseType, rowOrganizationCCA, rowCourseLCCDType }.Where( m => m == null ).Count() > 0 || string.IsNullOrWhiteSpace( item.Row.TrainingTask_Description ) || rowAssessmentMethodTypeList.Count() == 0 || result.Errors.Count() > 0 )
+			else if ( 
+				new List<object>() { rowCourseType, rowOrganizationCCA, rowCourseLCCDType }.Where( m => m == null ).Count() > 0 || 
+				new List<string>() { item.Row.TrainingTask_Description, item.Row.Course_CodedNotation, item.Row.Course_Name }.Where(m => string.IsNullOrWhiteSpace( m ) ).Count() > 0 || 
+				rowAssessmentMethodTypeList.Count() == 0 || 
+				result.Errors.Count() > 0 
+			)
 			{
 				result.Errors.Add( "Incomplete course/training data found. All course/training related columns should either have data or be marked as \"N/A\". Since the Training Gap Type is \"" + rowTrainingGapType.Name + "\", this is an error and processing this row cannot continue." );
 				return result;
+			}
+			//Otherwise, look for course/training data later on
+			else
+			{
+				hasCourseAndTrainingData = true;
 			}
 
 			//Part III
@@ -2896,7 +2907,7 @@ namespace Services
 				//Store if newly created
 				( newItem ) => { summary.ItemsToBeCreated.TrainingTask.Add( newItem ); },
 				//Skip all of this and set value to null if the following test is true
-				() => string.IsNullOrWhiteSpace( item.Row.TrainingTask_Description ) || item.Row.TrainingTask_Description.ToLower() == "n/a"
+				() => !hasCourseAndTrainingData || string.IsNullOrWhiteSpace( item.Row.TrainingTask_Description ) || item.Row.TrainingTask_Description.ToLower() == "n/a"
 			);
 
 			//Course
@@ -2917,12 +2928,12 @@ namespace Services
 					RowId = Guid.NewGuid(),
 					Name = item.Row.Course_Name,
 					CodedNotation = item.Row.Course_CodedNotation
-					//Other properties are handled in the next section
-				},
+						//Other properties are handled in the next section
+					},
 				//Store if newly created
 				( newItem ) => { summary.ItemsToBeCreated.Course.Add( newItem ); },
 				//Skip all of this and set value to null if the following test is true
-				() => string.IsNullOrWhiteSpace( item.Row.Course_Name ) || item.Row.Course_Name.ToLower() == "n/a"
+				() => !hasCourseAndTrainingData || string.IsNullOrWhiteSpace( item.Row.Course_Name ) || item.Row.Course_Name.ToLower() == "n/a"
 			);
 
 			//Rating Task
@@ -2972,55 +2983,55 @@ namespace Services
 			//Update them with the data from this row
 
 			//Billet Title
-			HandleGuidListAddition( summary, summary.FinalizedChanges.BilletTitle, result, rowBilletTitle, nameof( BilletTitle.HasRatingTask ), rowRatingTask );
+			HandleGuidListAddition( summary, summary.ItemsToBeCreated.BilletTitle, summary.FinalizedChanges.BilletTitle, result, rowBilletTitle, nameof( BilletTitle.HasRatingTask ), rowRatingTask );
 
 			//Work Role
 			//No changes to track!
 
 			//Reference Resource
-			HandleGuidListAddition( summary, summary.FinalizedChanges.ReferenceResource, result, rowRatingTaskSource, nameof( ReferenceResource.ReferenceType ), rowSourceType );
+			HandleGuidListAddition( summary, summary.ItemsToBeCreated.ReferenceResource, summary.FinalizedChanges.ReferenceResource, result, rowRatingTaskSource, nameof( ReferenceResource.ReferenceType ), rowSourceType );
 
 			//Training Task
 			foreach ( var rowAssessmentMethodType in rowAssessmentMethodTypeList )
 			{
-				HandleGuidListAddition( summary, summary.FinalizedChanges.TrainingTask, result, rowTrainingTask, nameof( TrainingTask.AssessmentMethodType ), rowAssessmentMethodType );
+				HandleGuidListAddition( summary, summary.ItemsToBeCreated.TrainingTask, summary.FinalizedChanges.TrainingTask, result, rowTrainingTask, nameof( TrainingTask.AssessmentMethodType ), rowAssessmentMethodType );
 			}
 
 			//Course
-			HandleGuidListAddition( summary, summary.FinalizedChanges.Course, result, rowCourse, nameof( Course.HasTrainingTask ), rowTrainingTask );
-			HandleGuidListAddition( summary, summary.FinalizedChanges.Course, result, rowCourse, nameof( Course.CourseType ), rowCourseType );
-			HandleGuidListAddition( summary, summary.FinalizedChanges.Course, result, rowCourse, nameof( Course.CurriculumControlAuthority ), rowOrganizationCCA );
-			HandleValueChange( summary, summary.FinalizedChanges.Course, result, rowCourse, nameof( Course.LifeCycleControlDocumentType ), ( rowCourseLCCDType ?? new Concept() ).RowId );
+			HandleGuidListAddition( summary, summary.ItemsToBeCreated.Course, summary.FinalizedChanges.Course, result, rowCourse, nameof( Course.HasTrainingTask ), rowTrainingTask );
+			HandleGuidListAddition( summary, summary.ItemsToBeCreated.Course, summary.FinalizedChanges.Course, result, rowCourse, nameof( Course.CourseType ), rowCourseType );
+			HandleGuidListAddition( summary, summary.ItemsToBeCreated.Course, summary.FinalizedChanges.Course, result, rowCourse, nameof( Course.CurriculumControlAuthority ), rowOrganizationCCA );
+			HandleValueChange( summary, summary.ItemsToBeCreated.Course, summary.FinalizedChanges.Course, result, rowCourse, nameof( Course.LifeCycleControlDocumentType ), ( rowCourseLCCDType ?? new Concept() ).RowId );
 
 			//Rating Task
-			HandleGuidListAddition( summary, summary.FinalizedChanges.RatingTask, result, rowRatingTask, nameof( RatingTask.HasRating ), rowRating );
-			HandleGuidListAddition( summary, summary.FinalizedChanges.RatingTask, result, rowRatingTask, nameof( RatingTask.HasBilletTitle ), rowBilletTitle );
-			HandleGuidListAddition( summary, summary.FinalizedChanges.RatingTask, result, rowRatingTask, nameof( RatingTask.HasWorkRole ), rowWorkRole );
-			HandleGuidListAddition( summary, summary.FinalizedChanges.RatingTask, result, rowRatingTask, nameof( RatingTask.HasTrainingTaskList ), rowTrainingTask );
-			HandleValueChange( summary, summary.FinalizedChanges.RatingTask, result, rowRatingTask, nameof( RatingTask.Description ), item.Row.RatingTask_Description );
-			HandleValueChange( summary, summary.FinalizedChanges.RatingTask, result, rowRatingTask, nameof( RatingTask.PayGradeType ), ( rowPayGrade ?? new Concept() ).RowId );
-			HandleValueChange( summary, summary.FinalizedChanges.RatingTask, result, rowRatingTask, nameof( RatingTask.ApplicabilityType ), ( rowTaskApplicabilityType ?? new Concept() ).RowId );
-			HandleValueChange( summary, summary.FinalizedChanges.RatingTask, result, rowRatingTask, nameof( RatingTask.TrainingGapType ), ( rowTrainingGapType ?? new Concept() ).RowId );
-			HandleValueChange( summary, summary.FinalizedChanges.RatingTask, result, rowRatingTask, nameof( RatingTask.ReferenceType ), ( rowSourceType ?? new Concept() ).RowId );
-			HandleValueChange( summary, summary.FinalizedChanges.RatingTask, result, rowRatingTask, nameof( RatingTask.HasReferenceResource ), ( rowRatingTaskSource ?? new ReferenceResource() ).RowId );
-			HandleValueChange( summary, summary.FinalizedChanges.RatingTask, result, rowRatingTask, nameof( RatingTask.Note ), item.Row.Note ?? "" );
+			HandleGuidListAddition( summary, summary.ItemsToBeCreated.RatingTask, summary.FinalizedChanges.RatingTask, result, rowRatingTask, nameof( RatingTask.HasRating ), rowRating );
+			HandleGuidListAddition( summary, summary.ItemsToBeCreated.RatingTask, summary.FinalizedChanges.RatingTask, result, rowRatingTask, nameof( RatingTask.HasBilletTitle ), rowBilletTitle );
+			HandleGuidListAddition( summary, summary.ItemsToBeCreated.RatingTask, summary.FinalizedChanges.RatingTask, result, rowRatingTask, nameof( RatingTask.HasWorkRole ), rowWorkRole );
+			HandleGuidListAddition( summary, summary.ItemsToBeCreated.RatingTask, summary.FinalizedChanges.RatingTask, result, rowRatingTask, nameof( RatingTask.HasTrainingTaskList ), rowTrainingTask );
+			HandleValueChange( summary, summary.ItemsToBeCreated.RatingTask, summary.FinalizedChanges.RatingTask, result, rowRatingTask, nameof( RatingTask.Description ), item.Row.RatingTask_Description );
+			HandleValueChange( summary, summary.ItemsToBeCreated.RatingTask, summary.FinalizedChanges.RatingTask, result, rowRatingTask, nameof( RatingTask.PayGradeType ), ( rowPayGrade ?? new Concept() ).RowId );
+			HandleValueChange( summary, summary.ItemsToBeCreated.RatingTask, summary.FinalizedChanges.RatingTask, result, rowRatingTask, nameof( RatingTask.ApplicabilityType ), ( rowTaskApplicabilityType ?? new Concept() ).RowId );
+			HandleValueChange( summary, summary.ItemsToBeCreated.RatingTask, summary.FinalizedChanges.RatingTask, result, rowRatingTask, nameof( RatingTask.TrainingGapType ), ( rowTrainingGapType ?? new Concept() ).RowId );
+			HandleValueChange( summary, summary.ItemsToBeCreated.RatingTask, summary.FinalizedChanges.RatingTask, result, rowRatingTask, nameof( RatingTask.ReferenceType ), ( rowSourceType ?? new Concept() ).RowId );
+			HandleValueChange( summary, summary.ItemsToBeCreated.RatingTask, summary.FinalizedChanges.RatingTask, result, rowRatingTask, nameof( RatingTask.HasReferenceResource ), ( rowRatingTaskSource ?? new ReferenceResource() ).RowId );
+			HandleValueChange( summary, summary.ItemsToBeCreated.RatingTask, summary.FinalizedChanges.RatingTask, result, rowRatingTask, nameof( RatingTask.Note ), item.Row.Note ?? "" );
 
 			//Cluster Analysis
-			HandleValueChange( summary, summary.FinalizedChanges.ClusterAnalysis, result, rowClusterAnalysis, nameof( ClusterAnalysis.ClusterAnalysisTitle ), item.Row.Cluster_Analysis_Title );
-			HandleValueChange( summary, summary.FinalizedChanges.ClusterAnalysis, result, rowClusterAnalysis, nameof( ClusterAnalysis.RatingTaskRowId ), (rowRatingTask ?? new RatingTask()).RowId );
-			HandleValueChange( summary, summary.FinalizedChanges.ClusterAnalysis, result, rowClusterAnalysis, nameof( ClusterAnalysis.TrainingSolutionType ), item.Row.Training_Solution_Type );
-			HandleValueChange( summary, summary.FinalizedChanges.ClusterAnalysis, result, rowClusterAnalysis, nameof( ClusterAnalysis.TrainingSolutionTypeId ), ( rowTrainingSolutionType ?? new Concept() ).Id );
-			HandleValueChange( summary, summary.FinalizedChanges.ClusterAnalysis, result, rowClusterAnalysis, nameof( ClusterAnalysis.RecommendedModality ), item.Row.Recommended_Modality );
-			HandleValueChange( summary, summary.FinalizedChanges.ClusterAnalysis, result, rowClusterAnalysis, nameof( ClusterAnalysis.RecommendedModalityId ), ( rowRecommendModalityType ?? new Concept() ).Id );
-			HandleValueChange( summary, summary.FinalizedChanges.ClusterAnalysis, result, rowClusterAnalysis, nameof( ClusterAnalysis.DevelopmentSpecification ), item.Row.Development_Specification );
-			HandleValueChange( summary, summary.FinalizedChanges.ClusterAnalysis, result, rowClusterAnalysis, nameof( ClusterAnalysis.DevelopmentSpecificationId ), ( rowDevelopmentSpecificationType ?? new Concept() ).Id );
-			HandleValueChange( summary, summary.FinalizedChanges.ClusterAnalysis, result, rowClusterAnalysis, nameof( ClusterAnalysis.CandidatePlatform ), item.Row.Candidate_Platform );
-			HandleValueChange( summary, summary.FinalizedChanges.ClusterAnalysis, result, rowClusterAnalysis, nameof( ClusterAnalysis.CFMPlacement ), item.Row.CFM_Placement );
-			HandleValueChange( summary, summary.FinalizedChanges.ClusterAnalysis, result, rowClusterAnalysis, nameof( ClusterAnalysis.PriorityPlacement ), priorityPlacement );
-			HandleValueChange( summary, summary.FinalizedChanges.ClusterAnalysis, result, rowClusterAnalysis, nameof( ClusterAnalysis.DevelopmentRatio ), item.Row.Development_Ratio );
-			HandleValueChange( summary, summary.FinalizedChanges.ClusterAnalysis, result, rowClusterAnalysis, nameof( ClusterAnalysis.DevelopmentTime ), developmentTime );
-			HandleValueChange( summary, summary.FinalizedChanges.ClusterAnalysis, result, rowClusterAnalysis, nameof( ClusterAnalysis.EstimatedInstructionalTime ), estimatedInstructionalTime );
-			HandleValueChange( summary, summary.FinalizedChanges.ClusterAnalysis, result, rowClusterAnalysis, nameof( ClusterAnalysis.Notes ), item.Row.Cluster_Analysis_Notes ?? "" );
+			HandleValueChange( summary, summary.ItemsToBeCreated.ClusterAnalysis, summary.FinalizedChanges.ClusterAnalysis, result, rowClusterAnalysis, nameof( ClusterAnalysis.ClusterAnalysisTitle ), item.Row.Cluster_Analysis_Title );
+			HandleValueChange( summary, summary.ItemsToBeCreated.ClusterAnalysis, summary.FinalizedChanges.ClusterAnalysis, result, rowClusterAnalysis, nameof( ClusterAnalysis.RatingTaskRowId ), (rowRatingTask ?? new RatingTask()).RowId );
+			HandleValueChange( summary, summary.ItemsToBeCreated.ClusterAnalysis, summary.FinalizedChanges.ClusterAnalysis, result, rowClusterAnalysis, nameof( ClusterAnalysis.TrainingSolutionType ), item.Row.Training_Solution_Type );
+			HandleValueChange( summary, summary.ItemsToBeCreated.ClusterAnalysis, summary.FinalizedChanges.ClusterAnalysis, result, rowClusterAnalysis, nameof( ClusterAnalysis.TrainingSolutionTypeId ), ( rowTrainingSolutionType ?? new Concept() ).Id );
+			HandleValueChange( summary, summary.ItemsToBeCreated.ClusterAnalysis, summary.FinalizedChanges.ClusterAnalysis, result, rowClusterAnalysis, nameof( ClusterAnalysis.RecommendedModality ), item.Row.Recommended_Modality );
+			HandleValueChange( summary, summary.ItemsToBeCreated.ClusterAnalysis, summary.FinalizedChanges.ClusterAnalysis, result, rowClusterAnalysis, nameof( ClusterAnalysis.RecommendedModalityId ), ( rowRecommendModalityType ?? new Concept() ).Id );
+			HandleValueChange( summary, summary.ItemsToBeCreated.ClusterAnalysis, summary.FinalizedChanges.ClusterAnalysis, result, rowClusterAnalysis, nameof( ClusterAnalysis.DevelopmentSpecification ), item.Row.Development_Specification );
+			HandleValueChange( summary, summary.ItemsToBeCreated.ClusterAnalysis, summary.FinalizedChanges.ClusterAnalysis, result, rowClusterAnalysis, nameof( ClusterAnalysis.DevelopmentSpecificationId ), ( rowDevelopmentSpecificationType ?? new Concept() ).Id );
+			HandleValueChange( summary, summary.ItemsToBeCreated.ClusterAnalysis, summary.FinalizedChanges.ClusterAnalysis, result, rowClusterAnalysis, nameof( ClusterAnalysis.CandidatePlatform ), item.Row.Candidate_Platform );
+			HandleValueChange( summary, summary.ItemsToBeCreated.ClusterAnalysis, summary.FinalizedChanges.ClusterAnalysis, result, rowClusterAnalysis, nameof( ClusterAnalysis.CFMPlacement ), item.Row.CFM_Placement );
+			HandleValueChange( summary, summary.ItemsToBeCreated.ClusterAnalysis, summary.FinalizedChanges.ClusterAnalysis, result, rowClusterAnalysis, nameof( ClusterAnalysis.PriorityPlacement ), priorityPlacement );
+			HandleValueChange( summary, summary.ItemsToBeCreated.ClusterAnalysis, summary.FinalizedChanges.ClusterAnalysis, result, rowClusterAnalysis, nameof( ClusterAnalysis.DevelopmentRatio ), item.Row.Development_Ratio );
+			HandleValueChange( summary, summary.ItemsToBeCreated.ClusterAnalysis, summary.FinalizedChanges.ClusterAnalysis, result, rowClusterAnalysis, nameof( ClusterAnalysis.DevelopmentTime ), developmentTime );
+			HandleValueChange( summary, summary.ItemsToBeCreated.ClusterAnalysis, summary.FinalizedChanges.ClusterAnalysis, result, rowClusterAnalysis, nameof( ClusterAnalysis.EstimatedInstructionalTime ), estimatedInstructionalTime );
+			HandleValueChange( summary, summary.ItemsToBeCreated.ClusterAnalysis, summary.FinalizedChanges.ClusterAnalysis, result, rowClusterAnalysis, nameof( ClusterAnalysis.Notes ), item.Row.Cluster_Analysis_Notes ?? "" );
 
 			//Update the cached summary
 			CacheChangeSummary( summary );
@@ -3030,7 +3041,7 @@ namespace Services
 		}
 		//
 
-		private static void HandleGuidListAddition<T1, T2>( ChangeSummary summary, List<T1> finalizedChangesList, UploadableItemResult result, T1 rowItem, string propertyName, T2 referenceToBeAppended ) where T1 : BaseObject where T2 : BaseObject
+		private static void HandleGuidListAddition<T1, T2>( ChangeSummary summary, List<T1> itemsToBeCreatedList, List<T1> finalizedChangesList, UploadableItemResult result, T1 rowItem, string propertyName, T2 referenceToBeAppended ) where T1 : BaseObject where T2 : BaseObject
 		{
 			//Skip if either the rowItem or the referenceToBeAppended are null
 			if( rowItem == null || referenceToBeAppended == null )
@@ -3057,12 +3068,12 @@ namespace Services
 				result.Additions.Add( new Triple( rowItem.RowId, propertyName, referenceToBeAppended.RowId ) );
 
 				//Update the finalized changes list if applicable
-				ReplaceItemInFinalizedChangesListIfApplicable( summary, rowItem, finalizedChangesList );
+				ReplaceItemInChangeTrackingLists( summary, rowItem, itemsToBeCreatedList, finalizedChangesList );
 			}
 		}
 		//
 
-		private static void HandleValueChange<T1, T2>( ChangeSummary summary, List<T1> finalizedChangesList, UploadableItemResult result, T1 rowItem, string propertyName, T2 newValue ) where T1 : BaseObject
+		private static void HandleValueChange<T1, T2>( ChangeSummary summary, List<T1> itemsToBeCreatedList, List<T1> finalizedChangesList, UploadableItemResult result, T1 rowItem, string propertyName, T2 newValue ) where T1 : BaseObject
 		{
 			//Skip if the rowItem is null
 			if( rowItem == null )
@@ -3076,8 +3087,8 @@ namespace Services
 			//Get the current value for that property
 			var currentValue = ( T2 ) property.GetValue( rowItem );
 
-			//If both values are null or both values are the same, do nothing and return
-			if( currentValue == null && newValue == null || currentValue?.ToString().ToLower() == newValue?.ToString().ToLower() )
+			//If both values are null/whitespace or both values are the same, do nothing and return
+			if ( ( string.IsNullOrWhiteSpace( currentValue?.ToString() ) && string.IsNullOrWhiteSpace( newValue?.ToString() ) ) || ( currentValue?.ToString().ToLower() == newValue?.ToString().ToLower() ) )
 			{
 				return;
 			}
@@ -3112,20 +3123,32 @@ namespace Services
 			}
 
 			//Update the finalized changes list if applicable
-			ReplaceItemInFinalizedChangesListIfApplicable( summary, rowItem, finalizedChangesList );
+			ReplaceItemInChangeTrackingLists( summary, rowItem, itemsToBeCreatedList, finalizedChangesList );
 		}
 		//
 
-		private static void ReplaceItemInFinalizedChangesListIfApplicable<T>( ChangeSummary summary, T rowItem, List<T> finalizedChangesList ) where T : BaseObject
+		private static void ReplaceItemInChangeTrackingLists<T>( ChangeSummary summary, T rowItem, List<T> itemsToBeCreatedList, List<T> finalizedChangesList ) where T : BaseObject
 		{
-			//If the item already existed in the database, update the finalized changes list too
-			if ( rowItem != null && summary.ItemsLoadedFromDatabase.Contains( rowItem.RowId ) )
+			//Skip if null (shouldn't happen!)
+			if( rowItem == null )
 			{
-				//Remove the rowItem from the finalized changes list (if it was there) and add the freshly updated version
-				//This is done to ensure the finalized changes list always has the most up to date version, since the summary gets loaded from the cache and thus the update by reference doesn't work here
+				return;
+			}
+
+			//Remove the item from the appropriate summary list and re-add it to ensure that the summary always has the most up to date version to avoid any issues with object references not surviving caching
+			//If the item already existed in the database, update the finalized changes list
+			if ( summary.ItemsLoadedFromDatabase.Contains( rowItem.RowId ) )
+			{
 				finalizedChangesList.Remove( finalizedChangesList.FirstOrDefault( m => m.RowId == rowItem.RowId ) );
 				finalizedChangesList.Add( rowItem );
 			}
+			//Otherwise update the new items list
+			else
+			{
+				itemsToBeCreatedList.Remove( itemsToBeCreatedList.FirstOrDefault( m => m.RowId == rowItem.RowId ) );
+				itemsToBeCreatedList.Add( rowItem );
+			}
+
 		}
 		//
 

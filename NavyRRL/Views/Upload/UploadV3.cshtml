@@ -285,7 +285,8 @@
 			return {
 				Data: null,
 				Error: null,
-				MappedRow: MappedRow
+				MappedRow: MappedRow,
+				MappedRowText: getMappedRowText(MappedRow)
 			};
 		});
 
@@ -298,6 +299,15 @@
 		UI.ProcessDataButton.prop("disabled", true);
 		setStatus("Processing Rows...", true);
 		processNextQueueItem();
+	}
+	//
+
+	function getMappedRowText(MappedRow) {
+		var values = [];
+		Object.keys(MappedRow).filter(m => m != "Row_Index" && m != "Row_Identifier" && m != "Row_CodedNotation").forEach(key => {
+			values.push(MappedRow[key]);
+		});
+		return values.join("").toLowerCase().trim();//.replace(/[^a-z0-9 ]/g, " ").replace(/ +/g, " ").trim();
 	}
 	//
 
@@ -486,7 +496,18 @@
 		scanForDuplicateItems(allItems, "ReferenceResource", [ "Name", "PublicationDate", "ReferenceType" ]);
 		scanForDuplicateItems(allItems, "TrainingTask", [ "Description" ]);
 		scanForDuplicateItems(allItems, "Course", [ "Name", "CodedNotation" ]);
-		scanForDuplicateItems(allItems, "RatingTask", [ "Description", "HasReferenceResource", "PayGradeType", "HasBilletTitle", "HasWorkRole" ]);
+		scanForDuplicateItems(allItems, "RatingTask", ["Description", "HasReferenceResource", "PayGradeType", "HasBilletTitle", "HasWorkRole"]);
+
+		//Scan for entire duplicate rows
+		var allRows = Manager.SummaryData.map(m => m); //Copy the array
+		while (allRows.length > 0) {
+			var current = allRows.shift();
+			var matches = allRows.filter(m => m.MappedRowText == current.MappedRowText);
+			if (matches.length > 0) {
+				current.Data.Errors.push("The contents of this row are identical to the contents of row(s) " + matches.map(m => getRowNumber(m.MappedRow.Row_Index)).join(", ") + ". Duplicate rows are not allowed.");
+				allRows = allRows.filter(m => !matches.includes(m));
+			}
+		}
 	}
 	//
 
