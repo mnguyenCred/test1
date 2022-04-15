@@ -2605,7 +2605,10 @@ namespace Services
 				//Cache the summary object
 				CacheChangeSummary( summary );
 			}
+			if (summary.Messages.Error?.Count > 0)
+            {
 
+            }
 			//Validate user
 			AppUser user = AccountServices.GetCurrentUser();
 			if ( user?.Id == 0 )
@@ -2697,7 +2700,7 @@ namespace Services
 				m.SchemeUri == ConceptSchemeManager.ConceptScheme_CourseType &&
 				m.Name?.ToLower() == item.Row.Course_CourseType_Name?.ToLower(), 
 				result, 
-				"Course Type not found in database: \"" + TextOrNA( item.Row.Course_CourseType_Name ), 
+				"Course Type not found in database: \"" + TextOrNA( item.Row.Course_CourseType_Name ) + "\"", 
 				item.Row.Course_CourseType_Name 
 			);
 			var rowOrganizationCCA = GetDataOrError<Organization>( summary, ( m ) =>
