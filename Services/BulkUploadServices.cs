@@ -2749,6 +2749,10 @@ namespace Services
 				result.Errors.Count() > 0 
 			)
 			{
+				if ( string.IsNullOrWhiteSpace( item.Row.TrainingTask_Description ) )
+				{
+					result.Errors.Add( "Training Task data is missing for this row." );
+				}
 				result.Errors.Add( "Incomplete course/training data found. All course/training related columns should either have data or be marked as \"N/A\". Since the Training Gap Type is \"" + rowTrainingGapType.Name + "\", this is an error and processing this row cannot continue." );
 				return result;
 			}
