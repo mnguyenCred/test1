@@ -372,7 +372,7 @@
 			item.Meta = {
 				IsNew: false,
 				Additions: [],
-				TextChanges: []
+				ValueChanges: []
 			};
 			appendLookupItem(item);
 		});
@@ -380,7 +380,7 @@
 			item.Meta = {
 				IsNew: true,
 				Additions: [],
-				TextChanges: []
+				ValueChanges: []
 			};
 			appendLookupItem(item);
 		});
@@ -400,6 +400,9 @@
 		data.ValueChanges.forEach(textChange => {
 			lookupItem(textChange.Subject, (item) => {
 				if (item.Meta.IsNew) {
+					if (item[textChange.Predicate]) { //Don't warn for the initial change from undefined to a value, but do warn if a different value already exists
+						data.Warnings.push("Newly-added " + item["@@type"] + " appears to have a different value for its " + textChange.Predicate + " on this row (\"" + (textChange.ObjectText || "<i class=\"undefined\">undefined / no value</i>") + "\") instead of the previously-detected value of \"" + item[textChange.Predicate] + "\". Please ensure the value for this item is consistent throughout the spreadsheet.");
+					}
 					item[textChange.Predicate] = textChange.ObjectText;
 				}
 				else {

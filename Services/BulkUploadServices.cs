@@ -2895,11 +2895,11 @@ namespace Services
 				() => summary.GetAll<ReferenceResource>()
 				.FirstOrDefault( m =>
 					m.Name?.ToLower() == item.Row.ReferenceResource_Name?.ToLower() &&
-					m.PublicationDate?.ToLower() == item.Row.ReferenceResource_PublicationDate?.ToLower() &&
-					m.ReferenceType.Contains( rowSourceType.RowId )
+					m.PublicationDate?.ToLower() == item.Row.ReferenceResource_PublicationDate?.ToLower()
+					//&& m.ReferenceType.Contains( rowSourceType.RowId )
 				),
 				//Or get from DB
-				() => ReferenceResourceManager.Get( item.Row.ReferenceResource_Name, item.Row.ReferenceResource_PublicationDate ),
+				() => ReferenceResourceManager.Get( item.Row.ReferenceResource_Name, item.Row.ReferenceResource_PublicationDate ), //Should ReferenceType be used here as well?
 				//Or create new
 				() => new ReferenceResource()
 				{
@@ -2938,10 +2938,7 @@ namespace Services
 				//Find in summary
 				() => summary.GetAll<Course>()
 				.FirstOrDefault( m =>
-					 m.Name?.ToLower() == item.Row.Course_Name?.ToLower() &&
-					 m.CodedNotation?.ToLower() == item.Row.Course_CodedNotation?.ToLower() &&
-					 m.CourseType.Contains( rowCourseType.RowId ) &&
-					 m.CurriculumControlAuthority.Contains( rowOrganizationCCA.RowId )
+					 m.CodedNotation?.ToLower() == item.Row.Course_CodedNotation?.ToLower()
 				),
 				//Or get from DB
 				() => CourseManager.GetByCodedNotation( item.Row.Course_CodedNotation, false ),
@@ -2949,10 +2946,9 @@ namespace Services
 				() => new Course()
 				{
 					RowId = Guid.NewGuid(),
-					Name = item.Row.Course_Name,
 					CodedNotation = item.Row.Course_CodedNotation
-						//Other properties are handled in the next section
-					},
+					//Other properties are handled in the next section
+				},
 				//Store if newly created
 				( newItem ) => { summary.ItemsToBeCreated.Course.Add( newItem ); },
 				//Skip all of this and set value to null if the following test is true
@@ -3025,6 +3021,7 @@ namespace Services
 			HandleGuidListAddition( summary, summary.ItemsToBeCreated.Course, summary.FinalizedChanges.Course, result, rowCourse, nameof( Course.CourseType ), rowCourseType );
 			HandleGuidListAddition( summary, summary.ItemsToBeCreated.Course, summary.FinalizedChanges.Course, result, rowCourse, nameof( Course.CurriculumControlAuthority ), rowOrganizationCCA );
 			HandleValueChange( summary, summary.ItemsToBeCreated.Course, summary.FinalizedChanges.Course, result, rowCourse, nameof( Course.LifeCycleControlDocumentType ), ( rowCourseLCCDType ?? new Concept() ).RowId );
+			HandleValueChange( summary, summary.ItemsToBeCreated.Course, summary.FinalizedChanges.Course, result, rowCourse, nameof( Course.Name ), item.Row.Course_Name );
 
 			//Rating Task
 			HandleGuidListAddition( summary, summary.ItemsToBeCreated.RatingTask, summary.FinalizedChanges.RatingTask, result, rowRatingTask, nameof( RatingTask.HasRating ), rowRating );
@@ -3142,7 +3139,7 @@ namespace Services
 			}
 			else
 			{
-				result.ValueChanges.Add( new Triple( rowItem.RowId, propertyName, newValue?.ToString().ToLower() ) );
+				result.ValueChanges.Add( new Triple( rowItem.RowId, propertyName, newValue?.ToString() ) );
 			}
 
 			//Update the finalized changes list if applicable
