@@ -1748,7 +1748,7 @@ namespace Factories
                         output.ReferenceResourceId = ( int ) entity?.Id;
                     else
                     {
-                        status.AddError( thisClassName + String.Format( ".MapToDB. CodedNotation: '{0}' RatingTask: '{1}'. The related SOURCE (HasReferenceResource) '{1}' was not found", input.CodedNotation, FormatLongLabel( input.Description ), input.HasReferenceResource ) );
+                        status.AddError( thisClassName + String.Format( ".MapToDB. CodedNotation: '{0}' RatingTask: '{1}'. The related SOURCE (HasReferenceResource) '{2}' was not found", input.CodedNotation, FormatLongLabel( input.Description ), input.HasReferenceResource ) );
                     }
                 }
             }

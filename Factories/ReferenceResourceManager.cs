@@ -450,7 +450,7 @@ namespace Factories
                             if ( item != null && item.Id > 0 )
                             {
                                 entity = new AppEntity();
-                                MapFromDB( item, entity );
+                                MapFromDB( item, entity, true );
                                 output.Add( ( entity ) );
                             }
                         }
@@ -476,7 +476,7 @@ namespace Factories
                 output.PublicationDate = DateTime.Parse( output.PublicationDate ).ToString( "MM/dd/yyyy" );
             }
         }
-        public static void MapFromDB( DBEntity input, AppEntity output )
+        public static void MapFromDB( DBEntity input, AppEntity output, bool appendingPublicationDate = false )
         {
             //should include list of concepts
             List<string> errors = new List<string>();
@@ -488,9 +488,9 @@ namespace Factories
                 output.PublicationDate = DateTime.Parse( output.PublicationDate ).ToString( "MM/dd/yyyy" );
             }
 
-            if (output.Name == "NAVPERS 18068F Vol II" )
+            if ( appendingPublicationDate && !string.IsNullOrWhiteSpace( output.PublicationDate) )
             {
-
+                output.Name += " (" + output.PublicationDate + ")";
             }
             //related
             if ( (input.StatusTypeId ?? 0) > 0 )
