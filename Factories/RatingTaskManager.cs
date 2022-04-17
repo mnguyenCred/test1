@@ -540,7 +540,7 @@ namespace Factories
                 CodedNotation = m.CodedNotation,
                 ApplicabilityType = m.ApplicabilityType,
                 TaskTrainingGap = m.TaskTrainingGap,
-                HasTrainingTask =m.HasTrainingTask,
+                HasTrainingTaskList = m.HasTrainingTaskList,
                 
             } ).ToList();
 
@@ -915,7 +915,7 @@ namespace Factories
         /// <param name="input"></param>
         /// <param name="status"></param>
         /// <returns></returns>
-        public bool Save( AppEntity input, ref ChangeSummary status )
+        public bool Save( AppEntity input, ref ChangeSummary status, bool fromUpload = true )
         {
             bool isValid = true;
             int count = 0;
@@ -935,14 +935,14 @@ namespace Factories
                         {
                             //
                             input.Id = record.Id;
-                            UpdateParts( input, status );
+                            UpdateParts( input, status, fromUpload );
                             //??
                             return true;
                         }
                         else
                         {
                             //add
-                            int newId = Add( input, ref status );
+                            int newId = Add( input, ref status, fromUpload );
                             if ( newId == 0 || status.HasSectionErrors )
                                 isValid = false;
                         }
@@ -991,7 +991,7 @@ namespace Factories
                             if ( isValid )
                             {
                                 //update parts
-                                UpdateParts( input, status );
+                                UpdateParts( input, status, fromUpload );
                                 if ( hasChanged )
                                 {
                                     SiteActivity sa = new SiteActivity()
@@ -1031,7 +1031,7 @@ namespace Factories
 
             return isValid;
         }
-        private int Add( AppEntity entity, ref ChangeSummary status )
+        private int Add( AppEntity entity, ref ChangeSummary status, bool fromUpload )
         {
             DBEntity efEntity = new DBEntity();
             status.HasSectionErrors = false;
@@ -1068,7 +1068,7 @@ namespace Factories
                     {
                         entity.RowId = efEntity.RowId;
                         entity.Id = efEntity.Id;
-                        UpdateParts( entity, status );
+                        UpdateParts( entity, status, fromUpload );
                         //
                         //add log entry
                         SiteActivity sa = new SiteActivity()
@@ -1111,7 +1111,7 @@ namespace Factories
 
             return efEntity.Id;
         }
-        public void UpdateParts( AppEntity input, ChangeSummary status )
+        public void UpdateParts( AppEntity input, ChangeSummary status, bool fromUpload )
         {
             try
             {
@@ -1125,7 +1125,7 @@ namespace Factories
 
                 if ( UtilityManager.GetAppKeyValue( "handlingMultipleTrainingTasksPerRatingTask", false ) )
                 {
-                    TrainingTaskUpdate( input, ref status );
+                    TrainingTaskUpdate( input, ref status, fromUpload );
                 }
             }
             catch ( Exception ex )
@@ -1142,7 +1142,7 @@ namespace Factories
         /// <param name="input"></param>
         /// <param name="status"></param>
         /// <returns></returns>
-        public bool TrainingTaskUpdate( AppEntity input, ref ChangeSummary status )
+        public bool TrainingTaskUpdate( AppEntity input, ref ChangeSummary status, bool fromUpload )
         {
             status.HasSectionErrors = false;
             var efEntity = new Data.Tables.RatingTask_HasTrainingTask();
@@ -1154,23 +1154,31 @@ namespace Factories
                     if ( input.HasTrainingTaskList == null )
                         input.HasTrainingTaskList = new List<Guid>();
 
-                    if ( input.HasTrainingTaskList?.Count == 0 )
-                    {
-                        //temp handling of old approach
-                        if ( IsValidGuid( input.HasTrainingTask ))
-                        {
-                            input.HasTrainingTaskList.Add( input.HasTrainingTask );
-                        }
-                        else 
-                            input.HasTrainingTaskList = new List<Guid>();
-                    }
+                    //if ( input.HasTrainingTaskList?.Count == 0 )
+                    //{
+                    //    //temp handling of old approach
+                    //    if ( IsValidGuid( input.HasTrainingTask ))
+                    //    {
+                    //        input.HasTrainingTaskList.Add( input.HasTrainingTask );
+                    //    }
+                    //    else 
+                    //        input.HasTrainingTaskList = new List<Guid>();
+                    //}
                     //get existing
-                    var results =   from entity in context.RatingTask_HasTrainingTask
-                                    join related in context.Course_Task
-                                    on entity.TrainingTaskId equals related.Id
-                                    where entity.RatingTaskId == input.Id
+                    //should include current rating
+                    //if not fromUpload, there will not be a current rating
+                    var results =   from hasTrainingTask in context.RatingTask_HasTrainingTask
+                                    join task in context.Course_Task
+                                        on hasTrainingTask.TrainingTaskId equals task.Id
+                                    join hasRating in context.RatingTask_HasRating
+                                        on hasTrainingTask.RatingTaskId equals hasRating.RatingTaskId
+                                    join rating in context.Rating
+                                          on hasRating.RatingId equals rating.Id
+                                    where hasTrainingTask.RatingTaskId == input.Id
+                                    && ( input.CurrentRatingCode.Length > 0 ? true : rating.CodedNotation.ToLower() == input.CurrentRatingCode.ToLower() 
+                                        || !fromUpload ) //don't really need this now?
 
-                                    select related;
+                                    select task;
                     var existing = results?.ToList();
                     #region deletes check
                     if ( existing.Any() )
@@ -1181,10 +1189,11 @@ namespace Factories
                             var key = e.RowId;
                             if ( IsValidGuid( key ) )
                             {
-                                if ( !input.HasTrainingTaskList.Contains( ( Guid ) key ) )
+                                //if from upload, will be for a single rating, so if current is not in existing 
+                                if ( fromUpload && !input.HasTrainingTaskList.Contains( ( Guid ) key ) )
                                 {
-                                    //need to check for a rating
-                                    //DeleteRatingTaskTrainingTask( input.Id, e.Id, ref status );
+                                    //now with the rating check, can probably do a delete?
+                                    DeleteRatingTaskTrainingTask( input.Id, e.Id, ref status );
                                 }
                             }
                         }
@@ -1739,7 +1748,7 @@ namespace Factories
                         output.ReferenceResourceId = ( int ) entity?.Id;
                     else
                     {
-                        status.AddError( thisClassName + String.Format( ".MapToDB. RatingTask: '{0}'. The related SOURCE (HasReferenceResource) '{1}' was not found", FormatLongLabel( input.Description ), input.HasReferenceResource ) );
+                        status.AddError( thisClassName + String.Format( ".MapToDB. CodedNotation: '{0}' RatingTask: '{1}'. The related SOURCE (HasReferenceResource) '{1}' was not found", input.CodedNotation, FormatLongLabel( input.Description ), input.HasReferenceResource ) );
                     }
                 }
             }

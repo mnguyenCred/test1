@@ -30,9 +30,8 @@ namespace Factories
         /// Save list of training tasks, from Course object
         /// </summary>
         /// <param name="input"></param>
-        /// <param name="doingDeletes"></param>
         /// <param name="status"></param>
-        public void SaveList( ParentEntity input, bool doingDeletes, ref ChangeSummary status )
+        public void SaveList( ParentEntity input, ref ChangeSummary status )
         {
             //need to do the check for stuff to delete - or TBD if the process step figures out the proper stuff
             //initially doesn't hurl to leave old tasks, as will be ignored. 
@@ -54,16 +53,65 @@ namespace Factories
                 //this note came while working with the created list (although this course did already exist?)
             }
         }
+        public void SaveList( string courseCodedNotation, List<AppEntity> inputList, ref ChangeSummary status )
+        {
+            //get parent
+            ParentEntity parent = new ParentEntity();
+            if ( !string.IsNullOrWhiteSpace( courseCodedNotation ) )
+            {
+                parent = CourseManager.GetByCodedNotation( courseCodedNotation );
+                if (parent?.Id == 0)
+                {
+                    status.AddError( thisClassName + String.Format( ".SaveList(courseCodedNotation, inputList). Error - A course was not found for the provided CIN: {0}. ", courseCodedNotation ) );
+                    return;
+                }
+            }
+            else
+            {
+                //error. Or fall thru and see if present in the list
+                status.AddError( thisClassName + String.Format( ".SaveList(courseCodedNotation, inputList). Error - A course code was not provided for method to save a list of tasks. " ) );
+                return;
+            }
 
+            if ( inputList != null )
+            {
+                foreach ( var item in inputList )
+                {
+                    Save( parent, item, ref status );
+                }
+            }
+
+        }
         public bool Save(  AppEntity entity, ref ChangeSummary status )
         {
             //get parent
+            ParentEntity parent = new ParentEntity();
             //will we have the guid?
-            ParentEntity parent = CourseManager.Get( entity.Course );
+            if ( IsValidGuid( entity.Course ) )
+            {
+                parent = CourseManager.Get( entity.Course );
+            } else if ( !string.IsNullOrWhiteSpace( entity.CourseCodedNotation ) )
+            {
+                parent = CourseManager.GetByCodedNotation( entity.CourseCodedNotation );
+            }
 
             return Save( parent, entity, ref status );
         }
 
+        public bool Save( string courseCodedNotation, AppEntity entity, ref ChangeSummary status )
+        {
+            //get parent
+            ParentEntity parent = new ParentEntity();
+            if ( !string.IsNullOrWhiteSpace( courseCodedNotation ) )
+            {
+                parent = CourseManager.GetByCodedNotation( entity.CourseCodedNotation );
+            } else
+            {
+                //error
+            }
+
+            return Save( parent, entity, ref status );
+        }
         public bool Save( ParentEntity parent, AppEntity input, ref ChangeSummary status )
         {
             bool isValid = true;
@@ -126,25 +174,24 @@ namespace Factories
                             {
                                 //?no info on error
 
-                                string message = string.Format( thisClassName + ".Save Failed", "Attempted to update a CourseTask. The process appeared to not work, but was not an exception, so we have no message, or no clue. Course: {0}, Id: {1}, Task: '{2}'", parent.Name, parent.Id, input.Description );
+                                string message = string.Format( thisClassName + ".Save Failed", "Attempted to update a CourseTask. The process appeared to not work, but was not an exception, so we have no message, or no clue. Course: {0}, (Id: {1}), Task: '{2}'", parent.Name, parent.Id, input.Description );
                                 status.AddError( "Error - the update was not successful. " + message );
+
                                 EmailManager.NotifyAdmin( thisClassName + ".CourseTaskSave Failed Failed", message );
                             }
-
                         }
                     }
                     else
                     {
                         var result = Add( parent, input, ref status );
                     }
-
                 }
             }
             catch ( Exception ex )
             {
                 var msg = FormatExceptions( ex );
                 LoggingHelper.LogError( ex, thisClassName + ".Save" );
-                status.AddError( "Error - the Save was not successful. " + msg );
+                status.AddError( thisClassName + String.Format(".Save. Error - the Save was not successful. CIN: {0}, TrainingTask: '{1}' msg: {2} ", parent.CodedNotation, FormatLongLabel(input.Description), msg) );
             }
             return isValid;
         }
@@ -461,7 +508,89 @@ namespace Factories
 			}
 			return entity;
 		}
-		public static AppEntity Get( Guid rowId)
+        /// <summary>
+        /// Get a task that matches the course code and the task description
+        /// </summary>
+        /// <param name="courseCodedNotation"></param>
+        /// <param name="description"></param>
+        /// <returns></returns>
+        public static AppEntity Get( string courseCodedNotation, string description )
+        {
+            var entity = new AppEntity();
+
+            using ( var context = new DataEntities() )
+            {
+                var item = context.Course_Task
+                            .FirstOrDefault( s => s.Course.CodedNotation.ToLower() == courseCodedNotation.ToLower()
+                            && s.Description.ToLower() == description.ToLower() );
+
+                if ( item != null && item.Id > 0 )
+                {
+                    MapFromDB( item, entity );
+                } else
+                {
+                    //attempt partial match? - no clear dependable approach
+                }
+            }
+            return entity;
+        }
+        /// <summary>
+        /// Get a training task that is associated with the current RMTL rowCodedNotation.
+        /// this approach will properly handle updates. But what if meant to be a different task?
+        /// Could include description and to a fuzzy compare to the returned one. 
+        /// Or, check if there more than 
+        /// </summary>
+        /// <param name="ratingTaskCodedNotation">In the future where this has a rating prefix, it will be more reliable.</param>
+        /// <param name="courseCodedNotation">May not be necessary. Could use to compare to the course code for the returned task.</param>
+        /// <param name="description">Use description for compares</param>
+        /// <returns></returns>
+        public static AppEntity GetTrainingTaskForRatingTask( string ratingCode, string ratingTaskCodedNotation, string courseCodedNotation, string description, ref ChangeSummary summary )
+        {
+            var entity = new AppEntity();
+
+            using ( var context = new DataEntities() )
+            {
+                //first just get existing RT->TT for current rating
+                var results = from task in context.Course_Task
+                              join hasTrainingTask in context.RatingTask_HasTrainingTask
+                                    on task.Id equals hasTrainingTask.TrainingTaskId
+                              //get ratingTask
+                              join ratingTask in context.RatingTask
+                                    on hasTrainingTask.RatingTaskId equals ratingTask.Id
+                              join hasRating in context.RatingTask_HasRating
+                                    on ratingTask.Id equals hasRating.RatingTaskId
+                              join rating in context.Rating
+                                    on hasRating.RatingId equals rating.Id
+                              //Want to training task related to a particular ratingTask row!
+                              //currently codes like NEC001 can be on multiple sheets
+                              where ratingTask.CodedNotation.ToLower() == ratingTaskCodedNotation.ToLower()
+                              && rating.CodedNotation.ToLower().Equals( ratingCode.ToLower() )
+
+                              select task;
+                //should only be one, but just in case
+                var existing = results?.ToList().FirstOrDefault();
+                if ( existing?.Id > 0 )
+                {
+                    if (existing.Course.CodedNotation.ToLower() != courseCodedNotation.ToLower() )
+                    {
+                        //if there is a change to a different course/training task, then probably should return essentially not found
+                        //  also want to have a warning that the course changed for rating task!
+                        summary.AddWarning( string.Format( "For RatingTask Identifier: '{0}' there is a change in Course. Previous CIN: '{1}', Current CIN: '{2}'", ratingTaskCodedNotation, existing.Course.CodedNotation, courseCodedNotation ) );
+                        return entity;
+                    } else
+                    {
+                        //same course, so return training task
+                        MapFromDB( existing, entity );
+                    }
+                } else
+                {
+                    //otherwise not associated with a rating tasks, so look up for existing course training task
+                    entity = Get( courseCodedNotation, description );
+                }
+            }
+            return entity;
+        }
+        public static AppEntity Get( Guid rowId)
         {
             var entity = new AppEntity();
 

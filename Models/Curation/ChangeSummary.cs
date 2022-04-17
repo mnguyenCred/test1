@@ -27,6 +27,7 @@ namespace Models.Curation
 		public string Rating { get; set; }
 		public Guid RatingRowId { get; set; }
 
+		public DateTime UploadStarted { get; set; }
 		/// <summary>
 		/// Set of items that don't exist and will be created.
 		/// </summary>

@@ -67,7 +67,10 @@ namespace Factories
                             entity.Created = efEntity.Created;
                             entity.CreatedById = ( efEntity.CreatedById ?? 0 );
                             entity.Id = efEntity.Id;
-
+                            if (string.IsNullOrWhiteSpace(entity.CTID))
+                            {
+                                entity.CTID = efEntity.CTID;
+                            }
                             MapToDB( entity, efEntity );
 
                             if ( HasStateChanged( context ) )
@@ -500,7 +503,7 @@ namespace Factories
                 }
                 //
                 MemoryCache.Default.Add( cacheKey, newCache, new DateTimeOffset( DateTime.Now.AddHours( cacheHours ) ) );
-                LoggingHelper.DoTrace( 5, thisClassName + ".AddToCache $$$ Updating cached version " );
+                LoggingHelper.DoTrace( 7, thisClassName + ".AddToCache $$$ Updating cached version " );
 
             }
         }

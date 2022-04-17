@@ -303,7 +303,7 @@ namespace Factories
             }
             catch ( Exception ex )
             {
-                LoggingHelper.DoTrace( 1, string.Format( thisClassName + ".BulkLoadRMTL-SqlBulkCopy {0}", ex.Message ) );
+                LoggingHelper.DoTrace( 1, string.Format( thisClassName + ".BulkLoadRMTL-SqlBulkCopy Rating: {0}, Message: {1}", rating, ex.Message ) );
 
             }
             var saveDuration = DateTime.Now.Subtract( saveStarted );

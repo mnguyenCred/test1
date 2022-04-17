@@ -1008,14 +1008,14 @@ namespace Navy.Utilities
         /// </summary>
         /// <param name="stringToTest"></param>
         /// <returns></returns>
-        public static bool IsDate( string stringToTest )
+        public static bool IsDate( string stringToTest, ref DateTime outputDate )
         {
 
-            DateTime newDate;
+            //DateTime newDate;
             bool result = false;
             try
             {
-                newDate = System.DateTime.Parse( stringToTest );
+                outputDate = System.DateTime.Parse( stringToTest );
                 result = true;
             }
             catch

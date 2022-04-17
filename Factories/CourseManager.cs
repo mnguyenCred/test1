@@ -280,6 +280,9 @@ namespace Factories
                     }
                 }
 
+            } else
+            {
+
             }
 
 
@@ -609,7 +612,7 @@ namespace Factories
             {
                 //CourseTaskSave( input, ref status );
                 //AssessmentMethod is passed as well
-                new TrainingTaskManager().SaveList( input, false, ref status );
+                new TrainingTaskManager().SaveList( input, ref status );
 
                 //22-01-24 - CCA is confirmed to be a single
                 //CurriculumControlAuthorityUpdate( input, ref status );

@@ -37,7 +37,7 @@ namespace Factories
 
 		public int SiteActivityAdd( SiteActivity entity )
 		{
-			if ( entity == null || entity.Id == 0 )
+			if ( entity == null || string.IsNullOrWhiteSpace(entity.Activity) )
             {
 				return 0;
             }

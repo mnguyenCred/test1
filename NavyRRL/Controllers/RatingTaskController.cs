@@ -58,7 +58,8 @@ namespace NavyRRL.Controllers
 				Action = "Edit"
 			};
 			data.LastUpdatedById = user.Id;
-			var results = new Factories.RatingTaskManager().Save( data, ref status );
+			//this type of save will not have a rating context!
+			var results = new Factories.RatingTaskManager().Save( data, ref status, false );
 			if ( status.HasAnyErrors )
 			{
 				var msg = string.Join( "</br>", status.Messages.Error.ToArray() );

@@ -21,8 +21,9 @@ namespace Services
 {
 	public class BulkUploadServices
 	{
-        
-        public static void CacheChangeSummary( ChangeSummary summary )
+		public static string thisClassName = "BulkUploadServices";
+
+		public static void CacheChangeSummary( ChangeSummary summary )
 		{
 			summary.RowId = summary.RowId == Guid.Empty ? Guid.NewGuid() : summary.RowId;
 			MemoryCache.Default.Remove( summary.RowId.ToString() );
@@ -60,11 +61,12 @@ namespace Services
 			DateTime saveStarted = DateTime.Now;
 			var saveDuration = new TimeSpan();
 			#region Handle ItemsToBeCreated
-			//go thru all non-rating task
+			//22-04-15 mp - there can be an issue doing all ItemsToBeCreated and then all FinalizedChanges:
+			//			Reason for trainingTask issue: the course exists, so the training task is not added until the finalize step. This can result in a ratingTask that needs the trainingTasks finds it has not been saved yet.
 			if ( summary.ItemsToBeCreated != null)
             {
 				//all dependent data has to be done first
-
+				//========== org should be OK to do one after the other
 				if ( summary.ItemsToBeCreated.Organization?.Count > 0 )
                 {
 					var orgMgr = new OrganizationManager();
@@ -74,6 +76,18 @@ namespace Services
 						orgMgr.Save( item, user.Id, ref summary );
                     }
                 }
+
+				if ( summary.FinalizedChanges.Organization?.Count > 0 )
+				{
+					var orgMgr = new OrganizationManager();
+					foreach ( var item in summary.FinalizedChanges.Organization )
+					{
+						item.CreatedById = item.LastUpdatedById = user.Id;
+						orgMgr.Save( item, user.Id, ref summary );
+					}
+				}
+
+				//========== ReferenceResource should be OK to do one after the other
 				if ( summary.ItemsToBeCreated.ReferenceResource?.Count > 0 )
 				{
 					var mgr = new ReferenceResourceManager();
@@ -87,20 +101,32 @@ namespace Services
 					{
 						foreach ( var item in summary.ItemsToBeCreated.ReferenceResource )
 						{
-							LoggingHelper.DoTrace( 6, String.Format( "ReferenceResource: Name: {0}, Date: {1}, rowId: {2}.", item.Name, item.PublicationDate, item.RowId ), false );
+							LoggingHelper.DoTrace( 7, String.Format( "ReferenceResource: Name: {0}, Date: {1}, rowId: {2}.", item.Name, item.PublicationDate, item.RowId ), false );
 						}
 					}
 				}
+				//do we need to do these here, there is an issue where the referenceResource is not found when saving a rating task. 
+				if ( summary.FinalizedChanges.ReferenceResource?.Count > 0 )
+				{
+					var mgr = new ReferenceResourceManager();
+					foreach ( var item in summary.FinalizedChanges.ReferenceResource )
+					{
+						item.LastUpdatedById = user.Id;
+						mgr.Save( item, ref summary );
+					}
+				}
 
+				//========== Course should be OK to do one after the other
 
 				if ( summary.ItemsToBeCreated.Course?.Count > 0 )
-				{				
+				{
 
-					//is training task part of course, see there is a separate TrainingTask in UploadableData. the latter has no course Id/RowId to make an association?
+					//if course aleady exists, then the associated training tasks are not processed until FinalizedChanges. This would be a problem for RatingTasks that  under toBeCreated that use those tasks!!!
 					var courseMgr = new CourseManager();
 					foreach ( var item in summary.ItemsToBeCreated.Course )
 					{
 						//get all tasks for this course
+						//?? or do task separately in the next step?
 						if (summary.ItemsToBeCreated.TrainingTask?.Count > 0 )
                         {
 							var results = summary.ItemsToBeCreated.TrainingTask.Where( p => item.HasTrainingTask.Any( p2 => p2 == p.RowId ) );
@@ -117,21 +143,52 @@ namespace Services
 							LoggingHelper.DoTrace( 6, String.Format("Course: {0}, CIN: {1}.",item.Name, item.CodedNotation ), false);
 						}
 					}
-				} //if no courses, there could be training tasks?
-				else
-                {
-					var trainTaskMgr = new TrainingTaskManager();
-					//but what to do with them?
-					if ( summary.ItemsToBeCreated.TrainingTask?.Count > 0 )
+				} 
+				//if no courses, there could be training tasks for courses that already exist
+				
+				var trainTaskMgr = new TrainingTaskManager();
+				//but what to do with them?
+				//once the course code is present, do a select distinct and then process by course
+				if ( summary.ItemsToBeCreated.TrainingTask?.Count > 0 )
+				{
+					//get course codes for training tasks
+					//NOTE: should do all here, or need to exclude course from toBeCreated list
+					var courseCodeList = summary.ItemsToBeCreated.TrainingTask.Select( p => p.CourseCodedNotation ).Distinct().ToList();
+					foreach ( var item in courseCodeList )
 					{
-						foreach( var item in summary.ItemsToBeCreated.TrainingTask )
+						if (string.IsNullOrWhiteSpace(item))
                         {
-							item.CreatedById = item.LastUpdatedById = user.Id;
-							//there is no association with the course? Need to store the CIN with training task
-							//trainTaskMgr.Save( item, ref summary );
+							//why
+							continue;
+                        }
+						var parent = CourseManager.GetByCodedNotation( item );
+						if ( parent?.Id == 0 )
+						{
+							status.AddError( thisClassName + String.Format( ".ApplyChangeSummmary-ItemsToBeCreated.TrainingTask. Error - A course was not found for the provided CIN: {0}. ", item ) );
+							continue;
 						}
+
+						var results = summary.ItemsToBeCreated.TrainingTask.Where( p => p.CourseCodedNotation == item ).ToList();
+						
+						parent.LastUpdatedById = user.Id;
+						parent.TrainingTasks.AddRange( results );
+						trainTaskMgr.SaveList( parent, ref summary );
 					}
+					//foreach ( var item in summary.ItemsToBeCreated.TrainingTask )
+					//               {
+					//	item.CreatedById = item.LastUpdatedById = user.Id;
+					//	//there is no association with the course? Need to store the CIN with training task
+					//	if (!string.IsNullOrWhiteSpace(item.CourseCodedNotation))
+					//                   {
+					//		trainTaskMgr.Save( item.CourseCodedNotation, item, ref summary );
+					//	}
+					//	else
+					//                   {
+					//		//may want to log as an issue
+					//                   }
+					//}
 				}
+				
 
 				if ( summary.ItemsToBeCreated.WorkRole?.Count > 0 )
 				{
@@ -209,6 +266,7 @@ namespace Services
 							}
 						}
 						item.CreatedById = item.LastUpdatedById = user.Id;
+						item.CurrentRatingCode = summary.Rating;
 						mgr.Save( item, ref summary );
 					}
 				}
@@ -339,11 +397,12 @@ namespace Services
 				//
 				if ( summary.FinalizedChanges.ReferenceResource?.Count > 0 )
 				{
+					//22-04-16 - this step is now being done with the ItemsToBeCreated step. Implications?
 					var mgr = new ReferenceResourceManager();
 					foreach ( var item in summary.FinalizedChanges.ReferenceResource )
 					{
 						item.LastUpdatedById = user.Id;
-						mgr.Save( item, ref summary );
+						//mgr.Save( item, ref summary );
 					}
 				}
 				//
@@ -354,22 +413,54 @@ namespace Services
 					foreach ( var item in summary.FinalizedChanges.Course )
 					{
 						//get all tasks for this course
+						//22-04-15 mp - OR skip and only do in TrainingTask step
 						if ( summary.FinalizedChanges.TrainingTask?.Count > 0 )
 						{
 							var results = summary.FinalizedChanges.TrainingTask.Where( p => item.HasTrainingTask.Any( p2 => p2 == p.RowId ) );
 							item.TrainingTasks.AddRange( results );
+							if ( item.TrainingTasks.Count > 0 )
+                            {
+
+                            }
 						}
-						//just in case, do we need to also get created?
-						if ( summary.ItemsToBeCreated.TrainingTask?.Count > 0 )
-						{
-							var results = summary.ItemsToBeCreated.TrainingTask.Where( p => item.HasTrainingTask.Any( p2 => p2 == p.RowId ) );
-							item.TrainingTasks.AddRange( results );
-						}
+						//just in case, do we need to also get created? To late here, doing in created step
+						//if ( summary.ItemsToBeCreated.TrainingTask?.Count > 0 )
+						//{
+						//	var results = summary.ItemsToBeCreated.TrainingTask.Where( p => item.HasTrainingTask.Any( p2 => p2 == p.RowId ) );
+						//	item.TrainingTasks.AddRange( results );
+						//}
 						item.CreatedById = item.LastUpdatedById = user.Id;
 						courseMgr.Save( item, ref summary );
 					}
-				} 
+				}
 
+				if ( summary.FinalizedChanges.TrainingTask?.Count > 0 )
+				{
+					//not sure training tasks should be separate, should always be part of course??????
+					var mgr = new TrainingTaskManager();
+					var courseCodeList = summary.FinalizedChanges.TrainingTask.Select( p => p.CourseCodedNotation ).Distinct().ToList();
+					foreach ( var item in courseCodeList )
+					{
+						if ( string.IsNullOrWhiteSpace( item ) )
+						{
+							//why
+							continue;
+						}
+						var parent = CourseManager.GetByCodedNotation( item );
+						if ( parent?.Id == 0 )
+						{
+							status.AddError( thisClassName + String.Format( ".ApplyChangeSummmary-FinalizedChanges.TrainingTask. Error - A course was not found for the provided CIN: {0}. ", item ) );
+							return;
+						}
+
+						var results = summary.FinalizedChanges.TrainingTask.Where( p => p.CourseCodedNotation == item ).ToList();
+
+						parent.LastUpdatedById = user.Id;
+						parent.TrainingTasks.AddRange( results );
+						mgr.SaveList( parent, ref summary );
+					}
+
+				}
 
 				if ( summary.FinalizedChanges.WorkRole?.Count > 0 )
 				{
@@ -413,6 +504,9 @@ namespace Services
 						}
 						item.LastUpdatedById = user.Id;
 						//ISSUE THE FULL RATING TASK IS NOT HERE. HOW TO DO A PROPER SAVE?
+						//CONFIRM FIXED
+						//need to check if training task has change to a new one/course (not just updated descr)
+						item.CurrentRatingCode = summary.Rating;
 						mgr.Save( item, ref summary );
 					}
 				}
@@ -512,8 +606,8 @@ namespace Services
 				summary.Messages.Error.Add( "Error: No rows were found to process after doing a match on Rating. This can occur if there is only one header row. The system expects two header rows. OR if the Rating selected from the interface is different from the Rating in the uploaded file." );
 				return summary;
 			}
-			DateTime saveStarted = DateTime.Now;
-			var saveDuration = new TimeSpan();
+			DateTime sectionStarted = DateTime.Now;
+			var sectionDuration = new TimeSpan();
 
 			LoggingHelper.DoTrace( 6, string.Format( "Rating: {0}, Tasks: {1}, User: {2}", currentRating.CodedNotation, uploadedData.Rows.Count(), user.FullName() ) );
 			summary.Rating = currentRating.CodedNotation;
@@ -632,8 +726,8 @@ namespace Services
 			).ToList();
 			debug[ latestStepFlag ] = "Cleaned up summary Lookup Graph";
 
-			saveDuration = DateTime.Now.Subtract( saveStarted );
-			summary.Messages.Note.Add( string.Format( "Duration: {0:N2} seconds ", saveDuration.TotalSeconds ) );
+			sectionDuration = DateTime.Now.Subtract( sectionStarted );
+			summary.Messages.Note.Add( string.Format( "Duration: {0:N2} seconds ", sectionDuration.TotalSeconds ) );
 			return summary;
 		}
 		//
@@ -799,8 +893,8 @@ namespace Services
 				//22-03-24 mp - don't use date format, there can be values like FR 21-4
 				var matches = existingReferenceResourceMatchers.Where( m =>
 					uploaded.Flattened.Name == m.Flattened.Name 
-					&& uploaded.Flattened.PublicationDate == m.Flattened.PublicationDate
-					//&& ParseDateOrEmpty2( uploaded.Flattened.PublicationDate ) == ParseDateOrEmpty2( m.Flattened.PublicationDate ) 
+					//&& uploaded.Flattened.PublicationDate == m.Flattened.PublicationDate
+					&& ParseDateOrEmpty2( uploaded.Flattened.PublicationDate ) == ParseDateOrEmpty2( m.Flattened.PublicationDate ) 
 				).ToList();
                 //var matches2 = existingReferenceResourceMatchers.Where( m =>
                 //    uploaded.Flattened.Name == m.Flattened.Name
@@ -1155,7 +1249,8 @@ namespace Services
 				//matcher.Flattened.HasBillet = existingBilletTitles.Where( m => matcher.Data.HasBillet.Contains( m.RowId ) ).Select( m => m.RowId ).ToList();
 
 				matcher.Flattened.HasRating_CodedNotation = existingRatings.Where( m => matcher.Data.HasRating.Contains( m.RowId ) ).Select( m => m.CodedNotation ).ToList();
-				matcher.Flattened.HasTrainingTask_Description = existingTrainingTasks.FirstOrDefault( m => m.RowId == matcher.Data.HasTrainingTask )?.Description;
+				//updated to handle list of HasTrainingTaskList
+				matcher.Flattened.HasTrainingTask_Description = existingTrainingTasks.FirstOrDefault( m => m.RowId == matcher.Data.HasTrainingTaskList.FirstOrDefault() )?.Description;
 				matcher.Flattened.HasReferenceResource_Name = existingReferenceResources.FirstOrDefault( m => m.RowId == matcher.Data.HasReferenceResource )?.Name;
 				matcher.Flattened.HasWorkRole_Name = existingWorkRoles.Where( m => matcher.Data.HasWorkRole.Contains( m.RowId ) ).Select( m => m.Name ).ToList();
 				matcher.Flattened.PayGradeType_CodedNotation = payGradeTypeConcepts.FirstOrDefault( m => m.RowId == matcher.Data.PayGradeType )?.CodedNotation;
@@ -1241,15 +1336,16 @@ namespace Services
 
 					m.HasReferenceResource = existingReferenceResources.Concat( summary.ItemsToBeCreated.ReferenceResource ).Where( n =>
 						item.Flattened.HasReferenceResource_Name == n.Name
-						//&& ParseDateOrEmpty( item.Flattened.HasReferenceResource_PublicationDate ) == ParseDateOrEmpty( n.PublicationDate )
+						//22-04-17 mp - despite  no longer being used, making updates just in case - back to using a formatted data for compares
+						&& ParseDateOrEmpty( item.Flattened.HasReferenceResource_PublicationDate ) == ParseDateOrEmpty( n.PublicationDate )
 						//22-03-24 mp - just do string compare due to various formats
-						&& item.Flattened.HasReferenceResource_PublicationDate == n.PublicationDate 
+						//&& item.Flattened.HasReferenceResource_PublicationDate == n.PublicationDate 
 						&& sourceTypeConcepts.Where( o => n.ReferenceType.Contains( o.RowId ) ).Select( o => o.WorkElementType ).ToList().Contains( item.Flattened.ReferenceType_WorkElementType )
 					).Select( n => n.RowId ).FirstOrDefault();
-
-					m.HasTrainingTask = existingTrainingTasks.Concat( summary.ItemsToBeCreated.TrainingTask ).Where( n =>
+					//for posterity updated for list
+					m.HasTrainingTaskList = existingTrainingTasks.Concat( summary.ItemsToBeCreated.TrainingTask ).Where( n =>
 						item.Flattened.HasTrainingTask_Description == n.Description
-					).Select( n => n.RowId ).FirstOrDefault();
+					).Select( n => n.RowId ).ToList();
 					m.Note = item.Flattened.Note;
 				} );
 			}
@@ -1357,7 +1453,8 @@ namespace Services
 				//matcher.Flattened.HasBillet = existingBilletTitles.Where( m => matcher.Data.HasBillet.Contains( m.RowId ) ).Select( m => m.RowId ).ToList();
 
 				matcher.Flattened.HasRating_CodedNotation = existingRatings.Where( m => matcher.Data.HasRating.Contains( m.RowId ) ).Select( m => m.CodedNotation ).ToList();
-				matcher.Flattened.HasTrainingTask_Description = existingTrainingTasks.FirstOrDefault( m => m.RowId == matcher.Data.HasTrainingTask )?.Description;
+				//updated for list
+				matcher.Flattened.HasTrainingTask_Description = existingTrainingTasks.FirstOrDefault( m => m.RowId == matcher.Data.HasTrainingTaskList.FirstOrDefault() )?.Description;
 				matcher.Flattened.HasReferenceResource_Name = existingReferenceResources.FirstOrDefault( m => m.RowId == matcher.Data.HasReferenceResource )?.Name;
 				matcher.Flattened.HasWorkRole_Name = existingWorkRoles.Where( m => matcher.Data.HasWorkRole.Contains( m.RowId ) ).Select( m => m.Name ).ToList();
 				matcher.Flattened.PayGradeType_CodedNotation = payGradeTypeConcepts.FirstOrDefault( m => m.RowId == matcher.Data.PayGradeType )?.CodedNotation;
@@ -1445,15 +1542,16 @@ namespace Services
 
 					m.HasReferenceResource = existingReferenceResources.Concat( summary.ItemsToBeCreated.ReferenceResource ).Where( n =>
 						item.Flattened.HasReferenceResource_Name == n.Name
-						//&& ParseDateOrEmpty( item.Flattened.HasReferenceResource_PublicationDate ) == ParseDateOrEmpty( n.PublicationDate )
+						//22-04-17 - back to formatted dates
+						&& ParseDateOrEmpty2( item.Flattened.HasReferenceResource_PublicationDate ) == ParseDateOrEmpty2( n.PublicationDate )
 						//22-03-24 mp - just do string compare due to various formats
-						&& item.Flattened.HasReferenceResource_PublicationDate == n.PublicationDate
+						//&& item.Flattened.HasReferenceResource_PublicationDate == n.PublicationDate
 						&& sourceTypeConcepts.Where( o => n.ReferenceType.Contains( o.RowId ) ).Select( o => o.WorkElementType ).ToList().Contains( item.Flattened.ReferenceType_WorkElementType )
 					).Select( n => n.RowId ).FirstOrDefault();
-
-					m.HasTrainingTask = existingTrainingTasks.Concat( summary.ItemsToBeCreated.TrainingTask ).Where( n =>
+					//updated for list
+					m.HasTrainingTaskList = existingTrainingTasks.Concat( summary.ItemsToBeCreated.TrainingTask ).Where( n =>
 						item.Flattened.HasTrainingTask_Description == n.Description
-					).Select( n => n.RowId ).FirstOrDefault();
+					).Select( n => n.RowId ).ToList();
 					m.Note = item.Flattened.Note;
 				} );
 			}
@@ -1940,14 +2038,17 @@ namespace Services
 			if ( doingDuplicateChecks )
 			{
 				//Check for duplicate Rating Task (minus Row Unique Identifier) from a previous row, after the related concepts etc. above have been figured out
+				//ParseDateOrEmpty2( uploaded.Flattened.PublicationDate ) 
 				var tempRatingTaskSource = summary.GetAll<ReferenceResource>()
 					.FirstOrDefault( m =>
 						m.Name?.ToLower() == item.Row.ReferenceResource_Name?.ToLower() &&
-						m.PublicationDate?.ToLower() == item.Row.ReferenceResource_PublicationDate?.ToLower() &&
+						//summary date should have been normalized
+						m.PublicationDate?.ToLower() == ParseDateOrEmpty2( item.Row.ReferenceResource_PublicationDate?.ToLower()) &&
 						m.ReferenceType.Contains( rowSourceType.RowId )
 					) ??
 					ReferenceResourceManager.Get( item.Row.ReferenceResource_Name, item.Row.ReferenceResource_PublicationDate ) ??
 					new ReferenceResource();
+
 				var existingPreviousRatingTask = new RatingTask();
 				if ( includingBilletTitleInDuplicateChecks )
                 {
@@ -2038,7 +2139,7 @@ namespace Services
 				() => summary.GetAll<ReferenceResource>()
 				.FirstOrDefault( m =>
 					m.Name?.ToLower() == item.Row.ReferenceResource_Name?.ToLower() &&
-					m.PublicationDate?.ToLower() == item.Row.ReferenceResource_PublicationDate?.ToLower() &&
+					m.PublicationDate?.ToLower() == ParseDateOrEmpty2( item.Row.ReferenceResource_PublicationDate?.ToLower()) &&
 					m.ReferenceType.Contains( rowSourceType.RowId )
 				),
 				//Or get from DB
@@ -2048,7 +2149,7 @@ namespace Services
 				{
 					RowId = Guid.NewGuid(),
 					Name = item.Row.ReferenceResource_Name,
-					PublicationDate = item.Row.ReferenceResource_PublicationDate
+					PublicationDate = ParseDateOrEmpty2( item.Row.ReferenceResource_PublicationDate)
 				},
 				//Store if newly created
 				( newItem ) => { summary.ItemsToBeCreated.ReferenceResource.Add( newItem ); }
@@ -2596,7 +2697,7 @@ namespace Services
 			{
 				//Create a new summary object
 				summary = new ChangeSummary() { RowId = item.TransactionGUID, RatingRowId = item.RatingRowID };
-
+				summary.UploadStarted = DateTime.Now;
 				//Pre-populate controlled vocabularies, since these will be used across all rows
 				summary.LookupGraph.AddRange( ConceptSchemeManager.GetAllConcepts( true ) );
 				summary.LookupGraph.AddRange( RatingManager.GetAll() );
@@ -2616,6 +2717,11 @@ namespace Services
 				result.Errors.Add( "Error - a current user was not found. You must authenticated and authorized to use this function!" );
 				return result;
 			}
+			//can't do now, as row by row, needs to be done by client?. Could put it in the changeSummary
+			DateTime sectionStarted = DateTime.Now;
+			var sectionDuration = new TimeSpan();
+
+
 
 			//Do something with the item and summary.  
 			//The summary will be stored in the cache and retrieved again so that it can be used for all of the rows. 
@@ -2631,8 +2737,7 @@ namespace Services
 				result.Errors.Add( "A valid row Unique Identifier (e.g., \"NEC1-006\") must be provided, and must not be a number." );
 				return result;
 			}
-
-			//Part I
+			#region Part I  - components check
 			//Get the controlled value items that show up in this row
 			//Everything in any uploaded sheet should appear here. If any of these are not found, it's an error
 			var rowRating = GetDataOrError<Rating>( summary, ( m ) => 
@@ -2648,6 +2753,21 @@ namespace Services
 				item.RatingRowID.ToString()
 			);
 			summary.Rating = rowRating.CodedNotation;
+			//how to add an activity for the start of a new upload? row id of 3? may not be passed
+			//SiteActivity sa = new SiteActivity()
+			//{
+			//	ActivityType = "RMTL",
+			//	Activity = "Upload",
+			//	Event = "Reviewing",
+			//	Comment = String.Format( "A bulk upload was initiated by: '{0}' for Rating: '{1}'.", user.FullName(), rowRating.CodedNotation ),
+			//	ActionByUserId = user.Id,
+			//	ActionByUser = user.FullName()
+			//};
+			//new ActivityServices().AddActivity( sa );
+
+			//TBD - at some point will use the following combo for ratingTask codedNotation
+			//may need to ensure the unique id doesn't already include the rating code
+			var ratingRatingTask_CodedNotation = string.Format( "{0}-{1}", rowRating.CodedNotation, item.Row.Row_CodedNotation );
 
 			var rowPayGrade = GetDataOrError<Concept>( summary, ( m ) => 
 				m.CodedNotation?.ToLower() == item.Row.PayGradeType_CodedNotation?.ToLower(), 
@@ -2691,8 +2811,8 @@ namespace Services
 				//rowRating = selectedRating;
 				return result;
 			}
-
-			//Part II
+			#endregion
+			#region Part II - components check
 			//These should throw an error if not found, unless all of the course/training columns are N/A
 			var shouldNotHaveTrainingData = rowTrainingGapType.Name?.ToLower() == "yes";
 			var hasCourseAndTrainingData = false;
@@ -2728,6 +2848,7 @@ namespace Services
 			);
 
 			//If the Training Gap Type is "Yes", then treat all course/training data as null, but check to see if it exists first (above) to facilitate the warning statement below
+			//TBD - shouldn't the course coded notation be included? item.Row.Course_CodedNotation
 			if ( shouldNotHaveTrainingData )
 			{
 				var hasDataWhenItShouldNot = new List<object>() { rowCourseType, rowOrganizationCCA, rowCourseLCCDType }.Concat( rowAssessmentMethodTypeList ).Where( m => m != null ).ToList();
@@ -2752,20 +2873,33 @@ namespace Services
 				result.Errors.Count() > 0 
 			)
 			{
-				if ( string.IsNullOrWhiteSpace( item.Row.TrainingTask_Description ) )
+				if ( UtilityManager.GetAppKeyValue( "environment" ) == "development" ) 
 				{
-					result.Errors.Add( "Training Task data is missing for this row." );
+					if ( string.IsNullOrWhiteSpace( item.Row.TrainingTask_Description ) )
+					{
+						result.Warnings.Add( "Training Task data is missing for this row." );
+					}
+					result.Warnings.Add( "Incomplete course/training data found. All course/training related columns should either have data or be marked as \"N/A\". Since the Training Gap Type is \"" + rowTrainingGapType.Name + "\", this is an error and processing this row cannot continue." );
+					//return result;
+				} else
+                {
+					if ( string.IsNullOrWhiteSpace( item.Row.TrainingTask_Description ) )
+					{
+						result.Errors.Add( "Training Task data is missing for this row." );
+					}
+					result.Errors.Add( "Incomplete course/training data found. All course/training related columns should either have data or be marked as \"N/A\". Since the Training Gap Type is \"" + rowTrainingGapType.Name + "\", this is an error and processing this row cannot continue." );
+					return result;
 				}
-				result.Errors.Add( "Incomplete course/training data found. All course/training related columns should either have data or be marked as \"N/A\". Since the Training Gap Type is \"" + rowTrainingGapType.Name + "\", this is an error and processing this row cannot continue." );
-				return result;
+				
 			}
 			//Otherwise, look for course/training data later on
 			else
 			{
 				hasCourseAndTrainingData = true;
 			}
+			#endregion
 
-			//Part III
+			#region Part III  - components check
 			//Cluster Analysis
 			var hasClusterAnalysisData = false;
 			var rowTrainingSolutionType = GetDataOrError<Concept>( summary, ( m ) => 
@@ -2812,7 +2946,7 @@ namespace Services
 				var tempRatingTaskSource = summary.GetAll<ReferenceResource>()
 					.FirstOrDefault( m =>
 						m.Name?.ToLower() == item.Row.ReferenceResource_Name?.ToLower() &&
-						m.PublicationDate?.ToLower() == item.Row.ReferenceResource_PublicationDate?.ToLower() &&
+						m.PublicationDate?.ToLower() == ParseDateOrEmpty2( item.Row.ReferenceResource_PublicationDate?.ToLower()) &&
 						m.ReferenceType.Contains( rowSourceType.RowId )
 					) ??
 					ReferenceResourceManager.Get( item.Row.ReferenceResource_Name, item.Row.ReferenceResource_PublicationDate ) ??
@@ -2854,8 +2988,9 @@ namespace Services
 				result.Errors.Add( "One or more critical errors were encountered while processing this row." );
 				return result;
 			}
+			#endregion
 
-			//After Validation, process the row's contents
+			#region After Validation, process the row's contents
 			//Get the variable items that show up in this row
 			//Things from sheets here may be new/edited
 			//First check the summary to see if it came in from an earlier row (or database). If not found in the summary, check the database. If not found there, assume it's new. Regardless, add it to the summary if it's not already in the summary.
@@ -2899,15 +3034,28 @@ namespace Services
 				//Store if newly created
 				( newItem ) => { summary.ItemsToBeCreated.WorkRole.Add( newItem ); }
 			);
+			//NAVPERS 18068F Vol II, NAVEDTRA 43119-M (303 - Basic Firefighting)
+			if ( item.Row.ReferenceResource_Name == "NAVPERS 18068F Vol II" 
+				|| item.Row.ReferenceResource_Name == "NAVEDTRA 43119-M (303 - Basic Firefighting)" )
+			{
 
+            }
 			//Reference Resource
+			//TODO - may have to start normalizing publicationDate to mm/dd/yyyy for compares and differences with leading zero)
+			//var publicationDate = item.Row.ReferenceResource_PublicationDate;
+			//DateTime outputDate = new DateTime();
+			//if (UtilityManager.IsDate( item.Row.ReferenceResource_PublicationDate, ref outputDate) )
+   //         {
+			//	publicationDate = outputDate.ToString( "MM/dd/yyyy" );
+			//}
+			
 			var rowRatingTaskSource = LookupOrGetFromDBOrCreateNew( summary, result,
 				//Find in summary
 				() => summary.GetAll<ReferenceResource>()
-				.FirstOrDefault( m =>
-					m.Name?.ToLower() == item.Row.ReferenceResource_Name?.ToLower() &&
-					m.PublicationDate?.ToLower() == item.Row.ReferenceResource_PublicationDate?.ToLower()
-					//&& m.ReferenceType.Contains( rowSourceType.RowId )
+					.FirstOrDefault( m =>
+						m.Name?.ToLower() == item.Row.ReferenceResource_Name?.ToLower() &&
+						m.PublicationDate?.ToLower() == ParseDateOrEmpty2( item.Row.ReferenceResource_PublicationDate?.ToLower())
+						//&& m.ReferenceType.Contains( rowSourceType.RowId )
 				),
 				//Or get from DB
 				() => ReferenceResourceManager.Get( item.Row.ReferenceResource_Name, item.Row.ReferenceResource_PublicationDate ), //Should ReferenceType be used here as well?
@@ -2916,7 +3064,7 @@ namespace Services
 				{
 					RowId = Guid.NewGuid(),
 					Name = item.Row.ReferenceResource_Name,
-					PublicationDate = item.Row.ReferenceResource_PublicationDate
+					PublicationDate = ParseDateOrEmpty2( item.Row.ReferenceResource_PublicationDate )
 					//Other properties are handled in the next section
 				},
 				//Store if newly created
@@ -2924,19 +3072,26 @@ namespace Services
 			);
 
 			//Training Task
+			//TODO - if we associtate the rating task coded notation with the training task for the row, we should be able to identify changes to the training task.
+			//		 - this can be done with RatingTask_HasTrainingTask in the trainingTask manager
 			var rowTrainingTask = LookupOrGetFromDBOrCreateNew( summary, result,
 				//Find in summary
 				() => summary.GetAll<TrainingTask>()
-				.FirstOrDefault( m =>
-					 m.Description?.ToLower() == item.Row.TrainingTask_Description?.ToLower()
+					.FirstOrDefault( m =>
+						 m.Description?.ToLower() == item.Row.TrainingTask_Description?.ToLower() 
+						 && m.CourseCodedNotation.ToLower() == item.Row?.Course_CodedNotation.ToLower()
 				),
-				//Or get from DB
-				() => TrainingTaskManager.Get( item.Row.TrainingTask_Description ),
+				//Or get from DB.
+				//22-04-16 just description is not enough. We want the previous one even if the descr has changed.
+				//		NOTE: ensure there is check so that if the  training desc has changed, there will be an update request
+				() => TrainingTaskManager.GetTrainingTaskForRatingTask( rowRating.CodedNotation, item.Row.Row_CodedNotation, item.Row.Course_CodedNotation, item.Row.TrainingTask_Description, ref summary ),
+				//() => TrainingTaskManager.Get( item.Row.TrainingTask_Description ),
 				//Or create new
 				() => new TrainingTask()
 				{
 					RowId = Guid.NewGuid(),
-					Description = item.Row.TrainingTask_Description
+					Description = item.Row.TrainingTask_Description,
+					CourseCodedNotation = item.Row.Course_CodedNotation
 				},
 				//Store if newly created
 				( newItem ) => { summary.ItemsToBeCreated.TrainingTask.Add( newItem ); },
@@ -3007,13 +3162,13 @@ namespace Services
 				//May be exceptions
 				() => string.IsNullOrWhiteSpace( item.Row.Cluster_Analysis_Title ) || item.Row.Cluster_Analysis_Title.ToLower() == "n/a"
 			);
+            #endregion
 
+            //Now that all of the actors for this row have been found, created, and tracked...
+            #region Update them with the data from this row
 
-			//Now that all of the actors for this row have been found, created, and tracked...
-			//Update them with the data from this row
-
-			//Billet Title
-			HandleGuidListAddition( summary, summary.ItemsToBeCreated.BilletTitle, summary.FinalizedChanges.BilletTitle, result, rowBilletTitle, nameof( BilletTitle.HasRatingTask ), rowRatingTask );
+            //Billet Title
+            HandleGuidListAddition( summary, summary.ItemsToBeCreated.BilletTitle, summary.FinalizedChanges.BilletTitle, result, rowBilletTitle, nameof( BilletTitle.HasRatingTask ), rowRatingTask );
 
 			//Work Role
 			//No changes to track!
@@ -3063,9 +3218,12 @@ namespace Services
 			HandleValueChange( summary, summary.ItemsToBeCreated.ClusterAnalysis, summary.FinalizedChanges.ClusterAnalysis, result, rowClusterAnalysis, nameof( ClusterAnalysis.DevelopmentTime ), developmentTime );
 			HandleValueChange( summary, summary.ItemsToBeCreated.ClusterAnalysis, summary.FinalizedChanges.ClusterAnalysis, result, rowClusterAnalysis, nameof( ClusterAnalysis.EstimatedInstructionalTime ), estimatedInstructionalTime );
 			HandleValueChange( summary, summary.ItemsToBeCreated.ClusterAnalysis, summary.FinalizedChanges.ClusterAnalysis, result, rowClusterAnalysis, nameof( ClusterAnalysis.Notes ), item.Row.Cluster_Analysis_Notes ?? "" );
+            #endregion
+            //Update the cached summary
+            CacheChangeSummary( summary );
 
-			//Update the cached summary
-			CacheChangeSummary( summary );
+			sectionDuration = DateTime.Now.Subtract( sectionStarted );
+			//summary.Messages.Note.Add( string.Format( "Duration: {0:N2} seconds ", sectionDuration.TotalSeconds ) );
 
 			//Return the result
 			return result;
@@ -3279,12 +3437,13 @@ namespace Services
 		{
 			try
 			{
-				return DateTime.Parse( value ).ToString( "yyyy-MM-dd" );
+				return DateTime.Parse( value ).ToString( "MM/dd/yyyy" );
 			}
 			catch
 			{
 				//or ""
-				return DateTime.MinValue.ToString( "yyyy-MM-dd" );
+				//return DateTime.MinValue.ToString( "MM/dd/yyyy" );
+				return "";
 			}
 		}
 		//

@@ -37,14 +37,14 @@ namespace Models.Schema
 		/// </summary>
 		public List<Guid> HasRating { get; set; }
 
-		/// <summary>
-		/// GUID for the Training Task for this Rating Task<br />
-		/// From Column: CTTL/PPP/TCCD Statement<br />
-		/// DB: TrainingTaskId<br />
-		/// Do not use!
-		/// </summary>
-		[Obsolete]
-		public Guid HasTrainingTask { get; set; }
+		///// <summary>
+		///// GUID for the Training Task for this Rating Task<br />
+		///// From Column: CTTL/PPP/TCCD Statement<br />
+		///// DB: TrainingTaskId<br />
+		///// Do not use!
+		///// </summary>
+		//[Obsolete]
+		//public Guid HasTrainingTask { get; set; }
 
 		/// <summary>
 		/// List of GUIDs for the Training Task(s) for this Rating Task<br />
@@ -100,6 +100,7 @@ namespace Models.Schema
 		public string Identifier { get; set; }
 		//Upload
 		public string BilletTitle { get; set; }
+		public string CurrentRatingCode { get; set; } = "";
 
 		//Embedded data
 		//Consider moving these to a separate class so they don't result in a lot of extra data being sent between client and server

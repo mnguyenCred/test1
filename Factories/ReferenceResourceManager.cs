@@ -43,7 +43,8 @@ namespace Factories
                     if ( entity.Id == 0 )
                     {
                         //look up by name primarily for now, may need the resource type at some point 
-                        var record = Get( entity.Name );
+                        //22-04-17 mp - now including publication date as can have multiple dates for the same reference
+                        var record = Get( entity.Name, entity.PublicationDate );
                         if ( record?.Id > 0 )
                         {
                             //HOWEVER - if found now and not earlier, the rowId will be wrong for any related data that refers to it
@@ -79,7 +80,6 @@ namespace Factories
                         entity.Id = efEntity.Id;
 
                         MapToDB( entity, efEntity );
-
                         if ( HasStateChanged( context ) )
                         {
                             efEntity.LastUpdated = DateTime.Now;
@@ -91,6 +91,16 @@ namespace Factories
                             {
                                 entity.LastUpdated = ( DateTime ) efEntity.LastUpdated;
                                 isValid = true;
+                                SiteActivity sa = new SiteActivity()
+                                {
+                                    ActivityType = "ReferenceResource",
+                                    Activity = "Import",
+                                    Event = "Update",
+                                    Comment = string.Format( "ReferenceResource was updated by the import. Name: {0}", entity.Name ),
+                                    ActionByUserId = entity.LastUpdatedById,
+                                    ActivityObjectId = entity.Id
+                                };
+                                new ActivityManager().SiteActivityAdd( sa );
                             }
                             else
                             {
@@ -109,16 +119,7 @@ namespace Factories
                             //just in case 
                             if ( entity.Id > 0 )
                                 UpdateParts( entity, status );
-                            SiteActivity sa = new SiteActivity()
-                            {
-                                ActivityType = "ReferenceResource",
-                                Activity = "Import",
-                                Event = "Update",
-                                Comment = string.Format( "ReferenceResource was updated by the import. Name: {0}", entity.Name ),
-                                ActionByUserId = entity.LastUpdatedById,
-                                ActivityObjectId = entity.Id
-                            };
-                            new ActivityManager().SiteActivityAdd( sa );
+                           
                         }
                     }
                     else
@@ -314,18 +315,7 @@ namespace Factories
             return false;
         }
 
-        public static void MapToDB( AppEntity input, DBEntity output )
-        {
-            //watch for missing properties like rowId
-            List<string> errors = new List<string>();
-            BaseFactory.AutoMap( input, output, errors );
-            output.Name = output.Name?.Trim();
-            //the publication date format can be inconsistant
-            //if ( IsValidDate(output.PublicationDate))
-            //{
-            //    output.PublicationDate = DateTime.Parse( output.PublicationDate ).ToString("yyyy-MM-dd");
-            //}
-        }
+
         #endregion
         #region Retrieval
         public static AppEntity Get( string name, string publicationDate = null )
@@ -341,7 +331,11 @@ namespace Factories
 
 				if ( !string.IsNullOrWhiteSpace( publicationDate ) )
 				{
-					matches = matches.Where( m => m.PublicationDate.ToLower() == publicationDate.ToLower() );
+                    if ( IsValidDate( publicationDate ) )
+                    {
+                        publicationDate = DateTime.Parse( publicationDate ).ToString( "MM/dd/yyyy" );
+                    }
+                    matches = matches.Where( m => m.PublicationDate.ToLower() == publicationDate.ToLower() );
 				}
 
 				var item = matches.FirstOrDefault();
@@ -470,17 +464,30 @@ namespace Factories
             }
             return output;
         }
+        public static void MapToDB( AppEntity input, DBEntity output )
+        {
+            //watch for missing properties like rowId
+            List<string> errors = new List<string>();
+            BaseFactory.AutoMap( input, output, errors );
+            output.Name = output.Name?.Trim();
+            //the publication date format can be inconsistant
+            if ( IsValidDate( output.PublicationDate ) )
+            {
+                output.PublicationDate = DateTime.Parse( output.PublicationDate ).ToString( "MM/dd/yyyy" );
+            }
+        }
         public static void MapFromDB( DBEntity input, AppEntity output )
         {
             //should include list of concepts
             List<string> errors = new List<string>();
             BaseFactory.AutoMap( input, output, errors );
             //the publication date format can be inconsistant
-            //if ( IsValidDate( output.PublicationDate ) )
-            //{
-            //    //should be in the proper format, but maybe useful if there is a change in the default
-            //    output.PublicationDate = DateTime.Parse( output.PublicationDate ).ToString( "yyyy-MM-dd" );
-            //}
+            if ( IsValidDate( output.PublicationDate ) )
+            {
+                //should be in the proper format, but maybe useful if there is a change in the default
+                output.PublicationDate = DateTime.Parse( output.PublicationDate ).ToString( "MM/dd/yyyy" );
+            }
+
             if (output.Name == "NAVPERS 18068F Vol II" )
             {
 
