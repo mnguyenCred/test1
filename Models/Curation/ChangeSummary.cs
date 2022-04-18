@@ -24,10 +24,14 @@ namespace Models.Curation
 			FinalizedChanges = new UploadableData();
 		}
 		public string Action { get; set; } = "Upload";
-		public string Rating { get; set; }
+		public string RatingCodedNotation { get; set; }
 		public Guid RatingRowId { get; set; }
 
 		public DateTime UploadStarted { get; set; }
+		public DateTime UploadFinished { get; set; }
+		public DateTime SaveStarted { get; set; }
+		public DateTime SaveFinished { get; set; }
+
 		/// <summary>
 		/// Set of items that don't exist and will be created.
 		/// </summary>

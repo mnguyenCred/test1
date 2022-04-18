@@ -53,7 +53,7 @@ namespace Services
 				ActivityType = "RMTL",
 				Activity = "Upload",
 				Event = "Save Started",
-				Comment = String.Format( "A bulk upload save was initiated by: '{0}' for Rating: '{1}' was committed.", user.FullName(), summary.Rating ?? "" ),
+				Comment = String.Format( "A bulk upload save was initiated by: '{0}' for Rating: '{1}' was committed.", user.FullName(), summary.RatingCodedNotation ?? "" ),
 				ActionByUserId = user.Id,
 				ActionByUser = user.FullName()
 			};
@@ -266,7 +266,7 @@ namespace Services
 							}
 						}
 						item.CreatedById = item.LastUpdatedById = user.Id;
-						item.CurrentRatingCode = summary.Rating;
+						item.CurrentRatingCode = summary.RatingCodedNotation;
 						mgr.Save( item, ref summary );
 					}
 				}
@@ -504,7 +504,7 @@ namespace Services
 						//ISSUE THE FULL RATING TASK IS NOT HERE. HOW TO DO A PROPER SAVE?
 						//CONFIRM FIXED
 						//need to check if training task has change to a new one/course (not just updated descr)
-						item.CurrentRatingCode = summary.Rating;
+						item.CurrentRatingCode = summary.RatingCodedNotation;
 						mgr.Save( item, ref summary );
 					}
 				}
@@ -540,7 +540,7 @@ namespace Services
 				ActivityType = "RMTL",
 				Activity = "Upload",
 				Event = "Processing Completed",
-				Comment = String.Format( "A bulk upload save was completed by: '{0}' for Rating: '{1}'. Duration: {2:N2} seconds .", user.FullName(), summary.Rating ?? "", saveDuration.TotalSeconds ),
+				Comment = String.Format( "A bulk upload save was completed by: '{0}' for Rating: '{1}'. Duration: {2:N2} seconds .", user.FullName(), summary.RatingCodedNotation ?? "", saveDuration.TotalSeconds ),
 				ActionByUserId = user.Id,
 				ActionByUser = user.FullName()
 			};
@@ -608,7 +608,7 @@ namespace Services
 			var sectionDuration = new TimeSpan();
 
 			LoggingHelper.DoTrace( 6, string.Format( "Rating: {0}, Tasks: {1}, User: {2}", currentRating.CodedNotation, uploadedData.Rows.Count(), user.FullName() ) );
-			summary.Rating = currentRating.CodedNotation;
+			summary.RatingCodedNotation = currentRating.CodedNotation;
 			SiteActivity sa = new SiteActivity()
 			{
 				ActivityType = "RMTL",
@@ -2700,9 +2700,18 @@ namespace Services
 			var summary = GetCachedChangeSummary( item.TransactionGUID );
 			if ( summary == null )
 			{
+				//Lookup the rating
+				var rating = RatingManager.Get( item.RatingRowID );
+				if( rating == null || rating.Id == 0 )
+				{
+					result.Errors.Add( "The selected rating was not found." );
+					return result;
+				}
+
 				//Create a new summary object
-				summary = new ChangeSummary() { RowId = item.TransactionGUID, RatingRowId = item.RatingRowID };
+				summary = new ChangeSummary() { RowId = item.TransactionGUID, RatingRowId = rating.RowId, RatingCodedNotation = rating.CodedNotation };
 				summary.UploadStarted = DateTime.Now;
+
 				//Pre-populate controlled vocabularies, since these will be used across all rows
 				summary.LookupGraph.AddRange( ConceptSchemeManager.GetAllConcepts( true ) );
 				summary.LookupGraph.AddRange( RatingManager.GetAll() );
@@ -2711,29 +2720,24 @@ namespace Services
 				//Cache the summary object
 				CacheChangeSummary( summary );
 
-				//how to add an activity for the start of a new upload? row id of 3? may not be passed
-				var rating = item.Row.Rating_CodedNotation ?? "missing";
+				//Add an activity for the start of a new upload
 				SiteActivity sa = new SiteActivity()
                 {
                     ActivityType = "RMTL",
                     Activity = "Upload",
                     Event = "Starting",
-                    Comment = String.Format( "A bulk upload was initiated by: '{0}' for Rating: '{1}'.", user.FullName(), rating ),
+                    Comment = String.Format( "A bulk upload was initiated by: '{0}' for Rating: '{1}'.", user.FullName(), rating.CodedNotation ),
                     ActionByUserId = user.Id,
                     ActionByUser = user.FullName()
                 };
                 new ActivityServices().AddActivity( sa );
             }
-			if (summary.Messages.Error?.Count > 0)
-            {
 
-            }
-
-			//can't do now, as row by row, needs to be done by client?. Could put it in the changeSummary
+			//Can't do this now, due to the row by row nature of this method
+			//Needs to be done by client? 
+			//Could put it in the ChangeSummary
 			DateTime sectionStarted = DateTime.Now;
 			var sectionDuration = new TimeSpan();
-
-
 
 			//Do something with the item and summary.  
 			//The summary will be stored in the cache and retrieved again so that it can be used for all of the rows. 
@@ -2749,6 +2753,7 @@ namespace Services
 				result.Errors.Add( "A valid row Unique Identifier (e.g., \"NEC1-006\") must be provided, and must not be a number." );
 				return result;
 			}
+
 			#region Part I  - components check
 			//Get the controlled value items that show up in this row
 			//Everything in any uploaded sheet should appear here. If any of these are not found, it's an error
@@ -2764,13 +2769,6 @@ namespace Services
 				"Selected Rating not found in database: \"" + item.RatingRowID + "\"",
 				item.RatingRowID.ToString()
 			);
-			summary.Rating = rowRating.CodedNotation;
-
-
-			//TBD - at some point will use the following combo for ratingTask codedNotation
-			//may need to ensure the unique id doesn't already include the rating code
-			var ratingRatingTask_CodedNotation = string.Format( "{0}-{1}", rowRating.CodedNotation, item.Row.Row_CodedNotation );
-
 			var rowPayGrade = GetDataOrError<Concept>( summary, ( m ) => 
 				m.CodedNotation?.ToLower() == item.Row.PayGradeType_CodedNotation?.ToLower(), 
 				result, 
@@ -2796,8 +2794,6 @@ namespace Services
 				"Training Gap Type not found in database: \"" + TextOrNA( item.Row.RatingTask_TrainingGapType_Name ) + "\"",
 				item.Row.RatingTask_TrainingGapType_Name
 			);
-			//?? is billet title also required?
-			//also functional area, source, and date of source? //Those are handled below
 
 			//If any of the above are null, log an error and skip the rest
 			if ( new List<object>() { rowRating, rowPayGrade, rowSourceType, rowTaskApplicabilityType, rowTrainingGapType, selectedRating }.Where( m => m == null ).Count() > 0 )
@@ -2813,7 +2809,13 @@ namespace Services
 				//rowRating = selectedRating;
 				return result;
 			}
+
+			//TBD - at some point we will use the following combo for RatingTask codedNotation
+			//We may need to ensure that the unique ID doesn't already include the rating code
+			var ratingRatingTask_CodedNotation = string.Format( "{0}-{1}", rowRating.CodedNotation, item.Row.Row_CodedNotation );
+
 			#endregion
+			
 			#region Part II - components check
 			//These should throw an error if not found, unless all of the course/training columns are N/A
 			var shouldNotHaveTrainingData = rowTrainingGapType.Name?.ToLower() == "yes";
@@ -3164,6 +3166,7 @@ namespace Services
 				//May be exceptions
 				() => string.IsNullOrWhiteSpace( item.Row.Cluster_Analysis_Title ) || item.Row.Cluster_Analysis_Title.ToLower() == "n/a"
 			);
+
             #endregion
 
             //Now that all of the actors for this row have been found, created, and tracked...
@@ -3220,7 +3223,9 @@ namespace Services
 			HandleValueChange( summary, summary.ItemsToBeCreated.ClusterAnalysis, summary.FinalizedChanges.ClusterAnalysis, result, rowClusterAnalysis, nameof( ClusterAnalysis.DevelopmentTime ), developmentTime );
 			HandleValueChange( summary, summary.ItemsToBeCreated.ClusterAnalysis, summary.FinalizedChanges.ClusterAnalysis, result, rowClusterAnalysis, nameof( ClusterAnalysis.EstimatedInstructionalTime ), estimatedInstructionalTime );
 			HandleValueChange( summary, summary.ItemsToBeCreated.ClusterAnalysis, summary.FinalizedChanges.ClusterAnalysis, result, rowClusterAnalysis, nameof( ClusterAnalysis.Notes ), item.Row.Cluster_Analysis_Notes ?? "" );
+
             #endregion
+
             //Update the cached summary
             CacheChangeSummary( summary );
 

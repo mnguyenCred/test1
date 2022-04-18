@@ -102,13 +102,12 @@ namespace NavyRRL.Controllers
 
 			
 			//Do something with the raw CSV
-			//item.RawCSV...
 			if ( rawCSV?.Length > 0 )
 			{
 				var currentRating = Factories.RatingManager.Get( ratingRowID );
 				if ( currentRating?.Id == 0 )
 				{
-					summary.Messages.Error.Add( "Error: Could save input file, as was unable to find Rating for identifier: " + ratingRowID );
+					summary.Messages.Error.Add( "Error: Could not save input file: Unable to find Rating for identifier: " + ratingRowID );
 					//return summary;
 				}
 				else
@@ -121,6 +120,7 @@ namespace NavyRRL.Controllers
 						//return result;
 					}
 
+					summary.UploadFinished = DateTime.Now; //Compare with summary.UploadStarted to determine how long it took
 					SiteActivity sa = new SiteActivity()
 					{
 						ActivityType = "RMTL",
