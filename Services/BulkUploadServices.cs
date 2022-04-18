@@ -548,6 +548,7 @@ namespace Services
 		}
         //
 
+		/*
         #region ProcessUpload V2
         public static ChangeSummary ProcessUploadV2( UploadableTable uploadedData, Guid ratingRowID, JObject debug = null )
 		{
@@ -644,45 +645,6 @@ namespace Services
 			var existingWorkRoles = WorkRoleManager.GetAll();
 			var existingOrganizations = OrganizationManager.GetAll();
 			debug[ latestStepFlag ] = "Got Existing data";
-
-			/*
-			 * These checks are handled above
-			//need a check that only one rating is included
-			var uploadedRatingMatchers = GetSheetMatchers<Rating, MatchableRating>( uploadedData.Rows, GetRowMatchHelper_Rating );
-			//should only be one and must match current
-			foreach ( var matcher in uploadedRatingMatchers )
-			{
-				matcher.Flattened.CodedNotation = matcher.Rows.Select( m => m.Rating_CodedNotation ).FirstOrDefault();
-			}
-			//Remove empty rows?
-			uploadedRatingMatchers = uploadedRatingMatchers.Where( m => !string.IsNullOrWhiteSpace( m.Flattened.CodedNotation ) ).ToList();
-
-			if ( uploadedRatingMatchers != null )
-            {
-				bool foundRequestRating = false;
-				foreach( var ratingMatcher in uploadedRatingMatchers )
-                {
-					if ( ratingMatcher.Flattened.CodedNotation.ToLower() != currentRating.CodedNotation.ToLower() )
-					{
-						summary.Messages.Error.Add( String.Format( "Error: A rating code ({0}) was found that doesn't match the requested rating: '{1}'. Only one rating may be uploaded at a time.", ratingMatcher.Flattened.CodedNotation, currentRating.CodedNotation ) );
-					}
-					else
-						foundRequestRating = true;
-				}
-				if (!foundRequestRating )
-					summary.Messages.Error.Add( String.Format( "Error: The requested rating code ({0}) was NOT in the uploaded data.", currentRating.CodedNotation ) );
-
-				if ( summary.HasAnyErrors )
-					return summary;
-            } else
-            {
-				//no ratings found
-				summary.Messages.Error.Add( "Error: No rating codes were found in the data. " );
-				return summary;
-			}
-			*/
-
-
 
 			//In order to facilitate a correct comparison, it must be done apples-to-apples
 			//This approach attempts to achieve that by mapping both the uploaded data and the existing data into a common structure that can then easily be compared
@@ -835,13 +797,7 @@ namespace Services
 
 			//Items that were not found in the uploaded data (deleted items)
 			//Not applicable for Work Roles at this time (tends to lead to a lot of false positives since we're getting all work roles)
-			/*
-			var missingWorkRoleMatchers = existingWorkRoleMatchers.Where( m => !looseMatchingWorkRoleMatchers.Contains( m ) ).ToList();
-			foreach ( var item in missingWorkRoleMatchers )
-			{
-				summary.ItemsToBeDeleted.WorkRole.Add( item.Data );
-			}
-			*/
+
 		}
 		//
 
@@ -1034,13 +990,6 @@ namespace Services
 
 			//Items that were not found in the uploaded data (deleted items)
 			//Not applicable for Training Tasks at this time (tends to lead to a lot of false positives since we're getting all training tasks)
-			/*
-			var missingTrainingTaskMatchers = existingTrainingTaskMatchers.Where( m => !looseMatchingTrainingTaskMatchers.Contains( m ) ).ToList();
-			foreach ( var item in missingTrainingTaskMatchers )
-			{
-				summary.ItemsToBeDeleted.TrainingTask.Add( item.Data );
-			}
-			*/
 
 		}
 		//
@@ -1167,13 +1116,6 @@ namespace Services
 
 			//Items that were not found in the uploaded data (deleted items)
 			//Not applicable to Course at this time (tends to lead to a lot of false positives since we're getting all courses)
-			/*
-			var missingCourseMatchers = existingCourseMatchers.Where( m => !looseMatchingCourseMatchers.Contains( m ) ).ToList();
-			foreach ( var item in missingCourseMatchers )
-			{
-				summary.ItemsToBeDeleted.Course.Add( item.Data );
-			}
-			*/
 
 		}
 		//
@@ -1934,15 +1876,6 @@ namespace Services
 				return result;
 			}
 
-			/*
-			//Don't allow a row to be processed if it has the same row identifier as a previous row
-			if ( summary.GetAll<RatingTask>().FirstOrDefault( m => m.CodedNotation?.ToLower() == item.Row.Row_CodedNotation?.ToLower() ) != null )
-			{
-				result.Errors.Add( string.Format( "The row Unique Identifier: '{0}' was used on a previous row.", item.Row.Row_CodedNotation ) );
-				result.Errors.Add( "Reuse of a row's Unique Identifier is not allowed. Processing this row cannot continue." );
-				return result;
-			}
-			*/
 			//
 			if ( item.Row?.Row_CodedNotation == "PQ18-018" || item.Row?.Row_CodedNotation == "PQ3-019x" || item.Row?.Row_CodedNotation == "PQ3-046x" )
 			{
@@ -2681,9 +2614,9 @@ namespace Services
 		}
 		//
 		#endregion
+		*/
 
 		#region ProcessUpload V4 (Row by Row, but simpler)
-
 		public static UploadableItemResult ProcessUploadedItemV4( UploadableItem item )
 		{
 			//Hold the result
@@ -3220,6 +3153,110 @@ namespace Services
 
 			//Return the result
 			return result;
+		}
+		//
+
+		public static T LookupOrGetFromDBOrCreateNew<T>( ChangeSummary summary, UploadableItemResult result, Func<T> GetFromSummary, Func<T> GetFromDatabase, Func<T> CreateNew, Action<T> LogNewItem, Func<bool> ReturnNullIfTrue = null ) where T : BaseObject, new()
+		{
+			//If there is a method to check whether the item is null (e.g. the cell contains N/A), and that test comes back true, then skip the rest and return null
+			if ( ReturnNullIfTrue != null && ReturnNullIfTrue() )
+			{
+				return null;
+			}
+
+			//Otherwise, find it in the summary
+			var targetItem = GetFromSummary();
+
+			//If not found in the summary...
+			if ( targetItem == null )
+			{
+				//Find it in the database
+				targetItem = GetFromDatabase();
+
+				//If not found in the database...
+				if ( targetItem == null || targetItem.Id == 0 )
+				{
+					//Create a new one (if applicable)
+					targetItem = CreateNew();
+
+					//If newly created, put it into the summary's new items list
+					LogNewItem( targetItem );
+
+					//Also put it into the result's new items list. The client will handle the fact that data gets appended to this item later (in this and/or subsequent rows) after it's been serialized as a JObject.
+					result.NewItems.Add( JObjectify( targetItem ) );
+				}
+				//If found in the database...
+				else
+				{
+					//Note that it came from the database to help code distinguish between existing items and items from previous rows in the current upload session
+					summary.ItemsLoadedFromDatabase.Add( targetItem.RowId );
+
+					//Also put it into the result's existing items list
+					result.ExistingItems.Add( JObjectify( targetItem ) );
+				}
+
+				//If it's not null, put it into the summary's lookup graph
+				if ( targetItem != null )
+				{
+					summary.AppendItem( targetItem );
+				}
+			}
+
+			//Track it in the row regardless of whether or not it's already in the summary (helps the client figure out which items showed up on which rows at the end)
+			if ( targetItem != null )
+			{
+				result.RowItems.Add( targetItem.RowId );
+			}
+
+			//Return the item (or null)
+			return targetItem;
+		}
+		//
+
+		public static JObject JObjectify<T>( T rowItem ) where T : BaseObject
+		{
+			if ( rowItem != null )
+			{
+				var newItem = JObject.FromObject( rowItem, new JsonSerializer() { NullValueHandling = NullValueHandling.Ignore, Formatting = Formatting.None, DefaultValueHandling = DefaultValueHandling.Ignore } );
+				newItem[ "@type" ] = rowItem.GetType().Name;
+				return newItem;
+			}
+
+			return null;
+		}
+		//
+
+		public static T GetDataOrError<T>( ChangeSummary summary, Func<T, bool> MatchWith, UploadableItemResult result, string errorMessage, string source, bool addErrorIfNullOrWhiteSpace = true ) where T : BaseObject
+		{
+			return GetDataListOrError( summary, MatchWith, result, errorMessage, source, addErrorIfNullOrWhiteSpace ).FirstOrDefault();
+		}
+		//
+
+		public static List<T> GetDataListOrError<T>( ChangeSummary summary, Func<T, bool> MatchWith, UploadableItemResult result, string errorMessage, string source, bool addErrorIfNullOrWhiteSpace = true ) where T : BaseObject
+		{
+			if ( string.IsNullOrWhiteSpace( source ) )
+			{
+				if ( addErrorIfNullOrWhiteSpace )
+				{
+					result.Errors.Add( errorMessage );
+				}
+				return new List<T>();
+			}
+
+			//Check for existence in LookupGraph
+			var data = summary.GetAll<T>().Where( m => MatchWith( m ) ).ToList();
+			if ( data.Count() == 0 )
+			{
+				result.Errors.Add( errorMessage );
+			}
+
+			return data;
+		}
+		//
+
+		public static List<string> SplitAndTrim( string text, string splitOn )
+		{
+			return text == null ? new List<string>() : text.Split( new string[] { splitOn }, StringSplitOptions.RemoveEmptyEntries ).Select( m => m.Trim() ).ToList();
 		}
 		//
 

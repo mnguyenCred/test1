@@ -22,7 +22,6 @@ namespace NavyRRL.Controllers
     {
 		// GET: Upload
 		[CustomAttributes.NavyAuthorize( "Search", Roles = "Administrator, RMTL Developer, Site Staff" )]
-
 		public ActionResult Index()
         {
 			if ( !AccountServices.IsUserAuthenticated() )
@@ -35,10 +34,8 @@ namespace NavyRRL.Controllers
 				ConsoleMessageHelper.SetConsoleErrorMessage( "You must be logged in and authorized to perform this action." );
 				return RedirectToAction( AccountServices.EVENT_AUTHENTICATED, "event" );
 
-			} else
-            {
+			}
 
-            }
 			return View( "~/views/upload/uploadv3.cshtml" );
         }
 		//
@@ -176,7 +173,6 @@ namespace NavyRRL.Controllers
 				return JsonResponse( null, false, new List<string>() { "Unable to find cached change summary. Please upload the data again." } );
 			}
 
-
 			try
             {
 				//Process the summary
@@ -204,7 +200,7 @@ namespace NavyRRL.Controllers
 		}
 		//
 
-
+		/*
 		//Initial processing of the data before any changes are made to the database
 		//Expects the following arguments, but since we have to manually read them out of the request, we need to bypass MVC's default model binding
 		//CM.UploadableTable rawData, Guid ratingRowID
@@ -259,6 +255,7 @@ namespace NavyRRL.Controllers
 			}
 		}
 		//
+		*/
 
     }
 }
