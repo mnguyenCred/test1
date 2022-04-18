@@ -1059,8 +1059,13 @@
 	.fixErrorsMessage { padding: 10px 20px; margin: 5px; background-color: #FCC; }
 	.undefined { background-color: #EEE; padding: 0 2px; }
 	.lookup { font-weight: bold; }
-	.confirmChangesButton { bottom: 0; left: 0; width: 100%; position: fixed; background-color: green; color: white; height: 50px; }
 </style>
+@if ( isUserAdmin )
+{
+	<style type="text/css">
+		.confirmChangesButton { bottom: 0; left: 0; width: 100%; position: fixed; background-color: green; color: white; height: 50px; }
+	</style>
+}
 
 <h1>Upload RMTL Data</h1>
 

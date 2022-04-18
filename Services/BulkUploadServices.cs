@@ -2877,30 +2877,19 @@ namespace Services
 				result.Errors.Count() > 0 
 			)
 			{
-				if ( UtilityManager.GetAppKeyValue( "environment" ) == "development" ) 
+				if ( string.IsNullOrWhiteSpace( item.Row.TrainingTask_Description ) )
 				{
-					if ( string.IsNullOrWhiteSpace( item.Row.TrainingTask_Description ) )
-					{
-						result.Warnings.Add( "Training Task data is missing for this row." );
-					}
-					result.Warnings.Add( "Incomplete course/training data found. All course/training related columns should either have data or be marked as \"N/A\". Since the Training Gap Type is \"" + rowTrainingGapType.Name + "\", this is an error and processing this row cannot continue." );
-					//return result;
-				} else
-                {
-					if ( string.IsNullOrWhiteSpace( item.Row.TrainingTask_Description ) )
-					{
-						result.Errors.Add( "Training Task data is missing for this row." );
-					}
-					result.Errors.Add( "Incomplete course/training data found. All course/training related columns should either have data or be marked as \"N/A\". Since the Training Gap Type is \"" + rowTrainingGapType.Name + "\", this is an error and processing this row cannot continue." );
-					return result;
+					result.Errors.Add( "Training Task data is missing for this row." );
 				}
-				
+				result.Errors.Add( "Incomplete course/training data found. All course/training related columns should either have data or be marked as \"N/A\". Since the Training Gap Type is \"" + rowTrainingGapType.Name + "\", this is an error and processing this row cannot continue." );
+				return result;
 			}
 			//Otherwise, look for course/training data later on
 			else
 			{
 				hasCourseAndTrainingData = true;
 			}
+
 			#endregion
 
 			#region Part III  - components check
@@ -2941,7 +2930,9 @@ namespace Services
 				result.Warnings.Add( string.Format( "Priority Placement ({0}) is invalid. valid values are 1 through 9.", priorityPlacement ) );
 			}
 
+			#endregion
 
+			#region Additional validation checks
 			//Additional validation checks after all of the vocabularies have been figured out
 			if ( UtilityManager.GetAppKeyValue( "doingRatingTaskDuplicateChecks", true ) )
 			{
@@ -2992,6 +2983,7 @@ namespace Services
 				result.Errors.Add( "One or more critical errors were encountered while processing this row." );
 				return result;
 			}
+
 			#endregion
 
 			#region After Validation, process the row's contents
@@ -3044,22 +3036,15 @@ namespace Services
 			{
 
             }
+
 			//Reference Resource
-			//TODO - may have to start normalizing publicationDate to mm/dd/yyyy for compares and differences with leading zero)
-			//var publicationDate = item.Row.ReferenceResource_PublicationDate;
-			//DateTime outputDate = new DateTime();
-			//if (UtilityManager.IsDate( item.Row.ReferenceResource_PublicationDate, ref outputDate) )
-   //         {
-			//	publicationDate = outputDate.ToString( "MM/dd/yyyy" );
-			//}
-			
 			var rowRatingTaskSource = LookupOrGetFromDBOrCreateNew( summary, result,
 				//Find in summary
 				() => summary.GetAll<ReferenceResource>()
-					.FirstOrDefault( m =>
-						m.Name?.ToLower() == item.Row.ReferenceResource_Name?.ToLower() &&
-						m.PublicationDate?.ToLower() == ParseDateOrEmpty2( item.Row.ReferenceResource_PublicationDate?.ToLower())
-						//&& m.ReferenceType.Contains( rowSourceType.RowId )
+				.FirstOrDefault( m =>
+					m.Name?.ToLower() == item.Row.ReferenceResource_Name?.ToLower() &&
+					m.PublicationDate?.ToLower() == ParseDateOrEmpty2( item.Row.ReferenceResource_PublicationDate?.ToLower())
+					//&& m.ReferenceType.Contains( rowSourceType.RowId )
 				),
 				//Or get from DB
 				() => ReferenceResourceManager.Get( item.Row.ReferenceResource_Name, item.Row.ReferenceResource_PublicationDate ), //Should ReferenceType be used here as well?
@@ -3081,13 +3066,13 @@ namespace Services
 			var rowTrainingTask = LookupOrGetFromDBOrCreateNew( summary, result,
 				//Find in summary
 				() => summary.GetAll<TrainingTask>()
-					.FirstOrDefault( m =>
-						 m.Description?.ToLower() == item.Row.TrainingTask_Description?.ToLower() 
-						 && m.CourseCodedNotation.ToLower() == item.Row?.Course_CodedNotation.ToLower()
+				.FirstOrDefault( m =>
+					m.Description?.ToLower() == item.Row.TrainingTask_Description?.ToLower() &&
+					m.CourseCodedNotation.ToLower() == item.Row?.Course_CodedNotation.ToLower()
 				),
 				//Or get from DB.
-				//22-04-16 just description is not enough. We want the previous one even if the descr has changed.
-				//		NOTE: ensure there is check so that if the  training desc has changed, there will be an update request
+				//22-04-16 just description is not enough. We want the previous one even if the description has changed.
+				//		NOTE: ensure there is a check so that if the training description has changed, there will be an update request
 				() => TrainingTaskManager.GetTrainingTaskForRatingTask( rowRating.CodedNotation, item.Row.Row_CodedNotation, item.Row.Course_CodedNotation, item.Row.TrainingTask_Description, ref summary ),
 				//() => TrainingTaskManager.Get( item.Row.TrainingTask_Description ),
 				//Or create new
@@ -3186,6 +3171,7 @@ namespace Services
 			{
 				HandleGuidListAddition( summary, summary.ItemsToBeCreated.TrainingTask, summary.FinalizedChanges.TrainingTask, result, rowTrainingTask, nameof( TrainingTask.AssessmentMethodType ), rowAssessmentMethodType );
 			}
+			HandleValueChange( summary, summary.ItemsToBeCreated.TrainingTask, summary.FinalizedChanges.TrainingTask, result, rowTrainingTask, nameof( TrainingTask.Description ), item.Row.TrainingTask_Description );
 
 			//Course
 			HandleGuidListAddition( summary, summary.ItemsToBeCreated.Course, summary.FinalizedChanges.Course, result, rowCourse, nameof( Course.HasTrainingTask ), rowTrainingTask );
