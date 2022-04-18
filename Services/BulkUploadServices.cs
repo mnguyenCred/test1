@@ -36,7 +36,7 @@ namespace Services
 			return ( ChangeSummary ) MemoryCache.Default.Get( rowID.ToString() );
 		}
 		//
-		public static void ApplyChangeSummary( ChangeSummary summary, ref SaveStatus status )
+		public static void ApplyChangeSummary( ChangeSummary summary)
 		{
 			if ( summary == null )
 				return;
@@ -52,8 +52,8 @@ namespace Services
 			{
 				ActivityType = "RMTL",
 				Activity = "Upload",
-				Event = "Processing Started",
-				Comment = String.Format( "A bulk upload initiated by: '{0}' for Rating: '{1}' was committed.", user.FullName(), summary.Rating ?? "" ),
+				Event = "Save Started",
+				Comment = String.Format( "A bulk upload save was initiated by: '{0}' for Rating: '{1}' was committed.", user.FullName(), summary.Rating ?? "" ),
 				ActionByUserId = user.Id,
 				ActionByUser = user.FullName()
 			};
@@ -164,7 +164,7 @@ namespace Services
 						var parent = CourseManager.GetByCodedNotation( item );
 						if ( parent?.Id == 0 )
 						{
-							status.AddError( thisClassName + String.Format( ".ApplyChangeSummmary-ItemsToBeCreated.TrainingTask. Error - A course was not found for the provided CIN: {0}. ", item ) );
+							summary.AddError( thisClassName + String.Format( ".ApplyChangeSummmary-ItemsToBeCreated.TrainingTask. Error - A course was not found for the provided CIN: {0}. ", item ) );
 							continue;
 						}
 
@@ -423,12 +423,7 @@ namespace Services
 
                             }
 						}
-						//just in case, do we need to also get created? To late here, doing in created step
-						//if ( summary.ItemsToBeCreated.TrainingTask?.Count > 0 )
-						//{
-						//	var results = summary.ItemsToBeCreated.TrainingTask.Where( p => item.HasTrainingTask.Any( p2 => p2 == p.RowId ) );
-						//	item.TrainingTasks.AddRange( results );
-						//}
+
 						item.CreatedById = item.LastUpdatedById = user.Id;
 						courseMgr.Save( item, ref summary );
 					}
@@ -449,10 +444,13 @@ namespace Services
 						var parent = CourseManager.GetByCodedNotation( item );
 						if ( parent?.Id == 0 )
 						{
-							status.AddError( thisClassName + String.Format( ".ApplyChangeSummmary-FinalizedChanges.TrainingTask. Error - A course was not found for the provided CIN: {0}. ", item ) );
+							summary.AddError( thisClassName + String.Format( ".ApplyChangeSummmary-FinalizedChanges.TrainingTask. Error - A course was not found for the provided CIN: {0}. ", item ) );
 							return;
 						}
+						if (parent.CodedNotation == "J-500-0029F" )
+                        {
 
+                        }
 						var results = summary.FinalizedChanges.TrainingTask.Where( p => p.CourseCodedNotation == item ).ToList();
 
 						parent.LastUpdatedById = user.Id;
@@ -542,7 +540,7 @@ namespace Services
 				ActivityType = "RMTL",
 				Activity = "Upload",
 				Event = "Processing Completed",
-				Comment = String.Format( "A bulk upload was completed by: '{0}' for Rating: '{1}'. Duration: {2:N2} seconds .", user.FullName(), summary.Rating ?? "", saveDuration.TotalSeconds ),
+				Comment = String.Format( "A bulk upload save was completed by: '{0}' for Rating: '{1}'. Duration: {2:N2} seconds .", user.FullName(), summary.Rating ?? "", saveDuration.TotalSeconds ),
 				ActionByUserId = user.Id,
 				ActionByUser = user.FullName()
 			};
@@ -2690,6 +2688,13 @@ namespace Services
 		{
 			//Hold the result
 			var result = new UploadableItemResult() { Valid = true };
+			//Validate user
+			AppUser user = AccountServices.GetCurrentUser();
+			if ( user?.Id == 0 )
+			{
+				result.Errors.Add( "Error - a current user was not found. You must authenticated and authorized to use this function!" );
+				return result;
+			}
 
 			//Get the current transaction's summary, or create it if it doesn't exist
 			var summary = GetCachedChangeSummary( item.TransactionGUID );
@@ -2705,18 +2710,25 @@ namespace Services
 
 				//Cache the summary object
 				CacheChangeSummary( summary );
-			}
+
+				//how to add an activity for the start of a new upload? row id of 3? may not be passed
+				var rating = item.Row.Rating_CodedNotation ?? "missing";
+				SiteActivity sa = new SiteActivity()
+                {
+                    ActivityType = "RMTL",
+                    Activity = "Upload",
+                    Event = "Starting",
+                    Comment = String.Format( "A bulk upload was initiated by: '{0}' for Rating: '{1}'.", user.FullName(), rating ),
+                    ActionByUserId = user.Id,
+                    ActionByUser = user.FullName()
+                };
+                new ActivityServices().AddActivity( sa );
+            }
 			if (summary.Messages.Error?.Count > 0)
             {
 
             }
-			//Validate user
-			AppUser user = AccountServices.GetCurrentUser();
-			if ( user?.Id == 0 )
-			{
-				result.Errors.Add( "Error - a current user was not found. You must authenticated and authorized to use this function!" );
-				return result;
-			}
+
 			//can't do now, as row by row, needs to be done by client?. Could put it in the changeSummary
 			DateTime sectionStarted = DateTime.Now;
 			var sectionDuration = new TimeSpan();
@@ -2753,17 +2765,7 @@ namespace Services
 				item.RatingRowID.ToString()
 			);
 			summary.Rating = rowRating.CodedNotation;
-			//how to add an activity for the start of a new upload? row id of 3? may not be passed
-			//SiteActivity sa = new SiteActivity()
-			//{
-			//	ActivityType = "RMTL",
-			//	Activity = "Upload",
-			//	Event = "Reviewing",
-			//	Comment = String.Format( "A bulk upload was initiated by: '{0}' for Rating: '{1}'.", user.FullName(), rowRating.CodedNotation ),
-			//	ActionByUserId = user.Id,
-			//	ActionByUser = user.FullName()
-			//};
-			//new ActivityServices().AddActivity( sa );
+
 
 			//TBD - at some point will use the following combo for ratingTask codedNotation
 			//may need to ensure the unique id doesn't already include the rating code

@@ -164,10 +164,7 @@ namespace Factories
                                     ActivityObjectId = input.Id
                                 };
                                 new ActivityManager().SiteActivityAdd( sa );
-                                //TBD: will AssessmentMethodType still be on the course, or on the training task.
-                                //NOTE: if save comes from the standalone editor, there will be no asmts
 
-                                TrainingTaskAssessmentMethodSave( input, ref status );
 
                             }
                             else
@@ -180,6 +177,10 @@ namespace Factories
                                 EmailManager.NotifyAdmin( thisClassName + ".CourseTaskSave Failed Failed", message );
                             }
                         }
+                        //TBD: will AssessmentMethodType still be on the course, or on the training task.
+                        //NOTE: if save comes from the standalone editor, there will be no asmts
+
+                        TrainingTaskAssessmentMethodSave( input, ref status );
                     }
                     else
                     {
@@ -305,7 +306,10 @@ namespace Factories
                             {
                                 if ( !input.AssessmentMethodType.Contains( ( Guid ) key ) )
                                 {
-                                    DeleteTrainingAssessmentType( input.Id, e.Id, ref status );
+                                    status.AddWarning( String.Format("The current training task: '{0}', (course: {1}) didn't include an assessment method that was previously saved: '{2}'. Deletes are currently suspended to prevent incorrect deletes. ", FormatLongLabel( input.Description ), input.CourseCodedNotation,  e.Name ));
+
+                                    //a training task could be on multiple rows or rmtls, the asmt types may not be consistent
+                                    //DeleteTrainingAssessmentType( input.Id, e.Id, ref status );
                                 }
                             }
                         }
@@ -537,7 +541,7 @@ namespace Factories
         /// <summary>
         /// Get a training task that is associated with the current RMTL rowCodedNotation.
         /// this approach will properly handle updates. But what if meant to be a different task?
-        /// Could include description and to a fuzzy compare to the returned one. 
+        /// Could include description and do a fuzzy compare to the returned one. 
         /// Or, check if there more than 
         /// </summary>
         /// <param name="ratingTaskCodedNotation">In the future where this has a rating prefix, it will be more reliable.</param>

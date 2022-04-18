@@ -100,6 +100,7 @@ namespace NavyRRL.Controllers
 			var debuggerHere = "";
 			//End Temp for testing - remove this
 
+			
 			//Do something with the raw CSV
 			//item.RawCSV...
 			if ( rawCSV?.Length > 0 )
@@ -112,7 +113,24 @@ namespace NavyRRL.Controllers
 				}
 				else
 				{
-					//currentRating = new SM.Rating() { CodedNotation = "QM", Name = "QM" };
+					//temp means  to log end of upload
+					AppUser user = AccountServices.GetCurrentUser();
+					if ( user?.Id == 0 )
+					{
+						//result.Errors.Add( "Error - a current user was not found. You must authenticated and authorized to use this function!" );
+						//return result;
+					}
+
+					SiteActivity sa = new SiteActivity()
+					{
+						ActivityType = "RMTL",
+						Activity = "Upload",
+						Event = "Complete",
+						Comment = String.Format( "The RMTL upload step is completed for Rating: '{0}' by '{1}'.", currentRating.Name, user.FullName() ),
+						ActionByUserId = user.Id,
+						ActionByUser = user.FullName()
+					};
+					new ActivityServices().AddActivity( sa );
 
 					LoggingHelper.WriteLogFile( 1, string.Format( "Rating_upload_{0}_{1}.csv", currentRating.Name.Replace( " ", "_" ), DateTime.Now.ToString( "hhmmss" ) ), rawCSV, "", false );
 
@@ -122,7 +140,6 @@ namespace NavyRRL.Controllers
 					}
 				}
 			}
-			//Process the summary
 
 			//Return the response
 			return JsonResponse( null, true );
@@ -159,10 +176,16 @@ namespace NavyRRL.Controllers
 				return JsonResponse( null, false, new List<string>() { "Unable to find cached change summary. Please upload the data again." } );
 			}
 
-			//Process the summary
-			var status = new SaveStatus();
-			Services.BulkUploadServices.ApplyChangeSummary( summary, ref status );
 
+			try
+            {
+				//Process the summary
+				Services.BulkUploadServices.ApplyChangeSummary( summary );
+
+			} catch (Exception ex)
+            {
+				LoggingHelper.LogError( ex, "UploadController.ConfirmChangesV3" );
+            }
 			//Status isn't used, so read messages from summary instead
 			//Don't need to send back the entire summary
 
@@ -222,8 +245,8 @@ namespace NavyRRL.Controllers
 			{
 				//Update the database
 				var debug = new JObject();
-				SaveStatus status = new SaveStatus();
-				Services.BulkUploadServices.ApplyChangeSummary( summary, ref status );
+				//SaveStatus status = new SaveStatus();
+				Services.BulkUploadServices.ApplyChangeSummary( summary );
 				//check for messages
 
 				//For now, return the summary object (for testing purposes)
