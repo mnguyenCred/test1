@@ -806,7 +806,7 @@ namespace Services
 				var tempRatingTaskSource = summary.GetAll<ReferenceResource>()
 					.FirstOrDefault( m =>
 						m.Name?.ToLower() == item.Row.ReferenceResource_Name?.ToLower() &&
-						m.PublicationDate?.ToLower() == ParseDateOrEmpty2( item.Row.ReferenceResource_PublicationDate?.ToLower()) &&
+						m.PublicationDate?.ToLower() == ParseDateOrEmpty( item.Row.ReferenceResource_PublicationDate?.ToLower()) &&
 						m.ReferenceType.Contains( rowSourceType.RowId )
 					) ??
 					ReferenceResourceManager.Get( item.Row.ReferenceResource_Name, item.Row.ReferenceResource_PublicationDate ) ??
@@ -908,7 +908,7 @@ namespace Services
 				() => summary.GetAll<ReferenceResource>()
 				.FirstOrDefault( m =>
 					m.Name?.ToLower() == item.Row.ReferenceResource_Name?.ToLower() &&
-					m.PublicationDate?.ToLower() == ParseDateOrEmpty2( item.Row.ReferenceResource_PublicationDate?.ToLower())
+					m.PublicationDate?.ToLower() == ParseDateOrEmpty( item.Row.ReferenceResource_PublicationDate?.ToLower())
 					//&& m.ReferenceType.Contains( rowSourceType.RowId )
 				),
 				//Or get from DB
@@ -918,7 +918,7 @@ namespace Services
 				{
 					RowId = Guid.NewGuid(),
 					Name = item.Row.ReferenceResource_Name,
-					PublicationDate = ParseDateOrEmpty2( item.Row.ReferenceResource_PublicationDate )
+					PublicationDate = ParseDateOrEmpty( item.Row.ReferenceResource_PublicationDate )
 					//Other properties are handled in the next section
 				},
 				//Store if newly created
@@ -1307,95 +1307,9 @@ namespace Services
 		{
 			return string.IsNullOrWhiteSpace( text ) ? "N/A" : text;
 		}
-		#endregion
-
-		private static Concept FindConceptOrError( List<Concept> haystack, Concept needle, string warningLabel, string warningValue, List<string> warningMessages )
-		{
-			var match = haystack?.FirstOrDefault( m => MatchString( m.Name, needle.Name ) || MatchString( m.CodedNotation, needle.CodedNotation ) || MatchString( m.WorkElementType, needle.WorkElementType ) );
-			if ( match == null )
-			{
-				warningMessages.Add( "Error: Found unrecognized " + warningLabel + ": " + warningValue );
-				return new Concept() { RowId = Guid.NewGuid(), Name = needle?.Name, CodedNotation = needle?.CodedNotation, WorkElementType = needle?.WorkElementType };
-			}
-			return match;
-		}
-		private static List<Concept> FindConceptListOrError( List<Concept> haystack, Concept needle, string warningLabel, string warningValue, List<string> warningMessages )
-		{
-			var matches = haystack?.Where( m =>
-				( needle?.Name ?? "" ).ToLower().Contains( ( m?.Name ?? "" ).ToLower() )
-				|| ( needle.CodedNotation != null && ( needle?.CodedNotation ?? "" ).ToLower().Contains( ( m?.CodedNotation ?? "" ).ToLower() ) )
-				|| ( needle.WorkElementType != null && ( needle?.WorkElementType ?? "" ).ToLower().Contains( ( m?.WorkElementType ?? "" ).ToLower() ) )
-			).ToList();
-			if ( matches.Count() == 0 )
-			{
-				warningMessages.Add( "Error: Found unrecognized " + warningLabel + ": " + warningValue );
-			}
-			return matches;
-		}
 		//
 
-		private static void HandlePossibleDuplicates<T>( string typeLabel, IEnumerable<IGrouping<string, T>> groupings, List<T> existingItems, List<T> newItems, List<string> duplicateMessages ) where T : BaseObject
-		{
-			foreach ( var maybeDuplicates in groupings.Where( m => m.Count() > 1 ).ToList() )
-			{
-				var itemRowIDs = maybeDuplicates.Select( m => m.RowId ).ToList();
-				var existingCount = existingItems.Where( m => itemRowIDs.Contains( m.RowId ) ).Count();
-				var newCount = newItems.Where( m => itemRowIDs.Contains( m.RowId ) ).Count();
-				duplicateMessages.Add( "Found " + existingCount + " existing and " + newCount + " new instances of " + typeLabel + ": " + maybeDuplicates.Key );
-			}
-		}
-		//
-
-		//Temporary placeholder
-		private static List<RatingTask> SomeMethodThatFindsRatingTasksInBulkIrrespectiveOfTheirRating( List<RatingTask> input )
-		{
-			return new List<RatingTask>();
-		}
-		//
-
-		private static bool MatchString( string haystackCheck, string needleCheck )
-		{
-			return string.IsNullOrWhiteSpace( needleCheck ) ? false :
-				string.IsNullOrWhiteSpace( haystackCheck ) ? false :
-				haystackCheck.ToLower() == needleCheck.ToLower();
-		}
-		//
-
-		private static void FlagItemsForDeletion<T>( List<T> existingItems, List<T> referencedItems, List<T> itemsToBeDeleted, List<string> changeNotes, string typeLabel, Func<T, string> getItemLabel )
-		{
-			foreach ( var item in existingItems.Where( m => !referencedItems.Contains( m ) ).ToList() )
-			{
-				itemsToBeDeleted.Add( item );
-				changeNotes.Add( typeLabel + ": " + getItemLabel( item ) );
-			}
-		}
-		//
-
-		private static int GetUnchangedCount<T>( string propertyName, List<T> existing, ChangeSummary result ) where T : BaseObject
-		{
-			var property = typeof( UploadableData ).GetProperty( propertyName );
-			return existing.Where( m =>
-				 Find( ( List<T> ) property.GetValue( result.ItemsToBeChanged ), m.RowId ) == null &&
-				 Find( ( List<T> ) property.GetValue( result.ItemsToBeDeleted ), m.RowId ) == null &&
-				 Find( ( List<T> ) property.GetValue( result.AddedItemsToInnerListsForCopiesOfItems ), m.RowId ) == null &&
-				 Find( ( List<T> ) property.GetValue( result.RemovedItemsFromInnerListsForCopiesOfItems ), m.RowId ) == null
-			).Count();
-		}
-		//
-
-		private static DateTime ParseDateOrEmpty( string value )
-		{
-			try
-			{
-				return DateTime.Parse( value );
-			}
-			catch
-			{
-				return DateTime.MinValue;
-			}
-		}
-		//
-		private static string ParseDateOrEmpty2( string value )
+		private static string ParseDateOrEmpty( string value )
 		{
 			try
 			{
@@ -1409,32 +1323,8 @@ namespace Services
 			}
 		}
 		//
-		private static void Append<T>( List<T> items, T item )
-		{
-			if ( items != null && item != null && !items.Contains( item ) )
-			{
-				items.Add( item );
-			}
-		}
-		//
 
-		private static string NullifyNotApplicable( string test )
-		{
-			return string.IsNullOrWhiteSpace( test ) ? null :
-				test.ToLower() == "n/a" ? null :
-				test;
-		}
+		#endregion
 
-		public static T Find<T>( List<T> haystack, Guid needleRowID ) where T : BaseObject
-		{
-			return haystack?.FirstOrDefault( m => m?.RowId == needleRowID );
-		}
-		//
-
-		public static List<T> Find<T>( List<T> haystack, List<Guid> needleRowIDs ) where T : BaseObject
-		{
-			return haystack?.Where( m => needleRowIDs?.Contains( m.RowId ) ?? false ).ToList();
-		}
-		//
 	}
 }
