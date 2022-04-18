@@ -935,7 +935,7 @@ namespace Services
 					m.Description?.ToLower() == item.Row.TrainingTask_Description?.ToLower() &&
 					m.CourseCodedNotation.ToLower() == item.Row?.Course_CodedNotation.ToLower()
 				),
-				//Or get from DB.
+				//Or get from DB
 				//22-04-16 just description is not enough. We want the previous one even if the description has changed.
 				//		NOTE: ensure there is a check so that if the training description has changed, there will be an update request
 				() => TrainingTaskManager.GetTrainingTaskForRatingTask( rowRating.CodedNotation, item.Row.Row_CodedNotation, item.Row.Course_CodedNotation, item.Row.TrainingTask_Description, ref summary ),
@@ -1019,8 +1019,9 @@ namespace Services
 
             #endregion
 
+            #region Update entities with data
             //Now that all of the actors for this row have been found, created, and tracked...
-            #region Update them with the data from this row
+			//Update them with the data from this row
 
             //Billet Title
             HandleGuidListAddition( summary, summary.ItemsToBeCreated.BilletTitle, summary.FinalizedChanges.BilletTitle, result, rowBilletTitle, nameof( BilletTitle.HasRatingTask ), rowRatingTask );
