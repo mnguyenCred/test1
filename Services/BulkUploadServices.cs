@@ -1188,7 +1188,11 @@ namespace Services
 
 		public static List<string> SplitAndTrim( string text, string splitOn )
 		{
-			return text == null ? new List<string>() : text.Split( new string[] { splitOn }, StringSplitOptions.RemoveEmptyEntries ).Select( m => m.Trim() ).ToList();
+			return SplitAndTrim( text, new List<string>() { splitOn } );
+		}
+		public static List<string> SplitAndTrim(string text, List<string> splitOn )
+		{
+			return text == null ? new List<string>() : text.Split( splitOn.ToArray(), StringSplitOptions.RemoveEmptyEntries ).Select( m => m.Trim() ).ToList();
 		}
 		//
 
