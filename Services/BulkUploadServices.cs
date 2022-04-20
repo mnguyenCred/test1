@@ -553,6 +553,7 @@ namespace Services
 		{
 			//Hold the result
 			var result = new UploadableItemResult() { Valid = true };
+
 			//Validate user
 			AppUser user = AccountServices.GetCurrentUser();
 			if ( user?.Id == 0 )
@@ -1320,25 +1321,13 @@ namespace Services
 
 		private static string ParseDateOrValue( string value )
 		{
-			if (string.IsNullOrWhiteSpace( value ) )
-            {
-				return "";
-            }
 			try
 			{
-				DateTime outputDate = new DateTime();
-				if ( UtilityManager.IsDate( value, ref outputDate ) )
-				{
-					//no this asssumes a properly formed date. Vs something like: FR 2021-3
-					return outputDate.ToString( "MM/dd/yyyy" );
-				}
+				return DateTime.Parse( value ).ToString( "MM/dd/yyyy" );
 			}
-			catch
-			{
-				//or ""
-				//return DateTime.MinValue.ToString( "MM/dd/yyyy" );
-				return value;
-			}
+			catch { }
+
+			return value ?? "";
 		}
 		//
 
