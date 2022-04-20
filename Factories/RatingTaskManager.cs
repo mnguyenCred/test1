@@ -930,7 +930,7 @@ namespace Factories
                     {
                         //need to identify for sure what is unique
                         //use codedNotation first if present
-                        var record = Get( input, status.Rating );
+                        var record = Get( input, status.RatingCodedNotation );
                         if ( record?.Id > 0 )
                         {
                             //

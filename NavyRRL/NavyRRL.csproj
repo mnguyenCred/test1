@@ -571,14 +571,12 @@
     <Content Include="Scripts\popper.js.map" />
     <Content Include="Scripts\popper-utils.min.js.map" />
     <Content Include="Scripts\popper-utils.js.map" />
-    <Content Include="Views\Upload\UploadV1.cshtml" />
     <Content Include="Views\RMTL\ImportSummary.cshtml" />
     <Content Include="Views\Home\PageNotFound.cshtml" />
     <Content Include="Views\Upload\ImportSummary.cshtml" />
     <Content Include="Views\Shared\_ConsoleMessage.cshtml" />
     <Content Include="Views\Shared\_Header.cshtml" />
     <Content Include="Views\Upload\PreProcess.cshtml" />
-    <Content Include="Views\Upload\UploadV2.cshtml" />
     <Content Include="Views\Account\RegisterConfirmation.cshtml" />
     <Content Include="Views\Account\AddUser.cshtml" />
     <Content Include="Views\RMTL\Catalog.cshtml" />

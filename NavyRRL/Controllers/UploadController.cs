@@ -22,7 +22,6 @@ namespace NavyRRL.Controllers
     {
 		// GET: Upload
 		[CustomAttributes.NavyAuthorize( "Search", Roles = "Administrator, RMTL Developer, Site Staff" )]
-
 		public ActionResult Index()
         {
 			if ( !AccountServices.IsUserAuthenticated() )
@@ -35,31 +34,10 @@ namespace NavyRRL.Controllers
 				ConsoleMessageHelper.SetConsoleErrorMessage( "You must be logged in and authorized to perform this action." );
 				return RedirectToAction( AccountServices.EVENT_AUTHENTICATED, "event" );
 
-			} else
-            {
+			}
 
-            }
 			return View( "~/views/upload/uploadv3.cshtml" );
         }
-		//
-
-		[CustomAttributes.NavyAuthorize( "Search", Roles = "Administrator, RMTL Developer, Site Staff" )]
-		public ActionResult UploadV2()
-		{
-			return View( "~/views/upload/uploadv2.cshtml" );
-		}
-		//
-
-		public ActionResult UploadV1()
-		{
-			return View( "~/views/upload/uploadv1.cshtml" );
-		}
-		//
-
-		public ActionResult UploadV3()
-		{
-			return View( "~/views/upload/uploadv3.cshtml" );
-		}
 		//
 
 		public ActionResult ProcessUploadedItem( UploadableItem item )
@@ -102,13 +80,12 @@ namespace NavyRRL.Controllers
 
 			
 			//Do something with the raw CSV
-			//item.RawCSV...
 			if ( rawCSV?.Length > 0 )
 			{
 				var currentRating = Factories.RatingManager.Get( ratingRowID );
 				if ( currentRating?.Id == 0 )
 				{
-					summary.Messages.Error.Add( "Error: Could save input file, as was unable to find Rating for identifier: " + ratingRowID );
+					summary.Messages.Error.Add( "Error: Could not save input file: Unable to find Rating for identifier: " + ratingRowID );
 					//return summary;
 				}
 				else
@@ -121,6 +98,7 @@ namespace NavyRRL.Controllers
 						//return result;
 					}
 
+					summary.UploadFinished = DateTime.Now; //Compare with summary.UploadStarted to determine how long it took
 					SiteActivity sa = new SiteActivity()
 					{
 						ActivityType = "RMTL",
@@ -176,7 +154,6 @@ namespace NavyRRL.Controllers
 				return JsonResponse( null, false, new List<string>() { "Unable to find cached change summary. Please upload the data again." } );
 			}
 
-
 			try
             {
 				//Process the summary
@@ -201,62 +178,6 @@ namespace NavyRRL.Controllers
 				{ "Messages", JObject.FromObject( summary.Messages ) }
 			};
 			return JsonResponse( confirmation, true );
-		}
-		//
-
-
-		//Initial processing of the data before any changes are made to the database
-		//Expects the following arguments, but since we have to manually read them out of the request, we need to bypass MVC's default model binding
-		//CM.UploadableTable rawData, Guid ratingRowID
-		public ActionResult ProcessUpload()
-		{
-			//Get the raw request JSON
-			Request.InputStream.Position = 0;
-			var rawJSON = new StreamReader( Request.InputStream ).ReadToEnd();
-
-			//Read it into a JToken
-			//Have to do it this way to keep Newtonsoft from messing with the dates for some stupid reason
-			JToken token;
-			using ( var reader = new JsonTextReader( new StringReader( rawJSON ) ) { DateParseHandling = DateParseHandling.None } )
-			{
-				token = JToken.Load( reader );
-			}
-
-			//Extract the data from the request
-			var rawData = token[ "rawData" ].ToObject<CM.UploadableTable>();
-			var ratingRowID = token[ "ratingRowID" ].ToObject<Guid>();
-
-			//Construct Change Summary
-			var debug = new JObject();
-			var changeSummary = Services.BulkUploadServices.ProcessUploadV2( rawData, ratingRowID, debug );
-
-			//Store Change Summary in the Application Cache
-			Services.BulkUploadServices.CacheChangeSummary( changeSummary );
-
-			//Return the result
-			return JsonResponse( changeSummary, true, null, new { Debug = debug } );
-		}
-		//
-
-		public ActionResult ConfirmChanges( Guid changeSummaryRowID )
-		{
-			var summary = Services.BulkUploadServices.GetCachedChangeSummary( changeSummaryRowID );
-			if( summary != null )
-			{
-				//Update the database
-				var debug = new JObject();
-				//SaveStatus status = new SaveStatus();
-				Services.BulkUploadServices.ApplyChangeSummary( summary );
-				//check for messages
-
-				//For now, return the summary object (for testing purposes)
-				return JsonResponse( summary, true, null, debug );
-
-			}
-			else
-			{
-				return JsonResponse( null, false, new List<string>() { "Unable to find the cached summary of changes. This is usually caused by too much time passing between the initial processing and the confirmation of changes. Please re-process the spreadsheet and try again." }, null );
-			}
 		}
 		//
 

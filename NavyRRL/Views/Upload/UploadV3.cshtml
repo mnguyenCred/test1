@@ -1,8 +1,14 @@
 ﻿@using Services;
 @using Newtonsoft.Json;
 @{
-    ViewBag.Title = "Upload V3";
+	ViewBag.Title = "Upload V3";
 	var allRatings = RatingServices.GetAll().OrderByDescending( m => m.CodedNotation.ToLower() == "all" ).ToList();
+	var user = AccountServices.GetCurrentUser();
+	if( user == null || user.Id == 0 )
+	{
+		Response.Redirect( "~/" );
+	}
+	var isUserAdmin = AccountServices.IsUserAnAdmin();
 }
 
 <script type="text/javascript">
@@ -457,9 +463,15 @@
 
 		//Enable change confirmation if there are no errors
 		if (Manager.HasErrors) {
-			UI.ConfirmChangesButton.hide();
-			UI.FixErrorsMessage.show();
-			return;
+			if (@( isUserAdmin ? "true" : "false" )) {
+				UI.ConfirmChangesButton.show();
+				UI.FixErrorsMessage.show();
+			}
+			else {
+				UI.ConfirmChangesButton.hide();
+				UI.FixErrorsMessage.show();
+				return;
+			}
 		}
 		else {
 			UI.ConfirmChangesButton.show();
@@ -866,8 +878,15 @@
 
 	function confirmChanges() {
 		if (Manager.HasErrors) {
-			alert("You must correct the errors listed on the Summary tab before you can save the changes.");
-			return;
+			if (@( isUserAdmin ? "true" : "false" )) {
+				if (!confirm("One or more errors were detected.\n\nThis will result in faulty data being saved!\n\nAre you sure you want to save the changes?")) {
+					return;
+				}
+			}
+			else {
+				alert("You must correct the errors listed on the Summary tab before you can save the changes.");
+				return;
+			}
 		}
 
 		//Set status and disable buttons
@@ -1040,8 +1059,13 @@
 	.fixErrorsMessage { padding: 10px 20px; margin: 5px; background-color: #FCC; }
 	.undefined { background-color: #EEE; padding: 0 2px; }
 	.lookup { font-weight: bold; }
-	.confirmChangesButton { bottom: 0; position: fixed; background-color: green; color: white; height: 50px; }
 </style>
+@if ( isUserAdmin )
+{
+	<style type="text/css">
+		.confirmChangesButton { bottom: 0; left: 0; width: 100%; position: fixed; background-color: green; color: white; height: 50px; }
+	</style>
+}
 
 <h1>Upload RMTL Data</h1>
 
