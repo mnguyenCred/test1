@@ -176,6 +176,7 @@
     <Compile Include="Controllers\AdminController.cs" />
     <Compile Include="Controllers\BaseController.cs" />
     <Compile Include="Controllers\BilletTitleController.cs" />
+    <Compile Include="Controllers\ClusterAnalysisController.cs" />
     <Compile Include="Controllers\ConceptController.cs" />
     <Compile Include="Controllers\ConceptSchemeController.cs" />
     <Compile Include="Controllers\CourseController.cs" />
@@ -527,6 +528,7 @@
     <Content Include="Scripts\umd\popper-utils.min.js" />
     <Content Include="Scripts\umd\popper.js" />
     <Content Include="Scripts\umd\popper.min.js" />
+    <Content Include="Views\Course\Edit.cshtml" />
     <Content Include="Web.config" />
     <Content Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
@@ -608,7 +610,6 @@
     <Content Include="Views\BilletTitle\Detail.cshtml" />
     <Content Include="Views\BilletTitle\Edit.cshtml" />
     <Content Include="Views\Course\Detail.cshtml" />
-    <Content Include="Views\Course\Edit.cshtml" />
     <Content Include="Views\Organization\Detail.cshtml" />
     <Content Include="Views\Organization\Edit.cshtml" />
     <Content Include="Views\ReferenceResource\Detail.cshtml" />
@@ -625,6 +626,7 @@
     <Content Include="Views\ConceptScheme\Edit.cshtml" />
     <Content Include="Views\Shared\_DetailBasicInfo.cshtml" />
     <Content Include="Views\Upload\UploadV3.cshtml" />
+    <Content Include="Views\CareerAnalysis\Detail.cshtml" />
     <None Include="Web.Sandbox.config">
       <DependentUpon>Web.config</DependentUpon>
     </None>

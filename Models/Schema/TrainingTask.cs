@@ -25,6 +25,7 @@ namespace Models.Schema
 
 
 		public List<string> AssessmentMethods { get; set; } = new List<string>();
+		public int CourseId { get; set; }
 
 		public Guid Course { get; set; }
 		public string CourseCodedNotation { get; set; }

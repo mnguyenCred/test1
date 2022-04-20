@@ -13,16 +13,19 @@ namespace Models.Schema
 
         public int TrainingSolutionTypeId { get; set; }
         /// <summary>
-        /// Temp
+        /// used from view
         /// </summary>
         public string TrainingSolutionType { get; set; }
         public string ClusterAnalysisTitle { get; set; }
         public int RecommendedModalityId { get; set; }
         /// <summary>
-        /// Temp
+        /// used from view
         /// </summary>
         public string RecommendedModality { get; set; }
         public int DevelopmentSpecificationId { get; set; }
+        /// <summary>
+        /// used from view
+        /// </summary>
         public string DevelopmentSpecification { get; set; }
         public string CandidatePlatform { get; set; }
         public string CFMPlacement { get; set; }
@@ -54,5 +57,10 @@ namespace Models.Schema
 
         public string Notes { get; set; }
 
+        /// <summary>
+        /// used for general search
+        /// </summary>
+        public string Name { get; set; }
+        public string Description { get; set; }
     }
 }

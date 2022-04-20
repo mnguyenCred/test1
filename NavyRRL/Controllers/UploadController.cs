@@ -99,6 +99,9 @@ namespace NavyRRL.Controllers
 					}
 
 					summary.UploadFinished = DateTime.Now; //Compare with summary.UploadStarted to determine how long it took
+					var saveDuration = summary.UploadFinished.Subtract( summary.UploadStarted );
+					summary.Messages.Note.Add( string.Format( "Upload Duration: {0:N2} seconds ", saveDuration.TotalSeconds ) );
+
 					SiteActivity sa = new SiteActivity()
 					{
 						ActivityType = "RMTL",

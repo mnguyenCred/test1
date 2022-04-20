@@ -1,33 +1,7 @@
 USE [NavyRRL]
 GO
 
-ALTER TABLE [dbo].[ClusterAnalysis] DROP CONSTRAINT [FK_ClusterAnalysis_TrainingSolution.Concept]
-GO
-
-ALTER TABLE [dbo].[ClusterAnalysis] DROP CONSTRAINT [FK_ClusterAnalysis_RecommendedModality.Concept1]
-GO
-
-ALTER TABLE [dbo].[ClusterAnalysis] DROP CONSTRAINT [FK_ClusterAnalysis_RatingTask]
-GO
-
-ALTER TABLE [dbo].[ClusterAnalysis] DROP CONSTRAINT [DF_ClusterAnalysis_LastUpdated]
-GO
-
-ALTER TABLE [dbo].[ClusterAnalysis] DROP CONSTRAINT [DF_ClusterAnalysis_Created]
-GO
-
-ALTER TABLE [dbo].[ClusterAnalysis] DROP CONSTRAINT [DF_ClusterAnalysis_CTID]
-GO
-
-ALTER TABLE [dbo].[ClusterAnalysis] DROP CONSTRAINT [DF_ClusterAnalysis_RowId]
-GO
-
-/****** Object:  Table [dbo].[ClusterAnalysis]    Script Date: 4/8/2022 5:12:18 PM ******/
-IF  EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[ClusterAnalysis]') AND type in (N'U'))
-DROP TABLE [dbo].[ClusterAnalysis]
-GO
-
-/****** Object:  Table [dbo].[ClusterAnalysis]    Script Date: 4/8/2022 5:12:18 PM ******/
+/****** Object:  Table [dbo].[ClusterAnalysis]    Script Date: 4/20/2022 4:18:52 PM ******/
 SET ANSI_NULLS ON
 GO
 
@@ -42,10 +16,10 @@ CREATE TABLE [dbo].[ClusterAnalysis](
 	[ClusterAnalysisTitle] [nvarchar](500) NULL,
 	[RecommendedModalityId] [int] NULL,
 	[DevelopmentSpecificationId] [int] NULL,
-	[CandidatePlatform] [nvarchar](100) NULL,
-	[CFMPlacement] [varchar](100) NULL,
+	[CandidatePlatform] [nvarchar](max) NULL,
+	[CFMPlacement] [varchar](500) NULL,
 	[PriorityPlacement] [int] NULL,
-	[DevelopmentRatio] [varchar](100) NULL,
+	[DevelopmentRatio] [varchar](500) NULL,
 	[EstimatedInstructionalTime] [decimal](19, 2) NULL,
 	[DevelopmentTime] [int] NULL,
 	[CTID] [varchar](50) NULL,
@@ -74,6 +48,13 @@ ALTER TABLE [dbo].[ClusterAnalysis] ADD  CONSTRAINT [DF_ClusterAnalysis_Created]
 GO
 
 ALTER TABLE [dbo].[ClusterAnalysis] ADD  CONSTRAINT [DF_ClusterAnalysis_LastUpdated]  DEFAULT (getdate()) FOR [LastUpdated]
+GO
+
+ALTER TABLE [dbo].[ClusterAnalysis]  WITH CHECK ADD  CONSTRAINT [FK_ClusterAnalysis_DevSpec.Concept] FOREIGN KEY([DevelopmentSpecificationId])
+REFERENCES [dbo].[ConceptScheme.Concept] ([Id])
+GO
+
+ALTER TABLE [dbo].[ClusterAnalysis] CHECK CONSTRAINT [FK_ClusterAnalysis_DevSpec.Concept]
 GO
 
 ALTER TABLE [dbo].[ClusterAnalysis]  WITH CHECK ADD  CONSTRAINT [FK_ClusterAnalysis_RatingTask] FOREIGN KEY([RatingTaskId])

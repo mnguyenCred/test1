@@ -640,6 +640,7 @@ namespace Services
 				"Rank not found in database: \"" + TextOrNA( item.Row.PayGradeType_CodedNotation ) + "\"",
 				item.Row.PayGradeType_CodedNotation
 			);
+
 			//WorkElementType
 			var rowSourceType = GetDataOrError<Concept>( summary, ( m ) => 
 				m.WorkElementType?.ToLower() == item.Row.Shared_ReferenceType?.ToLower(), 
@@ -710,7 +711,7 @@ namespace Services
 				item.Row.Course_LifeCycleControlDocumentType_CodedNotation
 			);
 			var rowAssessmentMethodTypeList = GetDataListOrError<Concept>( summary, ( m ) => 
-				SplitAndTrim( item.Row.Course_AssessmentMethodType_Name?.ToLower(), "," ).Contains( m.Name?.ToLower() ), 
+				SplitAndTrim( item.Row.Course_AssessmentMethodType_Name?.ToLower(), ",;" ).Contains( m.Name?.ToLower() ), 
 				result, 
 				"Assessment Method Type not found in database: \"" + TextOrNA( item.Row.Course_AssessmentMethodType_Name ) + "\"",
 				item.Row.Course_AssessmentMethodType_Name
@@ -761,7 +762,7 @@ namespace Services
 			var hasClusterAnalysisData = false;
 			var rowTrainingSolutionType = GetDataOrError<Concept>( summary, ( m ) => 
 				m.SchemeUri == ConceptSchemeManager.ConceptScheme_TrainingSolutionType && 
-				m.Name?.ToLower() == item.Row.Training_Solution_Type?.ToLower(), 
+					(m.Name?.ToLower() == item.Row.Training_Solution_Type?.ToLower() || m.CodedNotation?.ToLower() == item.Row.Training_Solution_Type?.ToLower() ), 
 				result, 
 				"Training Solution Type not found in database: \"" + TextOrNA( item.Row.Training_Solution_Type ) + "\"", 
 				item.Row.Training_Solution_Type,
@@ -900,7 +901,11 @@ namespace Services
 			{
 
             }
+			//debug. or may not be properly handling a non-date
+			if ( item.Row.ReferenceResource_Name == "PMS MIP 5000/005" || item.Row.RatingTask_Description == "Manage sanitary Spaces" )
+            {
 
+            }
 			//Reference Resource
 			var rowRatingTaskSource = LookupOrGetFromDBOrCreateNew( summary, result,
 				//Find in summary
@@ -1188,6 +1193,16 @@ namespace Services
 
 		public static List<string> SplitAndTrim( string text, string splitOn )
 		{
+			if( splitOn.Length > 1)
+            {
+				foreach ( char character in splitOn )
+				{
+					if ( text.IndexOf(character) != -1 )
+                    {
+						return text == null ? new List<string>() : text.Split( new string[] { character.ToString() }, StringSplitOptions.RemoveEmptyEntries ).Select( m => m.Trim() ).ToList();
+					}
+				}
+			}
 			return text == null ? new List<string>() : text.Split( new string[] { splitOn }, StringSplitOptions.RemoveEmptyEntries ).Select( m => m.Trim() ).ToList();
 		}
 		//
@@ -1311,16 +1326,25 @@ namespace Services
 
 		private static string ParseDateOrEmpty( string value )
 		{
+			if (string.IsNullOrWhiteSpace( value ) )
+            {
+				return "";
+            }
 			try
 			{
-				return DateTime.Parse( value ).ToString( "MM/dd/yyyy" );
+				DateTime outputDate = new DateTime();
+				if ( UtilityManager.IsDate( value, ref outputDate ) )
+				{
+					//no this asssumes a properly formed date. Vs something like: FR 2021-3
+					return outputDate.ToString( "MM/dd/yyyy" );
+				}
 			}
 			catch
 			{
 				//or ""
 				//return DateTime.MinValue.ToString( "MM/dd/yyyy" );
-				return "";
 			}
+			return value;
 		}
 		//
 
