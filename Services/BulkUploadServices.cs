@@ -805,7 +805,7 @@ namespace Services
 				var tempRatingTaskSource = summary.GetAll<ReferenceResource>()
 					.FirstOrDefault( m =>
 						m.Name?.ToLower() == item.Row.ReferenceResource_Name?.ToLower() &&
-						m.PublicationDate?.ToLower() == ParseDateOrEmpty( item.Row.ReferenceResource_PublicationDate?.ToLower()) &&
+						m.PublicationDate?.ToLower() == ParseDateOrValue( item.Row.ReferenceResource_PublicationDate?.ToLower()) &&
 						m.ReferenceType.Contains( rowSourceType.RowId )
 					) ??
 					ReferenceResourceManager.Get( item.Row.ReferenceResource_Name, item.Row.ReferenceResource_PublicationDate ) ??
@@ -907,7 +907,7 @@ namespace Services
 				() => summary.GetAll<ReferenceResource>()
 				.FirstOrDefault( m =>
 					m.Name?.ToLower() == item.Row.ReferenceResource_Name?.ToLower() &&
-					m.PublicationDate?.ToLower() == ParseDateOrEmpty( item.Row.ReferenceResource_PublicationDate?.ToLower())
+					m.PublicationDate?.ToLower() == ParseDateOrValue( item.Row.ReferenceResource_PublicationDate?.ToLower())
 					//&& m.ReferenceType.Contains( rowSourceType.RowId )
 				),
 				//Or get from DB
@@ -917,7 +917,7 @@ namespace Services
 				{
 					RowId = Guid.NewGuid(),
 					Name = item.Row.ReferenceResource_Name,
-					PublicationDate = ParseDateOrEmpty( item.Row.ReferenceResource_PublicationDate )
+					PublicationDate = ParseDateOrValue( item.Row.ReferenceResource_PublicationDate )
 					//Other properties are handled in the next section
 				},
 				//Store if newly created
@@ -1313,7 +1313,7 @@ namespace Services
 		}
 		//
 
-		private static string ParseDateOrEmpty( string value )
+		private static string ParseDateOrValue( string value )
 		{
 			try
 			{
@@ -1323,7 +1323,7 @@ namespace Services
 			{
 				//or ""
 				//return DateTime.MinValue.ToString( "MM/dd/yyyy" );
-				return "";
+				return value;
 			}
 		}
 		//
