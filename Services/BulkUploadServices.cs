@@ -2872,18 +2872,17 @@ namespace Services
 				new List<object>() { rowCourseType, rowOrganizationCCA, rowCourseLCCDType }.Where( m => m == null ).Count() > 0 || 
 				new List<string>() { item.Row.TrainingTask_Description, item.Row.Course_CodedNotation, item.Row.Course_Name }.Where(m => string.IsNullOrWhiteSpace( m ) ).Count() > 0 || 
 				rowAssessmentMethodTypeList.Count() == 0 || 
-				result.Errors.Count() > 0 
-			)
+				result.Errors.Count() > 0 )
 			{
-				if ( UtilityManager.GetAppKeyValue( "environment" ) == "development" ) 
-				{
-					if ( string.IsNullOrWhiteSpace( item.Row.TrainingTask_Description ) )
-					{
-						result.Warnings.Add( "Training Task data is missing for this row." );
-					}
-					result.Warnings.Add( "Incomplete course/training data found. All course/training related columns should either have data or be marked as \"N/A\". Since the Training Gap Type is \"" + rowTrainingGapType.Name + "\", this is an error and processing this row cannot continue." );
-					//return result;
-				} else
+				//if ( UtilityManager.GetAppKeyValue( "environment" ) == "development" ) 
+				//{
+				//	if ( string.IsNullOrWhiteSpace( item.Row.TrainingTask_Description ) )
+				//	{
+				//		result.Warnings.Add( "Training Task data is missing for this row." );
+				//	}
+				//	result.Warnings.Add( "Incomplete course/training data found. All course/training related columns should either have data or be marked as \"N/A\". Since the Training Gap Type is \"" + rowTrainingGapType.Name + "\", this is an error and processing this row cannot continue." );
+				//	//return result;
+				//} else
                 {
 					if ( string.IsNullOrWhiteSpace( item.Row.TrainingTask_Description ) )
 					{

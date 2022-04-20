@@ -12,7 +12,7 @@ GO
 
 
 
-exec [RatingTask_DeleteForRatingCode] 'XS'
+exec [RatingTask_DeleteForRatingCode] 'ABF'
 go
 
 
@@ -21,7 +21,7 @@ go
 -- = Delete all RatingTasks for Rating code
 
 -- =========================================================
-CREATE PROCEDURE [dbo].[RatingTask_DeleteForRatingCode]
+Alter PROCEDURE [dbo].[RatingTask_DeleteForRatingCode]
 	@RatingCode	varchar(15)
    	with recompile
 As

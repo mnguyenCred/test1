@@ -172,3 +172,23 @@ set Description = 'Team Functional Skill Training'
 where [ConceptSchemeId]= 16 and [Name]= 'T-School'
 		   
 GO
+
+-- 22-04-19 additions
+--
+
+
+INSERT INTO [dbo].[ConceptScheme.Concept]
+           ([ConceptSchemeId]
+           ,[Name], Description
+           ,[CTID]
+           ,[ListId]           ,[IsActive]           ,[Created] ,[CreatedById]              ,[LastUpdated],[LastUpdatedById]
+		   )
+     VALUES
+           (16, 'K-School', 'K-School'
+		   ,'ce-78b9b643-cb67-4eb0-9ab9-522f516e4de6'		   ,25, 1, getdate(), 1, getdate(), 1
+			)
+GO
+
+
+
+--	select 'ce-' + lower(newid())
