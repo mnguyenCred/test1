@@ -470,8 +470,12 @@ namespace Factories
             List<string> errors = new List<string>();
             BaseFactory.AutoMap( input, output, errors );
             output.Name = output.Name?.Trim();
+            if ( string.IsNullOrWhiteSpace( output.PublicationDate ) )
+            {
+                output.PublicationDate = null;
+            }
             //the publication date format can be inconsistant
-            if ( IsValidDate( output.PublicationDate ) )
+            else if ( IsValidDate( output.PublicationDate ) )
             {
                 output.PublicationDate = DateTime.Parse( output.PublicationDate ).ToString( "MM/dd/yyyy" );
             }

@@ -33,12 +33,13 @@ namespace Factories
         public static string ConceptScheme_ReferenceResource = "navy:ReferenceResource";
         public static string ConceptScheme_TaskApplicability = "navy:TaskApplicability";
         public static string ConceptScheme_TrainingGap = "navy:TrainingGap";
+
         public static string ConceptScheme_TrainingSolutionType = "navy:TrainingSolutionType";
         public static string ConceptScheme_RecommendedModality = "navy:RecommendedModality";
         public static string ConceptScheme_DevelopmentSpecification = "navy:DevelopmentSpecification";
-        public static string ConceptScheme_CFMPlacement = "navy:CFMPlacement";
-        //navy:RecommendedModality
-        //navy:CFMPlacement
+        public static string ConceptScheme_CFMPlacement = "navy:CFMPlacement"; //??
+
+
         #region ConceptScheme
         #region ConceptScheme - Persistance
         //unlikely

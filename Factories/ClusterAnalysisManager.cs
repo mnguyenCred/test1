@@ -313,7 +313,7 @@ namespace Factories
             }
             return entity;
         }
-        public static AppEntity Get( Guid rowId, bool includingTrainingTasks = false )
+        public static AppEntity Get( Guid rowId)
         {
             var entity = new AppEntity();
 
@@ -324,7 +324,7 @@ namespace Factories
 
                 if ( item != null && item.Id > 0 )
                 {
-                    MapFromDB( item, entity, includingTrainingTasks );
+                    MapFromDB( item, entity );
                 }
             }
             return entity;
@@ -394,15 +394,16 @@ namespace Factories
                 {
                     var list = from Results in context.ClusterAnalysis
                                select Results;
-                    //if ( !string.IsNullOrWhiteSpace( filter ) )
-                    //{
-                    //    list = from Results in list
-                    //            .Where( s =>
-                    //            ( s.Name.ToLower().Contains( filter.ToLower() ) ) ||
-                    //            ( s.CodedNotation.ToLower() == filter.ToLower() )
-                    //            )
-                    //           select Results;
-                    //}
+                    if ( !string.IsNullOrWhiteSpace( filter ) )
+                    {
+                        list = from Results in list
+                                .Where( s =>
+                                ( s.ClusterAnalysisTitle.ToLower().Contains( filter.ToLower() ) )
+                                    || ( s.ConceptScheme_TrainingSolution!= null && s.ConceptScheme_TrainingSolution.Name.ToLower() == filter.ToLower() )
+                                    || ( s.ConceptScheme_RecommendedModality != null && s.ConceptScheme_RecommendedModality.Name.ToLower() == filter.ToLower() )
+                                )
+                               select Results;
+                    }
                     query.TotalResults = list.Count();
                     //sort order not handled
                     list = list.OrderBy( p => p.Id );
@@ -417,7 +418,7 @@ namespace Factories
                             if ( item != null && item.Id > 0 )
                             {
                                 entity = new AppEntity();
-                                MapFromDB( item, entity );
+                                MapFromDB( item, entity, true );
                                 output.Add( ( entity ) );
                             }
                         }
@@ -431,7 +432,7 @@ namespace Factories
             }
             return output;
         }
-        public static void MapFromDB( DBEntity input, AppEntity output, bool includingTrainingTasks = false )
+        public static void MapFromDB( DBEntity input, AppEntity output, bool formatForSearch = false )
         {
             //should include list of concepts
             List<string> errors = new List<string>();
@@ -439,6 +440,10 @@ namespace Factories
             if ( input.RowId != output.RowId )
             {
                 output.RowId = input.RowId;
+            }
+            if ( formatForSearch )
+            {
+                output.Name = String.Format( "", output.ClusterAnalysisTitle, output.TrainingSolutionType, output.RecommendedModality );
             }
             /*
             if ( input.ClusterAnalysis_AssessmentType != null )

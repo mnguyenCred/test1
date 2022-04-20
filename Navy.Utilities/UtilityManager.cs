@@ -1027,6 +1027,23 @@ namespace Navy.Utilities
 
         } //end
 
+        public static bool IsValidDate( string stringToTest )
+        {
+
+            //DateTime newDate;
+            bool result = false;
+            try
+            {
+                DateTime outputDate = System.DateTime.Parse( stringToTest );
+                result = true;
+            }
+            catch
+            {
+                result = false;
+            }
+            return result;
+
+        } //end
 
         #endregion
 

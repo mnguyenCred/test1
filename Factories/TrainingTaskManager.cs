@@ -140,8 +140,11 @@ namespace Factories
                         //this will include the extra props (like LifeCycleControlDocument, etc. for now)
                         //fill in fields that may not be in entity
                         input.RowId = efEntity.RowId;
+                        input.CourseId = efEntity.CourseId;
                         input.Created = efEntity.Created;
+                        input.LastUpdated = efEntity.LastUpdated;
                         input.CreatedById = ( efEntity.CreatedById ?? 0 );
+                        input.LastUpdatedById = ( efEntity.LastUpdatedById ?? 0 );
                         input.Id = efEntity.Id;
                         BaseFactory.AutoMap( input, efEntity, errors );
 

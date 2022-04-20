@@ -37,9 +37,9 @@ namespace Data.Tables
         public string RecommendedModality { get; set; }
         public string DevelopmentSpecification { get; set; }
     
-        public virtual ConceptScheme_Concept ConceptScheme_Concept { get; set; }
+        public virtual ConceptScheme_Concept ConceptScheme_DevelopementSpec { get; set; }
         public virtual RatingTask RatingTask { get; set; }
-        public virtual ConceptScheme_Concept ConceptScheme_Concept1 { get; set; }
-        public virtual ConceptScheme_Concept ConceptScheme_Concept2 { get; set; }
+        public virtual ConceptScheme_Concept ConceptScheme_RecommendedModality { get; set; }
+        public virtual ConceptScheme_Concept ConceptScheme_TrainingSolution { get; set; }
     }
 }
