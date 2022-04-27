@@ -5,51 +5,77 @@
 	ViewBag.Title = "Course: " + Model.Name;
 }
 
+<style type="text/css">
+	
+	.topSection .trainingTasks { padding: 10px; }
+	.detailsSection .trainingTasks .trainingTasksTable { width: 100%; }
+	.detailsSection .trainingTasks .trainingTasksTable tr { border-bottom: 1px solid #CCC; }
+	/*.detailsSection .trainingTasks .trainingTasksTable tr:last-child { border: none; }*/
+	.detailsSection .trainingTasks .trainingTasksTable tr td { padding: 5px; vertical-align: top; }
+	.detailsSection .trainingTasks .trainingTasksTable tr td:first-child { font-weight: bold; min-width: 100px; }
+
+</style>
 @Html.Partial( "~/Views/Shared/_DetailBasicInfo.cshtml", new DetailBasicInfoHelper()
 {
 	TypeLabel = "Course",
 	TypeURL = Model.GetType().Name.ToLower(),
 	Id = Model.Id,
 	Name = Model.Name,
+	Description = Model.Description,
 	Identifiers = new List<NamedValue>()
 	{
 		new NamedValue( "System ID", Model.Id.ToString() ),
-		new NamedValue( "CTID", Model.CTID ),
 		new NamedValue( "CIN", Model.CodedNotation ),
+		new NamedValue( "Course Type", String.Join(", ",Model.CourseTypeList.ToArray()) ),
+		new NamedValue( "CCA", Model.OrganizationName ),
+		new NamedValue( "LCCD", Model.LifeCycleControlDocument ),
 		new NamedValue( "Training Tasks", Model.TrainingTasks.Count.ToString() ),
+		new NamedValue( "CTID", Model.CTID ),
 	}
 } )
 
 <div class="detailsSection">
 
+	@if ( Model.TrainingTasks != null && Model.TrainingTasks.Count() > 0 )
+	{
+	<div class="trainingTasks">
+		<h2>Training Tasks</h2>
+		<p>Displayed alphabetically for review purposes.</p>
+		<table class="trainingTasksTable">
+			<thead>
+				<tr>
+					<th style="width: 70%">CTTL/PPP/TCCD Statement</th>
+					<th>Course Assessment Approach</th>
+				</tr>
+			</thead>
+			<tbody>
+				@foreach ( var item in Model.TrainingTasks.ToList() )
+				{
+					<tr>
+						<td>@item.Description</td>
+						<td>@string.Join( ", ", @item.AssessmentMethods.ToArray() )</td>
+					</tr>
+				}
+			</tbody>
+		</table>
+	</div>
+	}
+
+
 	@*@if ( Model.TrainingTasks != null && Model.TrainingTasks.Count() > 0 )
 	{
 		<div class="trainingTasks">
-			<table class="trainingTasksTable">
-				<tbody>
-					@foreach ( var item in Model.TrainingTasks.ToList() )
-					{
-						<tr>
-							<td>- @item.Description</td>
-						</tr>
-					}
-				</tbody>
-			</table>
-		</div>
-	}*@
-
-
-	@if ( Model.TrainingTasks != null && Model.TrainingTasks.Count() > 0 )
-	{
-		<div class="trainingTasks">
-			<h2>Training Tasks (alphabetically for review purposes)</h2>
+			<h2>Training Tasks / Assessment Methods</h2>
+			<p>Displayed alphabetically for review purposes.</p>
 			<ul class="trainingTasksTable">
 					@foreach ( var item in Model.TrainingTasks.ToList() )
 					{
-							<li>@item.Description</li>
+							<li>@item.Description
+							<ul><li>@string.Join(", ",@item.AssessmentMethods.ToArray())</li></ul>
+							</li>
 					}
 			</ul>
 		</div>
-	}
+	}*@
 </div>
 

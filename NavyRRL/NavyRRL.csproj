@@ -626,7 +626,8 @@
     <Content Include="Views\ConceptScheme\Edit.cshtml" />
     <Content Include="Views\Shared\_DetailBasicInfo.cshtml" />
     <Content Include="Views\Upload\UploadV3.cshtml" />
-    <Content Include="Views\CareerAnalysis\Detail.cshtml" />
+    <Content Include="Views\ClusterAnalysis\Detail.cshtml" />
+    <Content Include="Views\ClusterAnalysis\Edit.cshtml" />
     <Content Include="Views\Shared\_RatingTaskCountBySourceTypeTable.cshtml" />
     <None Include="Web.Sandbox.config">
       <DependentUpon>Web.config</DependentUpon>

@@ -487,7 +487,7 @@ namespace Factories
             }
             return output;
         }
-        public static void MapFromDB( DBEntity input, AppEntity output, bool includingTrainingTasks, bool appendingTraininTaskCount = false )
+        public static void MapFromDB( DBEntity input, AppEntity output, bool includingTrainingTasks, bool isSearchContext = false )
         {
             //should include list of concepts
             List<string> errors = new List<string>();
@@ -540,17 +540,19 @@ namespace Factories
                 if ( input.LifeCycleControlDocument_Concept?.Id > 0 )
                 {
                     output.LifeCycleControlDocument = input.LifeCycleControlDocument_Concept.Name;
+                    output.LifeCycleControlDocumentType = input.LifeCycleControlDocument_Concept.RowId;
                 }
             }
             //
             if ( input?.Course_Task?.Count > 0 )
             {
-                if ( appendingTraininTaskCount )
+                if ( isSearchContext )
                 {
+                    output.Description = (string.IsNullOrWhiteSpace( output.Description) ? "" : output.Description + "<br/>" ) + string.Format( "Includes {0} training tasks.", input.Course_Task.Count );
                     //output.Name += String.Format( " (Training Tasks: {0})", input.Course_Task.Count );
                 }
                 
-                output.Description = String.Format( "Includes {0} training tasks.", input.Course_Task.Count );
+                
                 if ( includingTrainingTasks )
                 {
                     foreach ( var item in input.Course_Task )

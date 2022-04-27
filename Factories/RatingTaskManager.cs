@@ -30,20 +30,20 @@ namespace Factories
 		public static new string thisClassName = "RatingTaskManager";
 		public static string cacheKey = "RatingTaskCache";
 		public static string cacheKeySummary = "RatingTaskSummaryCache";
-		#region Retrieval
-		/// <summary>
-		/// Don't know the input for sure. Could be ImportRMTL
-		/// check for an existing task using:
-		/// - PayGrade
-		/// - FunctionalArea (maybe not)
-		/// - Source/ReferenceResource
-		/// - RatingTask
-		/// A this point checking for GUIDs
-		/// </summary>
-		/// <param name="importEntity"></param>
-		/// <param name="includingConcepts"></param>
-		/// <returns></returns>
-		public static AppEntity Get( AppEntity importEntity, string currentRatingCodedNotation )
+        #region Retrieval
+        /// <summary>
+        /// Don't know the input for sure. Could be ImportRMTL
+        /// check for an existing task using:
+        /// - PayGrade
+        /// - FunctionalArea (maybe not)
+        /// - Source/ReferenceResource
+        /// - RatingTask
+        /// A this point checking for GUIDs
+        /// </summary>
+        /// <param name="importEntity"></param>
+        /// <param name="currentRatingCodedNotation"></param>
+        /// <returns></returns>
+        public static AppEntity Get( AppEntity importEntity, string currentRatingCodedNotation )
 		{
 			var entity = new AppEntity();
 			//will probably have to d
@@ -217,7 +217,7 @@ namespace Factories
                     foreach( var item in matches)
                     {
                         //if (item.RatingTask_HasRating.Contains('' ))
-                        MapFromDB( item, result );
+                        MapFromDB( item, result, false );
                         if ( matches.Count() == 1 )
                             break;
 
@@ -253,7 +253,7 @@ namespace Factories
                     if ( existing != null && existing.Count() > 0 )
                     {
                         if ( existing.Count() == 1 ) {
-                            MapFromDB( existing[0], result );
+                            MapFromDB( existing[0], result, false );
                         } else
                         {
                             //this should not be possible - as long as there is a check to prevent duplicate RT codes in an upload!
@@ -420,7 +420,7 @@ namespace Factories
 					foreach( var item in results )
 					{
 						var entity = new AppEntity();
-						MapFromDB( item, entity, true );
+						MapFromDB( item, entity, false, true );
 						output.Add( entity );
 					}
 				}
@@ -844,7 +844,7 @@ namespace Factories
 		} //
 
 
-		public static void MapFromDB( DBEntity input, AppEntity output, bool includingConcepts = false )
+        public static void MapFromDB( DBEntity input, AppEntity output, bool includingConcepts, bool isSearchContext = false )
         {
             //test automap
             List<string> errors = new List<string>();
@@ -865,6 +865,7 @@ namespace Factories
                     {
                         output.HasRating.Add( item.Rating.RowId );
                         output.RatingTitles.Add( item.Rating.Name );
+                        output.CurrentRatingCode = item.Rating.CodedNotation;
                         //
                     }
                 }
@@ -877,33 +878,37 @@ namespace Factories
                     {
                         output.HasBilletTitle.Add( item.Job.RowId );
                         output.BilletTitles.Add( item.Job.Name );
+                        output.BilletTitle = item.Job.Name;
                     }
                 }
             }
-            if ( input.RatingTask_WorkRole?.Count > 0 )
+            if ( !isSearchContext && input.RatingTask_WorkRole?.Count > 0 )
             {
                 foreach ( var item in input.RatingTask_WorkRole )
                 {
                     if ( item.WorkRole?.RowId != null )
+                    {
                         output.HasWorkRole.Add( item.WorkRole.RowId );
+                        output.FunctionalArea.Add( item.WorkRole.Name );
+                    }
                 }
             }
-            if ( input.RankId > 0 )
+            if ( !isSearchContext && input.RankId > 0 )
             {
                 ConceptSchemeManager.MapFromDB( input.ConceptScheme_Rank, output.TaskPaygrade );
                 output.PayGradeType = ( output.TaskPaygrade )?.RowId ?? Guid.Empty;
             }
-            if ( input.ReferenceResourceId > 0 )
+            if ( !isSearchContext && input.ReferenceResourceId > 0 )
             {
                 ReferenceResourceManager.MapFromDB( input.ToReferenceResource, output.ReferenceResource );
                 output.HasReferenceResource = ( output.ReferenceResource )?.RowId ?? Guid.Empty;
             }
-            if ( input.WorkElementTypeId > 0 )
+            if ( !isSearchContext && input.WorkElementTypeId > 0 )
             {
                 ConceptSchemeManager.MapFromDB( input.ConceptScheme_WorkElementType, output.TaskReferenceType );
                 output.ReferenceType = ( output.TaskReferenceType )?.RowId ?? Guid.Empty;
             }
-            if ( input.TaskApplicabilityId > 0 )
+            if ( !isSearchContext && input.TaskApplicabilityId > 0 )
             {
                 ConceptSchemeManager.MapFromDB( input.ConceptScheme_Applicability, output.TaskApplicabilityType );
                 output.ApplicabilityType = (output.TaskApplicabilityType)?.RowId ?? Guid.Empty;
@@ -911,7 +916,7 @@ namespace Factories
                 //output.ApplicabilityType = ConceptSchemeManager.MapConcept( input.ConceptScheme_Applicability )?.RowId ?? Guid.Empty;
 
 			}
-            if ( input.FormalTrainingGapId > 0 )
+            if ( !isSearchContext && input.FormalTrainingGapId > 0 )
             {
                 ConceptSchemeManager.MapFromDB( input.ConceptScheme_TrainingGap, output.TaskTrainingGap );
                 output.TrainingGapType = ( output.TaskTrainingGap )?.RowId ?? Guid.Empty;
@@ -919,12 +924,24 @@ namespace Factories
                 //output.TrainingGapType = ConceptSchemeManager.MapConcept( input.ConceptScheme_TrainingGap )?.RowId ?? Guid.Empty;
 			}
 
-            if ( input.RatingTask_HasTrainingTask?.Count > 0 )
+            if ( !isSearchContext && input.RatingTask_HasTrainingTask?.Count > 0 )
             {
                 foreach ( var item in input.RatingTask_HasTrainingTask )
                 {
                     if ( item.Course_Task?.RowId != null )
+                    {
                         output.HasTrainingTaskList.Add( item.Course_Task.RowId );
+                        output.TrainingTasks.Add( TrainingTaskManager.MapFromDB( item.Course_Task ) );
+                    }
+                }
+            }
+
+            if ( !isSearchContext && input.ClusterAnalysis?.Count > 0 )
+            {
+                //should only be one
+                foreach ( var item in input.ClusterAnalysis )
+                {
+                    output.ClusterAnalysis = ClusterAnalysisManager.MapFromDB( item );
                 }
             }
         }

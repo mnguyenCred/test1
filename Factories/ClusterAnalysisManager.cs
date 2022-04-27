@@ -209,7 +209,7 @@ namespace Factories
                     {
                         //?no info on error
 
-                        string message = thisClassName + string.Format( ". Add Failed", "Attempted to add a ClusterAnalysis. The process appeared to not work, but was not an exception, so we have no message, or no clue. ClusterAnalysis: {0}, CodedNotation: {1}", entity.ClusterAnalysisTitle, entity.TrainingSolutionType );
+                        string message = thisClassName + string.Format( ". Add Failed", "Attempted to add a ClusterAnalysis. The process appeared to not work, but was not an exception, so we have no message, or no clue. ClusterAnalysis: {0}, CodedNotation: {1}", entity.ClusterAnalysisTitle, entity.TrainingSolution );
                         status.AddError( thisClassName + ". Error - the add was not successful. " + message );
                         EmailManager.NotifyAdmin( thisClassName + ". Add Failed", message );
                     }
@@ -224,7 +224,7 @@ namespace Factories
                 catch ( Exception ex )
                 {
                     string message = FormatExceptions( ex );
-                    LoggingHelper.LogError( ex, thisClassName + string.Format( ".Add(), ClusterAnalysisTitle:{0}, entity.TrainingSolutionType: {1}", entity.ClusterAnalysisTitle, entity.TrainingSolutionType ) );
+                    LoggingHelper.LogError( ex, thisClassName + string.Format( ".Add(), ClusterAnalysisTitle:{0}, entity.TrainingSolutionType: {1}", entity.ClusterAnalysisTitle, entity.TrainingSolution ) );
                     status.AddError( thisClassName + ".Add(). Error - the save was not successful. \r\n" + message );
                 }
             }
@@ -245,9 +245,9 @@ namespace Factories
             if ( input.TrainingSolutionTypeId > 0 )
                 output.TrainingSolutionTypeId = input.TrainingSolutionTypeId;
 
-            else if ( !string.IsNullOrWhiteSpace( input.TrainingSolutionType ) )
+            else if ( !string.IsNullOrWhiteSpace( input.TrainingSolution ) )
             {
-                output.TrainingSolutionTypeId = ( int ) ConceptSchemeManager.GetConcept( ConceptSchemeManager.ConceptScheme_TrainingSolutionType, input.TrainingSolutionType )?.Id;
+                output.TrainingSolutionTypeId = ( int ) ConceptSchemeManager.GetConcept( ConceptSchemeManager.ConceptScheme_TrainingSolutionType, input.TrainingSolution )?.Id;
             }
             else
                 output.TrainingSolutionTypeId = null;
@@ -443,81 +443,87 @@ namespace Factories
             }
             if ( formatForSearch )
             {
-                output.Name = String.Format( "", output.ClusterAnalysisTitle, output.TrainingSolutionType, output.RecommendedModality );
+                output.Name = String.Format( "{0} ~ {1} ! {2}", output.ClusterAnalysisTitle, output.TrainingSolution, output.RecommendedModality );
+            }
+            //handle nullables
+            if ( input.TrainingSolutionTypeId != null )
+            {
+                output.TrainingSolutionTypeId = ( int ) input.TrainingSolutionTypeId;
+                if ( input.ConceptScheme_TrainingSolution?.Id > 0 )
+                {
+                    output.TrainingSolution = input.ConceptScheme_TrainingSolution.Name;
+                    output.TrainingSolutionType = input.ConceptScheme_TrainingSolution.RowId;
+                }
+            }
+            if ( input.DevelopmentSpecificationId != null )
+            {
+                output.DevelopmentSpecificationId = ( int ) input.DevelopmentSpecificationId;
+                if ( input.ConceptScheme_DevelopementSpec?.Id > 0 )
+                {
+                    output.DevelopmentSpecification = input.ConceptScheme_DevelopementSpec.Name;
+                    output.DevelopmentSpecificationType = input.ConceptScheme_DevelopementSpec.RowId;
+                }
+            }
+            if ( input.RecommendedModalityId != null )
+            {
+                output.RecommendedModalityId = ( int ) input.RecommendedModalityId;
+                if ( input.ConceptScheme_RecommendedModality?.Id > 0 )
+                {
+                    output.RecommendedModality = input.ConceptScheme_RecommendedModality.Name;
+                    output.RecommendedModalityType = input.ConceptScheme_RecommendedModality.RowId;
+                }
+            }
+            if ( input.PriorityPlacement != null )
+            {
+                output.PriorityPlacement = ( int ) input.PriorityPlacement;
+            }
+            if ( input.DevelopmentTime != null )
+            {
+                output.DevelopmentTime = ( int ) input.DevelopmentTime;
+                output.DevelopmentTimeLabel = output.DevelopmentTimeLabel.ToString();
             }
             /*
-            if ( input.ClusterAnalysis_AssessmentType != null )
-            {
-                foreach ( var item in input.ClusterAnalysis_AssessmentType )
-                {
-                    if ( item != null && item.ConceptScheme_Concept != null )
-                    {
-                        output.AssessmentMethodType.Add( item.ConceptScheme_Concept.RowId );
-                        output.AssessmentMethods.Add( item.ConceptScheme_Concept.Name );
-                    }
-                }
-            }
-            //
-            if ( input.ClusterAnalysis_ClusterAnalysisType?.Count > 0 )
-            {
-                output.ClusterAnalysisType = new List<Guid>();
-                int cntr = 0;
-                foreach ( var item in input.ClusterAnalysis_ClusterAnalysisType )
-                {
-                    cntr++;
-                    if ( item != null && item.ConceptScheme_Concept != null )
-                    {
-                        output.ClusterAnalysisType.Add( item.ConceptScheme_Concept.RowId );
-                        output.ClusterAnalysisTypeList.Add( item.ConceptScheme_Concept.Name );
-                    }
-                }
-            }
-            //
-            if ( input.CurriculumControlAuthorityId != null )
-            {
-                output.CurriculumControlAuthorityId = ( int ) input.CurriculumControlAuthorityId;
-                if ( input.Organization?.Id > 0 )
-                {
-                    output.OrganizationName = input.Organization.Name;
-                    output.Organizations.Add( output.OrganizationName );
-                    output.CurriculumControlAuthority.Add( input.Organization.RowId );
-                }
-            }
-            //
-            if ( input.LifeCycleControlDocumentId != null )
-            {
-                output.LifeCycleControlDocumentId = ( int ) input.LifeCycleControlDocumentId;
-                if ( input.ReferenceResource?.Id > 0 )
-                {
-                    output.LifeCycleControlDocument = input.ReferenceResource.Name;
-                    output.HasReferenceResource = input.ReferenceResource.RowId;
-                }
-            }
-            //
-            //if ( input.ClusterAnalysis_Organization?.Count > 0 )
-            //{
-            //    output.Organizations = new List<string>();
-            //    foreach ( var item in input.ClusterAnalysis_Organization )
-            //    {
-            //        if ( item != null && item.Organization != null )
-            //        {
-            //            output.CurriculumControlAuthority.Add( item.Organization.RowId );
-            //            output.Organizations.Add( item.Organization.Name );
-            //        }
-            //    }
-            //}
 
-            //
-            if ( includingTrainingTasks && input?.ClusterAnalysis_Task?.Count > 0 )
-            {
-                foreach ( var item in input.ClusterAnalysis_Task )
-                {
-                    output.HasTrainingTask.Add( item.RowId );
-                }
-            }
             */
         }
+        public static AppEntity MapFromDB( DBEntity input, bool formatForSearch = false )
+        {
+            AppEntity output = new AppEntity();
+            //should include list of concepts
+            List<string> errors = new List<string>();
+            BaseFactory.AutoMap( input, output, errors );
+            if ( input.RowId != output.RowId )
+            {
+                output.RowId = input.RowId;
+            }
+            if ( formatForSearch )
+            {
+                output.Name = String.Format( "", output.ClusterAnalysisTitle, output.TrainingSolution, output.RecommendedModality );
+            }
+            //handle nullables
+            if ( input.TrainingSolutionTypeId != null )
+            {
+                output.TrainingSolutionTypeId = ( int ) input.TrainingSolutionTypeId;
+            }
+            if ( input.DevelopmentSpecificationId != null )
+            {
+                output.DevelopmentSpecificationId = ( int ) input.DevelopmentSpecificationId;
+            }
+            if ( input.RecommendedModalityId != null )
+            {
+                output.RecommendedModalityId = ( int ) input.RecommendedModalityId;
+            }
+            if ( input.PriorityPlacement != null )
+            {
+                output.PriorityPlacement = ( int ) input.PriorityPlacement;
+            }
+            if ( input.DevelopmentTime != null )
+            {
+                output.DevelopmentTime = ( int ) input.DevelopmentTime;
+            }
 
+            return output;
+        }
         #endregion
 
         /// <summary>
