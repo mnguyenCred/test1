@@ -309,10 +309,17 @@ namespace Factories
                             {
                                 if ( !input.AssessmentMethodType.Contains( ( Guid ) key ) )
                                 {
-                                    status.AddWarning( String.Format("The current training task: '{0}', (course: {1}) didn't include an assessment method that was previously saved: '{2}'. Deletes are currently suspended to prevent incorrect deletes. ", FormatLongLabel( input.Description ), input.CourseCodedNotation,  e.Name ));
+                                    if ( status.Action == "Edit" )
+                                    {
+                                        DeleteTrainingAssessmentType( input.Id, e.Id, ref status );
+                                    }
+                                    else
+                                    {
+                                        status.AddWarning( String.Format( "The current training task: '{0}', (course: {1}) didn't include an assessment method that was previously saved: '{2}'. Deletes are currently suspended to prevent incorrect deletes. ", FormatLongLabel( input.Description ), input.CourseCodedNotation, e.Name ) );
 
-                                    //a training task could be on multiple rows or rmtls, the asmt types may not be consistent
-                                    //DeleteTrainingAssessmentType( input.Id, e.Id, ref status );
+                                        //a training task could be on multiple rows or rmtls, the asmt types may not be consistent
+                                        //DeleteTrainingAssessmentType( input.Id, e.Id, ref status );
+                                    }
                                 }
                             }
                         }

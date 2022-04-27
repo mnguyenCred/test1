@@ -67,6 +67,8 @@ namespace Models.Schema
 		/// OBSOLETE: FunctionalAreaId
 		/// </summary>
 		public List<Guid> HasWorkRole { get; set; }
+		public List<string> FunctionalArea { get; set; } = new List<string>();
+
 
 		/// <summary>
 		/// GUID for the Concept for the Reference Type for this Rating Task (e.g. a reference to "300 Series PQS Watch Station")<br />
@@ -112,6 +114,9 @@ namespace Models.Schema
 		public Concept TaskApplicabilityType { get; set; } = new Concept();
 		public Concept TaskTrainingGap { get; set; } = new Concept();
 		public Concept TaskReferenceType { get; set; } = new Concept();
+		public List<TrainingTask> TrainingTasks { get; set; } = new List<TrainingTask>();
+
+		public List<string> TrainingTask { get; set; } = new List<string>();
 		//TBD - at least for upload
 		public ClusterAnalysis ClusterAnalysis { get; set; } = new ClusterAnalysis();
 	}

@@ -16,6 +16,109 @@
 	{
 		new NamedValue( "System ID", Model.Id.ToString() ),
 		new NamedValue( "CTID", Model.CTID ),
-		new NamedValue( "Code", Model.CodedNotation )
+		new NamedValue( "Code", Model.CodedNotation ),
+		new NamedValue( "Rating", Model.CurrentRatingCode ),
+		new NamedValue( "Billet Title", Model.BilletTitle ),
+		new NamedValue( "Rank", Model.TaskPaygrade.Name ),
+		new NamedValue( "Functional Area", Model.FunctionalArea[0]),
+		new NamedValue( "Source", Model.ReferenceResource.Name),
+		new NamedValue( "Date of Source", Model.ReferenceResource.PublicationDate),
+		new NamedValue( "Work Element Type", Model.TaskReferenceType.WorkElementType),
+		new NamedValue( "Task Applicability", Model.TaskApplicabilityType.Name),
+		new NamedValue( "Formal Training Gap", Model.TaskTrainingGap.Name),
 	}
 } )
+
+@if ( Model.TrainingTasks != null && Model.TrainingTasks.Count() > 0 )
+{
+	@*<div class="trainingTasks">
+			<h2>Training Tasks</h2>
+			<ul class="trainingTasksTable">
+				@foreach ( var item in Model.TrainingTasks.ToList() )
+				{
+					<li>@item.Description</li>
+				}
+			</ul>
+		</div>*@
+
+	<div class="trainingTasks">
+		<h2>Training Tasks</h2>
+		<table class="trainingTasksTable">
+			<thead>
+				<tr>
+					<th style="width:100px; vertical-align: top">CIN</th>
+					<th style="width:20%; vertical-align: top">Course</th>
+					<th>Training Task</th>
+				</tr>
+			</thead>
+			<tbody>
+				@foreach ( var item in Model.TrainingTasks.ToList() )
+				{
+					<tr>
+						<td style="vertical-align: top">@item.CourseCodedNotation</td>
+						<td style="vertical-align: top">@item.CourseName</td>
+						<td style="vertical-align: top">@item.Description</td>
+					</tr>
+				}
+			</tbody>
+		</table>
+	</div>
+
+}
+
+@if ( Model.ClusterAnalysis != null && !string.IsNullOrWhiteSpace( Model.ClusterAnalysis.ClusterAnalysisTitle ) )
+{
+	<div class="clusterAnalysis">
+		<h2>Cluster Analysis</h2>
+		<table class="clusterAnalysisTable">
+			<thead>
+				<tr>
+					<td style="width: 250px">&nbsp;</td>
+					<td>&nbsp;</td>
+				</tr>
+			</thead>
+			<tbody>
+				<tr>
+					<td style="font-weight: bold">Training Solution Type</td>
+					<td style="vertical-align: top">@Model.ClusterAnalysis.TrainingSolution</td>
+				</tr>
+				<tr>
+					<td style="font-weight: bold">Cluster Analysis Title</td>
+					<td style="vertical-align: top">@Model.ClusterAnalysis.ClusterAnalysisTitle</td>
+				</tr>
+				<tr>
+					<td style="font-weight: bold">RecommendedModality</td>
+					<td style="vertical-align: top">@Model.ClusterAnalysis.RecommendedModality</td>
+				</tr>
+				<tr>
+					<td style="font-weight: bold">Development Specification</td>
+					<td style="vertical-align: top">@Model.ClusterAnalysis.DevelopmentSpecification</td>
+				</tr>
+				<tr>
+					<td style="font-weight: bold">Candidate Platform</td>
+					<td style="vertical-align: top">@Model.ClusterAnalysis.CandidatePlatform</td>
+				</tr>
+				<tr>
+					<td style="font-weight: bold">CFM Placement</td>
+					<td style="vertical-align: top">@Model.ClusterAnalysis.CFMPlacement</td>
+				</tr>
+				<tr>
+					<td style="font-weight: bold">Priority Placement</td>
+					<td style="vertical-align: top">@Model.ClusterAnalysis.PriorityPlacement</td>
+				</tr>
+				<tr>
+					<td style="font-weight: bold">Development Ratio</td>
+					<td style="vertical-align: top">@Model.ClusterAnalysis.DevelopmentRatio</td>
+				</tr>
+				<tr>
+					<td style="font-weight: bold">Estimated Instructional Time</td>
+					<td style="vertical-align: top">@Model.ClusterAnalysis.EstimatedInstructionalTime</td>
+				</tr>
+				<tr>
+					<td style="font-weight: bold">Development Time</td>
+					<td style="vertical-align: top">@Model.ClusterAnalysis.DevelopmentTime</td>
+				</tr>
+			</tbody>
+		</table>
+	</div>
+}

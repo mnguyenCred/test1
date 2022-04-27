@@ -5,7 +5,7 @@
 @{
 	var title = Model.Id > 0 ? "Editing Cluster Analysis" : "New Cluster Analysis";
 	ViewBag.Title = title;
-	
+
 	var trainingSolutionTypeList = Factories.ConceptSchemeManager.GetbyShortUri( Factories.ConceptSchemeManager.ConceptScheme_TrainingSolutionType ).Concepts.Select( m => SimpleItemHelper.GetSimpleItem( m ) ).ToList();
 	var recommendedModalityList = Factories.ConceptSchemeManager.GetbyShortUri( Factories.ConceptSchemeManager.ConceptScheme_RecommendedModality ).Concepts.Select( m => SimpleItemHelper.GetSimpleItem( m ) ).ToList();
 	var devSpecList = Factories.ConceptSchemeManager.GetbyShortUri( Factories.ConceptSchemeManager.ConceptScheme_DevelopmentSpecification ).Concepts.Select( m => SimpleItemHelper.GetSimpleItem( m ) ).ToList();
@@ -46,7 +46,7 @@
 				Field.renderItems();
 			},
 
-			
+
 			@*
 			HasTrainingTask: function (Field) {
 				Field.SelectedItems = [@Html.Raw( currentTrainingTask == null ? "" : JsonConvert.SerializeObject( currentTrainingTask, Formatting.None ) )];
@@ -106,20 +106,18 @@
 
 <form-item data-path="ClusterAnalysis.Id" data-ui="display" data-label="ID"></form-item>
 <form-item data-path="ClusterAnalysis.RowId" data-ui="display" data-label="RowID"></form-item>
-<form-item data-path="ClusterAnalysis.CodedNotation" data-ui="text" data-label="Code"></form-item>
-<form-item data-path="ClusterAnalysis.Description" data-ui="textarea" data-label="Description"></form-item>
-<form-item data-path="ClusterAnalysis.RecommendedModalityType" data-ui="select" data-label="Rank (Pay Grade)" data-config="RecommendedModalityType"></form-item>
-<form-item data-path="ClusterAnalysis.DevelopmentSpecificationType" data-ui="select" data-label="Applicability Type" data-config="DevelopmentSpecificationType"></form-item>
-<form-item data-path="ClusterAnalysis.TrainingGapType" data-ui="select" data-label="Training Gap Type" data-config="TrainingGapType"></form-item>
-<form-item data-path="ClusterAnalysis.HasReferenceResource" data-ui="select" data-label="Task Source" data-config="HasReferenceResource"></form-item>
-<form-item data-path="ClusterAnalysis.ReferenceType" data-ui="select" data-label="Task Source Type" data-config="ReferenceType"></form-item>
-<form-item data-path="ClusterAnalysis.HasRating_Add" data-ui="searchselectdeferred" data-label="Add Ratings" data-config="HasRating_Add"></form-item>
-<form-item data-path="ClusterAnalysis.HasRating_Remove" data-ui="searchselectdeferred" data-label="Remove Ratings" data-config="HasRating_Remove"></form-item>
-<form-item data-path="ClusterAnalysis.HasBilletTitle_Add" data-ui="searchselectdeferred" data-label="Add Billet Titles" data-config="HasBilletTitle_Add"></form-item>
-<form-item data-path="ClusterAnalysis.HasBilletTitle_Remove" data-ui="searchselectdeferred" data-label="Remove Billet Titles" data-config="HasBilletTitle_Remove"></form-item>
-<form-item data-path="ClusterAnalysis.HasWorkRole_Add" data-ui="searchselectdeferred" data-label="Add Functional Areas" data-config="HasWorkRole_Add"></form-item>
-<form-item data-path="ClusterAnalysis.HasWorkRole_Remove" data-ui="searchselectdeferred" data-label="Remove Functional Areas" data-config="HasWorkRole_Remove"></form-item>
-@*<form-item data-path="ClusterAnalysis.HasTrainingTask" data-ui="searchselectdeferred" data-label="Associated Training Task (Limit 1)" data-config="HasTrainingTask"></form-item>*@
-<form-item data-path="ClusterAnalysis.HasTrainingTaskList_Add" data-ui="searchselectdeferred" data-label="Add Associated Training Tasks" data-config="HasTrainingTaskList_Add"></form-item>
-<form-item data-path="ClusterAnalysis.HasTrainingTaskList_Remove" data-ui="searchselectdeferred" data-label="Remove Associated Training Tasks" data-config="HasTrainingTaskList_Remove"></form-item>
+<form-item data-path="ClusterAnalysis.TrainingSolutionTypeId" data-ui="select" data-label="Training Solution Type" data-config="TrainingSolutionType"></form-item>
+<form-item data-path="ClusterAnalysis.TrainingSolutionType" data-ui="text" data-label="Training Solution Type"></form-item>
+<form-item data-path="ClusterAnalysis.ClusterAnalysisTitle" data-ui="text" data-label="Cluster Analysis Title"></form-item>
+<form-item data-path="ClusterAnalysis.RecommendedModalityId" data-ui="select" data-label="Recommended Modality" data-config="RecommendedModalityType"></form-item>
+<form-item data-path="ClusterAnalysis.DevelopmentSpecificationId" data-ui="select" data-label="Development Specification Type" data-config="DevelopmentSpecificationType"></form-item>
+
+<form-item data-path="ClusterAnalysis.CandidatePlatform" data-ui="text" data-label="Candidate Platform"></form-item>
+<form-item data-path="ClusterAnalysis.CFMPlacement" data-ui="text" data-label="CFM Placement"></form-item>
+<form-item data-path="ClusterAnalysis.PriorityPlacement" data-ui="text" data-label="Priority Placement"></form-item>
+<form-item data-path="ClusterAnalysis.DevelopmentTime" data-ui="text" data-label="Development Time"></form-item>
+
+<form-item data-path="ClusterAnalysis.EstimatedInstructionalTime" data-ui="text" data-label="Estimated InstructionalTime"></form-item>
+<form-item data-path="ClusterAnalysis.DevelopmentRatio" data-ui="text" data-label="Development Ratio"></form-item>
+
 <form-item data-path="ClusterAnalysis.SaveButton" data-ui="savebutton" data-label="Save Changes" data-config="SaveButton"></form-item>

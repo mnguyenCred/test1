@@ -17,7 +17,9 @@
 	Identifiers = new List<NamedValue>()
 	{
 	new NamedValue( "System ID", Model.Id.ToString() ),
-	new NamedValue( "Course", @courseTitle ),
+	new NamedValue( "Course", Model.CourseName ),
+	new NamedValue( "CIN", Model.CourseCodedNotation ),
+	new NamedValue( "Assessment Methods", string.Join( ", ", Model.AssessmentMethods.ToArray()) ),
 	@*new NamedValue( "Course", @Html.Raw( "<a href="@Url.Content( "@courseUrl" ) > @courseTitle </ a > ").ToString() ),*@
 	new NamedValue( "CTID", Model.CTID )
 }

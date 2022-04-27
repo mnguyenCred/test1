@@ -9,6 +9,7 @@
 	//var assessmentMethodTypeList = Factories.ConceptSchemeManager.GetbyShortUri( Factories.ConceptSchemeManager.ConceptScheme_CurrentAssessmentApproach ).Concepts.Select( m => SimpleItemHelper.GetSimpleItem( m ) ).ToList();
 	var ccaList = Factories.OrganizationManager.GetAll().Select( m => SimpleItemHelper.GetSimpleItem( m ) ).ToList();
 	//var referenceResourceList = Factories.ReferenceResourceManager.GetAll().Select( m => SimpleItemHelper.GetSimpleItem( m ) ).ToList();
+	//do not append
 	var lccdList = Factories.ConceptSchemeManager.GetbyShortUri( Factories.ConceptSchemeManager.ConceptScheme_LifeCycleControlDocument ).Concepts.Select( m => SimpleItemHelper.GetSimpleItem( m ) ).ToList();
 }
 

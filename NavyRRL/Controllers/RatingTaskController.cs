@@ -31,7 +31,7 @@ namespace NavyRRL.Controllers
 		public ActionResult Detail( int id )
 		{
 			AuthenticateOrRedirect( "You must be authenticated and authorized to view Rating Task data." );
-			var data = Factories.RatingTaskManager.Get( id, false );
+			var data = Factories.RatingTaskManager.Get( id, true );
 			return View( data );
 		}
 		//
