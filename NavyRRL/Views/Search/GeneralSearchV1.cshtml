@@ -140,7 +140,6 @@
 	.searchHeader .searchFiltersBox { }
 	.searchHeader .searchStatusWrapper { display: flex; align-items: center; }
 	.searchHeader .searchStatusWrapper .searchStatusBox { font-style: italic; margin-right: 10px; padding: 0 5px; }
-	.searchHeader .searchStatusWrapper .searchPagingBox { flex: 0 0 200px; margin-left: auto; }
 
 	.searchResultsBox { }
 	.searchResultsBox .searchResult { display: flex; padding: 10px; border-top: 1px solid #CCC; }
@@ -153,6 +152,9 @@
 	.searchResultsBox .searchResult .resultLinks { display: flex; margin-left: auto; }
 	.searchResultsBox .searchResult .resultLinks a { padding: 0 10px; border-left: 1px solid #CCC; }
 	.searchResultsBox .searchResult .resultLinks a:first-child { border: none; }
+
+	.searchPagingBox { display: flex; gap: 2px 5px; justify-content: center; padding: 10px; }
+	.searchPagingBox .currentPage { font-weight: bold; }
 
 	.headerWithNewButton { display: flex; align-items: center; }
 	.headerWithNewButton a { margin-left: auto; font-size: 14px; }
@@ -188,8 +190,9 @@
 		<div class="searchStatusWrapper">
 			<div class="searchStatusBox"></div>
 			<div class="spinner searchSpinner"></div>
-			<div class="searchPagingBox"></div>
 		</div>
 	</div>
+	<div class="searchPagingBox"></div>
 	<div class="searchResultsBox"></div>
+	<div class="searchPagingBox"></div>
 </div>

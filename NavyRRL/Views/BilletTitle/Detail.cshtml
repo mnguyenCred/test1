@@ -1,5 +1,6 @@
 ﻿@using Models.Schema;
 @using Models.DTO;
+@using Models.Search;
 @model BilletTitle
 @{
 	ViewBag.Title = "Billet Title: " + Model.Name;
@@ -16,5 +17,14 @@
 	{
 		new NamedValue( "System ID", Model.Id.ToString() ),
 		new NamedValue( "CTID", Model.CTID )
+	}
+} )
+
+@Html.Partial( "~/Views/Shared/_RatingTaskCountBySourceTypeTable.cshtml", new List<SearchFilter>()
+{
+	new SearchFilter()
+	{
+		Name = "navy:Job",
+		ItemIds = new List<int>(){ Model.Id }
 	}
 } )

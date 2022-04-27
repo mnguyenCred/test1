@@ -88,18 +88,22 @@
 </script>
 
 <h2>@title</h2>
-
 <form-item data-path="Course.Id" data-ui="display" data-label="ID"></form-item>
 <form-item data-path="Course.RowId" data-ui="display" data-label="RowID"></form-item>
+
+<h3>Basic Info</h3>
 <form-item data-path="Course.Name" data-ui="text" data-label="Name"></form-item>
 <form-item data-path="Course.Description" data-ui="textarea" data-label="Description"></form-item>
-
 <form-item data-path="Course.CodedNotation" data-ui="text" data-label="Code"></form-item>
-@*<form-item data-path="Course.HasReferenceResource" data-ui="select" data-label="Source" data-config="HasReferenceResource"></form-item>*@
-<form-item data-path="Course.CourseType" data-ui="checkboxlist" data-label="Course Type" data-config="CourseType"></form-item>
 <form-item data-path="Course.LifeCycleControlDocumentType" data-ui="select" data-label="Life-Cycle Control Document Type" data-config="LifeCycleControlDocumentType"></form-item>
-@*<form-item data-path="Course.AssessmentMethodType" data-ui="checkboxlist" data-label="Assessment Method Type" data-config="AssessmentMethodType"></form-item>*@
+<form-item data-path="Course.CourseType" data-ui="checkboxlist" data-label="Course Type" data-config="CourseType"></form-item>
 <form-item data-path="Course.CurriculumControlAuthority" data-ui="checkboxlist" data-label="Curriculum Control Authority" data-config="CurriculumControlAuthority"></form-item>
+
+<h3>Add/Remove Training Tasks</h3>
 <form-item data-path="Course.HasTrainingTask_Add" data-ui="searchselectdeferred" data-label="Add Training Tasks" data-config="HasTrainingTask_Add"></form-item>
 <form-item data-path="Course.HasTrainingTask_Remove" data-ui="searchselectdeferred" data-label="Remove Training Tasks" data-config="HasTrainingTask_Remove"></form-item>
+
+<h3>Save Changes</h3>
 <form-item data-path="Course.SaveButton" data-ui="savebutton" data-label="Save Changes" data-config="SaveButton"></form-item>
+@*<form-item data-path="Course.HasReferenceResource" data-ui="select" data-label="Source" data-config="HasReferenceResource"></form-item>*@
+@*<form-item data-path="Course.AssessmentMethodType" data-ui="checkboxlist" data-label="Assessment Method Type" data-config="AssessmentMethodType"></form-item>*@

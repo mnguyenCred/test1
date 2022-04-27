@@ -372,16 +372,39 @@ namespace Factories
 						);
 					}
 
-					//Handle Training Gap Type
-					var trainingGapFilter = query.GetFilterByName( "navy:TrainingGap" );
-					if ( trainingGapFilter != null && trainingGapFilter.ItemIds?.Count() > 0 )
+					//Handle Training Gap Category
+					var trainingGapCategoryFilter = query.GetFilterByName( "navy:TrainingGapCategory" );
+					if ( trainingGapCategoryFilter != null && trainingGapCategoryFilter.ItemIds?.Count() > 0 )
 					{
 						list = list.Where( s =>
-							trainingGapFilter.IsNegation ?
-								!trainingGapFilter.ItemIds.Contains( s.FormalTrainingGapId ?? 0 ) :
-								trainingGapFilter.ItemIds.Contains( s.FormalTrainingGapId ?? 0 )
+							trainingGapCategoryFilter.IsNegation ?
+								!trainingGapCategoryFilter.ItemIds.Contains( s.FormalTrainingGapId ?? 0 ) :
+								trainingGapCategoryFilter.ItemIds.Contains( s.FormalTrainingGapId ?? 0 )
 						);
 					}
+
+					//Handle Applicability Category
+					var applicabilityCategoryFilter = query.GetFilterByName( "navy:ApplicabilityCategory" );
+					if ( applicabilityCategoryFilter != null && applicabilityCategoryFilter.ItemIds?.Count() > 0 )
+					{
+						list = list.Where( s =>
+							applicabilityCategoryFilter.IsNegation ?
+								!applicabilityCategoryFilter.ItemIds.Contains( s.TaskApplicabilityId ?? 0 ) :
+								applicabilityCategoryFilter.ItemIds.Contains( s.TaskApplicabilityId ?? 0 )
+						);
+					}
+
+					//Handle Pay Grade Category
+					var payGradeCategoryFilter = query.GetFilterByName( "navy:PayGradeCategory" );
+					if ( payGradeCategoryFilter != null && payGradeCategoryFilter.ItemIds?.Count() > 0 )
+					{
+						list = list.Where( s =>
+							payGradeCategoryFilter.IsNegation ?
+								!payGradeCategoryFilter.ItemIds.Contains( s.RankId ) :
+								payGradeCategoryFilter.ItemIds.Contains( s.RankId )
+						);
+					}
+
 
 					//Get total
 					query.TotalResults = list.Count();
