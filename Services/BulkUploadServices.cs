@@ -553,6 +553,7 @@ namespace Services
 		{
 			//Hold the result
 			var result = new UploadableItemResult() { Valid = true };
+
 			//Validate user
 			AppUser user = AccountServices.GetCurrentUser();
 			if ( user?.Id == 0 )
@@ -806,7 +807,7 @@ namespace Services
 				var tempRatingTaskSource = summary.GetAll<ReferenceResource>()
 					.FirstOrDefault( m =>
 						m.Name?.ToLower() == item.Row.ReferenceResource_Name?.ToLower() &&
-						m.PublicationDate?.ToLower() == ParseDateOrEmpty( item.Row.ReferenceResource_PublicationDate?.ToLower()) &&
+						m.PublicationDate?.ToLower() == ParseDateOrValue( item.Row.ReferenceResource_PublicationDate?.ToLower()) &&
 						m.ReferenceType.Contains( rowSourceType.RowId )
 					) ??
 					ReferenceResourceManager.Get( item.Row.ReferenceResource_Name, item.Row.ReferenceResource_PublicationDate ) ??
@@ -912,7 +913,7 @@ namespace Services
 				() => summary.GetAll<ReferenceResource>()
 				.FirstOrDefault( m =>
 					m.Name?.ToLower() == item.Row.ReferenceResource_Name?.ToLower() &&
-					m.PublicationDate?.ToLower() == ParseDateOrEmpty( item.Row.ReferenceResource_PublicationDate?.ToLower())
+					m.PublicationDate?.ToLower() == ParseDateOrValue( item.Row.ReferenceResource_PublicationDate?.ToLower())
 					//&& m.ReferenceType.Contains( rowSourceType.RowId )
 				),
 				//Or get from DB
@@ -922,7 +923,7 @@ namespace Services
 				{
 					RowId = Guid.NewGuid(),
 					Name = item.Row.ReferenceResource_Name,
-					PublicationDate = ParseDateOrEmpty( item.Row.ReferenceResource_PublicationDate )
+					PublicationDate = ParseDateOrValue( item.Row.ReferenceResource_PublicationDate )
 					//Other properties are handled in the next section
 				},
 				//Store if newly created
@@ -1318,27 +1319,15 @@ namespace Services
 		}
 		//
 
-		private static string ParseDateOrEmpty( string value )
+		private static string ParseDateOrValue( string value )
 		{
-			if (string.IsNullOrWhiteSpace( value ) )
-            {
-				return "";
-            }
 			try
 			{
-				DateTime outputDate = new DateTime();
-				if ( UtilityManager.IsDate( value, ref outputDate ) )
-				{
-					//no this asssumes a properly formed date. Vs something like: FR 2021-3
-					return outputDate.ToString( "MM/dd/yyyy" );
-				}
+				return DateTime.Parse( value ).ToString( "MM/dd/yyyy" );
 			}
-			catch
-			{
-				//or ""
-				//return DateTime.MinValue.ToString( "MM/dd/yyyy" );
-			}
-			return value;
+			catch { }
+
+			return value ?? "";
 		}
 		//
 
