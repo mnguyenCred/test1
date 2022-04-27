@@ -17,7 +17,8 @@
 			Query: {},
 			Results: [],
 			TotalResults: 0,
-			TotalPages: 1
+			TotalPages: 1,
+			PagingButtonThreshold: 5
 		};
 		//
 
@@ -92,6 +93,7 @@
 			Search.Results.forEach(Result => {
 				Search.renderResult(Result, Search.ResultsBox);
 			});
+			window.scrollTo(0, 0);
 		}
 		//
 
@@ -103,6 +105,11 @@
 		Search.renderPaging = function () {
 			Search.PagingBox.html("");
 			Search.TotalPages = Math.ceil(Search.TotalResults / Search.PageSize);
+			Search.pagingRenderer();
+		}
+		//
+
+		Search.renderSelectPaging = function () {
 			var select = $("<select></select>").appendTo(Search.PagingBox);
 			for (var i = 1; i <= Search.TotalPages; i++) {
 				select.append("<option value=\"" + i + "\">Page " + i + "</option>");
@@ -111,6 +118,24 @@
 				Search.PageNumber = parseInt(select.val());
 				Search.doSearch();
 			});
+			select.val(Search.PageNumber);
+		}
+		//
+
+		Search.renderButtonPaging = function () {
+			for (var i = 1; i <= Search.TotalPages; i++) {
+				if (i == 1 || i == Search.TotalPages || ((i - Search.PagingButtonThreshold) <= Search.PageNumber && Search.PageNumber <= (i + Search.PagingButtonThreshold))) {
+					createPagingButton(i);
+				}
+			}
+
+			function createPagingButton(page) {
+				var button = $("<button class=\"pagingButton " + (Search.PageNumber == i ? "currentPage" : "") + "\" " + (Search.PageNumber == i ? "disabled=\"disabled\"" : "") + ">Page " + i + "</button>").appendTo(Search.PagingBox);
+				button.on("click", function () {
+					Search.PageNumber = page;
+					Search.doSearch();
+				});
+			}
 		}
 		//
 
@@ -120,8 +145,12 @@
 		}
 		//
 
+		//Initialize and track
+		Search.pagingRenderer = Search.renderButtonPaging;
 		Search.Spinner.hide();
 		Searches.push(Search);
+
+		//Return
 		return Search;
 	}
 	//

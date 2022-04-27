@@ -12,7 +12,7 @@
 	.banner .subtitle > *:last-child { border: none; }
 	
 	.topSection { display: flex; margin-bottom: 10px; }
-	.topSection .description { flex: 1 0 60%; min-width: 450px; padding: 10px; white-space: pre-wrap; }
+	.topSection .description { flex: 1 0 60%; min-width: 450px; padding: 10px; white-space: pre-wrap; font-size: 12px; }
 	.topSection .identifiers { flex: 0 0 40%; min-width: 450px; padding: 10px; }
 	.topSection > div { border-right: 1px solid #CCC; }
 	.topSection > div:last-child { border: none; }
@@ -50,8 +50,8 @@
 					@foreach ( var item in Model.Identifiers.Where( m => !string.IsNullOrWhiteSpace( m.Value ) ).ToList() )
 					{
 						<tr>
-							<td>@item.Name</td>
-							<td>@item.Value</td>
+							<td>@Html.Raw( item.Name )</td>
+							<td>@Html.Raw( item.Value )</td>
 						</tr>
 					}
 				</tbody>

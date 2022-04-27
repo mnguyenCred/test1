@@ -1,0 +1,122 @@
+﻿@using Models.Search;
+@using Models.Schema;
+@model List<SearchFilter>
+@{ 
+	var trainingGapTypes = Factories.ConceptSchemeManager.GetbyShortUri( Factories.ConceptSchemeManager.ConceptScheme_TrainingGap ).Concepts;
+	var sourceTypes = Factories.ConceptSchemeManager.GetbyShortUri( Factories.ConceptSchemeManager.ConceptScheme_ReferenceResource ).Concepts;
+	var tasksBySource = new List<TaskCountBySource>();
+	var filters = Model ?? new List<SearchFilter>();
+
+	foreach( var sourceType in sourceTypes )
+	{
+		var allTotal = 0;
+		var gapTotal = 0;
+		var countQuery = new SearchQuery()
+		{
+			Filters = filters.Concat(new List<SearchFilter>()
+			{
+				new SearchFilter()
+				{
+					Name = "navy:ReferenceResourceCategory",
+					ItemIds = new List<int>(){ sourceType.Id }
+				}
+			}).ToList(),
+			PageSize = 0
+		};
+		Factories.RatingTaskManager.Search( countQuery );
+		allTotal = countQuery.TotalResults;
+
+		if( allTotal > 0 )
+		{
+			countQuery.Filters.Add( new SearchFilter()
+			{
+				Name = "navy:TrainingGapCategory",
+				ItemIds = trainingGapTypes.Where( m => m.Name.ToLower() != "no" ).Select( m => m.Id ).ToList()
+			} );
+			Factories.RatingTaskManager.Search( countQuery );
+			gapTotal = countQuery.TotalResults;
+		}
+
+		tasksBySource.Add( new TaskCountBySource()
+		{
+			SourceID = sourceType.Id,
+			SourceName = sourceType.Name,
+			TotalTasks = allTotal,
+			TasksWithGaps = gapTotal,
+		} );
+	}
+
+	var totalTasks = tasksBySource.Sum( m => m.TotalTasks );
+	var totalTasksWithCoverage = tasksBySource.Sum( m => m.TasksWithTraining );
+	var totalTasksWithGaps = tasksBySource.Sum( m => m.TasksWithGaps );
+	var totalTrainingCoveragePercent = GetPercent( totalTasksWithCoverage, totalTasks );
+	var totalTrainingGapsPercent = GetPercent( totalTasksWithGaps, totalTasks );
+}
+@functions {
+	public class TaskCountBySource
+	{
+		public int SourceID { get; set; }
+		public string SourceName { get; set; }
+		public int TotalTasks { get; set; }
+		public int TasksWithTraining { get { return TotalTasks - TasksWithGaps; } }
+		public int TasksWithGaps { get; set; }
+	}
+
+	public string GetPercent( int numerator, int denominator, int decimalPlaces = 4, string returnIfZero = "0%" )
+	{
+		return denominator == 0 ? returnIfZero : ( Math.Round( ( double ) numerator / ( double ) denominator, decimalPlaces ) * 100d + "%" );
+	}
+}
+
+<style type="text/css">
+	.tasksBySource { width: 100%; }
+	.tasksBySource thead th { padding: 2px 15px; text-align: right; width: 100px; }
+	.tasksBySource thead th.name, .tasksBySource thead th.barChartHeader { text-align: left; max-width: none; }
+	.tasksBySource thead th.name { width: 200px; }
+	.tasksBySource thead th.barChartHeader { padding-left: 5px; width: 100px; }
+	.tasksBySource tbody tr { border-top: 1px solid #CCC; }
+	.tasksBySource tbody td { padding: 0 15px; }
+	.tasksBySource tbody td:not(.name) { text-align: right; }
+	.tasksBySource tbody tr.total { font-weight: bold; }
+	.tasksBySource tbody .barChart { padding: 2px 5px; }
+	.tasksBySource tbody .barChart .barChartWrapper { background-color: #DDD; height: 18px; padding: 1px 2px; }
+	.tasksBySource tbody .barChart .barChartWrapper .allTasks { background-color: #33D; height: 8px; }
+	.tasksBySource tbody .barChart .barChartWrapper .coveredTasks { background-color: #0C3; height: 8px; }
+</style>
+
+<h2>Rating Tasks by Source Type</h2>
+<table class="tasksBySource">
+	<thead>
+		<tr><th class="name">Source Type</th><th>Tasks</th><th>Gaps</th><th>Coverage %</th><th>Gaps %</th><th class="barChartHeader">Tasks and Coverage</th></tr>
+	</thead>
+	<tbody>
+		@foreach ( var count in tasksBySource.OrderByDescending( m => m.TotalTasks ).ThenBy( m => m.TasksWithGaps ).ToList() )
+		{
+			var totalPercentageOfAll = GetPercent( count.TotalTasks, totalTasks );
+			var coveredPercentageOfAll = GetPercent( count.TasksWithTraining, totalTasks );
+			var coveragePercentage = GetPercent( count.TasksWithTraining, count.TotalTasks, 4, "N/A" );
+			var gapPercentage = GetPercent( count.TasksWithGaps, count.TotalTasks, 4, "N/A" );
+			<tr>
+				<td class="name">@count.SourceName</td>
+				<td>@count.TotalTasks</td>
+				<td>@count.TasksWithGaps</td>
+				<td>@coveragePercentage</td>
+				<td>@gapPercentage</td>
+				<td class="barChart">
+					<div class="barChartWrapper">
+						<div class="allTasks" style="width:@totalPercentageOfAll"></div>
+						<div class="coveredTasks" style="width:@coveredPercentageOfAll"></div>
+					</div>
+				</td>
+			</tr>
+		}
+		<tr class="total">
+			<td class="name">Total from All Sources</td>
+			<td>@totalTasks</td>
+			<td>@totalTasksWithGaps</td>
+			<td>@totalTrainingCoveragePercent</td>
+			<td>@totalTrainingGapsPercent</td>
+			<td></td>
+		</tr>
+	</tbody>
+</table>

@@ -165,13 +165,14 @@
 		Search.UI.FullScreenViewButton = $("[data-action='fullScreenView']");
 		Search.UI.NormalViewButton = $("[data-action='normalView']");
 		Search.UI.PageSelector = $(".pageSelector");
+		Search.UI.PagingBox = $(".pagingBox");
 		Search.UI.ResetAllFiltersButton = $("[data-action='resetFilters']");
 		Search.UI.ToggleFiltersButton = $("[data-action='toggleFilters']");
 		Search.UI.FiltersSummaryBox = $(".filterSummaryBox");
 
 		Search.UI.SearchSpinner.hide();
 		Search.UI.ExportSpinner.hide();
-		Search.UI.FiltersBox.hide();
+		//Search.UI.FiltersBox.hide();
 	}
 	//
 
@@ -500,8 +501,21 @@
 			//Update paging
 			var totalPages = Math.ceil((Search.Results.Data.TotalResults || 1) / Search.PageSize);
 			Search.UI.PageSelector.html("");
+			Search.UI.PagingBox.html("");
 			for (var i = 1; i <= totalPages; i++) {
 				Search.UI.PageSelector.append("<option value=\"" + i + "\"" + (i == Search.PageNumber ? " selected=\"selected\"" : "") + ">Page " + i + "</option>");
+				if (i == 1 || i == totalPages || ((i - 3) <= Search.PageNumber && Search.PageNumber <= (i + 3))) {
+					createPagingButton(i);
+				}
+			}
+			function createPagingButton(page) {
+				var button = $("<button class=\"searchButton " + (page == Search.PageNumber ? "currentPage" : "") + "\"" + (page == Search.PageNumber ? "disabled=\"disabled\"" : "") + ">Page " + page + "</button>").appendTo(Search.UI.PagingBox);
+				button.on("click", function () {
+					Search.PageNumber = page;
+					Search.UI.PagingBox.find("button").prop("disabled", true);
+					window.scrollTo(0, 0);
+					doSearch(true);
+				});
 			}
 
 			//Render results
@@ -572,10 +586,11 @@
 	#mainSiteFooter{display: none;}
 	.searchBox { }
 	.searchBox .searchHeader { position: relative; }
-	.searchBox .searchHeader .filterHeader { display: flex; gap: 10px; padding: 5px; }
+	.searchBox .searchHeader .filterHeader { display: flex; gap: 10px; align-items: baseline; padding: 5px; }
+	.searchBox .searchHeader .filterHeader [data-action='toggleFilters'] { font-weight: bold; padding: 5px 20px; }
 	.searchBox .searchHeader .filterHeader .filterSummaryBox { display: flex; flex-wrap: wrap; gap: 5px 10px; align-items: baseline; }
 	.searchBox .searchHeader .filterHeader .filterSummaryBox .filterSummary { background-color: #EEE; padding: 2px 10px; }
-	.searchBox .searchHeader .filtersBox { display: flex; position: absolute; z-index: 100; background-color: #FFF; border: 1px solid #CCC; max-height: calc(95vh - 150px); overflow-y: auto; width: 100%; }
+	.searchBox .searchHeader .filtersBox { display: flex; position: absolute; z-index: 100; background-color: #FFF; border: 1px solid #CCC; max-height: calc(95vh - 200px); overflow-y: auto; width: calc(100% - 15vw); margin: 35px 10px; box-shadow: 0 0 10px rgba(0,0,0,0.5); }
 	.searchBox .searchHeader .filtersBox .topSection { flex: 0 0 650px; display: flex; }
 	.searchBox .searchHeader .filtersBox .filter { padding: 5px; }
 	.searchBox .searchHeader .filtersBox .filter .filterLabel { font-weight: bold; border-bottom: 1px solid #CCC; }
@@ -616,10 +631,12 @@
 	.searchResults { background-color: #FFF; }
 	.searchResults.fullScreen { display: flex; flex-direction: column; position: fixed; z-index: 5000; top: 0; left: 0; width: 100vw; height: 100vh; }
 	.searchResults.fullScreen .searchResultsTableWrapper { max-height: none; }
-	.searchResults .searchResultsTableWrapper { flex: 1 1 auto; max-width: 100%; max-height: 90vh; overflow: scroll; }
+	.searchResults .searchResultsTableWrapper { flex: 1 1 auto; max-width: 100%; min-height: 75vh; max-height: 90vh; overflow: scroll; }
 	.searchResults .searchResultsTableWrapper .searchResultsTable { border-collapse: separate; border-spacing: 0; }
 	.searchResults .searchResultsTableWrapper .searchResultsTable th { position: sticky; top: 0px; border: 1px solid #777; border-width: 0 0 0 1px; }
 	.searchResults .searchResultsTableWrapper .searchResultsTable td { padding: 5px 10px; border: 1px solid #CCC; border-width: 1px 0 0 1px; font-size: 12px; }
+	.searchResults .pagingBox { display: flex; gap: 2px 5px; justify-content: center; padding: 10px; }
+	.searchResults .pagingBox .currentPage { font-weight: bold; }
 
 	@@media(max-width: 1300px) {
 		.searchBox .searchHeader .filtersBox { display: block; }
@@ -664,7 +681,7 @@
 <div class="searchBox">
 	<div class="searchHeader">
 		<div class="filterHeader">
-			<button data-action="toggleFilters">Filters...</button>
+			<button class="greenButton" data-action="toggleFilters">Search and Filter...</button>
 			<div class="filterSummaryBox"></div>
 		</div>
 		<div class="filtersBox">
@@ -694,5 +711,6 @@
 				<tbody></tbody>
 			</table>
 		</div>
+		<div class="pagingBox"></div>
 	</div>
 </div>
