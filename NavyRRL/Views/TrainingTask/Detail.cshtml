@@ -3,6 +3,8 @@
 @model TrainingTask
 @{
 	ViewBag.Title = "Training Task: " + Model.Description;
+	var courseUrl = "~/Course/Detail/" + Model.CourseCodedNotation;
+	var courseTitle = "Course: " + Model.CourseCodedNotation;
 }
 
 @Html.Partial( "~/Views/Shared/_DetailBasicInfo.cshtml", new DetailBasicInfoHelper()
@@ -14,7 +16,9 @@
 	Description = Model.Description,
 	Identifiers = new List<NamedValue>()
 	{
-		new NamedValue( "System ID", Model.Id.ToString() ),
-		new NamedValue( "CTID", Model.CTID )
-	}
+	new NamedValue( "System ID", Model.Id.ToString() ),
+	new NamedValue( "Course", @courseTitle ),
+	@*new NamedValue( "Course", @Html.Raw( "<a href="@Url.Content( "@courseUrl" ) > @courseTitle </ a > ").ToString() ),*@
+	new NamedValue( "CTID", Model.CTID )
+}
 } )

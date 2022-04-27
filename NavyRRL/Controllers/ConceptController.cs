@@ -61,14 +61,16 @@ namespace NavyRRL.Controllers
 			if ( status.HasAnyErrors )
 			{
 				var msg = string.Join( "</br>", status.Messages.Error.ToArray() );
-				ConsoleMessageHelper.SetConsoleErrorMessage( "Saved changes successfully." );
+				ConsoleMessageHelper.SetConsoleErrorMessage( msg );
+				return JsonResponse( data, false, status.Messages.Error, null );
 			}
 			else
 			{
 				//On success
 				ConsoleMessageHelper.SetConsoleSuccessMessage( "Saved changes successfully." );
+				return JsonResponse( data, true, null, null );
 			}
-			return JsonResponse( data, true, null, null );
+			
 		}
 		//
 	}

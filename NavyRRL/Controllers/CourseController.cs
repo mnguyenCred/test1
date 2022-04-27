@@ -34,6 +34,13 @@ namespace NavyRRL.Controllers
 			var data = Factories.CourseManager.Get( id, true );
 			return View( data );
 		}
+
+		public ActionResult Detail( string cin )
+		{
+			AuthenticateOrRedirect( "You must be authenticated and authorized to view Course data." );
+			var data = Factories.CourseManager.GetByCodedNotation( cin, true );
+			return View( data );
+		}
 		//
 
 		public ActionResult Edit( int id )

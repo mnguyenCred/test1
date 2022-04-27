@@ -15,6 +15,41 @@
 	{
 		new NamedValue( "System ID", Model.Id.ToString() ),
 		new NamedValue( "CTID", Model.CTID ),
-		new NamedValue( "Course ID", Model.CodedNotation )
+		new NamedValue( "CIN", Model.CodedNotation ),
+		new NamedValue( "Training Tasks", Model.TrainingTasks.Count.ToString() ),
 	}
 } )
+
+<div class="detailsSection">
+
+	@*@if ( Model.TrainingTasks != null && Model.TrainingTasks.Count() > 0 )
+	{
+		<div class="trainingTasks">
+			<table class="trainingTasksTable">
+				<tbody>
+					@foreach ( var item in Model.TrainingTasks.ToList() )
+					{
+						<tr>
+							<td>- @item.Description</td>
+						</tr>
+					}
+				</tbody>
+			</table>
+		</div>
+	}*@
+
+
+	@if ( Model.TrainingTasks != null && Model.TrainingTasks.Count() > 0 )
+	{
+		<div class="trainingTasks">
+			<h2>Training Tasks (alphabetically for review purposes)</h2>
+			<ul class="trainingTasksTable">
+					@foreach ( var item in Model.TrainingTasks.ToList() )
+					{
+							<li>@item.Description</li>
+					}
+			</ul>
+		</div>
+	}
+</div>
+

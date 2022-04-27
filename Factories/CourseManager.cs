@@ -283,7 +283,7 @@ namespace Factories
 
             } else
             {
-
+                output.CurriculumControlAuthorityId = null;
             }
 
 
@@ -356,11 +356,11 @@ namespace Factories
             var entity = new AppEntity();
             if ( string.IsNullOrWhiteSpace( codedNotation ) )
                 return null;
-
+            codedNotation = codedNotation.Trim().ToLower();
             using ( var context = new DataEntities() )
             {
                 var item = context.Course
-                            .FirstOrDefault( s => s.CodedNotation.ToLower() == codedNotation.ToLower() );
+                            .FirstOrDefault( s => s.CodedNotation.ToLower() == codedNotation );
 
                 if ( item != null && item.Id > 0 )
                 {
@@ -473,7 +473,7 @@ namespace Factories
                             if ( item != null && item.Id > 0 )
                             {
                                 entity = new AppEntity();
-                                MapFromDB( item, entity );
+                                MapFromDB( item, entity, false, true );
                                 output.Add( ( entity ) );
                             }
                         }
@@ -487,7 +487,7 @@ namespace Factories
             }
             return output;
         }
-        public static void MapFromDB( DBEntity input, AppEntity output, bool includingTrainingTasks = false )
+        public static void MapFromDB( DBEntity input, AppEntity output, bool includingTrainingTasks, bool appendingTraininTaskCount = false )
         {
             //should include list of concepts
             List<string> errors = new List<string>();
@@ -534,15 +534,6 @@ namespace Factories
                 }
             }
             //
-            //if ( input.LifeCycleControlDocumentId != null )
-            //{
-            //    output.LifeCycleControlDocumentId = (int)input.LifeCycleControlDocumentId;
-            //    if ( input.ReferenceResource?.Id > 0 )
-            //    {
-            //        output.LifeCycleControlDocument = input.ReferenceResource.Name;
-            //        output.HasReferenceResource = input.ReferenceResource.RowId;
-            //    }
-            //}
             if ( input.LifeCycleControlDocumentTypeId != null )
             {
                 output.LifeCycleControlDocumentTypeId = ( int ) input.LifeCycleControlDocumentTypeId;
@@ -552,25 +543,25 @@ namespace Factories
                 }
             }
             //
-            //if ( input.Course_Organization?.Count > 0 )
-            //{
-            //    output.Organizations = new List<string>();
-            //    foreach ( var item in input.Course_Organization )
-            //    {
-            //        if ( item != null && item.Organization != null )
-            //        {
-            //            output.CurriculumControlAuthority.Add( item.Organization.RowId );
-            //            output.Organizations.Add( item.Organization.Name );
-            //        }
-            //    }
-            //}
-
-            //
-            if ( includingTrainingTasks && input?.Course_Task?.Count > 0 )
+            if ( input?.Course_Task?.Count > 0 )
             {
-                foreach ( var item in input.Course_Task )
+                if ( appendingTraininTaskCount )
                 {
-                    output.HasTrainingTask.Add( item.RowId );
+                    //output.Name += String.Format( " (Training Tasks: {0})", input.Course_Task.Count );
+                }
+                
+                output.Description = String.Format( "Includes {0} training tasks.", input.Course_Task.Count );
+                if ( includingTrainingTasks )
+                {
+                    foreach ( var item in input.Course_Task )
+                    {
+                        output.HasTrainingTask.Add( item.RowId );
+                        output.AssessmentMethods.Add( item.Description );
+                        //really only need the text
+                        output.TrainingTasks.Add( TrainingTaskManager.MapFromDB( item ) );
+                    }
+                    output.AssessmentMethods = output.AssessmentMethods.OrderBy( s => s ).ToList();
+                    output.TrainingTasks = output.TrainingTasks.OrderBy( s => s.Description ).ToList();
                 }
             }
         }
@@ -591,7 +582,7 @@ namespace Factories
 				var course = matches.FirstOrDefault();
 				if( course != null )
 				{
-					MapFromDB( course, result );
+					MapFromDB( course, result, false );
 				}
 			}
 
