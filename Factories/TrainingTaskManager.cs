@@ -838,14 +838,25 @@ namespace Factories
 
 					//Handle Course Connection
 					var courseFilter = query.GetFilterByName( "ceterms:Course" );
-					if ( courseFilter != null && courseFilter.ItemIds?.Count() > 0 )
-					{
-						list = list.Where( s =>
-							courseFilter.IsNegation ?
-								!courseFilter.ItemIds.Contains( s.CourseId ) :
-								courseFilter.ItemIds.Contains( s.CourseId )
-						);
-					}
+                    if ( courseFilter != null && courseFilter.ItemIds?.Count() > 0 )
+                    {
+                        list = list.Where( s =>
+                            courseFilter.IsNegation ?
+                                !courseFilter.ItemIds.Contains( s.CourseId ) :
+                                courseFilter.ItemIds.Contains( s.CourseId )
+                        );
+                    }
+                    else
+                    {
+                        //if no keywords, include course name filter on keywords
+                        if ( !string.IsNullOrWhiteSpace( keywordsText ) )
+                        {
+                            //not working?
+                            list = list.Where( s =>
+                             s.Course.Name.ToLower().Contains( keywordsText ) || s.Course.CodedNotation.ToLower().Contains( keywordsText )
+                            );
+                        }
+                    }
 
 					//Handle Rating Task Connection
 					var ratingTaskFilter = query.GetFilterByName( "navy:RatingTask" );
@@ -865,7 +876,7 @@ namespace Factories
                     query.TotalResults = list.Count();
 
 					//Sort
-					list = list.OrderBy( p => p.Description );
+					list = list.OrderBy( p => p.Course.Name ).ThenBy( s => s.Description);
 
 					//Get page and populate
 					var results = list.Skip( skip ).Take( query.PageSize )
@@ -956,11 +967,13 @@ namespace Factories
             //
             if (input.Course?.Id > 0 )
             {
-                output.CourseName = input.Course.Name;
+                output.CourseName = output.CourseName = input.Course.Name;
                 output.CourseCodedNotation = input.Course.CodedNotation;
                 if ( appendingCourseCode )
                 {
                     output.Description += " (" + output.CourseCodedNotation + ")";
+                    //add fake name for search
+                    output.Name = string.Format("Course: {0} ({1}) ", output.CourseName, output.CourseCodedNotation);
                 }
             }
 
@@ -975,6 +988,44 @@ namespace Factories
                     }
                 }
             }
+        }
+
+        public static AppEntity MapFromDB( DBEntity input, bool appendingCourseCode = false )
+        {
+            //should include list of concepts
+            AppEntity output = new AppEntity();
+            List<string> errors = new List<string>();
+            BaseFactory.AutoMap( input, output, errors );
+            if ( input.RowId != output.RowId )
+            {
+                output.RowId = input.RowId;
+            }
+            //
+            if ( input.Course?.Id > 0 )
+            {
+                output.CourseName = output.CourseName = input.Course.Name;
+                output.CourseCodedNotation = input.Course.CodedNotation;
+                if ( appendingCourseCode )
+                {
+                    output.Description += " (" + output.CourseCodedNotation + ")";
+                    //add fake name for search
+                    output.Name = string.Format( "Course: {0} ({1}) ", output.CourseName, output.CourseCodedNotation );
+                }
+            }
+
+            if ( input.CourseTask_AssessmentType != null )
+            {
+                foreach ( var item in input.CourseTask_AssessmentType )
+                {
+                    if ( item != null && item.ConceptScheme_Concept != null )
+                    {
+                        output.AssessmentMethodType.Add( item.ConceptScheme_Concept.RowId );
+                        output.AssessmentMethods.Add( item.ConceptScheme_Concept.Name );
+                    }
+                }
+            }
+
+            return output;
         }
 
         #endregion

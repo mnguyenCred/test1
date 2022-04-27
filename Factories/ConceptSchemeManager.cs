@@ -412,7 +412,8 @@ namespace Factories
                 }
                 else
                 {
-                    status.AddError( "Error - A concept scheme Id or inscheme GUID must be provided with the Concept, and is missing. " );
+                    status.AddError( "Error - A concept scheme Id or inscheme GUID must be provided with the Concept, and is missing. Please select an entry from the 'Belongs To Concept Scheme ' dropdown list." );
+                    return false;
                 }
 
             }
@@ -438,7 +439,8 @@ namespace Factories
                         int newId = AddConcept( entity, ref status );
                         if ( newId == 0 || status.HasSectionErrors )
                             isValid = false;
-
+                        else 
+                            entity.Id = newId;
                         return isValid;
 
                     }
@@ -528,6 +530,11 @@ namespace Factories
             {
                 try
                 {
+                    if ( entity.ConceptSchemeId == 0)
+                    {
+                        status.AddError( "Error - A concept scheme Id must be provided with the Concept. Please select an entry from the 'Belongs To Concept Scheme ' dropdown list. " );
+                        return 0;
+                    }
                     efEntity.ConceptSchemeId = entity.ConceptSchemeId;
                     //require caller to set the codedNotation as needed
                     MapToDB( entity, efEntity );
@@ -704,7 +711,8 @@ namespace Factories
                                 .Where( s =>
                                 ( s.Name.ToLower().Contains( filter.ToLower() ) ) ||
                                 ( s.CodedNotation.ToLower().Contains( filter.ToLower() ) ) ||
-                                ( s.WorkElementType.ToLower().Contains( filter.ToLower() ) )
+                                ( s.WorkElementType.ToLower().Contains( filter.ToLower() ) ) ||
+                                ( s.ConceptScheme.Name.ToLower().Contains( filter.ToLower() ) )
                                 )
                                select Results;
                     }
@@ -752,7 +760,7 @@ namespace Factories
 			output.InScheme = input.ConceptScheme != null ? input.ConceptScheme.RowId : Guid.Empty;
             if (forSearchResults)
             {
-                output.Name += !string.IsNullOrWhiteSpace(input.ConceptScheme?.Name) ? " (" + input.ConceptScheme?.Name + ")" : "";
+                output.Name = (!string.IsNullOrWhiteSpace(input.ConceptScheme?.Name) ? "(" + input.ConceptScheme?.Name + ") " : "") + output.Name;
             }
             //if ( input != null && input.Id > 0 )
             //{

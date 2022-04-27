@@ -31,5 +31,7 @@ namespace Models.Schema
 		public string CourseCodedNotation { get; set; }
 
 		public string CourseName{ get; set; }
+		//use for a header in the search view
+		public string Name { get; set; }
 	}
 }
