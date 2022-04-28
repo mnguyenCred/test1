@@ -452,7 +452,10 @@ namespace Factories
                 output.RowId = input.RowId;
             }
             //
+            //if (input.Course_Organization )
+            //{
 
+            //}
         }
 
 

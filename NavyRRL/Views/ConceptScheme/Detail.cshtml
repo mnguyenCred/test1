@@ -4,7 +4,13 @@
 @{
 	ViewBag.Title = "Concept Scheme: " + Model.Name;
 }
+<style type="text/css">
 
+	.detailsSection .Concepts .ConceptsTable { width: 100%; }
+	.detailsSection .Concepts .ConceptsTable tr { border-bottom: 1px solid #CCC; }
+	.detailsSection .Concepts .ConceptsTable tr td { padding: 5px; vertical-align: top; }
+	.detailsSection .Concepts .ConceptsTable tr td:first-child { font-weight: bold; min-width: 100px; }
+</style>
 @Html.Partial( "~/Views/Shared/_DetailBasicInfo.cshtml", new DetailBasicInfoHelper()
 {
 	TypeLabel = "Concept Scheme",
@@ -18,3 +24,36 @@
 		new NamedValue( "CTID", Model.CTID )
 	}
 } )
+
+
+<div class="detailsSection">
+
+	@if ( Model.Concepts != null && Model.Concepts.Count() > 0 )
+	{
+		<div class="Concepts">
+			<h2>Concepts</h2>
+			<table class="ConceptsTable">
+				<thead>
+					<tr>
+						<th style="width: 30%">Name</th>
+						<th style="width: 15%">Coded Notation</th>
+						<th style="width: 20%">Work Element Type</th>
+						<th >Description</th>
+					</tr>
+				</thead>
+				<tbody>
+					@foreach ( var item in Model.Concepts.ToList() )
+					{
+					<tr>
+						<td>@item.Name</td>
+						<td>@item.CodedNotation</td>
+						<td>@item.WorkElementType</td>
+						<td>@item.Description</td>
+					</tr>
+					}
+				</tbody>
+			</table>
+		</div>
+	}
+
+</div>

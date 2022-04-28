@@ -476,11 +476,13 @@ namespace Factories
             if ( input.PriorityPlacement != null )
             {
                 output.PriorityPlacement = ( int ) input.PriorityPlacement;
+                output.PriorityPlacementLabel = output.PriorityPlacement.ToString();
             }
+
             if ( input.DevelopmentTime != null )
             {
                 output.DevelopmentTime = ( int ) input.DevelopmentTime;
-                output.DevelopmentTimeLabel = output.DevelopmentTimeLabel.ToString();
+                output.DevelopmentTimeLabel = output.DevelopmentTime.ToString();
             }
             /*
 

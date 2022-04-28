@@ -35,6 +35,7 @@ namespace Models.Schema
 
 
         public int PriorityPlacement { get; set; }
+        public string PriorityPlacementLabel { get; set; }
         /// <summary>
         /// TBD
         /// </summary>
