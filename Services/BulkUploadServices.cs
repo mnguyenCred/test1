@@ -712,7 +712,7 @@ namespace Services
 				item.Row.Course_LifeCycleControlDocumentType_CodedNotation
 			);
 			var rowAssessmentMethodTypeList = GetDataListOrError<Concept>( summary, ( m ) => 
-				SplitAndTrim( item.Row.Course_AssessmentMethodType_Name?.ToLower(), ",;" ).Contains( m.Name?.ToLower() ), 
+				SplitAndTrim( item.Row.Course_AssessmentMethodType_Name?.ToLower(), new List<string>() { ",", ";", "|" } ).Contains( m.Name?.ToLower() ), 
 				result, 
 				"Assessment Method Type not found in database: \"" + TextOrNA( item.Row.Course_AssessmentMethodType_Name ) + "\"",
 				item.Row.Course_AssessmentMethodType_Name
