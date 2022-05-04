@@ -1,5 +1,6 @@
 ﻿@using Newtonsoft.Json;
 @using Models.Schema;
+@using Models.DTO;
 @using Services;
 @{
 	ViewBag.Title = "RMTL Search";
@@ -40,6 +41,14 @@
 		Name = "ceterms:Course",
 		Items = courses.Select( m => { return new SimpleFilterItem() { Label = m.Name, Id = m.Id }; } ).ToList()
 	};
+
+	var trainingSolutionTypes = Factories.ConceptSchemeManager.GetbyShortUri( Factories.ConceptSchemeManager.ConceptScheme_TrainingSolutionType).Concepts.Select( m => SimpleItemHelper.GetSimpleItem( m ) ).ToList();
+	var trainingSolutionTypesFilter = new SimpleFilter()
+	{
+		Name = "navy:TrainingSolutionType",
+		Items = trainingSolutionTypes.Select( m => { return new SimpleFilterItem() { Label = m.Name, Id = m.Id }; } ).ToList()
+	};
+
 	var levels = SchemeToFilter( Factories.ConceptSchemeManager.ConceptScheme_RatingLevel );
 	var payGradeTypeFilter = SchemeToFilter( Factories.ConceptSchemeManager.ConceptScheme_Pay_Grade );
 	var trainingGapTypeFilter = SchemeToFilter( Factories.ConceptSchemeManager.ConceptScheme_TrainingGap );
@@ -47,6 +56,7 @@
 	var referenceTypeFilter = SchemeToFilter( Factories.ConceptSchemeManager.ConceptScheme_ReferenceResource );
 	var courseTypeFilter = SchemeToFilter( Factories.ConceptSchemeManager.ConceptScheme_CourseType );
 	var assessmentMethodTypeFilter = SchemeToFilter( Factories.ConceptSchemeManager.ConceptScheme_CurrentAssessmentApproach );
+	var trainingSolutionsTypeFilter = SchemeToFilter( Factories.ConceptSchemeManager.ConceptScheme_TrainingSolutionType );
 }
 @functions {
 	public class SimpleFilter
@@ -131,6 +141,7 @@
 			FunctionalArea: @Html.Raw(JsonConvert.SerializeObject( functionalAreaFilter, Formatting.None)),
 			Source: @Html.Raw(JsonConvert.SerializeObject( sourcesFilter, Formatting.None)),
 			Course: @Html.Raw(JsonConvert.SerializeObject( coursesFilter, Formatting.None)),
+			TrainingSolutionType: @Html.Raw(JsonConvert.SerializeObject( trainingSolutionTypesFilter, Formatting.None)),
 			TrainingGapType: @Html.Raw(JsonConvert.SerializeObject(trainingGapTypeFilter, Formatting.None)),
 			ApplicabilityType: @Html.Raw(JsonConvert.SerializeObject(applicabilityTypeFilter, Formatting.None)),
 			ReferenceType: @Html.Raw(JsonConvert.SerializeObject(referenceTypeFilter, Formatting.None)),
@@ -268,7 +279,10 @@
 		});
         createFilter_Autofill("navy:Organization", 0, textFilterBox, "Curriculum Control Authority", (Filter, text) => {
             return findSimpleFilterItem(Search.Prefilled.Organization.Items, Filter.Items, text);
-        });
+		});
+		createFilter_Autofill("navy:TrainingSolutionType", 0, textFilterBox, "Training Solution Type", (Filter, text) => {
+			return findSimpleFilterItem(Search.Prefilled.TrainingSolutionType.Items, Filter.Items, text);
+		});
 		Search.SortOrders = Search.Columns.map(column => {
 			return { Label: column.Label, Column: column.SortOrder, Ascending: true };
 		}).concat(Search.Columns.map(column => {
@@ -581,9 +595,11 @@
 <style type="text/css">
 	html body .container { width: 98vw; }
 	.spinner { display: inline-block; box-shadow: inset 4px 0 0 5px; border-radius: 50%; height: 20px; width: 20px; animation: spin 1s linear infinite; }
-	@@keyframes spin { 100% { transform: rotate(360deg); } }
+	@@keyframes spin {
+		100% { transform: rotate(360deg); }
+	}
 
-	#mainSiteFooter{display: none;}
+	#mainSiteFooter { display: none; }
 	.searchBox { }
 	.searchBox .searchHeader { position: relative; }
 	.searchBox .searchHeader .filterHeader { display: flex; gap: 10px; align-items: baseline; padding: 5px; }
@@ -624,7 +640,7 @@
 	.searchTableTopBar { display: flex; flex-wrap: wrap; align-items: center; padding: 5px 10px; background-color: #EEE; }
 	.searchTableTopBar > *:not(:last-child) { margin-right: 10px; }
 	.searchTableTopBar .searchStatus { font-weight: bold; }
-	.searchTableTopBar .searchSpinner {  }
+	.searchTableTopBar .searchSpinner { }
 	.searchTableTopBar .searchTopBarDivider { margin-left: auto; }
 	.searchTableTopBar .pageSelector { height: 26px; }
 

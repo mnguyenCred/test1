@@ -238,6 +238,11 @@ namespace Factories
             List<string> errors = new List<string>();
             //
             BaseFactory.AutoMap( input, output, errors );
+            //clean up Development ratio (pair off :00)
+            if ( output.DevelopmentRatio?.Length > 0 && output.DevelopmentRatio.EndsWith( ":00" )) 
+            {
+                output.DevelopmentRatio = output.DevelopmentRatio.Substring(0, output.DevelopmentRatio.Length - 3);
+            }
             //if ( IsValidGuid( input.TrainingSolutionType ) )
             //{
             //    output.TrainingSolutionTypeId = ( int ) ConceptSchemeManager.GetConcept( input.TrainingSolutionTypeId )?.Id;
