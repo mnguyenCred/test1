@@ -836,21 +836,23 @@ namespace Factories
 
 					//Handle keywords filter
 					var keywordsText = query.GetFilterTextByName( "search:Keyword" )?.ToLower();
-					if ( !string.IsNullOrWhiteSpace( keywordsText ) )
-					{
-						list = list.Where( s =>
-							 s.Description.ToLower().Contains( keywordsText )
-						);
-					}
+                    var courseFilter = query.GetFilterByName( "ceterms:Course" );
 
-					//Handle Course Connection
-					var courseFilter = query.GetFilterByName( "ceterms:Course" );
+     //               if ( !string.IsNullOrWhiteSpace( keywordsText ) )
+					//{
+					//	list = list.Where( s =>
+					//		 s.Description.ToLower().Contains( keywordsText )
+					//	);
+					//}
+
+					//Handle Course Connection					
                     if ( courseFilter != null && courseFilter.ItemIds?.Count() > 0 )
                     {
                         list = list.Where( s =>
-                            courseFilter.IsNegation ?
+                            (courseFilter.IsNegation ?
                                 !courseFilter.ItemIds.Contains( s.CourseId ) :
-                                courseFilter.ItemIds.Contains( s.CourseId )
+                                courseFilter.ItemIds.Contains( s.CourseId ))
+                                && ( keywordsText == "" || s.Description.ToLower().Contains( keywordsText ) ) 
                         );
                     }
                     else
@@ -859,8 +861,9 @@ namespace Factories
                         if ( !string.IsNullOrWhiteSpace( keywordsText ) )
                         {
                             //not working?
-                            list = list.Where( s =>
-                             s.Course.Name.ToLower().Contains( keywordsText ) || s.Course.CodedNotation.ToLower().Contains( keywordsText )
+                            list = list.Where( s => s.Description.ToLower().Contains( keywordsText )
+                            || s.Course.Name.ToLower().Contains( keywordsText ) 
+                            || s.Course.CodedNotation.ToLower().Contains( keywordsText )
                             );
                         }
                     }
