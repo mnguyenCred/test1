@@ -5,6 +5,7 @@
 	var searchType = ViewBag.SearchType ?? Request.Params["searchType"] ?? "Rating";
 }
 
+@Html.Partial( "~/Views/Help/_GeneralSearch.cshtml" )
 @Html.Partial( "~/Views/Search/_SearchCoreV1.cshtml" )
 
 <script type="text/javascript">
