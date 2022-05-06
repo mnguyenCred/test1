@@ -36,6 +36,15 @@ namespace NavyRRL.Controllers
 		}
 		//
 
+		public ActionResult JSON( int id )
+		{
+			AuthenticateOrRedirect( "You must be authenticated and authorized to view Concept data." );
+			var data = Factories.ConceptSchemeManager.GetConcept( id );
+			var converted = RDFServices.GetRDF( data );
+			return RawJSONResponse( converted );
+		}
+		//
+
 		public ActionResult Edit( int id )
 		{
 			AuthenticateOrRedirect( "You must be authenticated and authorized to edit Concept data." );

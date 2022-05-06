@@ -365,6 +365,30 @@ namespace Factories
         }
 		//
 
+		public static List<AppEntity> GetMultiple( List<Guid> guids )
+		{
+			var results = new List<AppEntity>();
+
+			using ( var context = new DataEntities() )
+			{
+				var items = context.WorkRole
+					.Where( m => guids.Contains( m.RowId ) )
+					.OrderBy( m => m.Description )
+					.ToList();
+
+				foreach ( var item in items )
+				{
+					var result = new AppEntity();
+					MapFromDB( item, result );
+					results.Add( result );
+				}
+			}
+
+			return results;
+		}
+		//
+
+
 		public static List<AppEntity> Search( SearchQuery query )
 		{
 			var output = new List<AppEntity>();

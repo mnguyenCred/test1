@@ -3,6 +3,9 @@
 @model RatingTask
 @{
 	ViewBag.Title = "Rating Task: " + Model.Description;
+	var billetTitles = Model.HasBilletTitle.Select( m => Factories.JobManager.Get( m ) ).ToList();
+	var workRoles = Model.HasWorkRole.Select( m => Factories.WorkRoleManager.Get( m ) ).ToList();
+	var ratings = Model.HasRating.Select( m => Factories.RatingManager.Get( m ) ).ToList();
 }
 
 @Html.Partial( "~/Views/Shared/_DetailBasicInfo.cshtml", new DetailBasicInfoHelper()
@@ -17,10 +20,7 @@
 		new NamedValue( "System ID", Model.Id.ToString() ),
 		new NamedValue( "CTID", Model.CTID ),
 		new NamedValue( "Code", Model.CodedNotation ),
-		new NamedValue( "Rating", Model.CurrentRatingCode ),
-		new NamedValue( "Billet Title", Model.BilletTitle ),
-		new NamedValue( "Rank", Model.TaskPaygrade.Name ),
-		new NamedValue( "Functional Area", Model.FunctionalArea[0]),
+		new NamedValue( "Rank", Model.TaskPayGrade.Name ),
 		new NamedValue( "Source", Model.ReferenceResource.Name),
 		new NamedValue( "Date of Source", Model.ReferenceResource.PublicationDate),
 		new NamedValue( "Work Element Type", Model.TaskReferenceType.WorkElementType),
@@ -29,20 +29,51 @@
 	}
 } )
 
+@if( ratings.Count() > 0 )
+{
+	<div class="rating">
+		<h3>@ratings.Count() Rating(s)</h3>
+		<ul>
+			@foreach( var item in ratings )
+			{
+				<li><a href="@Url.Content( "~/rating/detail/" + item.Id )">@item.CodedNotation - @item.Name</a></li>
+			}
+		</ul>
+	</div>
+}
+
+
+@if( billetTitles.Count() > 0 )
+{
+	<div class="billetTitle">
+		<h3>@billetTitles.Count() Billet Title(s)</h3>
+		<ul>
+			@foreach( var item in billetTitles )
+			{
+				<li><a href="@Url.Content( "~/billettitle/detail/" + item.Id )">@item.Name</a></li>
+			}
+		</ul>
+	</div>
+}
+
+@if( workRoles.Count() > 0 )
+{
+	<div class="workRole">
+		<h3>@workRoles.Count() Functional Area(s)</h3>
+		<ul>
+			@foreach( var item in workRoles )
+			{
+				<li><a href="@Url.Content( "~/workrole/detail/" + item.Id )">@item.Name</a></li>
+			}
+		</ul>
+	</div>
+}
+
 @if ( Model.TrainingTasks != null && Model.TrainingTasks.Count() > 0 )
 {
-	@*<div class="trainingTasks">
-			<h2>Training Tasks</h2>
-			<ul class="trainingTasksTable">
-				@foreach ( var item in Model.TrainingTasks.ToList() )
-				{
-					<li>@item.Description</li>
-				}
-			</ul>
-		</div>*@
 
 	<div class="trainingTasks">
-		<h2>Training Tasks</h2>
+		<h3>Training Tasks</h3>
 		<table class="trainingTasksTable">
 			<thead>
 				<tr>
@@ -69,7 +100,7 @@
 @if ( Model.ClusterAnalysis != null && !string.IsNullOrWhiteSpace( Model.ClusterAnalysis.ClusterAnalysisTitle ) )
 {
 	<div class="clusterAnalysis">
-		<h2>Cluster Analysis</h2>
+		<h3>Cluster Analysis</h3>
 		<table class="clusterAnalysisTable">
 			<thead>
 				<tr>

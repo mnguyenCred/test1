@@ -12,7 +12,7 @@
 	.banner .subtitle > *:last-child { border: none; }
 	
 	.topSection { display: flex; margin-bottom: 10px; }
-	.topSection .description { flex: 1 0 60%; min-width: 450px; padding: 10px; white-space: pre-wrap; font-size: 12px; }
+	.topSection .description { flex: 1 0 60%; min-width: 450px; padding: 10px; white-space: pre-wrap; }
 	.topSection .identifiers { flex: 0 0 40%; min-width: 450px; padding: 10px; }
 	.topSection > div { border-right: 1px solid #CCC; }
 	.topSection > div:last-child { border: none; }
@@ -34,6 +34,7 @@
 	<h1>@Model.Name</h1>
 	<div class="subtitle">
 		<div class="typeLabel">@Model.TypeLabel</div>
+		<a class="jsonLink" href="@Url.Content("~/" + Model.TypeURL + "/json/" + Model.Id)" target="_blank">JSON-LD (Work in Progress)</a>
 		@if ( isAdmin )
 		{
 			<a class="editLink" href="@Url.Content( "~/" + Model.TypeURL + "/edit/" + Model.Id )">Edit Data</a>

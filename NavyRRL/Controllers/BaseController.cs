@@ -5,11 +5,13 @@ using System.Web;
 using System.Web.Mvc;
 
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using System.Text;
 
 using Services;
 using Navy.Utilities;
 using Models.Application;
+
 
 namespace NavyRRL.Controllers
 {
@@ -63,5 +65,16 @@ namespace NavyRRL.Controllers
 		}
 		//
 
+		//Send a raw JSON response
+		public static ActionResult RawJSONResponse( JObject data )
+		{
+			return new ContentResult()
+			{
+				Content = data.ToString( Formatting.None ),
+				ContentEncoding = Encoding.UTF8,
+				ContentType = "application/json"
+			};
+		}
+		//
 	}
 }

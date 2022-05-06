@@ -563,7 +563,7 @@ namespace Factories
                 CodedNotation = m.CodedNotation,
                 ApplicabilityType = m.ApplicabilityType,
                 TaskTrainingGap = m.TaskTrainingGap,
-                HasTrainingTaskList = m.HasTrainingTaskList,
+				HasTrainingTask = m.HasTrainingTask,
                 
             } ).ToList();
 
@@ -895,8 +895,8 @@ namespace Factories
             }
             if ( !isSearchContext && input.RankId > 0 )
             {
-                ConceptSchemeManager.MapFromDB( input.ConceptScheme_Rank, output.TaskPaygrade );
-                output.PayGradeType = ( output.TaskPaygrade )?.RowId ?? Guid.Empty;
+                ConceptSchemeManager.MapFromDB( input.ConceptScheme_Rank, output.TaskPayGrade );
+                output.PayGradeType = ( output.TaskPayGrade )?.RowId ?? Guid.Empty;
             }
             if ( !isSearchContext && input.ReferenceResourceId > 0 )
             {
@@ -930,7 +930,7 @@ namespace Factories
                 {
                     if ( item.Course_Task?.RowId != null )
                     {
-                        output.HasTrainingTaskList.Add( item.Course_Task.RowId );
+                        output.HasTrainingTask.Add( item.Course_Task.RowId );
                         output.TrainingTasks.Add( TrainingTaskManager.MapFromDB( item.Course_Task ) );
                     }
                 }
@@ -1191,8 +1191,8 @@ namespace Factories
             {
                 try
                 {
-                    if ( input.HasTrainingTaskList == null )
-                        input.HasTrainingTaskList = new List<Guid>();
+                    if ( input.HasTrainingTask == null )
+                        input.HasTrainingTask = new List<Guid>();
 
                     //if ( input.HasTrainingTaskList?.Count == 0 )
                     //{
@@ -1230,7 +1230,7 @@ namespace Factories
                             if ( IsValidGuid( key ) )
                             {
                                 //if from upload, will be for a single rating, so if current is not in existing 
-                                if ( fromUpload && !input.HasTrainingTaskList.Contains( ( Guid ) key ) )
+                                if ( fromUpload && !input.HasTrainingTask.Contains( ( Guid ) key ) )
                                 {
                                     //now with the rating check, can probably do a delete?
                                     DeleteRatingTaskTrainingTask( input.Id, e.Id, ref status );
@@ -1240,9 +1240,9 @@ namespace Factories
                     }
                     #endregion
                     //adds
-                    if ( input.HasTrainingTaskList != null )
+                    if ( input.HasTrainingTask != null )
                     {
-                        foreach ( var child in input.HasTrainingTaskList )
+                        foreach ( var child in input.HasTrainingTask )
                         {
                             //if not in existing, then add
                             bool doingAdd = true;

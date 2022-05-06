@@ -281,7 +281,57 @@ namespace Factories
             }
             return list;
         }
-        public static List<AppEntity> Search( SearchQuery query )
+		//
+
+		public static List<AppEntity> GetMultiple( List<Guid> guids )
+		{
+			var results = new List<AppEntity>();
+
+			using ( var context = new DataEntities() )
+			{
+				var items = context.ConceptScheme
+					.Where( m => guids.Contains( m.RowId ) )
+					.OrderBy( m => m.Description )
+					.ToList();
+
+				foreach ( var item in items )
+				{
+					var result = new AppEntity();
+					MapFromDB( item, result );
+					results.Add( result );
+				}
+			}
+
+			return results;
+		}
+		//
+
+		public static List<Concept> GetMultipleConcepts( List<Guid> guids )
+		{
+			var results = new List<Concept>();
+
+			using ( var context = new DataEntities() )
+			{
+				var items = context.ConceptScheme_Concept
+					.Where( m => guids.Contains( m.RowId ) )
+					.OrderBy( m => m.Description )
+					.ToList();
+
+				foreach ( var item in items )
+				{
+					var result = new Concept();
+					AutoMap( item, result );
+					result.SchemeUri = item.ConceptScheme.SchemaUri;
+					results.Add( result );
+				}
+			}
+
+			return results;
+		}
+		//
+
+
+		public static List<AppEntity> Search( SearchQuery query )
         {
             var entity = new AppEntity();
             var output = new List<AppEntity>();

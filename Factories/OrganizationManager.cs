@@ -331,6 +331,40 @@ namespace Factories
             }
             return list;
         }
+		//
+
+		public static List<AppEntity> GetMultiple( List<Guid> guids )
+		{
+			//Get from the cache if possible
+			var cached = CheckCache() ?? new List<AppEntity>();
+			if( cached.Count > 0 )
+			{
+				return cached.Where( m => guids.Contains( m.RowId ) ).ToList();
+			}
+			//Otherwise, get from database
+			//Don't cache these results since they will only contain the entities referenced in the GUID list
+			else
+			{
+				var results = new List<AppEntity>();
+				using( var context = new DataEntities() )
+				{
+					var items = context.Organization
+						.Where( m => guids.Contains( m.RowId ) )
+						.OrderBy( m => m.Name )
+						.ToList();
+
+					foreach ( var item in items )
+					{
+						var result = new AppEntity();
+						MapFromDB( item, result );
+						results.Add( result );
+					}
+				}
+
+				return results;
+			}
+		}
+		//
 
         public static List<AppEntity> Search( SearchQuery query )
         {
