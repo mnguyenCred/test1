@@ -289,12 +289,34 @@ namespace Factories
 
             return entity;
         }
-        /// <summary>
-        /// Get all 
-        /// May need a get all for a rating? Should not matter as this is external data?
-        /// </summary>
-        /// <returns></returns>
-        public static List<AppEntity> GetAll()
+		public static AppEntity GetByCTIDOrNull( string ctid )
+		{
+			if ( string.IsNullOrWhiteSpace( ctid ) )
+			{
+				return null;
+			}
+
+			using ( var context = new DataEntities() )
+			{
+				var item = context.Job
+							.SingleOrDefault( s => s.CTID == ctid );
+
+				if ( item != null && item.Id > 0 )
+				{
+					var entity = new AppEntity();
+					MapFromDB( item, entity );
+					return entity;
+				}
+			}
+
+			return null;
+		}
+		/// <summary>
+		/// Get all 
+		/// May need a get all for a rating? Should not matter as this is external data?
+		/// </summary>
+		/// <returns></returns>
+		public static List<AppEntity> GetAll()
         {
             var entity = new AppEntity();
             var list = new List<AppEntity>();

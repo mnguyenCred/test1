@@ -19,17 +19,18 @@
 	TypeLabel = "Course",
 	TypeURL = Model.GetType().Name.ToLower(),
 	Id = Model.Id,
+	CTID = Model.CTID,
 	Name = Model.Name,
 	Description = Model.Description,
-	Identifiers = new List<NamedValue>()
+	Identifiers = new List<NamedString>()
 	{
-		new NamedValue( "System ID", Model.Id.ToString() ),
-		new NamedValue( "CIN", Model.CodedNotation ),
-		new NamedValue( "Course Type", String.Join(", ",Model.CourseTypeList.ToArray()) ),
-		new NamedValue( "CCA", Model.OrganizationName ),
-		new NamedValue( "LCCD", Model.LifeCycleControlDocument ),
-		new NamedValue( "Training Tasks", Model.TrainingTasks.Count.ToString() ),
-		new NamedValue( "CTID", Model.CTID ),
+		new NamedString( "System ID", Model.Id.ToString() ),
+		new NamedString( "CIN", Model.CodedNotation ),
+		new NamedString( "Course Type", String.Join(", ",Model.CourseTypeList.ToArray()) ),
+		new NamedString( "CCA", Model.OrganizationName ),
+		new NamedString( "LCCD", Model.LifeCycleControlDocument ),
+		new NamedString( "Training Tasks", Model.TrainingTasks.Count.ToString() ),
+		new NamedString( "CTID", Model.CTID ),
 	}
 } )
 

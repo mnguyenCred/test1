@@ -12,15 +12,16 @@
 	TypeLabel = "Training Task",
 	TypeURL = Model.GetType().Name.ToLower(),
 	Id = Model.Id,
+	CTID = Model.CTID,
 	Name = "Training Task",
 	Description = Model.Description,
-	Identifiers = new List<NamedValue>()
+	Identifiers = new List<NamedString>()
 	{
-	new NamedValue( "System ID", Model.Id.ToString() ),
-	new NamedValue( "Course", Model.CourseName ),
-	new NamedValue( "CIN", Model.CourseCodedNotation ),
-	new NamedValue( "Assessment Methods", string.Join( ", ", Model.AssessmentMethods.ToArray()) ),
-	@*new NamedValue( "Course", @Html.Raw( "<a href="@Url.Content( "@courseUrl" ) > @courseTitle </ a > ").ToString() ),*@
-	new NamedValue( "CTID", Model.CTID )
+	new NamedString( "System ID", Model.Id.ToString() ),
+	new NamedString( "Course", Model.CourseName ),
+	new NamedString( "CIN", Model.CourseCodedNotation ),
+	new NamedString( "Assessment Methods", string.Join( ", ", Model.AssessmentMethods.ToArray()) ),
+	@*new NamedString( "Course", @Html.Raw( "<a href="@Url.Content( "@courseUrl" ) > @courseTitle </ a > ").ToString() ),*@
+	new NamedString( "CTID", Model.CTID )
 }
 } )

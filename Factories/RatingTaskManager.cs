@@ -164,6 +164,28 @@ namespace Factories
 			}
 			return entity;
 		}
+		public static AppEntity GetByCTIDOrNull( string ctid, bool includingConcepts = false )
+		{
+			if ( string.IsNullOrWhiteSpace( ctid ) )
+			{
+				return null;
+			}
+
+			using ( var context = new DataEntities() )
+			{
+				var item = context.RatingTask
+							.SingleOrDefault( s => s.CTID == ctid );
+
+				if ( item != null && item.Id > 0 )
+				{
+					var entity = new AppEntity();
+					MapFromDB( item, entity, includingConcepts );
+					return entity;
+				}
+			}
+
+			return null;
+		}
 
 		/// <summary>
 		/// It is not clear that we want a get all - tens of thousands

@@ -219,7 +219,52 @@ namespace Factories
             }
 
             return entity;
-        }
+		}
+		public static AppEntity GetByCTIDOrNull( string ctid )
+		{
+			if ( string.IsNullOrWhiteSpace( ctid ) )
+			{
+				return null;
+			}
+
+			using ( var context = new DataEntities() )
+			{
+				var item = context.ConceptScheme
+							.SingleOrDefault( s => s.CTID == ctid );
+
+				if ( item != null && item.Id > 0 )
+				{
+					var entity = new AppEntity();
+					MapFromDB( item, entity );
+					return entity;
+				}
+			}
+
+			return null;
+		}
+		public static Concept GetConceptByCTIDOrNull( string ctid )
+		{
+			if ( string.IsNullOrWhiteSpace( ctid ) )
+			{
+				return null;
+			}
+
+			using ( var context = new DataEntities() )
+			{
+				var item = context.ConceptScheme_Concept
+							.SingleOrDefault( s => s.CTID == ctid );
+
+				if ( item != null && item.Id > 0 )
+				{
+					var entity = new Concept();
+					AutoMap( item, entity );
+					entity.SchemeUri = item.ConceptScheme.SchemaUri;
+					return entity;
+				}
+			}
+
+			return null;
+		}
 
 		//Get all Concepts in one request
 		public static List<Concept> GetAllConcepts( bool onlyActiveConcepts = true )

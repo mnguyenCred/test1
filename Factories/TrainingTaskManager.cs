@@ -547,18 +547,40 @@ namespace Factories
                 }
             }
             return entity;
-        }
-        /// <summary>
-        /// Get a training task that is associated with the current RMTL rowCodedNotation.
-        /// this approach will properly handle updates. But what if meant to be a different task?
-        /// Could include description and do a fuzzy compare to the returned one. 
-        /// Or, check if there more than 
-        /// </summary>
-        /// <param name="ratingTaskCodedNotation">In the future where this has a rating prefix, it will be more reliable.</param>
-        /// <param name="courseCodedNotation">May not be necessary. Could use to compare to the course code for the returned task.</param>
-        /// <param name="description">Use description for compares</param>
-        /// <returns></returns>
-        public static AppEntity GetTrainingTaskForRatingTask( string ratingCode, string ratingTaskCodedNotation, string courseCodedNotation, string description, ref ChangeSummary summary )
+		}
+		public static AppEntity GetByCTIDOrNull( string ctid )
+		{
+			if ( string.IsNullOrWhiteSpace( ctid ) )
+			{
+				return null;
+			}
+
+			using ( var context = new DataEntities() )
+			{
+				var item = context.Course_Task
+							.SingleOrDefault( s => s.CTID == ctid );
+
+				if ( item != null && item.Id > 0 )
+				{
+					var entity = new AppEntity();
+					MapFromDB( item, entity );
+					return entity;
+				}
+			}
+
+			return null;
+		}
+		/// <summary>
+		/// Get a training task that is associated with the current RMTL rowCodedNotation.
+		/// this approach will properly handle updates. But what if meant to be a different task?
+		/// Could include description and do a fuzzy compare to the returned one. 
+		/// Or, check if there more than 
+		/// </summary>
+		/// <param name="ratingTaskCodedNotation">In the future where this has a rating prefix, it will be more reliable.</param>
+		/// <param name="courseCodedNotation">May not be necessary. Could use to compare to the course code for the returned task.</param>
+		/// <param name="description">Use description for compares</param>
+		/// <returns></returns>
+		public static AppEntity GetTrainingTaskForRatingTask( string ratingCode, string ratingTaskCodedNotation, string courseCodedNotation, string description, ref ChangeSummary summary )
         {
             var entity = new AppEntity();
 

@@ -26,6 +26,8 @@ namespace NavyRRL.Controllers
 
 			return JsonResponse( results, true );
 		}
+		//
+		/*
 		public SearchResultSet<T> ConvertResults<T>( SearchQuery query, List<WorkRole> results ) where T : WorkRole, new()
 		{
 			var gResults = new List<T>();
@@ -48,7 +50,7 @@ namespace NavyRRL.Controllers
 			return output;
 		}
 		//
-		//
+		*/
 
 		public ActionResult Detail( int id )
 		{

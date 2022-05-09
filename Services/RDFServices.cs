@@ -8,11 +8,136 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
 using Models.Schema;
+using Models.Utilities;
 
 namespace Services
 {
 	public class RDFServices
 	{
+		public static JObject GetContext()
+		{
+			//Base context
+			var result = new JObject();
+			foreach( var context in RDF.StaticData.Context )
+			{
+				AppendValue( result, context.Compacted, context.Expanded, false );
+			}
+
+			//Override the URL for the navy terms
+			var applicationURL = GetApplicationURL();
+			result[ "navy" ] = applicationURL + "rdf/terms/";
+
+			//Terms context
+			foreach( var property in RDF.StaticData.Properties )
+			{
+				var item = new JObject();
+				AppendValue( item, "@type", property.ContextType, false );
+				AppendValue( item, "@container", property.ContextContainer, false );
+				if( item.Properties().Count() > 0 )
+				{
+					result.Add( property.URI, item );
+				}
+			}
+
+			//Return context
+			return result;
+		}
+		//
+
+		public static JObject GetSchema()
+		{
+			var terms = new JArray();
+
+			//Classes
+			foreach( var item in RDF.StaticData.Classes )
+			{
+				var json = new JObject();
+				AppendValue( json, "@type", "rdfs:Class", false );
+				AppendValue( json, "@id", item.URI, false );
+				AppendValue( json, "rdfs:label", item.Label, true );
+				AppendValue( json, "rdfs:comment", item.Definition, true );
+				AppendValue( json, "dct:description", item.Comment, true );
+				AppendValue( json, "vann:usageNote", item.UsageNote, true );
+				AppendValue( json, "rdfs:subClassOf", item.SubTermOf, false );
+				AppendValue( json, "owl:equivalentClass", item.EquivalentTerm, false );
+				AppendValue( json, "meta:domainFor", item.DomainFor, false );
+				terms.Add( json );
+			}
+
+			//Properties
+			foreach( var item in RDF.StaticData.Properties )
+			{
+				var domain = RDF.StaticData.Classes.Where( m => m.DomainFor.Contains( item.URI ) ).ToList();
+				var json = new JObject();
+				AppendValue( json, "@type", "rdfs:Property", false );
+				AppendValue( json, "@id", item.URI, false );
+				AppendValue( json, "rdfs:label", item.Label, true );
+				AppendValue( json, "rdfs:comment", item.Definition, true );
+				AppendValue( json, "dct:description", item.Comment, true );
+				AppendValue( json, "vann:usageNote", item.UsageNote, true );
+				AppendValue( json, "rdfs:subPropertyOf", item.SubTermOf, false );
+				AppendValue( json, "owl:equivalentProperty", item.EquivalentTerm, false );
+				AppendValue( json, "schema:domainIncludes", domain.Select( m => m.URI ).ToList(), false );
+				AppendValue( json, "schema:rangeIncludes", item.Range, false );
+				terms.Add( json );
+			}
+
+			//Wrapper
+			var result = new JObject()
+			{
+				{ "@context", GetContextURL() },
+				{ "@graph", terms }
+			};
+
+			return result;
+		}
+		//
+
+		public static object GetResourceByCTID( string ctid )
+		{
+			//All of these need to return null if not found!
+			var data =
+				( object ) Factories.JobManager.GetByCTIDOrNull( ctid ) ??
+				( object ) Factories.CourseManager.GetByCTIDOrNull( ctid ) ??
+				( object ) Factories.OrganizationManager.GetByCTIDOrNull( ctid ) ??
+				( object ) Factories.RatingManager.GetByCTIDOrNull( ctid ) ??
+				( object ) Factories.RatingTaskManager.GetByCTIDOrNull( ctid ) ??
+				( object ) Factories.ReferenceResourceManager.GetByCTIDOrNull( ctid ) ??
+				( object ) Factories.TrainingTaskManager.GetByCTIDOrNull( ctid ) ??
+				( object ) Factories.WorkRoleManager.GetByCTIDOrNull( ctid ) ??
+				( object ) Factories.ConceptSchemeManager.GetByCTIDOrNull( ctid ) ??
+				( object ) Factories.ConceptSchemeManager.GetConceptByCTIDOrNull( ctid );
+				//May also return null. This is intentional and necessary for subsequent steps to work properly.
+
+			return data;
+		}
+		//
+
+		public static JObject GetRDFByCTID( string ctid )
+		{
+			var resource = GetResourceByCTID( ctid );
+			if ( resource == null || ((int) resource.GetType().GetProperty( nameof( BaseObject.Id ) )?.GetValue( resource )) == 0 )
+			{
+				return null;
+			}
+
+			switch ( resource.GetType().Name )
+			{
+				case nameof( BilletTitle ):			return GetRDF( ( BilletTitle ) resource );
+				case nameof( Course ):				return GetRDF( ( Course ) resource );
+				case nameof( Organization ):		return GetRDF( ( Organization ) resource );
+				case nameof( Rating ):				return GetRDF( ( Rating ) resource );
+				case nameof( RatingTask ):			return GetRDF( ( RatingTask ) resource );
+				case nameof( ReferenceResource ):	return GetRDF( ( ReferenceResource ) resource );
+				case nameof( TrainingTask ):		return GetRDF( ( TrainingTask ) resource );
+				case nameof( WorkRole ):			return GetRDF( ( WorkRole ) resource );
+				case nameof( ConceptScheme ):		return GetRDF( ( ConceptScheme ) resource );
+				case nameof( Concept ):				return GetRDF( ( Concept ) resource );
+				default:							return null;
+			}
+		}
+		//
+
 		public static JObject GetRDF( BilletTitle source )
 		{
 			var result = GetStarterResult( "ceterms:Job", source );
@@ -136,15 +261,40 @@ namespace Services
 		}
 		//
 
-		public static JObject GetStarterResult<T>( string rdfType, T source ) where T : BaseObject
+		public static JObject GetRDFError( string message )
 		{
+			var applicationURL = GetApplicationURL();
 			return new JObject()
 			{
-				{ "@context", "https://sandbox.credentialengine.org/navyrrl/rdf/context" },
-				{ "@id", "https://sandbox.credentialengine.org/navyrrl/rdf/resources/" + source.CTID },
+				{ "@context", applicationURL + "rdf/context/json" },
+				{ "@type", "meta:Error" },
+				{ "meta:errorMessage", new JObject(){ { "en", message } } }
+			};
+		}
+		//
+
+		public static JObject GetStarterResult<T>( string rdfType, T source ) where T : BaseObject
+		{
+			var applicationURL = GetApplicationURL();
+			return new JObject()
+			{
+				{ "@context", GetContextURL() },
+				{ "@id", applicationURL + "rdf/resources/" + source.CTID },
 				{ "@type", rdfType },
 				{ "ceterms:ctid", source.CTID }
 			};
+		}
+		//
+
+		public static JObject ResourceToGraph( JObject resource )
+		{
+			var graph = new JObject();
+			graph[ "@context" ] = resource[ "@context" ];
+			graph[ "@id" ] = resource[ "@id" ].ToString().Replace( "/resources/", "/graph/" );
+			resource.Remove( "@context" );
+			graph.Add( "@graph", new JArray() { resource } );
+
+			return graph;
 		}
 		//
 
@@ -169,12 +319,13 @@ namespace Services
 
 		public static void AppendLookupValue<T>( JObject container, string property, Guid value, Func<Guid, T> GetSingleByGUIDMethod ) where T : BaseObject
 		{
-			if( value != Guid.Empty )
+			var applicationURL = GetApplicationURL();
+			if ( value != Guid.Empty )
 			{
 				var item = GetSingleByGUIDMethod( value );
 				if( item != null && item.Id > 0 )
 				{
-					container[ property ] = "https://sandbox.credentialengine.org/navyrrl/rdf/resources/" + item.CTID;
+					container[ property ] = applicationURL + "rdf/resources/" + item.CTID;
 				}
 			}
 		}
@@ -182,11 +333,12 @@ namespace Services
 
 		public static void AppendLookupValue<T>(JObject container, string property, List<Guid> value, Func<List<Guid>, List<T>> GetMultipleByGUIDMethod ) where T : BaseObject
 		{
+			var applicationURL = GetApplicationURL();
 			var values = ( value ?? new List<Guid>() ).Where( m => m != Guid.Empty ).ToList();
 			if ( values.Count() > 0 )
 			{
 				var items = GetMultipleByGUIDMethod( values );
-				var holder = items.Where( m => m != null && m.Id > 0 ).Select( item => "https://sandbox.credentialengine.org/navyrrl/rdf/resources/" + item.CTID ).ToList();
+				var holder = items.Where( m => m != null && m.Id > 0 ).Select( item => applicationURL + "rdf/resources/" + item.CTID ).ToList();
 				if( holder.Count() > 0 )
 				{
 					container[ property ] = JArray.FromObject( holder );
@@ -195,5 +347,15 @@ namespace Services
 		}
 		//
 
+		public static string GetContextURL()
+		{
+			return GetApplicationURL() + "rdf/context/json";
+		}
+
+		public static string GetApplicationURL()
+		{
+			return ( System.Configuration.ConfigurationManager.AppSettings.Get( "applicationURL" ) ?? "/" ).ToLower();
+		}
+		//
 	}
 }

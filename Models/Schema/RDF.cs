@@ -93,13 +93,17 @@ namespace Models.Schema
 		public class RDFProperty : RDFBase
 		{
 			public RDFProperty() { }
-			public RDFProperty( string uri, string label, string definition, string comment = null, string usageNote = null, List<string> range = null, List<string> equivalentTerm = null, List<string> subTermOf = null )
+			public RDFProperty( string uri, string label, string definition, string comment = null, string usageNote = null, List<string> range = null, List<string> equivalentTerm = null, List<string> subTermOf = null, string contextType = null, string contextContainer = null )
 				: base( uri, label, definition, comment, usageNote, equivalentTerm, subTermOf )
 			{
 				Range = range ?? new List<string>();
+				ContextType = contextType;
+				ContextContainer = contextContainer;
 			}
 
 			public List<string> Range { get; set; }
+			public string ContextType { get; set; }
+			public string ContextContainer { get; set; }
 		}
 		//
 
@@ -128,9 +132,19 @@ namespace Models.Schema
 		{
 			public static List<RDFContext> Context = new List<RDFContext>()
 			{
-				new RDFContext( "Credential Transparency Description Language", "ceterms", "https://credreg.net/ctdl/terms/" ),
-				new RDFContext( "Credential Transparency Description Language Profile of ASN-DL", "ceasn", "https://credreg.net/ctdlasn/terms/" ),
-				new RDFContext( "CE Navy Terms", "navy", "https://credreg.net/navy/terms/" )
+				new RDFContext( "Credential Transparency Description Language", "ceterms", "https://purl.org/ctdl/terms/" ),
+				new RDFContext( "Credential Transparency Description Language Profile of ASN-DL", "ceasn", "https://purl.org/ctdlasn/terms/" ),
+				new RDFContext( "DCMI Metadata Terms", "dct", "https://purl.org/dc/terms/" ),
+				new RDFContext( "Credential Engine Meta Terms", "meta", "https://credreg.net/meta/terms/" ),
+				new RDFContext( "CE Navy Terms", "navy", "https://credreg.net/navy/terms/" ),
+				new RDFContext( "Ontology Web Language", "owl", "http://www.w3.org/2002/07/owl#" ),
+				new RDFContext( "Resource Description Framework", "rdf", "http://www.w3.org/1999/02/22-rdf-syntax-ns#" ),
+				new RDFContext( "RDF Schema 1.1", "rdfs", "http://www.w3.org/2000/01/rdf-schema#" ),
+				new RDFContext( "Schema.org", "schema", "https://schema.org/" ),
+				new RDFContext( "Simple Knowledge Organization System", "skos", "http://www.w3.org/2004/02/skos/core#" ),
+				new RDFContext( "Web Annotation Vocabulary", "vann", "http://purl.org/vocab/vann/" ),
+				new RDFContext( "Term-centric Semantic Web Vocabulary Annotations", "vs", "https://www.w3.org/2003/06/sw-vocab-status/ns#" ),
+				new RDFContext( "XML Schema Definition", "xsd", "http://www.w3.org/2001/XMLSchema#" )
 			};
 
 			public static List<RDFClass> Classes = new List<RDFClass>()
@@ -147,26 +161,26 @@ namespace Models.Schema
 
 			public static List<RDFProperty> Properties = new List<RDFProperty>()
 			{
-				new RDFProperty( "ceasn:comment", "Comment", "Additional commentary on the resource.", null, null, new List<string>(){ "rdf:langString" } ),
-				new RDFProperty( "ceterms:alternateName", "Alternate Name", "Alternate Name for the resource.", null, null, new List<string>(){ "rdf:langString" } ),
-				new RDFProperty( "ceterms:assessmentMethodType", "Assessment Method Type", "Assessment Method Type used with the resource.", null, null, new List<string>(){ "skos:Concept" } ),
-				new RDFProperty( "ceterms:codedNotation", "Coded Notation", "Code identifying the resource.", null, null, new List<string>(){ "xsd:string" } ),
-				new RDFProperty( "ceterms:ctid", "Credential Transparency Identifier", "CTID identifying the resource.", null, null, new List<string>(){ "xsd:string" } ),
-				new RDFProperty( "ceterms:description", "Description", "Description of the resource.", null, null, new List<string>(){ "rdf:langString" } ),
-				new RDFProperty( "ceterms:hasJob", "Has Job", "Job related to the resource.", "For Rating Tasks, this is a reference to the Billet Title(s) under which the Rating Task appears.", null, null, new List<string>(){ "ceterms:Job" } ),
-				new RDFProperty( "ceterms:hasWorkRole", "Has Work Role", "Work Role related to the resource.", null, null, new List<string>(){ "ceterms:WorkRole" } ),
-				new RDFProperty( "ceterms:name", "Name", "Name of the resource.", null, null, new List<string>(){ "rdf:langString" } ),
-				new RDFProperty( "ceterms:ownedBy", "Owned By", "Organization that owns and maintains this resource.", "For Courses, this is the Curriculum Control Authority.", null, null, new List<string>(){ "ceterms:Organization" } ),
-				new RDFProperty( "navy:courseType", "Course Type", "Course Type for the resource.", null, null, new List<string>(){ "skos:Concept" } ),
-				new RDFProperty( "navy:hasRating", "Has Rating", "Rating related to the resource.", null, null, new List<string>(){ "ceterms:Occupation" } ),
-				new RDFProperty( "navy:hasRatingTask", "Has Rating Task", "Rating Task related to the resource.", null, null, new List<string>(){ "navy:RatingTask" } ),
-				new RDFProperty( "navy:hasReferenceResource", "Has Reference Resource", "Reference Resource related to the resource.", null, null, new List<string>(){ "navy:ReferenceResource" } ),
-				new RDFProperty( "navy:hasTrainingTask", "Has Training Task", "Training Task related to the resource.", null, null, new List<string>(){ "navy:TrainingTask" } ),
-				new RDFProperty( "navy:lifeCycleControlDocumentType", "Life Cycle Control Document Type", "Life Cycle Control Document Type for the resource.", null, null, new List<string>(){ "skos:Concept" } ),
-				new RDFProperty( "navy:payGradeType", "Pay Grade Type", "Pay Grade related to the resource.", "For Rating Tasks, the Pay Grade Type indicates the earliest Pay Grade (Rank) at which the Rating Task is typically performed.", null, null, new List<string>(){ "skos:Concept" } ),
-				new RDFProperty( "navy:referenceType", "Reference Type", "Reference Type of the resource.", null, null, new List<string>(){ "skos:Concept" } ),
-				new RDFProperty( "navy:applicabilityType", "Applicability Type", "Applicability Type for the resource.", null, null, new List<string>(){ "skos:Concept" } ),
-				new RDFProperty( "navy:trainingGapType", "Training Gap Type", "Training Gap Type related to the resource.", null, null, new List<string>(){ "skos:Concept" } )
+				new RDFProperty( "ceasn:comment", "Comment", "Additional commentary on the resource.", null, null, new List<string>(){ "rdf:langString" }, null, null, null, "@language" ),
+				new RDFProperty( "ceterms:alternateName", "Alternate Name", "Alternate Name for the resource.", null, null, new List<string>(){ "rdf:langString" }, null, null, null, "@language" ),
+				new RDFProperty( "ceterms:assessmentMethodType", "Assessment Method Type", "Assessment Method Type used with the resource.", null, null, new List<string>(){ "skos:Concept" }, null, null, "@id", "@list" ),
+				new RDFProperty( "ceterms:codedNotation", "Coded Notation", "Code identifying the resource.", null, null, new List<string>(){ "xsd:string" }, null, null, "xsd:string", null ),
+				new RDFProperty( "ceterms:ctid", "Credential Transparency Identifier", "CTID identifying the resource.", null, null, new List<string>(){ "xsd:string" }, null, null, "xsd:string", null ),
+				new RDFProperty( "ceterms:description", "Description", "Description of the resource.", null, null, new List<string>(){ "rdf:langString" }, null, null, null, "@language" ),
+				new RDFProperty( "ceterms:hasJob", "Has Job", "Job related to the resource.", "For Rating Tasks, this is a reference to the Billet Title(s) under which the Rating Task appears.", null, null, new List<string>(){ "ceterms:Job" }, null, "@id", null ),
+				new RDFProperty( "ceterms:hasWorkRole", "Has Work Role", "Work Role related to the resource.", null, null, new List<string>(){ "ceterms:WorkRole" }, null, null, "@id", null ),
+				new RDFProperty( "ceterms:name", "Name", "Name of the resource.", null, null, new List<string>(){ "rdf:langString" }, null, null, null, "@language" ),
+				new RDFProperty( "ceterms:ownedBy", "Owned By", "Organization that owns and maintains this resource.", "For Courses, this is the Curriculum Control Authority.", null, null, new List<string>(){ "ceterms:Organization" }, null, "@id", null ),
+				new RDFProperty( "navy:courseType", "Course Type", "Course Type for the resource.", null, null, new List<string>(){ "skos:Concept" }, null, null, "@id", null ),
+				new RDFProperty( "navy:hasRating", "Has Rating", "Rating related to the resource.", null, null, new List<string>(){ "ceterms:Occupation" }, null, null, "@id", null ),
+				new RDFProperty( "navy:hasRatingTask", "Has Rating Task", "Rating Task related to the resource.", null, null, new List<string>(){ "navy:RatingTask" }, null, null, "@id", "@list" ),
+				new RDFProperty( "navy:hasReferenceResource", "Has Reference Resource", "Reference Resource related to the resource.", null, null, new List<string>(){ "navy:ReferenceResource" }, null, null, "@id", null ),
+				new RDFProperty( "navy:hasTrainingTask", "Has Training Task", "Training Task related to the resource.", null, null, new List<string>(){ "navy:TrainingTask" }, null, null, "@id", "@list" ),
+				new RDFProperty( "navy:lifeCycleControlDocumentType", "Life Cycle Control Document Type", "Life Cycle Control Document Type for the resource.", null, null, new List<string>(){ "skos:Concept" }, null, null, "@id", null ),
+				new RDFProperty( "navy:payGradeType", "Pay Grade Type", "Pay Grade related to the resource.", "For Rating Tasks, the Pay Grade Type indicates the earliest Pay Grade (Rank) at which the Rating Task is typically performed.", null, null, new List<string>(){ "skos:Concept" }, null, "@id", null ),
+				new RDFProperty( "navy:referenceType", "Reference Type", "Reference Type of the resource.", null, null, new List<string>(){ "skos:Concept" }, null, null, "@id", null ),
+				new RDFProperty( "navy:applicabilityType", "Applicability Type", "Applicability Type for the resource.", null, null, new List<string>(){ "skos:Concept" }, null, null, "@id", null ),
+				new RDFProperty( "navy:trainingGapType", "Training Gap Type", "Training Gap Type related to the resource.", null, null, new List<string>(){ "skos:Concept" }, null, null, "@id", null )
 			};
 		}
 		//
