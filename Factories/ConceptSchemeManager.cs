@@ -257,8 +257,7 @@ namespace Factories
 				if ( item != null && item.Id > 0 )
 				{
 					var entity = new Concept();
-					AutoMap( item, entity );
-					entity.SchemeUri = item.ConceptScheme.SchemaUri;
+					MapFromDB( item, entity );
 					return entity;
 				}
 			}
@@ -276,15 +275,14 @@ namespace Factories
 				var matches = context.ConceptScheme_Concept.AsQueryable();
 				if ( onlyActiveConcepts )
 				{
-					matches = matches.Where( m => m.IsActive );
+					matches = matches.Where( m => m.IsActive && m.ConceptScheme != null && m.ConceptScheme.SchemaUri != null && m.ConceptScheme.SchemaUri.Trim().Length > 0 );
 				}
 				var dbConcepts = matches.ToList();
 
 				foreach( var dbConcept in dbConcepts )
 				{
 					var concept = new Concept();
-					AutoMap( dbConcept, concept );
-                    concept.SchemeUri = dbConcept.ConceptScheme.SchemaUri;
+					MapFromDB( dbConcept, concept );
 					result.Add( concept );
 				}
 			}
@@ -311,8 +309,7 @@ namespace Factories
 				foreach ( var dbConcept in dbConcepts )
 				{
 					var concept = new Concept();
-					AutoMap( dbConcept, concept );
-					concept.SchemeUri = dbConcept.ConceptScheme.SchemaUri;
+					MapFromDB( dbConcept, concept );
 					result.Add( concept );
 				}
 			}
@@ -393,8 +390,7 @@ namespace Factories
 				foreach ( var item in items )
 				{
 					var result = new Concept();
-					AutoMap( item, result );
-					result.SchemeUri = item.ConceptScheme.SchemaUri;
+					MapFromDB( item, result );
 					results.Add( result );
 				}
 			}
@@ -881,6 +877,7 @@ namespace Factories
             }
             output.ConceptSchemeId = (int)input.ConceptScheme?.Id;
 			output.InScheme = input.ConceptScheme != null ? input.ConceptScheme.RowId : Guid.Empty;
+			output.SchemeUri = input.ConceptScheme?.SchemaUri;
             if (forSearchResults)
             {
                 output.Name = (!string.IsNullOrWhiteSpace(input.ConceptScheme?.Name) ? "(" + input.ConceptScheme?.Name + ") " : "") + output.Name;

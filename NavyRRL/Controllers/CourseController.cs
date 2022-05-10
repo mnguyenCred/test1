@@ -47,7 +47,7 @@ namespace NavyRRL.Controllers
 		public ActionResult JSON( int id )
 		{
 			AuthenticateOrRedirect( "You must be authenticated and authorized to view Course data." );
-			var data = Factories.CourseManager.Get( id );
+			var data = Factories.CourseManager.Get( id, true );
 			var converted = RDFServices.GetRDF( data );
 			return RawJSONResponse( converted );
 		}

@@ -10,7 +10,6 @@ namespace Models.Schema
 	{
 		public Course()
 		{
-			CurriculumControlAuthority = new List<Guid>();
 			HasTrainingTask = new List<Guid>();
 			CourseType = new List<Guid>();
 		}
@@ -34,7 +33,7 @@ namespace Models.Schema
 		/// From Column: Curriculum Control Authority (CCA)
 		/// 22-01-24 Navy has confirmed that this should be single. We are leaving as a list for current processing, but will be saved as a single. 
 		/// </summary>
-		public List<Guid> CurriculumControlAuthority { get; set; }
+		public Guid CurriculumControlAuthority { get; set; }
 
 
 		/// <summary>

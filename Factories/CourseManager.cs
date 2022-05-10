@@ -262,9 +262,17 @@ namespace Factories
             */
             //this may be removed if there can be multiple CCA
             //22-01-24 - Navy confirmed only one!
-            if ( input.CurriculumControlAuthority?.Count > 0 )
+            if ( input.CurriculumControlAuthority != Guid.Empty )
             {
-                foreach ( var item in input.CurriculumControlAuthority )
+				var org = OrganizationManager.Get( input.CurriculumControlAuthority );
+				if ( org != null && org.Id > 0 )
+				{
+					//TODO - now using Course.Organization
+					output.CurriculumControlAuthorityId = org.Id;
+					//only can handle one here
+				}
+				/*
+				foreach ( var item in input.CurriculumControlAuthority )
                 {
                     //all org adds will occur before here
                     var org = OrganizationManager.Get( item );
@@ -280,6 +288,7 @@ namespace Factories
                         //NO, all new orgs will have been added first, so this would be an error
                     }
                 }
+				*/
 
             } else
             {
@@ -552,7 +561,7 @@ namespace Factories
                 {
                     output.OrganizationName = input.Organization.Name;
                     output.Organizations.Add( output.OrganizationName );
-                    output.CurriculumControlAuthority.Add ( input.Organization.RowId);
+                    output.CurriculumControlAuthority= input.Organization.RowId;
                 }
             }
             //

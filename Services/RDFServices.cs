@@ -130,7 +130,7 @@ namespace Services
 			//All of these need to return null if not found!
 			var data =
 				( object ) Factories.JobManager.GetByCTIDOrNull( ctid ) ??
-				( object ) Factories.CourseManager.GetByCTIDOrNull( ctid ) ??
+				( object ) Factories.CourseManager.GetByCTIDOrNull( ctid, true ) ??
 				( object ) Factories.OrganizationManager.GetByCTIDOrNull( ctid ) ??
 				( object ) Factories.RatingManager.GetByCTIDOrNull( ctid ) ??
 				( object ) Factories.RatingTaskManager.GetByCTIDOrNull( ctid ) ??
@@ -203,10 +203,16 @@ namespace Services
 
 			AppendValue( result, "ceterms:name", source.Name, true );
 			AppendValue( result, "ceterms:codedNotation", source.CodedNotation, false );
-			AppendLookupValue( result, "ceterms:ownedBy", source.CurriculumControlAuthority, Factories.OrganizationManager.GetMultiple );
-			AppendLookupValue( result, "ceterms:hasTrainingTask", source.HasTrainingTask, Factories.TrainingTaskManager.GetMultiple );
 			AppendLookupValue( result, "navy:lifeCycleControlDocumentType", source.LifeCycleControlDocumentType, Factories.ConceptSchemeManager.GetConcept );
-			AppendLookupValue( result, "navy:courseType", source.CourseType, Factories.ConceptSchemeManager.GetMultiple );
+			AppendLookupValue( result, "navy:courseType", source.CourseType, Factories.ConceptSchemeManager.GetMultipleConcepts );
+			AppendLookupValue( result, "ceterms:ownedBy", source.CurriculumControlAuthority, Factories.OrganizationManager.Get );
+			AppendLookupValue( result, "ceterms:hasTrainingTask", source.HasTrainingTask, Factories.TrainingTaskManager.GetMultiple );
+
+			//In the Registry, ceterms:ownedBy is multi-value
+			if ( result[ "ceterms:ownedBy" ] != null && result[ "ceterms:ownedBy" ].Type != JTokenType.Array )
+			{
+				result[ "ceterms:ownedBy" ] = new JArray() { result[ "ceterms:ownedBy" ] };
+			}
 
 			return result;
 		}
@@ -241,12 +247,13 @@ namespace Services
 			AppendValue( result, "ceterms:description", source.Description, true );
 			AppendValue( result, "ceterms:codedNotation", source.CodedNotation, false );
 			AppendValue( result, "ceasn:comment", source.Note, true );
-			AppendLookupValue( result, "navy:payGradeType", source.PayGradeType, Factories.ConceptSchemeManager.Get );
+			AppendLookupValue( result, "navy:payGradeType", source.PayGradeType, Factories.ConceptSchemeManager.GetConcept );
 			AppendLookupValue( result, "navy:applicabilityType", source.ApplicabilityType, Factories.ConceptSchemeManager.GetConcept );
 			AppendLookupValue( result, "navy:trainingGapType", source.TrainingGapType, Factories.ConceptSchemeManager.GetConcept );
 			AppendLookupValue( result, "ceterms:hasOccupation", source.HasRating, Factories.RatingManager.GetMultiple );
 			AppendLookupValue( result, "ceterms:hasJob", source.HasBilletTitle, Factories.JobManager.GetMultiple );
 			AppendLookupValue( result, "ceterms:hasWorkRole", source.HasWorkRole, Factories.WorkRoleManager.GetMultiple );
+			AppendLookupValue( result, "navy:hasTrainingTask", source.HasTrainingTask, Factories.TrainingTaskManager.GetMultiple );
 
 			return result;
 		}
@@ -259,7 +266,7 @@ namespace Services
 			AppendValue( result, "ceterms:name", source.Name, true );
 			AppendValue( result, "ceterms:description", source.Description, true );
 			AppendValue( result, "ceterms:codedNotation", source.PublicationDate, true ); //Should probably just use CodedNotation instead of Publication Date system-wide
-			AppendLookupValue( result, "navy:referenceType", source.ReferenceType, Factories.ConceptSchemeManager.GetMultiple );
+			AppendLookupValue( result, "navy:referenceType", source.ReferenceType, Factories.ConceptSchemeManager.GetMultipleConcepts );
 
 			return result;
 		}
@@ -270,7 +277,7 @@ namespace Services
 			var result = GetStarterResult( "navy:TrainingTask", source );
 
 			AppendValue( result, "ceterms:description", source.Description, true );
-			AppendLookupValue( result, "ceterms:assessmentMethodType", source.AssessmentMethodType, Factories.ConceptSchemeManager.GetMultiple );
+			AppendLookupValue( result, "ceterms:assessmentMethodType", source.AssessmentMethodType, Factories.ConceptSchemeManager.GetMultipleConcepts );
 
 			return result;
 		}
@@ -295,7 +302,7 @@ namespace Services
 			AppendValue( result, "ceasn:description", source.Description, true );
 			if ( includeSecuredTerms )
 			{
-				var allConcepts = Factories.ConceptSchemeManager.GetAllConceptsForScheme( source.SchemaUri );
+				var allConcepts = Factories.ConceptSchemeManager.GetAllConceptsForScheme( source.SchemaUri, true );
 				AppendValue( result, "skos:hasTopConcept", allConcepts.Select( m => GetRegistryURL( m.CTID ) ).ToList(), false );
 				foreach( var concept in allConcepts )
 				{
