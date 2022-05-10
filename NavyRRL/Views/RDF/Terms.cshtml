@@ -1,7 +1,170 @@
-﻿
+﻿@using Models.Schema;
+@using Services;
 @{
-    ViewBag.Title = "Terms";
+	ViewBag.Title = "Schema Terms";
+	UpdatedContext = RDFServices.GetContextData().OrderBy( m => m.Compacted ).ToList();
+}
+@functions {
+	public List<RDF.RDFContext> UpdatedContext { get; set; }
+
+	public string GetFullURI( string shortURI )
+	{
+		var parts = shortURI.Split( ':' );
+		var contextItem = UpdatedContext.FirstOrDefault( m => m.Compacted == parts.First() ) ?? new RDF.RDFContext(){ Expanded = "unknown:" };
+		return contextItem.Expanded + parts.Last();
+	}
+
+	public HtmlString GetTermLink( string href, string label )
+	{
+		return new HtmlString( "<a href=\"" + href + "\">" + label + "</a>" );
+	}
+
+	public HtmlString AppendRow( string label, string content )
+	{
+		if ( string.IsNullOrWhiteSpace( content ) )
+		{
+			return null;
+		}
+
+		return new HtmlString( "<tr><td>" + label + "</td><td>" + content + "</td></tr>" );
+	}
+
+	public HtmlString AppendRow( string label, List<string> content )
+	{
+		if(content == null || content.Count() == 0 )
+		{
+			return null;
+		}
+
+		return new HtmlString( "<tr><td>" + label + "</td><td><div class=\"itemList\">" + string.Join( "", content.OrderBy( m => m ).Select( m => GetTermLink( GetFullURI( m ), m ) ).ToList() ) + "</div></td></tr>" );
+	}
+}
+<script type="text/javascript">
+	$(document).ready(function () {
+		setupCollapseBoxes();
+		setupInternalLinks();
+	});
+	//
+
+	function setupCollapseBoxes() {
+		$(".collapseBox").not(".setup").each(function () {
+			var box = $(this);
+			box.find("> .collapseButton").on("click", function () {
+				box.toggleClass("collapsed");
+			});
+		});
+	}
+	//
+
+	function setupInternalLinks() {
+		$("a").on("click", function (e) {
+			var match = $("[data-fulluri='" + $(this).attr("href") + "']");
+			if (match.length > 0) {
+				e.stopPropagation();
+				e.preventDefault();
+				match.removeClass("collapsed");
+				match[0].scrollIntoView();
+				window.scrollBy(0, -75);
+				match.addClass("highlight");
+				setTimeout(function () {
+					match.removeClass("highlight");
+				}, 250);
+			}
+		});
+	}
+	//
+</script>
+<style type="text/css">
+	table { width: 100%; }
+	table th { padding: 2px 5px; background-color: #202A44; color: #FFF; }
+	table td { padding: 2px 5px; min-width: 100px; border: 1px solid #CCC; }
+
+	.tableWrapper { margin-bottom: 10px; transition: background-color 0.5s; }
+	.tableWrapper.highlight { background-color: #0AF; transition: none; }
+	.tableWrapper .wrapperButton { display: block; width: 100%; text-align: left; border-radius: 0; font-size: 16px; font-weight: bold; padding: 5px 10px; }
+	.tableWrapper .wrapperButton .uri { margin-left: 10px; font-style: italic; opacity: 0.7; font-weight: normal; }
+	.tableWrapper td:first-child { font-weight: bold; width: 150px; }
+	.tableWrapper .itemList { display: grid; grid-template-columns: repeat(auto-fill, 33%); }
+	.tableWrapper .itemList > * { padding: 2px 0; }
+
+	.collapseBox { }
+	.collapseBox .collapseButton {  }
+	.collapseBox.collapsed .collapseContent { display: none; }
+
+</style>
+
+<h1>Schema Terms</h1>
+<p>Below is an RDF representation of the terms used in this system that would appear in the Registry. Where applicable, existing terms from other schemas, such as CTDL, have been used.</p>
+<p><a href="@Url.Content("~/rdf/schema/json")" target="_blank">Download schema as JSON-LD</a></p>
+
+<h2>Context</h2>
+<table class="contextTable">
+	<thead>
+		<tr>
+			<th>Prefix</th><th>Full URI</th><th>Label</th>
+		</tr>
+	</thead>
+	<tbody>
+		@foreach( var item in UpdatedContext )
+		{
+			<tr>
+				<td>@item.Compacted</td><td>@GetTermLink( item.Expanded, item.Expanded )</td><td>@item.Label</td>
+			</tr>
+		}
+	</tbody>
+</table>
+
+<h2>Classes</h2>
+@foreach ( var item in RDF.StaticData.Classes.OrderBy( m => m.URI ).ToList() )
+{
+	var fullURI = GetFullURI( item.URI );
+	<div class="tableWrapper collapseBox collapsed" data-shorturi="@item.URI" data-fulluri="@fullURI">
+		<button class="blueButton wrapperButton collapseButton">
+			<span class="name">@item.Label</span>
+			<span class="uri">(@item.URI)</span>
+		</button>
+		<table class="classTable collapseContent">
+			<tbody>
+				@AppendRow( "Full URI", GetTermLink( fullURI, fullURI ).ToString() )
+				@AppendRow( "Short URI", GetTermLink( fullURI, item.URI ).ToString() )
+				@AppendRow( "Label", item.Label )
+				@AppendRow( "Definition", item.Definition )
+				@AppendRow( "Comment", item.Comment )
+				@AppendRow( "Usage Note", item.UsageNote )
+				@AppendRow( "Type of Term", GetTermLink( GetFullURI( "rdfs:Class" ), "rdfs:Class" ).ToString() )
+				@AppendRow( "Subclass Of", item.SubTermOf )
+				@AppendRow( "Equivalent Class", item.EquivalentTerm )
+				@AppendRow( "Domain For", item.DomainFor )
+				@AppendRow( "In Range Of", RDF.StaticData.Properties.Where( m => m.Range.Contains( item.URI ) ).Select( m => m.URI ).ToList() )
+			</tbody>
+		</table>
+	</div>
 }
 
-<h2>Terms</h2>
+<h2>Properties</h2>
+@foreach( var item in RDF.StaticData.Properties.OrderBy( m => m.URI ).ToList() )
+{
+	var fullURI = GetFullURI( item.URI );
+	<div class="tableWrapper collapseBox collapsed" data-shorturi="@item.URI" data-fulluri="@fullURI">
+		<button class="blueButton wrapperButton collapseButton">
+			<span class="name">@item.Label</span>
+			<span class="uri">(@item.URI)</span>
+		</button>
+		<table class="propertyTable collapseContent">
+			<tbody>
+				@AppendRow( "Full URI", GetTermLink( fullURI, fullURI ).ToString() )
+				@AppendRow( "Short URI", GetTermLink( fullURI, item.URI ).ToString() )
+				@AppendRow( "Label", item.Label )
+				@AppendRow( "Definition", item.Definition )
+				@AppendRow( "Comment", item.Comment )
+				@AppendRow( "Usage Note", item.UsageNote )
+				@AppendRow( "Type of Term", GetTermLink( GetFullURI( "rdf:Property" ), "rdf:Property" ).ToString() )
+				@AppendRow( "Subproperty Of", item.SubTermOf )
+				@AppendRow( "Equivalent Property", item.EquivalentTerm )
+				@AppendRow( "Domain Includes", RDF.StaticData.Classes.Where( m => m.DomainFor.Contains( item.URI ) ).Select( m => m.URI ).ToList() )
+				@AppendRow( "Range Includes", item.Range )
+			</tbody>
+		</table>
+	</div>
+}
 

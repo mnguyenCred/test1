@@ -14,18 +14,23 @@ namespace Services
 {
 	public class RDFServices
 	{
+		public static List<RDF.RDFContext> GetContextData()
+		{
+			var contextData = RDF.StaticData.Context;
+			contextData.FirstOrDefault( m => m.Compacted == "navy" ).Expanded = GetApplicationURL() + "rdf/terms/";
+
+			return contextData;
+		}
+		//
+
 		public static JObject GetContext()
 		{
 			//Base context
 			var result = new JObject();
-			foreach( var context in RDF.StaticData.Context )
+			foreach ( var context in GetContextData() )
 			{
 				AppendValue( result, context.Compacted, context.Expanded, false );
 			}
-
-			//Override the URL for the navy terms
-			var applicationURL = GetApplicationURL();
-			result[ "navy" ] = applicationURL + "rdf/terms/";
 
 			//Terms context
 			foreach( var property in RDF.StaticData.Properties )
