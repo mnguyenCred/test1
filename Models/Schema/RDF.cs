@@ -137,14 +137,14 @@ namespace Models.Schema
 				new RDFContext( "DCMI Metadata Terms", "dct", "https://purl.org/dc/terms/" ),
 				new RDFContext( "Credential Engine Meta Terms", "meta", "https://credreg.net/meta/terms/" ),
 				new RDFContext( "CE Navy Terms", "navy", "https://credreg.net/navy/terms/" ),
-				new RDFContext( "Ontology Web Language", "owl", "http://www.w3.org/2002/07/owl#" ),
-				new RDFContext( "Resource Description Framework", "rdf", "http://www.w3.org/1999/02/22-rdf-syntax-ns#" ),
-				new RDFContext( "RDF Schema 1.1", "rdfs", "http://www.w3.org/2000/01/rdf-schema#" ),
+				new RDFContext( "Ontology Web Language", "owl", "https://www.w3.org/2002/07/owl#" ),
+				new RDFContext( "Resource Description Framework", "rdf", "https://www.w3.org/1999/02/22-rdf-syntax-ns#" ),
+				new RDFContext( "RDF Schema 1.1", "rdfs", "https://www.w3.org/2000/01/rdf-schema#" ),
 				new RDFContext( "Schema.org", "schema", "https://schema.org/" ),
-				new RDFContext( "Simple Knowledge Organization System", "skos", "http://www.w3.org/2004/02/skos/core#" ),
-				new RDFContext( "Web Annotation Vocabulary", "vann", "http://purl.org/vocab/vann/" ),
+				new RDFContext( "Simple Knowledge Organization System", "skos", "https://www.w3.org/2004/02/skos/core#" ),
+				new RDFContext( "Web Annotation Vocabulary", "vann", "https://purl.org/vocab/vann/" ),
 				new RDFContext( "Term-centric Semantic Web Vocabulary Annotations", "vs", "https://www.w3.org/2003/06/sw-vocab-status/ns#" ),
-				new RDFContext( "XML Schema Definition", "xsd", "http://www.w3.org/2001/XMLSchema#" )
+				new RDFContext( "XML Schema Definition", "xsd", "https://www.w3.org/2001/XMLSchema#" )
 			};
 
 			public static List<RDFClass> Classes = new List<RDFClass>()
