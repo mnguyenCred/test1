@@ -14,26 +14,27 @@ namespace Services
 {
 	public class RDFServices
 	{
-		public static List<RDF.RDFContext> GetContextData()
+
+		public static List<RDF.RDFContext> GetAllContextItems()
 		{
-			var contextData = RDF.StaticData.Context;
+			var contextData = RDF.StaticData.GetContext();
 			contextData.FirstOrDefault( m => m.Compacted == "navy" ).Expanded = GetApplicationURL() + "rdf/terms/";
 
 			return contextData;
 		}
 		//
 
-		public static JObject GetContext()
+		public static JObject GetRDFContext()
 		{
 			//Base context
 			var result = new JObject();
-			foreach ( var context in GetContextData() )
+			foreach ( var context in GetAllContextItems() )
 			{
 				AppendValue( result, context.Compacted, context.Expanded, false );
 			}
 
 			//Terms context
-			foreach( var property in RDF.StaticData.Properties )
+			foreach( var property in RDF.StaticData.GetProperties() )
 			{
 				var item = new JObject();
 				AppendValue( item, "@type", property.ContextType, false );
@@ -49,12 +50,37 @@ namespace Services
 		}
 		//
 
+		public static List<RDF.RDFClass> GetAllClasses()
+		{
+			return RDF.StaticData.GetClasses();
+		}
+		//
+
+		public static List<RDF.RDFProperty> GetAllProperties()
+		{
+			var propertiesData = RDF.StaticData.GetProperties();
+			var allConceptSchemes = Factories.ConceptSchemeManager.GetAll();
+
+			AddTargetScheme( propertiesData, "ceterms:assessmentMethodType", allConceptSchemes, Factories.ConceptSchemeManager.ConceptScheme_CurrentAssessmentApproach );
+			AddTargetScheme( propertiesData, "navy:courseType", allConceptSchemes, Factories.ConceptSchemeManager.ConceptScheme_CourseType );
+			AddTargetScheme( propertiesData, "navy:lifeCycleControlDocumentType", allConceptSchemes, Factories.ConceptSchemeManager.ConceptScheme_LifeCycleControlDocument );
+			AddTargetScheme( propertiesData, "navy:payGradeType", allConceptSchemes, Factories.ConceptSchemeManager.ConceptScheme_Pay_Grade );
+			AddTargetScheme( propertiesData, "navy:referenceType", allConceptSchemes, Factories.ConceptSchemeManager.ConceptScheme_ReferenceResource );
+			AddTargetScheme( propertiesData, "navy:applicabilityType", allConceptSchemes, Factories.ConceptSchemeManager.ConceptScheme_TaskApplicability );
+			AddTargetScheme( propertiesData, "navy:trainingGapType", allConceptSchemes, Factories.ConceptSchemeManager.ConceptScheme_TrainingGap );
+
+			return propertiesData;
+		}
+		//
+
 		public static JObject GetSchema()
 		{
 			var terms = new JArray();
+			var allClasses = GetAllClasses();
+			var allProperties = GetAllProperties();
 
 			//Classes
-			foreach( var item in RDF.StaticData.Classes )
+			foreach( var item in allClasses )
 			{
 				var json = new JObject();
 				AppendValue( json, "@type", "rdfs:Class", false );
@@ -70,9 +96,9 @@ namespace Services
 			}
 
 			//Properties
-			foreach( var item in RDF.StaticData.Properties )
+			foreach( var item in allProperties )
 			{
-				var domain = RDF.StaticData.Classes.Where( m => m.DomainFor.Contains( item.URI ) ).ToList();
+				var domain = allClasses.Where( m => m.DomainFor.Contains( item.URI ) ).ToList();
 				var json = new JObject();
 				AppendValue( json, "@type", "rdfs:Property", false );
 				AppendValue( json, "@id", item.URI, false );
@@ -84,6 +110,7 @@ namespace Services
 				AppendValue( json, "owl:equivalentProperty", item.EquivalentTerm, false );
 				AppendValue( json, "schema:domainIncludes", domain.Select( m => m.URI ).ToList(), false );
 				AppendValue( json, "schema:rangeIncludes", item.Range, false );
+				AppendValue( json, "meta:targetScheme", item.TargetScheme, false );
 				terms.Add( json );
 			}
 
@@ -382,6 +409,18 @@ namespace Services
 				{
 					container[ property ] = JArray.FromObject( holder );
 				}
+			}
+		}
+		//
+
+		public static void AddTargetScheme( List<RDF.RDFProperty> properties, string propertyURI, List<ConceptScheme> conceptSchemes, string conceptSchemeSchemaURI )
+		{
+			var property = properties.FirstOrDefault( m => m.URI == propertyURI );
+			var scheme = conceptSchemes.FirstOrDefault( m => m.SchemaUri == conceptSchemeSchemaURI );
+			if( property != null && scheme != null )
+			{
+				property.TargetScheme = property.TargetScheme ?? new List<string>();
+				property.TargetScheme.Add( GetRegistryURL( scheme.CTID ) );
 			}
 		}
 		//

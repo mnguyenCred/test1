@@ -16,7 +16,7 @@ namespace NavyRRL.Controllers
 		[Route("rdf/context/json")]
         public ActionResult ContextJSON()
 		{
-			return RawJSONResponse( RDFServices.GetContext() );
+			return RawJSONResponse( RDFServices.GetRDFContext() );
 		}
 		//
 

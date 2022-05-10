@@ -1,16 +1,26 @@
 ﻿@using Models.Schema;
+@using Factories;
 @using Services;
 @{
 	ViewBag.Title = "Schema Terms";
-	UpdatedContext = RDFServices.GetContextData().OrderBy( m => m.Compacted ).ToList();
+	var isUserAuthenticated = Services.AccountServices.IsUserAuthenticated();
+	AllContextItems = RDFServices.GetAllContextItems().OrderBy( m => m.Compacted ).ToList();
+	AllClasses = RDFServices.GetAllClasses().OrderBy( m => m.Label ).ToList();
+	AllProperties = RDFServices.GetAllProperties().OrderBy( m => m.Label ).ToList();
+	AllConceptSchemes = Factories.ConceptSchemeManager.GetAll().OrderBy( m => m.Name ).ToList();
+	AllConcepts = isUserAuthenticated ? Factories.ConceptSchemeManager.GetAllConcepts().OrderBy( m => m.Name ).ToList() : new List<Concept>();
 }
 @functions {
-	public List<RDF.RDFContext> UpdatedContext { get; set; }
+	public List<RDF.RDFContext> AllContextItems { get; set; }
+	public List<RDF.RDFClass> AllClasses { get; set; }
+	public List<RDF.RDFProperty> AllProperties { get; set; }
+	public List<ConceptScheme> AllConceptSchemes { get; set; }
+	public List<Concept> AllConcepts { get; set; }
 
 	public string GetFullURI( string shortURI )
 	{
 		var parts = shortURI.Split( ':' );
-		var contextItem = UpdatedContext.FirstOrDefault( m => m.Compacted == parts.First() ) ?? new RDF.RDFContext(){ Expanded = "unknown:" };
+		var contextItem = AllContextItems.FirstOrDefault( m => m.Compacted == parts.First() ) ?? new RDF.RDFContext(){ Expanded = "unknown:" };
 		return contextItem.Expanded + parts.Last();
 	}
 
@@ -105,7 +115,7 @@
 		</tr>
 	</thead>
 	<tbody>
-		@foreach( var item in UpdatedContext )
+		@foreach( var item in AllContextItems )
 		{
 			<tr>
 				<td>@item.Compacted</td><td>@GetTermLink( item.Expanded, item.Expanded )</td><td>@item.Label</td>
@@ -115,7 +125,7 @@
 </table>
 
 <h2>Classes</h2>
-@foreach ( var item in RDF.StaticData.Classes.OrderBy( m => m.Label ).ToList() )
+@foreach ( var item in AllClasses )
 {
 	var fullURI = GetFullURI( item.URI );
 	<div class="tableWrapper collapseBox collapsed" data-shorturi="@item.URI" data-fulluri="@fullURI">
@@ -135,16 +145,18 @@
 				@AppendRow( "Subclass Of", item.SubTermOf )
 				@AppendRow( "Equivalent Class", item.EquivalentTerm )
 				@AppendRow( "Domain For", item.DomainFor )
-				@AppendRow( "In Range Of", RDF.StaticData.Properties.Where( m => m.Range.Contains( item.URI ) ).Select( m => m.URI ).ToList() )
+				@AppendRow( "In Range Of", AllProperties.Where( m => m.Range.Contains( item.URI ) ).Select( m => m.URI ).ToList() )
 			</tbody>
 		</table>
 	</div>
 }
 
 <h2>Properties</h2>
-@foreach( var item in RDF.StaticData.Properties.OrderBy( m => m.Label ).ToList() )
+@foreach( var item in AllProperties )
 {
 	var fullURI = GetFullURI( item.URI );
+	var applicableConceptSchemes = AllConceptSchemes.Where( m => ( string.Join( ",", item.TargetScheme ?? new List<string>() ).Contains( m.CTID ) ) ).ToList();
+	var applicableConcepts = AllConcepts.Where( m => applicableConceptSchemes.Select( n => n.SchemaUri ).Contains( m.SchemeUri ) ).ToList();
 	<div class="tableWrapper collapseBox collapsed" data-shorturi="@item.URI" data-fulluri="@fullURI">
 		<button class="blueButton wrapperButton collapseButton">
 			<span class="name">@item.Label</span>
@@ -161,10 +173,70 @@
 				@AppendRow( "Type of Term", GetTermLink( GetFullURI( "rdf:Property" ), "rdf:Property" ).ToString() )
 				@AppendRow( "Subproperty Of", item.SubTermOf )
 				@AppendRow( "Equivalent Property", item.EquivalentTerm )
-				@AppendRow( "Domain Includes", RDF.StaticData.Classes.Where( m => m.DomainFor.Contains( item.URI ) ).Select( m => m.URI ).ToList() )
+				@AppendRow( "Domain Includes", AllClasses.Where( m => m.DomainFor.Contains( item.URI ) ).Select( m => m.URI ).ToList() )
 				@AppendRow( "Range Includes", item.Range )
+				@if( applicableConceptSchemes.Count() > 0 )
+				{
+					@AppendRow( "Uses Concept Scheme", "<div class=\"itemList\">" + string.Join( "", applicableConceptSchemes.Select( m => GetTermLink( RDFServices.GetRegistryURL( m.CTID ), m.Name ) ).ToList() ) + "</div>" )
+				}
+				@if( applicableConcepts.Count() > 0 )
+				{
+					@AppendRow( "Applicable Concepts", "<div class=\"itemList\">" + string.Join( "", applicableConcepts.Select( m => GetTermLink( RDFServices.GetRegistryURL( m.CTID ), m.Name ) ).ToList() ) + "</div>" )
+				}
 			</tbody>
 		</table>
 	</div>
 }
 
+<h2>Concept Schemes</h2>
+@foreach( var item in AllConceptSchemes )
+{
+	var fullURI = RDFServices.GetRegistryURL( item.CTID );
+	var applicableConcepts = AllConcepts.Where( m => m.SchemeUri == item.SchemaUri ).ToList();
+	<div class="tableWrapper collapseBox collapsed" data-fulluri="@fullURI">
+		<button class="blueButton wrapperButton collapseButton">
+			<span class="name">@item.Name</span>
+			<span class="uri">(@item.CTID)</span>
+		</button>
+		<table class="propertyTable collapseContent">
+			<tbody>
+				@AppendRow( "Full URI", GetTermLink( fullURI, fullURI ).ToString() )
+				@AppendRow( "Label", item.Name )
+				@AppendRow( "Definition", item.Description )
+				@AppendRow( "Type of Term", GetTermLink( GetFullURI( "skos:ConceptScheme" ), "skos:ConceptScheme" ).ToString() )
+				@if( applicableConcepts.Count() > 0 )
+				{
+					@AppendRow( "Has Concepts", "<div class=\"itemList\">" + string.Join( "", applicableConcepts.Select( m => GetTermLink( RDFServices.GetRegistryURL( m.CTID ), m.Name ) ).ToList() ) + "</div>" )
+				}
+			</tbody>
+		</table>
+	</div>
+}
+
+@if ( isUserAuthenticated )
+{
+	<h2>Concepts</h2>
+	foreach( var item in AllConcepts )
+	{
+		var fullURI = RDFServices.GetRegistryURL( item.CTID );
+		var applicableConceptSchemes = AllConceptSchemes.Where( m => m.SchemaUri == item.SchemeUri ).ToList();
+		<div class="tableWrapper collapseBox collapsed" data-fulluri="@fullURI">
+			<button class="blueButton wrapperButton collapseButton">
+				<span class="name">@item.Name</span>
+				<span class="uri">(@item.CTID)</span>
+			</button>
+			<table class="propertyTable collapseContent">
+				<tbody>
+					@AppendRow( "Full URI", GetTermLink( fullURI, fullURI ).ToString() )
+					@AppendRow( "Label", item.Name )
+					@AppendRow( "Definition", item.Description )
+					@AppendRow( "Type of Term", GetTermLink( GetFullURI( "skos:Concept" ), "skos:Concept" ).ToString() )
+					@if( applicableConceptSchemes.Count() > 0 )
+					{
+						@AppendRow( "In Scheme", "<div class=\"itemList\">" + string.Join( "", applicableConceptSchemes.Select( m => GetTermLink( RDFServices.GetRegistryURL( m.CTID ), m.Name ) ).ToList() ) + "</div>" )
+					}
+				</tbody>
+			</table>
+		</div>
+	}
+}
