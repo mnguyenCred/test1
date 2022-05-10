@@ -94,10 +94,10 @@
           <Property Name="ClusterAnalysisTitle" Type="nvarchar" MaxLength="500" />
           <Property Name="RecommendedModalityId" Type="int" />
           <Property Name="DevelopmentSpecificationId" Type="int" />
-          <Property Name="CandidatePlatform" Type="nvarchar" MaxLength="100" />
-          <Property Name="CFMPlacement" Type="varchar" MaxLength="100" />
+          <Property Name="CandidatePlatform" Type="nvarchar(max)" />
+          <Property Name="CFMPlacement" Type="varchar" MaxLength="500" />
           <Property Name="PriorityPlacement" Type="int" />
-          <Property Name="DevelopmentRatio" Type="varchar" MaxLength="100" />
+          <Property Name="DevelopmentRatio" Type="varchar" MaxLength="500" />
           <Property Name="EstimatedInstructionalTime" Type="decimal" Precision="19" Scale="2" />
           <Property Name="DevelopmentTime" Type="int" />
           <Property Name="CTID" Type="varchar" MaxLength="50" />
@@ -152,17 +152,17 @@
           <Property Name="RowId" Type="uniqueidentifier" Nullable="false" />
           <Property Name="ConceptSchemeId" Type="int" Nullable="false" />
           <Property Name="Name" Type="varchar" MaxLength="1000" Nullable="false" />
-          <Property Name="CTID" Type="varchar" MaxLength="50" />
+          <Property Name="WorkElementType" Type="varchar" MaxLength="200" />
           <Property Name="CodedNotation" Type="varchar" MaxLength="50" />
           <Property Name="AlternateLabel" Type="varchar" MaxLength="500" />
           <Property Name="Description" Type="varchar(max)" />
           <Property Name="ListId" Type="int" Nullable="false" />
           <Property Name="IsActive" Type="bit" Nullable="false" />
+          <Property Name="CTID" Type="varchar" MaxLength="50" />
           <Property Name="Created" Type="datetime" Nullable="false" />
           <Property Name="CreatedById" Type="int" />
           <Property Name="LastUpdated" Type="datetime" Nullable="false" />
           <Property Name="LastUpdatedById" Type="int" />
-          <Property Name="WorkElementType" Type="varchar" MaxLength="200" />
         </EntityType>
         <EntityType Name="Course">
           <Key>
@@ -2680,10 +2680,10 @@
           <Property Name="ClusterAnalysisTitle" Type="String" MaxLength="500" FixedLength="false" Unicode="true" />
           <Property Name="RecommendedModalityId" Type="Int32" />
           <Property Name="DevelopmentSpecificationId" Type="Int32" />
-          <Property Name="CandidatePlatform" Type="String" MaxLength="100" FixedLength="false" Unicode="true" />
-          <Property Name="CFMPlacement" Type="String" MaxLength="100" FixedLength="false" Unicode="false" />
+          <Property Name="CandidatePlatform" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
+          <Property Name="CFMPlacement" Type="String" MaxLength="500" FixedLength="false" Unicode="false" />
           <Property Name="PriorityPlacement" Type="Int32" />
-          <Property Name="DevelopmentRatio" Type="String" MaxLength="100" FixedLength="false" Unicode="false" />
+          <Property Name="DevelopmentRatio" Type="String" MaxLength="500" FixedLength="false" Unicode="false" />
           <Property Name="EstimatedInstructionalTime" Type="Decimal" Precision="19" Scale="2" />
           <Property Name="DevelopmentTime" Type="Int32" />
           <Property Name="CTID" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
@@ -2695,10 +2695,10 @@
           <Property Name="TrainingSolutionType" Type="String" MaxLength="100" FixedLength="false" Unicode="false" />
           <Property Name="RecommendedModality" Type="String" MaxLength="100" FixedLength="false" Unicode="false" />
           <Property Name="DevelopmentSpecification" Type="String" MaxLength="200" FixedLength="false" Unicode="false" />
-          <NavigationProperty Name="ConceptScheme_Concept" Relationship="NavyRRLModel.FK_ClusterAnalysis_DevSpec_Concept" FromRole="ClusterAnalysis" ToRole="ConceptScheme_Concept" />
+          <NavigationProperty Name="ConceptScheme_DevelopementSpec" Relationship="NavyRRLModel.FK_ClusterAnalysis_DevSpec_Concept" FromRole="ClusterAnalysis" ToRole="ConceptScheme_Concept" />
           <NavigationProperty Name="RatingTask" Relationship="NavyRRLModel.FK_ClusterAnalysis_RatingTask" FromRole="ClusterAnalysis" ToRole="RatingTask" />
-          <NavigationProperty Name="ConceptScheme_Concept1" Relationship="NavyRRLModel.FK_ClusterAnalysis_RecommendedModality_Concept1" FromRole="ClusterAnalysis" ToRole="ConceptScheme_Concept" />
-          <NavigationProperty Name="ConceptScheme_Concept2" Relationship="NavyRRLModel.FK_ClusterAnalysis_TrainingSolution_Concept" FromRole="ClusterAnalysis" ToRole="ConceptScheme_Concept" />
+          <NavigationProperty Name="ConceptScheme_RecommendedModality" Relationship="NavyRRLModel.FK_ClusterAnalysis_RecommendedModality_Concept1" FromRole="ClusterAnalysis" ToRole="ConceptScheme_Concept" />
+          <NavigationProperty Name="ConceptScheme_TrainingSolution" Relationship="NavyRRLModel.FK_ClusterAnalysis_TrainingSolution_Concept" FromRole="ClusterAnalysis" ToRole="ConceptScheme_Concept" />
         </EntityType>
         <Association Name="FK_ClusterAnalysis_DevSpec_Concept">
           <End Type="NavyRRLModel.ConceptScheme_Concept" Role="ConceptScheme_Concept" Multiplicity="0..1" />

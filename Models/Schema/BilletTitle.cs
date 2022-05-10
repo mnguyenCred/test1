@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.Text;
 
+using Newtonsoft.Json.Linq;
+
 namespace Models.Schema
 {
 	public class BilletTitle : BaseObject
@@ -9,7 +11,6 @@ namespace Models.Schema
 		public BilletTitle()
 		{
 			HasRatingTask = new List<Guid>();
-			HasRatingTaskByCode = new List<string>();
 		}
 
 		/// <summary>
@@ -25,19 +26,11 @@ namespace Models.Schema
 		public string Description { get; set; }
 
 		/// <summary>
-		/// Guid for the Rating this Billet Title is associated with<br />
-		/// From Column: Rating<br />
-		/// NOTE: This field is to be removed! (per decision on 2022-02-18)
-		/// </summary>
-		public Guid HasRating { get; set; }
-
-		/// <summary>
 		/// List of GUIDs for Rating Tasks associated with this Billet Title<br />
 		/// From Column: Work Element (Task)
 		/// </summary>
 		public List<Guid> HasRatingTask { get; set; }
 
-		public List<string> HasRatingTaskByCode { get; set; } 
 	}
 	//
 

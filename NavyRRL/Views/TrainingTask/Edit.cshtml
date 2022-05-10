@@ -1,5 +1,6 @@
 ﻿@using Models.Schema;
 @using Newtonsoft.Json;
+@using Models.DTO;
 @model TrainingTask
 @{
 	var title = Model.Id > 0 ? "Editing Training Task" : "New Training Task";
@@ -44,10 +45,14 @@
 </script>
 
 <h2>@title</h2>
-<form-item data-path="TrainingTask.CourseName" data-ui="display" data-label="Course Name"></form-item>
-<form-item data-path="TrainingTask.CourseCodedNotation" data-ui="display" data-label="CIN"></form-item>
 <form-item data-path="TrainingTask.Id" data-ui="display" data-label="ID"></form-item>
 <form-item data-path="TrainingTask.RowId" data-ui="display" data-label="RowID"></form-item>
+<form-item data-path="TrainingTask.CourseName" data-ui="display" data-label="Course Name"></form-item>
+<form-item data-path="TrainingTask.CourseCodedNotation" data-ui="display" data-label="CIN"></form-item>
+
+<h3>Basic Info</h3>
 <form-item data-path="TrainingTask.Description" data-ui="textarea" data-label="Description"></form-item>
 <form-item data-path="TrainingTask.AssessmentMethodType" data-ui="checkboxlist" data-label="Assessment Method Type" data-config="AssessmentMethodType"></form-item>
+
+<h3>Save Changes</h3>
 <form-item data-path="TrainingTask.SaveButton" data-ui="savebutton" data-label="Save Changes" data-config="SaveButton"></form-item>

@@ -5,6 +5,7 @@
 	var searchType = ViewBag.SearchType ?? Request.Params["searchType"] ?? "Rating";
 }
 
+@Html.Partial( "~/Views/Help/_GeneralSearch.cshtml" )
 @Html.Partial( "~/Views/Search/_SearchCoreV1.cshtml" )
 
 <script type="text/javascript">
@@ -19,9 +20,10 @@
 			{ Name: "RatingTask", LabelSingle: "Rating Task", LabelMulti: "Rating Tasks" },
 			{ Name: "Course", LabelSingle: "Course", LabelMulti: "Courses" },
 			{ Name: "TrainingTask", LabelSingle: "Training Task", LabelMulti: "Training Tasks" },
-			{ Name: "Organization", LabelSingle: "Curriculum Control Authority", LabelMulti: "Curriculum Control Authorities" },			
+			{ Name: "Organization", LabelSingle: "Organization (CCA)", LabelMulti: "Organizations (CCAs)" },			
 			{ Name: "ConceptScheme", LabelSingle: "Concept Scheme", LabelMulti: "Concept Schemes" },
 			{ Name: "Concept", LabelSingle: "Concept", LabelMulti: "Concepts" },
+			{ Name: "ClusterAnalysis", LabelSingle: "ClusterAnalysis", LabelMulti: "ClusterAnalysis" },
 			{ Name: "RMTLProject", LabelSingle: "RMTL Project", LabelMulti: "RMTL Projects" }
 		]
 	};
@@ -42,6 +44,7 @@
 		UI.Spinner = $(".searchSpinner");
 		UI.ResultsBox = $(".searchResultsBox");
 		UI.PagingBox = $(".searchPagingBox");
+		UI.NewItemLink = $(".newItemLink");
 	}
 	//
 
@@ -94,6 +97,8 @@
 		SearchData.Types.map(m => m.IsActive = m.Name == searchType);
 		SearchData.Active = SearchData.Types.filter(m => m.Name == searchType)[0];
 		SearchData.Active.Search.delayThenSearch();
+		UI.NewItemLink.attr("href", "@Url.Content("~/")" + SearchData.Active.Name + "/edit/0");
+		UI.NewItemLink.html("Create New " + SearchData.Active.LabelSingle);
 	}
 	//
 
@@ -136,7 +141,6 @@
 	.searchHeader .searchFiltersBox { }
 	.searchHeader .searchStatusWrapper { display: flex; align-items: center; }
 	.searchHeader .searchStatusWrapper .searchStatusBox { font-style: italic; margin-right: 10px; padding: 0 5px; }
-	.searchHeader .searchStatusWrapper .searchPagingBox { flex: 0 0 200px; margin-left: auto; }
 
 	.searchResultsBox { }
 	.searchResultsBox .searchResult { display: flex; padding: 10px; border-top: 1px solid #CCC; }
@@ -149,9 +153,18 @@
 	.searchResultsBox .searchResult .resultLinks { display: flex; margin-left: auto; }
 	.searchResultsBox .searchResult .resultLinks a { padding: 0 10px; border-left: 1px solid #CCC; }
 	.searchResultsBox .searchResult .resultLinks a:first-child { border: none; }
+
+	.searchPagingBox { display: flex; gap: 2px 5px; justify-content: center; padding: 10px; }
+	.searchPagingBox .currentPage { font-weight: bold; }
+
+	.headerWithNewButton { display: flex; align-items: center; }
+	.headerWithNewButton a { margin-left: auto; font-size: 14px; }
 </style>
 
-<h2>Search by Type</h2>
+<h2 class="headerWithNewButton">
+	<span>Search by Type</span>
+	<a class="newItemLink"></a>
+</h2>
 
 <div class="searchBox">
 	<div class="searchHeader">
@@ -178,8 +191,9 @@
 		<div class="searchStatusWrapper">
 			<div class="searchStatusBox"></div>
 			<div class="spinner searchSpinner"></div>
-			<div class="searchPagingBox"></div>
 		</div>
 	</div>
+	<div class="searchPagingBox"></div>
 	<div class="searchResultsBox"></div>
+	<div class="searchPagingBox"></div>
 </div>

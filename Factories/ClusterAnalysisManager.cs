@@ -209,7 +209,7 @@ namespace Factories
                     {
                         //?no info on error
 
-                        string message = thisClassName + string.Format( ". Add Failed", "Attempted to add a ClusterAnalysis. The process appeared to not work, but was not an exception, so we have no message, or no clue. ClusterAnalysis: {0}, CodedNotation: {1}", entity.ClusterAnalysisTitle, entity.TrainingSolutionType );
+                        string message = thisClassName + string.Format( ". Add Failed", "Attempted to add a ClusterAnalysis. The process appeared to not work, but was not an exception, so we have no message, or no clue. ClusterAnalysis: {0}, CodedNotation: {1}", entity.ClusterAnalysisTitle, entity.TrainingSolution );
                         status.AddError( thisClassName + ". Error - the add was not successful. " + message );
                         EmailManager.NotifyAdmin( thisClassName + ". Add Failed", message );
                     }
@@ -224,7 +224,7 @@ namespace Factories
                 catch ( Exception ex )
                 {
                     string message = FormatExceptions( ex );
-                    LoggingHelper.LogError( ex, thisClassName + string.Format( ".Add(), ClusterAnalysisTitle:{0}, entity.TrainingSolutionType: {1}", entity.ClusterAnalysisTitle, entity.TrainingSolutionType ) );
+                    LoggingHelper.LogError( ex, thisClassName + string.Format( ".Add(), ClusterAnalysisTitle:{0}, entity.TrainingSolutionType: {1}", entity.ClusterAnalysisTitle, entity.TrainingSolution ) );
                     status.AddError( thisClassName + ".Add(). Error - the save was not successful. \r\n" + message );
                 }
             }
@@ -238,6 +238,11 @@ namespace Factories
             List<string> errors = new List<string>();
             //
             BaseFactory.AutoMap( input, output, errors );
+            //clean up Development ratio (pair off :00)
+            if ( output.DevelopmentRatio?.Length > 0 && output.DevelopmentRatio.EndsWith( ":00" )) 
+            {
+                output.DevelopmentRatio = output.DevelopmentRatio.Substring(0, output.DevelopmentRatio.Length - 3);
+            }
             //if ( IsValidGuid( input.TrainingSolutionType ) )
             //{
             //    output.TrainingSolutionTypeId = ( int ) ConceptSchemeManager.GetConcept( input.TrainingSolutionTypeId )?.Id;
@@ -245,9 +250,9 @@ namespace Factories
             if ( input.TrainingSolutionTypeId > 0 )
                 output.TrainingSolutionTypeId = input.TrainingSolutionTypeId;
 
-            else if ( !string.IsNullOrWhiteSpace( input.TrainingSolutionType ) )
+            else if ( !string.IsNullOrWhiteSpace( input.TrainingSolution ) )
             {
-                output.TrainingSolutionTypeId = ( int ) ConceptSchemeManager.GetConcept( ConceptSchemeManager.ConceptScheme_TrainingSolutionType, input.TrainingSolutionType )?.Id;
+                output.TrainingSolutionTypeId = ( int ) ConceptSchemeManager.GetConcept( ConceptSchemeManager.ConceptScheme_TrainingSolutionType, input.TrainingSolution )?.Id;
             }
             else
                 output.TrainingSolutionTypeId = null;
@@ -313,7 +318,7 @@ namespace Factories
             }
             return entity;
         }
-        public static AppEntity Get( Guid rowId, bool includingTrainingTasks = false )
+        public static AppEntity Get( Guid rowId)
         {
             var entity = new AppEntity();
 
@@ -324,7 +329,7 @@ namespace Factories
 
                 if ( item != null && item.Id > 0 )
                 {
-                    MapFromDB( item, entity, includingTrainingTasks );
+                    MapFromDB( item, entity );
                 }
             }
             return entity;
@@ -394,15 +399,16 @@ namespace Factories
                 {
                     var list = from Results in context.ClusterAnalysis
                                select Results;
-                    //if ( !string.IsNullOrWhiteSpace( filter ) )
-                    //{
-                    //    list = from Results in list
-                    //            .Where( s =>
-                    //            ( s.Name.ToLower().Contains( filter.ToLower() ) ) ||
-                    //            ( s.CodedNotation.ToLower() == filter.ToLower() )
-                    //            )
-                    //           select Results;
-                    //}
+                    if ( !string.IsNullOrWhiteSpace( filter ) )
+                    {
+                        list = from Results in list
+                                .Where( s =>
+                                ( s.ClusterAnalysisTitle.ToLower().Contains( filter.ToLower() ) )
+                                    || ( s.ConceptScheme_TrainingSolution!= null && s.ConceptScheme_TrainingSolution.Name.ToLower() == filter.ToLower() )
+                                    || ( s.ConceptScheme_RecommendedModality != null && s.ConceptScheme_RecommendedModality.Name.ToLower() == filter.ToLower() )
+                                )
+                               select Results;
+                    }
                     query.TotalResults = list.Count();
                     //sort order not handled
                     list = list.OrderBy( p => p.Id );
@@ -417,7 +423,7 @@ namespace Factories
                             if ( item != null && item.Id > 0 )
                             {
                                 entity = new AppEntity();
-                                MapFromDB( item, entity );
+                                MapFromDB( item, entity, true );
                                 output.Add( ( entity ) );
                             }
                         }
@@ -431,7 +437,7 @@ namespace Factories
             }
             return output;
         }
-        public static void MapFromDB( DBEntity input, AppEntity output, bool includingTrainingTasks = false )
+        public static void MapFromDB( DBEntity input, AppEntity output, bool formatForSearch = false )
         {
             //should include list of concepts
             List<string> errors = new List<string>();
@@ -440,79 +446,91 @@ namespace Factories
             {
                 output.RowId = input.RowId;
             }
-            /*
-            if ( input.ClusterAnalysis_AssessmentType != null )
+            if ( formatForSearch )
             {
-                foreach ( var item in input.ClusterAnalysis_AssessmentType )
+                output.Name = String.Format( "{0} ~ {1} ! {2}", output.ClusterAnalysisTitle, output.TrainingSolution, output.RecommendedModality );
+            }
+            //handle nullables
+            if ( input.TrainingSolutionTypeId != null )
+            {
+                output.TrainingSolutionTypeId = ( int ) input.TrainingSolutionTypeId;
+                if ( input.ConceptScheme_TrainingSolution?.Id > 0 )
                 {
-                    if ( item != null && item.ConceptScheme_Concept != null )
-                    {
-                        output.AssessmentMethodType.Add( item.ConceptScheme_Concept.RowId );
-                        output.AssessmentMethods.Add( item.ConceptScheme_Concept.Name );
-                    }
+                    output.TrainingSolution = input.ConceptScheme_TrainingSolution.Name;
+                    output.TrainingSolutionType = input.ConceptScheme_TrainingSolution.RowId;
                 }
             }
-            //
-            if ( input.ClusterAnalysis_ClusterAnalysisType?.Count > 0 )
+            if ( input.DevelopmentSpecificationId != null )
             {
-                output.ClusterAnalysisType = new List<Guid>();
-                int cntr = 0;
-                foreach ( var item in input.ClusterAnalysis_ClusterAnalysisType )
+                output.DevelopmentSpecificationId = ( int ) input.DevelopmentSpecificationId;
+                if ( input.ConceptScheme_DevelopementSpec?.Id > 0 )
                 {
-                    cntr++;
-                    if ( item != null && item.ConceptScheme_Concept != null )
-                    {
-                        output.ClusterAnalysisType.Add( item.ConceptScheme_Concept.RowId );
-                        output.ClusterAnalysisTypeList.Add( item.ConceptScheme_Concept.Name );
-                    }
+                    output.DevelopmentSpecification = input.ConceptScheme_DevelopementSpec.Name;
+                    output.DevelopmentSpecificationType = input.ConceptScheme_DevelopementSpec.RowId;
                 }
             }
-            //
-            if ( input.CurriculumControlAuthorityId != null )
+            if ( input.RecommendedModalityId != null )
             {
-                output.CurriculumControlAuthorityId = ( int ) input.CurriculumControlAuthorityId;
-                if ( input.Organization?.Id > 0 )
+                output.RecommendedModalityId = ( int ) input.RecommendedModalityId;
+                if ( input.ConceptScheme_RecommendedModality?.Id > 0 )
                 {
-                    output.OrganizationName = input.Organization.Name;
-                    output.Organizations.Add( output.OrganizationName );
-                    output.CurriculumControlAuthority.Add( input.Organization.RowId );
+                    output.RecommendedModality = input.ConceptScheme_RecommendedModality.Name;
+                    output.RecommendedModalityType = input.ConceptScheme_RecommendedModality.RowId;
                 }
             }
-            //
-            if ( input.LifeCycleControlDocumentId != null )
+            if ( input.PriorityPlacement != null )
             {
-                output.LifeCycleControlDocumentId = ( int ) input.LifeCycleControlDocumentId;
-                if ( input.ReferenceResource?.Id > 0 )
-                {
-                    output.LifeCycleControlDocument = input.ReferenceResource.Name;
-                    output.HasReferenceResource = input.ReferenceResource.RowId;
-                }
+                output.PriorityPlacement = ( int ) input.PriorityPlacement;
+                output.PriorityPlacementLabel = output.PriorityPlacement.ToString();
             }
-            //
-            //if ( input.ClusterAnalysis_Organization?.Count > 0 )
-            //{
-            //    output.Organizations = new List<string>();
-            //    foreach ( var item in input.ClusterAnalysis_Organization )
-            //    {
-            //        if ( item != null && item.Organization != null )
-            //        {
-            //            output.CurriculumControlAuthority.Add( item.Organization.RowId );
-            //            output.Organizations.Add( item.Organization.Name );
-            //        }
-            //    }
-            //}
 
-            //
-            if ( includingTrainingTasks && input?.ClusterAnalysis_Task?.Count > 0 )
+            if ( input.DevelopmentTime != null )
             {
-                foreach ( var item in input.ClusterAnalysis_Task )
-                {
-                    output.HasTrainingTask.Add( item.RowId );
-                }
+                output.DevelopmentTime = ( int ) input.DevelopmentTime;
+                output.DevelopmentTimeLabel = output.DevelopmentTime.ToString();
             }
+            /*
+
             */
         }
+        public static AppEntity MapFromDB( DBEntity input, bool formatForSearch = false )
+        {
+            AppEntity output = new AppEntity();
+            //should include list of concepts
+            List<string> errors = new List<string>();
+            BaseFactory.AutoMap( input, output, errors );
+            if ( input.RowId != output.RowId )
+            {
+                output.RowId = input.RowId;
+            }
+            if ( formatForSearch )
+            {
+                output.Name = String.Format( "", output.ClusterAnalysisTitle, output.TrainingSolution, output.RecommendedModality );
+            }
+            //handle nullables
+            if ( input.TrainingSolutionTypeId != null )
+            {
+                output.TrainingSolutionTypeId = ( int ) input.TrainingSolutionTypeId;
+            }
+            if ( input.DevelopmentSpecificationId != null )
+            {
+                output.DevelopmentSpecificationId = ( int ) input.DevelopmentSpecificationId;
+            }
+            if ( input.RecommendedModalityId != null )
+            {
+                output.RecommendedModalityId = ( int ) input.RecommendedModalityId;
+            }
+            if ( input.PriorityPlacement != null )
+            {
+                output.PriorityPlacement = ( int ) input.PriorityPlacement;
+            }
+            if ( input.DevelopmentTime != null )
+            {
+                output.DevelopmentTime = ( int ) input.DevelopmentTime;
+            }
 
+            return output;
+        }
         #endregion
 
         /// <summary>

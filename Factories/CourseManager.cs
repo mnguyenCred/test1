@@ -84,9 +84,10 @@ namespace Factories
                         entity.Id = efEntity.Id;
 
                         MapToDB( entity, efEntity, status );
-
+                        bool hasChanges = false;
                         if ( HasStateChanged( context ) )
                         {
+                            hasChanges = true;
                             efEntity.LastUpdated = DateTime.Now;
                             efEntity.LastUpdatedById = entity.LastUpdatedById;
                             count = context.SaveChanges();
@@ -95,6 +96,19 @@ namespace Factories
                             {
                                 entity.LastUpdated = ( DateTime ) efEntity.LastUpdated;
                                 isValid = true;
+                                //if ( hasChanges )
+                                //{  }
+                                    SiteActivity sa = new SiteActivity()
+                                    {
+                                        ActivityType = "Course",
+                                        Activity = status.Action,
+                                        Event = "Update",
+                                        Comment = string.Format( "Course was updated by '{0}'. Name: {1}", status.Action, entity.Name ),
+                                        ActionByUserId = entity.LastUpdatedById,
+                                        ActivityObjectId = entity.Id
+                                    };
+                                    new ActivityManager().SiteActivityAdd( sa );
+                              
                             }
                             else
                             {
@@ -113,17 +127,7 @@ namespace Factories
                             //just in case 
                             if ( entity.Id > 0 )
                                 UpdateParts( entity, status );
-
-                            SiteActivity sa = new SiteActivity()
-                            {
-                                ActivityType = "Course",
-                                Activity = status.Action,
-                                Event = "Update",
-                                Comment = string.Format( "Course was updated by the import. Name: {0}", entity.Name ),
-                                ActionByUserId = entity.LastUpdatedById,
-                                ActivityObjectId = entity.Id
-                            };
-                            new ActivityManager().SiteActivityAdd( sa );
+                                                     
                         }
                     }
                     else
@@ -277,6 +281,9 @@ namespace Factories
                     }
                 }
 
+            } else
+            {
+                output.CurriculumControlAuthorityId = null;
             }
 
 
@@ -349,11 +356,11 @@ namespace Factories
             var entity = new AppEntity();
             if ( string.IsNullOrWhiteSpace( codedNotation ) )
                 return null;
-
+            codedNotation = codedNotation.Trim().ToLower();
             using ( var context = new DataEntities() )
             {
                 var item = context.Course
-                            .FirstOrDefault( s => s.CodedNotation.ToLower() == codedNotation.ToLower() );
+                            .FirstOrDefault( s => s.CodedNotation.ToLower() == codedNotation );
 
                 if ( item != null && item.Id > 0 )
                 {
@@ -396,13 +403,35 @@ namespace Factories
             }
 
             return entity;
-        }
-        /// <summary>
-        /// Get all 
-        /// May need a get all for a rating? Should not matter as this is external data?
-        /// </summary>
-        /// <returns></returns>
-        public static List<AppEntity> GetAll( bool includingTrainingTasks = false )
+		}
+		public static AppEntity GetByCTIDOrNull( string ctid, bool includingTrainingTasks = false )
+		{
+			if ( string.IsNullOrWhiteSpace( ctid ) )
+			{
+				return null;
+			}
+
+			using ( var context = new DataEntities() )
+			{
+				var item = context.Course
+							.SingleOrDefault( s => s.CTID == ctid );
+
+				if ( item != null && item.Id > 0 )
+				{
+					var entity = new AppEntity();
+					MapFromDB( item, entity, includingTrainingTasks );
+					return entity;
+				}
+			}
+
+			return null;
+		}
+		/// <summary>
+		/// Get all 
+		/// May need a get all for a rating? Should not matter as this is external data?
+		/// </summary>
+		/// <returns></returns>
+		public static List<AppEntity> GetAll( bool includingTrainingTasks = false )
         {
             var entity = new AppEntity();
             var list = new List<AppEntity>();
@@ -466,7 +495,7 @@ namespace Factories
                             if ( item != null && item.Id > 0 )
                             {
                                 entity = new AppEntity();
-                                MapFromDB( item, entity );
+                                MapFromDB( item, entity, false, true );
                                 output.Add( ( entity ) );
                             }
                         }
@@ -480,7 +509,7 @@ namespace Factories
             }
             return output;
         }
-        public static void MapFromDB( DBEntity input, AppEntity output, bool includingTrainingTasks = false )
+        public static void MapFromDB( DBEntity input, AppEntity output, bool includingTrainingTasks, bool isSearchContext = false )
         {
             //should include list of concepts
             List<string> errors = new List<string>();
@@ -527,43 +556,36 @@ namespace Factories
                 }
             }
             //
-            //if ( input.LifeCycleControlDocumentId != null )
-            //{
-            //    output.LifeCycleControlDocumentId = (int)input.LifeCycleControlDocumentId;
-            //    if ( input.ReferenceResource?.Id > 0 )
-            //    {
-            //        output.LifeCycleControlDocument = input.ReferenceResource.Name;
-            //        output.HasReferenceResource = input.ReferenceResource.RowId;
-            //    }
-            //}
             if ( input.LifeCycleControlDocumentTypeId != null )
             {
                 output.LifeCycleControlDocumentTypeId = ( int ) input.LifeCycleControlDocumentTypeId;
                 if ( input.LifeCycleControlDocument_Concept?.Id > 0 )
                 {
                     output.LifeCycleControlDocument = input.LifeCycleControlDocument_Concept.Name;
+                    output.LifeCycleControlDocumentType = input.LifeCycleControlDocument_Concept.RowId;
                 }
             }
             //
-            //if ( input.Course_Organization?.Count > 0 )
-            //{
-            //    output.Organizations = new List<string>();
-            //    foreach ( var item in input.Course_Organization )
-            //    {
-            //        if ( item != null && item.Organization != null )
-            //        {
-            //            output.CurriculumControlAuthority.Add( item.Organization.RowId );
-            //            output.Organizations.Add( item.Organization.Name );
-            //        }
-            //    }
-            //}
-
-            //
-            if ( includingTrainingTasks && input?.Course_Task?.Count > 0 )
+            if ( input?.Course_Task?.Count > 0 )
             {
-                foreach ( var item in input.Course_Task )
+                if ( isSearchContext )
                 {
-                    output.HasTrainingTask.Add( item.RowId );
+                    output.Description = (string.IsNullOrWhiteSpace( output.Description) ? "" : output.Description + "<br/>" ) + string.Format( "Includes {0} training tasks.", input.Course_Task.Count );
+                    //output.Name += String.Format( " (Training Tasks: {0})", input.Course_Task.Count );
+                }
+                
+                
+                if ( includingTrainingTasks )
+                {
+                    foreach ( var item in input.Course_Task )
+                    {
+                        output.HasTrainingTask.Add( item.RowId );
+                        output.AssessmentMethods.Add( item.Description );
+                        //really only need the text
+                        output.TrainingTasks.Add( TrainingTaskManager.MapFromDB( item ) );
+                    }
+                    output.AssessmentMethods = output.AssessmentMethods.OrderBy( s => s ).ToList();
+                    output.TrainingTasks = output.TrainingTasks.OrderBy( s => s.Description ).ToList();
                 }
             }
         }
@@ -584,7 +606,7 @@ namespace Factories
 				var course = matches.FirstOrDefault();
 				if( course != null )
 				{
-					MapFromDB( course, result );
+					MapFromDB( course, result, false );
 				}
 			}
 
@@ -606,7 +628,7 @@ namespace Factories
             {
                 //CourseTaskSave( input, ref status );
                 //AssessmentMethod is passed as well
-                new TrainingTaskManager().SaveList( input, false, ref status );
+                new TrainingTaskManager().SaveList( input, ref status );
 
                 //22-01-24 - CCA is confirmed to be a single
                 //CurriculumControlAuthorityUpdate( input, ref status );

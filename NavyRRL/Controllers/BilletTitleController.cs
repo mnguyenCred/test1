@@ -26,6 +26,9 @@ namespace NavyRRL.Controllers
 
 			return JsonResponse( results, true );
 		}
+		//
+
+		/*
 		public SearchResultSet<T> ConvertResults<T>( SearchQuery query, List<BilletTitle> results ) where T : BilletTitle, new()
 		{
 			var gResults = new List<T>();
@@ -49,12 +52,22 @@ namespace NavyRRL.Controllers
 			return output;
 		}
 		//
+		*/
 
 		public ActionResult Detail( int id )
 		{
 			AuthenticateOrRedirect( "You must be authenticated and authorized to view Billet Title data." );
 			var data = Factories.JobManager.Get( id );
 			return View( data );
+		}
+		//
+
+		public ActionResult JSON( int id )
+		{
+			AuthenticateOrRedirect( "You must be authenticated and authorized to view Billet Title data." );
+			var data = Factories.JobManager.Get( id );
+			var converted = RDFServices.GetRDF( data );
+			return RawJSONResponse( converted );
 		}
 		//
 

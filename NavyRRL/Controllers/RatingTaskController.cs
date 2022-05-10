@@ -31,8 +31,17 @@ namespace NavyRRL.Controllers
 		public ActionResult Detail( int id )
 		{
 			AuthenticateOrRedirect( "You must be authenticated and authorized to view Rating Task data." );
-			var data = Factories.RatingTaskManager.Get( id, false );
+			var data = Factories.RatingTaskManager.Get( id, true );
 			return View( data );
+		}
+		//
+
+		public ActionResult JSON( int id )
+		{
+			AuthenticateOrRedirect( "You must be authenticated and authorized to view Rating Task data." );
+			var data = Factories.RatingTaskManager.Get( id, true );
+			var converted = RDFServices.GetRDF( data );
+			return RawJSONResponse( converted );
 		}
 		//
 
@@ -58,7 +67,8 @@ namespace NavyRRL.Controllers
 				Action = "Edit"
 			};
 			data.LastUpdatedById = user.Id;
-			var results = new Factories.RatingTaskManager().Save( data, ref status );
+			//this type of save will not have a rating context!
+			var results = new Factories.RatingTaskManager().Save( data, ref status, false );
 			if ( status.HasAnyErrors )
 			{
 				var msg = string.Join( "</br>", status.Messages.Error.ToArray() );

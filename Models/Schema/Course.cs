@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.Text;
 
+using Newtonsoft.Json.Linq;
+
 namespace Models.Schema
 {
 	public class Course : BaseObject
@@ -10,7 +12,6 @@ namespace Models.Schema
 		{
 			CurriculumControlAuthority = new List<Guid>();
 			HasTrainingTask = new List<Guid>();
-			AssessmentMethodType = new List<Guid>();
 			CourseType = new List<Guid>();
 		}
 
@@ -63,16 +64,6 @@ namespace Models.Schema
 		public List<Guid> CourseType { get; set; }
 
 		/// <summary>
-		/// GUID for the Concept for the Assessment Method Type for this Course<br />
-		/// From Column: Current Assessment Approach<br />
-		/// 22-03-30 Navy has confirmed that the asmt type is associated with the training task<br />
-		/// Do not use!
-		/// TBD - the asmt types will be passed to training task manager for now
-		/// </summary>
-		[Obsolete]
-		public List<Guid> AssessmentMethodType { get; set; }
-
-		/// <summary>
 		/// Embedded Training Task data for this Course
 		/// </summary>
 		public List<TrainingTask> TrainingTasks { get; set; } = new List<TrainingTask>();
@@ -85,6 +76,7 @@ namespace Models.Schema
 		public string OrganizationName { get; set; }
 		public string LifeCycleControlDocument { get; set; }
 		public int LifeCycleControlDocumentTypeId { get; set; }
+
 
 	}
 	//

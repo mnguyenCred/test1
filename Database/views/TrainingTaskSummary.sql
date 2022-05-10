@@ -41,8 +41,10 @@ SELECT [CourseId]
       ,[LastUpdatedById]
   FROM [dbo].[TrainingTaskSummary]
   where trainingtask = 'Plot plan of intended movement (PIM) tracks'
-  or codednotation = 'A-061-0070'
+  or codednotation = 'A-061-0300'
   order by CourseName, TrainingTask
+
+  Compute gyrocompass error
 GO
 
 

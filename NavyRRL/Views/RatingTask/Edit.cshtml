@@ -203,9 +203,10 @@
 </style>
 
 <h2>@title</h2>
-
 <form-item data-path="RatingTask.Id" data-ui="display" data-label="ID"></form-item>
 <form-item data-path="RatingTask.RowId" data-ui="display" data-label="RowID"></form-item>
+
+<h3>Basic Info</h3>
 <form-item data-path="RatingTask.CodedNotation" data-ui="text" data-label="Code"></form-item>
 <form-item data-path="RatingTask.Description" data-ui="textarea" data-label="Description"></form-item>
 <form-item data-path="RatingTask.PayGradeType" data-ui="select" data-label="Rank (Pay Grade)" data-config="PayGradeType"></form-item>
@@ -213,13 +214,23 @@
 <form-item data-path="RatingTask.TrainingGapType" data-ui="select" data-label="Training Gap Type" data-config="TrainingGapType"></form-item>
 <form-item data-path="RatingTask.HasReferenceResource" data-ui="select" data-label="Task Source" data-config="HasReferenceResource"></form-item>
 <form-item data-path="RatingTask.ReferenceType" data-ui="select" data-label="Task Source Type" data-config="ReferenceType"></form-item>
+
+<h3>Add/Remove Rating Associations</h3>
 <form-item data-path="RatingTask.HasRating_Add" data-ui="searchselectdeferred" data-label="Add Ratings" data-config="HasRating_Add"></form-item>
 <form-item data-path="RatingTask.HasRating_Remove" data-ui="searchselectdeferred" data-label="Remove Ratings" data-config="HasRating_Remove"></form-item>
+
+<h3>Add/Remove Billet Title Associations</h3>
 <form-item data-path="RatingTask.HasBilletTitle_Add" data-ui="searchselectdeferred" data-label="Add Billet Titles" data-config="HasBilletTitle_Add"></form-item>
 <form-item data-path="RatingTask.HasBilletTitle_Remove" data-ui="searchselectdeferred" data-label="Remove Billet Titles" data-config="HasBilletTitle_Remove"></form-item>
+
+<h3>Add/Remove Functional Area Assocations</h3>
 <form-item data-path="RatingTask.HasWorkRole_Add" data-ui="searchselectdeferred" data-label="Add Functional Areas" data-config="HasWorkRole_Add"></form-item>
 <form-item data-path="RatingTask.HasWorkRole_Remove" data-ui="searchselectdeferred" data-label="Remove Functional Areas" data-config="HasWorkRole_Remove"></form-item>
+
+<h3>Add/Remove Training Task Associations</h3>
 @*<form-item data-path="RatingTask.HasTrainingTask" data-ui="searchselectdeferred" data-label="Associated Training Task (Limit 1)" data-config="HasTrainingTask"></form-item>*@
 <form-item data-path="RatingTask.HasTrainingTaskList_Add" data-ui="searchselectdeferred" data-label="Add Associated Training Tasks" data-config="HasTrainingTaskList_Add"></form-item>
 <form-item data-path="RatingTask.HasTrainingTaskList_Remove" data-ui="searchselectdeferred" data-label="Remove Associated Training Tasks" data-config="HasTrainingTaskList_Remove"></form-item>
+
+<h3>Save Changes</h3>
 <form-item data-path="RatingTask.SaveButton" data-ui="savebutton" data-label="Save Changes" data-config="SaveButton"></form-item>

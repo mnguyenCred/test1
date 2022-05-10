@@ -1,8 +1,17 @@
 ﻿@using Models.Schema;
 @using Models.DTO;
+@using Models.Search;
 @model Concept
 @{
 	ViewBag.Title = "Concept: " + Model.Name;
+	var scheme = Factories.ConceptSchemeManager.Get( Model.InScheme );
+	var taskFilter = new List<NamedString>()
+	{
+		new NamedString( Factories.ConceptSchemeManager.ConceptScheme_ReferenceResource, "dummy:DummyFilter" ), //The partial already filters by this scheme, but this item needs to be included here
+		new NamedString( Factories.ConceptSchemeManager.ConceptScheme_TrainingGap, "dummy:DummyFilter" ), //This is already part of the querying, so use a dummy filter here too
+		new NamedString( Factories.ConceptSchemeManager.ConceptScheme_TaskApplicability, "navy:ApplicabilityCategory" ),
+		new NamedString( Factories.ConceptSchemeManager.ConceptScheme_Pay_Grade, "navy:PayGradeCategory" )
+	}.FirstOrDefault( m => m.Key == scheme.SchemaUri );
 }
 
 @Html.Partial( "~/Views/Shared/_DetailBasicInfo.cshtml", new DetailBasicInfoHelper()
@@ -10,12 +19,27 @@
 	TypeLabel = "Concept",
 	TypeURL = Model.GetType().Name.ToLower(),
 	Id = Model.Id,
+	CTID = Model.CTID,
 	Name = Model.Name,
 	Description = Model.Description,
-	Identifiers = new List<NamedValue>()
+	Identifiers = new List<NamedString>()
 	{
-		new NamedValue( "System ID", Model.Id.ToString() ),
-		new NamedValue( "CTID", Model.CTID ),
-		new NamedValue( "Equivalent Work Element Type", Model.WorkElementType )
+		new NamedString( "System ID", Model.Id.ToString() ),
+		new NamedString( "CTID", Model.CTID ),
+		new NamedString( "Work Element Type", Model.WorkElementType ),
+		new NamedString( "Code", Model.CodedNotation ),
+		new NamedString( "In Scheme", "<a href=\"" + Url.Content( "~/ConceptScheme/" + scheme.Id ) + "\">" + scheme.Name + "</a>" )
 	}
 } )
+
+@if( taskFilter != null )
+{
+	@Html.Partial( "~/Views/Shared/_RatingTaskCountBySourceTypeTable.cshtml", new List<SearchFilter>()
+	{
+		new SearchFilter()
+		{
+			Name = taskFilter.Value,
+			ItemIds = new List<int>(){ Model.Id }
+		}
+	} )
+}

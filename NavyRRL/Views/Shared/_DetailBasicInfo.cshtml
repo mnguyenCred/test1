@@ -34,6 +34,8 @@
 	<h1>@Model.Name</h1>
 	<div class="subtitle">
 		<div class="typeLabel">@Model.TypeLabel</div>
+		<a class="jsonLink" href="@Url.Content("~/" + Model.TypeURL + "/json/" + Model.Id)" target="_blank">JSON-LD (ID-Based)</a>
+		<a class="jsonLink" href="@Url.Content("~/rdf/resources/" + Model.CTID)" target="_blank">JSON-LD (CTID-Based)</a>
 		@if ( isAdmin )
 		{
 			<a class="editLink" href="@Url.Content( "~/" + Model.TypeURL + "/edit/" + Model.Id )">Edit Data</a>
@@ -50,8 +52,8 @@
 					@foreach ( var item in Model.Identifiers.Where( m => !string.IsNullOrWhiteSpace( m.Value ) ).ToList() )
 					{
 						<tr>
-							<td>@item.Name</td>
-							<td>@item.Value</td>
+							<td>@Html.Raw( item.Key )</td>
+							<td>@Html.Raw( item.Value )</td>
 						</tr>
 					}
 				</tbody>

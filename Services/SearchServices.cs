@@ -47,6 +47,7 @@ namespace Services
 				{
 					Data = new UploadableRow()
 					{
+						Row_CodedNotation = item.CodedNotation,
 						Rating_CodedNotation = item.Ratings,
 						PayGradeType_CodedNotation = item.Rank,
 						Level_Name = item.Level,
@@ -193,7 +194,12 @@ namespace Services
 			return GeneralSearch( query, Factories.WorkRoleManager.Search, debug );
 		}
 		//
-
+		//ClusterAnalysis
+		public static SearchResultSet<ClusterAnalysis> ClusterAnalysisSearch( SearchQuery query, JObject debug = null )
+		{
+			return GeneralSearch( query, Factories.ClusterAnalysisManager.Search, debug );
+		}
+		//
 		private static void NormalizeQuery( SearchQuery query, string searchType, JObject debug = null )
 		{
 			//Sanitize Keywords

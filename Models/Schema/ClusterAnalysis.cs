@@ -13,22 +13,29 @@ namespace Models.Schema
 
         public int TrainingSolutionTypeId { get; set; }
         /// <summary>
-        /// Temp
+        /// used from view
         /// </summary>
-        public string TrainingSolutionType { get; set; }
+        public string TrainingSolution { get; set; }
+        public Guid TrainingSolutionType { get; set; }
         public string ClusterAnalysisTitle { get; set; }
         public int RecommendedModalityId { get; set; }
+        public Guid RecommendedModalityType { get; set; }
         /// <summary>
-        /// Temp
+        /// used from view
         /// </summary>
         public string RecommendedModality { get; set; }
         public int DevelopmentSpecificationId { get; set; }
+        /// <summary>
+        /// used from view
+        /// </summary>
         public string DevelopmentSpecification { get; set; }
+        public Guid DevelopmentSpecificationType { get; set; }
         public string CandidatePlatform { get; set; }
         public string CFMPlacement { get; set; }
 
 
         public int PriorityPlacement { get; set; }
+        public string PriorityPlacementLabel { get; set; }
         /// <summary>
         /// TBD
         /// </summary>
@@ -39,10 +46,12 @@ namespace Models.Schema
         /// possibly a decimal
         /// </summary>
         public decimal? EstimatedInstructionalTime { get; set; }
+        public string EstimatedInstructionalTimeLabel { get; set; }
         /// <summary>
         /// duration in hours
         /// </summary>
         public int DevelopmentTime { get; set; }
+        public string DevelopmentTimeLabel { get; set; }
 
         /// <summary>
         /// Development Cost (ROM)  
@@ -54,5 +63,10 @@ namespace Models.Schema
 
         public string Notes { get; set; }
 
+        /// <summary>
+        /// used for general search
+        /// </summary>
+        public string Name { get; set; }
+        public string Description { get; set; }
     }
 }

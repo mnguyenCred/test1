@@ -21,9 +21,17 @@ namespace Models.Curation
 			LookupGraph = new List<object>();
 			PossibleDuplicates = new List<PossibleDuplicateSet>();
 			ItemsLoadedFromDatabase = new List<Guid>();
+			FinalizedChanges = new UploadableData();
 		}
 		public string Action { get; set; } = "Upload";
-		public string Rating { get; set; }
+		public string RatingCodedNotation { get; set; }
+		public Guid RatingRowId { get; set; }
+
+		public DateTime UploadStarted { get; set; }
+		public DateTime UploadFinished { get; set; }
+		public DateTime SaveStarted { get; set; }
+		public DateTime SaveFinished { get; set; }
+
 		/// <summary>
 		/// Set of items that don't exist and will be created.
 		/// </summary>
@@ -35,6 +43,11 @@ namespace Models.Curation
 		/// For changes to the List<>s of existing items, see the AddedItemsToInnerListsForCopiesOfItems and RemovedItemsFromInnerListsForCopiesOfItems properties.
 		/// </summary>
 		public UploadableData ItemsToBeChanged { get; set; }
+
+		/// <summary>
+		/// Contains the original data with the changes applied
+		/// </summary>
+		public UploadableData FinalizedChanges { get; set; }
 
 		/// <summary>
 		/// Set of copies of existing items (the copy will have the same RowId as the original).<br />
@@ -131,7 +144,7 @@ namespace Models.Curation
 		{
 			try
 			{
-				return LookupGraph.FirstOrDefault( m => ( ( T ) m ).RowId == rowID ) as T;
+				return LookupGraph.FirstOrDefault( m => ( ( Schema.BaseObject ) m ).RowId == rowID ) as T;
 			}
 			catch
 			{

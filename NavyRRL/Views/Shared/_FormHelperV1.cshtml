@@ -131,14 +131,17 @@
 		Field.handleClick = function () {
 			console.log("Button clicked!", Field);
 		}
+
+		return Field;
 	}
 	//
 
 	//Create a save button
 	FormItem.setupUI_savebutton = function (Field) {
-		Field.UI = FormItem.setupUI_button(Field);
+		Field = FormItem.setupUI_button(Field);
 		Field.SaveURL = "";
 		Field.RedirectAfterSuccessURL = "";
+		Field.UI.addClass("greenButton");
 
 		Field.handleClick = function () {
 			var data = Field.getDataToSave();
@@ -151,6 +154,8 @@
 		Field.getDataToSave = function () {
 			return {};
 		};
+
+		return Field;
 	}
 	//
 
@@ -690,4 +695,6 @@
 	form-item .resultContent .codedNotation { padding: 2.5px 5px; background-color: #F5F5F5; margin-right: 10px; }
 	form-item .resultContent .name { font-weight: bold; }
 	form-item .resultContent .description { font-size: 12px; }
+
+	h3 { background-color: #EEE; padding: 5px; margin-top: 50px; }
 </style>

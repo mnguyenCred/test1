@@ -1,0 +1,39 @@
+﻿<script type="text/javascript">
+	//Help Script
+	$(document).ready(function () {
+		setupHelp();
+	});
+	//
+
+	function setupHelp() {
+		var mainHelpWrapper = $("<div class=\"mainHelpWrapper collapsed\"></div>").prependTo($(".body-content"));
+		var mainHelpHeader = $("<div class=\"mainHelpHeader\"></div>").appendTo(mainHelpWrapper);
+		var mainHelpButton = $("<button class=\"mainHelpButton\">Show/Hide Help and Guidance</div>").appendTo(mainHelpHeader);
+		var mainHelpContent = $(".mainHelpContent").detach().appendTo(mainHelpWrapper);
+		mainHelpButton.on("click", function () {
+			mainHelpWrapper.toggleClass("collapsed");
+		});
+	}
+	//
+
+</script>
+<style type="text/css">
+	.mainHelpWrapper { }
+	.mainHelpWrapper:not(.collapsed) { background-color: rgba(0,255,200,0.1); border-radius: 0 0 10px 10px; }
+	.mainHelpWrapper.collapsed .mainHelpContent { display: none; }
+	.mainHelpWrapper .mainHelpContent { display: block; }
+	.mainHelpWrapper .mainHelpHeader { padding: 5px 30px; background-color: #202A44; color: #FFF; text-align: right; border-radius: 0 0 35px 35px / 0 0 100% 100%; }
+	.mainHelpWrapper .mainHelpHeader .mainHelpButton { background-color: transparent; color: #FFF; border: 1px solid #FFF; }
+	.mainHelpWrapper .mainHelpHeader .mainHelpButton:is(:hover, :focus) { background-color: rgba(255,255,255,0.1); }
+	.mainHelpWrapper .mainHelpContent { padding: 10px; }
+	.mainHelpContent { display: none; }
+	.mainHelpContent .section { padding: 5px 10px; }
+	.mainHelpContent :is(h1, h2, h3, h4, h5, h6) { margin: 5px -10px 10px -10px; padding: 0 5px; }
+	.mainHelpContent p { padding: 0 5px; margin-bottom: 10px; }
+	.mainHelpContent p.withBelow { margin-bottom: 0; }
+
+	@@media print {
+		.mainHelpWrapper .mainHelpHeader { display: none; }
+		.mainHelpWrapper .mainHelpContent { background-color: none; }
+	}
+</style>

@@ -3,6 +3,9 @@
 @model RatingTask
 @{
 	ViewBag.Title = "Rating Task: " + Model.Description;
+	var billetTitles = Model.HasBilletTitle.Select( m => Factories.JobManager.Get( m ) ).ToList();
+	var workRoles = Model.HasWorkRole.Select( m => Factories.WorkRoleManager.Get( m ) ).ToList();
+	var ratings = Model.HasRating.Select( m => Factories.RatingManager.Get( m ) ).ToList();
 }
 
 @Html.Partial( "~/Views/Shared/_DetailBasicInfo.cshtml", new DetailBasicInfoHelper()
@@ -10,12 +13,144 @@
 	TypeLabel = "Rating Task",
 	TypeURL = Model.GetType().Name.ToLower(),
 	Id = Model.Id,
+	CTID = Model.CTID,
 	Name = "Rating Task",
 	Description = Model.Description,
-	Identifiers = new List<NamedValue>()
+	Identifiers = new List<NamedString>()
 	{
-		new NamedValue( "System ID", Model.Id.ToString() ),
-		new NamedValue( "CTID", Model.CTID ),
-		new NamedValue( "Code", Model.CodedNotation )
+		new NamedString( "System ID", Model.Id.ToString() ),
+		new NamedString( "CTID", Model.CTID ),
+		new NamedString( "Code", Model.CodedNotation ),
+		new NamedString( "Rank", Model.TaskPayGrade.Name ),
+		new NamedString( "Source", Model.ReferenceResource.Name),
+		new NamedString( "Date of Source", Model.ReferenceResource.PublicationDate),
+		new NamedString( "Work Element Type", Model.TaskReferenceType.WorkElementType),
+		new NamedString( "Task Applicability", Model.TaskApplicabilityType.Name),
+		new NamedString( "Formal Training Gap", Model.TaskTrainingGap.Name),
 	}
 } )
+
+@if( ratings.Count() > 0 )
+{
+	<div class="rating">
+		<h3>@ratings.Count() Rating(s)</h3>
+		<ul>
+			@foreach( var item in ratings )
+			{
+				<li><a href="@Url.Content( "~/rating/detail/" + item.Id )">@item.CodedNotation - @item.Name</a></li>
+			}
+		</ul>
+	</div>
+}
+
+
+@if( billetTitles.Count() > 0 )
+{
+	<div class="billetTitle">
+		<h3>@billetTitles.Count() Billet Title(s)</h3>
+		<ul>
+			@foreach( var item in billetTitles )
+			{
+				<li><a href="@Url.Content( "~/billettitle/detail/" + item.Id )">@item.Name</a></li>
+			}
+		</ul>
+	</div>
+}
+
+@if( workRoles.Count() > 0 )
+{
+	<div class="workRole">
+		<h3>@workRoles.Count() Functional Area(s)</h3>
+		<ul>
+			@foreach( var item in workRoles )
+			{
+				<li><a href="@Url.Content( "~/workrole/detail/" + item.Id )">@item.Name</a></li>
+			}
+		</ul>
+	</div>
+}
+
+@if ( Model.TrainingTasks != null && Model.TrainingTasks.Count() > 0 )
+{
+
+	<div class="trainingTasks">
+		<h3>Training Tasks</h3>
+		<table class="trainingTasksTable">
+			<thead>
+				<tr>
+					<th style="width:100px; vertical-align: top">CIN</th>
+					<th style="width:20%; vertical-align: top">Course</th>
+					<th>Training Task</th>
+				</tr>
+			</thead>
+			<tbody>
+				@foreach ( var item in Model.TrainingTasks.ToList() )
+				{
+					<tr>
+						<td style="vertical-align: top">@item.CourseCodedNotation</td>
+						<td style="vertical-align: top">@item.CourseName</td>
+						<td style="vertical-align: top">@item.Description</td>
+					</tr>
+				}
+			</tbody>
+		</table>
+	</div>
+
+}
+
+@if ( Model.ClusterAnalysis != null && !string.IsNullOrWhiteSpace( Model.ClusterAnalysis.ClusterAnalysisTitle ) )
+{
+	<div class="clusterAnalysis">
+		<h3>Cluster Analysis</h3>
+		<table class="clusterAnalysisTable">
+			<thead>
+				<tr>
+					<td style="width: 250px">&nbsp;</td>
+					<td>&nbsp;</td>
+				</tr>
+			</thead>
+			<tbody>
+				<tr>
+					<td style="font-weight: bold">Training Solution Type</td>
+					<td style="vertical-align: top">@Model.ClusterAnalysis.TrainingSolution</td>
+				</tr>
+				<tr>
+					<td style="font-weight: bold">Cluster Analysis Title</td>
+					<td style="vertical-align: top">@Model.ClusterAnalysis.ClusterAnalysisTitle</td>
+				</tr>
+				<tr>
+					<td style="font-weight: bold">RecommendedModality</td>
+					<td style="vertical-align: top">@Model.ClusterAnalysis.RecommendedModality</td>
+				</tr>
+				<tr>
+					<td style="font-weight: bold">Development Specification</td>
+					<td style="vertical-align: top">@Model.ClusterAnalysis.DevelopmentSpecification</td>
+				</tr>
+				<tr>
+					<td style="font-weight: bold">Candidate Platform</td>
+					<td style="vertical-align: top">@Model.ClusterAnalysis.CandidatePlatform</td>
+				</tr>
+				<tr>
+					<td style="font-weight: bold">CFM Placement</td>
+					<td style="vertical-align: top">@Model.ClusterAnalysis.CFMPlacement</td>
+				</tr>
+				<tr>
+					<td style="font-weight: bold">Priority Placement</td>
+					<td style="vertical-align: top">@Model.ClusterAnalysis.PriorityPlacement</td>
+				</tr>
+				<tr>
+					<td style="font-weight: bold">Development Ratio</td>
+					<td style="vertical-align: top">@Model.ClusterAnalysis.DevelopmentRatio</td>
+				</tr>
+				<tr>
+					<td style="font-weight: bold">Estimated Instructional Time</td>
+					<td style="vertical-align: top">@Model.ClusterAnalysis.EstimatedInstructionalTime</td>
+				</tr>
+				<tr>
+					<td style="font-weight: bold">Development Time</td>
+					<td style="vertical-align: top">@Model.ClusterAnalysis.DevelopmentTime</td>
+				</tr>
+			</tbody>
+		</table>
+	</div>
+}

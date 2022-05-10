@@ -1,5 +1,6 @@
 ﻿@using Models.Schema;
 @using Models.DTO;
+@using Models.Search;
 @model ReferenceResource
 @{
 	ViewBag.Title = "Reference Resource: " + Model.Name;
@@ -10,12 +11,22 @@
 	TypeLabel = "Reference Resource",
 	TypeURL = Model.GetType().Name.ToLower(),
 	Id = Model.Id,
+	CTID = Model.CTID,
 	Name = Model.Name,
 	Description = Model.Description,
-	Identifiers = new List<NamedValue>()
+	Identifiers = new List<NamedString>()
 	{
-		new NamedValue( "System ID", Model.Id.ToString() ),
-		new NamedValue( "CTID", Model.CTID ),
-		new NamedValue( "Date of Source", Model.PublicationDate )
+		new NamedString( "System ID", Model.Id.ToString() ),
+		new NamedString( "CTID", Model.CTID ),
+		new NamedString( "Date of Source", Model.PublicationDate )
+	}
+} )
+
+@Html.Partial( "~/Views/Shared/_RatingTaskCountBySourceTypeTable.cshtml", new List<SearchFilter>()
+{
+	new SearchFilter()
+	{
+		Name = "navy:ReferenceResource",
+		ItemIds = new List<int>(){ Model.Id }
 	}
 } )

@@ -30,20 +30,20 @@ namespace Factories
 		public static new string thisClassName = "RatingTaskManager";
 		public static string cacheKey = "RatingTaskCache";
 		public static string cacheKeySummary = "RatingTaskSummaryCache";
-		#region Retrieval
-		/// <summary>
-		/// Don't know the input for sure. Could be ImportRMTL
-		/// check for an existing task using:
-		/// - PayGrade
-		/// - FunctionalArea (maybe not)
-		/// - Source/ReferenceResource
-		/// - RatingTask
-		/// A this point checking for GUIDs
-		/// </summary>
-		/// <param name="importEntity"></param>
-		/// <param name="includingConcepts"></param>
-		/// <returns></returns>
-		public static AppEntity Get( AppEntity importEntity, string currentRatingCodedNotation )
+        #region Retrieval
+        /// <summary>
+        /// Don't know the input for sure. Could be ImportRMTL
+        /// check for an existing task using:
+        /// - PayGrade
+        /// - FunctionalArea (maybe not)
+        /// - Source/ReferenceResource
+        /// - RatingTask
+        /// A this point checking for GUIDs
+        /// </summary>
+        /// <param name="importEntity"></param>
+        /// <param name="currentRatingCodedNotation"></param>
+        /// <returns></returns>
+        public static AppEntity Get( AppEntity importEntity, string currentRatingCodedNotation )
 		{
 			var entity = new AppEntity();
 			//will probably have to d
@@ -54,16 +54,18 @@ namespace Factories
 				//can't trust just coded notation, need to consider the current rating somewhere
 				if ( !string.IsNullOrWhiteSpace( importEntity.CodedNotation ) )
 				{
-					item = context.RatingTaskSummary.FirstOrDefault( s => ( s.CodedNotation ?? "" ).ToLower() == importEntity.CodedNotation.ToLower() && s.Ratings.Contains( currentRatingCodedNotation ) );
+					item = context.RatingTaskSummary.FirstOrDefault( s => ( s.CodedNotation ?? "" ).ToLower() == importEntity.CodedNotation.ToLower() 
+                                && s.Ratings.Contains( currentRatingCodedNotation ) );
 				}
 				if ( item == null || item.Id == 0 )
 				{
-					item = context.RatingTaskSummary
-								.FirstOrDefault( s => s.PayGradeType == importEntity.PayGradeType
-								//&& s.FunctionalAreaUID == importEntity.ReferenceType //NOW a list, so not helpful
-								&& s.HasReferenceResource == importEntity.HasReferenceResource
-								&& s.RatingTask.ToLower() == importEntity.Description.ToLower()
-								);
+                    //22-04-14 - TBD - not sure we want to do this approach - risky
+					//item = context.RatingTaskSummary
+					//			.FirstOrDefault( s => s.PayGradeType == importEntity.PayGradeType
+					//			//&& s.FunctionalAreaUID == importEntity.ReferenceType //NOW a list, so not helpful
+					//			&& s.HasReferenceResource == importEntity.HasReferenceResource
+					//			&& s.RatingTask.ToLower() == importEntity.Description.ToLower()
+					//			);
 				}
 				if ( item != null && item.Id > 0 )
 				{
@@ -162,6 +164,28 @@ namespace Factories
 			}
 			return entity;
 		}
+		public static AppEntity GetByCTIDOrNull( string ctid, bool includingConcepts = false )
+		{
+			if ( string.IsNullOrWhiteSpace( ctid ) )
+			{
+				return null;
+			}
+
+			using ( var context = new DataEntities() )
+			{
+				var item = context.RatingTask
+							.SingleOrDefault( s => s.CTID == ctid );
+
+				if ( item != null && item.Id > 0 )
+				{
+					var entity = new AppEntity();
+					MapFromDB( item, entity, includingConcepts );
+					return entity;
+				}
+			}
+
+			return null;
+		}
 
 		/// <summary>
 		/// It is not clear that we want a get all - tens of thousands
@@ -215,7 +239,7 @@ namespace Factories
                     foreach( var item in matches)
                     {
                         //if (item.RatingTask_HasRating.Contains('' ))
-                        MapFromDB( item, result );
+                        MapFromDB( item, result, false );
                         if ( matches.Count() == 1 )
                             break;
 
@@ -251,7 +275,7 @@ namespace Factories
                     if ( existing != null && existing.Count() > 0 )
                     {
                         if ( existing.Count() == 1 ) {
-                            MapFromDB( existing[0], result );
+                            MapFromDB( existing[0], result, false );
                         } else
                         {
                             //this should not be possible - as long as there is a check to prevent duplicate RT codes in an upload!
@@ -370,16 +394,39 @@ namespace Factories
 						);
 					}
 
-					//Handle Training Gap Type
-					var trainingGapFilter = query.GetFilterByName( "navy:TrainingGap" );
-					if ( trainingGapFilter != null && trainingGapFilter.ItemIds?.Count() > 0 )
+					//Handle Training Gap Category
+					var trainingGapCategoryFilter = query.GetFilterByName( "navy:TrainingGapCategory" );
+					if ( trainingGapCategoryFilter != null && trainingGapCategoryFilter.ItemIds?.Count() > 0 )
 					{
 						list = list.Where( s =>
-							trainingGapFilter.IsNegation ?
-								!trainingGapFilter.ItemIds.Contains( s.FormalTrainingGapId ?? 0 ) :
-								trainingGapFilter.ItemIds.Contains( s.FormalTrainingGapId ?? 0 )
+							trainingGapCategoryFilter.IsNegation ?
+								!trainingGapCategoryFilter.ItemIds.Contains( s.FormalTrainingGapId ?? 0 ) :
+								trainingGapCategoryFilter.ItemIds.Contains( s.FormalTrainingGapId ?? 0 )
 						);
 					}
+
+					//Handle Applicability Category
+					var applicabilityCategoryFilter = query.GetFilterByName( "navy:ApplicabilityCategory" );
+					if ( applicabilityCategoryFilter != null && applicabilityCategoryFilter.ItemIds?.Count() > 0 )
+					{
+						list = list.Where( s =>
+							applicabilityCategoryFilter.IsNegation ?
+								!applicabilityCategoryFilter.ItemIds.Contains( s.TaskApplicabilityId ?? 0 ) :
+								applicabilityCategoryFilter.ItemIds.Contains( s.TaskApplicabilityId ?? 0 )
+						);
+					}
+
+					//Handle Pay Grade Category
+					var payGradeCategoryFilter = query.GetFilterByName( "navy:PayGradeCategory" );
+					if ( payGradeCategoryFilter != null && payGradeCategoryFilter.ItemIds?.Count() > 0 )
+					{
+						list = list.Where( s =>
+							payGradeCategoryFilter.IsNegation ?
+								!payGradeCategoryFilter.ItemIds.Contains( s.RankId ) :
+								payGradeCategoryFilter.ItemIds.Contains( s.RankId )
+						);
+					}
+
 
 					//Get total
 					query.TotalResults = list.Count();
@@ -395,7 +442,7 @@ namespace Factories
 					foreach( var item in results )
 					{
 						var entity = new AppEntity();
-						MapFromDB( item, entity, true );
+						MapFromDB( item, entity, false, true );
 						output.Add( entity );
 					}
 				}
@@ -538,7 +585,7 @@ namespace Factories
                 CodedNotation = m.CodedNotation,
                 ApplicabilityType = m.ApplicabilityType,
                 TaskTrainingGap = m.TaskTrainingGap,
-                HasTrainingTask =m.HasTrainingTask,
+				HasTrainingTask = m.HasTrainingTask,
                 
             } ).ToList();
 
@@ -819,7 +866,7 @@ namespace Factories
 		} //
 
 
-		public static void MapFromDB( DBEntity input, AppEntity output, bool includingConcepts = false )
+        public static void MapFromDB( DBEntity input, AppEntity output, bool includingConcepts, bool isSearchContext = false )
         {
             //test automap
             List<string> errors = new List<string>();
@@ -840,6 +887,7 @@ namespace Factories
                     {
                         output.HasRating.Add( item.Rating.RowId );
                         output.RatingTitles.Add( item.Rating.Name );
+                        output.CurrentRatingCode = item.Rating.CodedNotation;
                         //
                     }
                 }
@@ -852,33 +900,37 @@ namespace Factories
                     {
                         output.HasBilletTitle.Add( item.Job.RowId );
                         output.BilletTitles.Add( item.Job.Name );
+                        output.BilletTitle = item.Job.Name;
                     }
                 }
             }
-            if ( input.RatingTask_WorkRole?.Count > 0 )
+            if ( !isSearchContext && input.RatingTask_WorkRole?.Count > 0 )
             {
                 foreach ( var item in input.RatingTask_WorkRole )
                 {
                     if ( item.WorkRole?.RowId != null )
+                    {
                         output.HasWorkRole.Add( item.WorkRole.RowId );
+                        output.FunctionalArea.Add( item.WorkRole.Name );
+                    }
                 }
             }
-            if ( input.RankId > 0 )
+            if ( !isSearchContext && input.RankId > 0 )
             {
-                ConceptSchemeManager.MapFromDB( input.ConceptScheme_Rank, output.TaskPaygrade );
-                output.PayGradeType = ( output.TaskPaygrade )?.RowId ?? Guid.Empty;
+                ConceptSchemeManager.MapFromDB( input.ConceptScheme_Rank, output.TaskPayGrade );
+                output.PayGradeType = ( output.TaskPayGrade )?.RowId ?? Guid.Empty;
             }
-            if ( input.ReferenceResourceId > 0 )
+            if ( !isSearchContext && input.ReferenceResourceId > 0 )
             {
                 ReferenceResourceManager.MapFromDB( input.ToReferenceResource, output.ReferenceResource );
                 output.HasReferenceResource = ( output.ReferenceResource )?.RowId ?? Guid.Empty;
             }
-            if ( input.WorkElementTypeId > 0 )
+            if ( !isSearchContext && input.WorkElementTypeId > 0 )
             {
                 ConceptSchemeManager.MapFromDB( input.ConceptScheme_WorkElementType, output.TaskReferenceType );
                 output.ReferenceType = ( output.TaskReferenceType )?.RowId ?? Guid.Empty;
             }
-            if ( input.TaskApplicabilityId > 0 )
+            if ( !isSearchContext && input.TaskApplicabilityId > 0 )
             {
                 ConceptSchemeManager.MapFromDB( input.ConceptScheme_Applicability, output.TaskApplicabilityType );
                 output.ApplicabilityType = (output.TaskApplicabilityType)?.RowId ?? Guid.Empty;
@@ -886,7 +938,7 @@ namespace Factories
                 //output.ApplicabilityType = ConceptSchemeManager.MapConcept( input.ConceptScheme_Applicability )?.RowId ?? Guid.Empty;
 
 			}
-            if ( input.FormalTrainingGapId > 0 )
+            if ( !isSearchContext && input.FormalTrainingGapId > 0 )
             {
                 ConceptSchemeManager.MapFromDB( input.ConceptScheme_TrainingGap, output.TaskTrainingGap );
                 output.TrainingGapType = ( output.TaskTrainingGap )?.RowId ?? Guid.Empty;
@@ -894,12 +946,24 @@ namespace Factories
                 //output.TrainingGapType = ConceptSchemeManager.MapConcept( input.ConceptScheme_TrainingGap )?.RowId ?? Guid.Empty;
 			}
 
-            if ( input.RatingTask_HasTrainingTask?.Count > 0 )
+            if ( !isSearchContext && input.RatingTask_HasTrainingTask?.Count > 0 )
             {
                 foreach ( var item in input.RatingTask_HasTrainingTask )
                 {
                     if ( item.Course_Task?.RowId != null )
-                        output.HasTrainingTaskList.Add( item.Course_Task.RowId );
+                    {
+                        output.HasTrainingTask.Add( item.Course_Task.RowId );
+                        output.TrainingTasks.Add( TrainingTaskManager.MapFromDB( item.Course_Task ) );
+                    }
+                }
+            }
+
+            if ( !isSearchContext && input.ClusterAnalysis?.Count > 0 )
+            {
+                //should only be one
+                foreach ( var item in input.ClusterAnalysis )
+                {
+                    output.ClusterAnalysis = ClusterAnalysisManager.MapFromDB( item );
                 }
             }
         }
@@ -913,7 +977,7 @@ namespace Factories
         /// <param name="input"></param>
         /// <param name="status"></param>
         /// <returns></returns>
-        public bool Save( AppEntity input, ref ChangeSummary status )
+        public bool Save( AppEntity input, ref ChangeSummary status, bool fromUpload = true )
         {
             bool isValid = true;
             int count = 0;
@@ -928,19 +992,19 @@ namespace Factories
                     {
                         //need to identify for sure what is unique
                         //use codedNotation first if present
-                        var record = Get( input, status.Rating );
+                        var record = Get( input, status.RatingCodedNotation );
                         if ( record?.Id > 0 )
                         {
                             //
                             input.Id = record.Id;
-                            UpdateParts( input, status );
+                            UpdateParts( input, status, fromUpload );
                             //??
                             return true;
                         }
                         else
                         {
                             //add
-                            int newId = Add( input, ref status );
+                            int newId = Add( input, ref status, fromUpload );
                             if ( newId == 0 || status.HasSectionErrors )
                                 isValid = false;
                         }
@@ -961,9 +1025,10 @@ namespace Factories
                             input.Id = efEntity.Id;
 
                             MapToDB( input, efEntity, ref status );
-
+                            bool hasChanged = false;
                             if ( HasStateChanged( context ) )
                             {
+                                hasChanged = true;
                                 efEntity.LastUpdated = DateTime.Now;
                                 efEntity.LastUpdatedById = input.LastUpdatedById;
                                 count = context.SaveChanges();
@@ -988,17 +1053,20 @@ namespace Factories
                             if ( isValid )
                             {
                                 //update parts
-                                UpdateParts( input, status );
-                                SiteActivity sa = new SiteActivity()
+                                UpdateParts( input, status, fromUpload );
+                                if ( hasChanged )
                                 {
-                                    ActivityType = "RatingTask",
-                                    Activity = status.Action,
-                                    Event = "Update",
-                                    Comment = string.Format( "RatingTask was updated. Name: {0}", FormatLongLabel( input.Description ) ),
-                                    ActionByUserId = input.LastUpdatedById,
-                                    ActivityObjectId = input.Id
-                                };
-                                new ActivityManager().SiteActivityAdd( sa );
+                                    SiteActivity sa = new SiteActivity()
+                                    {
+                                        ActivityType = "RatingTask",
+                                        Activity = status.Action,
+                                        Event = "Update",
+                                        Comment = string.Format( "RatingTask was updated. Name: {0}", FormatLongLabel( input.Description ) ),
+                                        ActionByUserId = input.LastUpdatedById,
+                                        ActivityObjectId = input.Id
+                                    };
+                                    new ActivityManager().SiteActivityAdd( sa );
+                                }
                             }
                         }
                         else
@@ -1025,7 +1093,7 @@ namespace Factories
 
             return isValid;
         }
-        private int Add( AppEntity entity, ref ChangeSummary status )
+        private int Add( AppEntity entity, ref ChangeSummary status, bool fromUpload )
         {
             DBEntity efEntity = new DBEntity();
             status.HasSectionErrors = false;
@@ -1062,7 +1130,7 @@ namespace Factories
                     {
                         entity.RowId = efEntity.RowId;
                         entity.Id = efEntity.Id;
-                        UpdateParts( entity, status );
+                        UpdateParts( entity, status, fromUpload );
                         //
                         //add log entry
                         SiteActivity sa = new SiteActivity()
@@ -1105,7 +1173,7 @@ namespace Factories
 
             return efEntity.Id;
         }
-        public void UpdateParts( AppEntity input, ChangeSummary status )
+        public void UpdateParts( AppEntity input, ChangeSummary status, bool fromUpload )
         {
             try
             {
@@ -1119,7 +1187,7 @@ namespace Factories
 
                 if ( UtilityManager.GetAppKeyValue( "handlingMultipleTrainingTasksPerRatingTask", false ) )
                 {
-                    TrainingTaskUpdate( input, ref status );
+                    TrainingTaskUpdate( input, ref status, fromUpload );
                 }
             }
             catch ( Exception ex )
@@ -1136,7 +1204,7 @@ namespace Factories
         /// <param name="input"></param>
         /// <param name="status"></param>
         /// <returns></returns>
-        public bool TrainingTaskUpdate( AppEntity input, ref ChangeSummary status )
+        public bool TrainingTaskUpdate( AppEntity input, ref ChangeSummary status, bool fromUpload )
         {
             status.HasSectionErrors = false;
             var efEntity = new Data.Tables.RatingTask_HasTrainingTask();
@@ -1145,26 +1213,34 @@ namespace Factories
             {
                 try
                 {
-                    if ( input.HasTrainingTaskList == null )
-                        input.HasTrainingTaskList = new List<Guid>();
+                    if ( input.HasTrainingTask == null )
+                        input.HasTrainingTask = new List<Guid>();
 
-                    if ( input.HasTrainingTaskList?.Count == 0 )
-                    {
-                        //temp handling of old approach
-                        if ( IsValidGuid( input.HasTrainingTask ))
-                        {
-                            input.HasTrainingTaskList.Add( input.HasTrainingTask );
-                        }
-                        else 
-                            input.HasTrainingTaskList = new List<Guid>();
-                    }
+                    //if ( input.HasTrainingTaskList?.Count == 0 )
+                    //{
+                    //    //temp handling of old approach
+                    //    if ( IsValidGuid( input.HasTrainingTask ))
+                    //    {
+                    //        input.HasTrainingTaskList.Add( input.HasTrainingTask );
+                    //    }
+                    //    else 
+                    //        input.HasTrainingTaskList = new List<Guid>();
+                    //}
                     //get existing
-                    var results =   from entity in context.RatingTask_HasTrainingTask
-                                    join related in context.Course_Task
-                                    on entity.TrainingTaskId equals related.Id
-                                    where entity.RatingTaskId == input.Id
+                    //should include current rating
+                    //if not fromUpload, there will not be a current rating
+                    var results =   from hasTrainingTask in context.RatingTask_HasTrainingTask
+                                    join task in context.Course_Task
+                                        on hasTrainingTask.TrainingTaskId equals task.Id
+                                    join hasRating in context.RatingTask_HasRating
+                                        on hasTrainingTask.RatingTaskId equals hasRating.RatingTaskId
+                                    join rating in context.Rating
+                                          on hasRating.RatingId equals rating.Id
+                                    where hasTrainingTask.RatingTaskId == input.Id
+                                    && ( input.CurrentRatingCode.Length > 0 ? true : rating.CodedNotation.ToLower() == input.CurrentRatingCode.ToLower() 
+                                        || !fromUpload ) //don't really need this now?
 
-                                    select related;
+                                    select task;
                     var existing = results?.ToList();
                     #region deletes check
                     if ( existing.Any() )
@@ -1175,19 +1251,20 @@ namespace Factories
                             var key = e.RowId;
                             if ( IsValidGuid( key ) )
                             {
-                                if ( !input.HasTrainingTaskList.Contains( ( Guid ) key ) )
+                                //if from upload, will be for a single rating, so if current is not in existing 
+                                if ( fromUpload && !input.HasTrainingTask.Contains( ( Guid ) key ) )
                                 {
-                                    //need to check for a rating
-                                    //DeleteRatingTaskTrainingTask( input.Id, e.Id, ref status );
+                                    //now with the rating check, can probably do a delete?
+                                    DeleteRatingTaskTrainingTask( input.Id, e.Id, ref status );
                                 }
                             }
                         }
                     }
                     #endregion
                     //adds
-                    if ( input.HasTrainingTaskList != null )
+                    if ( input.HasTrainingTask != null )
                     {
-                        foreach ( var child in input.HasTrainingTaskList )
+                        foreach ( var child in input.HasTrainingTask )
                         {
                             //if not in existing, then add
                             bool doingAdd = true;
@@ -1230,7 +1307,7 @@ namespace Factories
                                 }
                                 else
                                 {
-                                    status.AddError( String.Format( "Error. For RatingTask: '{0}' ({1}) a HasTrainingTask was not found for Identifier: {2}", FormatLongLabel( input.Description ), input.Id, child ) );
+                                    status.AddError( String.Format( "Error. For RatingTask: '{0}' ({1} code: {2}) a HasTrainingTask was not found for Identifier: {3}", FormatLongLabel( input.Description ), input.Id, input.CodedNotation, child ) );
                                 }
                             }
                         }
@@ -1733,7 +1810,7 @@ namespace Factories
                         output.ReferenceResourceId = ( int ) entity?.Id;
                     else
                     {
-                        status.AddError( thisClassName + String.Format( ".MapToDB. RatingTask: '{0}'. The related SOURCE (HasReferenceResource) '{1}' was not found", FormatLongLabel( input.Description ), input.HasReferenceResource ) );
+                        status.AddError( thisClassName + String.Format( ".MapToDB. CodedNotation: '{0}' RatingTask: '{1}'. The related SOURCE (HasReferenceResource) '{2}' was not found", input.CodedNotation, FormatLongLabel( input.Description ), input.HasReferenceResource ) );
                     }
                 }
             }

@@ -43,7 +43,8 @@ namespace Factories
                     if ( entity.Id == 0 )
                     {
                         //look up by name primarily for now, may need the resource type at some point 
-                        var record = Get( entity.Name );
+                        //22-04-17 mp - now including publication date as can have multiple dates for the same reference
+                        var record = Get( entity.Name, entity.PublicationDate );
                         if ( record?.Id > 0 )
                         {
                             //HOWEVER - if found now and not earlier, the rowId will be wrong for any related data that refers to it
@@ -79,7 +80,6 @@ namespace Factories
                         entity.Id = efEntity.Id;
 
                         MapToDB( entity, efEntity );
-
                         if ( HasStateChanged( context ) )
                         {
                             efEntity.LastUpdated = DateTime.Now;
@@ -91,6 +91,16 @@ namespace Factories
                             {
                                 entity.LastUpdated = ( DateTime ) efEntity.LastUpdated;
                                 isValid = true;
+                                SiteActivity sa = new SiteActivity()
+                                {
+                                    ActivityType = "ReferenceResource",
+                                    Activity = "Import",
+                                    Event = "Update",
+                                    Comment = string.Format( "ReferenceResource was updated by the import. Name: {0}", entity.Name ),
+                                    ActionByUserId = entity.LastUpdatedById,
+                                    ActivityObjectId = entity.Id
+                                };
+                                new ActivityManager().SiteActivityAdd( sa );
                             }
                             else
                             {
@@ -109,16 +119,7 @@ namespace Factories
                             //just in case 
                             if ( entity.Id > 0 )
                                 UpdateParts( entity, status );
-                            SiteActivity sa = new SiteActivity()
-                            {
-                                ActivityType = "ReferenceResource",
-                                Activity = "Import",
-                                Event = "Update",
-                                Comment = string.Format( "ReferenceResource was updated by the import. Name: {0}", entity.Name ),
-                                ActionByUserId = entity.LastUpdatedById,
-                                ActivityObjectId = entity.Id
-                            };
-                            new ActivityManager().SiteActivityAdd( sa );
+                           
                         }
                     }
                     else
@@ -223,20 +224,6 @@ namespace Factories
             try
             {
                 ReferenceTypeUpdate( input, ref status );
-                //
-                //if ( input.ReferenceType != null )
-                //{
-                //    foreach ( var item in input.ReferenceType )
-                //    {
-                //        var concept = ConceptSchemeManager.GetConcept( item );
-                //        if ( concept?.Id > 0 )
-                //            ReferenceConceptAdd( input, concept.Id, input.LastUpdatedById, ref status );
-                //        else
-                //        {
-                //            status.AddError( String.Format( "Error. For ReferenceResource: '{0}' ({1}) a ReferenceResource referenceType concept was not found for Identifier: {2}", input.Name, input.Id, item ) );
-                //        }
-                //    }
-                //}
 
             }
             catch ( Exception ex )
@@ -328,18 +315,7 @@ namespace Factories
             return false;
         }
 
-        public static void MapToDB( AppEntity input, DBEntity output )
-        {
-            //watch for missing properties like rowId
-            List<string> errors = new List<string>();
-            BaseFactory.AutoMap( input, output, errors );
-            output.Name = output.Name?.Trim();
-            //the publication date format can be inconsistant
-            //if ( IsValidDate(output.PublicationDate))
-            //{
-            //    output.PublicationDate = DateTime.Parse( output.PublicationDate ).ToString("yyyy-MM-dd");
-            //}
-        }
+
         #endregion
         #region Retrieval
         public static AppEntity Get( string name, string publicationDate = null )
@@ -355,7 +331,11 @@ namespace Factories
 
 				if ( !string.IsNullOrWhiteSpace( publicationDate ) )
 				{
-					matches = matches.Where( m => m.PublicationDate.ToLower() == publicationDate.ToLower() );
+                    if ( IsValidDate( publicationDate ) )
+                    {
+                        publicationDate = DateTime.Parse( publicationDate ).ToString( "MM/dd/yyyy" );
+                    }
+                    matches = matches.Where( m => m.PublicationDate.ToLower() == publicationDate.ToLower() );
 				}
 
 				var item = matches.FirstOrDefault();
@@ -400,13 +380,35 @@ namespace Factories
             }
 
             return entity;
-        }
-        /// <summary>
-        /// Get all 
-        /// May need a get all for a rating? Should not matter as this is external data?
-        /// </summary>
-        /// <returns></returns>
-        public static List<AppEntity> GetAll()
+		}
+		public static AppEntity GetByCTIDOrNull( string ctid )
+		{
+			if ( string.IsNullOrWhiteSpace( ctid ) )
+			{
+				return null;
+			}
+
+			using ( var context = new DataEntities() )
+			{
+				var item = context.ReferenceResource
+							.SingleOrDefault( s => s.CTID == ctid );
+
+				if ( item != null && item.Id > 0 )
+				{
+					var entity = new AppEntity();
+					MapFromDB( item, entity );
+					return entity;
+				}
+			}
+
+			return null;
+		}
+		/// <summary>
+		/// Get all 
+		/// May need a get all for a rating? Should not matter as this is external data?
+		/// </summary>
+		/// <returns></returns>
+		public static List<AppEntity> GetAll()
         {
             var entity = new AppEntity();
             var list = new List<AppEntity>();
@@ -470,7 +472,7 @@ namespace Factories
                             if ( item != null && item.Id > 0 )
                             {
                                 entity = new AppEntity();
-                                MapFromDB( item, entity );
+                                MapFromDB( item, entity, true );
                                 output.Add( ( entity ) );
                             }
                         }
@@ -484,20 +486,37 @@ namespace Factories
             }
             return output;
         }
-        public static void MapFromDB( DBEntity input, AppEntity output )
+        public static void MapToDB( AppEntity input, DBEntity output )
+        {
+            //watch for missing properties like rowId
+            List<string> errors = new List<string>();
+            BaseFactory.AutoMap( input, output, errors );
+            output.Name = output.Name?.Trim();
+            if ( string.IsNullOrWhiteSpace( output.PublicationDate ) )
+            {
+                output.PublicationDate = null;
+            }
+            //the publication date format can be inconsistant
+            else if ( IsValidDate( output.PublicationDate ) )
+            {
+                output.PublicationDate = DateTime.Parse( output.PublicationDate ).ToString( "MM/dd/yyyy" );
+            }
+        }
+        public static void MapFromDB( DBEntity input, AppEntity output, bool appendingPublicationDate = false )
         {
             //should include list of concepts
             List<string> errors = new List<string>();
             BaseFactory.AutoMap( input, output, errors );
             //the publication date format can be inconsistant
-            //if ( IsValidDate( output.PublicationDate ) )
-            //{
-            //    //should be in the proper format, but maybe useful if there is a change in the default
-            //    output.PublicationDate = DateTime.Parse( output.PublicationDate ).ToString( "yyyy-MM-dd" );
-            //}
-            if (output.Name == "NAVPERS 18068F Vol II" )
+            if ( IsValidDate( output.PublicationDate ) )
             {
+                //should be in the proper format, but maybe useful if there is a change in the default
+                output.PublicationDate = DateTime.Parse( output.PublicationDate ).ToString( "MM/dd/yyyy" );
+            }
 
+            if ( appendingPublicationDate && !string.IsNullOrWhiteSpace( output.PublicationDate) )
+            {
+                output.Name += " (" + output.PublicationDate + ")";
             }
             //related
             if ( (input.StatusTypeId ?? 0) > 0 )

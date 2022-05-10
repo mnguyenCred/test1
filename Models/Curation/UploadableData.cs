@@ -108,32 +108,21 @@ namespace Models.Curation
 			NewItems = new List<JObject>();
 			Additions = new List<Triple>();
 			Removals = new List<Triple>();
-			TextChanges = new List<Triple>();
+			ValueChanges = new List<Triple>();
 			Valid = true;
 			Errors = new List<string>();
 			Warnings = new List<string>();
 			ExistingItems = new List<JObject>();
 			RowItems = new List<Guid>();
-		}
-		public UploadableItemResult( List<JObject> newItems, List<Guid> unmodifiedItems, List<Triple> additions = null, List<Triple> removals = null, List<Triple> textChanges = null, bool valid = true, string message = "" )
-		{
-			NewItems = newItems;
-			Additions = additions;
-			Removals = removals;
-			TextChanges = textChanges;
-			Valid = valid;
-			Message = message;
-			Errors = new List<string>();
-			Warnings = new List<string>();
-			ExistingItems = new List<JObject>();
-			RowItems = new List<Guid>();
+			ReferenceChanges = new List<Triple>();
 		}
 
 		public List<JObject> NewItems { get; set; }
 		public List<JObject> ExistingItems { get; set; }
 		public List<Triple> Additions { get; set; }
 		public List<Triple> Removals { get; set; }
-		public List<Triple> TextChanges { get; set; }
+		public List<Triple> ValueChanges { get; set; }
+		public List<Triple> ReferenceChanges { get; set; }
 		public bool Valid { get; set; }
 		public string Message { get; set; }
 		public List<string> Errors { get; set; }

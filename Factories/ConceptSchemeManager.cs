@@ -33,12 +33,13 @@ namespace Factories
         public static string ConceptScheme_ReferenceResource = "navy:ReferenceResource";
         public static string ConceptScheme_TaskApplicability = "navy:TaskApplicability";
         public static string ConceptScheme_TrainingGap = "navy:TrainingGap";
+
         public static string ConceptScheme_TrainingSolutionType = "navy:TrainingSolutionType";
         public static string ConceptScheme_RecommendedModality = "navy:RecommendedModality";
         public static string ConceptScheme_DevelopmentSpecification = "navy:DevelopmentSpecification";
-        public static string ConceptScheme_CFMPlacement = "navy:CFMPlacement";
-        //navy:RecommendedModality
-        //navy:CFMPlacement
+        public static string ConceptScheme_CFMPlacement = "navy:CFMPlacement"; //??
+
+
         #region ConceptScheme
         #region ConceptScheme - Persistance
         //unlikely
@@ -218,7 +219,52 @@ namespace Factories
             }
 
             return entity;
-        }
+		}
+		public static AppEntity GetByCTIDOrNull( string ctid )
+		{
+			if ( string.IsNullOrWhiteSpace( ctid ) )
+			{
+				return null;
+			}
+
+			using ( var context = new DataEntities() )
+			{
+				var item = context.ConceptScheme
+							.SingleOrDefault( s => s.CTID == ctid );
+
+				if ( item != null && item.Id > 0 )
+				{
+					var entity = new AppEntity();
+					MapFromDB( item, entity );
+					return entity;
+				}
+			}
+
+			return null;
+		}
+		public static Concept GetConceptByCTIDOrNull( string ctid )
+		{
+			if ( string.IsNullOrWhiteSpace( ctid ) )
+			{
+				return null;
+			}
+
+			using ( var context = new DataEntities() )
+			{
+				var item = context.ConceptScheme_Concept
+							.SingleOrDefault( s => s.CTID == ctid );
+
+				if ( item != null && item.Id > 0 )
+				{
+					var entity = new Concept();
+					AutoMap( item, entity );
+					entity.SchemeUri = item.ConceptScheme.SchemaUri;
+					return entity;
+				}
+			}
+
+			return null;
+		}
 
 		//Get all Concepts in one request
 		public static List<Concept> GetAllConcepts( bool onlyActiveConcepts = true )
@@ -280,7 +326,57 @@ namespace Factories
             }
             return list;
         }
-        public static List<AppEntity> Search( SearchQuery query )
+		//
+
+		public static List<AppEntity> GetMultiple( List<Guid> guids )
+		{
+			var results = new List<AppEntity>();
+
+			using ( var context = new DataEntities() )
+			{
+				var items = context.ConceptScheme
+					.Where( m => guids.Contains( m.RowId ) )
+					.OrderBy( m => m.Description )
+					.ToList();
+
+				foreach ( var item in items )
+				{
+					var result = new AppEntity();
+					MapFromDB( item, result );
+					results.Add( result );
+				}
+			}
+
+			return results;
+		}
+		//
+
+		public static List<Concept> GetMultipleConcepts( List<Guid> guids )
+		{
+			var results = new List<Concept>();
+
+			using ( var context = new DataEntities() )
+			{
+				var items = context.ConceptScheme_Concept
+					.Where( m => guids.Contains( m.RowId ) )
+					.OrderBy( m => m.Description )
+					.ToList();
+
+				foreach ( var item in items )
+				{
+					var result = new Concept();
+					AutoMap( item, result );
+					result.SchemeUri = item.ConceptScheme.SchemaUri;
+					results.Add( result );
+				}
+			}
+
+			return results;
+		}
+		//
+
+
+		public static List<AppEntity> Search( SearchQuery query )
         {
             var entity = new AppEntity();
             var output = new List<AppEntity>();
@@ -411,7 +507,8 @@ namespace Factories
                 }
                 else
                 {
-                    status.AddError( "Error - A concept scheme Id or inscheme GUID must be provided with the Concept, and is missing. " );
+                    status.AddError( "Error - A concept scheme Id or inscheme GUID must be provided with the Concept, and is missing. Please select an entry from the 'Belongs To Concept Scheme ' dropdown list." );
+                    return false;
                 }
 
             }
@@ -437,7 +534,8 @@ namespace Factories
                         int newId = AddConcept( entity, ref status );
                         if ( newId == 0 || status.HasSectionErrors )
                             isValid = false;
-
+                        else 
+                            entity.Id = newId;
                         return isValid;
 
                     }
@@ -527,6 +625,11 @@ namespace Factories
             {
                 try
                 {
+                    if ( entity.ConceptSchemeId == 0)
+                    {
+                        status.AddError( "Error - A concept scheme Id must be provided with the Concept. Please select an entry from the 'Belongs To Concept Scheme ' dropdown list. " );
+                        return 0;
+                    }
                     efEntity.ConceptSchemeId = entity.ConceptSchemeId;
                     //require caller to set the codedNotation as needed
                     MapToDB( entity, efEntity );
@@ -703,7 +806,8 @@ namespace Factories
                                 .Where( s =>
                                 ( s.Name.ToLower().Contains( filter.ToLower() ) ) ||
                                 ( s.CodedNotation.ToLower().Contains( filter.ToLower() ) ) ||
-                                ( s.WorkElementType.ToLower().Contains( filter.ToLower() ) )
+                                ( s.WorkElementType.ToLower().Contains( filter.ToLower() ) ) ||
+                                ( s.ConceptScheme.Name.ToLower().Contains( filter.ToLower() ) )
                                 )
                                select Results;
                     }
@@ -751,7 +855,7 @@ namespace Factories
 			output.InScheme = input.ConceptScheme != null ? input.ConceptScheme.RowId : Guid.Empty;
             if (forSearchResults)
             {
-                output.Name += !string.IsNullOrWhiteSpace(input.ConceptScheme?.Name) ? " (" + input.ConceptScheme?.Name + ")" : "";
+                output.Name = (!string.IsNullOrWhiteSpace(input.ConceptScheme?.Name) ? "(" + input.ConceptScheme?.Name + ") " : "") + output.Name;
             }
             //if ( input != null && input.Id > 0 )
             //{

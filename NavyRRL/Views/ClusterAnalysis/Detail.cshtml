@@ -1,0 +1,24 @@
+﻿@using Models.Schema;
+@using Models.DTO;
+@model ClusterAnalysis
+@{
+	ViewBag.Title = "Cluster Analysis: " + Model.ClusterAnalysisTitle;
+}
+
+@Html.Partial( "~/Views/Shared/_DetailBasicInfo.cshtml", new DetailBasicInfoHelper()
+{
+	TypeLabel = "Cluster Analysis",
+	TypeURL = Model.GetType().Name.ToLower(),
+	Id = Model.Id,
+	CTID = Model.CTID,
+	Name = Model.ClusterAnalysisTitle,
+	Description = Model.RecommendedModality,
+	Identifiers = new List<NamedString>()
+	{
+		new NamedString( "System ID", Model.Id.ToString() ),
+		new NamedString( "CTID", Model.CTID ),
+		new NamedString( "Training Solution Type", Model.TrainingSolution ),
+		new NamedString( "Recommended Modality", Model.RecommendedModality )
+
+	}
+} )

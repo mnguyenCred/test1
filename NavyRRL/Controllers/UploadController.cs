@@ -22,7 +22,6 @@ namespace NavyRRL.Controllers
     {
 		// GET: Upload
 		[CustomAttributes.NavyAuthorize( "Search", Roles = "Administrator, RMTL Developer, Site Staff" )]
-
 		public ActionResult Index()
         {
 			if ( !AccountServices.IsUserAuthenticated() )
@@ -35,71 +34,93 @@ namespace NavyRRL.Controllers
 				ConsoleMessageHelper.SetConsoleErrorMessage( "You must be logged in and authorized to perform this action." );
 				return RedirectToAction( AccountServices.EVENT_AUTHENTICATED, "event" );
 
-			} else
-            {
+			}
 
-            }
 			return View( "~/views/upload/uploadv3.cshtml" );
         }
-		//
-
-		[CustomAttributes.NavyAuthorize( "Search", Roles = "Administrator, RMTL Developer, Site Staff" )]
-		public ActionResult UploadV2()
-		{
-			return View( "~/views/upload/uploadv2.cshtml" );
-		}
-		//
-
-		public ActionResult UploadV1()
-		{
-			return View( "~/views/upload/uploadv1.cshtml" );
-		}
-		//
-
-		public ActionResult UploadV3()
-		{
-			return View( "~/views/upload/uploadv3.cshtml" );
-		}
 		//
 
 		public ActionResult ProcessUploadedItem( UploadableItem item )
 		{
 			//Process the current row
-			var result = BulkUploadServices.ProcessUploadedItem( item );
+			var result = BulkUploadServices.ProcessUploadedItemV4( item );
 
 			//Return the response
 			return JsonResponse( result, true );
 		}
 		//
 
-		public ActionResult StoreRawCSV( UploadableItem item )
+		public ActionResult StoreRawCSV()
 		{
-			//Get the summary for this transaction
-			var summary = BulkUploadServices.GetCachedChangeSummary( item.TransactionGUID );
+			//Get the raw request JSON
+			Request.InputStream.Position = 0;
+			var rawJSON = new StreamReader( Request.InputStream ).ReadToEnd();
 
-			//Do something with the raw CSV
-			//item.RawCSV...
-			if ( item.RawCSV?.Length > 0 )
+			//Read it into a JToken
+			//Have to do it this way to keep Newtonsoft from messing with the dates for some stupid reason
+			JToken token;
+			using ( var reader = new JsonTextReader( new StringReader( rawJSON ) ) { DateParseHandling = DateParseHandling.None } )
 			{
-				var currentRating = Factories.RatingManager.Get( item.RatingRowID );
+				token = JToken.Load( reader );
+			}
+
+			//Extract the data from the request
+			var transactionGUID = token[ "TransactionGUID" ].ToObject<Guid>();
+			var ratingRowID = token[ "RatingRowID" ].ToObject<Guid>();
+			var rawCSV = token[ "RawCSV" ].ToString();
+
+			//Get the summary for this transaction
+			var summary = BulkUploadServices.GetCachedChangeSummary( transactionGUID );
+
+			//Temp for testing - remove this
+			var finalNewItems = summary.ItemsToBeCreated;
+			var finalChangedItems = summary.FinalizedChanges;
+			var debuggerHere = "";
+			//End Temp for testing - remove this
+
+			
+			//Do something with the raw CSV
+			if ( rawCSV?.Length > 0 )
+			{
+				var currentRating = Factories.RatingManager.Get( ratingRowID );
 				if ( currentRating?.Id == 0 )
 				{
-					summary.Messages.Error.Add( "Error: Could save input file, as was unable to find Rating for identifier: " + item.RatingRowID );
+					summary.Messages.Error.Add( "Error: Could not save input file: Unable to find Rating for identifier: " + ratingRowID );
 					//return summary;
 				}
 				else
 				{
-					//currentRating = new SM.Rating() { CodedNotation = "QM", Name = "QM" };
-
-					LoggingHelper.WriteLogFile( 1, string.Format( "Rating_upload_{0}_{1}.csv", currentRating.Name.Replace( " ", "_" ), DateTime.Now.ToString( "hhmmss" ) ), item.RawCSV, "", false );
-
-					if ( item.RawCSV.Length > 300000 )
+					//temp means  to log end of upload
+					AppUser user = AccountServices.GetCurrentUser();
+					if ( user?.Id == 0 )
 					{
-						new Factories.BaseFactory().BulkLoadRMTL( currentRating.CodedNotation, item.RawCSV );
+						//result.Errors.Add( "Error - a current user was not found. You must authenticated and authorized to use this function!" );
+						//return result;
+					}
+
+					summary.UploadFinished = DateTime.Now; //Compare with summary.UploadStarted to determine how long it took
+					var saveDuration = summary.UploadFinished.Subtract( summary.UploadStarted );
+					summary.Messages.Note.Add( string.Format( "Upload Duration: {0:N2} seconds ", saveDuration.TotalSeconds ) );
+
+					SiteActivity sa = new SiteActivity()
+					{
+						ActivityType = "RMTL",
+						Activity = "Upload",
+						Event = "Complete",
+						Comment = String.Format( "The RMTL upload step is completed for Rating: '{0}' by '{1}'.", currentRating.Name, user.FullName() ),
+						ActionByUserId = user.Id,
+						ActionByUser = user.FullName()
+					};
+					new ActivityServices().AddActivity( sa );
+
+					LoggingHelper.WriteLogFile( 1, string.Format( "Rating_upload_{0}_{1}.csv", currentRating.Name.Replace( " ", "_" ), DateTime.Now.ToString( "hhmmss" ) ), rawCSV, "", false );
+
+					if ( rawCSV.Length > 300000 )
+					{
+						new Factories.BaseFactory().BulkLoadRMTL( currentRating.CodedNotation, rawCSV );
 					}
 				}
 			}
-			//Process the summary
 
 			//Return the response
 			return JsonResponse( null, true );
@@ -136,10 +157,15 @@ namespace NavyRRL.Controllers
 				return JsonResponse( null, false, new List<string>() { "Unable to find cached change summary. Please upload the data again." } );
 			}
 
-			//Process the summary
-			var status = new SaveStatus();
-			Services.BulkUploadServices.ApplyChangeSummary( summary, ref status );
+			try
+            {
+				//Process the summary
+				Services.BulkUploadServices.ApplyChangeSummary( summary );
 
+			} catch (Exception ex)
+            {
+				LoggingHelper.LogError( ex, "UploadController.ConfirmChangesV3" );
+            }
 			//Status isn't used, so read messages from summary instead
 			//Don't need to send back the entire summary
 
@@ -155,62 +181,6 @@ namespace NavyRRL.Controllers
 				{ "Messages", JObject.FromObject( summary.Messages ) }
 			};
 			return JsonResponse( confirmation, true );
-		}
-		//
-
-
-		//Initial processing of the data before any changes are made to the database
-		//Expects the following arguments, but since we have to manually read them out of the request, we need to bypass MVC's default model binding
-		//CM.UploadableTable rawData, Guid ratingRowID
-		public ActionResult ProcessUpload()
-		{
-			//Get the raw request JSON
-			Request.InputStream.Position = 0;
-			var rawJSON = new StreamReader( Request.InputStream ).ReadToEnd();
-
-			//Read it into a JToken
-			//Have to do it this way to keep Newtonsoft from messing with the dates for some stupid reason
-			JToken token;
-			using ( var reader = new JsonTextReader( new StringReader( rawJSON ) ) { DateParseHandling = DateParseHandling.None } )
-			{
-				token = JToken.Load( reader );
-			}
-
-			//Extract the data from the request
-			var rawData = token[ "rawData" ].ToObject<CM.UploadableTable>();
-			var ratingRowID = token[ "ratingRowID" ].ToObject<Guid>();
-
-			//Construct Change Summary
-			var debug = new JObject();
-			var changeSummary = Services.BulkUploadServices.ProcessUploadV2( rawData, ratingRowID, debug );
-
-			//Store Change Summary in the Application Cache
-			Services.BulkUploadServices.CacheChangeSummary( changeSummary );
-
-			//Return the result
-			return JsonResponse( changeSummary, true, null, new { Debug = debug } );
-		}
-		//
-
-		public ActionResult ConfirmChanges( Guid changeSummaryRowID )
-		{
-			var summary = Services.BulkUploadServices.GetCachedChangeSummary( changeSummaryRowID );
-			if( summary != null )
-			{
-				//Update the database
-				var debug = new JObject();
-				SaveStatus status = new SaveStatus();
-				Services.BulkUploadServices.ApplyChangeSummary( summary, ref status );
-				//check for messages
-
-				//For now, return the summary object (for testing purposes)
-				return JsonResponse( summary, true, null, debug );
-
-			}
-			else
-			{
-				return JsonResponse( null, false, new List<string>() { "Unable to find the cached summary of changes. This is usually caused by too much time passing between the initial processing and the confirmation of changes. Please re-process the spreadsheet and try again." }, null );
-			}
 		}
 		//
 

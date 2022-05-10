@@ -28,11 +28,28 @@ namespace NavyRRL.Controllers
 		}
 		//
 
-		public ActionResult Detail( int id )
+		public ActionResult Detail( string id ) //String to accept CIN or ID
 		{
 			AuthenticateOrRedirect( "You must be authenticated and authorized to view Course data." );
-			var data = Factories.CourseManager.Get( id, true );
+			Course data;
+			try
+			{
+				data = Factories.CourseManager.Get( int.Parse( id ), true );
+			}
+			catch
+			{
+				data = Factories.CourseManager.GetByCodedNotation( id, true );
+			}
 			return View( data );
+		}
+		//
+
+		public ActionResult JSON( int id )
+		{
+			AuthenticateOrRedirect( "You must be authenticated and authorized to view Course data." );
+			var data = Factories.CourseManager.Get( id );
+			var converted = RDFServices.GetRDF( data );
+			return RawJSONResponse( converted );
 		}
 		//
 
