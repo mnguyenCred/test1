@@ -76,7 +76,7 @@
 </script>
 <style type="text/css">
 	table { width: 100%; }
-	table th { padding: 2px 5px; background-color: #202A44; color: #FFF; }
+	table th { padding: 5px; font-size: 16px; background-color: #202A44; color: #FFF; border: 1px solid #202A44; }
 	table td { padding: 2px 5px; min-width: 100px; border: 1px solid #CCC; }
 
 	.tableWrapper { margin-bottom: 10px; transition: background-color 0.5s; }
@@ -115,7 +115,7 @@
 </table>
 
 <h2>Classes</h2>
-@foreach ( var item in RDF.StaticData.Classes.OrderBy( m => m.URI ).ToList() )
+@foreach ( var item in RDF.StaticData.Classes.OrderBy( m => m.Label ).ToList() )
 {
 	var fullURI = GetFullURI( item.URI );
 	<div class="tableWrapper collapseBox collapsed" data-shorturi="@item.URI" data-fulluri="@fullURI">
@@ -142,7 +142,7 @@
 }
 
 <h2>Properties</h2>
-@foreach( var item in RDF.StaticData.Properties.OrderBy( m => m.URI ).ToList() )
+@foreach( var item in RDF.StaticData.Properties.OrderBy( m => m.Label ).ToList() )
 {
 	var fullURI = GetFullURI( item.URI );
 	<div class="tableWrapper collapseBox collapsed" data-shorturi="@item.URI" data-fulluri="@fullURI">
