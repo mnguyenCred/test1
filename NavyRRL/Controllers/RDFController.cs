@@ -37,7 +37,7 @@ namespace NavyRRL.Controllers
 		[Route("rdf/resources/{ctid}")]
 		public ActionResult Resources( string ctid )
 		{
-			var data = RDFServices.GetRDFByCTID( ctid );
+			var data = RDFServices.GetRDFByCTID( ctid, AccountServices.IsUserAuthenticated(), false );
 			if( data == null )
 			{
 				Response.StatusCode = 404;
@@ -52,16 +52,14 @@ namespace NavyRRL.Controllers
 		[Route( "rdf/graph/{ctid}" )]
 		public ActionResult Graph( string ctid )
 		{
-			var data = RDFServices.GetRDFByCTID( ctid );
+			var data = RDFServices.GetRDFByCTID( ctid, AccountServices.IsUserAuthenticated(), true );
 			if ( data == null )
 			{
 				Response.StatusCode = 404;
 				return RawJSONResponse( RDFServices.GetRDFError( "Resource not found." ) );
 			}
 
-			var graph = RDFServices.ResourceToGraph( data );
-
-			var jData = JObject.FromObject( graph );
+			var jData = JObject.FromObject( data );
 			return RawJSONResponse( jData );
 		}
 		//

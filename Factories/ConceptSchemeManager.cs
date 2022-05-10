@@ -293,13 +293,41 @@ namespace Factories
 		}
 		//
 
-        /// <summary>
-        /// Get all concept schemes
-        /// May want to actually limit what all will return 
-        /// We could set some to be 'inactive'?
-        /// </summary>
-        /// <returns></returns>
-        public static List<AppEntity> GetAll()
+		public static List<Concept> GetAllConceptsForScheme( string schemaURI, bool onlyActiveConcepts = true )
+		{
+			var result = new List<Concept>();
+
+			using ( var context = new DataEntities() )
+			{
+				var matches = context.ConceptScheme_Concept
+					.Where( m => m.ConceptScheme.SchemaUri == schemaURI );
+
+				if ( onlyActiveConcepts )
+				{
+					matches = matches.Where( m => m.IsActive );
+				}
+				var dbConcepts = matches.ToList();
+
+				foreach ( var dbConcept in dbConcepts )
+				{
+					var concept = new Concept();
+					AutoMap( dbConcept, concept );
+					concept.SchemeUri = dbConcept.ConceptScheme.SchemaUri;
+					result.Add( concept );
+				}
+			}
+
+			return result;
+		}
+		//
+
+		/// <summary>
+		/// Get all concept schemes
+		/// May want to actually limit what all will return 
+		/// We could set some to be 'inactive'?
+		/// </summary>
+		/// <returns></returns>
+		public static List<AppEntity> GetAll()
         {
             var entity = new AppEntity();
             var list = new List<AppEntity>();

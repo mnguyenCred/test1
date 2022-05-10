@@ -98,7 +98,7 @@ namespace Services
 		}
 		//
 
-		public static object GetResourceByCTID( string ctid )
+		public static object GetRawResourceByCTID( string ctid )
 		{
 			//All of these need to return null if not found!
 			var data =
@@ -118,27 +118,44 @@ namespace Services
 		}
 		//
 
-		public static JObject GetRDFByCTID( string ctid )
+		public static JObject GetRDFByCTID( string ctid, bool includeSecuredTerms = false, bool asGraph = false )
 		{
-			var resource = GetResourceByCTID( ctid );
-			if ( resource == null || ((int) resource.GetType().GetProperty( nameof( BaseObject.Id ) )?.GetValue( resource )) == 0 )
+			var resource = GetRawResourceByCTID( ctid );
+			if ( resource == null || ( ( int ) resource.GetType().GetProperty( nameof( BaseObject.Id ) )?.GetValue( resource ) ) == 0 )
 			{
 				return null;
 			}
 
+			var primaryResource = new JObject();
+			var extraGraphObjects = new List<JObject>();
 			switch ( resource.GetType().Name )
 			{
-				case nameof( BilletTitle ):			return GetRDF( ( BilletTitle ) resource );
-				case nameof( Course ):				return GetRDF( ( Course ) resource );
-				case nameof( Organization ):		return GetRDF( ( Organization ) resource );
-				case nameof( Rating ):				return GetRDF( ( Rating ) resource );
-				case nameof( RatingTask ):			return GetRDF( ( RatingTask ) resource );
-				case nameof( ReferenceResource ):	return GetRDF( ( ReferenceResource ) resource );
-				case nameof( TrainingTask ):		return GetRDF( ( TrainingTask ) resource );
-				case nameof( WorkRole ):			return GetRDF( ( WorkRole ) resource );
-				case nameof( ConceptScheme ):		return GetRDF( ( ConceptScheme ) resource );
-				case nameof( Concept ):				return GetRDF( ( Concept ) resource );
-				default:							return null;
+				case nameof( BilletTitle ):			primaryResource = GetRDF( ( BilletTitle ) resource ); break;
+				case nameof( Course ):				primaryResource = GetRDF( ( Course ) resource ); break;
+				case nameof( Organization ):		primaryResource = GetRDF( ( Organization ) resource ); break;
+				case nameof( Rating ):				primaryResource = GetRDF( ( Rating ) resource ); break;
+				case nameof( RatingTask ):			primaryResource = GetRDF( ( RatingTask ) resource ); break;
+				case nameof( ReferenceResource ):	primaryResource = GetRDF( ( ReferenceResource ) resource ); break;
+				case nameof( TrainingTask ):		primaryResource = GetRDF( ( TrainingTask ) resource ); break;
+				case nameof( WorkRole ):			primaryResource = GetRDF( ( WorkRole ) resource ); break;
+				case nameof( ConceptScheme ):		primaryResource = GetRDF( ( ConceptScheme ) resource, includeSecuredTerms, extraGraphObjects ); break;
+				case nameof( Concept ):				primaryResource = GetRDF( ( Concept ) resource, includeSecuredTerms ); break;
+				default: break;
+			}
+
+			if ( asGraph )
+			{
+				var graph = ResourceToGraph( primaryResource );
+				foreach ( var item in extraGraphObjects )
+				{
+					( ( JArray ) graph[ "@graph" ] ).Add( item );
+				}
+
+				return graph;
+			}
+			else
+			{
+				return primaryResource;
 			}
 		}
 		//
@@ -242,20 +259,37 @@ namespace Services
 		}
 		//
 
-		public static JObject GetRDF( ConceptScheme source )
+		public static JObject GetRDF( ConceptScheme source, bool includeSecuredTerms = false, List<JObject> extraGraphObjects = null )
 		{
-			var result = GetStarterResult( "ceterms:WorkRole", source );
+			var result = GetStarterResult( "skos:ConceptScheme", source );
+			extraGraphObjects = extraGraphObjects ?? new List<JObject>();
 
 			AppendValue( result, "ceasn:name", source.Name, true );
 			AppendValue( result, "ceasn:description", source.Description, true );
+			if ( includeSecuredTerms )
+			{
+				var allConcepts = Factories.ConceptSchemeManager.GetAllConceptsForScheme( source.SchemaUri );
+				AppendValue( result, "skos:hasTopConcept", allConcepts.Select( m => GetRegistryURL( m.CTID ) ).ToList(), false );
+				foreach( var concept in allConcepts )
+				{
+					var item = GetRDF( concept, includeSecuredTerms );
+					item.Remove( "@context" );
+					extraGraphObjects.Add( item );
+				}
+			}
 
 			return result;
 		}
 		//
 
-		public static JObject GetRDF( Concept source )
+		public static JObject GetRDF( Concept source, bool includeSecuredTerms = false )
 		{
-			var result = GetStarterResult( "ceterms:WorkRole", source );
+			if ( !includeSecuredTerms )
+			{
+				return null;
+			}
+
+			var result = GetStarterResult( "skos:Concept", source );
 
 			AppendValue( result, "skos:prefLabel", source.Name, true );
 			AppendValue( result, "skos:notation", source.CodedNotation, false );
@@ -284,7 +318,7 @@ namespace Services
 			return new JObject()
 			{
 				{ "@context", GetContextURL() },
-				{ "@id", applicationURL + "rdf/resources/" + source.CTID },
+				{ "@id", GetRegistryURL( source.CTID ) },
 				{ "@type", rdfType },
 				{ "ceterms:ctid", source.CTID }
 			};
@@ -330,7 +364,7 @@ namespace Services
 				var item = GetSingleByGUIDMethod( value );
 				if( item != null && item.Id > 0 )
 				{
-					container[ property ] = applicationURL + "rdf/resources/" + item.CTID;
+					container[ property ] = GetRegistryURL( item.CTID );
 				}
 			}
 		}
@@ -352,10 +386,17 @@ namespace Services
 		}
 		//
 
+		public static string GetRegistryURL( string ctid, bool asGraph = false )
+		{
+			return GetApplicationURL() + "rdf/" + ( asGraph ? "graph/" : "resources/" ) + ctid;
+		}
+		//
+
 		public static string GetContextURL()
 		{
 			return GetApplicationURL() + "rdf/context/json";
 		}
+		//
 
 		public static string GetApplicationURL()
 		{
