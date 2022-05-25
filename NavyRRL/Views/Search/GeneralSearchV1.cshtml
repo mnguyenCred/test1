@@ -83,7 +83,7 @@
 
 		//When the keywords change, do a search
 		UI.KeywordsText.on("keyup change", function () {
-			SearchData.Active.Search.delayThenSearch();
+			SearchData.Active.Search.delayThenSearch(true);
 		});
 
 		//When the sort order changes, do a search
@@ -96,7 +96,7 @@
 	function setSearchType(searchType) {
 		SearchData.Types.map(m => m.IsActive = m.Name == searchType);
 		SearchData.Active = SearchData.Types.filter(m => m.Name == searchType)[0];
-		SearchData.Active.Search.delayThenSearch();
+		SearchData.Active.Search.delayThenSearch(true);
 		UI.NewItemLink.attr("href", "@Url.Content("~/")" + SearchData.Active.Name + "/edit/0");
 		UI.NewItemLink.html("Create New " + SearchData.Active.LabelSingle);
 	}
