@@ -33,7 +33,7 @@
 	var sourcesFilter = new SimpleFilter()
 	{
 		Name = "navy:Source",
-		Items = sources.Select( m => { return new SimpleFilterItem() { Label = m.Name, Id = m.Id }; } ).ToList()
+		Items = sources.Select( m => { return new SimpleFilterItem() { Label = m.Name + ( !string.IsNullOrWhiteSpace(m.PublicationDate) ? " (" + m.PublicationDate + ")" : "" ), Id = m.Id }; } ).ToList()
 	};
 	var courses = RatingTaskServices.GetAllCourses().ToList();
 	var coursesFilter = new SimpleFilter()
@@ -630,7 +630,7 @@
 	.searchBox .searchHeader .filtersBox .filter.autofill input { display: block; width: 100%; max-width: none; }
 	.searchBox .searchHeader .filtersBox .filter.autofill .filterOptions { position: absolute; z-index: 10; background-color: #FFF; border: 1px solid #CCC; width: 100%; }
 	.searchBox .searchHeader .filtersBox .filter.autofill .filterOptions:not(.visible) { display: none; }
-	.searchBox .searchHeader .filtersBox .filter.autofill .filterOptions button { display: block; width: 100%; padding: 5px 10px; background-color: #FFF; border: none; }
+	.searchBox .searchHeader .filtersBox .filter.autofill .filterOptions button { display: block; width: 100%; padding: 5px 10px; background-color: #FFF; border: none; text-align: left; }
 	.searchBox .searchHeader .filtersBox .filter.autofill .filterOptions button:hover, .searchBox .searchHeader .filtersBox .filter.autofill .filterOptions button:focus { background-color: rgba(0,0,0,0.05); }
 	.searchBox .searchHeader .filtersBox .filter.autofill .filterItems { }
 	.searchBox .searchHeader .filtersBox .filter.autofill .filterItems .filterItem { display: flex; width: 100%; padding: 2.5px 5px; }
