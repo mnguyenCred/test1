@@ -440,7 +440,7 @@
 			return !notIn.includes(Item) && Item.Label.toLowerCase().includes(text)
 		}).sort((a, b) => {
 			return a.Label.toLowerCase().indexOf(text) < b.Label.toLowerCase().indexOf(text) ? -1 : 1
-		}).slice(0, limit || 10);
+		});//.slice(0, limit || 10); //It is preferred to show all of them and enable scrolling instead
 	}
 	//
 
@@ -628,7 +628,7 @@
 
 	.searchBox .searchHeader .filtersBox .filter.autofill { position: relative; }
 	.searchBox .searchHeader .filtersBox .filter.autofill input { display: block; width: 100%; max-width: none; }
-	.searchBox .searchHeader .filtersBox .filter.autofill .filterOptions { position: absolute; z-index: 10; background-color: #FFF; border: 1px solid #CCC; width: 100%; }
+	.searchBox .searchHeader .filtersBox .filter.autofill .filterOptions { position: absolute; z-index: 10; background-color: #FFF; border: 1px solid #CCC; width: 100%; max-height: 400px; overflow-y: scroll; }
 	.searchBox .searchHeader .filtersBox .filter.autofill .filterOptions:not(.visible) { display: none; }
 	.searchBox .searchHeader .filtersBox .filter.autofill .filterOptions button { display: block; width: 100%; padding: 5px 10px; background-color: #FFF; border: none; text-align: left; }
 	.searchBox .searchHeader .filtersBox .filter.autofill .filterOptions button:hover, .searchBox .searchHeader .filtersBox .filter.autofill .filterOptions button:focus { background-color: rgba(0,0,0,0.05); }
