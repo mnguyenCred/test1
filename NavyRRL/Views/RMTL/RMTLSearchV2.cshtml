@@ -152,7 +152,7 @@
 		},
 		SortOrders: [],
 		PageNumber: 1,
-		PageSize: 100,
+		PageSize: 250,
 		Filters: []
 	};
 	//
@@ -470,7 +470,7 @@
 		var query = {
 			Filters: currentFilters,
 			SortOrder: Search.Filters.filter(m => m.Name == "SortOrder")[0].readValue(),
-			PageSize: getAllHandler ? -1 : 250,
+			PageSize: getAllHandler ? -1 : Search.PageSize,
 			PageNumber: getAllHandler ? 1 : Search.PageNumber
 		};
 

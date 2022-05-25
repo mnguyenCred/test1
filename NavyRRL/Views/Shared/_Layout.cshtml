@@ -82,7 +82,7 @@
 							<li><a href="@Url.Content( "~/rmtlproject/search" )">RMTL Projects</a></li>
 						</ul>
 
-						if ( AccountServices.IsUserAnAdmin() )
+						if ( AccountServices.IsUserAnAdmin() || AccountServices.IsUserSiteStaff() )
 						{
 							<ul class="nav navbar-nav">
 								<li class="dropdown">
