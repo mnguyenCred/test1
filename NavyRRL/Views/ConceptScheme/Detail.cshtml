@@ -5,11 +5,13 @@
 	ViewBag.Title = "Concept Scheme: " + Model.Name;
 }
 <style type="text/css">
-
-	.detailsSection .Concepts .ConceptsTable { width: 100%; }
-	.detailsSection .Concepts .ConceptsTable tr { border-bottom: 1px solid #CCC; }
-	.detailsSection .Concepts .ConceptsTable tr td { padding: 5px; vertical-align: top; }
-	.detailsSection .Concepts .ConceptsTable tr td:first-child { font-weight: bold; min-width: 100px; }
+	.detailsSection .conceptList { border-top: 1px solid #CCC; }
+	.detailsSection .conceptList .conceptListHeader { display: flex; align-items: center; }
+	.detailsSection .conceptList .conceptListHeader .newConceptLink { font-size: 14px; margin-left: auto; }
+	.detailsSection .conceptList .concepts { width: 100%; }
+	.detailsSection .conceptList .concepts tr { border-bottom: 1px solid #CCC; }
+	.detailsSection .conceptList .concepts tr td { padding: 5px; vertical-align: top; }
+	.detailsSection .conceptList .concepts tr td:first-child { font-weight: bold; min-width: 100px; }
 </style>
 @Html.Partial( "~/Views/Shared/_DetailBasicInfo.cshtml", new DetailBasicInfoHelper()
 {
@@ -28,12 +30,11 @@
 
 
 <div class="detailsSection">
-
-	@if ( Model.Concepts != null && Model.Concepts.Count() > 0 )
+	@if ( Model.Concepts?.Count() > 0 )
 	{
-		<div class="Concepts">
-			<h2>Concepts</h2>
-			<table class="ConceptsTable">
+		<div class="conceptList">
+			<h2 class="conceptListHeader">Concepts <a class="newConceptLink" href="@Url.Content( "~/Concept/Edit/0?InScheme=" + Model.RowId )">Add New Concept</a></h2>
+			<table class="concepts">
 				<thead>
 					<tr>
 						<th style="width: 30%">Name</th>
@@ -46,7 +47,7 @@
 					@foreach ( var item in Model.Concepts.ToList() )
 					{
 					<tr>
-						<td>@item.Name</td>
+						<td><a href="@Url.Content( "~/Concept/Detail/" + item.Id )">@item.Name</a></td>
 						<td>@item.CodedNotation</td>
 						<td>@item.WorkElementType</td>
 						<td>@item.Description</td>
