@@ -4,6 +4,7 @@
 @model ReferenceResource
 @{
 	ViewBag.Title = "Reference Resource: " + Model.Name;
+	var referenceType = Factories.ConceptSchemeManager.GetMultipleConcepts( Model.ReferenceType );
 }
 
 @Html.Partial( "~/Views/Shared/_DetailShared.cshtml" )
@@ -19,7 +20,8 @@
 	{
 		new NamedString( "System ID", Model.Id.ToString() ),
 		new NamedString( "CTID", Model.CTID ),
-		new NamedString( "Date of Source", Model.PublicationDate )
+		new NamedString( "Date of Source", Model.PublicationDate ),
+		new NamedString( "Reference Resource Type", String.Join(", ", referenceType.Select( m => "<a href=\"" + Url.Content( "~/Concept/Detail/" + m.Id ) + "\">" + m.Name + "</a>" ).ToList()) )
 	}
 } )
 
