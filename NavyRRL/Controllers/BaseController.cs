@@ -18,7 +18,7 @@ namespace NavyRRL.Controllers
     public class BaseController : Controller
     {
 		//For requests to load pages (redirects allowable)
-		public void AuthenticateOrRedirect( string customMessage = null, bool redirectOnFailure = true, string redirectControllerName = "Event", string redirectActionName = "NotAuthenticated" )
+		public void AuthenticateOrRedirect( string customMessage = null, bool redirectOnFailure = true, string redirectURL = "~/Event/NotAuthenticated" )
 		{
 			if ( !AccountServices.IsUserAuthenticated() )
 			{
@@ -26,7 +26,7 @@ namespace NavyRRL.Controllers
 
 				if ( redirectOnFailure )
 				{
-					RedirectToAction( redirectActionName, redirectControllerName );
+					Response.Redirect( redirectURL );
 				}
 			}
 		}
