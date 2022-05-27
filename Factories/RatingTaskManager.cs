@@ -347,11 +347,7 @@ namespace Factories
             return result;
         }
         
-		public static List<AppEntity> Search( SearchQuery query ) //Needs an explicit overload to ensure the generic handling elsewhere keeps working
-		{
-			return Search( query, true );
-		}
-        public static List<AppEntity> Search( SearchQuery query, bool getMinimalData )
+        public static List<AppEntity> Search( SearchQuery query )
 		{
 			var output = new List<AppEntity>();
 			var skip = ( query.PageNumber - 1 ) * query.PageSize;
@@ -481,7 +477,7 @@ namespace Factories
 					foreach( var item in results )
 					{
 						var entity = new AppEntity();
-						MapFromDB( item, entity, getMinimalData, getMinimalData );
+						MapFromDB( item, entity, query.GetAllData, !query.GetAllData );
 						output.Add( entity );
 					}
 				}

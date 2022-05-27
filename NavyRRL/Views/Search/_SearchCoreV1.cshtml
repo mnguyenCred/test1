@@ -60,6 +60,16 @@
 		};
 		//
 
+		Search.afterRenderAll = function () {
+			//Intended for use/overriding by other code
+		};
+		//
+
+		Search.renderTotalResultsStatus = function () {
+			Search.setStatus("Found " + Search.TotalResults + " Results"); //Can be overridden with a custom status message
+		}
+		//
+
 		Search.doAJAX = function (url, data, handleResponse) {
 			fetch(url, {
 				method: "POST",
@@ -78,9 +88,11 @@
 			if (response.Valid) {
 				Search.Results = response.Data.Results;
 				Search.TotalResults = response.Data.TotalResults || 0;
-				Search.setStatus("Found " + Search.TotalResults + " Results");
+				//Search.setStatus("Found " + Search.TotalResults + " Results");
+				Search.renderTotalResultsStatus();
 				Search.renderResults();
 				Search.renderPaging();
+				Search.afterRenderAll();
 			}
 			else {
 				Search.setStatus("Error: " + response.Status.join(", "));
@@ -93,7 +105,6 @@
 			Search.Results.forEach(Result => {
 				Search.renderResult(Result, Search.ResultsBox);
 			});
-			window.scrollTo(0, 0);
 		}
 		//
 

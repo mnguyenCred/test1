@@ -71,6 +71,11 @@
 			Type.Search.renderResult = function (Result, container) {
 				renderResult(Result, container, Type);
 			};
+
+			//Scroll to top after everything is rendered
+			Type.Search.afterRenderAll = function () {
+				window.scrollTo(0, 0);
+			};
 		});
 
 		//When the search type changes, swap out the active search and trigger its doSearch method

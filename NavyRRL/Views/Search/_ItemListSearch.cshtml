@@ -1,0 +1,61 @@
+﻿@Html.Partial( "~/Views/Search/_SearchCoreV1.cshtml" )
+<script type="text/javascript">
+	var ItemListSearches = {};
+	ItemListSearches.setupItemLists = function(ItemListConfigs) {
+		$("item-list-search").each(function () {
+			//Create UI
+			var box = $(this);
+			var Config = ItemListConfigs.Searches[box.attr("name")];
+			Config.UI = {};
+			Config.UI.Box = box;
+			Config.UI.Box.addClass("section itemListSearch");
+			Config.UI.Header = $("<h3 class=\"sectionHeader\">" + Config.Header + "</h3>").appendTo(Config.UI.Box);
+			Config.UI.StatusWrapper = $("<div class=\"itemListSearchStatusWrapper\"></div>").appendTo(Config.UI.Box);
+			Config.UI.StatusBox = $("<div class=\"itemListSearchStatus\"></div>").appendTo(Config.UI.StatusWrapper);
+			Config.UI.Spinner = $("<div class=\"spinner itemListSearchSpinner\"></div>").appendTo(Config.UI.StatusWrapper);
+			Config.UI.ResultsBox = $("<table class=\"itemListSearchResults\" data-type=\"" + Config.Type + "\"><thead><tr></tr></thead><tbody></tbody></table>").appendTo(Config.UI.Box);
+			Config.UI.PagingBox = $("<div class=\"itemListSearchPaging\"></div>").appendTo(Config.UI.Box);
+
+			//Construct table headers
+			Config.Columns.forEach(column => {
+				Config.UI.ResultsBox.find("thead tr").append("<th data-column=\"" + column + "\">" + column + "</th>");
+			});
+
+			//Create search and apply custom functionality
+			Config.Search = createSearch(Config.Type, "@Url.Content("~/")" + Config.Type.toLowerCase() + "/dosearch", Config.UI.StatusBox, Config.UI.Spinner, Config.UI.ResultsBox.find("tbody"), Config.UI.PagingBox, Config.PageSize || 10, 100);
+			Config.Search.customizeQuery = function () {
+				Config.customizeQuery(Config.Search.Query);
+			}
+			Config.Search.getFilters = function () {
+				return ItemListConfigs.CommonFilters.concat(Config.Filters || []);
+			}
+			Config.Search.getSortOrder = function () {
+				return Config.SortOrder;
+			}
+			Config.Search.renderResult = function (Result, container) {
+				ItemListSearches.renderResult(Result, container, Config);
+			}
+
+			Config.Search.doSearch();
+		});
+	},
+	//
+
+	ItemListSearches.renderResult = function(Result, container, Config) {
+		var row = $("<tr class=\"itemListSearchResult\"></tr>").appendTo(container);
+		Config.Cells.forEach(cell => {
+			row.append("<td>" + (typeof(cell) == "function" ? cell(Result) : Result[cell]) + "</td>");
+		});
+	},
+	//
+
+	ItemListSearches.getLink = function(url, label) {
+		return "<a href=\"" + url + "\">" + label + "</a>";
+	}
+	//
+</script>
+<style type="text/css">
+	item-list-search { display: block; }
+	.itemListSearchStatusWrapper { display: flex; gap: 10px; padding: 5px; }
+	.itemListSearchPaging { display: flex; gap: 10px; justify-content: center; padding: 5px; }
+</style>

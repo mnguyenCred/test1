@@ -31,6 +31,49 @@
 	}
 } )
 
+@Html.Partial( "~/Views/Search/_ItemListSearch.cshtml" )
+<script type="text/javascript">
+	var ItemListConfigs = {
+		CommonFilters: [
+			{ Name: "navy:RatingTask", ItemIds: [ @Model.Id ] }
+		],
+		Searches: {
+			Ratings: {
+				Header: "Associated Ratings",
+				Type: "Rating",
+				Columns: ["Code", "Name"],
+				Cells: ["CodedNotation", (Result) => { return ItemListSearches.getLink("@Url.Content("~/Rating/Detail/")" + Result.Id, Result.Name) }]
+			},
+			BilletTitles: {
+				Header: "Billet Titles",
+				Type: "BilletTitle",
+				Columns: ["Name"],
+				Cells: [(Result) => { return ItemListSearches.getLink("@Url.Content("~/BilletTitle/Detail/")" + Result.Id, Result.Name) }]
+			},
+			WorkRoles: {
+				Header: "Functional Areas",
+				Type: "WorkRole",
+				Columns: ["Name"],
+				Cells: [(Result) => { return ItemListSearches.getLink("@Url.Content("~/WorkRole/Detail/")" + Result.Id, Result.Name) }]
+			}
+		}
+	};
+	//
+
+	$(document).ready(function () {
+		ItemListSearches.setupItemLists(ItemListConfigs);
+	});
+	//
+</script>
+<style type="text/css">
+	table[data-type='Rating'] [data-column='Code'] { width: 50px; }
+</style>
+
+<item-list-search name="Ratings"></item-list-search>
+<item-list-search name="BilletTitles"></item-list-search>
+<item-list-search name="WorkRoles"></item-list-search>
+
+@*
 @if( ratings.Count() > 0 )
 {
 	<div class="section rating">
@@ -54,7 +97,6 @@
 		</table>
 	</div>
 }
-
 
 @if( billetTitles.Count() > 0 )
 {
@@ -99,6 +141,7 @@
 		</table>
 	</div>
 }
+*@
 
 @if ( Model.TrainingTasks != null && Model.TrainingTasks.Count() > 0 )
 {
