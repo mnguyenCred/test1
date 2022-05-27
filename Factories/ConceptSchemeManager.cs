@@ -522,20 +522,21 @@ namespace Factories
         {
             //must include conceptSchemeId
             //check inscheme
-            if( entity?.ConceptSchemeId == 0 )
+            if ( IsValidGuid( entity.InScheme ) ) //Editor uses GUID field, so check this first
             {
-                if ( IsValidGuid( entity.InScheme ) )
-                {
-                    var cs = Get( entity.InScheme );
-                    entity.ConceptSchemeId = cs.Id;
-                }
-                else
-                {
-                    status.AddError( "Error - A concept scheme Id or inscheme GUID must be provided with the Concept, and is missing. Please select an entry from the 'Belongs To Concept Scheme ' dropdown list." );
-                    return false;
-                }
-
+                var cs = Get( entity.InScheme );
+                entity.ConceptSchemeId = cs.Id;
             }
+			else if( entity.ConceptSchemeId > 0 )
+			{
+				//Do nothing
+			}
+            else
+            {
+                status.AddError( "Error - A concept scheme Id or InScheme GUID must be provided with the Concept, and is missing. Please select an entry from the 'Belongs To Concept Scheme ' dropdown list." );
+                return false;
+            }
+
             bool isValid = true;
             int count = 0;
             //check if exists

@@ -300,9 +300,12 @@ namespace Factories
             {
                 output.LifeCycleControlDocumentTypeId = ( int ) ConceptSchemeManager.GetConcept( input.LifeCycleControlDocumentType )?.Id;
             }
-            else
-                output.LifeCycleControlDocumentTypeId = null;
-        }
+			else
+			{
+				output.LifeCycleControlDocumentTypeId = null;
+			}
+
+		}
         public static void MapToDB( AppFullEntity input, DBEntity output )
         {
             //watch for missing properties like rowId
