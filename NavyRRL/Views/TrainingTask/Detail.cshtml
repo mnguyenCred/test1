@@ -6,6 +6,7 @@
 	var courseUrl = "~/Course/Detail/" + Model.CourseCodedNotation;
 	var courseTitle = "Course: " + Model.CourseCodedNotation;
 	var course = Model.CourseId;
+	var methods = Factories.ConceptSchemeManager.GetMultipleConcepts( Model.AssessmentMethodType );
 }
 
 @Html.Partial( "~/Views/Shared/_DetailShared.cshtml" )
@@ -21,8 +22,8 @@
 	{
 		new NamedString( "System ID", Model.Id.ToString() ),
 		new NamedString( "Course", "<a href=\"" + Url.Content( "~/Course/Detail/" + Model.CourseId ) + "\">" + Model.CourseName + "</a>" ),
-		new NamedString( "CIN", Model.CourseCodedNotation ),
-		new NamedString( "Assessment Methods", string.Join( ", ", Model.AssessmentMethods.ToArray()) ),
+		new NamedString( "Course CIN", Model.CourseCodedNotation ),
+		new NamedString( "Assessment Methods", String.Join(", ", methods.Select( m => "<a href=\"" + Url.Content( "~/Concept/Detail/" + m.Id ) + "\">" + m.Name + "</a>" ).ToList()) ),
 		new NamedString( "CTID", Model.CTID )
 	}
 } )
