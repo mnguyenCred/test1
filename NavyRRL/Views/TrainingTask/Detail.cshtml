@@ -5,8 +5,10 @@
 	ViewBag.Title = "Training Task: " + Model.Description;
 	var courseUrl = "~/Course/Detail/" + Model.CourseCodedNotation;
 	var courseTitle = "Course: " + Model.CourseCodedNotation;
+	var course = Model.CourseId;
 }
 
+@Html.Partial( "~/Views/Shared/_DetailShared.cshtml" )
 @Html.Partial( "~/Views/Shared/_DetailBasicInfo.cshtml", new DetailBasicInfoHelper()
 {
 	TypeLabel = "Training Task",
@@ -17,11 +19,10 @@
 	Description = Model.Description,
 	Identifiers = new List<NamedString>()
 	{
-	new NamedString( "System ID", Model.Id.ToString() ),
-	new NamedString( "Course", Model.CourseName ),
-	new NamedString( "CIN", Model.CourseCodedNotation ),
-	new NamedString( "Assessment Methods", string.Join( ", ", Model.AssessmentMethods.ToArray()) ),
-	@*new NamedString( "Course", @Html.Raw( "<a href="@Url.Content( "@courseUrl" ) > @courseTitle </ a > ").ToString() ),*@
-	new NamedString( "CTID", Model.CTID )
-}
+		new NamedString( "System ID", Model.Id.ToString() ),
+		new NamedString( "Course", "<a href=\"" + Url.Content( "~/Course/Detail/" + Model.CourseId ) + "\">" + Model.CourseName + "</a>" ),
+		new NamedString( "CIN", Model.CourseCodedNotation ),
+		new NamedString( "Assessment Methods", string.Join( ", ", Model.AssessmentMethods.ToArray()) ),
+		new NamedString( "CTID", Model.CTID )
+	}
 } )

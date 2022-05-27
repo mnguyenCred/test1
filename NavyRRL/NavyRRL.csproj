@@ -635,6 +635,7 @@
     <Content Include="Views\Help\_GeneralSearch.cshtml" />
     <Content Include="Views\Help\_UploadV3.cshtml" />
     <Content Include="Views\RDF\Terms.cshtml" />
+    <Content Include="Views\Shared\_DetailShared.cshtml" />
     <None Include="Web.Sandbox.config">
       <DependentUpon>Web.config</DependentUpon>
     </None>

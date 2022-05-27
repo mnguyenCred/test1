@@ -4,15 +4,8 @@
 @{
 	ViewBag.Title = "Concept Scheme: " + Model.Name;
 }
-<style type="text/css">
-	.detailsSection .conceptList { border-top: 1px solid #CCC; }
-	.detailsSection .conceptList .conceptListHeader { display: flex; align-items: center; }
-	.detailsSection .conceptList .conceptListHeader .newConceptLink { font-size: 14px; margin-left: auto; }
-	.detailsSection .conceptList .concepts { width: 100%; }
-	.detailsSection .conceptList .concepts tr { border-bottom: 1px solid #CCC; }
-	.detailsSection .conceptList .concepts tr td { padding: 5px; vertical-align: top; }
-	.detailsSection .conceptList .concepts tr td:first-child { font-weight: bold; min-width: 100px; }
-</style>
+
+@Html.Partial( "~/Views/Shared/_DetailShared.cshtml" )
 @Html.Partial( "~/Views/Shared/_DetailBasicInfo.cshtml", new DetailBasicInfoHelper()
 {
 	TypeLabel = "Concept Scheme",
@@ -29,33 +22,34 @@
 } )
 
 
-<div class="detailsSection">
-	@if ( Model.Concepts?.Count() > 0 )
-	{
-		<div class="conceptList">
-			<h2 class="conceptListHeader">Concepts <a class="newConceptLink" href="@Url.Content( "~/Concept/Edit/0?InScheme=" + Model.RowId )">Add New Concept</a></h2>
-			<table class="concepts">
-				<thead>
-					<tr>
-						<th style="width: 30%">Name</th>
-						<th style="width: 15%">Coded Notation</th>
-						<th style="width: 20%">Work Element Type</th>
-						<th >Description</th>
-					</tr>
-				</thead>
-				<tbody>
-					@foreach ( var item in Model.Concepts.ToList() )
-					{
+@if ( Model.Concepts?.Count() > 0 )
+{
+	<style type="text/css">
+		.conceptListHeader { display: flex; align-items: center; }
+		.conceptListHeader .newConceptLink { font-size: 14px; margin-left: auto; padding: 0 10px; }
+	</style>
+	<div class="section">
+		<h3 class="conceptListHeader sectionHeader">Concepts <a class="newConceptLink" href="@Url.Content( "~/Concept/Edit/0?InScheme=" + Model.RowId )">Add New Concept</a></h3>
+		<table class="conceptsTable">
+			<thead>
+				<tr>
+					<th style="width: 30%">Name</th>
+					<th style="width: 15%">Coded Notation</th>
+					<th style="width: 20%">Work Element Type</th>
+					<th>Description</th>
+				</tr>
+			</thead>
+			<tbody>
+				@foreach ( var item in Model.Concepts.ToList() )
+				{
 					<tr>
 						<td><a href="@Url.Content( "~/Concept/Detail/" + item.Id )">@item.Name</a></td>
 						<td>@item.CodedNotation</td>
 						<td>@item.WorkElementType</td>
 						<td>@item.Description</td>
 					</tr>
-					}
-				</tbody>
-			</table>
-		</div>
-	}
-
-</div>
+				}
+			</tbody>
+		</table>
+	</div>	
+}

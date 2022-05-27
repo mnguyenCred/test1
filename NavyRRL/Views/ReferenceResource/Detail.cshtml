@@ -6,6 +6,7 @@
 	ViewBag.Title = "Reference Resource: " + Model.Name;
 }
 
+@Html.Partial( "~/Views/Shared/_DetailShared.cshtml" )
 @Html.Partial( "~/Views/Shared/_DetailBasicInfo.cshtml", new DetailBasicInfoHelper()
 {
 	TypeLabel = "Reference Resource",

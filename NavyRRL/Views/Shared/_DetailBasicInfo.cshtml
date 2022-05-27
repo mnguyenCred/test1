@@ -12,8 +12,8 @@
 	.banner .subtitle > *:last-child { border: none; }
 	
 	.topSection { display: flex; margin-bottom: 10px; }
-	.topSection .description { flex: 1 0 60%; min-width: 450px; padding: 10px; white-space: pre-wrap; }
-	.topSection .identifiers { flex: 0 0 40%; min-width: 450px; padding: 10px; }
+	.topSection .description { flex: 1 0 55%; min-width: 400px; padding: 10px; white-space: pre-wrap; }
+	.topSection .identifiers { flex: 0 0 45%; min-width: 400px; padding: 10px; }
 	.topSection > div { border-right: 1px solid #CCC; }
 	.topSection > div:last-child { border: none; }
 	.topSection .identifiers { padding: 10px; }
@@ -22,8 +22,9 @@
 	.topSection .identifiers .identifierTable tr:last-child { border: none; }
 	.topSection .identifiers .identifierTable tr td { padding: 5px; vertical-align: top; }
 	.topSection .identifiers .identifierTable tr td:first-child { font-weight: bold; text-align: right; min-width: 100px; }
+	.topSection .identifiers .identifierTable tr td:last-child { min-width: 200px; }
 
-	@@media(max-width: 1200px){
+	@@media(max-width: 1200px) {
 		.topSection { flex-direction: column; }
 		.topSection .description { order: 2; }
 		.topSection .identifiers { order: 1; }
