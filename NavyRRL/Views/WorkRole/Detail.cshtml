@@ -4,6 +4,18 @@
 @model WorkRole
 @{
 	ViewBag.Title = "Functional Area: " + Model.Name;
+	var ratingTasks = Factories.RatingTaskManager.Search( new SearchQuery()
+	{
+		PageSize = -1,
+		Filters = new List<SearchFilter>()
+		{
+			new SearchFilter()
+			{
+				Name = "ceterms:WorkRole",
+				ItemIds = new List<int>(){ Model.Id }
+			}
+		}
+	}, false );
 }
 
 @Html.Partial( "~/Views/Shared/_DetailShared.cshtml" )
@@ -30,3 +42,29 @@
 		ItemIds = new List<int>(){ Model.Id }
 	}
 } )
+
+
+@if( ratingTasks.Count() > 0 )
+{
+	<div class="section">
+		<h3 class="sectionHeader">Rating Tasks (@ratingTasks.Count())</h3>
+		<table class="ratingTasksTable">
+			<thead>
+				<tr>
+					<th>Description</th>
+					<th>Training Gap Type</th>
+				</tr>
+			</thead>
+			<tbody>
+				@foreach ( var item in ratingTasks )
+				{
+					<tr>
+						<td><a href="@Url.Content( "~/RatingTask/Detail/" + item.Id )">@item.Description</a></td>
+						<td>@(item.TaskTrainingGap?.Name ?? "Unknown")</td>
+					</tr>
+				}
+			</tbody>
+		</table>
+
+	</div>
+}

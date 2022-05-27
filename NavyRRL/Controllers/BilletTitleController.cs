@@ -28,32 +28,6 @@ namespace NavyRRL.Controllers
 		}
 		//
 
-		/*
-		public SearchResultSet<T> ConvertResults<T>( SearchQuery query, List<BilletTitle> results ) where T : BilletTitle, new()
-		{
-			var gResults = new List<T>();
-
-			var output = new SearchResultSet<T>();
-			if ( results?.Count == 0 )
-				return output;
-			foreach (var item in results)
-            {
-				var gResult = new T();
-				gResult.Id = item.Id;
-				gResult.Name = item.Name;
-				gResult.Description = item.Description;
-
-				gResults.Add( gResult );
-			}
-			output.TotalResults = query.TotalResults;
-			output.Results = gResults;
-			output.SearchType = query.SearchType;
-
-			return output;
-		}
-		//
-		*/
-
 		public ActionResult Detail( int id )
 		{
 			AuthenticateOrRedirect( "You must be authenticated and authorized to view Billet Title data." );

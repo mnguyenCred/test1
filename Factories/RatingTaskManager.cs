@@ -217,6 +217,41 @@ namespace Factories
 			}
 			return list;
 		}
+		//
+
+		public static List<AppEntity> GetMultiple( List<Guid> rowIDs )
+		{
+
+			var entity = new AppEntity();
+			var list = new List<AppEntity>();
+			if( rowIDs == null || rowIDs.Count() == 0 )
+			{
+				return list;
+			}
+
+			using ( var context = new DataEntities() )
+			{
+				var results = context.RatingTask
+					.Where( m => rowIDs.Contains( m.RowId ) )
+						.OrderBy( s => s.Id )
+						.ToList();
+				if ( results?.Count > 0 )
+				{
+					foreach ( var item in results )
+					{
+						if ( item != null && item.Id > 0 )
+						{
+							entity = new AppEntity();
+							MapFromDB( item, entity, false );
+							list.Add( ( entity ) );
+						}
+					}
+				}
+
+			}
+			return list;
+		}
+		//
 
 		//Find loose matches, so other code can figure out whether there are any exact matches
 		public static RatingTask GetForUpload( int ratingId, string ratingTaskDescription, Guid applicabilityTypeRowID, Guid sourceRowID, Guid sourceTypeRowID, Guid payGradeRowID, Guid trainingGapTypeRowID )
@@ -312,7 +347,11 @@ namespace Factories
             return result;
         }
         
-        public static List<AppEntity> Search( SearchQuery query )
+		public static List<AppEntity> Search( SearchQuery query ) //Needs an explicit overload to ensure the generic handling elsewhere keeps working
+		{
+			return Search( query, true );
+		}
+        public static List<AppEntity> Search( SearchQuery query, bool getMinimalData )
 		{
 			var output = new List<AppEntity>();
 			var skip = ( query.PageNumber - 1 ) * query.PageSize;
@@ -435,14 +474,14 @@ namespace Factories
 					list = list.OrderBy( p => p.Description );
 
 					//Get page
-					var results = list.Skip( skip ).Take( query.PageSize )
+					var results = list.Skip( skip ).Take( query.PageSize == -1 ? query.TotalResults : query.PageSize )
 						.Where( m => m != null ).ToList();
 					
 					//Populate
 					foreach( var item in results )
 					{
 						var entity = new AppEntity();
-						MapFromDB( item, entity, false, true );
+						MapFromDB( item, entity, getMinimalData, getMinimalData );
 						output.Add( entity );
 					}
 				}

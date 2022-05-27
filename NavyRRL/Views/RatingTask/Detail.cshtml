@@ -118,8 +118,8 @@
 				{
 					<tr>
 						<td>@item.CourseCodedNotation</td>
-						<td><a href="@Url.Content( "~/Course/Detail/" + item.Id )">@item.CourseName</a></td>
-						<td>@item.Description</td>
+						<td><a href="@Url.Content( "~/Course/Detail/" + item.CourseId )">@item.CourseName</a></td>
+						<td><a href="@Url.Content( "~/TrainingTask/Detail/" + item.Id )">@item.Description</a></td>
 					</tr>
 				}
 			</tbody>
