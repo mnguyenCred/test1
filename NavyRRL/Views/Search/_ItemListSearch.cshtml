@@ -22,7 +22,7 @@
 			});
 
 			//Create search and apply custom functionality
-			Config.Search = createSearch(Config.Type, "@Url.Content("~/")" + Config.Type.toLowerCase() + "/dosearch", Config.UI.StatusBox, Config.UI.Spinner, Config.UI.ResultsBox.find("tbody"), Config.UI.PagingBox, Config.PageSize || 10, 100);
+			Config.Search = createSearch(Config.Type, "@Url.Content("~/")" + Config.Type.toLowerCase() + "/dosearch", Config.UI.StatusBox, Config.UI.Spinner, Config.UI.ResultsBox.find("tbody"), Config.UI.PagingBox, Config.PageSize || 20, 100);
 			Config.Search.customizeQuery = function () {
 				Config.customizeQuery(Config.Search.Query);
 			}
@@ -66,7 +66,7 @@
 				);
 			}
 		);
-		return Result.HasRating?.map(guid => { return "<span data-reference=\"" + guid + "\"></span>"; }).join("");
+		return Result.HasRating?.map(guid => { return "<span data-reference=\"" + guid + "\"><div class=\"spinner\"></div></span>"; }).join("");
 	}
 	//
 </script>
