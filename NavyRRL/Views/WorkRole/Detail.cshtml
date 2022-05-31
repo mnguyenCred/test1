@@ -56,8 +56,12 @@
 			RatingTasks: {
 				Header: "Rating Tasks",
 				Type: "RatingTask",
-				Columns: ["Description", "Training Gap Type"],
-				Cells: [(Result) => { return ItemListSearches.getLink("@Url.Content("~/RatingTask/Detail/")" + Result.Id, Result.Description); }, (Result) => { return Result.TaskTrainingGap?.Name || "Unknown" }],
+				Columns: ["Rating", "Description", "Training Gap Type"],
+				Cells: [
+					(Result, container, Config) => { return ItemListSearches.renderRowIDReferences(Result, container, Config, Result?.HasRating, "Rating", "CodedNotation"); },
+					(Result) => { return ItemListSearches.getLink("@Url.Content("~/RatingTask/Detail/")" + Result.Id, Result.Description); },
+					(Result) => { return Result.TaskTrainingGap?.Name || "Unknown" }
+				],
 				customizeQuery: function (query) {
 					query.GetAllData = true;
 				}
@@ -72,6 +76,7 @@
 	//
 </script>
 <style type="text/css">
+	table[data-type='RatingTask'] [data-column='Rating'] { width: 75px; }
 	table[data-type='RatingTask'] [data-column='Training Gap Type'] { width: 75px; }
 </style>
 

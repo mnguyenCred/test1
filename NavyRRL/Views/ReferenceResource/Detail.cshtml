@@ -33,3 +33,39 @@
 		ItemIds = new List<int>(){ Model.Id }
 	}
 } )
+
+@Html.Partial( "~/Views/Search/_ItemListSearch.cshtml" )
+<script type="text/javascript">
+	var ItemListConfigs = {
+		CommonFilters: [
+			{ Name: "navy:ReferenceResource", ItemIds: [ @Model.Id ] }
+		],
+		Searches: {
+			RatingTasks: {
+				Header: "Rating Tasks",
+				Type: "RatingTask",
+				Columns: ["Rating", "Description", "Training Gap Type"],
+				Cells: [
+					(Result, container, Config) => { return ItemListSearches.renderRowIDReferences(Result, container, Config, Result?.HasRating, "Rating", "CodedNotation"); },
+					(Result) => { return ItemListSearches.getLink("@Url.Content("~/RatingTask/Detail/")" + Result.Id, Result.Description); },
+					(Result) => { return Result.TaskTrainingGap?.Name || "Unknown" }
+				],
+				customizeQuery: function (query) {
+					query.GetAllData = true;
+				}
+			}
+		}
+	};
+	//
+
+	$(document).ready(function () {
+		ItemListSearches.setupItemLists(ItemListConfigs);
+	});
+	//
+</script>
+<style type="text/css">
+	table[data-type='RatingTask'] [data-column='Rating'] { width: 75px; }
+	table[data-type='RatingTask'] [data-column='Training Gap Type'] { width: 75px; }
+</style>
+
+<item-list-search name="RatingTasks"></item-list-search>

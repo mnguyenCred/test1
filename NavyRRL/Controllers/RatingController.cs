@@ -36,6 +36,15 @@ namespace NavyRRL.Controllers
 		}
 		//
 
+		[Route("Rating/GetByRowID/{rowID}")]
+		public ActionResult GetByRowID( Guid rowID )
+		{
+			AuthenticateOrRedirect( "You must be authenticated and authorized to view Rating Data." );
+			var data = Factories.RatingManager.Get( rowID );
+			return JsonResponse( data, data != null );
+		}
+		//
+
 		public ActionResult JSON( int id )
 		{
 			AuthenticateOrRedirect( "You must be authenticated and authorized to view Rating data." );

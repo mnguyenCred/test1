@@ -44,7 +44,7 @@
 	ItemListSearches.renderResult = function(Result, container, Config) {
 		var row = $("<tr class=\"itemListSearchResult\"></tr>").appendTo(container);
 		Config.Cells.forEach(cell => {
-			row.append("<td>" + (typeof(cell) == "function" ? cell(Result) : Result[cell]) + "</td>");
+			row.append("<td>" + (typeof(cell) == "function" ? cell(Result, row, Config) : Result[cell]) + "</td>");
 		});
 	},
 	//
@@ -53,9 +53,26 @@
 		return "<a href=\"" + url + "\">" + label + "</a>";
 	}
 	//
+
+	ItemListSearches.renderRowIDReferences = function (Result, container, Config, rowIDList, type, display) {
+		Config.Search.getAndRenderReferenceList(
+			rowIDList?.map(guid => { return "@Url.Content( "~/" )" + type + "/GetByRowID/" + guid; }),
+			Resource => {
+				container.find("[data-reference='" + Resource.RowId + "']").html(
+					ItemListSearches.getLink(
+						"@Url.Content("~/")" + type + "/Detail/" + Resource.Id,
+						typeof (display) == "function" ? display(Resource) : Resource[display]
+					)
+				);
+			}
+		);
+		return Result.HasRating?.map(guid => { return "<span data-reference=\"" + guid + "\"></span>"; }).join("");
+	}
+	//
 </script>
 <style type="text/css">
 	item-list-search { display: block; }
 	.itemListSearchStatusWrapper { display: flex; gap: 10px; padding: 5px; }
 	.itemListSearchPaging { display: flex; gap: 10px; justify-content: center; padding: 5px; }
+	.itemListSearchResult [data-reference]:not(:last-child) { margin-right: 10px; }
 </style>
