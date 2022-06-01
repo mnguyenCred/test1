@@ -155,7 +155,7 @@ namespace Factories
 
                 if ( item != null && item.Id > 0 )
                 {
-                    MapFromDB( item, entity );
+                    MapFromDB( item, entity, false );
                 }
             }
             return entity;
@@ -179,13 +179,13 @@ namespace Factories
 
 				if ( item != null && item.Id > 0 )
 				{
-					MapFromDB( item, entity, usingWorkElementTypeForName );
+					MapFromDB( item, entity, true, usingWorkElementTypeForName );
 				}
 			}
 			return entity;
 		}
 
-		public static AppEntity Get( Guid rowId )
+		public static AppEntity Get( Guid rowId, bool includingConcepts = false )
         {
             var entity = new AppEntity();
 
@@ -196,7 +196,7 @@ namespace Factories
 
                 if ( item != null && item.Id > 0 )
                 {
-                    MapFromDB( item, entity );
+                    MapFromDB( item, entity, includingConcepts );
                 }
             }
             return entity;
@@ -214,39 +214,13 @@ namespace Factories
 
                 if ( item != null && item.Id > 0 )
                 {
-                    MapFromDB( item, entity );
+                    MapFromDB( item, entity, forDetailView );
                 }
             }
 
             return entity;
         }
 
-		//Get all Concepts in one request
-		public static List<Concept> GetAllConcepts( bool onlyActiveConcepts = true )
-		{
-			var result = new List<Concept>();
-
-			using( var context = new DataEntities() )
-			{
-				var matches = context.ConceptScheme_Concept.AsQueryable();
-				if ( onlyActiveConcepts )
-				{
-					matches = matches.Where( m => m.IsActive );
-				}
-				var dbConcepts = matches.ToList();
-
-				foreach( var dbConcept in dbConcepts )
-				{
-					var concept = new Concept();
-					AutoMap( dbConcept, concept );
-                    concept.SchemeUri = dbConcept.ConceptScheme.SchemaUri;
-					result.Add( concept );
-				}
-			}
-
-			return result;
-		}
-		//
 
         /// <summary>
         /// Get all concept schemes
@@ -254,7 +228,7 @@ namespace Factories
         /// We could set some to be 'inactive'?
         /// </summary>
         /// <returns></returns>
-        public static List<AppEntity> GetAll()
+        public static List<AppEntity> GetAll( bool includingConcepts = false )
         {
             var entity = new AppEntity();
             var list = new List<AppEntity>();
@@ -272,7 +246,7 @@ namespace Factories
                         if ( item != null && item.Id > 0 )
                         {
                             entity = new AppEntity();
-                            MapFromDB( item, entity );
+                            MapFromDB( item, entity, includingConcepts );
                             list.Add( ( entity ) );
                         }
                     }
@@ -318,7 +292,7 @@ namespace Factories
                             if ( item != null && item.Id > 0 )
                             {
                                 entity = new AppEntity();
-                                MapFromDB( item, entity );
+                                MapFromDB( item, entity, false );
                                 output.Add( ( entity ) );
                             }
                         }
@@ -332,7 +306,7 @@ namespace Factories
             }
             return output;
         }
-        public static void MapFromDB( DBEntity input, AppEntity output, bool usingWorkElementTypeForName = false )
+        public static void MapFromDB( DBEntity input, AppEntity output, bool includingConcepts, bool usingWorkElementTypeForName = false )
         {
             //should include list of concepts
             List<string> errors = new List<string>();
@@ -598,6 +572,33 @@ namespace Factories
             //
         }
         #endregion
+
+        //Get all Concepts in one request
+        public static List<Concept> GetAllConcepts( bool onlyActiveConcepts = true )
+        {
+            var result = new List<Concept>();
+
+            using ( var context = new DataEntities() )
+            {
+                var matches = context.ConceptScheme_Concept.AsQueryable();
+                if ( onlyActiveConcepts )
+                {
+                    matches = matches.Where( m => m.IsActive );
+                }
+                var dbConcepts = matches.ToList();
+
+                foreach ( var dbConcept in dbConcepts )
+                {
+                    var concept = new Concept();
+                    AutoMap( dbConcept, concept );
+                    concept.SchemeUri = dbConcept.ConceptScheme.SchemaUri;
+                    result.Add( concept );
+                }
+            }
+
+            return result;
+        }
+        //
         /// <summary>
         /// Get a concept using the ConceptSchemaURI and concept Name or concept coded notation
         /// </summary>

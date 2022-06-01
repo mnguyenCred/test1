@@ -303,8 +303,10 @@ SELECT
 	  --
       ,[CreatedById]
       ,[CreatedBy],CreatedByUID
+	  ,[LastUpdated]
       ,[LastUpdatedById]
       ,[ModifiedBy],ModifiedByUID
+	  ,ClusterAnalysisLastUpdated
 From #tempWorkTable a
 Inner Join RatingTaskSummary b on a.Id = b.Id
 WHERE RowNumber > @first_id

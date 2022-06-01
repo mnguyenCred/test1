@@ -15,7 +15,7 @@ namespace NavyRRL.Controllers
 {
     public class RMTLController : BaseController
     {
-		[CustomAttributes.NavyAuthorize( "Search", Roles = "Administrator, RMTL Developer, Site Staff" )]
+		[CustomAttributes.NavyAuthorize( "Search", Roles = "Administrator, RMTL Developer, Site Manager, Site Staff, Site Reader" )]
 		public ActionResult Search()
 		{
 			AuthenticateOrRedirect( "You must be authenticated and authorized to use the RMTL Search." );

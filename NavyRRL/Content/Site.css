@@ -28,3 +28,5 @@ textarea {
 
 .greenButton { background-color: #0A3; border: 1px solid #092; border-radius: 3px; color: #FFF; }
 .greenButton:focus, .greenButton:hover { background-color: #0C3; }
+
+.offscreen { position: absolute; left: -99999px; }

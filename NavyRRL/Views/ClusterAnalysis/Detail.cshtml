@@ -17,7 +17,15 @@
 		new NamedValue( "System ID", Model.Id.ToString() ),
 		new NamedValue( "CTID", Model.CTID ),
 		new NamedValue( "Training Solution Type", Model.TrainingSolution ),
-		new NamedValue( "Recommended Modality", Model.RecommendedModality )
-
+		new NamedValue( "Cluster Analysis", Model.ClusterAnalysisTitle ),
+		new NamedValue( "Recommended Modality", Model.RecommendedModality ),
+		new NamedValue( "Development Specification", Model.DevelopmentSpecification ),
+		new NamedValue( "Candidate Platform", Model.CandidatePlatform ),
+		new NamedValue( "CFM Placement", Model.CFMPlacement ),
+		new NamedValue( "Priority Placement", Model.PriorityPlacement.ToString() ),
+		new NamedValue( "Development Ratio]", Model.DevelopmentRatio ),
+		new NamedValue( "Estimated Instructional Time", Model.EstimatedInstructionalTime?.ToString() ),
+		new NamedValue( "Development Time", Model.DevelopmentTime.ToString() ),
+		new NamedValue( "Last Updated ", Model.LastUpdated.ToString("yyyy-MM-dd hh:mm") )
 	}
 } )

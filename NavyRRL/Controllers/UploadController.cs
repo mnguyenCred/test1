@@ -21,7 +21,7 @@ namespace NavyRRL.Controllers
     public class UploadController : BaseController
     {
 		// GET: Upload
-		[CustomAttributes.NavyAuthorize( "Search", Roles = "Administrator, RMTL Developer, Site Staff" )]
+		[CustomAttributes.NavyAuthorize( "Upload", Roles = "Administrator, RMTL Developer, Site Manager, Site Staff, Site Reader" )]
 		public ActionResult Index()
         {
 			if ( !AccountServices.IsUserAuthenticated() )

@@ -3,6 +3,8 @@
 	ViewBag.Title = "Search";
 
 	var searchType = ViewBag.SearchType ?? Request.Params["searchType"] ?? "Rating";
+	var isAdmin = Services.AccountServices.IsUserSiteManager();
+
 }
 
 @Html.Partial( "~/Views/Search/_SearchCoreV1.cshtml" )
@@ -19,7 +21,7 @@
 			{ Name: "RatingTask", LabelSingle: "Rating Task", LabelMulti: "Rating Tasks" },
 			{ Name: "Course", LabelSingle: "Course", LabelMulti: "Courses" },
 			{ Name: "TrainingTask", LabelSingle: "Training Task", LabelMulti: "Training Tasks" },
-			{ Name: "Organization", LabelSingle: "Organization (CCA)", LabelMulti: "Organizations (CCAs)" },			
+			{ Name: "Organization", LabelSingle: "Organization (CCA)", LabelMulti: "Organizations (CCAs)" },
 			{ Name: "ConceptScheme", LabelSingle: "Concept Scheme", LabelMulti: "Concept Schemes" },
 			{ Name: "Concept", LabelSingle: "Concept", LabelMulti: "Concepts" },
 			{ Name: "ClusterAnalysis", LabelSingle: "ClusterAnalysis", LabelMulti: "ClusterAnalysis" },
@@ -110,8 +112,10 @@
 		renderProperty(Result, "Description", text, "description");
 		var linksBox = $("<div class=\"resultLinks\"></div>").appendTo(box);
 		linksBox.append("<a href=\"@Url.Content("~/")" + Type.Name + "/detail/" + Result.Id + "\" target=\"_blank\">Details</a>");
-		linksBox.append("<a href=\"@Url.Content("~/")" + Type.Name + "/edit/" + Result.Id + "\" target=\"_blank\">Edit</a>");
-
+		@if ( isAdmin )
+		{ }
+			linksBox.append( "<a href=\"@Url.Content("~/ ")" + Type.Name + "/edit/" + Result.Id + "\" target=\"_blank\">Edit</a>" );
+	
 		Type.customRender?.(Result, container, box);
 	}
 	//
@@ -176,15 +180,15 @@
 				<div class="searchHeaderLabel">Keywords</div>
 				<input type="text" data-property="search:Keyword" placeholder="Search..." />
 			</div>
-			@*
-			<div class="searchMainInput sortOrderBox">
+			
+			@*<div class="searchMainInput sortOrderBox">
 				<div class="searchHeaderLabel">Sort Order</div>
 				<select data-property="search:SortOrder">
 					<option value="sortOrder:AtoZ">A to Z</option>
 					<option value="sortOrder:Newest">Newest</option>
 				</select>
-			</div>
-			*@
+			</div>*@
+			
 		</div>
 		<div class="searchFiltersBox"></div>
 		<div class="searchStatusWrapper">

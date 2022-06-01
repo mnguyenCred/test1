@@ -21,6 +21,7 @@
 	new NamedValue( "CIN", Model.CourseCodedNotation ),
 	new NamedValue( "Assessment Methods", string.Join( ", ", Model.AssessmentMethods.ToArray()) ),
 	@*new NamedValue( "Course", @Html.Raw( "<a href="@Url.Content( "@courseUrl" ) > @courseTitle </ a > ").ToString() ),*@
-	new NamedValue( "CTID", Model.CTID )
+	new NamedValue( "CTID", Model.CTID ),
+	new NamedValue( "Last Updated ", Model.LastUpdated.ToString("yyyy-MM-dd hh:mm") )
 }
 } )

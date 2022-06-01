@@ -49,7 +49,7 @@ namespace NavyRRL.Controllers
 			return output;
 		}
 		//
-
+		[CustomAttributes.NavyAuthorize( "Billet Title View", Roles = SiteReader )]
 		public ActionResult Detail( int id )
 		{
 			AuthenticateOrRedirect( "You must be authenticated and authorized to view Billet Title data." );
@@ -57,10 +57,14 @@ namespace NavyRRL.Controllers
 			return View( data );
 		}
 		//
-
+		[CustomAttributes.NavyAuthorize( "Billet Title Edit", Roles = Admin_SiteManager )]
 		public ActionResult Edit( int id )
 		{
 			AuthenticateOrRedirect( "You must be authenticated and authorized to edit Billet Title data." );
+			if (!AccountServices.IsUserSiteStaff() )
+            {
+				RedirectToAction( "NotAuthenticated", "Event" );
+			}
 			var data = new BilletTitle(); //Should get by ID or default to new (to enable new billet titles to be created)
 			if (id > 0)
             {

@@ -27,7 +27,7 @@ namespace NavyRRL.Controllers
 			return JsonResponse( results, true );
 		}
 		//
-
+		[CustomAttributes.NavyAuthorize( "Course View", Roles = SiteReader )]
 		public ActionResult Detail( string id ) //String to accept CIN or ID
 		{
 			AuthenticateOrRedirect( "You must be authenticated and authorized to view Course data." );
@@ -43,7 +43,7 @@ namespace NavyRRL.Controllers
 			return View( data );
 		}
 		//
-
+		[CustomAttributes.NavyAuthorize( "Course Edit", Roles = Admin_SiteManager )]
 		public ActionResult Edit( int id )
 		{
 			AuthenticateOrRedirect( "You must be authenticated and authorized to edit Course data." );

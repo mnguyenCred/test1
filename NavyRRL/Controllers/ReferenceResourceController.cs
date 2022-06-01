@@ -27,7 +27,7 @@ namespace NavyRRL.Controllers
 			return JsonResponse( results, true );
 		}
 		//
-
+		[CustomAttributes.NavyAuthorize( "Reference Resource View", Roles = SiteReader )]
 		public ActionResult Detail( int id )
 		{
 			AuthenticateOrRedirect( "You must be authenticated and authorized to view Reference Resource data." );
@@ -35,7 +35,7 @@ namespace NavyRRL.Controllers
 			return View( data );
 		}
 		//
-
+		[CustomAttributes.NavyAuthorize( "Reference Resource Edit", Roles = Admin_SiteManager )]
 		public ActionResult Edit( int id )
 		{
 			AuthenticateOrRedirect( "You must be authenticated and authorized to edit Reference Resource data." );

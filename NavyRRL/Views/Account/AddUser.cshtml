@@ -118,13 +118,15 @@
 			<div class="form-group">
 				@Html.LabelFor( x => x.Roles, new { @class = "col-md-3 control-label" } ) 
 			
-				<div class="col-md-4">
+				<div class="col-md-5">
 					@Html.ListBoxFor( x => x.SelectedRoles, Model.Roles, new { @class = "form-control multiselect", multiple = "multiple", size=8 } )
 				</div>
-				<div class="col-md-5">
+				<div class="col-md-3">
 					<button type="button" class="btn btn-guide" data-toggle="collapse" data-target="#guidance">Roles Summary</button>
 					<div id="guidance" class="collapse">
-						<b>Administrator</b><ul><li>Full site access for read and update</li><li>Access to administrative functions</li></ul><b>Site Staff</b><ul><li>Full site access for read and update</li></ul>
+						<b>Administrator</b><ul><li>Full site access for read and update</li><li>Access to administrative functions</li></ul>
+						<b>Site Manager</b><ul><li>Full site access for read and update</li></ul>
+						<b>Site Staff</b><ul><li>Full site access for read and some manager functions</li></ul>
 						<b>Site Reader</b><ul><li>Proposed Role to allow Read Only access to a TBD list of functions.</li></ul>
 						<b>RMTL Developer</b><ul><li>Can Create RMTL Projects</li><li>Can transfer ownership of an owned project</li></ul><b>Rating Continuum Development  Analyst</b><ul><li>Can ...</li><li>Can ...</li></ul><b>Rating Continuum Manager</b><ul><li>Can ...</li><li>Can ...</li></ul>
 					</div>

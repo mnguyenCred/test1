@@ -4,6 +4,8 @@ using System.Linq;
 using System.Web;
 using System.Web.Mvc;
 
+using Models.Curation;
+
 using Models.Search;
 using Models.Schema;
 using Navy.Utilities;
@@ -31,15 +33,17 @@ namespace NavyRRL.Controllers
 		public ActionResult Detail( int id )
 		{
 			AuthenticateOrRedirect( "You must be authenticated and authorized to view RMTL Project data." );
-			var data = new RMTLProject() { Name = "Temp Name", Description = "Temp Description" };
+			//var data = new RMTLProject() { Name = "Temp Name", Description = "Temp Description" };
+			var data = Factories.RMTLProjectManager.Get( id ) ?? new RMTLProject();
 			return View( data );
 		}
 		//
 
+		[CustomAttributes.NavyAuthorize( "Reference Resource Edit", Roles = Admin_SiteManager_RMTLDeveloper )]
 		public ActionResult Edit( int id )
 		{
 			AuthenticateOrRedirect( "You must be authenticated and authorized to edit RMTL Project data." );
-			var data = new RMTLProject(); //Should get by ID or default to new (to enable new RMTL Projects to be created)
+			var data = Factories.RMTLProjectManager.Get( id ) ?? new RMTLProject();
 			return View( data );
 		}
 		//
@@ -51,9 +55,23 @@ namespace NavyRRL.Controllers
 			{
 				return JsonResponse( null, false, new List<string>() { "You must be authenticated and authorized to edit RMTL Project data." }, null );
 			}
-
-			//On success
-			ConsoleMessageHelper.SetConsoleSuccessMessage( "Saved changes successfully." );
+			var user = AccountServices.GetCurrentUser();
+			ChangeSummary status = new ChangeSummary()
+			{
+				Action = "Edit"
+			};
+			data.LastUpdatedById = user.Id;
+			var results = new Factories.RMTLProjectManager().Save( data, ref status );
+			if ( status.HasAnyErrors )
+			{
+				var msg = string.Join( "</br>", status.Messages.Error.ToArray() );
+				ConsoleMessageHelper.SetConsoleErrorMessage( "Saved changes successfully." );
+			}
+			else
+			{
+				//On success
+				ConsoleMessageHelper.SetConsoleSuccessMessage( "Saved changes successfully." );
+			}
 			return JsonResponse( data, true, null, null );
 		}
 		//

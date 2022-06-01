@@ -279,6 +279,10 @@ namespace Factories
             //{
             //    output.CFMPlacementId = ( int ) ConceptSchemeManager.GetConcept( ConceptSchemeManager.ConceptScheme_CFMPlacement, input.CFMPlacement )?.Id;
             //}
+            //confirm mapping happens for nullable fields
+            output.EstimatedInstructionalTime = input.EstimatedInstructionalTime;
+            output.DevelopmentTime = input.DevelopmentTime;
+            output.PriorityPlacement = input.PriorityPlacement;
         }
         #endregion
         #region Retrieval
@@ -404,8 +408,8 @@ namespace Factories
                         list = from Results in list
                                 .Where( s =>
                                 ( s.ClusterAnalysisTitle.ToLower().Contains( filter.ToLower() ) )
-                                    || ( s.ConceptScheme_TrainingSolution!= null && s.ConceptScheme_TrainingSolution.Name.ToLower() == filter.ToLower() )
-                                    || ( s.ConceptScheme_RecommendedModality != null && s.ConceptScheme_RecommendedModality.Name.ToLower() == filter.ToLower() )
+                                    || ( s.ConceptScheme_TrainingSolution!= null && s.ConceptScheme_TrainingSolution.Name.ToLower().Contains(filter.ToLower()) )
+                                    || ( s.ConceptScheme_RecommendedModality != null && s.ConceptScheme_RecommendedModality.Name.ToLower().Contains(filter.ToLower()) )
                                 )
                                select Results;
                     }
@@ -446,10 +450,7 @@ namespace Factories
             {
                 output.RowId = input.RowId;
             }
-            if ( formatForSearch )
-            {
-                output.Name = String.Format( "{0} ~ {1} ! {2}", output.ClusterAnalysisTitle, output.TrainingSolution, output.RecommendedModality );
-            }
+
             //handle nullables
             if ( input.TrainingSolutionTypeId != null )
             {
@@ -488,6 +489,10 @@ namespace Factories
             {
                 output.DevelopmentTime = ( int ) input.DevelopmentTime;
                 output.DevelopmentTimeLabel = output.DevelopmentTime.ToString();
+            }
+            if ( formatForSearch )
+            {
+                output.Name = String.Format( "{0} ~ {1} ~ {2} ~ {3}", output.TrainingSolution, output.ClusterAnalysisTitle, output.RecommendedModality, output.DevelopmentSpecification );
             }
             /*
 

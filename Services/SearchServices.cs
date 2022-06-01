@@ -176,8 +176,8 @@ namespace Services
 		//RMTLProject
 		public static SearchResultSet<RMTLProject> RMTLProjectSearch( SearchQuery query, JObject debug = null )
 		{
-			//return GeneralSearch( query, Factories.RMTLProjectManager.Search, debug );
-			return new SearchResultSet<RMTLProject>() { Results = new List<RMTLProject>() { new RMTLProject() { Name = "Not implemented yet!" } } };
+			return GeneralSearch( query, Factories.RMTLProjectManager.Search, debug );
+			//return new SearchResultSet<RMTLProject>() { Results = new List<RMTLProject>() { new RMTLProject() { Name = "Not implemented yet!" } } };
 		}
 		//
 
