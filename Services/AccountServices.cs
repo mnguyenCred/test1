@@ -88,6 +88,14 @@ namespace Services
 				return false;
 		}
 		//
+		public static bool HasRmtlDeveloperAccess()
+		{
+			AppUser user = GetUserFromSession();
+			if ( user == null || user.Id == 0 )
+				return false;
+
+			return HasRmtlDeveloperAccess( user );
+		}
 		public static bool HasRmtlDeveloperAccess( AppUser user )
 		{
 			if ( user == null || user.Id == 0 )
@@ -151,7 +159,7 @@ namespace Services
 			if ( user.UserRoles.Contains( AccountManager.ROLE_ADMINISTRATOR )
 			  || user.UserRoles.Contains( AccountManager.ROLE_SITE_MANAGER )
 			  || user.UserRoles.Contains( AccountManager.ROLE_SITE_STAFF )
-			  || user.UserRoles.Contains( "Site Reader" ) //??? use?
+			  || user.UserRoles.Contains( AccountManager.ROLE_SITE_READER ) //will retain htis
 				)
 				return true;
 			else
@@ -193,7 +201,7 @@ namespace Services
 			if ( user.UserRoles.Contains( AccountManager.ROLE_ADMINISTRATOR )
 			  || user.UserRoles.Contains( AccountManager.ROLE_SITE_MANAGER )
 			  || user.UserRoles.Contains( AccountManager.ROLE_SITE_STAFF )
-			  || user.UserRoles.Contains( "Site Reader" ) //???
+			  || user.UserRoles.Contains( AccountManager.ROLE_SITE_READER ) //will retain htis
 				)
 				return true;
 

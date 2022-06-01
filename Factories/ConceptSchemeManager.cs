@@ -185,7 +185,7 @@ namespace Factories
 			return entity;
 		}
 
-		public static AppEntity Get( Guid rowId, bool includingConcepts = false )
+		public static AppEntity GetByRowId( Guid rowId, bool includingConcepts = false )
         {
             var entity = new AppEntity();
 
@@ -235,7 +235,7 @@ namespace Factories
 				if ( item != null && item.Id > 0 )
 				{
 					var entity = new AppEntity();
-					MapFromDB( item, entity );
+					MapFromDB( item, entity, true );
 					return entity;
 				}
 			}
@@ -264,33 +264,7 @@ namespace Factories
 
 			return null;
 		}
-
-		//Get all Concepts in one request
-		public static List<Concept> GetAllConcepts( bool onlyActiveConcepts = true )
-		{
-			var result = new List<Concept>();
-
-			using( var context = new DataEntities() )
-			{
-				var matches = context.ConceptScheme_Concept.AsQueryable();
-				if ( onlyActiveConcepts )
-				{
-					matches = matches.Where( m => m.IsActive && m.ConceptScheme != null && m.ConceptScheme.SchemaUri != null && m.ConceptScheme.SchemaUri.Trim().Length > 0 );
-				}
-				var dbConcepts = matches.ToList();
-
-				foreach( var dbConcept in dbConcepts )
-				{
-					var concept = new Concept();
-					MapFromDB( dbConcept, concept );
-					result.Add( concept );
-				}
-			}
-
-			return result;
-		}
 		//
-
 		public static List<Concept> GetAllConceptsForScheme( string schemaURI, bool onlyActiveConcepts = true )
 		{
 			var result = new List<Concept>();
@@ -367,7 +341,8 @@ namespace Factories
 				foreach ( var item in items )
 				{
 					var result = new AppEntity();
-					MapFromDB( item, result );
+                    //TBD
+					MapFromDB( item, result, false );
 					results.Add( result );
 				}
 			}
@@ -524,7 +499,7 @@ namespace Factories
             //check inscheme
             if ( IsValidGuid( entity.InScheme ) ) //Editor uses GUID field, so check this first
             {
-                var cs = Get( entity.InScheme );
+                var cs = GetByRowId( entity.InScheme );
                 entity.ConceptSchemeId = cs.Id;
             }
 			else if( entity.ConceptSchemeId > 0 )

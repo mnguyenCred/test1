@@ -32,6 +32,7 @@ namespace Factories
 		public static string ROLE_ADMINISTRATOR = "Administrator";
 		public static string ROLE_SITE_MANAGER = "Site Manager";
 		public static string ROLE_SITE_STAFF = "Site Staff";
+		public static string ROLE_SITE_READER = "Site Reader";
 
 		public static string ROLE_RMTL_DEVELOPER = "RMTL Developer";
 		public static string ROLE_RATING_CONTINUUM_MANAGER = "Rating Continuum Manager";
