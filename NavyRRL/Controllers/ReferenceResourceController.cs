@@ -35,6 +35,16 @@ namespace NavyRRL.Controllers
 			return View( data );
 		}
 		//
+
+		public ActionResult JSON( int id )
+		{
+			AuthenticateOrRedirect( "You must be authenticated and authorized to view Reference Resource data." );
+			var data = Factories.ReferenceResourceManager.Get( id );
+			var converted = RDFServices.GetRDF( data );
+			return RawJSONResponse( converted );
+		}
+		//
+
 		[CustomAttributes.NavyAuthorize( "Reference Resource Edit", Roles = Admin_SiteManager )]
 		public ActionResult Edit( int id )
 		{

@@ -1,5 +1,6 @@
 ﻿<script type="text/javascript">
 	var Searches = [];
+	var ResourceCache = [];
 	//
 
 	function createSearch (searchType, searchURL, statusBox, spinner, resultsBox, pagingBox, pageSize, delay) {
@@ -41,7 +42,7 @@
 			};
 			Search.customizeQuery();
 			Search.setStatus("Searching...", true);
-			Search.doAJAX(Search.SearchURL, Search.Query, Search.handleResponse);
+			Search.doPOSTRequest(Search.SearchURL, Search.Query, Search.handleResponse);
 		};
 		//
 
@@ -60,17 +61,100 @@
 		};
 		//
 
-		Search.doAJAX = function (url, data, handleResponse) {
-			fetch(url, {
+		Search.afterRenderAll = function () {
+			//Intended for use/overriding by other code
+		};
+		//
+
+		Search.renderTotalResultsStatus = function () {
+			Search.setStatus("Found " + Search.TotalResults + " Results"); //Can be overridden with a custom status message
+		}
+		//
+
+		Search.getAndRenderReferenceList = function (urls, renderMethod) {
+			urls?.forEach(url => {
+				Search.getResource(url, renderMethod, error => {
+					console.log("Error loading resource: " + url, error);
+				});
+			});
+		}
+		//
+
+		Search.getResource = function (url, handleSuccess, handleError) {
+			//If the Resource was already queued or loaded, just process it (force asynchronous handling to ensure all of them work the same way)
+			var Resource = ResourceCache.find(item => item.URL == url);
+			if (Resource && Resource.Data) {
+				setTimeout(() => { handleSuccess?.(Resource.Data); }, 0);
+			}
+			else if (Resource && Resource.Error) {
+				setTimeout(() => { handleError?.(Resource.Error); }, 0);
+			}
+			else if (Resource) {
+				Resource.SuccessHandlers.push(handleSuccess);
+				Resource.ErrorHandlers.push(handleError);
+			}
+			//Otherwise, fetch the resource
+			else {
+				var Resource = { URL: url, SuccessHandlers: [handleSuccess], ErrorHandlers: [handleError] };
+				ResourceCache.push(Resource);
+				Search.doGETRequest(url, (response) => {
+					Resource.Data = response.Data;
+					processHandlers(Resource);
+				}, (error) => {
+					Resource.Error = error;
+					processHandlers(Resource);
+				});
+			}
+
+			//Helper function
+			function processHandlers(Resource) {
+				if (Resource.Data) {
+					Resource.SuccessHandlers.forEach(handler => {
+						handler?.(Resource.Data);
+					});
+				}
+				else if (Resource.Error) {
+					Resource.ErrorHandlers.forEach(handler => {
+						handler?.(Resource.Error);
+					});
+				}
+				Resource.SuccessHandlers = [];
+				Resource.ErrorHandlers = [];
+			}
+		}
+		//
+
+		Search.doGETRequest = function (url, handleSuccess, handleError) {
+			Search.doAJAX(url, handleSuccess, handleError);
+		}
+		//
+
+		Search.doPOSTRequest = function (url, data, handleSuccess, handleError) {
+			Search.doAJAX(url, handleSuccess, handleError, {
 				method: "POST",
 				headers: { 'Accept': 'application/json', 'Content-Type': 'application/json' },
 				body: JSON.stringify(data)
-			}).then((response) => {
-				return response.text();
-			}).then((text) => {
-				var result = JSON.parse(text);
-				handleResponse?.(result);
 			});
+		};
+		//
+
+		Search.doAJAX = function (url, handleSuccess, handleError, params) {
+			fetch(url, params)
+				.then(response => {
+					if (response.ok) {
+						return response.text();
+					}
+					else {
+						throw response;
+					}
+				})
+				.then(text => {
+					var response = JSON.parse(text);
+					handleSuccess?.(response);
+				})
+				.catch(error => {
+					handleError?.(error);
+				});
 		};
 		//
 
@@ -78,9 +162,11 @@
 			if (response.Valid) {
 				Search.Results = response.Data.Results;
 				Search.TotalResults = response.Data.TotalResults || 0;
-				Search.setStatus("Found " + Search.TotalResults + " Results");
+				//Search.setStatus("Found " + Search.TotalResults + " Results");
+				Search.renderTotalResultsStatus();
 				Search.renderResults();
 				Search.renderPaging();
+				Search.afterRenderAll();
 			}
 			else {
 				Search.setStatus("Error: " + response.Status.join(", "));
@@ -93,7 +179,6 @@
 			Search.Results.forEach(Result => {
 				Search.renderResult(Result, Search.ResultsBox);
 			});
-			window.scrollTo(0, 0);
 		}
 		//
 
@@ -130,7 +215,7 @@
 			}
 
 			function createPagingButton(page) {
-				var button = $("<button class=\"pagingButton " + (Search.PageNumber == i ? "currentPage" : "") + "\" " + (Search.PageNumber == i ? "disabled=\"disabled\"" : "") + ">Page " + i + "</button>").appendTo(Search.PagingBox);
+				var button = $("<button class=\"pagingButton " + (Search.PageNumber == i ? "currentPage" : "") + "\" " + (Search.PageNumber == i ? "disabled=\"disabled\"" : "") + ">" + i + "</button>").appendTo(Search.PagingBox);
 				button.on("click", function () {
 					Search.PageNumber = page;
 					Search.doSearch();
@@ -157,5 +242,8 @@
 
 </script>
 <style type="text/css">
+	.spinner { display: inline-block; box-shadow: inset 4px 0 0 5px; border-radius: 50%; height: 20px; width: 20px; animation: spin 1s linear infinite; }
+	@@keyframes spin { 100% { transform: rotate(360deg); } }
 
+	.pagingButton { min-width: 50px; }
 </style>

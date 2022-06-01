@@ -164,6 +164,28 @@ namespace Factories
 			}
 			return entity;
 		}
+		public static AppEntity GetByCTIDOrNull( string ctid, bool includingConcepts = false )
+		{
+			if ( string.IsNullOrWhiteSpace( ctid ) )
+			{
+				return null;
+			}
+
+			using ( var context = new DataEntities() )
+			{
+				var item = context.RatingTask
+							.SingleOrDefault( s => s.CTID == ctid );
+
+				if ( item != null && item.Id > 0 )
+				{
+					var entity = new AppEntity();
+					MapFromDB( item, entity, includingConcepts );
+					return entity;
+				}
+			}
+
+			return null;
+		}
 
 		/// <summary>
 		/// It is not clear that we want a get all - tens of thousands
@@ -195,6 +217,41 @@ namespace Factories
 			}
 			return list;
 		}
+		//
+
+		public static List<AppEntity> GetMultiple( List<Guid> rowIDs )
+		{
+
+			var entity = new AppEntity();
+			var list = new List<AppEntity>();
+			if( rowIDs == null || rowIDs.Count() == 0 )
+			{
+				return list;
+			}
+
+			using ( var context = new DataEntities() )
+			{
+				var results = context.RatingTask
+					.Where( m => rowIDs.Contains( m.RowId ) )
+						.OrderBy( s => s.Id )
+						.ToList();
+				if ( results?.Count > 0 )
+				{
+					foreach ( var item in results )
+					{
+						if ( item != null && item.Id > 0 )
+						{
+							entity = new AppEntity();
+							MapFromDB( item, entity, false );
+							list.Add( ( entity ) );
+						}
+					}
+				}
+
+			}
+			return list;
+		}
+		//
 
 		//Find loose matches, so other code can figure out whether there are any exact matches
 		public static RatingTask GetForUpload( int ratingId, string ratingTaskDescription, Guid applicabilityTypeRowID, Guid sourceRowID, Guid sourceTypeRowID, Guid payGradeRowID, Guid trainingGapTypeRowID )
@@ -413,14 +470,14 @@ namespace Factories
 					list = list.OrderBy( p => p.Description );
 
 					//Get page
-					var results = list.Skip( skip ).Take( query.PageSize )
+					var results = list.Skip( skip ).Take( query.PageSize == -1 ? query.TotalResults : query.PageSize )
 						.Where( m => m != null ).ToList();
 					
 					//Populate
 					foreach( var item in results )
 					{
 						var entity = new AppEntity();
-						MapFromDB( item, entity, false, true );
+						MapFromDB( item, entity, query.GetAllData, !query.GetAllData );
 						output.Add( entity );
 					}
 				}
@@ -563,7 +620,7 @@ namespace Factories
                 CodedNotation = m.CodedNotation,
                 ApplicabilityType = m.ApplicabilityType,
                 TaskTrainingGap = m.TaskTrainingGap,
-                HasTrainingTaskList = m.HasTrainingTaskList,
+				HasTrainingTask = m.HasTrainingTask,
                 
             } ).ToList();
 
@@ -895,8 +952,8 @@ namespace Factories
             }
             if ( !isSearchContext && input.RankId > 0 )
             {
-                ConceptSchemeManager.MapFromDB( input.ConceptScheme_Rank, output.TaskPaygrade );
-                output.PayGradeType = ( output.TaskPaygrade )?.RowId ?? Guid.Empty;
+                ConceptSchemeManager.MapFromDB( input.ConceptScheme_Rank, output.TaskPayGrade );
+                output.PayGradeType = ( output.TaskPayGrade )?.RowId ?? Guid.Empty;
             }
             if ( !isSearchContext && input.ReferenceResourceId > 0 )
             {
@@ -930,7 +987,7 @@ namespace Factories
                 {
                     if ( item.Course_Task?.RowId != null )
                     {
-                        output.HasTrainingTaskList.Add( item.Course_Task.RowId );
+                        output.HasTrainingTask.Add( item.Course_Task.RowId );
                         output.TrainingTasks.Add( TrainingTaskManager.MapFromDB( item.Course_Task ) );
                     }
                 }
@@ -1191,8 +1248,8 @@ namespace Factories
             {
                 try
                 {
-                    if ( input.HasTrainingTaskList == null )
-                        input.HasTrainingTaskList = new List<Guid>();
+                    if ( input.HasTrainingTask == null )
+                        input.HasTrainingTask = new List<Guid>();
 
                     //if ( input.HasTrainingTaskList?.Count == 0 )
                     //{
@@ -1230,7 +1287,7 @@ namespace Factories
                             if ( IsValidGuid( key ) )
                             {
                                 //if from upload, will be for a single rating, so if current is not in existing 
-                                if ( fromUpload && !input.HasTrainingTaskList.Contains( ( Guid ) key ) )
+                                if ( fromUpload && !input.HasTrainingTask.Contains( ( Guid ) key ) )
                                 {
                                     //now with the rating check, can probably do a delete?
                                     DeleteRatingTaskTrainingTask( input.Id, e.Id, ref status );
@@ -1240,9 +1297,9 @@ namespace Factories
                     }
                     #endregion
                     //adds
-                    if ( input.HasTrainingTaskList != null )
+                    if ( input.HasTrainingTask != null )
                     {
-                        foreach ( var child in input.HasTrainingTaskList )
+                        foreach ( var child in input.HasTrainingTask )
                         {
                             //if not in existing, then add
                             bool doingAdd = true;

@@ -293,13 +293,35 @@ namespace Factories
             }
 
             return entity;
-        }
-        /// <summary>
-        /// Get all 
-        /// May need a get all for a rating? Should not matter as this is external data?
-        /// </summary>
-        /// <returns></returns>
-        public static List<AppEntity> GetAll( bool mustHaveRatingTasks = false)
+		}
+		public static AppEntity GetByCTIDOrNull( string ctid )
+		{
+			if ( string.IsNullOrWhiteSpace( ctid ) )
+			{
+				return null;
+			}
+
+			using ( var context = new DataEntities() )
+			{
+				var item = context.Rating
+							.SingleOrDefault( s => s.CTID == ctid );
+
+				if ( item != null && item.Id > 0 )
+				{
+					var entity = new AppEntity();
+					MapFromDB( item, entity );
+					return entity;
+				}
+			}
+
+			return null;
+		}
+		/// <summary>
+		/// Get all 
+		/// May need a get all for a rating? Should not matter as this is external data?
+		/// </summary>
+		/// <returns></returns>
+		public static List<AppEntity> GetAll( bool mustHaveRatingTasks = false)
         {
             var entity = new AppEntity();
             var list = new List<AppEntity>();
@@ -352,6 +374,29 @@ namespace Factories
             }
             return list;
         }
+		//
+
+		public static List<AppEntity> GetMultiple( List<Guid> guids )
+		{
+			var results = new List<AppEntity>();
+
+			using ( var context = new DataEntities() )
+			{
+				var items = context.Rating
+					.Where( m => guids.Contains( m.RowId ) )
+					.OrderBy( m => m.Description )
+					.ToList();
+
+				foreach ( var item in items )
+				{
+					var result = new AppEntity();
+					MapFromDB( item, result );
+					results.Add( result );
+				}
+			}
+
+			return results;
+		}
 		//
 
 		public static List<AppEntity> Search( SearchQuery query )

@@ -5,11 +5,13 @@ using System.Web;
 using System.Web.Mvc;
 
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using System.Text;
 
 using Services;
 using Navy.Utilities;
 using Models.Application;
+
 
 namespace NavyRRL.Controllers
 {
@@ -22,7 +24,7 @@ namespace NavyRRL.Controllers
 		public const string SiteReader = "Site Reader";
 		//public const string Admin_SiteManager_RMTLDeveloper = "Administrator, Site Manager, Site Staff RMTL Developer";
 		//For requests to load pages (redirects allowable)
-		public void AuthenticateOrRedirect( string customMessage = null, bool redirectOnFailure = true, string redirectControllerName = "Event", string redirectActionName = "NotAuthenticated" )
+		public void AuthenticateOrRedirect( string customMessage = null, bool redirectOnFailure = true, string redirectURL = "~/Event/NotAuthenticated" )
 		{
 			if ( !AccountServices.IsUserAuthenticated() )
 			{
@@ -30,7 +32,7 @@ namespace NavyRRL.Controllers
 
 				if ( redirectOnFailure )
 				{
-					RedirectToAction( redirectActionName, redirectControllerName );
+					Response.Redirect( redirectURL );
 				}
 			}
 		}
@@ -69,5 +71,16 @@ namespace NavyRRL.Controllers
 		}
 		//
 
+		//Send a raw JSON response
+		public static ActionResult RawJSONResponse( JObject data )
+		{
+			return new ContentResult()
+			{
+				Content = data.ToString( Formatting.None ),
+				ContentEncoding = Encoding.UTF8,
+				ContentType = "application/json"
+			};
+		}
+		//
 	}
 }

@@ -1047,7 +1047,7 @@ namespace Services
 			//Course
 			HandleGuidListAddition( summary, summary.ItemsToBeCreated.Course, summary.FinalizedChanges.Course, result, rowCourse, nameof( Course.HasTrainingTask ), rowTrainingTask );
 			HandleGuidListAddition( summary, summary.ItemsToBeCreated.Course, summary.FinalizedChanges.Course, result, rowCourse, nameof( Course.CourseType ), rowCourseType );
-			HandleGuidListAddition( summary, summary.ItemsToBeCreated.Course, summary.FinalizedChanges.Course, result, rowCourse, nameof( Course.CurriculumControlAuthority ), rowOrganizationCCA );
+			HandleValueChange( summary, summary.ItemsToBeCreated.Course, summary.FinalizedChanges.Course, result, rowCourse, nameof( Course.CurriculumControlAuthority ), ( rowOrganizationCCA ?? new Organization() ).RowId );
 			HandleValueChange( summary, summary.ItemsToBeCreated.Course, summary.FinalizedChanges.Course, result, rowCourse, nameof( Course.LifeCycleControlDocumentType ), ( rowCourseLCCDType ?? new Concept() ).RowId );
 			HandleValueChange( summary, summary.ItemsToBeCreated.Course, summary.FinalizedChanges.Course, result, rowCourse, nameof( Course.Name ), item.Row.Course_Name );
 
@@ -1055,7 +1055,7 @@ namespace Services
 			HandleGuidListAddition( summary, summary.ItemsToBeCreated.RatingTask, summary.FinalizedChanges.RatingTask, result, rowRatingTask, nameof( RatingTask.HasRating ), rowRating );
 			HandleGuidListAddition( summary, summary.ItemsToBeCreated.RatingTask, summary.FinalizedChanges.RatingTask, result, rowRatingTask, nameof( RatingTask.HasBilletTitle ), rowBilletTitle );
 			HandleGuidListAddition( summary, summary.ItemsToBeCreated.RatingTask, summary.FinalizedChanges.RatingTask, result, rowRatingTask, nameof( RatingTask.HasWorkRole ), rowWorkRole );
-			HandleGuidListAddition( summary, summary.ItemsToBeCreated.RatingTask, summary.FinalizedChanges.RatingTask, result, rowRatingTask, nameof( RatingTask.HasTrainingTaskList ), rowTrainingTask );
+			HandleGuidListAddition( summary, summary.ItemsToBeCreated.RatingTask, summary.FinalizedChanges.RatingTask, result, rowRatingTask, nameof( RatingTask.HasTrainingTask ), rowTrainingTask );
 			HandleValueChange( summary, summary.ItemsToBeCreated.RatingTask, summary.FinalizedChanges.RatingTask, result, rowRatingTask, nameof( RatingTask.Description ), item.Row.RatingTask_Description );
 			HandleValueChange( summary, summary.ItemsToBeCreated.RatingTask, summary.FinalizedChanges.RatingTask, result, rowRatingTask, nameof( RatingTask.PayGradeType ), ( rowPayGrade ?? new Concept() ).RowId );
 			HandleValueChange( summary, summary.ItemsToBeCreated.RatingTask, summary.FinalizedChanges.RatingTask, result, rowRatingTask, nameof( RatingTask.ApplicabilityType ), ( rowTaskApplicabilityType ?? new Concept() ).RowId );
@@ -1210,26 +1210,36 @@ namespace Services
 				return;
 			}
 
-			//Get the property to check/update
-			var property = typeof( T1 ).GetProperty( propertyName );
-
-			//Get the current value for that property
-			var currentValueList = ( List<Guid> ) property.GetValue( rowItem );
-
-			//If the current list of GUIDs does not contain the target GUID...
-			if ( !currentValueList.Contains( referenceToBeAppended.RowId ) )
+			try
 			{
-				//Add it to the list and update the value
-				//The magic of passing by reference means that this will update the object in the summary
-				currentValueList.Add( referenceToBeAppended.RowId );
-				property.SetValue( rowItem, currentValueList );
+				//Get the property to check/update
+				var property = typeof( T1 ).GetProperty( propertyName );
 
-				//Track the addition in the result
-				//This will be aggregated client-side into the new item's data
-				result.Additions.Add( new Triple( rowItem.RowId, propertyName, referenceToBeAppended.RowId ) );
+				//Get the current value for that property
+				var currentValueList = ( List<Guid> ) property.GetValue( rowItem );
 
-				//Update the finalized changes list if applicable
-				ReplaceItemInChangeTrackingLists( summary, rowItem, itemsToBeCreatedList, finalizedChangesList );
+				//If the current list of GUIDs does not contain the target GUID...
+				if ( !currentValueList.Contains( referenceToBeAppended.RowId ) )
+				{
+					//Add it to the list and update the value
+					//The magic of passing by reference means that this will update the object in the summary
+					currentValueList.Add( referenceToBeAppended.RowId );
+					property.SetValue( rowItem, currentValueList );
+
+					//Track the addition in the result
+					//This will be aggregated client-side into the new item's data
+					result.Additions.Add( new Triple( rowItem.RowId, propertyName, referenceToBeAppended.RowId ) );
+
+					//Update the finalized changes list if applicable
+					ReplaceItemInChangeTrackingLists( summary, rowItem, itemsToBeCreatedList, finalizedChangesList );
+				}
+			}
+			catch ( Exception ex )
+			{
+				result.Errors.Add( "Error handling GUID list addition for " + typeof( T1 ).Name + "." + propertyName + ": " + 
+					ex.Message + ( string.IsNullOrWhiteSpace(ex.InnerException?.Message) ? "" : "; " + ex.InnerException.Message ) + 
+					". Please contact system administration." );
+				return;
 			}
 		}
 		//
@@ -1242,49 +1252,59 @@ namespace Services
 				return;
 			}
 
-			//Get the property to check/update
-			var property = typeof( T1 ).GetProperty( propertyName );
-
-			//Get the current value for that property
-			var currentValue = ( T2 ) property.GetValue( rowItem );
-
-			//If both values are null/whitespace or both values are the same, do nothing and return
-			if ( ( string.IsNullOrWhiteSpace( currentValue?.ToString() ) && string.IsNullOrWhiteSpace( newValue?.ToString() ) ) || ( currentValue?.ToString().ToLower() == newValue?.ToString().ToLower() ) )
+			try
 			{
-				return;
-			}
+				//Get the property to check/update
+				var property = typeof( T1 ).GetProperty( propertyName );
 
-			//If the new value is null, warn the user
-			if( newValue == null || (property.PropertyType == typeof(Guid) && newValue?.ToString() == Guid.Empty.ToString()) )
-			{
-				result.Warnings.Add( "New value for property " + propertyName + " is null or empty!" );
-			}
+				//Get the current value for that property
+				var currentValue = ( T2 ) property.GetValue( rowItem );
 
-			//Set the value
-			//This will update the rowItem in the summary
-			property.SetValue( rowItem, newValue );
-
-			//Track the change in the result
-			if( property.PropertyType == typeof( Guid ) )
-			{
-				var guidValue = Guid.Empty;
-				if( Guid.TryParse(newValue?.ToString(), out guidValue ) )
+				//If both values are null/whitespace or both values are the same, do nothing and return
+				if ( ( string.IsNullOrWhiteSpace( currentValue?.ToString() ) && string.IsNullOrWhiteSpace( newValue?.ToString() ) ) || ( currentValue?.ToString().ToLower() == newValue?.ToString().ToLower() ) )
 				{
-					result.ReferenceChanges.Add( new Triple( rowItem.RowId, propertyName, guidValue ) );
+					return;
+				}
+
+				//If the new value is null, warn the user
+				if ( newValue == null || ( property.PropertyType == typeof( Guid ) && newValue?.ToString() == Guid.Empty.ToString() ) )
+				{
+					result.Warnings.Add( "New value for property " + propertyName + " is null or empty!" );
+				}
+
+				//Set the value
+				//This will update the rowItem in the summary
+				property.SetValue( rowItem, newValue );
+
+				//Track the change in the result
+				if ( property.PropertyType == typeof( Guid ) )
+				{
+					var guidValue = Guid.Empty;
+					if ( Guid.TryParse( newValue?.ToString(), out guidValue ) )
+					{
+						result.ReferenceChanges.Add( new Triple( rowItem.RowId, propertyName, guidValue ) );
+					}
+					else
+					{
+						result.Errors.Add( "Error parsing GUID reference for item: " + rowItem.RowId + ", property: " + propertyName + ", value: " + newValue?.ToString() );
+						result.ValueChanges.Add( new Triple( rowItem.RowId, propertyName, newValue?.ToString().ToLower() ) );
+					}
 				}
 				else
 				{
-					result.Errors.Add( "Error parsing GUID reference for item: " + rowItem.RowId + ", property: " + propertyName + ", value: " + newValue?.ToString() );
-					result.ValueChanges.Add( new Triple( rowItem.RowId, propertyName, newValue?.ToString().ToLower() ) );
+					result.ValueChanges.Add( new Triple( rowItem.RowId, propertyName, newValue?.ToString() ) );
 				}
-			}
-			else
-			{
-				result.ValueChanges.Add( new Triple( rowItem.RowId, propertyName, newValue?.ToString() ) );
-			}
 
-			//Update the finalized changes list if applicable
-			ReplaceItemInChangeTrackingLists( summary, rowItem, itemsToBeCreatedList, finalizedChangesList );
+				//Update the finalized changes list if applicable
+				ReplaceItemInChangeTrackingLists( summary, rowItem, itemsToBeCreatedList, finalizedChangesList );
+			}
+			catch ( Exception ex )
+			{
+				result.Errors.Add( "Error handling value change for " + typeof( T1 ).Name + "." + propertyName + ": " +
+					ex.Message + ( string.IsNullOrWhiteSpace( ex.InnerException?.Message ) ? "" : "; " + ex.InnerException.Message ) +
+					". Please contact system administration." );
+				return;
+			}
 		}
 		//
 

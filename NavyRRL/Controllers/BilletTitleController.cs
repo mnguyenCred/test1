@@ -26,35 +26,23 @@ namespace NavyRRL.Controllers
 
 			return JsonResponse( results, true );
 		}
-		public SearchResultSet<T> ConvertResults<T>( SearchQuery query, List<BilletTitle> results ) where T : BilletTitle, new()
-		{
-			var gResults = new List<T>();
-
-			var output = new SearchResultSet<T>();
-			if ( results?.Count == 0 )
-				return output;
-			foreach (var item in results)
-            {
-				var gResult = new T();
-				gResult.Id = item.Id;
-				gResult.Name = item.Name;
-				gResult.Description = item.Description;
-
-				gResults.Add( gResult );
-			}
-			output.TotalResults = query.TotalResults;
-			output.Results = gResults;
-			output.SearchType = query.SearchType;
-
-			return output;
-		}
 		//
+
 		[CustomAttributes.NavyAuthorize( "Billet Title View", Roles = SiteReader )]
 		public ActionResult Detail( int id )
 		{
 			AuthenticateOrRedirect( "You must be authenticated and authorized to view Billet Title data." );
 			var data = Factories.JobManager.Get( id );
 			return View( data );
+		}
+		//
+
+		public ActionResult JSON( int id )
+		{
+			AuthenticateOrRedirect( "You must be authenticated and authorized to view Billet Title data." );
+			var data = Factories.JobManager.Get( id );
+			var converted = RDFServices.GetRDF( data );
+			return RawJSONResponse( converted );
 		}
 		//
 		[CustomAttributes.NavyAuthorize( "Billet Title Edit", Roles = Admin_SiteManager )]

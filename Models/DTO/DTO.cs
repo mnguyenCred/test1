@@ -51,22 +51,16 @@ namespace Models.DTO
 	public class DetailBasicInfoHelper
 	{
 		public int Id { get; set; }
+		public string CTID { get; set; }
 		public string Name { get; set; }
 		public string Description { get; set; }
 		public string TypeLabel { get; set; }
 		public string TypeURL { get; set; }
-		public List<NamedValue> Identifiers { get; set; }
+		public List<NamedString> Identifiers { get; set; }
 	}
-	public class NamedValue
+	public class NamedString : Utilities.NamedValue<string, string>
 	{
-		public NamedValue( string name, string value )
-		{
-			Name = name;
-			Value = value;
-		}
-
-		public string Name { get; set; }
-		public string Value { get; set; }
+		public NamedString( string key, string value ) : base( key, value ) { }
 	}
 	//
 }

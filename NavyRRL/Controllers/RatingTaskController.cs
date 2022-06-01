@@ -35,6 +35,16 @@ namespace NavyRRL.Controllers
 			return View( data );
 		}
 		//
+
+		public ActionResult JSON( int id )
+		{
+			AuthenticateOrRedirect( "You must be authenticated and authorized to view Rating Task data." );
+			var data = Factories.RatingTaskManager.Get( id, true );
+			var converted = RDFServices.GetRDF( data );
+			return RawJSONResponse( converted );
+		}
+		//
+
 		[CustomAttributes.NavyAuthorize( "Rating Task Edit", Roles = Admin_SiteManager )]
 		public ActionResult Edit( int id )
 		{

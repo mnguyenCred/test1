@@ -219,8 +219,104 @@ namespace Factories
             }
 
             return entity;
-        }
+		}
+		public static AppEntity GetByCTIDOrNull( string ctid )
+		{
+			if ( string.IsNullOrWhiteSpace( ctid ) )
+			{
+				return null;
+			}
 
+			using ( var context = new DataEntities() )
+			{
+				var item = context.ConceptScheme
+							.SingleOrDefault( s => s.CTID == ctid );
+
+				if ( item != null && item.Id > 0 )
+				{
+					var entity = new AppEntity();
+					MapFromDB( item, entity );
+					return entity;
+				}
+			}
+
+			return null;
+		}
+		public static Concept GetConceptByCTIDOrNull( string ctid )
+		{
+			if ( string.IsNullOrWhiteSpace( ctid ) )
+			{
+				return null;
+			}
+
+			using ( var context = new DataEntities() )
+			{
+				var item = context.ConceptScheme_Concept
+							.SingleOrDefault( s => s.CTID == ctid );
+
+				if ( item != null && item.Id > 0 )
+				{
+					var entity = new Concept();
+					MapFromDB( item, entity );
+					return entity;
+				}
+			}
+
+			return null;
+		}
+
+		//Get all Concepts in one request
+		public static List<Concept> GetAllConcepts( bool onlyActiveConcepts = true )
+		{
+			var result = new List<Concept>();
+
+			using( var context = new DataEntities() )
+			{
+				var matches = context.ConceptScheme_Concept.AsQueryable();
+				if ( onlyActiveConcepts )
+				{
+					matches = matches.Where( m => m.IsActive && m.ConceptScheme != null && m.ConceptScheme.SchemaUri != null && m.ConceptScheme.SchemaUri.Trim().Length > 0 );
+				}
+				var dbConcepts = matches.ToList();
+
+				foreach( var dbConcept in dbConcepts )
+				{
+					var concept = new Concept();
+					MapFromDB( dbConcept, concept );
+					result.Add( concept );
+				}
+			}
+
+			return result;
+		}
+		//
+
+		public static List<Concept> GetAllConceptsForScheme( string schemaURI, bool onlyActiveConcepts = true )
+		{
+			var result = new List<Concept>();
+
+			using ( var context = new DataEntities() )
+			{
+				var matches = context.ConceptScheme_Concept
+					.Where( m => m.ConceptScheme.SchemaUri == schemaURI );
+
+				if ( onlyActiveConcepts )
+				{
+					matches = matches.Where( m => m.IsActive );
+				}
+				var dbConcepts = matches.ToList();
+
+				foreach ( var dbConcept in dbConcepts )
+				{
+					var concept = new Concept();
+					MapFromDB( dbConcept, concept );
+					result.Add( concept );
+				}
+			}
+
+			return result;
+		}
+		//
 
         /// <summary>
         /// Get all concept schemes
@@ -255,7 +351,56 @@ namespace Factories
             }
             return list;
         }
-        public static List<AppEntity> Search( SearchQuery query )
+		//
+
+		public static List<AppEntity> GetMultiple( List<Guid> guids )
+		{
+			var results = new List<AppEntity>();
+
+			using ( var context = new DataEntities() )
+			{
+				var items = context.ConceptScheme
+					.Where( m => guids.Contains( m.RowId ) )
+					.OrderBy( m => m.Description )
+					.ToList();
+
+				foreach ( var item in items )
+				{
+					var result = new AppEntity();
+					MapFromDB( item, result );
+					results.Add( result );
+				}
+			}
+
+			return results;
+		}
+		//
+
+		public static List<Concept> GetMultipleConcepts( List<Guid> guids )
+		{
+			var results = new List<Concept>();
+
+			using ( var context = new DataEntities() )
+			{
+				var items = context.ConceptScheme_Concept
+					.Where( m => guids.Contains( m.RowId ) )
+					.OrderBy( m => m.Description )
+					.ToList();
+
+				foreach ( var item in items )
+				{
+					var result = new Concept();
+					MapFromDB( item, result );
+					results.Add( result );
+				}
+			}
+
+			return results;
+		}
+		//
+
+
+		public static List<AppEntity> Search( SearchQuery query )
         {
             var entity = new AppEntity();
             var output = new List<AppEntity>();
@@ -377,20 +522,21 @@ namespace Factories
         {
             //must include conceptSchemeId
             //check inscheme
-            if( entity?.ConceptSchemeId == 0 )
+            if ( IsValidGuid( entity.InScheme ) ) //Editor uses GUID field, so check this first
             {
-                if ( IsValidGuid( entity.InScheme ) )
-                {
-                    var cs = Get( entity.InScheme );
-                    entity.ConceptSchemeId = cs.Id;
-                }
-                else
-                {
-                    status.AddError( "Error - A concept scheme Id or inscheme GUID must be provided with the Concept, and is missing. Please select an entry from the 'Belongs To Concept Scheme ' dropdown list." );
-                    return false;
-                }
-
+                var cs = Get( entity.InScheme );
+                entity.ConceptSchemeId = cs.Id;
             }
+			else if( entity.ConceptSchemeId > 0 )
+			{
+				//Do nothing
+			}
+            else
+            {
+                status.AddError( "Error - A concept scheme Id or InScheme GUID must be provided with the Concept, and is missing. Please select an entry from the 'Belongs To Concept Scheme ' dropdown list." );
+                return false;
+            }
+
             bool isValid = true;
             int count = 0;
             //check if exists
@@ -759,6 +905,7 @@ namespace Factories
             }
             output.ConceptSchemeId = (int)input.ConceptScheme?.Id;
 			output.InScheme = input.ConceptScheme != null ? input.ConceptScheme.RowId : Guid.Empty;
+			output.SchemeUri = input.ConceptScheme?.SchemaUri;
             if (forSearchResults)
             {
                 output.Name = (!string.IsNullOrWhiteSpace(input.ConceptScheme?.Name) ? "(" + input.ConceptScheme?.Name + ") " : "") + output.Name;

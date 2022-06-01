@@ -4,20 +4,24 @@
 @model ReferenceResource
 @{
 	ViewBag.Title = "Reference Resource: " + Model.Name;
+	var referenceType = Factories.ConceptSchemeManager.GetMultipleConcepts( Model.ReferenceType );
 }
 
+@Html.Partial( "~/Views/Shared/_DetailShared.cshtml" )
 @Html.Partial( "~/Views/Shared/_DetailBasicInfo.cshtml", new DetailBasicInfoHelper()
 {
 	TypeLabel = "Reference Resource",
 	TypeURL = Model.GetType().Name.ToLower(),
 	Id = Model.Id,
+	CTID = Model.CTID,
 	Name = Model.Name,
 	Description = Model.Description,
-	Identifiers = new List<NamedValue>()
+	Identifiers = new List<NamedString>()
 	{
-		new NamedValue( "System ID", Model.Id.ToString() ),
-		new NamedValue( "CTID", Model.CTID ),
-		new NamedValue( "Date of Source", Model.PublicationDate )
+		new NamedString( "System ID", Model.Id.ToString() ),
+		new NamedString( "CTID", Model.CTID ),
+		new NamedString( "Date of Source", Model.PublicationDate ),
+		new NamedString( "Reference Resource Type", String.Join(", ", referenceType.Select( m => "<a href=\"" + Url.Content( "~/Concept/Detail/" + m.Id ) + "\">" + m.Name + "</a>" ).ToList()) )
 	}
 } )
 
@@ -29,3 +33,39 @@
 		ItemIds = new List<int>(){ Model.Id }
 	}
 } )
+
+@Html.Partial( "~/Views/Search/_ItemListSearch.cshtml" )
+<script type="text/javascript">
+	var ItemListConfigs = {
+		CommonFilters: [
+			{ Name: "navy:ReferenceResource", ItemIds: [ @Model.Id ] }
+		],
+		Searches: {
+			RatingTasks: {
+				Header: "Rating Tasks",
+				Type: "RatingTask",
+				Columns: ["Rating", "Description", "Training Gap Type"],
+				Cells: [
+					(Result, container, Config) => { return ItemListSearches.renderRowIDReferences(Result, container, Config, Result?.HasRating, "Rating", "CodedNotation"); },
+					(Result) => { return ItemListSearches.getLink("@Url.Content("~/RatingTask/Detail/")" + Result.Id, Result.Description); },
+					(Result) => { return Result.TaskTrainingGap?.Name || "Unknown" }
+				],
+				customizeQuery: function (query) {
+					query.GetAllData = true;
+				}
+			}
+		}
+	};
+	//
+
+	$(document).ready(function () {
+		ItemListSearches.setupItemLists(ItemListConfigs);
+	});
+	//
+</script>
+<style type="text/css">
+	table[data-type='RatingTask'] [data-column='Rating'] { width: 75px; }
+	table[data-type='RatingTask'] [data-column='Training Gap Type'] { width: 75px; }
+</style>
+
+<item-list-search name="RatingTasks"></item-list-search>

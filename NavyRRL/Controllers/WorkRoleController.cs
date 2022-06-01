@@ -26,6 +26,8 @@ namespace NavyRRL.Controllers
 
 			return JsonResponse( results, true );
 		}
+		//
+		/*
 		public SearchResultSet<T> ConvertResults<T>( SearchQuery query, List<WorkRole> results ) where T : WorkRole, new()
 		{
 			var gResults = new List<T>();
@@ -50,6 +52,8 @@ namespace NavyRRL.Controllers
 		//
 		//
 		[CustomAttributes.NavyAuthorize( "Work Role View", Roles = SiteReader )]
+		*/
+
 		public ActionResult Detail( int id )
 		{
 			AuthenticateOrRedirect( "You must be authenticated and authorized to view Functional Area data." );
@@ -57,6 +61,16 @@ namespace NavyRRL.Controllers
 			return View( data );
 		}
 		//
+
+		public ActionResult JSON( int id )
+		{
+			AuthenticateOrRedirect( "You must be authenticated and authorized to view Functional Area data." );
+			var data = Factories.WorkRoleManager.Get( id );
+			var converted = RDFServices.GetRDF( data );
+			return RawJSONResponse( converted );
+		}
+		//
+
 		[CustomAttributes.NavyAuthorize( "Work Role Edit", Roles = Admin_SiteManager )]
 		public ActionResult Edit( int id )
 		{

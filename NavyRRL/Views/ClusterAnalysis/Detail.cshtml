@@ -3,29 +3,53 @@
 @model ClusterAnalysis
 @{
 	ViewBag.Title = "Cluster Analysis: " + Model.ClusterAnalysisTitle;
+	var ratingTask = Factories.RatingTaskManager.Get( Model.RatingTaskId, false );
 }
 
+@Html.Partial( "~/Views/Shared/_DetailShared.cshtml" )
 @Html.Partial( "~/Views/Shared/_DetailBasicInfo.cshtml", new DetailBasicInfoHelper()
 {
 	TypeLabel = "Cluster Analysis",
 	TypeURL = Model.GetType().Name.ToLower(),
 	Id = Model.Id,
+	CTID = Model.CTID,
 	Name = Model.ClusterAnalysisTitle,
 	Description = Model.RecommendedModality,
-	Identifiers = new List<NamedValue>()
+	Identifiers = new List<NamedString>()
 	{
-		new NamedValue( "System ID", Model.Id.ToString() ),
-		new NamedValue( "CTID", Model.CTID ),
-		new NamedValue( "Training Solution Type", Model.TrainingSolution ),
-		new NamedValue( "Cluster Analysis", Model.ClusterAnalysisTitle ),
-		new NamedValue( "Recommended Modality", Model.RecommendedModality ),
-		new NamedValue( "Development Specification", Model.DevelopmentSpecification ),
-		new NamedValue( "Candidate Platform", Model.CandidatePlatform ),
-		new NamedValue( "CFM Placement", Model.CFMPlacement ),
-		new NamedValue( "Priority Placement", Model.PriorityPlacement.ToString() ),
-		new NamedValue( "Development Ratio]", Model.DevelopmentRatio ),
-		new NamedValue( "Estimated Instructional Time", Model.EstimatedInstructionalTime?.ToString() ),
-		new NamedValue( "Development Time", Model.DevelopmentTime.ToString() ),
+		new NamedString( "System ID", Model.Id.ToString() ),
+		new NamedString( "CTID", Model.CTID ),
+		new NamedString( "Training Solution Type", "<a href=\"" + Url.Content( "~/Concept/Detail/" + Model.TrainingSolutionTypeId ) + "\">" + Model.TrainingSolution + "</a>" ),
+		new NamedString( "Recommended Modality", "<a href=\"" + Url.Content( "~/Concept/Detail/" + Model.RecommendedModalityId ) + "\">" + Model.RecommendedModality + "</a>" ),
+		new NamedString( "Development Specification", "<a href=\"" + Url.Content( "~/Concept/Detail/" + Model.DevelopmentSpecificationId ) + "\">" + Model.DevelopmentSpecification + "</a>" ),
+		new NamedString( "Candidate Platform", Model.CandidatePlatform ),
+		new NamedString( "CFM Placement", Model.CFMPlacement ),
+		new NamedString( "Priority Placement", Model.PriorityPlacement.ToString() ),
+		new NamedString( "Development Ratio", Model.DevelopmentRatio ),
+		new NamedString( "Estimated Instructional Time", Model.EstimatedInstructionalTime?.ToString() ),
+		new NamedString( "Development Time", Model.DevelopmentTime.ToString() ),
 		new NamedValue( "Last Updated ", Model.LastUpdated.ToString("yyyy-MM-dd hh:mm") )
 	}
 } )
+
+@if( ratingTask != null )
+{
+	<div class="section ratingTask">
+		<h3 class="sectionHeader">Associated Rating Tasks</h3>
+		<table>
+			<thead>
+				<tr>
+					<th>Description</th>
+				</tr>
+			</thead>
+			<tbody>
+				@foreach( var item in new List<RatingTask>() { ratingTask } ) //This will probably end up being a list someday
+				{
+					<tr>
+						<td><a href="@Url.Content( "~/RatingTask/Detail/" + item.Id )">@item.Description</a></td>
+					</tr>
+				}
+			</tbody>
+		</table>
+	</div>
+}

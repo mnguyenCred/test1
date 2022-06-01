@@ -4,19 +4,36 @@
 @model WorkRole
 @{
 	ViewBag.Title = "Functional Area: " + Model.Name;
+	@*
+	var ratingTasks = Factories.RatingTaskManager.Search( new SearchQuery()
+	{
+		PageSize = -1,
+		Filters = new List<SearchFilter>()
+		{
+			new SearchFilter()
+			{
+				Name = "ceterms:WorkRole",
+				ItemIds = new List<int>(){ Model.Id }
+			}
+		},
+		GetAllData = true
+	} );
+	*@
 }
 
+@Html.Partial( "~/Views/Shared/_DetailShared.cshtml" )
 @Html.Partial( "~/Views/Shared/_DetailBasicInfo.cshtml", new DetailBasicInfoHelper()
 {
 	TypeLabel = "Functional Area",
 	TypeURL = Model.GetType().Name.ToLower(),
 	Id = Model.Id,
+	CTID = Model.CTID,
 	Name = Model.Name,
 	Description = Model.Description,
-	Identifiers = new List<NamedValue>()
+	Identifiers = new List<NamedString>()
 	{
-		new NamedValue( "System ID", Model.Id.ToString() ),
-		new NamedValue( "CTID", Model.CTID )
+		new NamedString( "System ID", Model.Id.ToString() ),
+		new NamedString( "CTID", Model.CTID )
 	}
 } )
 
@@ -28,3 +45,66 @@
 		ItemIds = new List<int>(){ Model.Id }
 	}
 } )
+
+@Html.Partial( "~/Views/Search/_ItemListSearch.cshtml" )
+<script type="text/javascript">
+	var ItemListConfigs = {
+		CommonFilters: [
+			{ Name: "ceterms:WorkRole", ItemIds: [ @Model.Id ] }
+		],
+		Searches: {
+			RatingTasks: {
+				Header: "Rating Tasks",
+				Type: "RatingTask",
+				Columns: ["Rating", "Description", "Training Gap Type"],
+				Cells: [
+					(Result, container, Config) => { return ItemListSearches.renderRowIDReferences(Result, container, Config, Result?.HasRating, "Rating", "CodedNotation"); },
+					(Result) => { return ItemListSearches.getLink("@Url.Content("~/RatingTask/Detail/")" + Result.Id, Result.Description); },
+					(Result) => { return Result.TaskTrainingGap?.Name || "Unknown" }
+				],
+				customizeQuery: function (query) {
+					query.GetAllData = true;
+				}
+			}
+		}
+	};
+	//
+
+	$(document).ready(function () {
+		ItemListSearches.setupItemLists(ItemListConfigs);
+	});
+	//
+</script>
+<style type="text/css">
+	table[data-type='RatingTask'] [data-column='Rating'] { width: 75px; }
+	table[data-type='RatingTask'] [data-column='Training Gap Type'] { width: 75px; }
+</style>
+
+<item-list-search name="RatingTasks"></item-list-search>
+
+@*
+@if( ratingTasks.Count() > 0 )
+{
+	<div class="section">
+		<h3 class="sectionHeader">Rating Tasks (@ratingTasks.Count())</h3>
+		<table class="ratingTasksTable">
+			<thead>
+				<tr>
+					<th>Description</th>
+					<th>Training Gap Type</th>
+				</tr>
+			</thead>
+			<tbody>
+				@foreach ( var item in ratingTasks )
+				{
+					<tr>
+						<td><a href="@Url.Content( "~/RatingTask/Detail/" + item.Id )">@item.Description</a></td>
+						<td>@(item.TaskTrainingGap?.Name ?? "Unknown")</td>
+					</tr>
+				}
+			</tbody>
+		</table>
+
+	</div>
+}
+*@

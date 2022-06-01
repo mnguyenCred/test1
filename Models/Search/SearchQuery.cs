@@ -35,6 +35,7 @@ namespace Models.Search
 		public int PageSize { get; set; }
 
 		public int TotalResults { get; set; }
+		public bool GetAllData { get; set; }
 		/// <summary>
 		/// TBD
 		/// </summary>

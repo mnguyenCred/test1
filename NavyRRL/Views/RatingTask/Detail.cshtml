@@ -3,52 +3,157 @@
 @model RatingTask
 @{
 	ViewBag.Title = "Rating Task: " + Model.Description;
+	var billetTitles = Model.HasBilletTitle.Select( m => Factories.JobManager.Get( m ) ).ToList();
+	var workRoles = Model.HasWorkRole.Select( m => Factories.WorkRoleManager.Get( m ) ).ToList();
+	var ratings = Model.HasRating.Select( m => Factories.RatingManager.Get( m ) ).ToList();
 }
 
+@Html.Partial( "~/Views/Shared/_DetailShared.cshtml" )
 @Html.Partial( "~/Views/Shared/_DetailBasicInfo.cshtml", new DetailBasicInfoHelper()
 {
 	TypeLabel = "Rating Task",
 	TypeURL = Model.GetType().Name.ToLower(),
 	Id = Model.Id,
+	CTID = Model.CTID,
 	Name = "Rating Task",
 	Description = Model.Description,
-	Identifiers = new List<NamedValue>()
+	Identifiers = new List<NamedString>()
 	{
-		new NamedValue( "System ID", Model.Id.ToString() ),
-		new NamedValue( "CTID", Model.CTID ),
-		new NamedValue( "Code", Model.CodedNotation ),
-		new NamedValue( "Rating", Model.CurrentRatingCode ),
-		new NamedValue( "Billet Title", Model.BilletTitle ),
-		new NamedValue( "Rank", Model.TaskPaygrade.Name ),
-		new NamedValue( "Functional Area", Model.FunctionalArea[0]),
-		new NamedValue( "Source", Model.ReferenceResource.Name),
-		new NamedValue( "Date of Source", Model.ReferenceResource.PublicationDate),
-		new NamedValue( "Work Element Type", Model.TaskReferenceType.WorkElementType),
-		new NamedValue( "Task Applicability", Model.TaskApplicabilityType.Name),
-		new NamedValue( "Formal Training Gap", Model.TaskTrainingGap.Name),
+		new NamedString( "System ID", Model.Id.ToString() ),
+		new NamedString( "CTID", Model.CTID ),
+		new NamedString( "Code", Model.CodedNotation ),
+		new NamedString( "Rank", "<a href=\"" + Url.Content( "~/Concept/Detail/" + Model.TaskPayGrade.Id ) + "\">" + Model.TaskPayGrade.CodedNotation + " - " + Model.TaskPayGrade.Name + "</a>" ),
+		new NamedString( "Source", "<a href=\"" + Url.Content( "~/ReferenceResource/Detail/" + Model.ReferenceResource.Id ) + "\">" + Model.ReferenceResource.Name + "</a>" ),
+		new NamedString( "Date of Source", Model.ReferenceResource.PublicationDate ),
+		new NamedString( "Work Element Type", "<a href=\"" + Url.Content( "~/Concept/Detail/" + Model.TaskReferenceType.Id ) + "\">" + Model.TaskReferenceType.WorkElementType + "</a>" ),
+		new NamedString( "Task Applicability", "<a href=\"" + Url.Content( "~/Concept/Detail/" + Model.TaskApplicabilityType.Id ) + "\">" + Model.TaskApplicabilityType.Name + "</a>" ),
+		new NamedString( "Formal Training Gap", "<a href=\"" + Url.Content( "~/Concept/Detail/" + Model.TaskTrainingGap.Id ) + "\">" + Model.TaskTrainingGap.Name + "</a>" ),
 		new NamedValue( "Last Updated ", Model.LastUpdated.ToString("yyyy-MM-dd hh:mm") )
 	}
 } )
 
-@if ( Model.TrainingTasks != null && Model.TrainingTasks.Count() > 0 )
-{
-	@*<div class="trainingTasks">
-			<h2>Training Tasks</h2>
-			<ul class="trainingTasksTable">
-				@foreach ( var item in Model.TrainingTasks.ToList() )
-				{
-					<li>@item.Description</li>
-				}
-			</ul>
-		</div>*@
+@Html.Partial( "~/Views/Search/_ItemListSearch.cshtml" )
+<script type="text/javascript">
+	var ItemListConfigs = {
+		CommonFilters: [
+			{ Name: "navy:RatingTask", ItemIds: [ @Model.Id ] }
+		],
+		Searches: {
+			Ratings: {
+				Header: "Associated Ratings",
+				Type: "Rating",
+				Columns: ["Code", "Name"],
+				Cells: ["CodedNotation", (Result) => { return ItemListSearches.getLink("@Url.Content("~/Rating/Detail/")" + Result.Id, Result.Name) }]
+			},
+			BilletTitles: {
+				Header: "Billet Titles",
+				Type: "BilletTitle",
+				Columns: ["Name"],
+				Cells: [(Result) => { return ItemListSearches.getLink("@Url.Content("~/BilletTitle/Detail/")" + Result.Id, Result.Name) }]
+			},
+			WorkRoles: {
+				Header: "Functional Areas",
+				Type: "WorkRole",
+				Columns: ["Name"],
+				Cells: [(Result) => { return ItemListSearches.getLink("@Url.Content("~/WorkRole/Detail/")" + Result.Id, Result.Name) }]
+			}
+		}
+	};
+	//
 
-	<div class="trainingTasks">
-		<h2>Training Tasks</h2>
-		<table class="trainingTasksTable">
+	$(document).ready(function () {
+		ItemListSearches.setupItemLists(ItemListConfigs);
+	});
+	//
+</script>
+<style type="text/css">
+	table[data-type='Rating'] [data-column='Code'] { width: 50px; }
+</style>
+
+<item-list-search name="Ratings"></item-list-search>
+<item-list-search name="BilletTitles"></item-list-search>
+<item-list-search name="WorkRoles"></item-list-search>
+
+@*
+@if( ratings.Count() > 0 )
+{
+	<div class="section rating">
+		<h3 class="sectionHeader">Associated Ratings</h3>
+		<table>
 			<thead>
 				<tr>
-					<th style="width:100px; vertical-align: top">CIN</th>
-					<th style="width:20%; vertical-align: top">Course</th>
+					<th style="width: 50px;">Code</th>
+					<th>Name</th>
+				</tr>
+			</thead>
+			<tbody>
+				@foreach( var item in ratings )
+				{
+					<tr>
+						<td>@item.CodedNotation</td>
+						<td><a href="@Url.Content( "~/Rating/Detail/" + item.Id )">@item.Name</a></td>
+					</tr>
+				}
+			</tbody>
+		</table>
+	</div>
+}
+
+@if( billetTitles.Count() > 0 )
+{
+	<div class="section billetTitle">
+		<h3 class="sectionHeader">Billet Titles</h3>
+		<table>
+			<thead>
+				<tr>
+					<th>Name</th>
+				</tr>
+			</thead>
+			<tbody>
+				@foreach( var item in billetTitles )
+				{
+					<tr>
+						<td><a href="@Url.Content( "~/BilletTitle/Detail/" + item.Id )">@item.Name</a></td>
+					</tr>
+				}
+			</tbody>
+		</table>
+	</div>
+}
+
+@if( workRoles.Count() > 0 )
+{
+	<div class="section workRole">
+		<h3 class="sectionHeader">Functional Areas</h3>
+		<table>
+			<thead>
+				<tr>
+					<th>Name</th>
+				</tr>
+			</thead>
+			<tbody>
+				@foreach( var item in workRoles )
+				{
+					<tr>
+						<td><a href="@Url.Content( "~/WorkRole/Detail/" + item.Id )">@item.Name</a></td>
+					</tr>
+				}
+			</tbody>
+		</table>
+	</div>
+}
+*@
+
+@if ( Model.TrainingTasks != null && Model.TrainingTasks.Count() > 0 )
+{
+
+	<div class="section trainingTasks">
+		<h3 class="sectionHeader">Training Tasks</h3>
+		<table>
+			<thead>
+				<tr>
+					<th style="width:125px;">CIN</th>
+					<th style="width:25%;">Course</th>
 					<th>Training Task</th>
 				</tr>
 			</thead>
@@ -56,9 +161,9 @@
 				@foreach ( var item in Model.TrainingTasks.ToList() )
 				{
 					<tr>
-						<td style="vertical-align: top">@item.CourseCodedNotation</td>
-						<td style="vertical-align: top">@item.CourseName</td>
-						<td style="vertical-align: top">@item.Description</td>
+						<td>@item.CourseCodedNotation</td>
+						<td><a href="@Url.Content( "~/Course/Detail/" + item.CourseId )">@item.CourseName</a></td>
+						<td><a href="@Url.Content( "~/TrainingTask/Detail/" + item.Id )">@item.Description</a></td>
 					</tr>
 				}
 			</tbody>
@@ -69,55 +174,52 @@
 
 @if ( Model.ClusterAnalysis != null && !string.IsNullOrWhiteSpace( Model.ClusterAnalysis.ClusterAnalysisTitle ) )
 {
-	<div class="clusterAnalysis">
-		<h2>Cluster Analysis</h2>
-		<table class="clusterAnalysisTable">
-			<thead>
-				<tr>
-					<td style="width: 250px">&nbsp;</td>
-					<td>&nbsp;</td>
-				</tr>
-			</thead>
+	<style type="text/css">
+		.clusterAnalysis table tbody tr td:first-child { font-weight: bold; width: 225px; }
+	</style>
+	<div class="section clusterAnalysis">
+		<h3 class="sectionHeader">Cluster Analysis</h3>
+		<table>
 			<tbody>
 				<tr>
-					<td style="font-weight: bold">Training Solution Type</td>
-					<td style="vertical-align: top">@Model.ClusterAnalysis.TrainingSolution</td>
+					<td>Cluster Analysis Title</td>
+					<td><a href="@Url.Content( "~/ClusterAnalysis/Detail/" + Model.ClusterAnalysis.Id )">@Model.ClusterAnalysis.ClusterAnalysisTitle</a></td>
 				</tr>
 				<tr>
-					<td style="font-weight: bold">Cluster Analysis Title</td>
-					<td style="vertical-align: top">@Model.ClusterAnalysis.ClusterAnalysisTitle</td>
+					<td>Training Solution Type</td>
+					<td><a href="@Url.Content( "~/Concept/Detail/" + Model.ClusterAnalysis.TrainingSolutionTypeId )">@Model.ClusterAnalysis.TrainingSolution</a></td>
 				</tr>
 				<tr>
-					<td style="font-weight: bold">RecommendedModality</td>
-					<td style="vertical-align: top">@Model.ClusterAnalysis.RecommendedModality</td>
+					<td>Recommended Modality</td>
+					<td><a href="@Url.Content( "~/Concept/Detail/" + Model.ClusterAnalysis.RecommendedModalityId )">@Model.ClusterAnalysis.RecommendedModality</a></td>
 				</tr>
 				<tr>
-					<td style="font-weight: bold">Development Specification</td>
-					<td style="vertical-align: top">@Model.ClusterAnalysis.DevelopmentSpecification</td>
+					<td>Development Specification</td>
+					<td><a href="@Url.Content( "~/Concept/Detail/" + Model.ClusterAnalysis.DevelopmentSpecificationId )">@Model.ClusterAnalysis.DevelopmentSpecification</a></td>
 				</tr>
 				<tr>
-					<td style="font-weight: bold">Candidate Platform</td>
-					<td style="vertical-align: top">@Model.ClusterAnalysis.CandidatePlatform</td>
+					<td>Candidate Platform</td>
+					<td>@Model.ClusterAnalysis.CandidatePlatform</td>
 				</tr>
 				<tr>
-					<td style="font-weight: bold">CFM Placement</td>
-					<td style="vertical-align: top">@Model.ClusterAnalysis.CFMPlacement</td>
+					<td>CFM Placement</td>
+					<td>@Model.ClusterAnalysis.CFMPlacement</td>
 				</tr>
 				<tr>
-					<td style="font-weight: bold">Priority Placement</td>
-					<td style="vertical-align: top">@Model.ClusterAnalysis.PriorityPlacement</td>
+					<td>Priority Placement</td>
+					<td>@Model.ClusterAnalysis.PriorityPlacement</td>
 				</tr>
 				<tr>
-					<td style="font-weight: bold">Development Ratio</td>
-					<td style="vertical-align: top">@Model.ClusterAnalysis.DevelopmentRatio</td>
+					<td>Development Ratio</td>
+					<td>@Model.ClusterAnalysis.DevelopmentRatio</td>
 				</tr>
 				<tr>
-					<td style="font-weight: bold">Estimated Instructional Time</td>
-					<td style="vertical-align: top">@Model.ClusterAnalysis.EstimatedInstructionalTime</td>
+					<td>Estimated Instructional Time</td>
+					<td>@Model.ClusterAnalysis.EstimatedInstructionalTime</td>
 				</tr>
 				<tr>
-					<td style="font-weight: bold">Development Time</td>
-					<td style="vertical-align: top">@Model.ClusterAnalysis.DevelopmentTime</td>
+					<td>Development Time</td>
+					<td>@Model.ClusterAnalysis.DevelopmentTime</td>
 				</tr>
 			</tbody>
 		</table>

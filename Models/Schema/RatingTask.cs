@@ -10,6 +10,7 @@ namespace Models.Schema
 		{
 			HasRating = new List<Guid>();
 			HasWorkRole = new List<Guid>();
+			HasTrainingTask = new List<Guid>();
 		}
 
 		/// <summary>
@@ -37,20 +38,11 @@ namespace Models.Schema
 		/// </summary>
 		public List<Guid> HasRating { get; set; }
 
-		///// <summary>
-		///// GUID for the Training Task for this Rating Task<br />
-		///// From Column: CTTL/PPP/TCCD Statement<br />
-		///// DB: TrainingTaskId<br />
-		///// Do not use!
-		///// </summary>
-		//[Obsolete]
-		//public Guid HasTrainingTask { get; set; }
-
 		/// <summary>
 		/// List of GUIDs for the Training Task(s) for this Rating Task<br />
 		/// From Column: CTTL/PPP/TCCD Statement
 		/// </summary>
-		public List<Guid> HasTrainingTaskList { get; set; } = new List<Guid>();
+		public List<Guid> HasTrainingTask { get; set; }
 
 		/// <summary>
 		/// GUID for the Reference Resource that this Rating Task came from (e.g. a reference to "NAVPERS 18068F Vol. II")<br />
@@ -67,8 +59,6 @@ namespace Models.Schema
 		/// OBSOLETE: FunctionalAreaId
 		/// </summary>
 		public List<Guid> HasWorkRole { get; set; }
-		public List<string> FunctionalArea { get; set; } = new List<string>();
-
 
 		/// <summary>
 		/// GUID for the Concept for the Reference Type for this Rating Task (e.g. a reference to "300 Series PQS Watch Station")<br />
@@ -77,6 +67,7 @@ namespace Models.Schema
 		/// FK to table ConceptScheme.Concept
 		/// </summary>
 		public Guid ReferenceType { get; set; }
+
 		/// <summary>
 		/// GUID for the Concept for the Pay Grade Type (aka Rank) for this Rating Task<br />
 		/// From Column: Rank
@@ -98,18 +89,20 @@ namespace Models.Schema
 		/// </summary>
 		public Guid TrainingGapType { get; set; }
 
-
+		//What is this used for? It shows up in a test method but nowhere else
 		public string Identifier { get; set; }
 		//Upload
-		public string BilletTitle { get; set; }
+		//What is this used for?
 		public string CurrentRatingCode { get; set; } = "";
 
 		//Embedded data
 		//Consider moving these to a separate class so they don't result in a lot of extra data being sent between client and server
+		public string BilletTitle { get; set; }
+		public List<string> FunctionalArea { get; set; } = new List<string>();
 		public List<string> RatingTitles { get; set; } = new List<string>();
 		public List<Guid> HasBilletTitle { get; set; } = new List<Guid>();
 		public List<string> BilletTitles { get; set; } = new List<string>();
-		public Concept TaskPaygrade { get; set; } = new Concept();
+		public Concept TaskPayGrade { get; set; } = new Concept();
 		public ReferenceResource ReferenceResource { get; set; } = new ReferenceResource();
 		public Concept TaskApplicabilityType { get; set; } = new Concept();
 		public Concept TaskTrainingGap { get; set; } = new Concept();
@@ -153,12 +146,6 @@ namespace Models.Schema
 		/// List of Work Role RowIds to remove from this Rating Task
 		/// </summary>
 		public List<Guid> HasWorkRole_Remove { get; set; } = new List<Guid>();
-	}
-	//
-
-	public class RatingTaskFull : RatingTask
-	{
-
 	}
 	//
 

@@ -5,29 +5,31 @@
 @{
 	ViewBag.Title = "Concept: " + Model.Name;
 	var scheme = Factories.ConceptSchemeManager.Get( Model.InScheme );
-	var taskFilter = new List<NamedValue>()
+	var taskFilter = new List<NamedString>()
 	{
-		new NamedValue( Factories.ConceptSchemeManager.ConceptScheme_ReferenceResource, "dummy:DummyFilter" ), //The partial already filters by this scheme, but this item needs to be included here
-		new NamedValue( Factories.ConceptSchemeManager.ConceptScheme_TrainingGap, "dummy:DummyFilter" ), //This is already part of the querying, so use a dummy filter here too
-		new NamedValue( Factories.ConceptSchemeManager.ConceptScheme_TaskApplicability, "navy:ApplicabilityCategory" ),
-		new NamedValue( Factories.ConceptSchemeManager.ConceptScheme_Pay_Grade, "navy:PayGradeCategory" )
-	}.FirstOrDefault( m => m.Name == scheme.SchemaUri );
+		new NamedString( Factories.ConceptSchemeManager.ConceptScheme_ReferenceResource, "dummy:DummyFilter" ), //The partial already filters by this scheme, but this item needs to be included here
+		new NamedString( Factories.ConceptSchemeManager.ConceptScheme_TrainingGap, "dummy:DummyFilter" ), //This is already part of the querying, so use a dummy filter here too
+		new NamedString( Factories.ConceptSchemeManager.ConceptScheme_TaskApplicability, "navy:ApplicabilityCategory" ),
+		new NamedString( Factories.ConceptSchemeManager.ConceptScheme_Pay_Grade, "navy:PayGradeCategory" )
+	}.FirstOrDefault( m => m.Key == scheme.SchemaUri );
 }
 
+@Html.Partial( "~/Views/Shared/_DetailShared.cshtml" )
 @Html.Partial( "~/Views/Shared/_DetailBasicInfo.cshtml", new DetailBasicInfoHelper()
 {
 	TypeLabel = "Concept",
 	TypeURL = Model.GetType().Name.ToLower(),
 	Id = Model.Id,
+	CTID = Model.CTID,
 	Name = Model.Name,
 	Description = Model.Description,
-	Identifiers = new List<NamedValue>()
+	Identifiers = new List<NamedString>()
 	{
-		new NamedValue( "System ID", Model.Id.ToString() ),
-		new NamedValue( "CTID", Model.CTID ),
-		new NamedValue( "Work Element Type", Model.WorkElementType ),
-		new NamedValue( "Code", Model.CodedNotation ),
-		new NamedValue( "In Scheme", "<a href=\"" + Url.Content( "~/ConceptScheme/detail/" + scheme.Id ) + "\">" + scheme.Name + "</a>" )
+		new NamedString( "System ID", Model.Id.ToString() ),
+		new NamedString( "CTID", Model.CTID ),
+		new NamedString( "Work Element Type", Model.WorkElementType ),
+		new NamedString( "Code", Model.CodedNotation ),
+		new NamedString( "In Scheme", "<a href=\"" + Url.Content( "~/ConceptScheme/Detail/" + scheme.Id ) + "\">" + scheme.Name + "</a>" )
 	}
 } )
 

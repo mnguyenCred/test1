@@ -37,6 +37,16 @@ namespace NavyRRL.Controllers
 			return View( data );
 		}
 		//
+
+		public ActionResult JSON( int id )
+		{
+			AuthenticateOrRedirect( "You must be authenticated and authorized to view Training Task data." );
+			var data = Factories.TrainingTaskManager.Get( id );
+			var converted = RDFServices.GetRDF( data );
+			return RawJSONResponse( converted );
+		}
+		//
+
 		[CustomAttributes.NavyAuthorize( "Training Task Edit", Roles = Admin_SiteManager )]
 		public ActionResult Edit( int id )
 		{

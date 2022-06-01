@@ -5,23 +5,26 @@
 	ViewBag.Title = "Training Task: " + Model.Description;
 	var courseUrl = "~/Course/Detail/" + Model.CourseCodedNotation;
 	var courseTitle = "Course: " + Model.CourseCodedNotation;
+	var course = Model.CourseId;
+	var methods = Factories.ConceptSchemeManager.GetMultipleConcepts( Model.AssessmentMethodType );
 }
 
+@Html.Partial( "~/Views/Shared/_DetailShared.cshtml" )
 @Html.Partial( "~/Views/Shared/_DetailBasicInfo.cshtml", new DetailBasicInfoHelper()
 {
 	TypeLabel = "Training Task",
 	TypeURL = Model.GetType().Name.ToLower(),
 	Id = Model.Id,
+	CTID = Model.CTID,
 	Name = "Training Task",
 	Description = Model.Description,
-	Identifiers = new List<NamedValue>()
+	Identifiers = new List<NamedString>()
 	{
-	new NamedValue( "System ID", Model.Id.ToString() ),
-	new NamedValue( "Course", Model.CourseName ),
-	new NamedValue( "CIN", Model.CourseCodedNotation ),
-	new NamedValue( "Assessment Methods", string.Join( ", ", Model.AssessmentMethods.ToArray()) ),
-	@*new NamedValue( "Course", @Html.Raw( "<a href="@Url.Content( "@courseUrl" ) > @courseTitle </ a > ").ToString() ),*@
-	new NamedValue( "CTID", Model.CTID ),
-	new NamedValue( "Last Updated ", Model.LastUpdated.ToString("yyyy-MM-dd hh:mm") )
-}
+		new NamedString( "System ID", Model.Id.ToString() ),
+		new NamedString( "Course", "<a href=\"" + Url.Content( "~/Course/Detail/" + Model.CourseId ) + "\">" + Model.CourseName + "</a>" ),
+		new NamedString( "Course CIN", Model.CourseCodedNotation ),
+		new NamedString( "Assessment Methods", String.Join(", ", methods.Select( m => "<a href=\"" + Url.Content( "~/Concept/Detail/" + m.Id ) + "\">" + m.Name + "</a>" ).ToList()) ),
+		new NamedString( "CTID", Model.CTID ),
+		new NamedValue( "Last Updated ", Model.LastUpdated.ToString("yyyy-MM-dd hh:mm") )
+	}
 } )

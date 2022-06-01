@@ -7,6 +7,7 @@
 
 }
 
+@Html.Partial( "~/Views/Help/_GeneralSearch.cshtml" )
 @Html.Partial( "~/Views/Search/_SearchCoreV1.cshtml" )
 
 <script type="text/javascript">
@@ -72,6 +73,11 @@
 			Type.Search.renderResult = function (Result, container) {
 				renderResult(Result, container, Type);
 			};
+
+			//Scroll to top after everything is rendered
+			Type.Search.afterRenderAll = function () {
+				window.scrollTo(0, 0);
+			};
 		});
 
 		//When the search type changes, swap out the active search and trigger its doSearch method
@@ -84,7 +90,7 @@
 
 		//When the keywords change, do a search
 		UI.KeywordsText.on("keyup change", function () {
-			SearchData.Active.Search.delayThenSearch();
+			SearchData.Active.Search.delayThenSearch(true);
 		});
 
 		//When the sort order changes, do a search
@@ -97,7 +103,7 @@
 	function setSearchType(searchType) {
 		SearchData.Types.map(m => m.IsActive = m.Name == searchType);
 		SearchData.Active = SearchData.Types.filter(m => m.Name == searchType)[0];
-		SearchData.Active.Search.delayThenSearch();
+		SearchData.Active.Search.delayThenSearch(true);
 		UI.NewItemLink.attr("href", "@Url.Content("~/")" + SearchData.Active.Name + "/edit/0");
 		UI.NewItemLink.html("Create New " + SearchData.Active.LabelSingle);
 	}
@@ -128,9 +134,6 @@
 	//
 </script>
 <style type="text/css">
-	.spinner { display: inline-block; box-shadow: inset 4px 0 0 5px; border-radius: 50%; height: 20px; width: 20px; animation: spin 1s linear infinite; }
-	@@keyframes spin { 100% { transform: rotate(360deg); } }
-
 	.searchHeader { background-color: #F5F5F5; padding: 5px 10px 10px 10px; }
 	.searchHeader input, .searchHeader select { display: block; width: 100%; max-width: none; height: 26px; }
 	.searchHeader .searchMainInputs { display: flex; margin-bottom: 5px; }
