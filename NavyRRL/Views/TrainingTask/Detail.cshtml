@@ -24,6 +24,7 @@
 		new NamedString( "Course", "<a href=\"" + Url.Content( "~/Course/Detail/" + Model.CourseId ) + "\">" + Model.CourseName + "</a>" ),
 		new NamedString( "Course CIN", Model.CourseCodedNotation ),
 		new NamedString( "Assessment Methods", String.Join(", ", methods.Select( m => "<a href=\"" + Url.Content( "~/Concept/Detail/" + m.Id ) + "\">" + m.Name + "</a>" ).ToList()) ),
-		new NamedString( "CTID", Model.CTID )
+		new NamedString( "CTID", Model.CTID ),
+		new NamedValue( "Last Updated ", Model.LastUpdated.ToString("yyyy-MM-dd hh:mm") )
 	}
 } )

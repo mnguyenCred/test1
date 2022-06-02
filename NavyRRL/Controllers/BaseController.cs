@@ -17,6 +17,12 @@ namespace NavyRRL.Controllers
 {
     public class BaseController : Controller
     {
+		//these could possibly become app config strings for more general auth that may change?
+		public const string Admin_SiteManager_SiteStaff = "Administrator, Site Manager, Site Staff";
+		public const string Admin_SiteManager = "Administrator, Site Manager";
+		public const string Admin_SiteManager_RMTLDeveloper = "Administrator, Site Manager, RMTL Developer"; 
+		public const string SiteReader = "Site Reader";
+		//public const string Admin_SiteManager_RMTLDeveloper = "Administrator, Site Manager, Site Staff RMTL Developer";
 		//For requests to load pages (redirects allowable)
 		public void AuthenticateOrRedirect( string customMessage = null, bool redirectOnFailure = true, string redirectURL = "~/Event/NotAuthenticated" )
 		{

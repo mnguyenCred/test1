@@ -27,7 +27,7 @@ namespace NavyRRL.Controllers
 			return JsonResponse( results, true );
 		}
 		//
-
+		[CustomAttributes.NavyAuthorize( "Rating Task View", Roles = SiteReader )]
 		public ActionResult Detail( int id )
 		{
 			AuthenticateOrRedirect( "You must be authenticated and authorized to view Rating Task data." );
@@ -45,6 +45,7 @@ namespace NavyRRL.Controllers
 		}
 		//
 
+		[CustomAttributes.NavyAuthorize( "Rating Task Edit", Roles = Admin_SiteManager )]
 		public ActionResult Edit( int id )
 		{
 			AuthenticateOrRedirect( "You must be authenticated and authorized to edit Rating Task data." );

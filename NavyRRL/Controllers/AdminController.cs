@@ -22,8 +22,13 @@ namespace NavyRRL.Controllers
     public class AdminController : Controller
     {
         public static string thisClassName = "AdminController";
+
+        //these could possibly become app config strings for more general auth that may change?
+        public const string Admin_SiteManager_SiteStaff = "Administrator, Site Manager, Site Staff";
+        public const string Admin_SiteManager = "Administrator, Site Manager";
         // GET: Admin
-        [Authorize( Roles = "Administrator, Site Staff" )]
+        //NOTE: Authorize kicks user back to login page. Need a custom option where already logged in 
+        [CustomAttributes.NavyAuthorize( "Admin Home", Roles = "Administrator, Site Manager" )]
         public ActionResult Index()
         {
             return View();
@@ -37,7 +42,7 @@ namespace NavyRRL.Controllers
 
         #region  Activity
         // GET: Admin/Activity
-        [Authorize( Roles = "Administrator, Site Staff" )]
+        [CustomAttributes.NavyAuthorize( "Admin Home", Roles = Admin_SiteManager_SiteStaff )]
         public ActionResult Activity()
         {
             return View();
@@ -159,7 +164,7 @@ namespace NavyRRL.Controllers
 
 
         #region Users 
-        [Authorize( Roles = "Administrator, Site Staff" )]
+        [CustomAttributes.NavyAuthorize( "Admin Accounts", Roles = Admin_SiteManager )]
         public ActionResult Accounts()
         {
             if ( !AccountServices.IsUserAnAdmin() )
@@ -254,7 +259,7 @@ namespace NavyRRL.Controllers
             return result;
         }
 
-        [Authorize( Roles = "Administrator, Site Manager" )]
+        [CustomAttributes.NavyAuthorize( "Admin Edit Account", Roles = Admin_SiteManager )]
         public ActionResult EditAccount( int id )
         {
             var account = AccountServices.GetAccount( id );
@@ -325,7 +330,7 @@ namespace NavyRRL.Controllers
             return PartialView( model );
         }
 
-        [Authorize( Roles = "Administrator, Site Staff" )]
+        [CustomAttributes.NavyAuthorize( "Admin Delete Account", Roles = Admin_SiteManager )]
         public void DeleteAccount( int id )
         {
             if ( !AccountServices.IsUserAuthenticated() )

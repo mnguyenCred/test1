@@ -27,7 +27,7 @@ namespace NavyRRL.Controllers
 			return JsonResponse( results, true );
 		}
 		//
-
+		[CustomAttributes.NavyAuthorize( "Concept Scheme View", Roles = SiteReader )]
 		public ActionResult Detail( int id )
 		{
 			AuthenticateOrRedirect( "You must be authenticated and authorized to view Concept Scheme data." );
@@ -45,6 +45,7 @@ namespace NavyRRL.Controllers
 		}
 		//
 
+		[CustomAttributes.NavyAuthorize( "Concept Scheme Edit", Roles = Admin_SiteManager )]
 		public ActionResult Edit( int id )
 		{
 			AuthenticateOrRedirect( "You must be authenticated and authorized to edit Concept Scheme data." );

@@ -28,6 +28,7 @@
 		new NamedString( "Work Element Type", "<a href=\"" + Url.Content( "~/Concept/Detail/" + Model.TaskReferenceType.Id ) + "\">" + Model.TaskReferenceType.WorkElementType + "</a>" ),
 		new NamedString( "Task Applicability", "<a href=\"" + Url.Content( "~/Concept/Detail/" + Model.TaskApplicabilityType.Id ) + "\">" + Model.TaskApplicabilityType.Name + "</a>" ),
 		new NamedString( "Formal Training Gap", "<a href=\"" + Url.Content( "~/Concept/Detail/" + Model.TaskTrainingGap.Id ) + "\">" + Model.TaskTrainingGap.Name + "</a>" ),
+		new NamedValue( "Last Updated ", Model.LastUpdated.ToString("yyyy-MM-dd hh:mm") )
 	}
 } )
 

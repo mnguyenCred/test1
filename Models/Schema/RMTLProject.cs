@@ -30,7 +30,7 @@ namespace Models.Schema
 		/// <summary>
 		/// Version Identifier for this RMTL Project
 		/// </summary>
-		public string VersionIdentifier { get; set; }
+		public string VersionControlIdentifier { get; set; }
 
 		/// <summary>
 		/// GUID for the Concept for the Status Type for this RMTL Project

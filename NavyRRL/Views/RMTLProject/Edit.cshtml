@@ -4,6 +4,8 @@
 @{
 	var title = Model.Id > 0 ? "Editing RMTL Project" : "New RMTL Project";
 	ViewBag.Title = title;
+	var ratingList = Factories.RatingManager.GetAll().Select( m => SimpleItemHelper.GetSimpleItem( m ) ).ToList();
+
 }
 
 @Html.Partial( "~/Views/Shared/_FormHelperV1.cshtml" )
@@ -26,7 +28,12 @@
 						...Data.Form.read()
 					};
 				}
-			}
+			},
+			//
+			Rating: function (Field) {
+				Field.Items = @Html.Raw( JsonConvert.SerializeObject( ratingList, Formatting.None ) );
+				Field.renderItems();
+			},
 		}
 	};
 
@@ -43,6 +50,7 @@
 
 <h3>Basic Info</h3>
 <form-item data-path="RMTLProject.Name" data-ui="text" data-label="Name"></form-item>
+<form-item data-path="RMTLProject.RatingId" data-ui="select" data-label="Rating" data-config="Rating"></form-item>
 <form-item data-path="RMTLProject.CodedNotation" data-ui="text" data-label="Code"></form-item>
 <form-item data-path="RMTLProject.Description" data-ui="textarea" data-label="Description"></form-item>
 <form-item data-path="RMTLProject.Note" data-ui="text" data-label="Note"></form-item>

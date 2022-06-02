@@ -9,6 +9,7 @@
 		Response.Redirect( "~/" );
 	}
 	var isUserAdmin = AccountServices.IsUserAnAdmin();
+	var hasRmtlDeveloperAccess = AccountServices.HasRmtlDeveloperAccess();
 }
 
 @Html.Partial( "~/Views/Help/_UploadV3.cshtml" )
@@ -210,7 +211,7 @@
 
 		//Set Data
 		if (rows[0].some(cell => cell.length == 0)) { //Discard the first row if not every column is filled out (e.g. "PART I", , , ..."PART 2", , ...)
-			rows.shift(); 
+			rows.shift();
 		}
 		Manager.CSVColumns = rows.shift(); //Set header row
 		Manager.CSVRows = rows; //The remaining rows
@@ -242,7 +243,7 @@
 		Manager.MappedRows = Manager.CSVJSON.map((row, index) => {
 			return {
 				Row_Index: index,
-				Row_Identifier: row["Index #"], 
+				Row_Identifier: row["Index #"],
 				Row_CodedNotation: [row["Unique Identifier"] || row["Unique ID"] || row["Index #"]].find(m => m && isNaN(m)) || "", //Find the Unique Identifier in one of these three columns, ignoring values that are purely numeric
 				Rating_CodedNotation: row["Rating"],
 				PayGradeType_CodedNotation: row["Rank"],
@@ -272,6 +273,7 @@
 				CFM_Placement: row["CFM Placement"],
 				Priority_Placement: row["Priority Placement"],
 				Development_Ratio: row["Development Ratio"],
+				Estimated_Instructional_Time: row["Estimated Instructional Time"],
 				Development_Time: row["Development Time (duration in hours)"],
 				Cluster_Analysis_Notes: row["Part III Notes"],
 			}
@@ -451,7 +453,7 @@
 
 	function handleFinishedQueue() {
 		//Set status and progress, and reenable the process data button
-		setStatus("Finished processing. Please review the summary below. If you are satisfied with the data, click the \"Confirm and Save Changes\" button to save the changes.");
+		/*setStatus("Finished processing. Please review the summary below. If you are satisfied with the data, click the \"Confirm and Save Changes\" button to save the changes.");*/
 		setProgress("Finished", 100);
 
 		//Render the summary
@@ -476,8 +478,15 @@
 			}
 		}
 		else {
-			UI.ConfirmChangesButton.show();
-			UI.FixErrorsMessage.hide();
+			//only allow save for RMTL developer and site manager
+			if (@( hasRmtlDeveloperAccess ? "true" : "false" )) {
+				setStatus("Finished processing. Please review the summary below. If you are satisfied with the data, click the \"Confirm and Save Changes\" button to save the changes.");
+				UI.ConfirmChangesButton.show();
+				UI.FixErrorsMessage.hide();
+			} else {
+				//display note
+				setStatus("Finished processing. Please review the summary below. You do not have the proper role(s) to save data to the database at this time.");
+			}
 		}
 	}
 	//

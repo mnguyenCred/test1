@@ -979,7 +979,7 @@ namespace Navy.Utilities
             return result;
 
 		}
-		public static decimal MapDecimalOrDefault( string stringToTest, decimal defaultValue = 0 )
+		public static decimal MapDecimalOrDefault( string stringToTest, decimal defaultValue = 0.0M )
 		{
 			var isValid = true;
 			var value = MapDecimal( stringToTest, ref isValid );

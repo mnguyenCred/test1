@@ -17,38 +17,43 @@ go
 
 USE [NavyRRL]
 GO
-use Navy_RRL_220405
-go
+
 
 SELECT top 1000
-	[Id]
+[Id]
       ,[CTID]
-  --    ,[RowId]
-      ,[Ratings], RatingName
+      ,[RowId]
+      ,[RatingName]
+      ,[Ratings]
+      ,[HasRating]
+      ,[ratingId]
       ,[BilletTitles]
-      ,[CodedNotation] as TaskCodedNotation
-    --  ,[RankId]
-      ,[Rank], [RankName]
-    --  ,[PayGradeType]
-    --  ,[LevelId]
+      ,[CodedNotation]
+      ,[RankId]
+      ,[Rank]
+      ,[RankName]
+      ,[PayGradeType]
+      ,[LevelId]
       ,[Level]
       ,[FunctionalArea]
-     -- ,[ReferenceResourceId]
+      ,[ReferenceResourceId]
       ,[ReferenceResource]
       ,[SourceDate]
-     -- ,[HasReferenceResource]
+      ,[HasReferenceResource]
       ,[WorkElementTypeId]
-      ,[WorkElementType], WorkElementTypeAlternateName
-     -- ,[ReferenceType]
+      ,[WorkElementType]
+      ,[WorkElementTypeAlternateName]
+      ,[WorkElementTypeOrder]
+      ,[ReferenceType]
       ,[RatingTask]
       ,[TaskApplicabilityId]
       ,[TaskApplicability]
-    --  ,[ApplicabilityType]
+      ,[ApplicabilityType]
       ,[FormalTrainingGapId]
       ,[FormalTrainingGap]
-    --  ,[TrainingGapType]
+      ,[TrainingGapType]
       ,[CourseId]
-    --  ,[CourseUID]
+      ,[CourseUID]
       ,[CIN]
       ,[CourseName]
       ,[CourseTypes]
@@ -57,14 +62,15 @@ SELECT top 1000
       ,[HasTrainingTask]
       ,[AssessmentMethodTypes]
       ,[CurriculumControlAuthority]
+      ,[CurriculumControlAuthorityId]
+      ,[CurriculumControlAuthorityUID]
       ,[LifeCycleControlDocument]
       ,[Notes]
-	  --
- ,[TrainingSolutionTypeId]
+      ,[TrainingSolutionTypeId]
       ,[TrainingSolutionType]
       ,[ClusterAnalysisTitle]
       ,[RecommendedModalityId]
-      ,[RecommentedModality]
+      ,[RecommendedModality]
       ,[RecommentedModalityCodedNotation]
       ,[DevelopmentSpecificationId]
       ,[DevelopmentSpecification]
@@ -74,15 +80,21 @@ SELECT top 1000
       ,[DevelopmentRatio]
       ,[EstimatedInstructionalTime]
       ,[DevelopmentTime]
-	  --
-      ,[Created]      ,[CreatedById]      ,[CreatedBy]
-     -- ,[CreatedByUID]
-      ,[LastUpdated]      ,[LastUpdatedById]      ,[ModifiedBy]
-     -- ,[ModifiedByUID]
-  FROM [dbo].[RatingTaskSummary] base
-  where CodedNotation = 'PQ42-005'
-  and ratings = 'STG'
-  order by id 
+      ,[ClusterAnalysisNotes]
+      ,[Created]
+      ,[CreatedById]
+      ,[CreatedBy]
+      ,[CreatedByUID]
+      ,[LastUpdated]
+      ,[LastUpdatedById]
+      ,[ModifiedBy]
+      ,[ModifiedByUID]
+	  ,ClusterAnalysisLastUpdated
+  FROM [dbo].[RatingTaskSummary]
+  where 
+  --CodedNotation = 'PQ42-005' AND
+  ratings = 'Ps'
+  order by ClusterAnalysisLastUpdated desc  
 
   where ( base.id in (select a.[RatingTaskId] from [RatingTask.WorkRole] a inner join WorkRole b on a.WorkRoleId = b.Id where b.Id in (30) )) 
     where FunctionalArea= ''
@@ -240,7 +252,7 @@ SELECT
       ,a.[LastUpdated]--as TaskLastUpdated,
       ,a.[LastUpdatedById], am.FullName as ModifiedBy
 	  ,am.RowId as ModifiedByUID
-
+	   ,cas.[LastUpdated]as ClusterAnalysisLastUpdated
    
 	FROM [dbo].[RatingTask] a
 	--Rating

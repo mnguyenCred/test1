@@ -2,7 +2,7 @@
 @using Models.DTO;
 @model DetailBasicInfoHelper
 @{
-	var isAdmin = Services.AccountServices.IsUserAnAdmin();
+	var isAdmin = Services.AccountServices.IsUserSiteManager();
 }
 
 <style type="text/css">
