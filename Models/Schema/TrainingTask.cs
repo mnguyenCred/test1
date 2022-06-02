@@ -9,6 +9,7 @@ namespace Models.Schema
 		public TrainingTask()
 		{
 			AssessmentMethodType = new List<Guid>();
+			HasRating = new List<Guid>();
 		}
 
 		/// <summary>
@@ -22,6 +23,13 @@ namespace Models.Schema
 		/// From Column: Current Assessment Approach
 		/// </summary>
 		public List<Guid> AssessmentMethodType { get; set; }
+
+		/// <summary>
+		/// List of GUIDs for the Ratings that this Training Task is associated with<br />
+		/// From Column: Rating<br />
+		/// DB-Table: Course.Task.HasRating(?)
+		/// </summary>
+		public List<Guid> HasRating { get; set; }
 
 
 		public List<string> AssessmentMethods { get; set; } = new List<string>();

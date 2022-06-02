@@ -895,6 +895,7 @@
 		setStatus("Saving...", true);
 		setProgress("", 100);
 		disableButtons();
+		window.scrollTo(0, 0); //Scroll to top
 
 		doGETRequest("@Url.Content( "~/upload/confirmchangesv3?transactionGUID=" )" + Manager.TransactionGUID, (response) => {
 			//Handle response

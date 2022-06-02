@@ -278,6 +278,7 @@ namespace Services
 
 			AppendValue( result, "ceterms:description", source.Description, true );
 			AppendLookupValue( result, "ceterms:assessmentMethodType", source.AssessmentMethodType, Factories.ConceptSchemeManager.GetMultipleConcepts );
+			AppendLookupValue( result, "ceterms:hasOccupation", source.HasRating, Factories.RatingManager.GetMultiple );
 
 			return result;
 		}

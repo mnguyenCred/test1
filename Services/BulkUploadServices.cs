@@ -599,9 +599,7 @@ namespace Services
                 new ActivityServices().AddActivity( sa );
             }
 
-			//Can't do this now, due to the row by row nature of this method
-			//Needs to be done by client? 
-			//Could put it in the ChangeSummary
+			//Track start time
 			DateTime sectionStarted = DateTime.Now;
 			var sectionDuration = new TimeSpan();
 
@@ -687,16 +685,16 @@ namespace Services
 			//These should throw an error if not found, unless all of the course/training columns are N/A
 			var shouldNotHaveTrainingData = rowTrainingGapType.Name?.ToLower() == "yes";
 			var hasCourseAndTrainingData = false;
-			var rowCourseType = GetDataOrError<Concept>( summary, ( m ) => 
-				m.SchemeUri == ConceptSchemeManager.ConceptScheme_CourseType &&
-				m.Name?.ToLower() == item.Row.Course_CourseType_Name?.ToLower(), 
-				result, 
-				"Course Type not found in database: \"" + TextOrNA( item.Row.Course_CourseType_Name ) + "\"", 
-				item.Row.Course_CourseType_Name 
+			var rowCourseTypeList = GetDataListOrError<Concept>( summary, ( m ) =>
+				m.SchemeUri == ConceptSchemeManager.ConceptScheme_CourseType && SplitAndTrim( item.Row.Course_CourseType_Name?.ToLower(), new List<string>() { ",", ";", "|" } ).Contains( m.Name?.ToLower() ),
+				result,
+				"Course Type not found in database: \"" + TextOrNA( item.Row.Course_CourseType_Name ) + "\"",
+				item.Row.Course_CourseType_Name
 			);
 			var rowOrganizationCCA = GetDataOrError<Organization>( summary, ( m ) =>
-				( !string.IsNullOrWhiteSpace( m.Name ) && m.Name.ToLower() == item.Row.Course_CurriculumControlAuthority_Name?.ToLower() ) ||
-				( !string.IsNullOrWhiteSpace( m.ShortName ) && m.ShortName.ToLower() == item.Row.Course_CurriculumControlAuthority_Name?.ToLower() ),
+				( !string.IsNullOrWhiteSpace( m.Name ) && m.Name.ToLower() == item.Row.Course_CurriculumControlAuthority_Name?.ToLower() ) || //Look for name
+				( !string.IsNullOrWhiteSpace( m.ShortName ) && m.ShortName.ToLower() == item.Row.Course_CurriculumControlAuthority_Name?.ToLower() ) || //Look for abbreviation
+				( !string.IsNullOrWhiteSpace( m.Name ) && !string.IsNullOrWhiteSpace( m.ShortName ) && ( ( m.Name + " (" + m.ShortName + ")" ).ToLower() == item.Row.Course_CurriculumControlAuthority_Name?.ToLower()) ), //Look for concatenated form: "Name (Abbreviation)"
 				result,
 				"Curriculum Control Authority not found in database: \"" + TextOrNA( item.Row.Course_CurriculumControlAuthority_Name ) + "\"",
 				item.Row.Course_CurriculumControlAuthority_Name
@@ -722,13 +720,13 @@ namespace Services
 			//TBD - shouldn't the course coded notation be included? item.Row.Course_CodedNotation
 			if ( shouldNotHaveTrainingData )
 			{
-				var hasDataWhenItShouldNot = new List<object>() { rowCourseType, rowOrganizationCCA, rowCourseLCCDType }.Concat( rowAssessmentMethodTypeList ).Where( m => m != null ).ToList();
+				var hasDataWhenItShouldNot = new List<object>() { rowOrganizationCCA, rowCourseLCCDType }.Concat( rowAssessmentMethodTypeList ).Concat( rowCourseTypeList ).Where( m => m != null ).ToList();
 				if ( hasDataWhenItShouldNot.Count() > 0 || !string.IsNullOrWhiteSpace( item.Row.TrainingTask_Description ) )
 				{
 					result.Warnings.Add( String.Format( "{0}. Incomplete course/training data found. All course/training related columns should either have data or be marked as \"N/A\". Since the Training Gap Type is \"Yes\", the incomplete data will be treated as \"N/A\".", item.Row?.Row_CodedNotation ) );
-					rowCourseType = null;
 					rowOrganizationCCA = null;
 					rowCourseLCCDType = null;
+					rowCourseTypeList = new List<Concept>();
 					rowAssessmentMethodTypeList = new List<Concept>();
 					item.Row.TrainingTask_Description = "";
 				}
@@ -738,9 +736,10 @@ namespace Services
 			}
 			//Otherwise, return an error if any course/training data is missing
 			else if ( 
-				new List<object>() { rowCourseType, rowOrganizationCCA, rowCourseLCCDType }.Where( m => m == null ).Count() > 0 || 
+				new List<object>() { rowOrganizationCCA, rowCourseLCCDType }.Where( m => m == null ).Count() > 0 || 
 				new List<string>() { item.Row.TrainingTask_Description, item.Row.Course_CodedNotation, item.Row.Course_Name }.Where(m => string.IsNullOrWhiteSpace( m ) ).Count() > 0 || 
-				rowAssessmentMethodTypeList.Count() == 0 || 
+				rowAssessmentMethodTypeList.Count() == 0 ||
+				rowCourseTypeList.Count() == 0 ||
 				result.Errors.Count() > 0 )
 			{
 				if ( string.IsNullOrWhiteSpace( item.Row.TrainingTask_Description ) )
@@ -800,7 +799,7 @@ namespace Services
 
 			#region Additional validation checks
 			//Additional validation checks after all of the vocabularies have been figured out
-			if ( UtilityManager.GetAppKeyValue( "doingRatingTaskDuplicateChecks", true ) )
+			if ( UtilityManager.GetAppKeyValue( "doingRatingTaskDuplicateChecks", false ) )
 			{
 				//Check for duplicate Rating Task (minus Row Unique Identifier) from a previous row
 				//Need to determine the task source and billet title for this row in order for the checks to work properly
@@ -817,6 +816,10 @@ namespace Services
 					JobManager.GetByName( item.Row.BilletTitle_Name ) ??
 					new BilletTitle();
 
+				var tempWorkRole = summary.GetAll<WorkRole>().FirstOrDefault( m => m.Name.ToLower() == item.Row.WorkRole_Name?.ToLower() ) ??
+					WorkRoleManager.Get( item.Row.WorkRole_Name ) ??
+					new WorkRole();
+
 				var existingPreviousRatingTask = summary.GetAll<RatingTask>()
 					.FirstOrDefault( m =>
 						m.Description?.ToLower() == item.Row.RatingTask_Description?.ToLower() &&
@@ -825,7 +828,8 @@ namespace Services
 						m.PayGradeType == rowPayGrade.RowId &&
 						m.ReferenceType == rowSourceType.RowId &&
 						m.HasReferenceResource == tempRatingTaskSource.RowId &&
-						( UtilityManager.GetAppKeyValue( "includingBilletTitleInDuplicatesChecks", false ) ? m.HasBilletTitle.Contains( tempBilletTitle.RowId ) : true )
+						( UtilityManager.GetAppKeyValue( "includingBilletTitleInDuplicatesChecks", true ) ? m.HasBilletTitle.Contains( tempBilletTitle.RowId ) : true ) &&
+						( UtilityManager.GetAppKeyValue( "includingWorkRoleInDuplicatesChecks", true ) ? m.HasWorkRole.Contains( tempWorkRole.RowId ) : true )
 					);
 
 				if ( existingPreviousRatingTask != null )
@@ -858,6 +862,9 @@ namespace Services
 			//First check the summary to see if it came in from an earlier row (or database). If not found in the summary, check the database. If not found there, assume it's new. Regardless, add it to the summary if it's not already in the summary.
 			//When creating a new instance of a class, only include the properties that should never change after its creation (ie the ones used to look it up).
 			//Properties that can be updated by subsequent rows or subsequent uploads should go in the next section instead
+
+			//Temporary(?)
+			var matchingTasksAcrossAllRMTLSpreadsheets = UtilityManager.GetAppKeyValue( "matchingTasksAcrossAllRMTLSpreadsheets", true );
 
 			//Billet Title
 			var rowBilletTitle = LookupOrGetFromDBOrCreateNew( summary, result,
@@ -896,17 +903,7 @@ namespace Services
 				//Store if newly created
 				( newItem ) => { summary.ItemsToBeCreated.WorkRole.Add( newItem ); }
 			);
-			//NAVPERS 18068F Vol II, NAVEDTRA 43119-M (303 - Basic Firefighting)
-			if ( item.Row.ReferenceResource_Name == "NAVPERS 18068F Vol II" 
-				|| item.Row.ReferenceResource_Name == "NAVEDTRA 43119-M (303 - Basic Firefighting)" )
-			{
 
-            }
-			//debug. or may not be properly handling a non-date
-			if ( item.Row.ReferenceResource_Name == "PMS MIP 5000/005" || item.Row.RatingTask_Description == "Manage sanitary Spaces" )
-            {
-
-            }
 			//Reference Resource
 			var rowRatingTaskSource = LookupOrGetFromDBOrCreateNew( summary, result,
 				//Find in summary
@@ -931,7 +928,7 @@ namespace Services
 			);
 
 			//Training Task
-			//TODO - if we associtate the rating task coded notation with the training task for the row, we should be able to identify changes to the training task.
+			//TODO - if we associate the rating task coded notation with the training task for the row, we should be able to identify changes to the training task.
 			//		 - this can be done with RatingTask_HasTrainingTask in the trainingTask manager
 			var rowTrainingTask = LookupOrGetFromDBOrCreateNew( summary, result,
 				//Find in summary
@@ -941,9 +938,19 @@ namespace Services
 					m.CourseCodedNotation.ToLower() == item.Row?.Course_CodedNotation.ToLower()
 				),
 				//Or get from DB
-				//22-04-16 just description is not enough. We want the previous one even if the description has changed.
-				//		NOTE: ensure there is a check so that if the training description has changed, there will be an update request
-				() => TrainingTaskManager.GetTrainingTaskForRatingTask( rowRating.CodedNotation, item.Row.Row_CodedNotation, item.Row.Course_CodedNotation, item.Row.TrainingTask_Description, ref summary ),
+				() =>
+				{
+					if ( matchingTasksAcrossAllRMTLSpreadsheets )
+					{
+						return TrainingTaskManager.Get( item.Row?.Course_CodedNotation?.ToLower(), item.Row?.TrainingTask_Description?.ToLower() );
+					}
+					else
+					{
+						//22-04-16 just description is not enough. We want the previous one even if the description has changed.
+						//		NOTE: ensure there is a check so that if the training description has changed, there will be an update request
+						return TrainingTaskManager.GetTrainingTaskForRatingTask( rowRating.CodedNotation, item.Row.Row_CodedNotation, item.Row.Course_CodedNotation, item.Row.TrainingTask_Description, ref summary );
+					}
+				},
 				//() => TrainingTaskManager.Get( item.Row.TrainingTask_Description ),
 				//Or create new
 				() => new TrainingTask()
@@ -983,11 +990,40 @@ namespace Services
 			//Rating Task
 			var rowRatingTask = LookupOrGetFromDBOrCreateNew( summary, result,
 				//Find in summary - if found would be a duplicate
-				() => null, //Force it to either be looked up from the database or created new, per decision on 2022-4-12 (Each row = one unique rating task, regardless of anything else)
+				() =>
+				{
+					if ( matchingTasksAcrossAllRMTLSpreadsheets )
+					{
+						//Catch matching tasks from earlier rows (example: the same task in two functional areas or in two billet titles within the same RMTL sheet)
+						return summary.GetAll<RatingTask>()
+						.FirstOrDefault( m =>
+							m.Description.ToLower() == item.Row.RatingTask_Description.ToLower() &&
+							m.ApplicabilityType == rowTaskApplicabilityType.RowId &&
+							m.HasReferenceResource == rowRatingTaskSource.RowId &&
+							m.ReferenceType == rowSourceType.RowId &&
+							m.PayGradeType == rowPayGrade.RowId// &&
+							//m.TrainingGapType == rowTrainingGapType.RowId //Using training gap type as a discriminator leads to duplicate tasks getting created when really they're just linked (or not) to training for one rating but not the other
+						);
+					}
+					else
+					{
+						return null; //Force each row to be a new RatingTask
+					}
+				},
 				//Or get from DB
-				() => UtilityManager.GetAppKeyValue( "ratingTaskUsingCodedNotationForLookups", false ) ?
-					RatingTaskManager.GetForUpload( rowRating.CodedNotation, item.Row.Row_CodedNotation ) :
-					RatingTaskManager.GetForUpload( rowRating.Id, item.Row.RatingTask_Description, rowTaskApplicabilityType.RowId, rowRatingTaskSource.RowId, rowSourceType.RowId, rowPayGrade.RowId, rowTrainingGapType.RowId ),
+				() =>
+				{
+					if ( matchingTasksAcrossAllRMTLSpreadsheets )
+					{
+						return RatingTaskManager.GetForUpload( item.Row.RatingTask_Description, rowTaskApplicabilityType.RowId, rowRatingTaskSource.RowId, rowPayGrade.RowId, rowTrainingGapType.RowId );
+					}
+					else
+					{
+						return UtilityManager.GetAppKeyValue( "ratingTaskUsingCodedNotationForLookups", false ) ?
+							RatingTaskManager.GetForUpload( rowRating.CodedNotation, item.Row.Row_CodedNotation ) :
+							RatingTaskManager.GetForUpload( item.Row.RatingTask_Description, rowTaskApplicabilityType.RowId, rowRatingTaskSource.RowId, rowPayGrade.RowId, rowTrainingGapType.RowId );
+					}
+				},
 				//Or create new
 				() => new RatingTask()
 				{
@@ -1043,10 +1079,14 @@ namespace Services
 				HandleGuidListAddition( summary, summary.ItemsToBeCreated.TrainingTask, summary.FinalizedChanges.TrainingTask, result, rowTrainingTask, nameof( TrainingTask.AssessmentMethodType ), rowAssessmentMethodType );
 			}
 			HandleValueChange( summary, summary.ItemsToBeCreated.TrainingTask, summary.FinalizedChanges.TrainingTask, result, rowTrainingTask, nameof( TrainingTask.Description ), item.Row.TrainingTask_Description );
+			HandleGuidListAddition( summary, summary.ItemsToBeCreated.TrainingTask, summary.FinalizedChanges.TrainingTask, result, rowTrainingTask, nameof( TrainingTask.HasRating ), rowRating );
 
 			//Course
+			foreach( var rowCourseType in rowCourseTypeList )
+			{
+				HandleGuidListAddition( summary, summary.ItemsToBeCreated.Course, summary.FinalizedChanges.Course, result, rowCourse, nameof( Course.CourseType ), rowCourseType );
+			}
 			HandleGuidListAddition( summary, summary.ItemsToBeCreated.Course, summary.FinalizedChanges.Course, result, rowCourse, nameof( Course.HasTrainingTask ), rowTrainingTask );
-			HandleGuidListAddition( summary, summary.ItemsToBeCreated.Course, summary.FinalizedChanges.Course, result, rowCourse, nameof( Course.CourseType ), rowCourseType );
 			HandleValueChange( summary, summary.ItemsToBeCreated.Course, summary.FinalizedChanges.Course, result, rowCourse, nameof( Course.CurriculumControlAuthority ), ( rowOrganizationCCA ?? new Organization() ).RowId );
 			HandleValueChange( summary, summary.ItemsToBeCreated.Course, summary.FinalizedChanges.Course, result, rowCourse, nameof( Course.LifeCycleControlDocumentType ), ( rowCourseLCCDType ?? new Concept() ).RowId );
 			HandleValueChange( summary, summary.ItemsToBeCreated.Course, summary.FinalizedChanges.Course, result, rowCourse, nameof( Course.Name ), item.Row.Course_Name );
@@ -1059,10 +1099,11 @@ namespace Services
 			HandleValueChange( summary, summary.ItemsToBeCreated.RatingTask, summary.FinalizedChanges.RatingTask, result, rowRatingTask, nameof( RatingTask.Description ), item.Row.RatingTask_Description );
 			HandleValueChange( summary, summary.ItemsToBeCreated.RatingTask, summary.FinalizedChanges.RatingTask, result, rowRatingTask, nameof( RatingTask.PayGradeType ), ( rowPayGrade ?? new Concept() ).RowId );
 			HandleValueChange( summary, summary.ItemsToBeCreated.RatingTask, summary.FinalizedChanges.RatingTask, result, rowRatingTask, nameof( RatingTask.ApplicabilityType ), ( rowTaskApplicabilityType ?? new Concept() ).RowId );
-			HandleValueChange( summary, summary.ItemsToBeCreated.RatingTask, summary.FinalizedChanges.RatingTask, result, rowRatingTask, nameof( RatingTask.TrainingGapType ), ( rowTrainingGapType ?? new Concept() ).RowId );
 			HandleValueChange( summary, summary.ItemsToBeCreated.RatingTask, summary.FinalizedChanges.RatingTask, result, rowRatingTask, nameof( RatingTask.ReferenceType ), ( rowSourceType ?? new Concept() ).RowId );
 			HandleValueChange( summary, summary.ItemsToBeCreated.RatingTask, summary.FinalizedChanges.RatingTask, result, rowRatingTask, nameof( RatingTask.HasReferenceResource ), ( rowRatingTaskSource ?? new ReferenceResource() ).RowId );
 			HandleValueChange( summary, summary.ItemsToBeCreated.RatingTask, summary.FinalizedChanges.RatingTask, result, rowRatingTask, nameof( RatingTask.Note ), item.Row.Note ?? "" );
+			//TBD - how to handle inconsistencies in Training Gap Type for the same task across different ratings
+			HandleValueChange( summary, summary.ItemsToBeCreated.RatingTask, summary.FinalizedChanges.RatingTask, result, rowRatingTask, nameof( RatingTask.TrainingGapType ), ( rowTrainingGapType ?? new Concept() ).RowId );
 
 			//Cluster Analysis
 			HandleValueChange( summary, summary.ItemsToBeCreated.ClusterAnalysis, summary.FinalizedChanges.ClusterAnalysis, result, rowClusterAnalysis, nameof( ClusterAnalysis.ClusterAnalysisTitle ), item.Row.Cluster_Analysis_Title );

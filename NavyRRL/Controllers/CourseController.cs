@@ -34,11 +34,11 @@ namespace NavyRRL.Controllers
 			Course data;
 			try
 			{
-				data = Factories.CourseManager.Get( int.Parse( id ), true );
+				data = Factories.CourseManager.Get( int.Parse( id ), false );
 			}
 			catch
 			{
-				data = Factories.CourseManager.GetByCodedNotation( id, true );
+				data = Factories.CourseManager.GetByCodedNotation( id, false );
 			}
 			return View( data );
 		}

@@ -26,6 +26,7 @@
 	}
 } )
 
+@*
 @if ( Model.TrainingTasks != null && Model.TrainingTasks.Count() > 0 )
 {
 	<div class="section">
@@ -49,3 +50,35 @@
 		</table>
 	</div>
 }
+*@
+
+@Html.Partial( "~/Views/Search/_ItemListSearch.cshtml" )
+<script type="text/javascript">
+	var ItemListConfigs = {
+		CommonFilters: [
+			{ Name: "ceterms:Course", ItemIds: [ @Model.Id ] }
+		],
+		Searches: {
+			TrainingTasks: {
+				Header: "Training Tasks",
+				Type: "TrainingTask",
+				Columns: ["CTTL/PPP/TCCD Statement", "Assessment Approach"],
+				Cells: [
+					(Result) => { return ItemListSearches.getLink("@Url.Content("~/TrainingTask/Detail/")" + Result.Id, Result.Description); },
+					(Result) => { return Result.AssessmentMethods }
+				]
+			}
+		}
+	};
+	//
+
+	$(document).ready(function () {
+		ItemListSearches.setupItemLists(ItemListConfigs);
+	});
+	//
+</script>
+<style type="text/css">
+	table[data-type='TrainingTask'] [data-column='Assessment Approach'] { width: 200px; }
+</style>
+
+<item-list-search name="TrainingTasks"></item-list-search>
