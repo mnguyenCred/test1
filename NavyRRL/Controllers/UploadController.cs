@@ -150,6 +150,9 @@ namespace NavyRRL.Controllers
 
 		public ActionResult ConfirmChangesV3( Guid transactionGUID )
 		{
+			//Reject if user does not have permission to save data
+
+
 			//Get the summary
 			var summary = BulkUploadServices.GetCachedChangeSummary( transactionGUID );
 			if(summary == null )

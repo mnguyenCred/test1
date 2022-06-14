@@ -27,6 +27,7 @@ namespace NavyRRL.Controllers
 			return JsonResponse( results, true );
 		}
 		//
+
 		[CustomAttributes.NavyAuthorize( "Course View", Roles = SiteReader )]
 		public ActionResult Detail( string id ) //String to accept CIN or ID
 		{

@@ -329,7 +329,7 @@ namespace Services
 			AppendValue( result, "skos:prefLabel", source.Name, true );
 			AppendValue( result, "skos:notation", source.CodedNotation, false );
 			AppendValue( result, "skos:definition", source.Description, true );
-			//AppendLookupValue( result, "skos:inScheme", source.InScheme, Factories.ConceptSchemeManager.GetByRowId );
+			AppendLookupValue( result, "skos:inScheme", source.InScheme, ( rowID ) => { return Factories.ConceptSchemeManager.Get( rowID, false ); } );
 
 			return result;
 		}

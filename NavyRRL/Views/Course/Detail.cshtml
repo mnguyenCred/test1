@@ -17,15 +17,13 @@
 	Description = Model.Description,
 	Identifiers = new List<NamedString>()
 	{
-		new NamedValue( "System ID", Model.Id.ToString() ),
-		new NamedValue( "CIN", Model.CodedNotation ),
-		new NamedValue( "Training Tasks", Model.TrainingTasks.Count.ToString() ),
-
+		new NamedString( "System ID", Model.Id.ToString() ),
+		new NamedString( "CIN", Model.CodedNotation ),
 		new NamedString( "Course Type", String.Join(", ", courseTypes.Select( m => "<a href=\"" + Url.Content( "~/Concept/Detail/" + m.Id ) + "\">" + m.Name + "</a>" ).ToList()) ),
 		new NamedString( "CCA", "<a href=\"" + Url.Content( "~/Organization/Detail/" + Model.CurriculumControlAuthorityId ) + "\">" + Model.OrganizationName + "</a>" ),
 		new NamedString( "LCCD", "<a href=\"" + Url.Content( "~/Concept/Detail/" + Model.LifeCycleControlDocumentTypeId ) + "\">" + Model.LifeCycleControlDocument + "</a>" ),
 		new NamedString( "CTID", Model.CTID ),
-			new NamedValue( "Last Updated ", Model.LastUpdated.ToString("yyyy-MM-dd hh:mm") )
+		new NamedString( "Last Updated ", Model.LastUpdated.ToString("yyyy-MM-dd hh:mm") )
 	}
 } )
 
