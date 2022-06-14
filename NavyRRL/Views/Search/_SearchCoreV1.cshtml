@@ -42,7 +42,7 @@
 			};
 			Search.customizeQuery();
 			Search.setStatus("Searching...", true);
-			Search.doPOSTRequest(Search.SearchURL, Search.Query, Search.handleResponse);
+			Search.doPOSTRequest(Search.SearchURL, Search.Query, Search.handleResponse, Search.handleError);
 		};
 		//
 
@@ -153,6 +153,7 @@
 					handleSuccess?.(response);
 				})
 				.catch(error => {
+					console.log("Error", error);
 					handleError?.(error);
 				});
 		};
@@ -171,6 +172,12 @@
 			else {
 				Search.setStatus("Error: " + response.Status.join(", "));
 			}
+		};
+		//
+
+		Search.handleError = function (error) {
+			console.log("Error", error);
+			Search.setStatus("Error performing search. Check console for details (Status Code " + (error?.status || "Unknown") + ")");
 		};
 		//
 

@@ -72,7 +72,7 @@
 				}
 			},
 			HasRating_Add: function (Field) {
-				//Search to add new valid Billet Titles
+				//Search to add new valid Ratings
 				Field.Search.SearchURL = "@Url.Content( "~/rating/dosearch" )";
 				Field.Search.modifyQuery = function (query) {
 					//And where Ratings are NOT already associated with this Rating Task...
@@ -80,7 +80,7 @@
 				}
 			},
 			HasRating_Remove: function (Field) {
-				//Search to remove already added Billet Titles
+				//Search to remove already added Ratings
 				Field.Search.SearchURL = "@Url.Content( "~/rating/dosearch" )";
 				Field.Search.modifyQuery = function (query) {
 					//Where Ratings are already associated with this Rating Task...

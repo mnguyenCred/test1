@@ -27,6 +27,7 @@ namespace NavyRRL.Controllers
 			return JsonResponse( results, true );
 		}
 		//
+
 		[CustomAttributes.NavyAuthorize( "Reference Resource View", Roles = SiteReader )]
 		public ActionResult Detail( int id )
 		{

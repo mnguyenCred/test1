@@ -27,6 +27,7 @@ namespace NavyRRL.Controllers
 			return JsonResponse( results, true );
 		}
 		//
+
 		[CustomAttributes.NavyAuthorize( "Rating Task View", Roles = SiteReader )]
 		public ActionResult Detail( int id )
 		{

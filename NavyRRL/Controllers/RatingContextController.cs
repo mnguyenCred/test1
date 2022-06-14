@@ -12,63 +12,67 @@ using Models.Curation;
 
 namespace NavyRRL.Controllers
 {
-    public class BilletTitleController : BaseController
-    {
+	public class RatingContextController : BaseController
+	{
 		public ActionResult Search()
 		{
-			return RedirectToAction( "Index", "Search", new { searchType = "BilletTitle" } );
+			return RedirectToAction( "Index", "Search", new { searchType = "RatingContext" } );
 		}
 		//
 
 		public ActionResult DoSearch( SearchQuery query )
 		{
-			var results = SearchServices.BilletTitleSearch( query );
+			var results = SearchServices.RatingContextSearch( query );
 
 			return JsonResponse( results, true );
 		}
 		//
 
-		[CustomAttributes.NavyAuthorize( "Billet Title View", Roles = SiteReader )]
+		[CustomAttributes.NavyAuthorize( "Rating Context View", Roles = SiteReader )]
 		public ActionResult Detail( int id )
 		{
-			AuthenticateOrRedirect( "You must be authenticated and authorized to view Billet Title data." );
-			var data = Factories.JobManager.Get( id );
+			AuthenticateOrRedirect( "You must be authenticated and authorized to view Rating Context data." );
+			var data = Factories.RatingContextManager.Get( id );
+
 			return View( data );
 		}
 		//
 
 		public ActionResult JSON( int id )
 		{
-			AuthenticateOrRedirect( "You must be authenticated and authorized to view Billet Title data." );
-			var data = Factories.JobManager.Get( id );
+			AuthenticateOrRedirect( "You must be authenticated and authorized to view Rating Context data." );
+			var data = Factories.RatingContextManager.Get( id );
 			var converted = RDFServices.GetRDF( data );
+
 			return RawJSONResponse( converted );
 		}
 		//
 
-		[CustomAttributes.NavyAuthorize( "Billet Title Edit", Roles = Admin_SiteManager )]
+		[CustomAttributes.NavyAuthorize( "Rating Context Edit", Roles = Admin_SiteManager )]
 		public ActionResult Edit( int id )
 		{
-			AuthenticateOrRedirect( "You must be authenticated and authorized to edit Billet Title data." );
-			if (!AccountServices.IsUserSiteStaff() )
-            {
+			AuthenticateOrRedirect( "You must be authenticated and authorized to edit Rating Context data." );
+			if ( !AccountServices.IsUserSiteStaff() )
+			{
 				RedirectToAction( "NotAuthenticated", "Event" );
 			}
-			var data = new BilletTitle(); //Should get by ID or default to new (to enable new billet titles to be created)
-			if (id > 0)
-            {
-				data = Factories.JobManager.Get( id );
+
+			var data = new RatingContext(); //Should get by ID or default to new (to enable new rating contexts to be created)
+			if ( id > 0 )
+			{
+				data = Factories.RatingContextManager.Get( id );
 			}
+
 			return View( data );
 		}
 		//
 
-		public ActionResult Save( BilletTitleDTO data )
+		public ActionResult Save( RatingContext data )
 		{
 			//Validate the request
 			if ( !AuthenticateOrFail() )
 			{
-				return JsonResponse( null, false, new List<string>() { "You must be authenticated and authorized to edit Billet Title data." }, null );
+				return JsonResponse( null, false, new List<string>() { "You must be authenticated and authorized to edit Rating Context data." }, null );
 			}
 
 			var user = AccountServices.GetCurrentUser();
@@ -77,7 +81,7 @@ namespace NavyRRL.Controllers
 				Action = "Edit"
 			};
 			data.LastUpdatedById = user.Id;
-			var results = new Factories.JobManager().Save( data, ref status );
+			var results = new Factories.RatingContextManager().Save( data, ref status );
 			if ( status.HasAnyErrors )
 			{
 				var msg = string.Join( "</br>", status.Messages.Error.ToArray() );
@@ -88,8 +92,10 @@ namespace NavyRRL.Controllers
 				//On success
 				ConsoleMessageHelper.SetConsoleSuccessMessage( "Saved changes successfully." );
 			}
+
 			return JsonResponse( data, true, null, null );
 		}
 		//
+
 	}
 }

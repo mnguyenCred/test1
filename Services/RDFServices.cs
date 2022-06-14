@@ -259,6 +259,25 @@ namespace Services
 		}
 		//
 
+		public static JObject GetRDF( RatingContext source )
+		{
+			var result = GetStarterResult( "navy:RatingContext", source );
+
+			AppendValue( result, "ceterms:codedNotation", source.CodedNotation, true );
+			AppendValue( result, "ceasn:comment", source.Note, true );
+			AppendLookupValue( result, "ceterms:hasOccupation", source.HasRating, Factories.RatingManager.Get );
+			AppendLookupValue( result, "navy:hasRatingTask", source.HasRatingTask, ( rowID ) => { return Factories.RatingTaskManager.Get( rowID ); } );
+			AppendLookupValue( result, "ceterms:hasJob", source.HasBilletTitle, Factories.JobManager.Get );
+			AppendLookupValue( result, "ceterms:hasWorkRole", source.HasWorkRole, Factories.WorkRoleManager.Get );
+			AppendLookupValue( result, "navy:hasTrainingTask", source.HasTrainingTask, Factories.TrainingTaskManager.Get );
+			AppendLookupValue( result, "navy:payGradeType", source.PayGradeType, Factories.ConceptSchemeManager.GetConcept );
+			AppendLookupValue( result, "navy:applicabilityType", source.ApplicabilityType, Factories.ConceptSchemeManager.GetConcept );
+			AppendLookupValue( result, "navy:trainingGapType", source.TrainingGapType, Factories.ConceptSchemeManager.GetConcept );
+
+			return result;
+		}
+		//
+
 		public static JObject GetRDF( ReferenceResource source )
 		{
 			var result = GetStarterResult( "navy:ReferenceResource", source );
