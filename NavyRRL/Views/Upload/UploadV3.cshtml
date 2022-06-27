@@ -37,6 +37,8 @@
 		UI.InputBox = $(".inputBox");
 		UI.RatingSelector = $("[data-property='rating']");
 		UI.FileSelector = $("[data-property='file']");
+		UI.SkipPart2ChecksCheckBox = $("[data-property='SkipPart2Checks']");
+		UI.SkipPart3ChecksCheckBox = $("[data-property='SkipPart3Checks']");
 		UI.ProcessDataButton = $("[data-action='processData']");
 		UI.ProcessingBox = $(".processingBox");
 		UI.StatusBox = $(".statusBox");
@@ -52,6 +54,7 @@
 		UI.AdditionsLists = $(".additionsList");
 		UI.ConfirmChangesButton = $("[data-action='confirmChanges']");
 		UI.FixErrorsMessage = $(".fixErrorsMessage");
+		UI.ChecksSkippedMessage = $(".checksSkippedMessage");
 
 		setStatus("Please select a Rating and a CSV File.");
 		setProgress("", 0);
@@ -62,6 +65,7 @@
 			confirmChanges();
 		});
 		UI.ConfirmChangesButton.hide();
+		UI.ChecksSkippedMessage.hide();
 		UI.FixErrorsMessage.hide();
 	}
 	//
@@ -145,6 +149,7 @@
 		//Disable confirmation
 		UI.ConfirmChangesButton.hide();
 		UI.FixErrorsMessage.hide();
+		UI.ChecksSkippedMessage.hide();
 
 		//Read the contents
 		Manager.readFile(function (rawData) {
@@ -304,9 +309,11 @@
 		Manager.TotalItems = Manager.WaitingQueue.length;
 		Manager.TransactionGUID = crypto.randomUUID();
 		Manager.RatingRowID = UI.RatingSelector.val();
+		Manager.SkipPart2Checks = UI.SkipPart2ChecksCheckBox.prop("checked");
+		Manager.SkipPart3Checks = UI.SkipPart3ChecksCheckBox.prop("checked");
 
 		//Disable the Process Data button and process the rows
-		UI.ProcessDataButton.prop("disabled", true);
+		disableButtons();
 		setStatus("Processing Rows...", true);
 		processNextQueueItem();
 	}
@@ -336,6 +343,9 @@
 				TransactionGUID: Manager.TransactionGUID,
 				Row: Manager.ActiveItem.MappedRow
 			};
+			//Add these if necessary
+			Manager.SkipPart2Checks && (requestData.SkipPart2Checks = true);
+			Manager.SkipPart3Checks && (requestData.SkipPart3Checks = true);
 
 			//Set progress and trigger the request
 			setProgress("Processing " + (Manager.FinishedQueue.length + 1) + " of " + Manager.TotalItems, (((Manager.FinishedQueue.length + 1) / (Manager.TotalItems || 1)) * 100).toFixed(2));
@@ -465,8 +475,14 @@
 		//Enable buttons
 		enableButtons();
 
+		//Don't allow saving part 2 or 3 were skipped
+		if (Manager.SkipPart2Checks || Manager.SkipPart3Checks) {
+			setStatus("Finished processing. Some checks were skipped, so saving has been disabled.");
+			UI.ConfirmChangesButton.hide();
+			UI.ChecksSkippedMessage.show();
+		}
 		//Enable change confirmation if there are no errors
-		if (Manager.HasErrors) {
+		else if (Manager.HasErrors) {
 			if (@( isUserAdmin ? "true" : "false" )) {
 				UI.ConfirmChangesButton.show();
 				UI.FixErrorsMessage.show();
@@ -961,6 +977,8 @@
 
 	function disableButtons() {
 		UI.FileSelector.prop("disabled", true);
+		UI.SkipPart2ChecksCheckBox.prop("disabled", true);
+		UI.SkipPart3ChecksCheckBox.prop("disabled", true);
 		UI.ProcessDataButton.prop("disabled", true);
 		UI.ConfirmChangesButton.prop("disabled", true);
 	}
@@ -968,6 +986,8 @@
 
 	function enableButtons() {
 		UI.FileSelector.prop("disabled", false);
+		UI.SkipPart2ChecksCheckBox.prop("disabled", false);
+		UI.SkipPart3ChecksCheckBox.prop("disabled", false);
 		UI.ProcessDataButton.prop("disabled", false);
 		UI.ConfirmChangesButton.prop("disabled", false);
 	}
@@ -1021,9 +1041,12 @@
 	@@keyframes spin { 100% { transform: rotate(360deg); } }
 
 	.section { margin-bottom: 10px; }
-	.inputBox .fileBox { display: flex; background-color: #EEE; margin-top: 5px; }
+	.inputBox .fileBox { display: flex; align-items: center; background-color: #EEE; margin-top: 5px; }
 	.inputBox .fileBox input[type='file'] { flex: 1 1 auto; padding: 4px 5px; }
 	.inputBox .fileBox input[type='file']:hover, .inputBox .fileBox input[type='file']:focus { cursor: pointer; background-color: rgba(0,0,0,0.1); }
+	.inputBox .fileBox label { flex: 0 0 200px; display: flex; align-items: center; gap: 10px; height: 30px; padding: 0 10px; font-weight: normal; margin: 0; }
+	.inputBox .fileBox label:is(:hover, :focus) { cursor: pointer; background-color: rgba(0,0,0,0.1); }
+	.inputBox .fileBox label input { margin: 0; }
 	.inputBox .fileBox button { flex: 200px 0 0; }
 
 	.processingBox .statusBox { display: flex; align-items: center; padding: 0 10px; margin-bottom: 5px; }
@@ -1069,6 +1092,7 @@
 
 	.itemCount { padding: 10px 5px; font-weight: bold; }
 	.fixErrorsMessage { padding: 10px 20px; margin: 5px; background-color: #FCC; }
+	.checksSkippedMessage { padding: 10px 20px; margin: 5px; background-color: #CCF; }
 	.undefined { background-color: #EEE; padding: 0 2px; }
 	.lookup { font-weight: bold; }
 </style>
@@ -1092,7 +1116,15 @@
 	</select>
 	<div class="fileBox">
 		<input type="file" data-property="file" />
-		<button data-action="processData">Process Data</button>
+		<label>
+			<input type="checkbox" data-property="SkipPart2Checks" />
+			<span>Skip Part 2 Checks</span>
+		</label>
+		<label>
+			<input type="checkbox" data-property="SkipPart3Checks" />
+			<span>Skip Part 3 Checks</span>
+		</label>
+		<button class="blueButton" data-action="processData">Process Data</button>
 	</div>
 </div>
 <div class="section uploadUISection processingBox">
@@ -1113,6 +1145,7 @@
 				<h3 class="tabHeader">Summary</h3>
 				<div class="tabContent summaryBox"></div>
 				<div class="fixErrorsMessage">You must correct the errors listed above before you can save these changes.</div>
+				<div class="checksSkippedMessage">Some checks were skipped, so saving has been disabled.</div>
 				<button class="confirmChangesButton" data-action="confirmChanges">Confirm and Save Changes</button>
 			</div>
 			<div class="tab">

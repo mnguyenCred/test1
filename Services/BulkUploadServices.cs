@@ -680,7 +680,7 @@ namespace Services
 			var ratingRatingTask_CodedNotation = string.Format( "{0}-{1}", rowRating.CodedNotation, item.Row.Row_CodedNotation );
 
 			#endregion
-			
+
 			#region Part II - components check
 			//These should throw an error if not found, unless all of the course/training columns are N/A
 			var shouldNotHaveTrainingData = rowTrainingGapType.Name?.ToLower() == "yes";
@@ -718,7 +718,17 @@ namespace Services
 
 			//If the Training Gap Type is "Yes", then treat all course/training data as null, but check to see if it exists first (above) to facilitate the warning statement below
 			//TBD - shouldn't the course coded notation be included? item.Row.Course_CodedNotation
-			if ( shouldNotHaveTrainingData )
+			if ( item.SkipPart2Checks )
+			{
+				hasCourseAndTrainingData = false;
+				rowOrganizationCCA = null;
+				rowCourseLCCDType = null;
+				rowCourseTypeList = new List<Concept>();
+				rowAssessmentMethodTypeList = new List<Concept>();
+				item.Row.TrainingTask_Description = "";
+				result.Errors = new List<string>();
+			}
+			else if ( shouldNotHaveTrainingData )
 			{
 				var hasDataWhenItShouldNot = new List<object>() { rowOrganizationCCA, rowCourseLCCDType }.Concat( rowAssessmentMethodTypeList ).Concat( rowCourseTypeList ).Where( m => m != null ).ToList();
 				if ( hasDataWhenItShouldNot.Count() > 0 || !string.IsNullOrWhiteSpace( item.Row.TrainingTask_Description ) )
@@ -790,7 +800,22 @@ namespace Services
 
 			//If errors/warnings should happen due to Cluster Analysis data, do so here
 			//Return here before the row is processed if row processing should not occur
-			if ( priorityPlacement > 9 )
+			if ( item.SkipPart3Checks )
+			{
+				hasClusterAnalysisData = false;
+				rowTrainingSolutionType = null;
+				rowRecommendModalityType = null;
+				rowDevelopmentSpecificationType = null;
+				priorityPlacement = 0;
+				developmentTime = 0;
+				estimatedInstructionalTime = null;
+				result.Errors = new List<string>();
+			}
+			else if( rowTrainingSolutionType != null || rowRecommendModalityType != null || rowDevelopmentSpecificationType != null )
+			{
+				hasClusterAnalysisData = true;
+			}
+			else if ( priorityPlacement > 9 )
 			{
 				result.Warnings.Add( string.Format( "Priority Placement ({0}) is invalid. valid values are 1 through 9.", priorityPlacement ) );
 			}
@@ -1055,7 +1080,7 @@ namespace Services
 				( newItem ) => { summary.ItemsToBeCreated.ClusterAnalysis.Add( newItem ); },
 				//Skip all of this and set value to null if the following test is true
 				//May be exceptions
-				() => string.IsNullOrWhiteSpace( item.Row.Cluster_Analysis_Title ) || item.Row.Cluster_Analysis_Title.ToLower() == "n/a"
+				() => !hasClusterAnalysisData || string.IsNullOrWhiteSpace( item.Row.Cluster_Analysis_Title ) || item.Row.Cluster_Analysis_Title.ToLower() == "n/a"
 			);
 
             #endregion
