@@ -463,7 +463,6 @@
 
 	function handleFinishedQueue() {
 		//Set status and progress, and reenable the process data button
-		/*setStatus("Finished processing. Please review the summary below. If you are satisfied with the data, click the \"Confirm and Save Changes\" button to save the changes.");*/
 		setProgress("Finished", 100);
 
 		//Render the summary
@@ -483,6 +482,7 @@
 		}
 		//Enable change confirmation if there are no errors
 		else if (Manager.HasErrors) {
+			setStatus("Finished processing. One or more errors were detected. Please review the report below.");
 			if (@( isUserAdmin ? "true" : "false" )) {
 				UI.ConfirmChangesButton.show();
 				UI.FixErrorsMessage.show();
