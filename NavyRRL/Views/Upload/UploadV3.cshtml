@@ -566,7 +566,12 @@
 			var current = allRows.shift();
 			var matches = allRows.filter(m => m.MappedRowText == current.MappedRowText);
 			if (matches.length > 0) {
-				current.Data.Errors.push("The contents of this row are identical to the contents of row(s) " + matches.map(m => getRowNumber(m.MappedRow.Row_Index)).join(", ") + ". Duplicate rows are not allowed.");
+				if (current.Data?.Errors) {
+					current.Data.Errors.push("The contents of this row are identical to the contents of row(s) " + matches.map(m => getRowNumber(m.MappedRow.Row_Index)).join(", ") + ". Duplicate rows are not allowed.");
+				}
+				else if (current.Error) {
+					current.Error.statusText = (current.Error.statusText || "") + " " + "The contents of this row are identical to the contents of row(s) " + matches.map(m => getRowNumber(m.MappedRow.Row_Index)).join(", ") + ". Duplicate rows are not allowed.";
+				}
 				allRows = allRows.filter(m => !matches.includes(m));
 			}
 		}
