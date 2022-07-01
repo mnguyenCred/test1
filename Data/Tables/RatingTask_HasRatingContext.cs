@@ -12,15 +12,19 @@ namespace Data.Tables
     using System;
     using System.Collections.Generic;
     
-    public partial class Course_Organization
+    public partial class RatingTask_HasRatingContext
     {
         public int Id { get; set; }
         public System.Guid RowId { get; set; }
-        public int CourseId { get; set; }
-        public int OrganizationId { get; set; }
+        public int RatingTaskId { get; set; }
+        public int RatingId { get; set; }
+        public Nullable<int> FormalTrainingGapId { get; set; }
+        public Nullable<int> TrainingTaskId { get; set; }
         public System.DateTime Created { get; set; }
         public Nullable<int> CreatedById { get; set; }
     
-        public virtual Organization Organization { get; set; }
+        public virtual Course_Task Course_Task { get; set; }
+        public virtual Rating Rating { get; set; }
+        public virtual RatingTask RatingTask { get; set; }
     }
 }

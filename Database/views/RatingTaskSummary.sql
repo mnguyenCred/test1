@@ -128,6 +128,8 @@ Modifications
 				- review the query builder for this
 22-04-04 mp - as for ratings, change billet title processing to result in separate rows where more than one billet per task.
 			- otherwise the export could get messed up.
+22-06-03 mp - temp change to FunctionalArea to not include the Guids 
+
 */
 Alter  VIEW [dbo].RatingTaskSummary
 AS
@@ -287,8 +289,17 @@ Left Join TrainingTaskSummary		g on htt.TrainingTaskId = g.TrainingTaskId
   --
   left Join [ClusterAnalysisSummary] cas on a.Id = cas.ratingTaskId
 
+
+--    CROSS APPLY (
+--	SELECT distinct d.Name + '~' + convert(varchar(50),d.RowId) + ' | '
+--    FROM dbo.RatingTask  rt
+--		Inner join [dbo].[RatingTask.WorkRole]	rtw on rt.Id = rtw.RatingTaskId
+--		inner join WorkRole d on rtw.WorkRoleId = d.Id 
+--    WHERE  a.Id = rt.Id
+--    FOR XML Path('') 
+--) WR (WorkRoles)
     CROSS APPLY (
-	SELECT distinct d.Name + '~' + convert(varchar(50),d.RowId) + ' | '
+	SELECT distinct d.Name + ' |'
     FROM dbo.RatingTask  rt
 		Inner join [dbo].[RatingTask.WorkRole]	rtw on rt.Id = rtw.RatingTaskId
 		inner join WorkRole d on rtw.WorkRoleId = d.Id 

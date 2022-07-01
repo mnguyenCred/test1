@@ -1527,6 +1527,15 @@ namespace Factories
             return isValid;
         }
         #endregion
+        public bool HasRatingContextUpdate( AppEntity input, ref ChangeSummary status )
+        {
+            status.HasSectionErrors = false;
+            var efEntity = new Data.Tables.RatingTask_HasRatingContext();
+            var entityType = "RatingTask_HasRatingContext";
+            
+            return false;
+        }
+
         public bool HasRatingUpdate( AppEntity input, ref ChangeSummary status )
         {
             status.HasSectionErrors = false;
@@ -1878,10 +1887,10 @@ namespace Factories
                 output.FormalTrainingGapId = ( int ) ConceptSchemeManager.GetConcept( input.TrainingGapType )?.Id;
             }
             //
-            if (UtilityManager.GetAppKeyValue( "handlingMultipleTrainingTasksPerRatingTask", false ) )
-            {
-                output.TrainingTaskId = null;
-            } 
+            //if (UtilityManager.GetAppKeyValue( "handlingMultipleTrainingTasksPerRatingTask", false ) )
+            //{
+            //    output.TrainingTaskId = null;
+            //} 
             //else
             //{
             //    if ( IsValidGuid( input.HasTrainingTask ) )

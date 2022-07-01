@@ -33,7 +33,6 @@ namespace Data.Tables
         public virtual DbSet<ConceptScheme_Concept> ConceptScheme_Concept { get; set; }
         public virtual DbSet<Course> Course { get; set; }
         public virtual DbSet<Course_CourseType> Course_CourseType { get; set; }
-        public virtual DbSet<Course_Organization> Course_Organization { get; set; }
         public virtual DbSet<Course_Task> Course_Task { get; set; }
         public virtual DbSet<CourseTask_AssessmentType> CourseTask_AssessmentType { get; set; }
         public virtual DbSet<Entity> Entity { get; set; }
@@ -59,5 +58,6 @@ namespace Data.Tables
         public virtual DbSet<AspNetUserRoles> AspNetUserRoles { get; set; }
         public virtual DbSet<ImportRMTL> ImportRMTL { get; set; }
         public virtual DbSet<System_ProxyCodes> System_ProxyCodes { get; set; }
+        public virtual DbSet<RatingTask_HasRatingContext> RatingTask_HasRatingContext { get; set; }
     }
 }

@@ -115,6 +115,35 @@ namespace Models.Schema
 	}
 	//
 
+	/// <summary>
+	/// The internal properties should always have a single type. 
+	/// The spreadsheet is always single (now)
+	/// A future function while editing a rating task should have a separate function to just add/update/delete per ratingContext?
+	/// </summary>
+	public class RatingContext 
+	{
+		/// <summary>
+		/// List of GUIDs for the Ratings that this Rating Task is associated with<br />
+		/// From Column: Rating
+		/// DB-Table: RatingTask.HasRating
+		/// </summary>
+		public List<Guid> HasRating { get; set; }
+
+		/// <summary>
+		/// GUID for the Concept for the Training Gap Type for this Rating Task<br />
+		/// From Column: Formal Training Gap
+		/// DB: FormalTrainingGapId
+		/// </summary>
+		public Guid TrainingGapType { get; set; }
+
+		/// <summary>
+		/// List of GUIDs for the Training Task(s) for this Rating Task<br />
+		/// From Column: CTTL/PPP/TCCD Statement
+		/// </summary>
+		public List<Guid> HasTrainingTask { get; set; }
+	}
+	//
+
 	public class RatingTaskDTO : RatingTask
 	{
 		/// <summary>

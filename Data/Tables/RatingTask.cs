@@ -23,6 +23,7 @@ namespace Data.Tables
             this.RatingTask_WorkRole = new HashSet<RatingTask_WorkRole>();
             this.RmtlProject_BilletTask = new HashSet<RmtlProject_BilletTask>();
             this.ClusterAnalysis = new HashSet<ClusterAnalysis>();
+            this.RatingTask_HasRatingContext = new HashSet<RatingTask_HasRatingContext>();
         }
     
         public int Id { get; set; }
@@ -36,7 +37,6 @@ namespace Data.Tables
         public Nullable<int> TaskStatusId { get; set; }
         public Nullable<int> FormalTrainingGapId { get; set; }
         public string CodedNotation { get; set; }
-        public Nullable<int> TrainingTaskId { get; set; }
         public string CTID { get; set; }
         public string Notes { get; set; }
         public System.DateTime Created { get; set; }
@@ -62,5 +62,7 @@ namespace Data.Tables
         public virtual ICollection<RmtlProject_BilletTask> RmtlProject_BilletTask { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<ClusterAnalysis> ClusterAnalysis { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<RatingTask_HasRatingContext> RatingTask_HasRatingContext { get; set; }
     }
 }

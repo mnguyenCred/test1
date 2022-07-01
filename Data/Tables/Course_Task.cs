@@ -19,6 +19,7 @@ namespace Data.Tables
         {
             this.CourseTask_AssessmentType = new HashSet<CourseTask_AssessmentType>();
             this.RatingTask_HasTrainingTask = new HashSet<RatingTask_HasTrainingTask>();
+            this.RatingTask_HasRatingContext = new HashSet<RatingTask_HasRatingContext>();
         }
     
         public int Id { get; set; }
@@ -36,5 +37,7 @@ namespace Data.Tables
         public virtual ICollection<CourseTask_AssessmentType> CourseTask_AssessmentType { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<RatingTask_HasTrainingTask> RatingTask_HasTrainingTask { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<RatingTask_HasRatingContext> RatingTask_HasRatingContext { get; set; }
     }
 }

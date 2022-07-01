@@ -160,6 +160,7 @@
     <Compile Include="Areas\HelpPage\SampleGeneration\TextSample.cs" />
     <Compile Include="Areas\HelpPage\XmlDocumentationProvider.cs" />
     <Compile Include="Controllers\HomeController.cs" />
+    <Compile Include="Controllers\RMTLController.cs" />
     <Compile Include="Controllers\ValuesController.cs" />
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
@@ -228,11 +229,26 @@
   <ItemGroup>
     <Folder Include="App_Data\" />
     <Folder Include="Models\" />
+    <Folder Include="Views\RMTL\" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
     <Content Include="Scripts\jquery-3.6.0.slim.min.map" />
     <Content Include="Scripts\jquery-3.6.0.min.map" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\Models\Models.csproj">
+      <Project>{7c6cdcb7-9c31-4310-b34d-028bf8bb816f}</Project>
+      <Name>Models</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Navy.Utilities\Navy.Utilities.csproj">
+      <Project>{ed884a2d-55ab-4a96-abad-0d3f8cf35301}</Project>
+      <Name>Navy.Utilities</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Services\Services.csproj">
+      <Project>{aa0ba92a-41e2-468b-ad9b-59dd3eb0c288}</Project>
+      <Name>Services</Name>
+    </ProjectReference>
   </ItemGroup>
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>
