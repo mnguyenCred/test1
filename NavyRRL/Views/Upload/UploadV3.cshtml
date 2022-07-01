@@ -152,6 +152,7 @@
 		UI.ChecksSkippedMessage.hide();
 
 		//Read the contents
+		Manager.HasErrors = false;
 		Manager.readFile(function (rawData) {
 			//Validate the contents
 			Manager.RawCSV = rawData.trim();
@@ -220,9 +221,19 @@
 		}
 		Manager.CSVColumns = rows.shift(); //Set header row
 		Manager.CSVRows = rows; //The remaining rows
+		Manager.CSVJSON = []; //Clear out any existing CSVJSON
+
+		//Scan to ensure all of the expected columns are present
+		var expectedRows = ["Unique Identifier", "Rating", "Rank", "Level (A/J/M)", "Billet Title", "Functional Area", "Source", "Date of Source", "Work Element Type", "Work Element (Task)", "Task Applicability", "Formal Training Gap", "CIN", "Course Name", "Course Type (A/C/G/F/T)", "Curriculum Control Authority (CCA)", "Life-Cycle Control Document", "CTTL/PPP/TCCD Statement", "Current Assessment Approach", "Notes", "Training Solution Type", "Cluster Analysis Title", "Recommended Modality", "Development Specification", "Candidate Platform", "CFM Placement", "Priority Placement", "Development Ratio", "Estimated Instructional Time", "Development Time", "Part III Notes"];
+		var missingColumns = expectedRows.filter(column => !Manager.CSVColumns.includes(column));
+		if (missingColumns.length > 0) {
+			alert("The following column(s) were not found in the spreadsheet. Column names must match exactly. Please double-check the data and try again:\n\n" + missingColumns.join("\n"));
+			Manager.HasErrors = true;
+			enableButtons();
+			return;
+		}
 
 		//Create flat JSON
-		Manager.CSVJSON = [];
 		Manager.CSVRows.forEach(row => {
 			//Skip empty rows
 			if (row.join("").trim().length > 0) {
@@ -245,6 +256,11 @@
 	//
 
 	function mapCSVJSONToUploadableRow() {
+		if (Manager.HasErrors) {
+			Manager.MappedRows = [];
+			return;
+		}
+
 		Manager.MappedRows = Manager.CSVJSON.map((row, index) => {
 			return {
 				Row_Index: index,
@@ -289,12 +305,16 @@
 	//
 
 	function processMappedRows() {
+		//Skip if there were errors earlier on
+		if (Manager.HasErrors) {
+			return;
+		}
+
 		//Setup the manager queue
 		Manager.ActiveItem = null;
 		Manager.FinishedQueue = [];
 		Manager.LookupGraph = [];
 		Manager.Requests = [];
-		Manager.HasErrors = false;
 		Manager.Confirmation = null;
 		Manager.WaitingQueue = Manager.MappedRows.map(MappedRow => {
 			return {
@@ -645,11 +665,28 @@
 			breakdownRow("Reference Resource", "ReferenceResource")
 		);
 
-		//Render Messages
-		renderMessageSection(UI.SummaryBox, "Server Errors", "Errors that caused processing a row to stop unexpectedly", serverErrorRows.map(m => messageWithHeaderAndList("Error on Row " + getRowNumber(m.MappedRow.Row_Index) + ":", [m.Error?.status + " " + (m.Error?.statusText || "Error")])).join(""));
-		renderMessageSection(UI.SummaryBox, "Processing Errors", "Errors encountered while processing the data", processingErrorRows.map(m => messageWithHeaderAndList("Error(s) on Row " + getRowNumber(m.MappedRow.Row_Index) + ":", m.Data.Errors)).join(""));
-		renderMessageSection(UI.SummaryBox, "Warnings", "Issues detected while processing the data", validRows.filter(m => m.Data.Warnings.length > 0).map(m => messageWithHeaderAndList("Warning(s) on Row " + getRowNumber(m.MappedRow.Row_Index) + ":", m.Data.Warnings)).join(""));
-		renderMessageSection(UI.SummaryBox, "Messages", "Miscellaneous messages", validRows.filter(m => m.Data.Message?.length > 0).map(m => messageWithHeaderAndList("Message on Row " + getRowNumber(m.MappedRow.Row_Index) + ":", [m.Data.Message])).join(""));
+		//Render Messages asynchronously
+		/*
+		setTimeout(function() {
+			renderMessageSection(UI.SummaryBox, "Server Errors", "Errors that caused processing a row to stop unexpectedly", serverErrorRows.map(m => messageWithHeaderAndList("Error on Row " + getRowNumber(m.MappedRow.Row_Index) + ":", [m.Error?.status + " " + (m.Error?.statusText || "Error")])).join(""));
+			renderMessageSection(UI.SummaryBox, "Processing Errors", "Errors encountered while processing the data", processingErrorRows.map(m => messageWithHeaderAndList("Error(s) on Row " + getRowNumber(m.MappedRow.Row_Index) + ":", m.Data.Errors)).join(""));
+			renderMessageSection(UI.SummaryBox, "Warnings", "Issues detected while processing the data", validRows.filter(m => m.Data.Warnings.length > 0).map(m => messageWithHeaderAndList("Warning(s) on Row " + getRowNumber(m.MappedRow.Row_Index) + ":", m.Data.Warnings)).join(""));
+			renderMessageSection(UI.SummaryBox, "Messages", "Miscellaneous messages", validRows.filter(m => m.Data.Message?.length > 0).map(m => messageWithHeaderAndList("Message on Row " + getRowNumber(m.MappedRow.Row_Index) + ":", [m.Data.Message])).join(""));
+		}, 0)
+		*/
+
+		renderMessageSectionAsynchronously(UI.SummaryBox, "Server Errors", "Errors that caused processing a row to stop unexpectedly", serverErrorRows, (item, container) => {
+			messageWithHeaderAndList2(container, "Error(s) on Row " + getRowNumber(item.MappedRow.Row_Index) + ":", [item.Error?.status + " " + (item.Error?.statusText || "Error")]);
+		});
+		renderMessageSectionAsynchronously(UI.SummaryBox, "Processing Errors", "Errors encountered while processing the data", processingErrorRows, (item, container) => {
+			messageWithHeaderAndList2(container, "Error(s) on Row " + getRowNumber(item.MappedRow.Row_Index) + ":", item.Data.Errors);
+		});
+		renderMessageSectionAsynchronously(UI.SummaryBox, "Warnings", "Issues detected while processing the data", validRows.filter(item => item.Data.Warnings.length > 0), (item, container) => {
+			messageWithHeaderAndList2(container, "Warning(s) on Row " + getRowNumber(item.MappedRow.Row_Index) + ":", item.Data.Warnings);
+		});
+		renderMessageSectionAsynchronously(UI.SummaryBox, "Messages", "Miscellaneous messages", validRows.filter(m => m.Data.Message?.length > 0), (item, container) => {
+			messageWithHeaderAndList2(container, "Message(s) on Row " + getRowNumber(item.MappedRow.Row_Index) + ":", [item.Data.Message]);
+		});
 
 		//Render Potential Duplicates
 		renderAllDuplicateSets();
@@ -698,6 +735,20 @@
 	}
 	//
 
+	function renderMessageSectionAsynchronously(container, title, description, source, renderItem) {
+		if (source?.length > 0) {
+			var wrapper = $("<div class=\"messageSection\"><h4 class=\"messageSectionHeader\">" + title + "</h4><p class=\"messageSectionDescription\">" + description + "</p><div class=\"messageSectionContent\"></div></div>").appendTo(container);
+			var content = wrapper.find(".messageSectionContent");
+			source.forEach(item => {
+				var itemContent = $("<div class=\"messageSet\"></div>").appendTo(content);
+				setTimeout(function () {
+					renderItem(item, itemContent);
+				}, 0);
+			});
+		}
+	}
+	//
+
 	function renderMessageSection(container, title, description, content) {
 		if (content.length > 0) {
 			container.append("<div class=\"messageSection\"><h4 class=\"messageSectionHeader\">" + title + "</h4><p class=\"messageSectionDescription\">" + description + "</p><div class=\"messageSectionContent\">" + content + "</div></div>");
@@ -705,10 +756,22 @@
 	}
 	//
 
+	function messageWithHeaderAndList2(container, header, list) {
+		if (list.length > 0) {
+			container.html("<div class=\"messageSetHeader\">" + header + "</div><ul class=\"messageSetList\">" + list.map(m => "<li class=\"messageSetListItem\">" + m + "</li>").join("") + "</ul>");
+		}
+		else {
+			container.remove();
+		}
+	}
+	//
+
+	/*
 	function messageWithHeaderAndList(header, list) {
 		return list.length == 0 ? "" : "<div class=\"messageSet\"><div class=\"messageSetHeader\">" + header + "</div><ul class=\"messageSetList\">" + list.map(m => "<li class=\"messageSetListItem\">" + m + "</li>").join("") + "</ul></div>";
 	}
 	//
+	*/
 
 	function renderAllDuplicateSets() {
 		UI.DuplicatesBox.html("<div class=\"itemCount\">" + (Manager.PotentialDuplicates.length + " Sets of Potential Duplicates") + "</div>");
@@ -954,14 +1017,16 @@
 		console.log("Rendering Confirmation", Manager.Confirmation);
 
 		UI.SummaryBox.html("");
-		renderMessageSection(UI.SummaryBox, "Errors", "Errors that occurred while saving changes", renderConfirmationMessageList(Manager.Confirmation.Messages.Error));
-		renderMessageSection(UI.SummaryBox, "Warnings", "Warnings that were raised while saving changes", renderConfirmationMessageList(Manager.Confirmation.Messages.Warning));
-		renderMessageSection(UI.SummaryBox, "Potential Duplicates", "Potential duplicates detected while saving changes", renderConfirmationMessageList(Manager.Confirmation.Messages.Duplicate));
-		renderMessageSection(UI.SummaryBox, "Created Items", "Items created while saving changes", renderConfirmationMessageList(Manager.Confirmation.Messages.Create));
-		renderMessageSection(UI.SummaryBox, "Deleted Items", "Items deleted while saving changes", renderConfirmationMessageList(Manager.Confirmation.Messages.Delete));
-		renderMessageSection(UI.SummaryBox, "References Added", "References added to existing items while saving changes", renderConfirmationMessageList(Manager.Confirmation.Messages.AddItem));
-		renderMessageSection(UI.SummaryBox, "References Removed", "References removed from existing items while saving changes", renderConfirmationMessageList(Manager.Confirmation.Messages.RemoveItem));
-		renderMessageSection(UI.SummaryBox, "Notes", "General notes generated while saving changes", renderConfirmationMessageList(Manager.Confirmation.Messages.Note));
+		setTimeout(function () {
+			renderMessageSection(UI.SummaryBox, "Errors", "Errors that occurred while saving changes", renderConfirmationMessageList(Manager.Confirmation.Messages.Error));
+			renderMessageSection(UI.SummaryBox, "Warnings", "Warnings that were raised while saving changes", renderConfirmationMessageList(Manager.Confirmation.Messages.Warning));
+			renderMessageSection(UI.SummaryBox, "Potential Duplicates", "Potential duplicates detected while saving changes", renderConfirmationMessageList(Manager.Confirmation.Messages.Duplicate));
+			renderMessageSection(UI.SummaryBox, "Created Items", "Items created while saving changes", renderConfirmationMessageList(Manager.Confirmation.Messages.Create));
+			renderMessageSection(UI.SummaryBox, "Deleted Items", "Items deleted while saving changes", renderConfirmationMessageList(Manager.Confirmation.Messages.Delete));
+			renderMessageSection(UI.SummaryBox, "References Added", "References added to existing items while saving changes", renderConfirmationMessageList(Manager.Confirmation.Messages.AddItem));
+			renderMessageSection(UI.SummaryBox, "References Removed", "References removed from existing items while saving changes", renderConfirmationMessageList(Manager.Confirmation.Messages.RemoveItem));
+			renderMessageSection(UI.SummaryBox, "Notes", "General notes generated while saving changes", renderConfirmationMessageList(Manager.Confirmation.Messages.Note));
+		}, 0);
 
 		//Let everything render (some of it is async), then alert the user
 		setTimeout(function () {
