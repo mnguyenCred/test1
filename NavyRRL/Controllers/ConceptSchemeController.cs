@@ -27,6 +27,7 @@ namespace NavyRRL.Controllers
 			return JsonResponse( results, true );
 		}
 		//
+
 		[CustomAttributes.NavyAuthorize( "Concept Scheme View", Roles = SiteReader )]
 		public ActionResult Detail( int id )
 		{

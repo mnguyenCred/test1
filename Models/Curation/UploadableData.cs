@@ -98,6 +98,8 @@ namespace Models.Curation
 		public Guid TransactionGUID { get; set; }
 		public Guid RatingRowID { get; set; }
 		public string RawCSV { get; set; } //Only used on the last request, where the raw CSV is sent
+		public bool SkipPart2Checks { get; set; }
+		public bool SkipPart3Checks { get; set; }
 	}
 
 	//Response for row-by-row uploads

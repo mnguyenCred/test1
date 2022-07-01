@@ -25,16 +25,16 @@ namespace NavyRRL.Controllers
 
             return View();
         }
+
         /// <summary>
         /// placeholder for use where an endpoint is not available yet. 
         /// </summary>
         /// <returns></returns>
         public ActionResult Placeholder()
         {
-
-
             return View();
         }
+
         public ActionResult ContactUs()
         {
             ViewBag.Message = "Contact Us.";
@@ -108,7 +108,9 @@ namespace NavyRRL.Controllers
             }
 
             return ip;
-        } //
+        } 
+		//
+
         bool IsValidEmail( string email, ref string message )
         {
             var trimmedEmail = email.Trim();

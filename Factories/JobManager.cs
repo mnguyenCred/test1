@@ -135,7 +135,7 @@ namespace Factories
         }
 
         /// <summary>
-        /// add a Job
+        /// Add a Job
         /// </summary>
         /// <param name="entity"></param>
         /// <param name="status"></param>

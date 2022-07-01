@@ -183,6 +183,7 @@
     <Compile Include="Controllers\DataController.cs" />
     <Compile Include="Controllers\EventController.cs" />
     <Compile Include="Controllers\OrganizationController.cs" />
+    <Compile Include="Controllers\RatingContextController.cs" />
     <Compile Include="Controllers\RatingController.cs" />
     <Compile Include="Controllers\RatingTaskController.cs" />
     <Compile Include="Controllers\RDFController.cs" />
@@ -637,6 +638,8 @@
     <Content Include="Views\RDF\Terms.cshtml" />
     <Content Include="Views\Shared\_DetailShared.cshtml" />
     <Content Include="Views\Search\_ItemListSearch.cshtml" />
+    <Content Include="Views\RatingContext\Detail.cshtml" />
+    <Content Include="Views\RatingContext\Edit.cshtml" />
     <None Include="Web.Sandbox.config">
       <DependentUpon>Web.config</DependentUpon>
     </None>

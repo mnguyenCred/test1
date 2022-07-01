@@ -24,10 +24,10 @@
 			//Create search and apply custom functionality
 			Config.Search = createSearch(Config.Type, "@Url.Content("~/")" + Config.Type.toLowerCase() + "/dosearch", Config.UI.StatusBox, Config.UI.Spinner, Config.UI.ResultsBox.find("tbody"), Config.UI.PagingBox, Config.PageSize || 20, 100);
 			Config.Search.customizeQuery = function () {
-				Config.customizeQuery(Config.Search.Query);
+				Config.customizeQuery?.(Config.Search.Query);
 			}
 			Config.Search.getFilters = function () {
-				return ItemListConfigs.CommonFilters.concat(Config.Filters || []);
+				return ItemListConfigs.CommonFilters?.concat(Config.Filters || []);
 			}
 			Config.Search.getSortOrder = function () {
 				return Config.SortOrder;

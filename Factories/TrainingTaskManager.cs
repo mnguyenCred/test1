@@ -895,23 +895,10 @@ namespace Factories
                     if ( courseFilter != null && courseFilter.ItemIds?.Count() > 0 )
                     {
                         list = list.Where( s =>
-                            (courseFilter.IsNegation ?
+                            courseFilter.IsNegation ?
                                 !courseFilter.ItemIds.Contains( s.CourseId ) :
-                                courseFilter.ItemIds.Contains( s.CourseId ))
-                                && ( keywordsText == "" || s.Description.ToLower().Contains( keywordsText ) ) 
+                                courseFilter.ItemIds.Contains( s.CourseId )
                         );
-                    }
-                    else
-                    {
-                        //if no keywords, include course name filter on keywords
-                        if ( !string.IsNullOrWhiteSpace( keywordsText ) )
-                        {
-                            //not working?
-                            list = list.Where( s => s.Description.ToLower().Contains( keywordsText )
-                            || s.Course.Name.ToLower().Contains( keywordsText ) 
-                            || s.Course.CodedNotation.ToLower().Contains( keywordsText )
-                            );
-                        }
                     }
 
 					//Handle Rating Task Connection
@@ -927,6 +914,15 @@ namespace Factories
                             ).Count() > 0
                         );
                     }
+
+					//Handle keywords text
+					if ( !string.IsNullOrWhiteSpace( keywordsText ) )
+					{
+						list = list.Where( s => s.Description.ToLower().Contains( keywordsText )
+						|| s.Course.Name.ToLower().Contains( keywordsText )
+						|| s.Course.CodedNotation.ToLower().Contains( keywordsText )
+						);
+					}
 
                     //Get total
                     query.TotalResults = list.Count();

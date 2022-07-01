@@ -27,8 +27,8 @@ namespace NavyRRL.Controllers
 			return JsonResponse( results, true );
 		}
 		//
-		[CustomAttributes.NavyAuthorize( "Rating View", Roles = SiteReader )]
 
+		[CustomAttributes.NavyAuthorize( "Rating View", Roles = SiteReader )]
 		public ActionResult Detail( int id )
 		{
 			AuthenticateOrRedirect( "You must be authenticated and authorized to view Rating data." );
@@ -36,8 +36,8 @@ namespace NavyRRL.Controllers
 			return View( data );
 		}
 		//
-		[CustomAttributes.NavyAuthorize( "Rating Edit", Roles = Admin_SiteManager )]
 
+		[CustomAttributes.NavyAuthorize( "Rating Edit", Roles = Admin_SiteManager )]
 		[Route("Rating/GetByRowID/{rowID}")]
 		public ActionResult GetByRowID( Guid rowID )
 		{

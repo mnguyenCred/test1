@@ -259,6 +259,25 @@ namespace Services
 		}
 		//
 
+		public static JObject GetRDF( RatingContext source )
+		{
+			var result = GetStarterResult( "navy:RatingContext", source );
+
+			AppendValue( result, "ceterms:codedNotation", source.CodedNotation, true );
+			AppendValue( result, "ceasn:comment", source.Note, true );
+			AppendLookupValue( result, "ceterms:hasOccupation", source.HasRating, Factories.RatingManager.Get );
+			AppendLookupValue( result, "navy:hasRatingTask", source.HasRatingTask, ( rowID ) => { return Factories.RatingTaskManager.Get( rowID ); } );
+			AppendLookupValue( result, "ceterms:hasJob", source.HasBilletTitle, Factories.JobManager.Get );
+			AppendLookupValue( result, "ceterms:hasWorkRole", source.HasWorkRole, Factories.WorkRoleManager.Get );
+			AppendLookupValue( result, "navy:hasTrainingTask", source.HasTrainingTask, Factories.TrainingTaskManager.Get );
+			AppendLookupValue( result, "navy:payGradeType", source.PayGradeType, Factories.ConceptSchemeManager.GetConcept );
+			AppendLookupValue( result, "navy:applicabilityType", source.ApplicabilityType, Factories.ConceptSchemeManager.GetConcept );
+			AppendLookupValue( result, "navy:trainingGapType", source.TrainingGapType, Factories.ConceptSchemeManager.GetConcept );
+
+			return result;
+		}
+		//
+
 		public static JObject GetRDF( ReferenceResource source )
 		{
 			var result = GetStarterResult( "navy:ReferenceResource", source );
@@ -278,6 +297,7 @@ namespace Services
 
 			AppendValue( result, "ceterms:description", source.Description, true );
 			AppendLookupValue( result, "ceterms:assessmentMethodType", source.AssessmentMethodType, Factories.ConceptSchemeManager.GetMultipleConcepts );
+			AppendLookupValue( result, "ceterms:hasOccupation", source.HasRating, Factories.RatingManager.GetMultiple );
 
 			return result;
 		}
@@ -328,7 +348,7 @@ namespace Services
 			AppendValue( result, "skos:prefLabel", source.Name, true );
 			AppendValue( result, "skos:notation", source.CodedNotation, false );
 			AppendValue( result, "skos:definition", source.Description, true );
-			//AppendLookupValue( result, "skos:inScheme", source.InScheme, Factories.ConceptSchemeManager.GetByRowId );
+			AppendLookupValue( result, "skos:inScheme", source.InScheme, ( rowID ) => { return Factories.ConceptSchemeManager.Get( rowID, false ); } );
 
 			return result;
 		}

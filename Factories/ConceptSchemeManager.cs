@@ -185,7 +185,7 @@ namespace Factories
 			return entity;
 		}
 
-		public static AppEntity GetByRowId( Guid rowId, bool includingConcepts = false )
+		public static AppEntity Get( Guid rowId, bool includingConcepts = false )
         {
             var entity = new AppEntity();
 
@@ -499,7 +499,7 @@ namespace Factories
             //check inscheme
             if ( IsValidGuid( entity.InScheme ) ) //Editor uses GUID field, so check this first
             {
-                var cs = GetByRowId( entity.InScheme );
+                var cs = Get( entity.InScheme );
                 entity.ConceptSchemeId = cs.Id;
             }
 			else if( entity.ConceptSchemeId > 0 )

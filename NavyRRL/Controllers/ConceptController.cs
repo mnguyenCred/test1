@@ -27,6 +27,7 @@ namespace NavyRRL.Controllers
 			return JsonResponse( results, true );
 		}
 		//
+
 		[CustomAttributes.NavyAuthorize( "Concept View", Roles = SiteReader )]
 		public ActionResult Detail( int id )
 		{
@@ -35,8 +36,8 @@ namespace NavyRRL.Controllers
 			return View( data );
 		}
 		//
-		[CustomAttributes.NavyAuthorize( "Concept Edit", Roles = Admin_SiteManager )]
 
+		[CustomAttributes.NavyAuthorize( "Concept Edit", Roles = Admin_SiteManager )]
 		public ActionResult JSON( int id )
 		{
 			AuthenticateOrRedirect( "You must be authenticated and authorized to view Concept data." );

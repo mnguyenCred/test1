@@ -17,18 +17,17 @@
 	Description = Model.Description,
 	Identifiers = new List<NamedString>()
 	{
-		new NamedValue( "System ID", Model.Id.ToString() ),
-		new NamedValue( "CIN", Model.CodedNotation ),
-		new NamedValue( "Training Tasks", Model.TrainingTasks.Count.ToString() ),
-
+		new NamedString( "System ID", Model.Id.ToString() ),
+		new NamedString( "CIN", Model.CodedNotation ),
 		new NamedString( "Course Type", String.Join(", ", courseTypes.Select( m => "<a href=\"" + Url.Content( "~/Concept/Detail/" + m.Id ) + "\">" + m.Name + "</a>" ).ToList()) ),
 		new NamedString( "CCA", "<a href=\"" + Url.Content( "~/Organization/Detail/" + Model.CurriculumControlAuthorityId ) + "\">" + Model.OrganizationName + "</a>" ),
 		new NamedString( "LCCD", "<a href=\"" + Url.Content( "~/Concept/Detail/" + Model.LifeCycleControlDocumentTypeId ) + "\">" + Model.LifeCycleControlDocument + "</a>" ),
 		new NamedString( "CTID", Model.CTID ),
-			new NamedValue( "Last Updated ", Model.LastUpdated.ToString("yyyy-MM-dd hh:mm") )
+		new NamedString( "Last Updated ", Model.LastUpdated.ToString("yyyy-MM-dd hh:mm") )
 	}
 } )
 
+@*
 @if ( Model.TrainingTasks != null && Model.TrainingTasks.Count() > 0 )
 {
 	<div class="section">
@@ -52,3 +51,35 @@
 		</table>
 	</div>
 }
+*@
+
+@Html.Partial( "~/Views/Search/_ItemListSearch.cshtml" )
+<script type="text/javascript">
+	var ItemListConfigs = {
+		CommonFilters: [
+			{ Name: "ceterms:Course", ItemIds: [ @Model.Id ] }
+		],
+		Searches: {
+			TrainingTasks: {
+				Header: "Training Tasks",
+				Type: "TrainingTask",
+				Columns: ["CTTL/PPP/TCCD Statement", "Assessment Approach"],
+				Cells: [
+					(Result) => { return ItemListSearches.getLink("@Url.Content("~/TrainingTask/Detail/")" + Result.Id, Result.Description); },
+					(Result) => { return Result.AssessmentMethods }
+				]
+			}
+		}
+	};
+	//
+
+	$(document).ready(function () {
+		ItemListSearches.setupItemLists(ItemListConfigs);
+	});
+	//
+</script>
+<style type="text/css">
+	table[data-type='TrainingTask'] [data-column='Assessment Approach'] { width: 200px; }
+</style>
+
+<item-list-search name="TrainingTasks"></item-list-search>

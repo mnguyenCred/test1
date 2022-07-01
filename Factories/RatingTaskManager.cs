@@ -254,7 +254,7 @@ namespace Factories
 		//
 
 		//Find loose matches, so other code can figure out whether there are any exact matches
-		public static RatingTask GetForUpload( int ratingId, string ratingTaskDescription, Guid applicabilityTypeRowID, Guid sourceRowID, Guid sourceTypeRowID, Guid payGradeRowID, Guid trainingGapTypeRowID )
+		public static RatingTask GetForUpload( string ratingTaskDescription, Guid applicabilityTypeRowID, Guid sourceRowID, Guid payGradeRowID, Guid trainingGapTypeRowID )
 		{
 			var result = new RatingTask();
 
@@ -264,20 +264,14 @@ namespace Factories
 					m.Description.ToLower() == ratingTaskDescription.ToLower() &&
 					m.ConceptScheme_Applicability.RowId == applicabilityTypeRowID &&
 					m.ToReferenceResource.RowId == sourceRowID &&
-					//m.ConceptScheme_SourceType.RowId == sourceTypeRowID && //Needed because the NAVPERS I Source constitutes two source types (but maybe this is irrelevant because of applicability type?)
-					m.ConceptScheme_Rank.RowId == payGradeRowID &&
-					m.ConceptScheme_TrainingGap.RowId == trainingGapTypeRowID
+					m.ConceptScheme_Rank.RowId == payGradeRowID// &&
+					//m.ConceptScheme_TrainingGap.RowId == trainingGapTypeRowID //Using training gap type as a discriminator leads to duplicate tasks getting created when really they're just linked (or not) to training for one rating but not the other
 				);
                 if ( matches != null && matches.Count() > 0 )
                 {
-                    //need to check rating
                     foreach( var item in matches)
                     {
-                        //if (item.RatingTask_HasRating.Contains('' ))
                         MapFromDB( item, result, false );
-                        if ( matches.Count() == 1 )
-                            break;
-
                     }
                 }
                 
@@ -1578,6 +1572,7 @@ namespace Factories
                         foreach ( var child in input.HasRating )
                         {
                             //if not in existing, then add
+							/*
                             bool doingAdd = true;
                             if ( existing?.Count > 0 )
                             {
@@ -1585,7 +1580,9 @@ namespace Factories
                                 if ( isfound.Any() )
                                     doingAdd = false;
                             }
-                            if ( doingAdd )
+							*/
+							if( existing.Where( s => s.RowId == child ).Count() == 0 ) //Not sure why .Select() always returns at least one value but .Where() does not
+                            //if ( doingAdd )
                             {
                                 var related = RatingManager.Get( child );
                                 if ( related?.Id > 0 )

@@ -166,6 +166,13 @@ namespace Services
 		}
 		//
 
+		//RatingContext
+		public static SearchResultSet<RatingContext> RatingContextSearch( SearchQuery query, JObject debug = null )
+		{
+			return GeneralSearch( query, Factories.RatingContextManager.Search, debug );
+		}
+		//
+
 		//ReferenceResource
 		public static SearchResultSet<ReferenceResource> ReferenceResourceSearch( SearchQuery query, JObject debug = null )
 		{
