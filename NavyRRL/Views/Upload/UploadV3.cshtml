@@ -224,7 +224,7 @@
 		Manager.CSVJSON = []; //Clear out any existing CSVJSON
 
 		//Scan to ensure all of the expected columns are present
-		var expectedRows = ["Unique Identifier", "Rating", "Rank", "Level (A/J/M)", "Billet Title", "Functional Area", "Source", "Date of Source", "Work Element Type", "Work Element (Task)", "Task Applicability", "Formal Training Gap", "CIN", "Course Name", "Course Type (A/C/G/F/T)", "Curriculum Control Authority (CCA)", "Life-Cycle Control Document", "CTTL/PPP/TCCD Statement", "Current Assessment Approach", "Notes", "Training Solution Type", "Cluster Analysis Title", "Recommended Modality", "Development Specification", "Candidate Platform", "CFM Placement", "Priority Placement", "Development Ratio", "Estimated Instructional Time", "Development Time", "Part III Notes"];
+		var expectedRows = ["Unique Identifier", "Rating", "Rank", "Level (A/J/M)", "Billet Title", "Functional Area", "Source", "Date of Source", "Work Element Type", "Work Element (Task)", "Task Applicability", "Formal Training Gap", "CIN", "Course Name", "Course Type (A/C/G/F/T)", "Curriculum Control Authority (CCA)", "Life-Cycle Control Document", "CTTL/PPP/TCCD Statement", "Current Assessment Approach", "Training Solution Type", "Cluster Analysis Title", "Recommended Modality", "Development Specification", "Candidate Platform", "CFM Placement", "Priority Placement", "Development Ratio", "Estimated Instructional Time", "Development Time (duration in hours)", "Notes"]
 		var missingColumns = expectedRows.filter(column => !Manager.CSVColumns.includes(column));
 		if (missingColumns.length > 0) {
 			alert("The following column(s) were not found in the spreadsheet. Column names must match exactly. Please double-check the data and try again:\n\n" + missingColumns.join("\n"));
@@ -295,8 +295,8 @@
 				Priority_Placement: row["Priority Placement"],
 				Development_Ratio: row["Development Ratio"],
 				Estimated_Instructional_Time: row["Estimated Instructional Time"],
-				Development_Time: row["Development Time"],
-				Cluster_Analysis_Notes: row["Part III Notes"],
+				Development_Time: row["Development Time (duration in hours)"],
+				//Cluster_Analysis_Notes: row["Part III Notes"], //Dropped 2022-7-6
 			}
 		});
 
