@@ -22,6 +22,7 @@ namespace Models.Schema
 		public Guid PayGradeType { get; set; }
 		public Guid HasTrainingTask { get; set; }
 		public Guid HasClusterAnalysis { get; set; }
+		public Guid HasClusterAnalysisTitle { get; set; }
 
 		//IDs referencing other entities
 		public int HasRatingId { get; set; }
@@ -33,6 +34,7 @@ namespace Models.Schema
 		public int PayGradeTypeId { get; set; }
 		public int HasTrainingTaskId { get; set; }
 		public int HasClusterAnalysisId { get; set; }
+		public int HasClusterAnalysisTitleId { get; set; }
 	}
 	//
 
@@ -48,6 +50,7 @@ namespace Models.Schema
 		public Concept PayGradeTypeData { get; set; }
 		public Concept HasTrainingTaskData { get; set; }
 		public ClusterAnalysis HasClusterAnalysisData { get; set; }
+		public ClusterAnalysisTitle HasClusterAnalysisTitleData { get; set; }
 	}
 	//
 }

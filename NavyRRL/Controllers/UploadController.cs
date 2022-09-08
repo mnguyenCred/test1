@@ -40,6 +40,13 @@ namespace NavyRRL.Controllers
         }
 		//
 
+		[HttpGet, Route("uploadv4")]
+		public ActionResult IndexV4()
+		{
+			return View( "~/views/upload/uploadv4.cshtml" );
+		}
+		//
+
 		public ActionResult ProcessUploadedItem( UploadableItem item )
 		{
 			//Process the current row

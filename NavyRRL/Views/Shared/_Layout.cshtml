@@ -33,6 +33,7 @@
 
 	<script src="~/Scripts/jquery.timepicker.js"></script>
 	<style>
+		.navbar-brand img { vertical-align: middle; width: 30px; }
 		.navbar-right { float: right !important; margin-right: -5px; }
 		.navbar-inverse .navbar-collapse, .navbar-inverse .navbar-form { border-color: #1120e8; }
 		.navbar-inverse { background-color: #202A44; border-color: #202A44; }
@@ -41,13 +42,8 @@
 </head>
 <body>
 	<div id="mainSiteDiv" class="defaultTheme">
-		@*@Html.Partial( "~/Views/Shared/_Header.cshtml" )*@
 		<div class="navbar navbar-inverse navbar-fixed-top">
 			<div class="container">
-				@*<div class="navbar-header">
-					<a class="column" id="mainSiteLogo" href="@Url.Content( "~" )" style="background-image: url('@Url.Content( "~/favicon.png" )'); background-size: 95%;" title="Site Logo"></a>
-
-				</div>*@
 				<div class="navbar-header">
 					<button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
 						<span class="icon-bar"></span>
@@ -55,11 +51,13 @@
 						<span class="icon-bar"></span>
 					</button>
 
-					<a class="navbar-brand" href="@applicationURL" title="Navy RCDC RRL"><img src="~/favicon.png" style="vertical-align: middle; width: 30px;" alt="Navy RCDC RRL"></a>
+					<a class="navbar-brand" href="@applicationURL" title="Navy RCDC RRL"><img src="~/favicon.png" alt="Navy RCDC RRL" /></a>
 				</div>
 				<div class="navbar-collapse collapse">
 					<ul class="nav navbar-nav">
-						<li>@Html.ActionLink( "Home", "Index", "Home" )</li>
+						<li>
+							<a href="@Url.Content( "~/" )">Home</a>
+						</li>
 					</ul>
 
 					@if ( ( user != null && user.Id > 0 ) || env == "developmentX" )
@@ -70,14 +68,6 @@
 						<ul class="nav navbar-nav">
 							<li><a href="@Url.Content( "~/upload/index" )">Upload Data</a></li>
 						</ul>
-
-						@*if ( AccountServices.IsUserAnAdmin() )
-			{
-				<ul class="nav navbar-nav">
-					<li><a href="@Url.Content( "~/upload/UploadV3" )">Upload Data V3</a></li>
-				</ul>
-
-			}*@
 						<ul class="nav navbar-nav">
 							<li><a href="@Url.Content( "~/rmtlproject/search" )">RMTL Projects</a></li>
 						</ul>
@@ -104,35 +94,19 @@
 							</ul>
 						}
 
-
-							<ul class="nav navbar-nav">
-								<li class="dropdown">
-									<a href="#" class="dropdown-toggle" data-toggle="dropdown">Authorization Tests<b class="caret"></b></a>
-									<ul class="dropdown-menu">
-										<li><a href="@Url.Content( "~/admin/RmtlDeveloperOnly" )">Rmtl Developer nly</a></li>
-										<li><a href="@Url.Content( "~/admin/RatingContinuumManagerOnly" )">RatingContinuumManagerOnly</a></li>
-										<li><a href="@Url.Content( "~/admin/RCDAnalystOnly" )">RCDAnalystOnly</a></li>
-										<li><a href="@Url.Content( "~/admin/activity" )">Site Staff</a></li>
-									</ul>
-								</li>
-							</ul>
-						
+						<ul class="nav navbar-nav">
+							<li class="dropdown">
+								<a href="#" class="dropdown-toggle" data-toggle="dropdown">Authorization Tests<b class="caret"></b></a>
+								<ul class="dropdown-menu">
+									<li><a href="@Url.Content( "~/admin/RmtlDeveloperOnly" )">Rmtl Developer nly</a></li>
+									<li><a href="@Url.Content( "~/admin/RatingContinuumManagerOnly" )">RatingContinuumManagerOnly</a></li>
+									<li><a href="@Url.Content( "~/admin/RCDAnalystOnly" )">RCDAnalystOnly</a></li>
+									<li><a href="@Url.Content( "~/admin/activity" )">Site Staff</a></li>
+								</ul>
+							</li>
+						</ul>
 					}
-					@*@if ( AccountServices.IsUserAnAdmin() )
-		{
-			<ul class="nav navbar-nav">
-				<li class="dropdown">
-					<a href="#" class="dropdown-toggle" data-toggle="dropdown">Data Management<b class="caret"></b></a>
-					<ul class="dropdown-menu">
-						<li><a href="@Url.Content( "~/data/index" )">Home</a></li>
-						<li><a href="@Url.Content( "~/data/ManageCCA" )">CCA Management</a></li>
-						<li><a href="@Url.Content( "~/data/ManageConceptSchemes" )">Concept Management</a></li>
-						<li><a href="@Url.Content( "~/data/ManageCourses" )">Course Management</a></li>
-					</ul>
-				</li>
 
-			</ul>
-		}*@
 					@if ( AccountServices.IsUserAnAdmin() )
 					{
 						<ul class="nav navbar-nav">
@@ -143,35 +117,19 @@
 									<li>@Html.ActionLink( "Add Account", "AddUser", "Account" )</li>
 									<li>@Html.ActionLink( "Activity Log", "Activity", "admin" )</li>
 									<li>@Html.ActionLink( "RMTL Catalog", "catalog", "rmtl" )</li>
-
-
 								</ul>
 							</li>
-
 						</ul>
 					}
-					@*@if ( ( user?.Id == 0 ) )
-		{
-			<ul class="nav navbar-nav navbar-right">
-				@if ( env == "development" )
-				{
-				<li>@Html.ActionLink( "Register", "Register", "Account", routeValues: null, htmlAttributes: new { id = "registerLink" } )</li>
-				}
-				<li>@Html.ActionLink( "Log in", "Login", "Account", routeValues: null, htmlAttributes: new { id = "loginLink" } )</li>
-			</ul>
-		}*@
+
 					@Html.Partial( "_LoginPartial" )
 				</div>
 			</div>
 		</div>
-		<div class="container body-content"  >
+		<div class="container body-content">
 			@RenderBody()
-
-			@*<footer id="mainSiteFooter" style="bottom: 50px; position: fixed;  bottom: 0;">
-				<hr />
-				<p>&copy; @DateTime.Now.Year - Navy RCDC RRL</p>
-			</footer>*@
 		</div>
+
 		@Html.Partial( "~/Views/Shared/_ConsoleMessage.cshtml" )
 	</div>
 </body>
