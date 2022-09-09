@@ -1,7 +1,35 @@
 ﻿@using Services;
+@using Newtonsoft.Json;
+@using Models.Schema;
 @{
-    ViewBag.Title = "Upload V4";
+	ViewBag.Title = "Upload V4";
 	var allRatings = RatingServices.GetAll().OrderByDescending( m => m.CodedNotation.ToLower() == "all" ).ToList();
+	ConceptSchemeMap = Factories.ConceptSchemeManager.GetConceptSchemeMap( true );
+	var allOrganizations = Factories.OrganizationManager.GetAll();
+	var allValidOrganizationValues = allOrganizations.Select( org => org.Name ) //Look for name
+		.Concat( allOrganizations.Select( org => org.ShortName ) ) //Look for abbreviation
+		.Concat( allOrganizations.Select( org => org.Name + " (" + org.ShortName + ")" ) ) //Look for concatenated form: "Name (Abbreviation)"
+		.ToList();
+}
+@functions {
+	public ConceptSchemeMap ConceptSchemeMap { get; set; }
+
+	public string GetConceptValues( ConceptScheme scheme, bool includeName, bool includeCodedNotation, bool includeWorkElementType )
+	{
+		var values = new List<string>();
+
+		if( scheme != null && scheme.Concepts != null && scheme.Concepts.Count() > 0 )
+		{
+			values = values.Concat( includeName ? scheme.Concepts.Select( m => m.Name ).ToList() : new List<string>() )
+				.Concat( includeCodedNotation ? scheme.Concepts.Select( m => m.CodedNotation ).ToList() : new List<string>() )
+				.Concat( includeWorkElementType ? scheme.Concepts.Select( m => m.WorkElementType ).ToList() : new List<string>() )
+				.Where( value => !string.IsNullOrWhiteSpace( value ) )
+				.Distinct()
+				.ToList();
+		}
+
+		return JsonConvert.SerializeObject( values, Formatting.None );
+	}
 }
 
 @Html.Partial( "~/Views/Help/_UploadV3.cshtml" )
@@ -15,9 +43,71 @@
 			{ UTF8: '""', Match: ['“', '”', '\u201c', '\u201d', '\x93', '\x94'] },
 			{ UTF8: "'", Match: ['ʻ', 'ʼ', 'ʽ', '`', '´', '‘', '’', '\u2018', '\u2019', '\u00b4', '\u0060', '\x91', '\x92'] },
 			{ UTF8: "-", Match: ['–', '—', '·', '\u2013', '\u2014', '\x95', '\x96', '\x97'] }
-		],
-		Columns: ["Unique Identifier", "Rating", "Rank", "Level (A/J/M)", "Billet Title", "Functional Area", "Source", "Date of Source", "Work Element Type", "Work Element (Task)", "Task Applicability", "Formal Training Gap", "CIN", "Course Name", "Course Type (A/C/G/F/T)", "Curriculum Control Authority (CCA)", "Life-Cycle Control Document", "CTTL/PPP/TCCD Statement", "Current Assessment Approach", "Training Solution Type", "Cluster Analysis Title", "Recommended Modality", "Development Specification", "Candidate Platform", "CFM Placement", "Priority Placement", "Development Ratio", "Estimated Instructional Time", "Development Time (duration in hours)", "Notes"]
+		]//,
+		//Columns: ["Unique Identifier", "Rating", "Rank", "Level (A/J/M)", "Billet Title", "Functional Area", "Source", "Date of Source", "Work Element Type", "Work Element (Task)", "Task Applicability", "Formal Training Gap", "CIN", "Course Name", "Course Type (A/C/G/F/T)", "Curriculum Control Authority (CCA)", "Life-Cycle Control Document", "CTTL/PPP/TCCD Statement", "Current Assessment Approach", "Training Solution Type", "Cluster Analysis Title", "Recommended Modality", "Development Specification", "Candidate Platform", "CFM Placement", "Priority Placement", "Development Ratio", "Estimated Instructional Time", "Development Time (duration in hours)", "Notes"]
 	};
+	var ColumnData = {
+		"Unique Identifier": {},
+		"Rating": {},
+		"Rank": {
+			Values: @Html.Raw( GetConceptValues( ConceptSchemeMap.PayGradeCategory, false, true, false ) ) //CodedNotation
+		},
+		"Level (A/J/M)": {},
+		"Billet Title": {},
+		"Functional Area": {},
+		"Source": {},
+		"Date of Source": {},
+		"Work Element Type": {
+			Values: @Html.Raw( GetConceptValues( ConceptSchemeMap.ReferenceResourceCategory, false, false, true ) ) //WorkElementType
+		},
+		"Work Element (Task)": {},
+		"Task Applicability": {
+			Values: @Html.Raw( GetConceptValues( ConceptSchemeMap.TaskApplicabilityCategory, true, false, false ) ) //Name
+		},
+		"Formal Training Gap": {
+			Values: @Html.Raw( GetConceptValues( ConceptSchemeMap.TrainingGapCategory, true, false, false ) ) //Name
+		},
+		"CIN": {},
+		"Course Name": {},
+		"Course Type (A/C/G/F/T)": {
+			Values: @Html.Raw( GetConceptValues( ConceptSchemeMap.CourseCategory, true, false, false ) ), //Name
+			SplitOn: [ ",", ";", "|" ]
+		},
+		"Curriculum Control Authority (CCA)": {
+			Values: @Html.Raw( JsonConvert.SerializeObject( allValidOrganizationValues, Formatting.None ) )
+		},
+		"Life-Cycle Control Document": {
+			Values: @Html.Raw( GetConceptValues( ConceptSchemeMap.LifeCycleControlDocumentCategory, true, true, false ) ) //Name or CodedNotation
+		},
+		"CTTL/PPP/TCCD Statement": {},
+		"Current Assessment Approach": {
+			Values: @Html.Raw( GetConceptValues( ConceptSchemeMap.CurrentAssessmentApproachCategory, true, false, false ) ), //Name
+			SplitOn: [ ",", ";", "|" ]
+		},
+		"Training Solution Type": {
+			Values: @Html.Raw( GetConceptValues( ConceptSchemeMap.TrainingSolutionCategory, true, false, false ) ) //Name
+		},
+		"Cluster Analysis Title": {},
+		"Recommended Modality": {
+			Values: @Html.Raw( GetConceptValues( ConceptSchemeMap.RecommendedModalityCategory, false, true, false ) ) //CodedNotation
+		},
+		"Development Specification": {
+			Values: @Html.Raw( GetConceptValues( ConceptSchemeMap.RecommendedModalityCategory, true, false, false ) ), //Name
+			SplitOn: [ "/" ]
+		},
+		"Candidate Platform": {
+			Values: @Html.Raw( GetConceptValues( ConceptSchemeMap.CandidatePlatformCategory, false, true, false ) ), //CodedNotation
+			SplitOn: [ "," ]
+		},
+		"CFM Placement": {},
+		"Priority Placement": {},
+		"Development Ratio": {
+			Values: @Html.Raw( GetConceptValues( ConceptSchemeMap.DevelopmentRatioCategory, true, false, false ) ), //Name
+		},
+		"Estimated Instructional Time": {},
+		"Development Time (duration in hours)": {},
+		"Notes": {}
+	}
 
 	$(document).ready(function() {
 		setupUI();
@@ -308,48 +398,47 @@
 			Manager.CSVJSON = []; //Clear out any existing CSVJSON
 
 			//Scan to ensure all of the expected columns are present
-			var missingColumns = Static.Columns.filter(column => !Manager.CSVColumns.includes(column));
+			var missingColumns = Object.keys(ColumnData).filter(column => !Manager.CSVColumns.includes(column));
 			if (missingColumns.length > 0) {
 				alert("The following column(s) were not found in the spreadsheet. Column names must match exactly. Please double-check the data and try again:\n\n" + missingColumns.join("\n"));
-				UI.StatusBars.PreProcessingProgress.setStatus("The following column(s) were not found in the spreadsheet. Column names must match exactly. Please double-check the data and try again:<br /><ul>" + missingColumns.map(item => "<li>" + item + "</li>").join("") + "</ul>");
-
+				UI.StatusBars.PreProcessingProgress.setStatus("Found one or more errors.");
 				missingColumns.forEach(column => {
-					UI.TableBoxes.PreProcessingTable.appendRow({ RowNumber: "Header", Type: "Column", Message: "The following column was not found in the spreadsheet. Column names must match exactly. Please double-check the data and try again: \"" + column + "\"" });
+					UI.TableBoxes.PreProcessingTable.appendRow({ RowNumber: "Header", Type: "Missing Column", Message: "The following column was not found in the spreadsheet. Column names must match exactly. Please double-check the data and try again: \"" + column + "\"" });
 				});
 				return;
 			}
 
 			//Create flat JSON
-			Manager.CSVRows.forEach(row => {
-				//Skip empty rows
-				if (row.join("").trim().length > 0) {
-					//Assemble row data
-					var item = {};
-					Manager.CSVColumns.forEach((column, index) => {
-						item[column] = row[index];
-					});
-					Manager.CSVJSON.push(item);
-				}
+			Manager.CSVRows = Manager.CSVRows.filter(row => row.join("").trim().length > 0); //Filter out empty rows and make this array useful for index-based comparisons later
+			Manager.CSVRows.forEach((row, index) => {
+				//Assemble row data
+				var item = {
+					RawIndex: index,
+					RawRowText: row.join("").trim(),
+					CompareText: row.join("").toLowerCase().replace(/[^a-z0-9 ]/g, " ").replace(/ +/g, " ").trim()
+				};
+				Manager.CSVColumns.forEach((column, index) => {
+					item[column] = row[index];
+				});
+				Manager.CSVJSON.push(item);
 			});
 
 			//Scan for pre-processing
 			UI.StatusBars.PreProcessingProgress.setStatus("Pre-Processing...");
-			UI.StatusBars.PreProcessingProgress.setValue(1, Manager.CSVJSON.length, "rows");
-			Manager.PreScanned = [];
+			UI.StatusBars.PreProcessingProgress.setValue(0, Manager.CSVJSON.length, "rows");
 			Manager.SelectedRatingCodedNotation = UI.RatingSelector.find("option:selected").attr("data-codednotation");
-			Manager.CSVJSON.forEach((row, index) => {
-				//Validate rating matches selected rating
-				appendErrorRowIf(UI.TableBoxes.PreProcessingTable, row.Rating != Manager.SelectedRatingCodedNotation, index + 1, "Rating", "Rating code for this row (" + row.Rating + ") does not match selected Rating code (" + Manager.SelectedRatingCodedNotation + ")");
-
-				//Scan for invalid concept references
-
-
-				//Scan for potential duplicates
-
-
-				UI.StatusBars.PreProcessingProgress.setValue(index + 1, Manager.CSVJSON.length, "rows");
-			})
-			UI.StatusBars.PreProcessingProgress.setStatus("Ready to Upload Data."); //TODO: Check for errors and render the correct message.  Write the rest of the validation first.  Show/hide buttons. Consider whether or not the high level tabs are necessary
+			scanRow(0, function () {
+				//If there are any errors
+				var preProcessingErrorRows = UI.TableBoxes.PreProcessingTable.TBody.find("tr"); //TODO: Develop more robust error tracking
+				if (preProcessingErrorRows.length > 0) {
+					UI.StatusBars.PreProcessingProgress.setStatus("Finished with " + preProcessingErrorRows.length + " Errors.");
+					//Show/hide buttons
+				}
+				//Otherwise
+				else {
+					UI.StatusBars.PreProcessingProgress.setStatus("Ready to Upload Data."); //TODO: Show/hide buttons. Consider whether or not the high level tabs are necessary
+				}
+			});
 		});
 
 		//Helper function
@@ -357,6 +446,47 @@
 			return cell.join("").replace(/<INSERTQUOTE>/g, '"').trim().replace(/^N\/A$/g, "");
 		}
 
+		//Helper function
+		function scanRow(index, afterComplete) {
+			//Get the row, or finish
+			if (Manager.CSVJSON.length > index) {
+				var row = Manager.CSVJSON[index];
+
+				//Reference the correct row number
+				var rowNumber = index + 3; //Account for heading rows and 0 based index
+
+				//Validate rating matches selected rating
+				appendErrorRowIf(UI.TableBoxes.PreProcessingTable, row.Rating != Manager.SelectedRatingCodedNotation, rowNumber, "Rating", "Rating code for this row (" + row.Rating + ") does not match selected Rating code (" + Manager.SelectedRatingCodedNotation + ")");
+
+				//Scan for invalid concept references
+				Object.keys(ColumnData).forEach(key => {
+					//If the column has a value for this row, and the value is not N/A...
+					if (ColumnData[key].Values && row[key] && row[key] != "N/A") {
+						//If it's a multi-value column, split it out into its values; otherwise just create a single-item array with the value
+						var columnValues = ColumnData[key].SplitOn ? row[key].split(new RegExp("[" + ColumnData[key].SplitOn.join("") + "]")) : [row[key]];
+						//Loop through the array to check that each value shows up in the valid values list
+						columnValues.forEach(value => {
+							appendErrorRowIf(UI.TableBoxes.PreProcessingTable, !ColumnData[key].Values.includes(value), rowNumber, "Invalid Value", key + " contains a value that was not found in the database: \"" + value + "\".");
+						});
+					}
+				});
+
+				//Scan for potential duplicates
+				var matches = Manager.CSVJSON.filter(otherJSON => otherJSON != row && otherJSON.CompareText == row.CompareText);
+				appendErrorRowIf(UI.TableBoxes.PreProcessingTable, matches.length > 0, rowNumber, "Duplicate Row", "Row(s) " + matches.map(match => match.RawIndex + 3).join(", ") + " appear to be identical to this row.");
+
+				//Update the progress bar
+				UI.StatusBars.PreProcessingProgress.setValue(index + 1, Manager.CSVJSON.length, "rows");
+
+				//Wait a moment for the UI to refresh, then run for the next row
+				setTimeout(() => {
+					scanRow(index + 1, afterComplete);
+				}, 1);
+			}
+			else {
+				afterComplete?.();
+			}
+		}
 	}
 	//
 
@@ -412,7 +542,7 @@
 	.statusBar { margin-bottom: 10px; }
 	.statusBar .progressBarOuter { background-color: #CCC; padding: 1px; height: 30px; }
 	.statusBar .progressBarOuter .progressBarInner { background-color: #CFC; height: 28px; min-width: 75px; transition: width 0.5s; text-align: center; }
-	.statusBar .progressBarOuter .progressBarInner .progressBarLabel { text-align: center; color: #031; padding: 4px 5px; }
+	.statusBar .progressBarOuter .progressBarInner .progressBarLabel { text-align: center; color: #031; padding: 4px 5px; white-space: nowrap; }
 	.statusBar .statusBox { padding: 5px 10px; }
 
 	.tableBox table { border: 1px solid #555; margin-bottom: 10px; }
