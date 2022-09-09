@@ -1,0 +1,636 @@
+﻿@using Services;
+@using Newtonsoft.Json;
+@using Models.Schema;
+@{
+	ViewBag.Title = "Upload V4";
+	var allRatings = RatingServices.GetAll().OrderByDescending( m => m.CodedNotation.ToLower() == "all" ).ToList();
+	ConceptSchemeMap = Factories.ConceptSchemeManager.GetConceptSchemeMap( true );
+	var allOrganizations = Factories.OrganizationManager.GetAll();
+	var allValidOrganizationValues = allOrganizations.Select( org => org.Name ) //Look for name
+		.Concat( allOrganizations.Select( org => org.ShortName ) ) //Look for abbreviation
+		.Concat( allOrganizations.Select( org => org.Name + " (" + org.ShortName + ")" ) ) //Look for concatenated form: "Name (Abbreviation)"
+		.ToList();
+}
+@functions {
+	public ConceptSchemeMap ConceptSchemeMap { get; set; }
+
+	public string GetConceptValues( ConceptScheme scheme, bool includeName, bool includeCodedNotation, bool includeWorkElementType )
+	{
+		var values = new List<string>();
+
+		if( scheme != null && scheme.Concepts != null && scheme.Concepts.Count() > 0 )
+		{
+			values = values.Concat( includeName ? scheme.Concepts.Select( m => m.Name ).ToList() : new List<string>() )
+				.Concat( includeCodedNotation ? scheme.Concepts.Select( m => m.CodedNotation ).ToList() : new List<string>() )
+				.Concat( includeWorkElementType ? scheme.Concepts.Select( m => m.WorkElementType ).ToList() : new List<string>() )
+				.Where( value => !string.IsNullOrWhiteSpace( value ) )
+				.Distinct()
+				.ToList();
+		}
+
+		return JsonConvert.SerializeObject( values, Formatting.None );
+	}
+}
+
+@Html.Partial( "~/Views/Help/_UploadV3.cshtml" )
+@Html.Partial( "~/Views/Shared/_AJAXTools.cshtml" )
+
+<script type="text/javascript">
+	var UI = {};
+	var Manager = {};
+	var Static = {
+		CharacterMap: [
+			{ UTF8: '""', Match: ['“', '”', '\u201c', '\u201d', '\x93', '\x94'] },
+			{ UTF8: "'", Match: ['ʻ', 'ʼ', 'ʽ', '`', '´', '‘', '’', '\u2018', '\u2019', '\u00b4', '\u0060', '\x91', '\x92'] },
+			{ UTF8: "-", Match: ['–', '—', '·', '\u2013', '\u2014', '\x95', '\x96', '\x97'] }
+		]//,
+		//Columns: ["Unique Identifier", "Rating", "Rank", "Level (A/J/M)", "Billet Title", "Functional Area", "Source", "Date of Source", "Work Element Type", "Work Element (Task)", "Task Applicability", "Formal Training Gap", "CIN", "Course Name", "Course Type (A/C/G/F/T)", "Curriculum Control Authority (CCA)", "Life-Cycle Control Document", "CTTL/PPP/TCCD Statement", "Current Assessment Approach", "Training Solution Type", "Cluster Analysis Title", "Recommended Modality", "Development Specification", "Candidate Platform", "CFM Placement", "Priority Placement", "Development Ratio", "Estimated Instructional Time", "Development Time (duration in hours)", "Notes"]
+	};
+	var ColumnData = {
+		"Unique Identifier": {},
+		"Rating": {},
+		"Rank": {
+			Values: @Html.Raw( GetConceptValues( ConceptSchemeMap.PayGradeCategory, false, true, false ) ) //CodedNotation
+		},
+		"Level (A/J/M)": {},
+		"Billet Title": {},
+		"Functional Area": {},
+		"Source": {},
+		"Date of Source": {},
+		"Work Element Type": {
+			Values: @Html.Raw( GetConceptValues( ConceptSchemeMap.ReferenceResourceCategory, false, false, true ) ) //WorkElementType
+		},
+		"Work Element (Task)": {},
+		"Task Applicability": {
+			Values: @Html.Raw( GetConceptValues( ConceptSchemeMap.TaskApplicabilityCategory, true, false, false ) ) //Name
+		},
+		"Formal Training Gap": {
+			Values: @Html.Raw( GetConceptValues( ConceptSchemeMap.TrainingGapCategory, true, false, false ) ) //Name
+		},
+		"CIN": {},
+		"Course Name": {},
+		"Course Type (A/C/G/F/T)": {
+			Values: @Html.Raw( GetConceptValues( ConceptSchemeMap.CourseCategory, true, false, false ) ), //Name
+			SplitOn: [ ",", ";", "|" ]
+		},
+		"Curriculum Control Authority (CCA)": {
+			Values: @Html.Raw( JsonConvert.SerializeObject( allValidOrganizationValues, Formatting.None ) )
+		},
+		"Life-Cycle Control Document": {
+			Values: @Html.Raw( GetConceptValues( ConceptSchemeMap.LifeCycleControlDocumentCategory, true, true, false ) ) //Name or CodedNotation
+		},
+		"CTTL/PPP/TCCD Statement": {},
+		"Current Assessment Approach": {
+			Values: @Html.Raw( GetConceptValues( ConceptSchemeMap.CurrentAssessmentApproachCategory, true, false, false ) ), //Name
+			SplitOn: [ ",", ";", "|" ]
+		},
+		"Training Solution Type": {
+			Values: @Html.Raw( GetConceptValues( ConceptSchemeMap.TrainingSolutionCategory, true, false, false ) ) //Name
+		},
+		"Cluster Analysis Title": {},
+		"Recommended Modality": {
+			Values: @Html.Raw( GetConceptValues( ConceptSchemeMap.RecommendedModalityCategory, false, true, false ) ) //CodedNotation
+		},
+		"Development Specification": {
+			Values: @Html.Raw( GetConceptValues( ConceptSchemeMap.RecommendedModalityCategory, true, false, false ) ), //Name
+			SplitOn: [ "/" ]
+		},
+		"Candidate Platform": {
+			Values: @Html.Raw( GetConceptValues( ConceptSchemeMap.CandidatePlatformCategory, false, true, false ) ), //CodedNotation
+			SplitOn: [ "," ]
+		},
+		"CFM Placement": {},
+		"Priority Placement": {},
+		"Development Ratio": {
+			Values: @Html.Raw( GetConceptValues( ConceptSchemeMap.DevelopmentRatioCategory, true, false, false ) ), //Name
+		},
+		"Estimated Instructional Time": {},
+		"Development Time (duration in hours)": {},
+		"Notes": {}
+	}
+
+	$(document).ready(function() {
+		setupUI();
+		setupManager();
+		refreshForUpload();
+	});
+	//
+
+	//Setup the UI elements
+	function setupUI() {
+		//Setup Tabs
+		UI.TabSets = {};
+		UI.TabSetsList = [];
+		$(".tabBox").each(function() {
+			var box = $(this);
+			var TabSet = {
+				Box: box,
+				Name: box.attr("data-name"),
+				ButtonsBox: box.find("> .tabButtons"),
+				TabsBox: box.find("> .tabList"),
+				Tabs: {},
+				TabsList: []
+			};
+			UI.TabSets[TabSet.Name] = TabSet;
+			UI.TabSetsList.push(TabSet);
+			TabSet.TabsBox.find("> .tabPanel").each(function() {
+				var panel = $(this);
+				var Tab = {
+					Box: panel,
+					Name: panel.attr("data-name"),
+					Label: panel.find("> .tabLabel"),
+					Button: $("<button></button>").appendTo(TabSet.ButtonsBox)
+				};
+				TabSet.Tabs[Tab.Name] = Tab;
+				TabSet.TabsList.push(Tab);
+				Tab.Button.html(Tab.Label.text());
+				Tab.Button.on("click", function() {
+					TabSet.showTab(Tab);
+				});
+			});
+			TabSet.showTab = function (TargetTab) {
+				TabSet.TabsList.forEach(OtherTab => {
+					OtherTab.Box.removeClass("current");
+					OtherTab.Button.removeClass("current greenButton");
+				});
+				TargetTab.Box.addClass("current");
+				TargetTab.Button.addClass("current greenButton");
+			};
+			TabSet.showTab(TabSet.TabsList[0]);
+		});
+
+		//Setup Progress Bars
+		UI.StatusBars = {};
+		UI.StatusBarsList = [];
+		$(".statusBar").each(function () {
+			var box = $(this);
+			var StatusBar = {
+				Box: box,
+				Name: box.attr("data-name"),
+				OuterBar: $("<div class=\"progressBarOuter\"></div>").appendTo(box),
+				StatusBox: $("<div class=\"statusBox\"></div>").appendTo(box),
+				Active: true,
+				Current: 0,
+				Max: 1,
+				UnitText: "",
+				OverrideLabel: ""
+			};
+			StatusBar.InnerBar = $("<div class=\"progressBarInner\"></div>").appendTo(StatusBar.OuterBar);
+			StatusBar.Label = $("<div class=\"progressBarLabel\"></div>").appendTo(StatusBar.InnerBar);
+			UI.StatusBars[StatusBar.Name] = StatusBar;
+			UI.StatusBarsList.push(StatusBar);
+			StatusBar.setValue = function (current, max, unitText, overrideLabel) {
+				StatusBar.Current = current;
+				StatusBar.Max = max;
+				StatusBar.UnitText = unitText;
+				StatusBar.OverrideLabel = overrideLabel;
+				if (StatusBar.Active) {
+					StatusBar.Active = false;
+					setTimeout(function () { //Ignore update calls that happen too many times in too short a window
+						StatusBar.Active = true;
+						var percentage = Math.ceil((StatusBar.Current / (StatusBar.Max || 1)) * 100);
+						StatusBar.Label.html(StatusBar.OverrideLabel || (StatusBar.Current + " of " + StatusBar.Max + " " + (StatusBar.UnitText || "")));
+						StatusBar.InnerBar.css("width", percentage + "%");
+					}, 10);
+				}
+			};
+			StatusBar.setStatus = function (text) {
+				StatusBar.StatusBox.html(text);
+			};
+			StatusBar.setValue(0, 100, "", "Ready");
+			StatusBar.setStatus("Ready");
+		});
+
+		//Table Boxes
+		UI.TableBoxes = {};
+		UI.TableBoxesList = [];
+		$(".tableBox").each(function () {
+			var box = $(this);
+			var columnKeys = box.attr("data-columnKeys").split("|");
+			var columnLabels = box.attr("data-columnLabels").split("|");
+			var model = {};
+			columnKeys.forEach((key, index) => {
+				model[key] = columnLabels[index];
+			});
+			createTableBox(null, box.attr("data-name"), model, box);
+		});
+
+		//Stage buttons
+		UI.StageButtons = {};
+		UI.StageButtonsList = [];
+		$(".stageButton").each(function () {
+			var button = $(this);
+			button.Action = button.attr("data-action");
+			UI.StageButtons[button.Action] = button;
+			UI.StageButtonsList.push(button);
+		});
+		UI.StageButtons.ProcessData.on("click", processData);
+		UI.StageButtons.UploadData.on("click", uploadData);
+		UI.StageButtons.SaveData.on("click", saveData);
+
+		//Upload Box
+		UI.RatingSelector = $("[data-property='RatingRowID']");
+		UI.FileSelector = $("[data-property='CSVFile']");
+		UI.SkipPart2CheckBox = $("[data-property='SkipPart2Checks']");
+		UI.SkipPart3CheckBox = $("[data-property='SkipPart3Checks']");
+	
+	}
+	//
+
+	//Create a Table Box
+	function createTableBox(container, name, model, overrideBox) {
+		var box = overrideBox || $("<div class=\"tableBox\"></div>").appendTo(container);
+		var TBox = {
+			Box: box,
+			Name: name,
+			Table: $("<table></table>").appendTo(box),
+			HeaderKeys: [],
+			HeaderLabels: [],
+			Model: model || {}
+		};
+		TBox.THead = $("<thead></thead>").appendTo(TBox.Table);
+		TBox.TBody = $("<tbody></tbody>").appendTo(TBox.Table);
+		TBox.setupHeaders = function () {
+			TBox.HeaderKeys = Object.keys(TBox.Model);
+			TBox.HeaderLabels = TBox.HeaderKeys.map(key => TBox.Model[key]);
+			TBox.THead.html("<tr>" + TBox.HeaderLabels.map(label => "<th>" + label + "</th>").join("") + "</tr>");
+		}
+		TBox.renderData = function (rowDataArray) {
+			TBox.TBody.html("");
+			rowDataArray.forEach(rowData => {
+				TBox.appendRow(rowData);
+			});
+		}
+		TBox.appendRow = function (rowData) {
+			var row = $("<tr></tr>").appendTo(TBox.TBody);
+			setTimeout(function () {
+				row.html(TBox.HeaderKeys.map(key => "<td>" + rowData[key] + "</td>"));
+			}, 0);
+		}
+		TBox.setupHeaders();
+		UI.TableBoxes[TBox.Name] = TBox;
+		UI.TableBoxesList.push(TBox);
+		return TBox;
+	}
+	//
+
+	//Setup Manager
+	function setupManager() {
+		Manager.FileReader = new FileReader();
+
+		Manager.getFileHandle = function () {
+			return UI.FileSelector[0].files?.[0];
+		}
+
+		Manager.readFile = function (afterRead) {
+			Manager.FileReader.onload = function () {
+				afterRead?.(Manager.FileReader.result);
+			}
+			Manager.FileReader.readAsBinaryString(Manager.getFileHandle());
+		}
+	}
+	//
+
+	//Refresh Upload Manager and UI
+	function refreshForUpload() {
+		UI.StatusBarsList.forEach(StatusBar => {
+			StatusBar.setValue(0, 1, "", "Ready");
+			StatusBar.setStatus("Ready");
+		});
+		UI.TableBoxesList.forEach(TableBox => {
+			TableBox.TBody.html("");
+		});
+		Manager.RawCSV = "";
+		Manager.UTF8CSV = "";
+		Manager.CSVText = "";
+	}
+	//
+
+</script>
+<script type="text/javascript">
+	//Process Data initially
+	function processData() {
+		//Clear old data
+		refreshForUpload();
+
+		//Validate configuration
+		if (!UI.RatingSelector.val()) {
+			alert("Please select a Rating.");
+			return;
+		}
+
+		var fileHandle = Manager.getFileHandle();
+		if (!fileHandle) {
+			alert("Please select a file to continue.");
+			return;
+		}
+
+		if (fileHandle.size > 5242880) { //5MB
+			if (!confirm("Warning: The file you have selected is very large (about " + Math.round(fileHandle.size / (1024 * 1024)) + "MB).\n\nPlease double-check the contents of the file to ensure no unintended data is included.\n\nIf this data is correct, click OK to continue.")) {
+				return;
+			}
+		}
+
+		//Read the contents
+		Manager.readFile(function (rawData) {
+			//Validate the contents
+			Manager.RawCSV = rawData.trim();
+			if (Manager.RawCSV.split("\n").length > 50000) {
+				if (!confirm("Warning: The spreadsheet contains over 50,000 rows.\n\nThe system will attempt to skip any empty rows, but it is better to remove them before uploading.\n\nIf this data is correct, click OK to continue.")) {
+					return;
+				}
+			}
+
+			//Replace bad characters
+			Manager.UTF8CSV = Manager.RawCSV;
+			Static.CharacterMap.forEach(map => {
+				map.Match.forEach(badCharacter => {
+					Manager.UTF8CSV = Manager.UTF8CSV.replace(new RegExp(badCharacter, "g"), map.UTF8);
+				});
+			});
+
+			//Process the contents
+			Manager.CSVText = Manager.UTF8CSV.replace(/\r\n/g, "\n").replace(/""/g, "<INSERTQUOTE>");
+			var rows = [];
+			var currentRow = [];
+			var currentCell = [];
+			var isInQuotes = false;
+
+			//Process each character
+			UI.TabSets.StageTabs.showTab(UI.TabSets.StageTabs.Tabs.PreProcessing);
+			UI.StatusBars.PreProcessingProgress.setStatus("Reading CSV File...");
+			UI.StatusBars.PreProcessingProgress.setValue(1, Manager.CSVText.length, "characters");
+			Manager.CSVText.split("").forEach(function (character, index) {
+				if (character == '"') {
+					isInQuotes = !isInQuotes;
+				}
+				else if (isInQuotes) {
+					currentCell.push(character);
+				}
+				else if (character == ",") {
+					currentRow.push(joinCSVCellData(currentCell));
+					currentCell = [];
+				}
+				else if (character == "\n") {
+					currentRow.push(joinCSVCellData(currentCell));
+					currentCell = [];
+					rows.push(currentRow);
+					currentRow = [];
+				}
+				else {
+					currentCell.push(character);
+				}
+
+				//Track progress
+				UI.StatusBars.PreProcessingProgress.setValue(index + 1, Manager.CSVText.length, "characters");
+			});
+
+			//Don't forget stragglers at the end
+			currentRow.push(joinCSVCellData(currentCell));
+			rows.push(currentRow);
+
+			//Set Data
+			if (rows[0].some(cell => cell.length == 0)) { //Discard the first row if not every column is filled out (e.g. "PART I", , , ..."PART 2", , ...)
+				rows.shift();
+			}
+			Manager.CSVColumns = rows.shift(); //Set header row
+			Manager.CSVRows = rows; //The remaining rows
+			Manager.CSVJSON = []; //Clear out any existing CSVJSON
+
+			//Scan to ensure all of the expected columns are present
+			var missingColumns = Object.keys(ColumnData).filter(column => !Manager.CSVColumns.includes(column));
+			if (missingColumns.length > 0) {
+				alert("The following column(s) were not found in the spreadsheet. Column names must match exactly. Please double-check the data and try again:\n\n" + missingColumns.join("\n"));
+				UI.StatusBars.PreProcessingProgress.setStatus("Found one or more errors.");
+				missingColumns.forEach(column => {
+					UI.TableBoxes.PreProcessingTable.appendRow({ RowNumber: "Header", Type: "Missing Column", Message: "The following column was not found in the spreadsheet. Column names must match exactly. Please double-check the data and try again: \"" + column + "\"" });
+				});
+				return;
+			}
+
+			//Create flat JSON
+			Manager.CSVRows = Manager.CSVRows.filter(row => row.join("").trim().length > 0); //Filter out empty rows and make this array useful for index-based comparisons later
+			Manager.CSVRows.forEach((row, index) => {
+				//Assemble row data
+				var item = {
+					RawIndex: index,
+					RawRowText: row.join("").trim(),
+					CompareText: row.join("").toLowerCase().replace(/[^a-z0-9 ]/g, " ").replace(/ +/g, " ").trim()
+				};
+				Manager.CSVColumns.forEach((column, index) => {
+					item[column] = row[index];
+				});
+				Manager.CSVJSON.push(item);
+			});
+
+			//Scan for pre-processing
+			UI.StatusBars.PreProcessingProgress.setStatus("Pre-Processing...");
+			UI.StatusBars.PreProcessingProgress.setValue(0, Manager.CSVJSON.length, "rows");
+			Manager.SelectedRatingCodedNotation = UI.RatingSelector.find("option:selected").attr("data-codednotation");
+			scanRow(0, function () {
+				//If there are any errors
+				var preProcessingErrorRows = UI.TableBoxes.PreProcessingTable.TBody.find("tr"); //TODO: Develop more robust error tracking
+				if (preProcessingErrorRows.length > 0) {
+					UI.StatusBars.PreProcessingProgress.setStatus("Finished with " + preProcessingErrorRows.length + " Errors.");
+					//Show/hide buttons
+				}
+				//Otherwise
+				else {
+					UI.StatusBars.PreProcessingProgress.setStatus("Ready to Upload Data."); //TODO: Show/hide buttons. Consider whether or not the high level tabs are necessary
+				}
+			});
+		});
+
+		//Helper function
+		function joinCSVCellData(cell) {
+			return cell.join("").replace(/<INSERTQUOTE>/g, '"').trim().replace(/^N\/A$/g, "");
+		}
+
+		//Helper function
+		function scanRow(index, afterComplete) {
+			//Get the row, or finish
+			if (Manager.CSVJSON.length > index) {
+				var row = Manager.CSVJSON[index];
+
+				//Reference the correct row number
+				var rowNumber = index + 3; //Account for heading rows and 0 based index
+
+				//Validate rating matches selected rating
+				appendErrorRowIf(UI.TableBoxes.PreProcessingTable, row.Rating != Manager.SelectedRatingCodedNotation, rowNumber, "Rating", "Rating code for this row (" + row.Rating + ") does not match selected Rating code (" + Manager.SelectedRatingCodedNotation + ")");
+
+				//Scan for invalid concept references
+				Object.keys(ColumnData).forEach(key => {
+					//If the column has a value for this row, and the value is not N/A...
+					if (ColumnData[key].Values && row[key] && row[key] != "N/A") {
+						//If it's a multi-value column, split it out into its values; otherwise just create a single-item array with the value
+						var columnValues = ColumnData[key].SplitOn ? row[key].split(new RegExp("[" + ColumnData[key].SplitOn.join("") + "]")) : [row[key]];
+						//Loop through the array to check that each value shows up in the valid values list
+						columnValues.forEach(value => {
+							appendErrorRowIf(UI.TableBoxes.PreProcessingTable, !ColumnData[key].Values.includes(value), rowNumber, "Invalid Value", key + " contains a value that was not found in the database: \"" + value + "\".");
+						});
+					}
+				});
+
+				//Scan for potential duplicates
+				var matches = Manager.CSVJSON.filter(otherJSON => otherJSON != row && otherJSON.CompareText == row.CompareText);
+				appendErrorRowIf(UI.TableBoxes.PreProcessingTable, matches.length > 0, rowNumber, "Duplicate Row", "Row(s) " + matches.map(match => match.RawIndex + 3).join(", ") + " appear to be identical to this row.");
+
+				//Update the progress bar
+				UI.StatusBars.PreProcessingProgress.setValue(index + 1, Manager.CSVJSON.length, "rows");
+
+				//Wait a moment for the UI to refresh, then run for the next row
+				setTimeout(() => {
+					scanRow(index + 1, afterComplete);
+				}, 1);
+			}
+			else {
+				afterComplete?.();
+			}
+		}
+	}
+	//
+
+	//Upload Data for server-side processing
+	function uploadData() {
+		UI.TabSets.StageTabs.showTab(UI.TabSets.StageTabs.Tabs.UploadReport);
+
+	}
+	//
+
+	//Save Data
+	function saveData() {
+		UI.TabSets.StageTabs.showTab(UI.TabSets.StageTabs.Tabs.SaveData);
+
+	}
+	//
+
+	//Render data to a vanilla message table conditionally
+	function appendErrorRowIf(TableBox, condition, rowNumber, type, message) {
+		if (condition) {
+			TableBox.appendRow({ RowNumber: rowNumber, Type: type, Message: message });
+		}
+	}
+
+</script>
+<style type="text/css">
+	html body .container { width: 98vw; }
+	input, select, textarea { max-width: none; }
+	.mainUI { padding: 10px 0; }
+	.stageButton { padding: 4px 10px; min-width: 200px; }
+
+	.tabBox { }
+	.tabBox .tabButtons { display: flex; gap: 1px; }
+	.tabBox .tabButtons button { border-radius: 0; border: 1px solid #AAA; padding: 5px; }
+	.tabBox .tabButtons button:first-child { border-radius: 5px 0 0 5px; }
+	.tabBox .tabButtons button:last-child { border-radius: 0 5px 5px 0; }
+	.tabBox .tabButtons button.current {  }
+	.tabBox .tabList {  }
+	.tabBox .tabList .tabPanel {  }
+	.tabBox .tabList .tabPanel:not(.current) { display: none; }
+
+	.inputForm { display: flex; flex-direction: column; gap: 5px; background-color: #F5F5F5; padding: 5px; }
+	.inputForm .inputFormRow { display: flex; gap: 5px; align-items: baseline; }
+	.inputForm .inputFormRow > * { height: 30px; }
+	.inputForm .inputFormRow select { flex: 1 1 auto; border-radius: 3px; }
+	.inputForm .inputFormRow select:is(:focus, :hover) { cursor: pointer; }
+	.inputForm .inputFormRow input[type='file'] { flex: 1 1 auto; border-radius: 3px; padding: 4px 5px; }
+	.inputForm .inputFormRow input[type='file']:is(:focus, :hover) { cursor: pointer; background-color: rgba(0,0,0,0.1); }
+	.inputForm .inputFormRow label { display: flex; gap: 5px; align-items: baseline; font-weight: normal; padding: 3px 10px; border-radius: 3px; margin: 0; }
+	.inputForm .inputFormRow label:is(:focus, :hover) { cursor: pointer; background-color: rgba(0,0,0,0.1); }
+	.inputForm .inputFormRow button { width: 200px; }
+
+	.statusBar { margin-bottom: 10px; }
+	.statusBar .progressBarOuter { background-color: #CCC; padding: 1px; height: 30px; }
+	.statusBar .progressBarOuter .progressBarInner { background-color: #CFC; height: 28px; min-width: 75px; transition: width 0.5s; text-align: center; }
+	.statusBar .progressBarOuter .progressBarInner .progressBarLabel { text-align: center; color: #031; padding: 4px 5px; white-space: nowrap; }
+	.statusBar .statusBox { padding: 5px 10px; }
+
+	.tableBox table { border: 1px solid #555; margin-bottom: 10px; }
+	.tableBox table th { border: 1px solid #CCC; padding: 5px 10px; background-color: #DDD; text-align: center; }
+	.tableBox table td { border: 1px solid #CCC; padding: 5px 10px; text-align: left; }
+
+</style>
+
+<div class="tabBox mainUI" data-name="StageTabs">
+	<div class="tabButtons"></div>
+	<div class="tabList">
+		<div class="tabPanel" data-name="SelectFile">
+			<h2 class="tabLabel">Stage I: Select File and Configure Upload</h2>
+			<div class="inputForm">
+				<div class="inputFormRow">
+					<select data-property="RatingRowID">
+						<option disabled="disabled" selected="selected">Select Rating...</option>
+						@foreach( var rating in allRatings )
+						{
+							<option value="@rating.RowId.ToString()" data-codednotation="@rating.CodedNotation">@rating.CodedNotation - @rating.Name</option>
+						}
+					</select>
+				</div>
+				<div class="inputFormRow">
+					<input type="file" data-property="CSVFile" />
+					<label class="checkBoxWrapper">
+						<input type="checkbox" data-property="SkipPart2Checks" />
+						<span>Skip Part 2 Checks</span>
+					</label>
+					<label class="checkBoxWrapper">
+						<input type="checkbox" data-property="SkipPart3Checks" />
+						<span>Skip Part 3 Checks</span>
+					</label>
+					<button class="blueButton stageButton" data-action="ProcessData">Process Data</button>
+				</div>
+			</div>
+		</div>
+		<div class="tabPanel" data-name="PreProcessing">
+			<h2 class="tabLabel">Stage II: Pre-Processing</h2>
+			<div class="statusBar" data-name="PreProcessingProgress"></div>
+			<div class="tableBox" data-name="PreProcessingTable" data-columnKeys="RowNumber|Type|Message" data-columnLabels="Row #|Type|Message"></div>
+			<button class="blueButton stageButton" data-action="UploadData">Upload Data</button>
+		</div>
+		<div class="tabPanel" data-name="UploadReport">
+			<h2 class="tabLabel">Stage III: Upload and Process Data</h2>
+			<div class="statusBar" data-name="UploadProgress"></div>
+			<div class="tabBox" data-name="UploadTabs">
+				<div class="tabButtons"></div>
+				<div class="tabList">
+					<div class="tabPanel" data-name="Summary">
+						<h3 class="tabLabel">Summary and Issues</h3>
+						<div class="tableBox" data-name="UploadSummaryTable" data-columnKeys="Total|ServerErrors|ProcessingErrors" data-columnLabels="Total Rows|Rows with Server Errors|Rows with Processing Errors"></div>
+						<div class="tableBox" data-name="ResourceSummaryTable" data-columnKeys="Type|Total|PotentialDuplicates|NewItems|Unchanged|ValueChanges|ReferenceChanges|ReferenceAdditions" data-columnLabels="Type|Total Items|Potential Duplicates|New Items|Existing Items without Changes|Existing Items with Value Changes|Existing Items with Reference Changes|Existing Items with Reference Additions"></div>
+						<h4>Errors</h4>
+						<div class="tableBox" data-name="UploadReport_Errors" data-columnKeys="RowNumber|Type|Message" data-columnLabels="Row #|Type|Message"></div>
+						<h4>Warnings</h4>
+						<div class="tableBox" data-name="UploadReport_Warnings" data-columnKeys="RowNumber|Type|Message" data-columnLabels="Row #|Type|Message"></div>
+						<h4>Messages</h4>
+						<div class="tableBox" data-name="UploadReport_Messages" data-columnKeys="RowNumber|Type|Message" data-columnLabels="Row #|Type|Message"></div>
+					</div>
+					<div class="tabPanel" data-name="PotentialDuplicates">
+						<h3 class="tabLabel">Potential Duplicates</h3>
+						<div class="resourceSetsBox"></div>
+					</div>
+					<div class="tabPanel" label="New Items" data-name="NewItems">
+						<h3 class="tabLabel">New Items</h3>
+						<div class="resourceSetsBox"></div>
+					</div>
+					<div class="tabPanel" data-name="ValueChanges">
+						<h3 class="tabLabel">Existing Items with Value Changes</h3>
+						<div class="resourceSetsBox"></div>
+					</div>
+					<div class="tabPanel" data-name="ReferenceChanges">
+						<h3 class="tabLabel">Existing Items with Reference Changes</h3>
+						<div class="resourceSetsBox"></div>
+					</div>
+					<div class="tabPanel" data-name="ReferenceAdditions">
+						<h3 class="tabLabel">Existing Items with Reference Additions</h3>
+						<div class="resourceSetsBox"></div>
+					</div>
+				</div>
+			</div>
+			<button class="blueButton stageButton" data-action="SaveData">Save Data</button>
+		</div>
+		<div class="tabPanel" data-name="SaveData">
+			<h2 class="tabLabel">Stage IV: Save Data</h2>
+			<div class="statusBar" data-name="SaveProgress"></div>
+			<div class="tableBox" data-name="SaveReportTable" data-columnKeys="RowNumber|Type|Message" data-columnLabels="Row #|Type|Message"></div>
+		</div>
+	</div>
+</div>

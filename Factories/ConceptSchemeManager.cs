@@ -327,6 +327,38 @@ namespace Factories
         }
 		//
 
+		/// <summary>
+		/// Get all Concept Schemes as a mapped-out object to make it easier to work with them<br />
+		/// As with the rest of the code that references specific concept schemes, this will need to be updated if more are added/changed!
+		/// </summary>
+		/// <param name="includingConcepts"></param>
+		/// <returns></returns>
+		public static Models.Schema.ConceptSchemeMap GetConceptSchemeMap( bool includingConcepts = false )
+		{
+			var schemes = GetAll( includingConcepts );
+			var result = new Models.Schema.ConceptSchemeMap()
+			{
+				CommentStatusCategory = schemes.FirstOrDefault( scheme => scheme.SchemaUri == ConceptScheme_CommentStatus ),
+				CourseCategory = schemes.FirstOrDefault( scheme => scheme.SchemaUri == ConceptScheme_CourseType ),
+				CurrentAssessmentApproachCategory = schemes.FirstOrDefault( scheme => scheme.SchemaUri == ConceptScheme_CurrentAssessmentApproach ),
+				LifeCycleControlDocumentCategory = schemes.FirstOrDefault( scheme => scheme.SchemaUri == ConceptScheme_LifeCycleControlDocument ),
+				PayGradeCategory = schemes.FirstOrDefault( scheme => scheme.SchemaUri == ConceptScheme_Pay_Grade ),
+				ProjectStatusCategory = schemes.FirstOrDefault( scheme => scheme.SchemaUri == ConceptScheme_ProjectStatus ),
+				RatingLevelCategory = schemes.FirstOrDefault( scheme => scheme.SchemaUri == ConceptScheme_RatingLevel ),
+				ReferenceResourceCategory = schemes.FirstOrDefault( scheme => scheme.SchemaUri == ConceptScheme_ReferenceResource ),
+				TaskApplicabilityCategory = schemes.FirstOrDefault( scheme => scheme.SchemaUri == ConceptScheme_TaskApplicability ),
+				TrainingGapCategory = schemes.FirstOrDefault( scheme => scheme.SchemaUri == ConceptScheme_TrainingGap ),
+				TrainingSolutionCategory = schemes.FirstOrDefault( scheme => scheme.SchemaUri == ConceptScheme_TrainingSolutionType ),
+				RecommendedModalityCategory = schemes.FirstOrDefault( scheme => scheme.SchemaUri == ConceptScheme_RecommendedModality ),
+				DevelopmentSpecificationCategory = schemes.FirstOrDefault( scheme => scheme.SchemaUri == ConceptScheme_DevelopmentSpecification )//,
+				//CandidatePlatformCategory = schemes.FirstOrDefault( scheme => scheme.SchemaUri == ConceptScheme_CandidatePlatform ),
+				//DevelopmentRatioCategory = schemes.FirstOrDefault( scheme => scheme.SchemaUri == ConceptScheme_DevelopmentRatio )
+			};
+
+			return result;
+		}
+		//
+
 		public static List<AppEntity> GetMultiple( List<Guid> guids )
 		{
 			var results = new List<AppEntity>();

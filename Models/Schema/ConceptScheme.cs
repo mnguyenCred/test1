@@ -15,7 +15,13 @@ namespace Models.Schema
 		/// Description for this Concept Scheme
 		/// </summary>
 		public string Description { get; set; }
+
+		/// <summary>
+		/// Schema URI for this Concept Scheme<br />
+		/// Useful for lookups
+		/// </summary>
 		public string SchemaUri { get; set; }
+
 		/// <summary>
 		/// List of Concepts for this Concept Scheme<br />
 		/// Caution: Data is embedded here
@@ -50,6 +56,10 @@ namespace Models.Schema
 		/// AKA skos:inScheme
 		/// </summary>
 		public Guid InScheme { get; set; }
+
+		/// <summary>
+		/// URI for the Concept Scheme in which this Concept is a member
+		/// </summary>
 		public string SchemeUri { get; set; }
 
 		public bool IsActive { get; set; }
@@ -64,6 +74,30 @@ namespace Models.Schema
 		/// Helps figure out which value from the spreadsheet this Concept aligns to
 		/// </summary>
 		public string WorkElementType { get; set; }
+	}
+	//
+
+	/// <summary>
+	/// Helper class used to make working with Concept Schemes easier.<br />
+	/// Will need to be updated if/when new Concept Schemes are added (but then, so will the rest of the code).
+	/// </summary>
+	public class ConceptSchemeMap
+	{
+		public ConceptScheme CommentStatusCategory { get; set; }
+		public ConceptScheme CourseCategory { get; set; }
+		public ConceptScheme CurrentAssessmentApproachCategory { get; set; }
+		public ConceptScheme LifeCycleControlDocumentCategory { get; set; }
+		public ConceptScheme PayGradeCategory { get; set; }
+		public ConceptScheme ProjectStatusCategory { get; set; }
+		public ConceptScheme RatingLevelCategory { get; set; }
+		public ConceptScheme ReferenceResourceCategory { get; set; }
+		public ConceptScheme TaskApplicabilityCategory { get; set; }
+		public ConceptScheme TrainingGapCategory { get; set; }
+		public ConceptScheme TrainingSolutionCategory { get; set; }
+		public ConceptScheme RecommendedModalityCategory { get; set; }
+		public ConceptScheme DevelopmentSpecificationCategory { get; set; }
+		public ConceptScheme CandidatePlatformCategory { get; set; }
+		public ConceptScheme DevelopmentRatioCategory { get; set; }
 	}
 	//
 }

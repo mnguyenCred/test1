@@ -251,7 +251,7 @@ namespace Factories
         {
             var output = new AppEntity();
             var list = GetAll();
-            output = list.FirstOrDefault( s => s.Name.ToLower() == billetTitle.ToLower() );
+            output = list.FirstOrDefault( s => s.Name.ToLower() == billetTitle?.ToLower() );
             return output;
         } //
         public static AppEntity Get( Guid rowId )

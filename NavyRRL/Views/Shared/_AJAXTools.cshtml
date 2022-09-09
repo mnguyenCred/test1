@@ -1,0 +1,115 @@
+﻿<script type="text/javascript">
+	//Namespace
+	var AJAX = {
+		Cache: []
+	};
+
+	//Do a generic POST Request
+	AJAX.doPOSTRequest = function (url, body, onSuccess, onError) {
+		AJAX.doFetch(url, onSuccess, onError, {
+			method: "POST",
+			headers: { "Accept": "application/json", "Content-Type": "application/json" },
+			body: JSON.stringify(body || {})
+		});
+	}
+	//
+
+	//Do a generic GET Request
+	AJAX.doGETRequest = function (url, onSuccess, onError) {
+		AJAX.doFetch(url, onSuccess, onError);
+	}
+	//
+
+	//Do a generic Fetch and process the results
+	AJAX.doFetch = function (url, onSuccess, onError, options) {
+		fetch(url, options)
+			//Handle successful request or HTTP/server error
+			.then(response => {
+				if (response.ok) {
+					return response.text();
+				}
+				else {
+					throw ({ Message: "Fetch Error", Data: response });
+				}
+			})
+			//Handle successful JSON parsing or error
+			.then(text => {
+				console.log("Loaded data from URL", { url: url, data: text });
+				try {
+					onSuccess?.(JSON.parse(text));
+				}
+				catch (e) {
+					throw ({ Message: "JSON Parsing Error", Data: text });
+				}
+			})
+			//Consistent formatting for error messages
+			.catch(error => {
+				console.log(error.Message, error.Data);
+				onError?.(error);
+			});
+	}
+	//
+
+	//Append the request (and handlers) for a resource to the cache. When the resource loads, run all of its handlers and then reset the handler lists. 
+	AJAX.getResource = function (url, onSuccess, onError) {
+		//Find the request if it already exists
+		var Request = AJAX.Cache.find(item => item.URL == url);
+		//If there's data for it already, run the success handler
+		if (Request?.Data) {
+			runHandler(Request.Data, onSuccess);
+		}
+		//If there's an error for it already, run the error handler
+		else if (Request?.Error) {
+			runHandler(Request.Error, onError);
+		}
+		//If there's a request, but no data and no error, then append the handlers (the request is still being retrieved)
+		else if (Request) {
+			Request.SuccessHandlers.push(onSuccess);
+			Request.ErrorHandlers.push(onError);
+		}
+		//If there's no request at all, create/inject one and do the AJAX request. When the request finishes, run the handlers it has accumulated by that point, and clear them out.
+		else {
+			Request = AJAX.appendToCache(url);
+			AJAX.doGETRequest(url, data => {
+				processHandlers(Request, data, "Data", "SuccessHandlers");
+			}, error => {
+				processHandlers(Request, error, "Error", "ErrorHandlers");
+			});
+		}
+
+		//Helper function to process handlers
+		function processHandlers(Request, dataOrError, holderName, handlerListName) {
+			Request[holderName] = dataOrError;
+			Request[handlerListName].forEach(handler => {
+				handler?.(dataOrError);
+			});
+			Request[handlerListName] = [];
+		}
+
+		//Helper function to simulate the async nature of requests, so that they are consistently run asynchronously
+		function runHandler(dataOrError, handler) {
+			setTimeout(() => {
+				handler?.(dataOrError);
+			}, 0);
+		}
+	}
+	//
+
+	//Put a resource request into the cache, and add its data if the data is already loaded
+	AJAX.appendToCache = function (url, data) {
+		var Request = AJAX.Cache.find(item => item.URL == url);
+		if (!Request) {
+			Request = {
+				URL: url,
+				SuccessHandlers: [],
+				ErrorHandlers: [],
+				Data: data,
+				Error: null
+			};
+			AJAX.Cache.push(Request);
+		}
+
+		return Request;
+	}
+	//
+</script>
