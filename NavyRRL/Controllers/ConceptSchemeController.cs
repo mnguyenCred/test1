@@ -27,7 +27,7 @@ namespace NavyRRL.Controllers
 			return JsonResponse( results, true );
 		}
 		//
-
+		//SiteReader should just be everyone, so do we need this?
 		[CustomAttributes.NavyAuthorize( "Concept Scheme View", Roles = SiteReader )]
 		public ActionResult Detail( int id )
 		{

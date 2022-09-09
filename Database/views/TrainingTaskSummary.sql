@@ -89,7 +89,7 @@ SELECT base.[Id] as CourseId
 		WHEN AssessmentMethodTypes IS NULL THEN ''
 		WHEN len(AssessmentMethodTypes) = 0 THEN ''
 		ELSE left(AssessmentMethodTypes,len(AssessmentMethodTypes)-1)
-		END AS AssessmentMethodTypes
+		END AS CurrentAssessmentApproach
 	,base.[CTID]
 	,base.[Created]	,base.[CreatedById]
 	,base.[LastUpdated]	,base.[LastUpdatedById]

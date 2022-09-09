@@ -37,7 +37,7 @@ namespace NavyRRL.Controllers
 		}
 		//
 
-		[CustomAttributes.NavyAuthorize( "Concept Edit", Roles = Admin_SiteManager )]
+
 		public ActionResult JSON( int id )
 		{
 			AuthenticateOrRedirect( "You must be authenticated and authorized to view Concept data." );
@@ -46,7 +46,7 @@ namespace NavyRRL.Controllers
 			return RawJSONResponse( converted );
 		}
 		//
-
+		[CustomAttributes.NavyAuthorize( "Concept Edit", Roles = Admin_SiteManager )]
 		public ActionResult Edit( int id )
 		{
 			AuthenticateOrRedirect( "You must be authenticated and authorized to edit Concept data." );

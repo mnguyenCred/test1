@@ -19,16 +19,16 @@ using Services;
 namespace NavyRRL.Controllers
 {
    // [Authorize( Roles = "Administrator, Site Staff" )]
-    public class AdminController : Controller
+    public class AdminController : BaseController
     {
         public static string thisClassName = "AdminController";
 
         //these could possibly become app config strings for more general auth that may change?
-        public const string Admin_SiteManager_SiteStaff = "Administrator, Site Manager, Site Staff";
-        public const string Admin_SiteManager = "Administrator, Site Manager";
+        //public const string Admin_SiteManager_SiteStaff = "Administrator, Site Manager, Site Staff";
+        //public const string Admin_SiteManager = "Administrator, Site Manager";
         // GET: Admin
         //NOTE: Authorize kicks user back to login page. Need a custom option where already logged in 
-        [CustomAttributes.NavyAuthorize( "Admin Home", Roles = "Administrator, Site Manager" )]
+        [CustomAttributes.NavyAuthorize( "Admin Home", Roles = Admin_SiteManager )]
         public ActionResult Index()
         {
             return View();

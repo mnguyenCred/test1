@@ -610,7 +610,7 @@ namespace Factories
                 HasWorkRole = m.HasWorkRole,
                 HasReferenceResource = m.HasReferenceResource,
                 ReferenceType = m.ReferenceType,
-                Description = m.Description,
+                Description = m.RatingTask,
                 CodedNotation = m.CodedNotation,
                 ApplicabilityType = m.ApplicabilityType,
                 TaskTrainingGap = m.TaskTrainingGap,
@@ -768,8 +768,8 @@ namespace Factories
 						LoggingHelper.LogError( ex, thisClassName + string.Format( ".Search() - Execute proc, Message: {0} \r\n Filter: {1} \r\n", ex.Message, pFilter ) );
 
 						item = new EntitySummary();
-						item.Description = "Unexpected error encountered. System administration has been notified. Please try again later. ";
-						item.Description = ex.Message;
+						item.RatingTask = "Unexpected error encountered. System administration has been notified. Please try again later. ";
+						item.RatingTask = ex.Message;
 
 						list.Add( item );
 						return list;
@@ -810,7 +810,7 @@ namespace Factories
                             item.HasBilletTitles = GetBilletTitleGuids( item.BilletTitles );
                         
 
-                        item.Description = dr["RatingTask"].ToString();// GetRowColumn( dr, "RatingTask", "" );
+                        item.RatingTask = dr["RatingTask"].ToString();// GetRowColumn( dr, "RatingTask", "" );
                         item.Note = dr["Notes"].ToString();// GetRowColumn( dr, "Notes", "" );
                         item.CTID = dr["CTID"].ToString();// GetRowPossibleColumn( dr, "CTID", "" );
                                                            //
@@ -856,8 +856,8 @@ namespace Factories
 
 						item.CIN = dr["CIN"].ToString();// GetRowColumn( dr, "CIN", "" );
                         item.CourseName = dr["CourseName"].ToString();// GetRowColumn( dr, "CourseName", "" );
-                        item.CourseType = dr["CourseTypes"].ToString().Trim();// GetRowPossibleColumn( dr, "CourseType", "" );
-                        item.CurrentAssessmentApproach = dr["AssessmentMethodTypes"].ToString().Trim();// GetRowPossibleColumn( dr, "AssessmentMethodTypes", "" );
+                        item.CourseTypes = dr["CourseTypes"].ToString().Trim();// GetRowPossibleColumn( dr, "CourseType", "" );
+                        item.CurrentAssessmentApproach = GetRowPossibleColumn( dr, "CurrentAssessmentApproach", "" );
                                                                                      //
                         item.TrainingTask = dr["TrainingTask"].ToString();// GetRowPossibleColumn( dr, "TrainingTask", "" );
                         //item.HasTrainingTask = GetGuidType( dr, "HasTrainingTask" );

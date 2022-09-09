@@ -217,7 +217,8 @@ SELECT
 		,g.TrainingTask
 		,g.TrainingTaskUID as HasTrainingTask
 		--can be multiple
-		,g.AssessmentMethodTypes
+		,g.CurrentAssessmentApproach
+		,g.CurrentAssessmentApproach as AssessmentMethodTypes
 		--22-01-24-yes single 
 		,g.CurriculumControlAuthority
 		,g.CurriculumControlAuthorityId

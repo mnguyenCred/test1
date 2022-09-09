@@ -1,10 +1,13 @@
 USE [NavyRRL]
 GO
-/****** Object:  StoredProcedure [dbo].[RatingTaskSearch]    Script Date: 12/13/2021 1:37:57 PM ******/
+
+/****** Object:  StoredProcedure [dbo].[RatingTaskSearchJSON]    Script Date: 7/28/2022 6:02:46 PM ******/
 SET ANSI_NULLS ON
 GO
+
 SET QUOTED_IDENTIFIER ON
 GO
+
 
 
 /*
@@ -40,13 +43,13 @@ set @Filter = ' base.LevelId in (89) AND FunctionalAreaId in(2,5)'
 set @Filter = ' base.id in (select a.[RatingTaskId] from [RatingTask.HasRating] a inner join Rating b on a.ratingId = b.Id where b.Id in (77,78 ))	'
 set @Filter = ' ( base.WorkElementTypeId in ( 1120 ) )  '
  set @Filter = '  Ratings = ''ps'' '
- set @Filter = '  trainingSolutionType = ''Block Zero Addition'' '
+-- set @Filter = '  trainingSolutionType = ''Block Zero Addition'' '
 --set @Filter = ''
 
 set @StartPageIndex = 1
-set @PageSize = 100
+set @PageSize = 50
 --set statistics time on       
-EXECUTE @RC = [RatingTaskSearch]
+EXECUTE @RC = [RatingTaskSearchJSON]
      @Filter, @SortOrder, @StartPageIndex  ,@PageSize,  @CurrentUserId, @TotalRows OUTPUT
 
 select 'total rows = ' + convert(varchar,@TotalRows)
@@ -71,11 +74,11 @@ page is requested, this would be set to 21?
 custom pager
   ------------------------------------------------------
 Modifications
-22-01-11 mparsons - new
+22-07-28 mparsons - new testing output as JSON - should speed up mapping
 
 */
 
-Alter PROCEDURE [dbo].[RatingTaskSearch]
+ALTER PROCEDURE [dbo].[RatingTaskSearchJSON]
 		@Filter           varchar(5000)
 		,@SortOrder         varchar(500)
 		,@StartPageIndex  int
@@ -95,6 +98,7 @@ DECLARE
 	   ,@HasSitePrivileges bit
 	   ,@OrderDir         varchar(50)
       ,@OrderBy         varchar(800)
+	  ,@JSONOutout             varchar(max)
 
 -- =================================
 set @SortOrder= replace(@SortOrder,'description','RatingTask')
@@ -229,6 +233,7 @@ if @first_id = 1 set @first_id = 0
 SET ROWCOUNT @PageSize
 
 -- ================================= 
+set @JSONOutout= (
 SELECT       
 	RowNumber 
 	,a.Id
@@ -304,7 +309,7 @@ SELECT
 	  --
       ,[CreatedById]
       ,[CreatedBy],CreatedByUID
-	  ,[LastUpdated]
+	 -- ,[LastUpdated]
       ,[LastUpdatedById]
       ,[ModifiedBy],ModifiedByUID
 	  ,ClusterAnalysisLastUpdated
@@ -312,7 +317,10 @@ From #tempWorkTable a
 Inner Join RatingTaskSummary b on a.Id = b.Id
 WHERE RowNumber > @first_id
 order by RowNumber 
+ FOR JSON PATH
+ )
 
-go
-grant execute on [RatingTaskSearch] to public
-go
+ select @JSONOutout
+GO
+
+

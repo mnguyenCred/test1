@@ -18,10 +18,13 @@ namespace NavyRRL.Controllers
     public class BaseController : Controller
     {
 		//these could possibly become app config strings for more general auth that may change?
+		//public static string Admin_SiteManager_SiteStaff = UtilityManager.GetAppKeyValue( "Admin_SiteManager_SiteStaff", "Administrator, Site Manager, Site Staff");
+		//public static string Admin_SiteManager = "Administrator, Site Manager";
+		//public static string Admin_SiteManager_RMTLDeveloper = UtilityManager.GetAppKeyValue( "rmtlDevelopPlus", "Administrator, Site Manager, RMTL Developer"); 
 		public const string Admin_SiteManager_SiteStaff = "Administrator, Site Manager, Site Staff";
 		public const string Admin_SiteManager = "Administrator, Site Manager";
-		public const string Admin_SiteManager_RMTLDeveloper = "Administrator, Site Manager, RMTL Developer"; 
-		public const string SiteReader = "Site Reader";
+		public const string Admin_SiteManager_RMTLDeveloper = "Administrator, Site Manager, RMTL Developer";
+		public const string SiteReader = "Administrator, Site Manager, RMTL Developer, Site Reader";
 		//public const string Admin_SiteManager_RMTLDeveloper = "Administrator, Site Manager, Site Staff RMTL Developer";
 		//For requests to load pages (redirects allowable)
 		public void AuthenticateOrRedirect( string customMessage = null, bool redirectOnFailure = true, string redirectURL = "~/Event/NotAuthenticated" )

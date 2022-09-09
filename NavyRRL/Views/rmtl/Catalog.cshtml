@@ -59,7 +59,7 @@
                 bAutoWidth: true,
                 filter: true,
                 orderMulti: false,
-                iDisplayLength: 100,
+                iDisplayLength: 50,
 				aLengthMenu: [[10, 25, 50, 100, 250, 500, 800], [10, 25, 50, 100, 250, 500, 800]],
                 ajax: {
                     url: '@Html.Raw(Url.Action( "CatalogSearch", "RMTL"))',
@@ -83,13 +83,13 @@
 
 					{ data: 'SourceDate', name: "Date_of_Source", title: "Source Date", filter: true, width: "5%" },
 					{ data: 'WorkElementType', name: "Work_Element_Type", title: "Work Element Type", filter: true, width: "50px" },
-					{ data: 'Description', name: "Work_Element_Task", title: "Rating Task", filter: true, width: "500px" },
+					{ data: 'RatingTask', name: "Work_Element_Task", title: "Rating Task", filter: true, width: "500px" },
 					{ data: 'TaskApplicability', name: "Task_Applicability", title: "Task Applicability", filter: true },
 					{ data: 'FormalTrainingGap', name: "Formal_Training_Gap", title: "Formal Training Gap", filter: true, width: "5%" },
 
 					{ data: 'CIN', name: "CIN", title: "CIN", filter: true, width: "25px" },
 					{ data: 'CourseName', name: "Course_Name", title: "Course Name", filter: true, width: "100px" },
-					{ data: 'CourseType', name: "Course_Type", title: "Course Type", filter: true, width: "25px" },
+					{ data: 'CourseTypes', name: "Course_Type", title: "Course Type", filter: true, width: "25px" },
 					{ data: 'TrainingTask', name: "Task_Statement", title: "Training Task", filter: true, width: "400px" },
 
 					{ data: 'CurriculumControlAuthority', name: "Curriculum_Control_Authority", title: "CCA", filter: true, width: "80px" },
