@@ -39,6 +39,59 @@ namespace NavyRRL.Controllers
 			return View();
 		}
 
+		[HttpGet]
+		public ActionResult ManageRolePermissions()
+		{
+			return View();
+		}
+
+		[HttpGet]
+		public ActionResult GetAllUserRoles()
+		{
+			//Temporary/test data to be replaced with database call
+			var roles = new List<UserRole>()
+			{
+				new UserRole()
+				{
+					Id = 99991,
+					Name = "Test Role 1",
+					HasApplicationFunctionIds = new List<int>() { 991, 992 }
+				},
+				new UserRole()
+				{
+					Id = 99992,
+					Name = "Test Role 2",
+					HasApplicationFunctionIds = new List<int>() { 993 }
+				},
+				new UserRole()
+				{
+					Id = 99993,
+					Name = "Test Role 3",
+					HasApplicationFunctionIds = new List<int>() { 991, 994 }
+				}
+			};
+
+			//Return response
+			return BaseController.JsonResponse( roles, true );
+		}
+
+		[HttpPost]
+		public ActionResult SaveUserRole( UserRole role )
+		{
+			//Save the user role
+
+			//Return response
+			return BaseController.JsonResponse( null, true );
+		}
+
+		[HttpPost]
+		public ActionResult DeleteUserRole( UserRole role )
+		{
+			//Delete the user role (probably should see if anything uses it first)
+
+			//Return response
+			return BaseController.JsonResponse( null, false, new List<string>() { "Error - That role is still assigned to one or more users." } );
+		}
 
         #region  Activity
         // GET: Admin/Activity

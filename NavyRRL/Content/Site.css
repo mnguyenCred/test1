@@ -31,4 +31,8 @@ textarea {
 
 .blueButton { background-color: #049; border: 1px solid #016; border-radius: 3px; color: #FFF; }
 .blueButton:focus, .blueButton:hover { background-color: #05A; }
+
+.redButton { background-color: #A33; border: 1px solid #611; border-radius: 3px; color: #FFF; }
+.redButton:focus, .redButton:hover { background-color: #F33; }
+
 .offscreen { position: absolute; left: -99999px; }

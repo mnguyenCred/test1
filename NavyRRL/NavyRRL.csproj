@@ -641,6 +641,7 @@
     <Content Include="Views\RatingContext\Edit.cshtml" />
     <Content Include="Views\Upload\UploadV4.cshtml" />
     <Content Include="Views\Shared\_AJAXTools.cshtml" />
+    <Content Include="Views\Admin\ManageRolePermissions.cshtml" />
     <None Include="Web.Sandbox.config">
       <DependentUpon>Web.config</DependentUpon>
     </None>
