@@ -34,12 +34,12 @@
 			})
 			//Handle successful JSON parsing or error
 			.then(text => {
-				console.log("Loaded data from URL", { url: url, data: text });
+				console.log("Loaded data from URL", { URL: url, RawData: text });
 				try {
 					onSuccess?.(JSON.parse(text));
 				}
 				catch (e) {
-					throw ({ Message: "JSON Parsing Error", Data: text });
+					throw ({ Message: "Error running function with JSON data, or error in JSON parsing: " + e.message, Data: { Text: text, Function: onSuccess, Error: e } });
 				}
 			})
 			//Consistent formatting for error messages

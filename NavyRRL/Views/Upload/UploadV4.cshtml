@@ -43,8 +43,105 @@
 			{ UTF8: '""', Match: ['“', '”', '\u201c', '\u201d', '\x93', '\x94'] },
 			{ UTF8: "'", Match: ['ʻ', 'ʼ', 'ʽ', '`', '´', '‘', '’', '\u2018', '\u2019', '\u00b4', '\u0060', '\x91', '\x92'] },
 			{ UTF8: "-", Match: ['–', '—', '·', '\u2013', '\u2014', '\x95', '\x96', '\x97'] }
-		]//,
-		//Columns: ["Unique Identifier", "Rating", "Rank", "Level (A/J/M)", "Billet Title", "Functional Area", "Source", "Date of Source", "Work Element Type", "Work Element (Task)", "Task Applicability", "Formal Training Gap", "CIN", "Course Name", "Course Type (A/C/G/F/T)", "Curriculum Control Authority (CCA)", "Life-Cycle Control Document", "CTTL/PPP/TCCD Statement", "Current Assessment Approach", "Training Solution Type", "Cluster Analysis Title", "Recommended Modality", "Development Specification", "Candidate Platform", "CFM Placement", "Priority Placement", "Development Ratio", "Estimated Instructional Time", "Development Time (duration in hours)", "Notes"]
+		],
+		ResourceTypes: [
+			{
+				Type: "Overall",
+				Label: "Overall",
+				TBoxModel: {
+					Total: "Total"
+				}
+			},
+			{
+				Type: "Rating",
+				Label: "Rating",
+				TBoxModel: {
+					CodedNotation: "Code",
+					Name: "Name"
+				},
+				display: function (data) {
+					return data.CodedNotation + " - " + data.Name;
+				}
+			},
+			{
+				Type: "BilletTitle",
+				Label: "Billet Title",
+				TBoxModel: {
+					Name: "Name"
+				},
+				display: function (data) {
+					return data.Name;
+				}
+			},
+			{
+				Type: "WorkRole",
+				Label: "Functional Area",
+				TBoxModel: {
+					Name: "Name"
+				},
+				display: function (data) {
+					return data.Name;
+				}
+			},
+			{
+				Type: "RatingTask",
+				Label: "Rating Task",
+				TBoxModel: {
+					PayGradeType: "Rank",
+					HasReferenceResource: "Source",
+					HasReferenceResource_PublicationDate: "Source Date",
+					ApplicabilityType: "Applicability Type",
+					TrainingGapType: "Training Gap Type",
+					Description: "Description"
+				},
+				display: function (data) {
+					return data.Description;
+				}
+			},
+			{
+				Type: "TrainingTask",
+				Label: "Training Task",
+				TBoxModel: {
+					Description: "Description"
+				},
+				display: function (data) {
+					return data.Description;
+				}
+			},
+			{
+				Type: "Course",
+				Label: "Course",
+				TBoxModel: {
+					CodedNotation: "CIN",
+					Name: "Name",
+					CourseType: "Course Type"
+				},
+				display: function (data) {
+					return data.CodedNotation + " - " + data.Name;
+				}
+			},
+			{
+				Type: "ReferenceResource",
+				Label: "Reference Resource",
+				TBoxModel: {
+					Name: "Name",
+					PublicationDate: "Publication Date"
+				},
+				display: function (data) {
+					return data.Name + " (" + data.PublicationDate + ")";
+				}
+			},
+			{
+				Type: "ClusterAnalysisTitle",
+				Label: "Cluster Analysis Title",
+				TBoxModel: {
+					Name: "Name"
+				},
+				display: function (data) {
+					return data.Name;
+				}
+			}
+		]
 	};
 	var ColumnData = {
 		"Unique Identifier": {},
@@ -122,41 +219,7 @@
 		UI.TabSets = {};
 		UI.TabSetsList = [];
 		$(".tabBox").each(function() {
-			var box = $(this);
-			var TabSet = {
-				Box: box,
-				Name: box.attr("data-name"),
-				ButtonsBox: box.find("> .tabButtons"),
-				TabsBox: box.find("> .tabList"),
-				Tabs: {},
-				TabsList: []
-			};
-			UI.TabSets[TabSet.Name] = TabSet;
-			UI.TabSetsList.push(TabSet);
-			TabSet.TabsBox.find("> .tabPanel").each(function() {
-				var panel = $(this);
-				var Tab = {
-					Box: panel,
-					Name: panel.attr("data-name"),
-					Label: panel.find("> .tabLabel"),
-					Button: $("<button></button>").appendTo(TabSet.ButtonsBox)
-				};
-				TabSet.Tabs[Tab.Name] = Tab;
-				TabSet.TabsList.push(Tab);
-				Tab.Button.html(Tab.Label.text());
-				Tab.Button.on("click", function() {
-					TabSet.showTab(Tab);
-				});
-			});
-			TabSet.showTab = function (TargetTab) {
-				TabSet.TabsList.forEach(OtherTab => {
-					OtherTab.Box.removeClass("current");
-					OtherTab.Button.removeClass("current greenButton");
-				});
-				TargetTab.Box.addClass("current");
-				TargetTab.Button.addClass("current greenButton");
-			};
-			TabSet.showTab(TabSet.TabsList[0]);
+			createTabBox($(this));
 		});
 
 		//Setup Progress Bars
@@ -167,7 +230,7 @@
 			var StatusBar = {
 				Box: box,
 				Name: box.attr("data-name"),
-				OuterBar: $("<div class=\"progressBarOuter\"></div>").appendTo(box),
+				BarWrapper: $("<div class=\"progressBarWrapper\"></div>").appendTo(box),
 				StatusBox: $("<div class=\"statusBox\"></div>").appendTo(box),
 				Active: true,
 				Current: 0,
@@ -175,10 +238,15 @@
 				UnitText: "",
 				OverrideLabel: ""
 			};
+			StatusBar.OuterBar = $("<div class=\"progressBarOuter\"></div>").appendTo(StatusBar.BarWrapper);
 			StatusBar.InnerBar = $("<div class=\"progressBarInner\"></div>").appendTo(StatusBar.OuterBar);
 			StatusBar.Label = $("<div class=\"progressBarLabel\"></div>").appendTo(StatusBar.InnerBar);
+			StatusBar.CancelButton = $("<button class=\"cancelButton\">Cancel</button>").appendTo(StatusBar.BarWrapper);
 			UI.StatusBars[StatusBar.Name] = StatusBar;
 			UI.StatusBarsList.push(StatusBar);
+			StatusBar.CancelButton.on("click", function () {
+				Manager.ContinueProcessing = false;
+			});
 			StatusBar.setValue = function (current, max, unitText, overrideLabel) {
 				StatusBar.Current = current;
 				StatusBar.Max = max;
@@ -206,12 +274,7 @@
 		UI.TableBoxesList = [];
 		$(".tableBox").each(function () {
 			var box = $(this);
-			var columnKeys = box.attr("data-columnKeys").split("|");
-			var columnLabels = box.attr("data-columnLabels").split("|");
-			var model = {};
-			columnKeys.forEach((key, index) => {
-				model[key] = columnLabels[index];
-			});
+			var model = getModelFromAttributes(box.attr("data-columnKeys"), box.attr("data-columnLabels"));
 			createTableBox(null, box.attr("data-name"), model, box);
 		});
 
@@ -233,9 +296,76 @@
 		UI.FileSelector = $("[data-property='CSVFile']");
 		UI.SkipPart2CheckBox = $("[data-property='SkipPart2Checks']");
 		UI.SkipPart3CheckBox = $("[data-property='SkipPart3Checks']");
-	
+
+		//Resource Sets Boxes
+		$(".resourceSetsBox").each(function () {
+			var box = $(this);
+			var name = box.attr("data-name");
+			var label = box.attr("data-label");
+			var buttonsBox = $("<div class=\"tabButtons\"></div>").appendTo(box);
+			var listBox = $("<div class=\"tabList\"></div>").appendTo(box);
+
+			Static.ResourceTypes.filter(ResourceType => !["Overall", "Rating"].includes(ResourceType.Type)).forEach(ResourceType => {
+				var tabPanelBox = $("<div class=\"tabPanel\" data-name=\"" + name + "\"></div>").appendTo(listBox);
+				var tabLabel = $("<h4 class=\"tabLabel\">" + ResourceType.Label + "</h4>").appendTo(tabPanelBox);
+				var tableDiv = $("<div class=\"tableBox\" data-label=\"" + label + " - " + ResourceType.Label + "\" data-enablesave=\"true\"></div>").appendTo(tabPanelBox);
+				var extraColumns = getModelFromAttributes(box.attr("data-extraColumnKeys"), box.attr("data-extraColumnLabels"));
+				var tableBox = createTableBox(tabPanelBox, "ResourceSet_" + name + "_" + ResourceType.Type, { RowNumber: "Row #", ...ResourceType.TBoxModel, ...extraColumns }, tableDiv);
+			});
+
+			createTabBox(box);
+		});
+
+		//Helper function
+		function getModelFromAttributes(columnAttribute, labelAttribute) {
+			var columnKeys = columnAttribute.split("|");
+			var columnLabels = labelAttribute.split("|");
+			var model = {};
+			columnKeys.forEach((key, index) => {
+				model[key] = columnLabels[index];
+			});
+			return model;
+		}
 	}
 	//
+
+	//Create a Tab Box
+	function createTabBox(container, name) {
+		var TabSet = {
+			Box: container,
+			Name: name || container.attr("data-name"),
+			ButtonsBox: container.find("> .tabButtons"),
+			TabsBox: container.find("> .tabList"),
+			Tabs: {},
+			TabsList: []
+		};
+		UI.TabSets[TabSet.Name] = TabSet;
+		UI.TabSetsList.push(TabSet);
+		TabSet.TabsBox.find("> .tabPanel").each(function() {
+			var panel = $(this);
+			var Tab = {
+				Box: panel,
+				Name: panel.attr("data-name"),
+				Label: panel.find("> .tabLabel"),
+				Button: $("<button></button>").appendTo(TabSet.ButtonsBox)
+			};
+			TabSet.Tabs[Tab.Name] = Tab;
+			TabSet.TabsList.push(Tab);
+			Tab.Button.html(Tab.Label.text());
+			Tab.Button.on("click", function() {
+				TabSet.showTab(Tab);
+			});
+		});
+		TabSet.showTab = function (TargetTab) {
+			TabSet.TabsList.forEach(OtherTab => {
+				OtherTab.Box.removeClass("current");
+				OtherTab.Button.removeClass("current greenButton");
+			});
+			TargetTab.Box.addClass("current");
+			TargetTab.Button.addClass("current greenButton");
+		};
+		TabSet.showTab(TabSet.TabsList[0]);
+	}
 
 	//Create a Table Box
 	function createTableBox(container, name, model, overrideBox) {
@@ -243,11 +373,17 @@
 		var TBox = {
 			Box: box,
 			Name: name,
+			Label: box.attr("data-label"),
+			Top: $("<div class=\"tableBoxTop\"></div>").appendTo(box),
 			Table: $("<table></table>").appendTo(box),
 			HeaderKeys: [],
 			HeaderLabels: [],
-			Model: model || {}
+			Model: model || {},
+			Data: [],
+			EnableSave: box.attr("data-enablesave") == "true"
 		};
+		TBox.Counter = $("<div class=\"tableBoxCounter\"></div>").appendTo(TBox.Top);
+		TBox.LabelBox = $("<div class=\"tableBoxLabel\">" + TBox.Label + "</div>").appendTo(TBox.Top);
 		TBox.THead = $("<thead></thead>").appendTo(TBox.Table);
 		TBox.TBody = $("<tbody></tbody>").appendTo(TBox.Table);
 		TBox.setupHeaders = function () {
@@ -257,17 +393,52 @@
 		}
 		TBox.renderData = function (rowDataArray) {
 			TBox.TBody.html("");
-			rowDataArray.forEach(rowData => {
+			TBox.Data = rowDataArray || [];
+			TBox.Data.forEach(rowData => {
 				TBox.appendRow(rowData);
 			});
+			TBox.refreshSaveButton();
 		}
 		TBox.appendRow = function (rowData) {
+			TBox.Data.push(rowData);
 			var row = $("<tr></tr>").appendTo(TBox.TBody);
+			TBox.refreshRow(row, rowData);
+			return row;
+		}
+		TBox.setupSaveButton = function () {
+			if (TBox.EnableSave) {
+				TBox.SaveButton = $("<button class=\"blueButton tableBoxSaveButton\"></div>").appendTo(TBox.Top);
+				TBox.SaveButton.on("click", function () {
+					var csvRows = [TBox.HeaderLabels.join(",")];
+					TBox.Data.forEach(rowData => {
+						var row = [];
+						TBox.HeaderKeys.forEach(key => {
+							var value = (rowData[key] || "").toString().replace(/"/g, '""');
+							row.push((value.includes("\n") || value.includes(",") || value.includes('"')) ? '"' + value + '"' : value);
+						});
+						csvRows.push(row.join(","));
+					});
+					var csv = csvRows.join("\n");
+					var tempLink = $("<a></a>").appendTo(document.body);
+					tempLink.attr("download", (Manager?.Config?.Rating?.CodedNotation || "Unknown Rating") + " " + TBox.Label + ".csv");
+					tempLink.attr("href", URL.createObjectURL(new Blob([csv], { type: "text/csv" })));
+					tempLink[0].click();
+					tempLink.remove();
+				});
+				TBox.refreshSaveButton();
+			}
+		}
+		TBox.refreshSaveButton = function () {
+			TBox.SaveButton?.html("Save " + TBox.Data.length + " Items");
+		}
+		TBox.refreshRow = function (row, rowData) {
 			setTimeout(function () {
 				row.html(TBox.HeaderKeys.map(key => "<td>" + rowData[key] + "</td>"));
+				TBox.refreshSaveButton();
 			}, 0);
 		}
 		TBox.setupHeaders();
+		TBox.setupSaveButton();
 		UI.TableBoxes[TBox.Name] = TBox;
 		UI.TableBoxesList.push(TBox);
 		return TBox;
@@ -288,6 +459,7 @@
 			}
 			Manager.FileReader.readAsBinaryString(Manager.getFileHandle());
 		}
+
 	}
 	//
 
@@ -298,11 +470,13 @@
 			StatusBar.setStatus("Ready");
 		});
 		UI.TableBoxesList.forEach(TableBox => {
-			TableBox.TBody.html("");
+			TableBox.renderData([]);
 		});
 		Manager.RawCSV = "";
 		Manager.UTF8CSV = "";
 		Manager.CSVText = "";
+		Manager.ContinueProcessing = true;
+		Manager.LookupGraph = [];
 	}
 	//
 
@@ -330,6 +504,16 @@
 				return;
 			}
 		}
+
+		//Read UI
+		Manager.Config = {
+			Rating: {
+				CodedNotation: UI.RatingSelector.find("option:selected").attr("data-codednotation"),
+				RowID: UI.RatingSelector.val()
+			},
+			SkipPart2Checks: UI.SkipPart2CheckBox.prop("checked"),
+			SkipPart3Checks: UI.SkipPart3CheckBox.prop("checked")
+		};
 
 		//Read the contents
 		Manager.readFile(function (rawData) {
@@ -426,18 +610,19 @@
 			//Scan for pre-processing
 			UI.StatusBars.PreProcessingProgress.setStatus("Pre-Processing...");
 			UI.StatusBars.PreProcessingProgress.setValue(0, Manager.CSVJSON.length, "rows");
-			Manager.SelectedRatingCodedNotation = UI.RatingSelector.find("option:selected").attr("data-codednotation");
 			scanRow(0, function () {
 				//If there are any errors
-				var preProcessingErrorRows = UI.TableBoxes.PreProcessingTable.TBody.find("tr"); //TODO: Develop more robust error tracking
-				if (preProcessingErrorRows.length > 0) {
-					UI.StatusBars.PreProcessingProgress.setStatus("Finished with " + preProcessingErrorRows.length + " Errors.");
-					//Show/hide buttons
+				if (UI.TableBoxes.PreProcessingTable.Data.length > 0) {
+					UI.StatusBars.PreProcessingProgress.setStatus("Finished with " + UI.TableBoxes.PreProcessingTable.Data.length + " Issues.");
+					//TODO: Show/hide buttons
 				}
 				//Otherwise
 				else {
 					UI.StatusBars.PreProcessingProgress.setStatus("Ready to Upload Data."); //TODO: Show/hide buttons. Consider whether or not the high level tabs are necessary
 				}
+			}, function () { //On cancel...
+				UI.StatusBars.PreProcessingProgress.setStatus("Canceled" + (UI.TableBoxes.PreProcessingTable.Data.length > 0 ? " with " + UI.TableBoxes.PreProcessingTable.Data.length + " errors." : "."));
+				//TODO: Show/hide buttons
 			});
 		});
 
@@ -447,44 +632,66 @@
 		}
 
 		//Helper function
-		function scanRow(index, afterComplete) {
-			//Get the row, or finish
-			if (Manager.CSVJSON.length > index) {
-				var row = Manager.CSVJSON[index];
+		function scanRow(index, afterComplete, onCancel) {
+			if (Manager.ContinueProcessing) {
+				//Get the row, or finish
+				if (Manager.CSVJSON.length > index) {
+					//Reference the correct row, and account for the header rows
+					var row = Manager.CSVJSON[index];
+					var rowNumber = index + 3; //Account for heading rows and 0 based index
 
-				//Reference the correct row number
-				var rowNumber = index + 3; //Account for heading rows and 0 based index
+					//Scan for unintended whitespace and other characters
+					Object.keys(ColumnData).forEach(column => {
+						//Scan for whitespace
+						checkWhitespace(column, "\t", "Tab");
+						checkWhitespace(column, "\r\n", "Carriage Return/New Line");
+						checkWhitespace(column, "\n", "New Line");
+						checkWhitespace(column, "  ", "Double Space");
 
-				//Validate rating matches selected rating
-				appendErrorRowIf(UI.TableBoxes.PreProcessingTable, row.Rating != Manager.SelectedRatingCodedNotation, rowNumber, "Rating", "Rating code for this row (" + row.Rating + ") does not match selected Rating code (" + Manager.SelectedRatingCodedNotation + ")");
-
-				//Scan for invalid concept references
-				Object.keys(ColumnData).forEach(key => {
-					//If the column has a value for this row, and the value is not N/A...
-					if (ColumnData[key].Values && row[key] && row[key] != "N/A") {
-						//If it's a multi-value column, split it out into its values; otherwise just create a single-item array with the value
-						var columnValues = ColumnData[key].SplitOn ? row[key].split(new RegExp("[" + ColumnData[key].SplitOn.join("") + "]")) : [row[key]];
-						//Loop through the array to check that each value shows up in the valid values list
-						columnValues.forEach(value => {
-							appendErrorRowIf(UI.TableBoxes.PreProcessingTable, !ColumnData[key].Values.includes(value), rowNumber, "Invalid Value", key + " contains a value that was not found in the database: \"" + value + "\".");
-						});
+						//Scan for characters outside of the normal range
+						row[column].split("").forEach((character, index) => {
+							var code = row[column].charCodeAt(index);
+							appendRowIf(UI.TableBoxes.PreProcessingTable, 31 >= code || code >= 126, rowNumber, "Unusual character", "The " + column + " column on this row contains unusual character (" + character + ") at approximately position " + (index + 1));
+						})
+					});
+					function checkWhitespace(column, character, label) {
+						appendRowIf(UI.TableBoxes.PreProcessingTable, row[column].includes(character), rowNumber, "Extra whitespace", "The " + column + " column on this row contains extraneous whitespace (" + label + ") at approximately position " + (row[column].indexOf(character) + 1));
 					}
-				});
 
-				//Scan for potential duplicates
-				var matches = Manager.CSVJSON.filter(otherJSON => otherJSON != row && otherJSON.CompareText == row.CompareText);
-				appendErrorRowIf(UI.TableBoxes.PreProcessingTable, matches.length > 0, rowNumber, "Duplicate Row", "Row(s) " + matches.map(match => match.RawIndex + 3).join(", ") + " appear to be identical to this row.");
+					//Validate rating matches selected rating
+					appendRowIf(UI.TableBoxes.PreProcessingTable, row.Rating != Manager.Config.Rating.CodedNotation, rowNumber, "Rating", "Rating code for this row (" + row.Rating + ") does not match selected Rating code (" + Manager.Config.Rating.CodedNotation + ")");
 
-				//Update the progress bar
-				UI.StatusBars.PreProcessingProgress.setValue(index + 1, Manager.CSVJSON.length, "rows");
+					//Scan for invalid concept references
+					Object.keys(ColumnData).forEach(key => {
+						//If the column has a value for this row, and the value is not N/A...
+						if (ColumnData[key].Values && row[key] && row[key] != "N/A") {
+							//If it's a multi-value column, split it out into its values; otherwise just create a single-item array with the value
+							var columnValues = ColumnData[key].SplitOn ? row[key].split(new RegExp("[" + ColumnData[key].SplitOn.join("") + "]")).map(m => m.trim()) : [row[key]];
+							//Loop through the array to check that each value shows up in the valid values list
+							columnValues.forEach(value => {
+								appendRowIf(UI.TableBoxes.PreProcessingTable, !ColumnData[key].Values.includes(value), rowNumber, "Invalid Value", key + " contains a value that was not found in the database: \"" + value + "\".");
+							});
+						}
+					});
 
-				//Wait a moment for the UI to refresh, then run for the next row
-				setTimeout(() => {
-					scanRow(index + 1, afterComplete);
-				}, 1);
+					//Scan for potential duplicates
+					var matches = Manager.CSVJSON.filter(otherJSON => otherJSON != row && otherJSON.CompareText == row.CompareText);
+					appendRowIf(UI.TableBoxes.PreProcessingTable, matches.length > 0, rowNumber, "Duplicate Row", "Row(s) " + matches.map(match => match.RawIndex + 3).join(", ") + " appear to be identical to this row.");
+
+					//Update the progress bar
+					UI.StatusBars.PreProcessingProgress.setValue(index + 1, Manager.CSVJSON.length, "rows");
+
+					//Wait a moment for the UI to refresh, then run for the next row
+					setTimeout(() => {
+						scanRow(index + 1, afterComplete, onCancel);
+					}, 1);
+				}
+				else {
+					afterComplete?.();
+				}
 			}
 			else {
-				afterComplete?.();
+				onCancel?.();
 			}
 		}
 	}
@@ -492,8 +699,318 @@
 
 	//Upload Data for server-side processing
 	function uploadData() {
+		//Show the tab
 		UI.TabSets.StageTabs.showTab(UI.TabSets.StageTabs.Tabs.UploadReport);
 
+		//Update the progress bar
+		UI.StatusBars.UploadProgress.setValue(0, Manager.CSVJSON.length, "rows");
+		UI.StatusBars.UploadProgress.setStatus("Uploading...");
+
+		//TODO: disable/hide buttons etc
+
+		//Set a Transaction GUID
+		Manager.Config.TransactionGUID = crypto.randomUUID();
+
+		//Initialize tables
+		var uploadSummaryData = { Total: 0, Successful: 0, ServerErrors: 0, ProcessingErrors: 0 };
+		uploadSummaryData.HTMLRow = UI.TableBoxes.UploadSummaryTable.appendRow([uploadSummaryData]);
+		initializeResourceSummaryTables();
+		var resourceSummaryOverallRow = UI.TableBoxes.ResourceSummaryTable["Data_Overall"];
+
+		//Process rows
+		uploadRow(0, function () {
+			//Upload the raw CSV file
+			var uploadCSVData = {
+				RatingRowID: Manager.Config.Rating.RowID,
+				TransactionGUID: Manager.Config.TransactionGUID,
+				RawCSV: Manager.UTF8CSV
+			};
+			UI.StatusBars.UploadProgress.setStatus("Storing CSV File...");
+			AJAX.doPOSTRequest("@Url.Content("~/upload/storerawcsv")", uploadCSVData, function (response) {
+				UI.StatusBars.UploadProgress.setStatus("Uploading Finished. See below for details.");
+
+				//TODO: Show/hide buttons
+			}, function (error) {
+				UI.StatusBars.UploadProgress.setStatus("Error storing CSV: " + error.statusText + " (" + error.status + ")");
+
+				//TODO: show/hide buttons
+			});
+		}, function () {
+			UI.StatusBars.UploadProgress.setStatus("Uploading Canceled.");
+			
+			//TODO: show/hide buttons
+		});
+
+		//Helper function
+		function uploadRow(index, afterComplete, onCancel) {
+			if (Manager.ContinueProcessing) {
+				if (Manager.CSVJSON.length > index) {
+					//Reference the correct row, and account for the header rows
+					var row = Manager.CSVJSON[index];
+					var rowNumber = index + 3; //Account for heading rows and 0 based index
+
+					//Construct the request
+					var requestData = {
+						RatingRowID: Manager.Config.Rating.RowID,
+						TransactionGUID: Manager.Config.TransactionGUID,
+						Row: mapRow(row, index) //Does not account for header rows. Should it?
+					};
+					Manager.Config.SkipPart2Checks && (requestData.SkipPart2Checks = true);
+					Manager.Config.SkipPart3Checks && (requestData.SkipPart3Checks = true);
+
+					//Upload the row
+					AJAX.doPOSTRequest("@Url.Content("~/upload/processuploadeditem")", requestData, function (response) {
+						//Handle the response
+						if (response.Valid) { //Handle successful row processing
+							response.Data.Errors?.forEach(error => {
+								UI.TableBoxes.UploadReport_ProcessingErrors.appendRow({ RowNumber: rowNumber, Type: "Processing", Message: error });
+							});
+							response.Data.Warnings?.forEach(warning => {
+								UI.TableBoxes.UploadReport_Warnings.appendRow({ RowNumber: rowNumber, Type: "Warning", Message: warning });
+							});
+							response.Data.Message && UI.TableBoxes.UploadReport_Messages.appendRow({ RowNumber: rowNumber, Type: "Message", Message: response.Data.Message });
+
+							//Update the local data cache
+							appendUpdates(response.Data, rowNumber);
+
+							//Update the tables
+							addUploadSummaryResult("Successful");
+						}
+						else { //Handle an error at the processing level
+							UI.TableBoxes.UploadReport_ProcessingErrors.appendRow({ RowNumber: rowNumber, Type: "Processing", Message: response.Status });
+
+							//Update the tables
+							addUploadSummaryResult("ProcessingErrors");
+						}
+
+						//Continue processing
+						UI.StatusBars.UploadProgress.setValue(index + 1, Manager.CSVJSON.length, "rows");
+						uploadRow(index + 1, afterComplete, onCancel);
+					}, function (error) { //Handle an error at the server level
+						//Log error
+						UI.TableBoxes.UploadReport_ServerErrors.appendRow({ RowNumber: rowNumber, Type: "Server", Message: error.Data.Error });
+
+						//Update the tables
+						addUploadSummaryResult("ServerErrors");
+
+						debugger;
+
+						//Continue processing
+						UI.StatusBars.UploadProgress.setValue(index + 1, Manager.CSVJSON.length, "rows");
+						uploadRow(index + 1, afterComplete, onCancel);
+					});
+				}
+				else {
+					afterComplete?.();
+				}
+			}
+			else {
+				onCancel?.();
+			}
+		}
+
+		//Helper function
+		function mapRow(row, index) {
+			return {
+				Row_Index: index,
+				Row_Identifier: row["Index #"],
+				Row_CodedNotation: [row["Unique Identifier"] || row["Unique ID"] || row["Index #"]].find(m => m && isNaN(m)) || "", //Find the Unique Identifier in one of these three columns, ignoring values that are purely numeric
+				Rating_CodedNotation: row["Rating"],
+				PayGradeType_CodedNotation: row["Rank"],
+				Level_Name: row["Level (A/J/M)"], //Not used, seems to have changed to a single character and a column named "Level (A)" instead?
+				BilletTitle_Name: row["Billet Title"],
+				WorkRole_Name: row["Functional Area"],
+				ReferenceResource_Name: row["Source"],
+				ReferenceResource_PublicationDate: row["Date of Source"],
+				Shared_ReferenceType: row["Work Element Type"],
+				RatingTask_Description: row["Work Element (Task)"],
+				RatingTask_ApplicabilityType_Name: row["Task Applicability"],
+				RatingTask_TrainingGapType_Name: row["Formal Training Gap"],
+				Course_CodedNotation: row["CIN"],
+				Course_Name: row["Course Name"],
+				Course_CourseType_Name: row["Course Type (A/C/G/F/T)"],
+				Course_CurriculumControlAuthority_Name: row["Curriculum Control Authority (CCA)"],
+				Course_LifeCycleControlDocumentType_CodedNotation: row["Life-Cycle Control Document"],
+				TrainingTask_Description: row["CTTL/PPP/TCCD Statement"],
+				Course_AssessmentMethodType_Name: row["Current Assessment Approach"],
+				Note: row["Notes"], //TBD Part II Notes or leave as is
+				Training_Solution_Type: row["Training Solution Type"],
+				Cluster_Analysis_Title: row["Cluster Analysis Title"],
+				Recommended_Modality: row["Recommended Modality"],
+				Development_Specification: row["Development Specification"],
+				Candidate_Platform: row["Candidate Platform"],
+				CFM_Placement: row["CFM Placement"],
+				Priority_Placement: row["Priority Placement"],
+				Development_Ratio: row["Development Ratio"],
+				Estimated_Instructional_Time: row["Estimated Instructional Time"],
+				Development_Time: row["Development Time (duration in hours)"],
+			}
+		}
+
+		//Helper function
+		function initializeResourceSummaryTables() {
+			Static.ResourceTypes.forEach(ResourceType => {
+				var rowData = {
+					Type: ResourceType.Type,
+					TypeLabel: ResourceType.Label,
+					Total: 0,
+					NewItems: 0,
+					PotentialDuplicates: 0,
+					Unchanged: 0,
+					ValueChanges: 0,
+					ReferenceChanges: 0,
+					ReferenceAdditions: 0
+				};
+				UI.TableBoxes.ResourceSummaryTable["Data_" + rowData.Type] = rowData;
+				rowData.HTMLRow = UI.TableBoxes.ResourceSummaryTable.appendRow(rowData);
+			});
+		}
+
+		//Helper function
+		function appendUpdates(ItemResult, rowNumber) {
+			//Store new and existing items
+			storeMetadataifiedItems(ItemResult.ExistingItems, false);
+			storeMetadataifiedItems(ItemResult.NewItems, true);
+			ItemResult.NewItems.forEach(newItem => {
+				UI.TableBoxes["ResourceSet_NewItems_" + newItem["@@type"]].appendRow({ RowNumber: rowNumber, ...newItem });
+			});
+
+			//Append value changes
+			ItemResult.ValueChanges.forEach(valueChange => {
+				var item = lookupItem(valueChange.Subject);
+				item.Meta.ValueChanges.push(valueChange);
+				if (item.Meta.IsNew) {
+					//Warn about value changes for new items
+					appendRowIf(UI.TableBoxes.UploadReport_Warnings, item[valueChange.Predicate], rowNumber, "Value changed for new " + item.Meta.TypeLabel, "Newly-added " + item.Meta.TypeLabel + " appears to have a different value for its " + valueChange.Predicate + " on this row: \"" + (valueChange.Object?.toString() || "") + "\" instead of the previously-detected value of \"" + (item[valueChange.Predicate]?.toString() || "") + "\". Please ensure the value for this item is consistent throughout the spreadsheet.");
+				}
+				else {
+					//Warn about value changes for existing items
+					UI.TableBoxes.UploadReport_Warnings.appendRow({ RowNumber: rowNumber, Type: "Value changed for existing " + item.Meta.TypeLabel, Message: "Detected text or value change in " + item.Meta.TypeLabel + " " + valueChange.Predicate + " from \"" + (item[valueChange.Predicate]?.toString() || "") + "\" to \"" + (valueChange.Object?.toString() || "") + "\" on this row." });
+				}
+				//Update the value in the local object
+				item[valueChange.Predicate] = valueChange.Object;
+			});
+
+			//Append additions to new/existing items
+			ItemResult.Additions.forEach(addition => {
+				var item = lookupItem(addition.Subject);
+				item.Meta.Additions.push(addition);
+				item[addition.Predicate] = item[addition.Predicate] || [];
+				if (!item[addition.Predicate].includes(addition.Object)) {
+					item[addition.Predicate].push(addition.Object);
+					if (item.Meta.IsNew) {
+						//No need to note this
+					}
+					else {
+						AJAX.getResource(getURLForRowIDLookup(addition.Object), success => {
+							UI.TableBoxes["ResourceSet_ReferenceAdditions_" + item["@@type"]].appendRow({ RowNumber: rowNumber, ...item, Predicate: addition.Predicate, AddedReference: getDisplay(success.Data) });
+						}, error => {
+							addResourceLookupError(item.Meta.TypeLabel, addition.Predicate, addition.Object, rowNumber);
+						});
+					}
+				}
+			});
+
+			try {
+				//Append reference changes
+				ItemResult.ReferenceChanges.forEach(referenceChange => {
+					var item = lookupItem(referenceChange.Subject);
+					item.Meta.ReferenceChanges.push(referenceChange);
+					//Do the lookups and then append the messages
+					//Do the lookups first so that the data in the rendered HTML table matches the data in the table's data array
+					var oldReference = {
+						value: item[referenceChange.Predicate] || "",
+						label: "N/A",
+						finished: item[referenceChange.Predicate] ? false : true
+					};
+					var newReference = {
+						value: referenceChange.Object || "",
+						label: "N/A",
+						finished: referenceChange.Object ? false : true
+					};
+
+					doLookup(oldReference);
+					doLookup(newReference);
+
+					function doLookup(reference) {
+						if (reference.value && !reference.finished) {
+							AJAX.getResource(getURLForRowIDLookup(reference.value), success => {
+								reference.label = getDisplay(success.Data);
+								reference.finished = true;
+								renderReferenceMessages();
+							}, error => {
+								reference.label = "(Error looking up resource with RowID " + oldReference + ")";
+								reference.finished = true;
+								addResourceLookupError(item.Meta.TypeLabel, referenceChange.Predicate, reference.value, rowNumber);
+								renderReferenceMessages();
+							});
+						}
+					}
+
+					function renderReferenceMessages() {
+						if (oldReference.finished && newReference.finished) {
+							if (item.Meta.IsNew) {
+								appendRowIf(UI.TableBoxes.UploadReport_Warnings, item[referenceChange.Predicate] != referenceChange.Object, rowNumber, "Reference change for new " + item.Meta.TypeLabel, "Newly-added " + item.Meta.TypeLabel + " appears to reference a different value for its " + referenceChange.Predicate + " on this row. The reference changed from \"" + oldReference.label + "\" to \"" + newReference.label + "\".")
+							}
+							else {
+								UI.TableBoxes.UploadReport_Warnings.appendRow({ RowNumber: rowNumber, Type: "Reference change for existing " + item.Meta.TypeLabel, Message: "Existing " + item.Meta.TypeLabel + " appears to have a different value for its " + referenceChange.Predicate + " on this row. The reference changed from \"" + oldReference.label + "\" to \"" + newReference.label + "\"." });
+							}
+						}
+					}
+				});
+			}
+			catch (e) {
+				debugger;
+			}
+
+			//Add the row number to the list of rows on which each of the listed items shows up
+			ItemResult.RowItems.forEach(rowID => {
+				lookupItem(rowID).Meta.RowNumbers.push(rowNumber);
+			});
+
+			//Helper function
+			function storeMetadataifiedItems(itemList, isNew) {
+				itemList.forEach(item => {
+					var match = lookupItem(item.RowId);
+					if (!match) {
+						item.Meta = {
+							IsNew: isNew,
+							Additions: [],
+							ValueChanges: [],
+							ReferenceChanges: [],
+							RowNumbers: [],
+							TypeLabel: Static.ResourceTypes.find(ResourceType => ResourceType.Type == item["@@type"])?.Label || item["@@type"]
+						};
+						Manager.LookupGraph.push(item);
+					}
+					AJAX.appendToCache(getURLForRowIDLookup(item.RowId), { Data: item });
+				});
+			}
+
+			//Helper function
+			function getURLForRowIDLookup(rowID) {
+				return "@Url.Content( "~/upload/lookupgraphitem" )?transactionGUID=" + Manager.Config.TransactionGUID + "&itemRowID=" + rowID;
+			}
+
+			//Helper function
+			function getDisplay(data) {
+				var ResourceType = Static.ResourceTypes.find(ResourceType => { return ResourceType.Type == data["@@type"] });
+				return ResourceType?.display(data) || data.Name;
+			}
+
+			//Helper function
+			function addResourceLookupError(sourceTypeLabel, sourceProperty, destinationRowID, rowNumber) {
+				UI.TableBoxes.UploadReport_ProcessingErrors.appendRow({ RowNumber: rowNumber, Type: "Resource Lookup Failure", Message: "Failed to find the resource (" + destinationRowID + ") that the " + sourceTypeLabel + " on this row references via its " + sourceProperty + " property." });
+			}
+		}
+
+		//Helper function
+		function addUploadSummaryResult(incrementUploadSummaryColumn) {
+			//Update the Upload Summary table
+			uploadSummaryData.Total++;
+			uploadSummaryData[incrementUploadSummaryColumn]++;
+			UI.TableBoxes.UploadSummaryTable.refreshRow(uploadSummaryData.HTMLRow, uploadSummaryData);
+		}
 	}
 	//
 
@@ -505,11 +1022,23 @@
 	//
 
 	//Render data to a vanilla message table conditionally
-	function appendErrorRowIf(TableBox, condition, rowNumber, type, message) {
+	function appendRowIf(TableBox, condition, rowNumber, type, message) {
 		if (condition) {
 			TableBox.appendRow({ RowNumber: rowNumber, Type: type, Message: message });
 		}
 	}
+
+	//Find an item in the Manager's LookupGraph
+	function lookupItem(rowID) {
+		return Manager.LookupGraph.find(item => item.RowId == rowID);
+	}
+
+
+	//TODO:
+	// Update the resource summary tables (base them on the .lengths of the other tables)
+	// Ensure the counts for total rows processed/successful/error/warning/etc are correct
+
+
 
 </script>
 <style type="text/css">
@@ -540,13 +1069,19 @@
 	.inputForm .inputFormRow button { width: 200px; }
 
 	.statusBar { margin-bottom: 10px; }
-	.statusBar .progressBarOuter { background-color: #CCC; padding: 1px; height: 30px; }
-	.statusBar .progressBarOuter .progressBarInner { background-color: #CFC; height: 28px; min-width: 75px; transition: width 0.5s; text-align: center; }
-	.statusBar .progressBarOuter .progressBarInner .progressBarLabel { text-align: center; color: #031; padding: 4px 5px; white-space: nowrap; }
+	.statusBar .progressBarWrapper { display: flex; gap: 5px; }
+	.statusBar .progressBarWrapper .progressBarOuter { flex: 1 1 auto; background-color: #CCC; padding: 1px; height: 30px; }
+	.statusBar .progressBarWrapper .cancelButton { min-width: 200px; }
+	.statusBar .progressBarWrapper .progressBarOuter .progressBarInner { background-color: #CFC; height: 28px; min-width: 75px; transition: width 0.5s; text-align: center; }
+	.statusBar .progressBarWrapper .progressBarOuter .progressBarInner .progressBarLabel { text-align: center; color: #031; padding: 4px 5px; white-space: nowrap; }
 	.statusBar .statusBox { padding: 5px 10px; }
 
-	.tableBox table { border: 1px solid #555; margin-bottom: 10px; }
-	.tableBox table th { border: 1px solid #CCC; padding: 5px 10px; background-color: #DDD; text-align: center; }
+	.tableBox { margin-bottom: 20px; min-width: 500px; }
+	.tableBox .tableBoxTop { display: flex; gap: 10px; align-items: baseline; padding: 5px; background-color: #DDD; }
+	.tableBox .tableBoxTop .tableBoxLabel { font-weight: bold; }
+	.tableBox .tableBoxTop .tableBoxSaveButton { min-width:200px; margin-left: auto; }
+	.tableBox table { border: 1px solid #555; margin-bottom: 10px; width: 100%; }
+	.tableBox table th { border: 1px solid #CCC; padding: 5px 10px; background-color: #DDD; text-align: center; white-space: nowrap; }
 	.tableBox table td { border: 1px solid #CCC; padding: 5px 10px; text-align: left; }
 
 </style>
@@ -583,7 +1118,7 @@
 		<div class="tabPanel" data-name="PreProcessing">
 			<h2 class="tabLabel">Stage II: Pre-Processing</h2>
 			<div class="statusBar" data-name="PreProcessingProgress"></div>
-			<div class="tableBox" data-name="PreProcessingTable" data-columnKeys="RowNumber|Type|Message" data-columnLabels="Row #|Type|Message"></div>
+			<div class="tableBox" data-name="PreProcessingTable" data-label="Pre-Processing Results" data-enablesave="true" data-columnKeys="RowNumber|Type|Message" data-columnLabels="Row #|Type|Message"></div>
 			<button class="blueButton stageButton" data-action="UploadData">Upload Data</button>
 		</div>
 		<div class="tabPanel" data-name="UploadReport">
@@ -594,34 +1129,36 @@
 				<div class="tabList">
 					<div class="tabPanel" data-name="Summary">
 						<h3 class="tabLabel">Summary and Issues</h3>
-						<div class="tableBox" data-name="UploadSummaryTable" data-columnKeys="Total|ServerErrors|ProcessingErrors" data-columnLabels="Total Rows|Rows with Server Errors|Rows with Processing Errors"></div>
-						<div class="tableBox" data-name="ResourceSummaryTable" data-columnKeys="Type|Total|PotentialDuplicates|NewItems|Unchanged|ValueChanges|ReferenceChanges|ReferenceAdditions" data-columnLabels="Type|Total Items|Potential Duplicates|New Items|Existing Items without Changes|Existing Items with Value Changes|Existing Items with Reference Changes|Existing Items with Reference Additions"></div>
-						<h4>Errors</h4>
-						<div class="tableBox" data-name="UploadReport_Errors" data-columnKeys="RowNumber|Type|Message" data-columnLabels="Row #|Type|Message"></div>
+						<div class="tableBox" data-name="UploadSummaryTable" data-label="Upload Summary" data-columnKeys="Total|Successful|ServerErrors|ProcessingErrors" data-columnLabels="Total Rows|Successfully Processed Rows|Server Errors|Processing Errors"></div>
+						<div class="tableBox" data-name="ResourceSummaryTable" data-label="Resource Summary" data-columnKeys="TypeLabel|Total|PotentialDuplicates|NewItems|Unchanged|ValueChanges|ReferenceChanges|ReferenceAdditions" data-columnLabels="Type|Total Items|Potential Duplicates|New Items|Existing Items without Changes|Existing Items with Value Changes|Existing Items with Reference Changes|Existing Items with Reference Additions"></div>
+						<h4>Server Errors</h4>
+						<div class="tableBox" data-name="UploadReport_ServerErrors" data-label="Upload Report - Server Errors" data-enablesave="true" data-columnKeys="RowNumber|Type|Message" data-columnLabels="Row #|Type|Message"></div>
+						<h4>Processing Errors</h4>
+						<div class="tableBox" data-name="UploadReport_ProcessingErrors" data-label="Upload Report - Processing Errors" data-enablesave="true" data-columnKeys="RowNumber|Type|Message" data-columnLabels="Row #|Type|Message"></div>
 						<h4>Warnings</h4>
-						<div class="tableBox" data-name="UploadReport_Warnings" data-columnKeys="RowNumber|Type|Message" data-columnLabels="Row #|Type|Message"></div>
+						<div class="tableBox" data-name="UploadReport_Warnings" data-label="Upload Report - Warnings" data-enablesave="true" data-columnKeys="RowNumber|Type|Message" data-columnLabels="Row #|Type|Message"></div>
 						<h4>Messages</h4>
-						<div class="tableBox" data-name="UploadReport_Messages" data-columnKeys="RowNumber|Type|Message" data-columnLabels="Row #|Type|Message"></div>
+						<div class="tableBox" data-name="UploadReport_Messages" data-label="Upload Report - Messages" data-enablesave="true" data-columnKeys="RowNumber|Type|Message" data-columnLabels="Row #|Type|Message"></div>
 					</div>
 					<div class="tabPanel" data-name="PotentialDuplicates">
 						<h3 class="tabLabel">Potential Duplicates</h3>
-						<div class="resourceSetsBox"></div>
+						<div class="resourceSetsBox" data-name="PotentialDuplicates" data-label="Potential Duplicates" data-extraColumnKeys="OtherRows" data-extraColumnLabels="Appears on Other Rows"></div>
 					</div>
 					<div class="tabPanel" label="New Items" data-name="NewItems">
 						<h3 class="tabLabel">New Items</h3>
-						<div class="resourceSetsBox"></div>
+						<div class="resourceSetsBox" data-name="NewItems" data-label="New Items" data-extraColumnKeys="" data-extraColumnLabels=""></div>
 					</div>
 					<div class="tabPanel" data-name="ValueChanges">
 						<h3 class="tabLabel">Existing Items with Value Changes</h3>
-						<div class="resourceSetsBox"></div>
+						<div class="resourceSetsBox" data-name="ValueChanges" data-label="Value Changes" data-extraColumnKeys="Predicate|OldValue|NewValue" data-extraColumnLabels="Property|Old Value|New Value"></div>
 					</div>
 					<div class="tabPanel" data-name="ReferenceChanges">
 						<h3 class="tabLabel">Existing Items with Reference Changes</h3>
-						<div class="resourceSetsBox"></div>
+						<div class="resourceSetsBox" data-name="ReferenceChanges" data-label="Reference Changes" data-extraColumnKeys="Predicate|OldReference|NewReference" data-extraColumnLabels="Property|Old Reference|New Reference"></div>
 					</div>
 					<div class="tabPanel" data-name="ReferenceAdditions">
 						<h3 class="tabLabel">Existing Items with Reference Additions</h3>
-						<div class="resourceSetsBox"></div>
+						<div class="resourceSetsBox" data-name="ReferenceAdditions" data-label="Reference Additions" data-extraColumnKeys="Predicate|AddedReference" data-extraColumnLabels="Property|Added Reference"></div>
 					</div>
 				</div>
 			</div>
@@ -630,7 +1167,7 @@
 		<div class="tabPanel" data-name="SaveData">
 			<h2 class="tabLabel">Stage IV: Save Data</h2>
 			<div class="statusBar" data-name="SaveProgress"></div>
-			<div class="tableBox" data-name="SaveReportTable" data-columnKeys="RowNumber|Type|Message" data-columnLabels="Row #|Type|Message"></div>
+			<div class="tableBox" data-name="SaveReportTable" data-label="Upload and Save Report - Messages" data-enablesave="true" data-columnKeys="RowNumber|Type|Message" data-columnLabels="Row #|Type|Message"></div>
 		</div>
 	</div>
 </div>

@@ -278,7 +278,7 @@
 			Field.Items.forEach(Item => {
 				var wrapper = $("<label></label>").appendTo(Field.UI);
 				var checkbox = $("<input type=\"checkbox\" value=\"" + Field.getItemValue(Item) + "\" />").appendTo(wrapper);
-				$("<span>" + Field.getItemLabel(Item) + "</span>").appendTo(wrapper);
+				$("<div>" + Field.getItemLabel(Item) + "</div>").appendTo(wrapper);
 				checkbox[0].getItem = function () { return Item; }
 				checkbox.on("change", () => {
 					Field.onItemChange(Map);
@@ -611,6 +611,27 @@
 		return Field;
 	}
 	//
+
+	//Generic method to do a GET request and handle the response
+	FormItem.doGETRequest = function (url, handleResponse) {
+		console.log("Sending request", { url: url });
+		fetch(url).then((response) => {
+			console.log("Received response", response);
+			if (response.ok) {
+				return response.text();
+			}
+			else {
+				throw response;
+			}
+		}).then((text) => {
+			var result = JSON.parse(text);
+			handleResponse?.(result);
+		}).catch((response) => {
+			console.log("Error", response);
+			consoleMessage && consoleMessage.addErrorMessage("Error: " + response.statusText + " (Error code " + response.status + ")");
+			!consoleMessage && alert("Error: " + response.statusText + " (Error code " + response.status + ")");
+		});
+	}
 
 	//Generic method to do a POST request and handle the response
 	//Used in several of the above Fields, so be careful about making changes!
