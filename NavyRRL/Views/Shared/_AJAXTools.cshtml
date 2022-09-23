@@ -22,31 +22,28 @@
 
 	//Do a generic Fetch and process the results
 	AJAX.doFetch = function (url, onSuccess, onError, options) {
-		fetch(url, options)
-			//Handle successful request or HTTP/server error
-			.then(response => {
+		fetch(url, options).then(response => {
+			response.text().then(value => {
 				if (response.ok) {
-					return response.text();
+					try {
+						onSuccess(JSON.parse(value));
+					}
+					catch (e) {
+						onError?.(buildError("JSON Parse Error", "Error parsing JSON", value, onSuccess, e));
+					}
 				}
 				else {
-					throw ({ Message: "Fetch Error", Data: response });
+					onError?.(buildError("Fetch Error", "Error Code " + response.status + (response.statusText ? ": " + response.statusText : ""), value, onSuccess, null));
 				}
-			})
-			//Handle successful JSON parsing or error
-			.then(text => {
-				console.log("Loaded data from URL", { URL: url, RawData: text });
-				try {
-					onSuccess?.(JSON.parse(text));
-				}
-				catch (e) {
-					throw ({ Message: "Error running function with JSON data, or error in JSON parsing: " + e.message, Data: { Text: text, Function: onSuccess, Error: e } });
-				}
-			})
-			//Consistent formatting for error messages
-			.catch(error => {
-				console.log(error.Message, error.Data);
-				onError?.(error);
 			});
+		}).catch(networkError => {
+			onError?.(buildError("Network Error", "Failed to call resource: " + url, null, onSuccess, networkError));
+		});
+
+		//Helper function
+		function buildError(type, message, rawData, successFunction, jsError) {
+			return { Type: type, Message: message, RawData: rawData, SuccessFunction: successFunction, JSError: jsError };
+		}
 	}
 	//
 

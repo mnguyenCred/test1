@@ -675,6 +675,13 @@ namespace Services
 				return result;
 			}
 
+			//Ensure the Rating Task is not empty
+			if ( string.IsNullOrWhiteSpace( item.Row.RatingTask_Description ) || item.Row.RatingTask_Description.ToLower() == "n/a" )
+			{
+				result.Errors.Add( "The Rating Task Description for this row is missing, empty, or \"N/A\". Processing this row cannot continue." );
+				return result;
+			}
+			
 			//TBD - at some point we will use the following combo for RatingTask codedNotation
 			//We may need to ensure that the unique ID doesn't already include the rating code
 			var ratingRatingTask_CodedNotation = string.Format( "{0}-{1}", rowRating.CodedNotation, item.Row.Row_CodedNotation );
