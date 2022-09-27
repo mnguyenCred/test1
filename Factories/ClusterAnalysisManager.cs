@@ -257,8 +257,8 @@ namespace Factories
             else
                 output.TrainingSolutionTypeId = null;
 
-            if ( input.RecommendedModalityId > 0 )
-                output.RecommendedModalityId = input.RecommendedModalityId;
+            if ( input.RecommendedModalityTypeId > 0 )
+                output.RecommendedModalityId = input.RecommendedModalityTypeId;
 
             else if ( !string.IsNullOrWhiteSpace( input.RecommendedModality ) )
             {
@@ -268,8 +268,8 @@ namespace Factories
             else
                 output.RecommendedModalityId = null;
 
-            if ( input.DevelopmentSpecificationId > 0 )
-                output.DevelopmentSpecificationId = input.DevelopmentSpecificationId;
+            if ( input.DevelopmentSpecificationTypeId > 0 )
+                output.DevelopmentSpecificationId = input.DevelopmentSpecificationTypeId;
 
             else if ( !string.IsNullOrWhiteSpace( input.DevelopmentSpecification ) )
             {
@@ -463,7 +463,7 @@ namespace Factories
             }
             if ( input.DevelopmentSpecificationId != null )
             {
-                output.DevelopmentSpecificationId = ( int ) input.DevelopmentSpecificationId;
+                output.DevelopmentSpecificationTypeId = ( int ) input.DevelopmentSpecificationId;
                 if ( input.ConceptScheme_DevelopementSpec?.Id > 0 )
                 {
                     output.DevelopmentSpecification = input.ConceptScheme_DevelopementSpec.Name;
@@ -472,7 +472,7 @@ namespace Factories
             }
             if ( input.RecommendedModalityId != null )
             {
-                output.RecommendedModalityId = ( int ) input.RecommendedModalityId;
+                output.RecommendedModalityTypeId = ( int ) input.RecommendedModalityId;
                 if ( input.ConceptScheme_RecommendedModality?.Id > 0 )
                 {
                     output.RecommendedModality = input.ConceptScheme_RecommendedModality.Name;
@@ -519,11 +519,11 @@ namespace Factories
             }
             if ( input.DevelopmentSpecificationId != null )
             {
-                output.DevelopmentSpecificationId = ( int ) input.DevelopmentSpecificationId;
+                output.DevelopmentSpecificationTypeId = ( int ) input.DevelopmentSpecificationId;
             }
             if ( input.RecommendedModalityId != null )
             {
-                output.RecommendedModalityId = ( int ) input.RecommendedModalityId;
+                output.RecommendedModalityTypeId = ( int ) input.RecommendedModalityId;
             }
             if ( input.PriorityPlacement != null )
             {

@@ -177,6 +177,7 @@
     <Compile Include="Controllers\BaseController.cs" />
     <Compile Include="Controllers\BilletTitleController.cs" />
     <Compile Include="Controllers\ClusterAnalysisController.cs" />
+    <Compile Include="Controllers\ClusterAnalysisTitleController.cs" />
     <Compile Include="Controllers\ConceptController.cs" />
     <Compile Include="Controllers\ConceptSchemeController.cs" />
     <Compile Include="Controllers\CourseController.cs" />
@@ -642,6 +643,8 @@
     <Content Include="Views\Upload\UploadV4.cshtml" />
     <Content Include="Views\Shared\_AJAXTools.cshtml" />
     <Content Include="Views\Admin\ManageRolePermissions.cshtml" />
+    <Content Include="Views\ClusterAnalysisTitle\Detail.cshtml" />
+    <Content Include="Views\ClusterAnalysisTitle\Edit.cshtml" />
     <None Include="Web.Sandbox.config">
       <DependentUpon>Web.config</DependentUpon>
     </None>
