@@ -55,18 +55,21 @@ namespace NavyRRL.Controllers
 				{
 					Id = 99991,
 					Name = "Test Role 1",
+					CodedNotation = "Test.123",
 					HasApplicationFunctionIds = new List<int>() { 991, 992 }
 				},
 				new UserRole()
 				{
 					Id = 99992,
 					Name = "Test Role 2",
+					CodedNotation = "Test.456",
 					HasApplicationFunctionIds = new List<int>() { 993 }
 				},
 				new UserRole()
 				{
 					Id = 99993,
 					Name = "Test Role 3",
+					CodedNotation = "Test.789",
 					HasApplicationFunctionIds = new List<int>() { 991, 994 }
 				}
 			};

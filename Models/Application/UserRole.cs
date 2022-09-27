@@ -15,6 +15,7 @@ namespace Models.Application
 
 		public int Id { get; set; }
 		public string Name { get; set; }
+		public string CodedNotation { get; set; }
 		public List<int> HasApplicationFunctionIds { get; set; }
 	}
 }
