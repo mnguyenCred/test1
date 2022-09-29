@@ -163,7 +163,9 @@ namespace Models.Schema
 					new RDFClass( "navy:ReferenceResource", "Reference Resource", "A Reference Resource.", null, null, new List<string>(){ "ceterms:name", "ceterms:codedNotation", "navy:referenceType" } ),
 					new RDFClass( "ceterms:WorkRole", "Functional Area", "A Functional Area.", null, null, new List<string>(){ "ceterms:name" } ),
 					new RDFClass( "skos:ConceptScheme", "Concept Scheme", "A controlled vocabulary of terms.", null, null, new List<string>(){ "ceasn:name", "ceasn:description" } ),
-					new RDFClass( "skos:Concept", "Concept", "A term in a controlled vocabulary.", null, null, new List<string>(){ "skos:prefLabel", "skos:altLabel", "skos:definition", "skos:notation", "skos:note" } )
+					new RDFClass( "skos:Concept", "Concept", "A term in a controlled vocabulary.", null, null, new List<string>(){ "skos:prefLabel", "skos:altLabel", "skos:definition", "skos:notation", "skos:note" } ),
+					new RDFClass( "navy:ClusterAnalysis", "Cluster Analysis", "Set of cluster analysis data for a given RatingTask within the context of a given Rating, grouped together by ClusterAnalysisTitle.", null, null, new List<string>(){ "navy:priorityPlacement", "navy:estimatedInstructionalTime", "navy:developmentTime", "navy:hasClusterAnalysisTitle", "navy:trainingSolutionType", "navy:recommendedModalityType", "navy:developmentSpecificationType", "navy:candidatePlatformType", "navy:developmentRatioType", "navy:cfmPlacementType" } ),
+					new RDFClass( "navy:ClusterAnalysisTitle", "Cluster Analysis Title", "A group of Cluster Analysis instances.", null, null, new List<string>(){ "ceterms:name" } )
 				};
 			}
 
@@ -192,6 +194,16 @@ namespace Models.Schema
 					new RDFProperty( "navy:referenceType", "Reference Type", "Reference Type for the resource.", null, null, new List<string>(){ "skos:Concept" }, null, null, "@id", null ),
 					new RDFProperty( "navy:applicabilityType", "Applicability Type", "Applicability Type for the resource.", null, null, new List<string>(){ "skos:Concept" }, null, null, "@id", null ),
 					new RDFProperty( "navy:trainingGapType", "Training Gap Type", "Training Gap Type related to the resource.", null, null, new List<string>(){ "skos:Concept" }, null, null, "@id", null ),
+					new RDFProperty( "navy:priorityPlacement", "Priority Placement", "Priority Placement within this Cluster Analysis.", null, null, new List<string>(){ "xsd:integer" }, null, null, null, null ),
+					new RDFProperty( "navy:estimatedInstructionalTime", "Estimated Instructional Time", "Estimated Instructional Time within this Cluster Analysis.", null, "Typically measured in hours", new List<string>(){ "schema:Duration" }, null, null, null, null ),
+					new RDFProperty( "navy:developmentTime", "Development Time", "Development Time within this Cluster Analysis.", null, "Typically measured in hours", new List<string>(){ "schema:Duration" }, null, null, null, null ),
+					new RDFProperty( "navy:hasClusterAnalysisTitle", "Has Cluster Analysis Title", "Cluster Analysis Title used to group together instances of Cluster Analysis within the context of a given Rating.", null, null, new List<string>(){ "navy:ClusterAnalysisTitle" }, null, null, "@id", null ),
+					new RDFProperty( "navy:trainingSolutionType", "Training Solution Type", "Training Solution Type within this Cluster Analysis.", null, null, new List<string>(){ "skos:Concept" }, null, null, "@id", null ),
+					new RDFProperty( "navy:recommendedModalityType", "Recommended Modality Type", "Recommended Modality Type within this Cluster Analysis.", null, null, new List<string>(){ "skos:Concept" }, null, null, "@id", null ),
+					new RDFProperty( "navy:developmentSpecificationType", "Development Specification Type", "Development Specification Type within this Cluster Analysis.", null, null, new List<string>(){ "skos:Concept" }, null, null, "@id", null ),
+					new RDFProperty( "navy:candidatePlatformType", "Candidate Platform Type", "Candidate Platform Type within this Cluster Analysis.", null, null, new List<string>(){ "skos:Concept" }, null, null, "@id", null ),
+					new RDFProperty( "navy:developmentRatioType", "Development Ratio Type", "Development Ratio Type within this Cluster Analysis.", null, null, new List<string>(){ "skos:Concept" }, null, null, "@id", null ),
+					new RDFProperty( "navy:cfmPlacementType", "CFM Placement Type", "Career Flow Map Placement Type within this Cluster Analysis.", null, null, new List<string>(){ "skos:Concept" }, null, null, "@id", null ),
 					new RDFProperty( "skos:prefLabel", "Preferred Label", "Preferred Label for a term in a controlled vocabulary.", null, null, new List<string>(){ "rdf:langString" }, new List<string>(){ "ceasn:name", "ceterms:name" }, null, null, "@language" ),
 					new RDFProperty( "skos:altLabel", "Alternate Label", "Alternate Label for a term in a controlled vocabulary.", null, null, new List<string>(){ "rdf:langString" }, new List<string>(){ "ceterms:alternateName" }, null, null, "@language" ),
 					new RDFProperty( "skos:definition", "Definition", "Definition for a term in a controlled vocabulary.", null, null, new List<string>(){ "rdf:langString" }, new List<string>(){ "ceasn:description", "ceterms:description" }, null, null, "@language" ),

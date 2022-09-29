@@ -61,6 +61,7 @@
     <Compile Include="ApplicationManager.cs" />
     <Compile Include="BaseFactory.cs" />
     <Compile Include="ClusterAnalysisManager.cs" />
+    <Compile Include="ClusterAnalysisTitleManager.cs" />
     <Compile Include="CodesManager.cs" />
     <Compile Include="ConceptSchemeManager.cs" />
     <Compile Include="CourseManager.cs" />

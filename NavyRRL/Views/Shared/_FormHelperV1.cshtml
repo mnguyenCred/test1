@@ -276,9 +276,9 @@
 			Field.UI.html("");
 			Field.ItemMaps = [];
 			Field.Items.forEach(Item => {
-				var wrapper = $("<label></label>").appendTo(Field.UI);
-				var checkbox = $("<input type=\"checkbox\" value=\"" + Field.getItemValue(Item) + "\" />").appendTo(wrapper);
-				$("<div>" + Field.getItemLabel(Item) + "</div>").appendTo(wrapper);
+				var wrapper = $("<label class=\"checkboxListItem\"></label>").appendTo(Field.UI);
+				var checkbox = $("<input class=\"checkboxListItemInput\" type=\"checkbox\" value=\"" + Field.getItemValue(Item) + "\" />").appendTo(wrapper);
+				$("<div class=\"checkboxListItemLabel\">" + Field.getItemLabel(Item) + "</div>").appendTo(wrapper);
 				checkbox[0].getItem = function () { return Item; }
 				checkbox.on("change", () => {
 					Field.onItemChange(Map);

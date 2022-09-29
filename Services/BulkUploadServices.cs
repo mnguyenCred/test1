@@ -675,6 +675,13 @@ namespace Services
 				return result;
 			}
 
+			//Ensure the Rating Task is not empty
+			if ( string.IsNullOrWhiteSpace( item.Row.RatingTask_Description ) || item.Row.RatingTask_Description.ToLower() == "n/a" )
+			{
+				result.Errors.Add( "The Rating Task Description for this row is missing, empty, or \"N/A\". Processing this row cannot continue." );
+				return result;
+			}
+			
 			//TBD - at some point we will use the following combo for RatingTask codedNotation
 			//We may need to ensure that the unique ID doesn't already include the rating code
 			var ratingRatingTask_CodedNotation = string.Format( "{0}-{1}", rowRating.CodedNotation, item.Row.Row_CodedNotation );
@@ -1136,9 +1143,9 @@ namespace Services
 			HandleValueChange( summary, summary.ItemsToBeCreated.ClusterAnalysis, summary.FinalizedChanges.ClusterAnalysis, result, rowClusterAnalysis, nameof( ClusterAnalysis.TrainingSolution ), item.Row.Training_Solution_Type );
 			HandleValueChange( summary, summary.ItemsToBeCreated.ClusterAnalysis, summary.FinalizedChanges.ClusterAnalysis, result, rowClusterAnalysis, nameof( ClusterAnalysis.TrainingSolutionTypeId ), ( rowTrainingSolutionType ?? new Concept() ).Id );
 			HandleValueChange( summary, summary.ItemsToBeCreated.ClusterAnalysis, summary.FinalizedChanges.ClusterAnalysis, result, rowClusterAnalysis, nameof( ClusterAnalysis.RecommendedModality ), item.Row.Recommended_Modality );
-			HandleValueChange( summary, summary.ItemsToBeCreated.ClusterAnalysis, summary.FinalizedChanges.ClusterAnalysis, result, rowClusterAnalysis, nameof( ClusterAnalysis.RecommendedModalityId ), ( rowRecommendModalityType ?? new Concept() ).Id );
+			HandleValueChange( summary, summary.ItemsToBeCreated.ClusterAnalysis, summary.FinalizedChanges.ClusterAnalysis, result, rowClusterAnalysis, nameof( ClusterAnalysis.RecommendedModalityTypeId ), ( rowRecommendModalityType ?? new Concept() ).Id );
 			HandleValueChange( summary, summary.ItemsToBeCreated.ClusterAnalysis, summary.FinalizedChanges.ClusterAnalysis, result, rowClusterAnalysis, nameof( ClusterAnalysis.DevelopmentSpecification ), item.Row.Development_Specification );
-			HandleValueChange( summary, summary.ItemsToBeCreated.ClusterAnalysis, summary.FinalizedChanges.ClusterAnalysis, result, rowClusterAnalysis, nameof( ClusterAnalysis.DevelopmentSpecificationId ), ( rowDevelopmentSpecificationType ?? new Concept() ).Id );
+			HandleValueChange( summary, summary.ItemsToBeCreated.ClusterAnalysis, summary.FinalizedChanges.ClusterAnalysis, result, rowClusterAnalysis, nameof( ClusterAnalysis.DevelopmentSpecificationTypeId ), ( rowDevelopmentSpecificationType ?? new Concept() ).Id );
 			HandleValueChange( summary, summary.ItemsToBeCreated.ClusterAnalysis, summary.FinalizedChanges.ClusterAnalysis, result, rowClusterAnalysis, nameof( ClusterAnalysis.CandidatePlatform ), item.Row.Candidate_Platform );
 			HandleValueChange( summary, summary.ItemsToBeCreated.ClusterAnalysis, summary.FinalizedChanges.ClusterAnalysis, result, rowClusterAnalysis, nameof( ClusterAnalysis.CFMPlacement ), item.Row.CFM_Placement );
 			HandleValueChange( summary, summary.ItemsToBeCreated.ClusterAnalysis, summary.FinalizedChanges.ClusterAnalysis, result, rowClusterAnalysis, nameof( ClusterAnalysis.PriorityPlacement ), priorityPlacement );

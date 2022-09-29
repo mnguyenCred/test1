@@ -1,0 +1,25 @@
+﻿@using Models.Schema;
+@using Models.DTO;
+@using Models.Search;
+@model ClusterAnalysisTitle
+@{
+	ViewBag.Title = "Cluster Analysis Title: " + Model.Name;
+}
+
+@Html.Partial( "~/Views/Shared/_DetailShared.cshtml" )
+@Html.Partial( "~/Views/Shared/_DetailBasicInfo.cshtml", new DetailBasicInfoHelper()
+{
+	TypeLabel = "Cluster Analysis Title",
+	TypeURL = Model.GetType().Name.ToLower(),
+	Id = Model.Id,
+	CTID = Model.CTID,
+	Name = Model.Name,
+	Description = "",
+	Identifiers = new List<NamedString>()
+	{
+		new NamedString( "System ID", Model.Id.ToString() ),
+		new NamedString( "CTID", Model.CTID )
+	}
+} )
+
+@* //TODO: Add searches for relevant stuff *@

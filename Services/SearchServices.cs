@@ -195,18 +195,27 @@ namespace Services
 		}
 		//
 
-		//Work Role
+		//WorkRole
 		public static SearchResultSet<WorkRole> WorkRoleSearch( SearchQuery query, JObject debug = null )
 		{
 			return GeneralSearch( query, Factories.WorkRoleManager.Search, debug );
 		}
 		//
+
 		//ClusterAnalysis
 		public static SearchResultSet<ClusterAnalysis> ClusterAnalysisSearch( SearchQuery query, JObject debug = null )
 		{
 			return GeneralSearch( query, Factories.ClusterAnalysisManager.Search, debug );
 		}
 		//
+
+		//ClusterAnalysisTitle
+		public static SearchResultSet<ClusterAnalysisTitle> ClusterAnalysisTitleSearch(SearchQuery query, JObject debug = null )
+		{
+			return GeneralSearch( query, Factories.ClusterAnalysisTitleManager.Search, debug );
+		}
+		//
+
 		private static void NormalizeQuery( SearchQuery query, string searchType, JObject debug = null )
 		{
 			//Sanitize Keywords

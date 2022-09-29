@@ -131,7 +131,7 @@
 		RoleConfig: {
 			ApplicationFunctionList: function (Field) {
 				Field.getItemLabel = function (Item) {
-					return "<div class=\"functionName\" title=\"" + Item.CodedNotation + "\">" + Item.Name + "</div><div class=\"functionDescription\">" + Item.Description + "</div>";
+					return "<div class=\"functionHeader\"><div class=\"functionName\">" + Item.Name + "</div><div class=\"functionCodedNotation\">" + Item.CodedNotation + "</div></div><div class=\"functionDescription\">" + Item.Description + "</div>";
 				}
 				Field.Items = @Html.Raw( JsonConvert.SerializeObject( allApplicationFunctions, Formatting.None ) );
 				Field.renderItems();
@@ -151,7 +151,7 @@
 	.manager { display: flex; gap: 20px; }
 	.manager .roleListBox { flex: 0 0 300px; }
 	.manager .roleListBox .roleList { display: flex; flex-direction: column; gap: 1px; min-height: 300px; max-height: 600px; overflow-y: auto; background-color: #CCC; padding: 1px; }
-	.manager .roleListBox .roleList .roleButton { display: block; width: 100%; border: none; background-color: #FFF; padding: 5px; }
+	.manager .roleListBox .roleList .roleButton { display: block; width: 100%; border: none; background-color: #FFF; padding: 5px; text-align: left; }
 	.manager .roleListBox .roleList .roleButton:is(:hover, :focus) { cursor: pointer; background-color: #EEE; }
 	.manager .roleListBox .roleListButtons {  }
 	.manager .roleDetailsBox { flex: 1 1 auto; }
@@ -160,6 +160,11 @@
 	.manager .roleDetailsBox .roleHeader [data-path='Role.Id'] .formItemValue { padding: 5px 0; }
 	.manager .roleDetailsBox .roleHeader [data-path='Role.Name'] { flex: 1 1 auto; }
 	.manager .roleDetailsBox [data-path='Role.HasApplicationFunctionIds'] { }
+	.manager .roleDetailsBox [data-path='Role.HasApplicationFunctionIds'] .checkboxListItem { border-top: 1px solid #CCC; }
+	.manager .roleDetailsBox [data-path='Role.HasApplicationFunctionIds'] .checkboxListItemLabel { width: 100%; }
+	.manager .roleDetailsBox [data-path='Role.HasApplicationFunctionIds'] .functionHeader { display: flex; gap: 10px; }
+	.manager .roleDetailsBox [data-path='Role.HasApplicationFunctionIds'] .functionHeader .functionName { font-weight: bold; }
+	.manager .roleDetailsBox [data-path='Role.HasApplicationFunctionIds'] .functionHeader .functionCodedNotation { font-style: italic; opacity: 0.7; margin-left: auto; }
 	.manager .roleDetailsBox [data-path='Role.HasApplicationFunctionIds'] .functionName { font-weight: bold; }
 	.manager .roleDetailsBox [data-path='Role.HasApplicationFunctionIds'] .functionDescription { padding: 0 10px; }
 	.manager .roleDetailsBox .roleButtons { display: flex; gap: 10px; justify-content: flex-end }
@@ -179,6 +184,7 @@
 		<div class="roleHeader">
 			<form-item data-path="Role.Id" data-ui="display" data-label="Role ID"></form-item>
 			<form-item data-path="Role.Name" data-ui="text" data-label="Role Name"></form-item>
+			<form-item data-path="Role.CodedNotation" data-ui="text" data-label="Role Code"></form-item>
 		</div>
 		<form-item data-path="Role.HasApplicationFunctionIds" data-ui="checkboxlist" data-label="Functions Available to this Role" data-config="ApplicationFunctionList"></form-item>
 		<div class="roleButtons">

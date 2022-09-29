@@ -354,6 +354,35 @@ namespace Services
 		}
 		//
 
+		public static JObject GetRDF( ClusterAnalysis source )
+		{
+			var result = GetStarterResult( "navy:ClusterAnalysis", source );
+
+			AppendValue( result, "navy:priorityPlacement", source.PriorityPlacement.ToString(), false );
+			AppendValue( result, "navy:estimatedInstructionalTime", source.EstimatedInstructionalTime != null && source.EstimatedInstructionalTime > 0 ? "PT" + (source.EstimatedInstructionalTime?.ToString() ?? "0") + "H" : null, false );
+			AppendValue( result, "navy:developmentTime", source.DevelopmentTime > 0 ? "PT" + source.DevelopmentTime + "H" : null, false );
+			AppendLookupValue( result, "navy:hasClusterAnalysisTitle", source.HasClusterAnalysisTitle, Factories.ClusterAnalysisTitleManager.Get );
+			AppendLookupValue( result, "navy:trainingSolutionType", source.TrainingSolutionType, Factories.ConceptSchemeManager.GetConcept );
+			AppendLookupValue( result, "navy:recommendedModalityType", source.RecommendedModalityType, Factories.ConceptSchemeManager.GetConcept );
+			AppendLookupValue( result, "navy:developmentSpecificationType", source.DevelopmentSpecificationType, Factories.ConceptSchemeManager.GetConcept );
+			AppendLookupValue( result, "navy:candidatePlatformType", source.CandidatePlatformType, Factories.ConceptSchemeManager.GetMultipleConcepts );
+			AppendLookupValue( result, "navy:developmentRatioType", source.DevelopmentRatioType, Factories.ConceptSchemeManager.GetConcept );
+			AppendLookupValue( result, "navy:cfmPlacementType", source.CFMPlacementType, Factories.ConceptSchemeManager.GetConcept );
+
+			return result;
+		}
+		//
+
+		public static JObject GetRDF( ClusterAnalysisTitle source )
+		{
+			var result = GetStarterResult( "navy:ClusterAnalysisTitle", source );
+
+			AppendValue( result, "ceterms:name", source.Name, true );
+
+			return result;
+		}
+		//
+
 		public static JObject GetRDFError( string message )
 		{
 			var applicationURL = GetApplicationURL();
