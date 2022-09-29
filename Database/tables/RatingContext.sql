@@ -1,7 +1,48 @@
 USE [NavyRRL]
 GO
 
-/****** Object:  Table [dbo].[RatingContext]    Script Date: 8/29/2022 6:02:03 PM ******/
+ALTER TABLE [dbo].[RatingContext] DROP CONSTRAINT [FK_RatingContext_WorkRole]
+GO
+
+ALTER TABLE [dbo].[RatingContext] DROP CONSTRAINT [FK_RatingContext_TrainingTask]
+GO
+
+ALTER TABLE [dbo].[RatingContext] DROP CONSTRAINT [FK_RatingContext_TrainingGap]
+GO
+
+ALTER TABLE [dbo].[RatingContext] DROP CONSTRAINT [FK_RatingContext_TaskApplicability]
+GO
+
+ALTER TABLE [dbo].[RatingContext] DROP CONSTRAINT [FK_RatingContext_RatingTask]
+GO
+
+ALTER TABLE [dbo].[RatingContext] DROP CONSTRAINT [FK_RatingContext_Rating]
+GO
+
+ALTER TABLE [dbo].[RatingContext] DROP CONSTRAINT [FK_RatingContext_Rank]
+GO
+
+ALTER TABLE [dbo].[RatingContext] DROP CONSTRAINT [FK_RatingContext_ClusterAnalysis]
+GO
+
+ALTER TABLE [dbo].[RatingContext] DROP CONSTRAINT [FK_RatingContext_BilletTitle]
+GO
+
+ALTER TABLE [dbo].[RatingContext] DROP CONSTRAINT [DF_RatingContext_LastUpdated]
+GO
+
+ALTER TABLE [dbo].[RatingContext] DROP CONSTRAINT [DF_RatingContext_Created]
+GO
+
+ALTER TABLE [dbo].[RatingContext] DROP CONSTRAINT [DF_RatingContext_RowId]
+GO
+
+/****** Object:  Table [dbo].[RatingContext]    Script Date: 9/19/2022 6:23:02 PM ******/
+IF  EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[RatingContext]') AND type in (N'U'))
+DROP TABLE [dbo].[RatingContext]
+GO
+
+/****** Object:  Table [dbo].[RatingContext]    Script Date: 9/19/2022 6:23:02 PM ******/
 SET ANSI_NULLS ON
 GO
 
@@ -27,6 +68,7 @@ CREATE TABLE [dbo].[RatingContext](
 	[CreatedById] [int] NULL,
 	[LastUpdated] [datetime] NOT NULL,
 	[LastUpdatedById] [int] NULL,
+	[ClusterAnalysisId] [int] NULL,
  CONSTRAINT [PK_RatingContext] PRIMARY KEY CLUSTERED 
 (
 	[Id] ASC
@@ -50,6 +92,13 @@ ON DELETE CASCADE
 GO
 
 ALTER TABLE [dbo].[RatingContext] CHECK CONSTRAINT [FK_RatingContext_BilletTitle]
+GO
+
+ALTER TABLE [dbo].[RatingContext]  WITH CHECK ADD  CONSTRAINT [FK_RatingContext_ClusterAnalysis] FOREIGN KEY([ClusterAnalysisId])
+REFERENCES [dbo].[ClusterAnalysis] ([Id])
+GO
+
+ALTER TABLE [dbo].[RatingContext] CHECK CONSTRAINT [FK_RatingContext_ClusterAnalysis]
 GO
 
 ALTER TABLE [dbo].[RatingContext]  WITH CHECK ADD  CONSTRAINT [FK_RatingContext_Rank] FOREIGN KEY([RankId])
@@ -106,4 +155,5 @@ GO
 
 ALTER TABLE [dbo].[RatingContext] CHECK CONSTRAINT [FK_RatingContext_WorkRole]
 GO
+
 

@@ -45,6 +45,35 @@
           <Property Name="ActivityObjectParentEntityUid" Type="uniqueidentifier" />
           <Property Name="DataOwnerCTID" Type="varchar" MaxLength="50" />
         </EntityType>
+        <EntityType Name="AppFunctionPermission">
+          <Key>
+            <PropertyRef Name="ApplicationFunctionId" />
+            <PropertyRef Name="RoleId" />
+          </Key>
+          <Property Name="ApplicationFunctionId" Type="int" Nullable="false" />
+          <Property Name="RoleId" Type="int" Nullable="false" />
+          <Property Name="CanCreate" Type="bit" Nullable="false" />
+          <Property Name="CanRead" Type="bit" Nullable="false" />
+          <Property Name="CanUpdate" Type="bit" Nullable="false" />
+          <Property Name="CanDelete" Type="bit" Nullable="false" />
+        </EntityType>
+        <EntityType Name="ApplicationFunction">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="Name" Type="varchar" MaxLength="100" Nullable="false" />
+          <Property Name="CodedNotation" Type="varchar" MaxLength="50" />
+          <Property Name="Description" Type="varchar(max)" />
+        </EntityType>
+        <EntityType Name="ApplicationRole">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="Name" Type="nvarchar" MaxLength="100" Nullable="false" />
+          <Property Name="IsActive" Type="bit" />
+        </EntityType>
         <EntityType Name="AspNetRoles">
           <Key>
             <PropertyRef Name="Id" />
@@ -94,12 +123,11 @@
           <Property Name="ClusterAnalysisTitle" Type="nvarchar" MaxLength="500" />
           <Property Name="RecommendedModalityId" Type="int" />
           <Property Name="DevelopmentSpecificationId" Type="int" />
-          <Property Name="CandidatePlatform" Type="nvarchar(max)" />
-          <Property Name="CFMPlacement" Type="varchar" MaxLength="500" />
+          <Property Name="CFMPlacementId" Type="int" />
           <Property Name="PriorityPlacement" Type="int" />
           <Property Name="DevelopmentRatio" Type="varchar" MaxLength="500" />
-          <Property Name="EstimatedInstructionalTime" Type="decimal" Precision="19" Scale="2" />
-          <Property Name="DevelopmentTime" Type="int" />
+          <Property Name="EstimatedInstructionalTime" Type="decimal" Precision="9" Scale="2" />
+          <Property Name="DevelopmentTime" Type="decimal" Precision="9" Scale="2" />
           <Property Name="CTID" Type="varchar" MaxLength="50" />
           <Property Name="Notes" Type="nvarchar(max)" />
           <Property Name="Created" Type="datetime" Nullable="false" />
@@ -109,6 +137,19 @@
           <Property Name="TrainingSolutionType" Type="varchar" MaxLength="100" />
           <Property Name="RecommendedModality" Type="varchar" MaxLength="100" />
           <Property Name="DevelopmentSpecification" Type="varchar" MaxLength="200" />
+          <Property Name="CandidatePlatform" Type="nvarchar(max)" />
+          <Property Name="CFMPlacement" Type="varchar" MaxLength="500" />
+        </EntityType>
+        <EntityType Name="ClusterAnalysis_HasCandidatePlatform">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="RowId" Type="uniqueidentifier" Nullable="false" />
+          <Property Name="ClusterAnalysisId" Type="int" Nullable="false" />
+          <Property Name="CandidatePlatformConceptId" Type="int" Nullable="false" />
+          <Property Name="Created" Type="datetime" Nullable="false" />
+          <Property Name="CreatedById" Type="int" />
         </EntityType>
         <EntityType Name="Comment">
           <Key>
@@ -207,6 +248,19 @@
           <Property Name="LastUpdated" Type="datetime" Nullable="false" />
           <Property Name="LastUpdatedById" Type="int" />
         </EntityType>
+        <EntityType Name="CourseContext">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="RowId" Type="uniqueidentifier" Nullable="false" />
+          <Property Name="CourseId" Type="int" Nullable="false" />
+          <Property Name="TrainingTaskId" Type="int" />
+          <Property Name="Created" Type="datetime" Nullable="false" />
+          <Property Name="CreatedById" Type="int" />
+          <Property Name="LastUpdated" Type="datetime" Nullable="false" />
+          <Property Name="LastUpdatedById" Type="int" />
+        </EntityType>
         <EntityType Name="CourseTask_AssessmentType">
           <Key>
             <PropertyRef Name="Id" />
@@ -285,8 +339,8 @@
           <Property Name="CFM_Placement" Type="nvarchar" MaxLength="500" />
           <Property Name="Priority_Placement" Type="nvarchar" MaxLength="500" />
           <Property Name="Development_Ratio" Type="nvarchar" MaxLength="500" />
-          <Property Name="Development_Time" Type="nvarchar" MaxLength="500" />
           <Property Name="EstimatedInstructionalTime" Type="nvarchar" MaxLength="500" />
+          <Property Name="Development_Time" Type="nvarchar" MaxLength="500" />
           <Property Name="Part3Notes" Type="nvarchar(max)" />
           <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
           <Property Name="Created" Type="datetime" />
@@ -398,6 +452,30 @@
           <Property Name="LastUpdated" Type="datetime" Nullable="false" />
           <Property Name="LastUpdatedById" Type="int" />
         </EntityType>
+        <EntityType Name="RatingContext">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="RowId" Type="uniqueidentifier" Nullable="false" />
+          <Property Name="RatingId" Type="int" Nullable="false" />
+          <Property Name="RatingTaskId" Type="int" Nullable="false" />
+          <Property Name="BilletTitleId" Type="int" />
+          <Property Name="RankId" Type="int" Nullable="false" />
+          <Property Name="WorkRoleId" Type="int" />
+          <Property Name="TaskApplicabilityId" Type="int" />
+          <Property Name="FormalTrainingGapId" Type="int" />
+          <Property Name="TrainingTaskId" Type="int" />
+          <Property Name="TaskStatusId" Type="int" />
+          <Property Name="CodedNotation" Type="varchar" MaxLength="100" />
+          <Property Name="CTID" Type="varchar" MaxLength="50" />
+          <Property Name="Notes" Type="nvarchar(max)" />
+          <Property Name="Created" Type="datetime" Nullable="false" />
+          <Property Name="CreatedById" Type="int" />
+          <Property Name="LastUpdated" Type="datetime" Nullable="false" />
+          <Property Name="LastUpdatedById" Type="int" />
+          <Property Name="ClusterAnalysisId" Type="int" />
+        </EntityType>
         <EntityType Name="RatingTask">
           <Key>
             <PropertyRef Name="Id" />
@@ -448,12 +526,22 @@
           </Key>
           <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
           <Property Name="RowId" Type="uniqueidentifier" Nullable="false" />
-          <Property Name="RatingTaskId" Type="int" Nullable="false" />
           <Property Name="RatingId" Type="int" Nullable="false" />
+          <Property Name="RatingTaskId" Type="int" Nullable="false" />
+          <Property Name="BilletTitleId" Type="int" />
+          <Property Name="RankId" Type="int" Nullable="false" />
+          <Property Name="WorkRoleId" Type="int" />
+          <Property Name="TaskApplicabilityId" Type="int" />
           <Property Name="FormalTrainingGapId" Type="int" />
           <Property Name="TrainingTaskId" Type="int" />
+          <Property Name="TaskStatusId" Type="int" />
+          <Property Name="CodedNotation" Type="varchar" MaxLength="100" />
+          <Property Name="CTID" Type="varchar" MaxLength="50" />
+          <Property Name="Notes" Type="nvarchar(max)" />
           <Property Name="Created" Type="datetime" Nullable="false" />
           <Property Name="CreatedById" Type="int" />
+          <Property Name="LastUpdated" Type="datetime" Nullable="false" />
+          <Property Name="LastUpdatedById" Type="int" />
         </EntityType>
         <EntityType Name="RatingTask_HasTrainingTask">
           <Key>
@@ -571,6 +659,19 @@
           <Property Name="ExpiryDate" Type="datetime" Nullable="false" />
           <Property Name="AccessDate" Type="datetime" />
         </EntityType>
+        <EntityType Name="TrainingTask">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="RowId" Type="uniqueidentifier" Nullable="false" />
+          <Property Name="Description" Type="nvarchar(max)" Nullable="false" />
+          <Property Name="CTID" Type="varchar" MaxLength="50" />
+          <Property Name="Created" Type="datetime" Nullable="false" />
+          <Property Name="CreatedById" Type="int" />
+          <Property Name="LastUpdated" Type="datetime" Nullable="false" />
+          <Property Name="LastUpdatedById" Type="int" />
+        </EntityType>
         <EntityType Name="WorkRole">
           <Key>
             <PropertyRef Name="Id" />
@@ -598,6 +699,32 @@
             </Principal>
             <Dependent Role="Account">
               <PropertyRef Name="AspNetId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_AppFunctionPermission_ApplicationFunction">
+          <End Role="ApplicationFunction" Type="Self.ApplicationFunction" Multiplicity="1">
+            <OnDelete Action="Cascade" />
+          </End>
+          <End Role="AppFunctionPermission" Type="Self.AppFunctionPermission" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="ApplicationFunction">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="AppFunctionPermission">
+              <PropertyRef Name="ApplicationFunctionId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_AppFunctionPermission_ApplicationRole">
+          <End Role="ApplicationRole" Type="Self.ApplicationRole" Multiplicity="1" />
+          <End Role="AppFunctionPermission" Type="Self.AppFunctionPermission" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="ApplicationRole">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="AppFunctionPermission">
+              <PropertyRef Name="RoleId" />
             </Dependent>
           </ReferentialConstraint>
         </Association>
@@ -641,7 +768,19 @@
             </Dependent>
           </ReferentialConstraint>
         </Association>
-        <Association Name="FK_ClusterAnalysis_DevSpec_Concept">
+        <Association Name="FK_ClusterAnalysis_CFMPlacement_Concept">
+          <End Role="ConceptScheme_Concept" Type="Self.ConceptScheme_Concept" Multiplicity="0..1" />
+          <End Role="ClusterAnalysis" Type="Self.ClusterAnalysis" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="ConceptScheme_Concept">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="ClusterAnalysis">
+              <PropertyRef Name="CFMPlacementId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_ClusterAnalysis_DevSpecificationConcept">
           <End Role="ConceptScheme_Concept" Type="Self.ConceptScheme_Concept" Multiplicity="0..1" />
           <End Role="ClusterAnalysis" Type="Self.ClusterAnalysis" Multiplicity="*" />
           <ReferentialConstraint>
@@ -667,7 +806,7 @@
             </Dependent>
           </ReferentialConstraint>
         </Association>
-        <Association Name="FK_ClusterAnalysis_RecommendedModality_Concept1">
+        <Association Name="FK_ClusterAnalysis_RecommendedModality_Concept">
           <End Role="ConceptScheme_Concept" Type="Self.ConceptScheme_Concept" Multiplicity="0..1" />
           <End Role="ClusterAnalysis" Type="Self.ClusterAnalysis" Multiplicity="*" />
           <ReferentialConstraint>
@@ -793,6 +932,30 @@
             </Dependent>
           </ReferentialConstraint>
         </Association>
+        <Association Name="FK_CourseContext_Course">
+          <End Role="Course" Type="Self.Course" Multiplicity="1" />
+          <End Role="CourseContext" Type="Self.CourseContext" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Course">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="CourseContext">
+              <PropertyRef Name="CourseId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_CourseContext_TrainingTask">
+          <End Role="TrainingTask" Type="Self.TrainingTask" Multiplicity="0..1" />
+          <End Role="CourseContext" Type="Self.CourseContext" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="TrainingTask">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="CourseContext">
+              <PropertyRef Name="TrainingTaskId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
         <Association Name="FK_CourseCourseType_Concept">
           <End Role="ConceptScheme_Concept" Type="Self.ConceptScheme_Concept" Multiplicity="1" />
           <End Role="Course_CourseType" Type="Self.Course_CourseType" Multiplicity="*" />
@@ -897,6 +1060,68 @@
             </Dependent>
           </ReferentialConstraint>
         </Association>
+        <Association Name="FK_HasCandidatePlatform_CandidatePlatform_Concept">
+          <End Role="ConceptScheme_Concept" Type="Self.ConceptScheme_Concept" Multiplicity="1" />
+          <End Role="ClusterAnalysis_HasCandidatePlatform" Type="Self.ClusterAnalysis_HasCandidatePlatform" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="ConceptScheme_Concept">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="ClusterAnalysis_HasCandidatePlatform">
+              <PropertyRef Name="CandidatePlatformConceptId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_HasCandidatePlatform_ClusterAnalysis">
+          <End Role="ClusterAnalysis" Type="Self.ClusterAnalysis" Multiplicity="1">
+            <OnDelete Action="Cascade" />
+          </End>
+          <End Role="ClusterAnalysis_HasCandidatePlatform" Type="Self.ClusterAnalysis_HasCandidatePlatform" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="ClusterAnalysis">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="ClusterAnalysis_HasCandidatePlatform">
+              <PropertyRef Name="ClusterAnalysisId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_HasRatingContext_Rank">
+          <End Role="ConceptScheme_Concept" Type="Self.ConceptScheme_Concept" Multiplicity="1" />
+          <End Role="RatingTask_HasRatingContext" Type="Self.RatingTask_HasRatingContext" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="ConceptScheme_Concept">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="RatingTask_HasRatingContext">
+              <PropertyRef Name="RankId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_HasRatingContext_TaskApplicability">
+          <End Role="ConceptScheme_Concept" Type="Self.ConceptScheme_Concept" Multiplicity="0..1" />
+          <End Role="RatingTask_HasRatingContext" Type="Self.RatingTask_HasRatingContext" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="ConceptScheme_Concept">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="RatingTask_HasRatingContext">
+              <PropertyRef Name="TaskApplicabilityId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_HasRatingContext_TrainingGap">
+          <End Role="ConceptScheme_Concept" Type="Self.ConceptScheme_Concept" Multiplicity="0..1" />
+          <End Role="RatingTask_HasRatingContext" Type="Self.RatingTask_HasRatingContext" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="ConceptScheme_Concept">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="RatingTask_HasRatingContext">
+              <PropertyRef Name="FormalTrainingGapId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
         <Association Name="FK_Job_Rating1">
           <End Role="Rating" Type="Self.Rating" Multiplicity="0..1" />
           <End Role="Job" Type="Self.Job" Multiplicity="*" />
@@ -906,6 +1131,122 @@
             </Principal>
             <Dependent Role="Job">
               <PropertyRef Name="RatingId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_RatingContext_BilletTitle">
+          <End Role="Job" Type="Self.Job" Multiplicity="0..1">
+            <OnDelete Action="Cascade" />
+          </End>
+          <End Role="RatingContext" Type="Self.RatingContext" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Job">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="RatingContext">
+              <PropertyRef Name="BilletTitleId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_RatingContext_ClusterAnalysis">
+          <End Role="ClusterAnalysis" Type="Self.ClusterAnalysis" Multiplicity="0..1" />
+          <End Role="RatingContext" Type="Self.RatingContext" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="ClusterAnalysis">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="RatingContext">
+              <PropertyRef Name="ClusterAnalysisId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_RatingContext_Rank">
+          <End Role="ConceptScheme_Concept" Type="Self.ConceptScheme_Concept" Multiplicity="1" />
+          <End Role="RatingContext" Type="Self.RatingContext" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="ConceptScheme_Concept">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="RatingContext">
+              <PropertyRef Name="RankId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_RatingContext_Rating">
+          <End Role="Rating" Type="Self.Rating" Multiplicity="1">
+            <OnDelete Action="Cascade" />
+          </End>
+          <End Role="RatingContext" Type="Self.RatingContext" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Rating">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="RatingContext">
+              <PropertyRef Name="RatingId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_RatingContext_RatingTask">
+          <End Role="RatingTask" Type="Self.RatingTask" Multiplicity="1">
+            <OnDelete Action="Cascade" />
+          </End>
+          <End Role="RatingContext" Type="Self.RatingContext" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="RatingTask">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="RatingContext">
+              <PropertyRef Name="RatingTaskId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_RatingContext_TaskApplicability">
+          <End Role="ConceptScheme_Concept" Type="Self.ConceptScheme_Concept" Multiplicity="0..1" />
+          <End Role="RatingContext" Type="Self.RatingContext" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="ConceptScheme_Concept">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="RatingContext">
+              <PropertyRef Name="TaskApplicabilityId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_RatingContext_TrainingGap">
+          <End Role="ConceptScheme_Concept" Type="Self.ConceptScheme_Concept" Multiplicity="0..1" />
+          <End Role="RatingContext" Type="Self.RatingContext" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="ConceptScheme_Concept">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="RatingContext">
+              <PropertyRef Name="FormalTrainingGapId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_RatingContext_TrainingTask">
+          <End Role="Course_Task" Type="Self.Course_Task" Multiplicity="0..1" />
+          <End Role="RatingContext" Type="Self.RatingContext" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Course_Task">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="RatingContext">
+              <PropertyRef Name="TrainingTaskId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_RatingContext_WorkRole">
+          <End Role="WorkRole" Type="Self.WorkRole" Multiplicity="0..1">
+            <OnDelete Action="Cascade" />
+          </End>
+          <End Role="RatingContext" Type="Self.RatingContext" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="WorkRole">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="RatingContext">
+              <PropertyRef Name="WorkRoleId" />
             </Dependent>
           </ReferentialConstraint>
         </Association>
@@ -1023,7 +1364,7 @@
             </Dependent>
           </ReferentialConstraint>
         </Association>
-        <Association Name="FK_RatingTask_HasRatingContextTask_Task">
+        <Association Name="FK_RatingTask_HasRatingContextTask_RatingTask">
           <End Role="RatingTask" Type="Self.RatingTask" Multiplicity="1">
             <OnDelete Action="Cascade" />
           </End>
@@ -1212,16 +1553,21 @@
         <EntityContainer Name="NavyRRLModelStoreContainer">
           <EntitySet Name="Account" EntityType="Self.Account" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="ActivityLog" EntityType="Self.ActivityLog" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="AppFunctionPermission" EntityType="Self.AppFunctionPermission" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="ApplicationFunction" EntityType="Self.ApplicationFunction" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="ApplicationRole" EntityType="Self.ApplicationRole" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="AspNetRoles" EntityType="Self.AspNetRoles" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="AspNetUserRoles" EntityType="Self.AspNetUserRoles" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="AspNetUsers" EntityType="Self.AspNetUsers" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="ClusterAnalysis" EntityType="Self.ClusterAnalysis" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="ClusterAnalysis_HasCandidatePlatform" EntityType="Self.ClusterAnalysis_HasCandidatePlatform" Schema="dbo" Table="ClusterAnalysis.HasCandidatePlatform" store:Type="Tables" />
           <EntitySet Name="Comment" EntityType="Self.Comment" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="ConceptScheme" EntityType="Self.ConceptScheme" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="ConceptScheme_Concept" EntityType="Self.ConceptScheme_Concept" Schema="dbo" Table="ConceptScheme.Concept" store:Type="Tables" />
           <EntitySet Name="Course" EntityType="Self.Course" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="Course_CourseType" EntityType="Self.Course_CourseType" Schema="dbo" Table="Course.CourseType" store:Type="Tables" />
           <EntitySet Name="Course_Task" EntityType="Self.Course_Task" Schema="dbo" Table="Course.Task" store:Type="Tables" />
+          <EntitySet Name="CourseContext" EntityType="Self.CourseContext" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="CourseTask_AssessmentType" EntityType="Self.CourseTask_AssessmentType" Schema="dbo" Table="CourseTask.AssessmentType" store:Type="Tables" />
           <EntitySet Name="Entity" EntityType="Self.Entity" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="Entity_Comment" EntityType="Self.Entity_Comment" Schema="dbo" Table="Entity.Comment" store:Type="Tables" />
@@ -1231,6 +1577,7 @@
           <EntitySet Name="Job" EntityType="Self.Job" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="Organization" EntityType="Self.Organization" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="Rating" EntityType="Self.Rating" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="RatingContext" EntityType="Self.RatingContext" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="RatingTask" EntityType="Self.RatingTask" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="RatingTask_HasJob" EntityType="Self.RatingTask_HasJob" Schema="dbo" Table="RatingTask.HasJob" store:Type="Tables" />
           <EntitySet Name="RatingTask_HasRating" EntityType="Self.RatingTask_HasRating" Schema="dbo" Table="RatingTask.HasRating" store:Type="Tables" />
@@ -1243,10 +1590,19 @@
           <EntitySet Name="RmtlProject_Billet" EntityType="Self.RmtlProject_Billet" Schema="dbo" Table="RmtlProject.Billet" store:Type="Tables" />
           <EntitySet Name="RmtlProject_BilletTask" EntityType="Self.RmtlProject_BilletTask" Schema="dbo" Table="RmtlProject.BilletTask" store:Type="Tables" />
           <EntitySet Name="System_ProxyCodes" EntityType="Self.System_ProxyCodes" Schema="dbo" Table="System.ProxyCodes" store:Type="Tables" />
+          <EntitySet Name="TrainingTask" EntityType="Self.TrainingTask" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="WorkRole" EntityType="Self.WorkRole" Schema="dbo" store:Type="Tables" />
           <AssociationSet Name="FK_Account_AspNetUsers" Association="Self.FK_Account_AspNetUsers">
             <End Role="AspNetUsers" EntitySet="AspNetUsers" />
             <End Role="Account" EntitySet="Account" />
+          </AssociationSet>
+          <AssociationSet Name="FK_AppFunctionPermission_ApplicationFunction" Association="Self.FK_AppFunctionPermission_ApplicationFunction">
+            <End Role="ApplicationFunction" EntitySet="ApplicationFunction" />
+            <End Role="AppFunctionPermission" EntitySet="AppFunctionPermission" />
+          </AssociationSet>
+          <AssociationSet Name="FK_AppFunctionPermission_ApplicationRole" Association="Self.FK_AppFunctionPermission_ApplicationRole">
+            <End Role="ApplicationRole" EntitySet="ApplicationRole" />
+            <End Role="AppFunctionPermission" EntitySet="AppFunctionPermission" />
           </AssociationSet>
           <AssociationSet Name="FK_AspNetUserRoles_AspNetRoles" Association="Self.FK_AspNetUserRoles_AspNetRoles">
             <End Role="AspNetRoles" EntitySet="AspNetRoles" />
@@ -1260,7 +1616,11 @@
             <End Role="AspNetUsers" EntitySet="AspNetUsers" />
             <End Role="AspNetUsers1" EntitySet="AspNetUsers" />
           </AssociationSet>
-          <AssociationSet Name="FK_ClusterAnalysis_DevSpec_Concept" Association="Self.FK_ClusterAnalysis_DevSpec_Concept">
+          <AssociationSet Name="FK_ClusterAnalysis_CFMPlacement_Concept" Association="Self.FK_ClusterAnalysis_CFMPlacement_Concept">
+            <End Role="ConceptScheme_Concept" EntitySet="ConceptScheme_Concept" />
+            <End Role="ClusterAnalysis" EntitySet="ClusterAnalysis" />
+          </AssociationSet>
+          <AssociationSet Name="FK_ClusterAnalysis_DevSpecificationConcept" Association="Self.FK_ClusterAnalysis_DevSpecificationConcept">
             <End Role="ConceptScheme_Concept" EntitySet="ConceptScheme_Concept" />
             <End Role="ClusterAnalysis" EntitySet="ClusterAnalysis" />
           </AssociationSet>
@@ -1268,7 +1628,7 @@
             <End Role="RatingTask" EntitySet="RatingTask" />
             <End Role="ClusterAnalysis" EntitySet="ClusterAnalysis" />
           </AssociationSet>
-          <AssociationSet Name="FK_ClusterAnalysis_RecommendedModality_Concept1" Association="Self.FK_ClusterAnalysis_RecommendedModality_Concept1">
+          <AssociationSet Name="FK_ClusterAnalysis_RecommendedModality_Concept" Association="Self.FK_ClusterAnalysis_RecommendedModality_Concept">
             <End Role="ConceptScheme_Concept" EntitySet="ConceptScheme_Concept" />
             <End Role="ClusterAnalysis" EntitySet="ClusterAnalysis" />
           </AssociationSet>
@@ -1308,6 +1668,14 @@
             <End Role="Organization" EntitySet="Organization" />
             <End Role="Course" EntitySet="Course" />
           </AssociationSet>
+          <AssociationSet Name="FK_CourseContext_Course" Association="Self.FK_CourseContext_Course">
+            <End Role="Course" EntitySet="Course" />
+            <End Role="CourseContext" EntitySet="CourseContext" />
+          </AssociationSet>
+          <AssociationSet Name="FK_CourseContext_TrainingTask" Association="Self.FK_CourseContext_TrainingTask">
+            <End Role="TrainingTask" EntitySet="TrainingTask" />
+            <End Role="CourseContext" EntitySet="CourseContext" />
+          </AssociationSet>
           <AssociationSet Name="FK_CourseCourseType_Concept" Association="Self.FK_CourseCourseType_Concept">
             <End Role="ConceptScheme_Concept" EntitySet="ConceptScheme_Concept" />
             <End Role="Course_CourseType" EntitySet="Course_CourseType" />
@@ -1340,9 +1708,65 @@
             <End Role="Entity" EntitySet="Entity" />
             <End Role="Entity_Concept" EntitySet="Entity_Concept" />
           </AssociationSet>
+          <AssociationSet Name="FK_HasCandidatePlatform_CandidatePlatform_Concept" Association="Self.FK_HasCandidatePlatform_CandidatePlatform_Concept">
+            <End Role="ConceptScheme_Concept" EntitySet="ConceptScheme_Concept" />
+            <End Role="ClusterAnalysis_HasCandidatePlatform" EntitySet="ClusterAnalysis_HasCandidatePlatform" />
+          </AssociationSet>
+          <AssociationSet Name="FK_HasCandidatePlatform_ClusterAnalysis" Association="Self.FK_HasCandidatePlatform_ClusterAnalysis">
+            <End Role="ClusterAnalysis" EntitySet="ClusterAnalysis" />
+            <End Role="ClusterAnalysis_HasCandidatePlatform" EntitySet="ClusterAnalysis_HasCandidatePlatform" />
+          </AssociationSet>
+          <AssociationSet Name="FK_HasRatingContext_Rank" Association="Self.FK_HasRatingContext_Rank">
+            <End Role="ConceptScheme_Concept" EntitySet="ConceptScheme_Concept" />
+            <End Role="RatingTask_HasRatingContext" EntitySet="RatingTask_HasRatingContext" />
+          </AssociationSet>
+          <AssociationSet Name="FK_HasRatingContext_TaskApplicability" Association="Self.FK_HasRatingContext_TaskApplicability">
+            <End Role="ConceptScheme_Concept" EntitySet="ConceptScheme_Concept" />
+            <End Role="RatingTask_HasRatingContext" EntitySet="RatingTask_HasRatingContext" />
+          </AssociationSet>
+          <AssociationSet Name="FK_HasRatingContext_TrainingGap" Association="Self.FK_HasRatingContext_TrainingGap">
+            <End Role="ConceptScheme_Concept" EntitySet="ConceptScheme_Concept" />
+            <End Role="RatingTask_HasRatingContext" EntitySet="RatingTask_HasRatingContext" />
+          </AssociationSet>
           <AssociationSet Name="FK_Job_Rating1" Association="Self.FK_Job_Rating1">
             <End Role="Rating" EntitySet="Rating" />
             <End Role="Job" EntitySet="Job" />
+          </AssociationSet>
+          <AssociationSet Name="FK_RatingContext_BilletTitle" Association="Self.FK_RatingContext_BilletTitle">
+            <End Role="Job" EntitySet="Job" />
+            <End Role="RatingContext" EntitySet="RatingContext" />
+          </AssociationSet>
+          <AssociationSet Name="FK_RatingContext_ClusterAnalysis" Association="Self.FK_RatingContext_ClusterAnalysis">
+            <End Role="ClusterAnalysis" EntitySet="ClusterAnalysis" />
+            <End Role="RatingContext" EntitySet="RatingContext" />
+          </AssociationSet>
+          <AssociationSet Name="FK_RatingContext_Rank" Association="Self.FK_RatingContext_Rank">
+            <End Role="ConceptScheme_Concept" EntitySet="ConceptScheme_Concept" />
+            <End Role="RatingContext" EntitySet="RatingContext" />
+          </AssociationSet>
+          <AssociationSet Name="FK_RatingContext_Rating" Association="Self.FK_RatingContext_Rating">
+            <End Role="Rating" EntitySet="Rating" />
+            <End Role="RatingContext" EntitySet="RatingContext" />
+          </AssociationSet>
+          <AssociationSet Name="FK_RatingContext_RatingTask" Association="Self.FK_RatingContext_RatingTask">
+            <End Role="RatingTask" EntitySet="RatingTask" />
+            <End Role="RatingContext" EntitySet="RatingContext" />
+          </AssociationSet>
+          <AssociationSet Name="FK_RatingContext_TaskApplicability" Association="Self.FK_RatingContext_TaskApplicability">
+            <End Role="ConceptScheme_Concept" EntitySet="ConceptScheme_Concept" />
+            <End Role="RatingContext" EntitySet="RatingContext" />
+          </AssociationSet>
+          <AssociationSet Name="FK_RatingContext_TrainingGap" Association="Self.FK_RatingContext_TrainingGap">
+            <End Role="ConceptScheme_Concept" EntitySet="ConceptScheme_Concept" />
+            <End Role="RatingContext" EntitySet="RatingContext" />
+          </AssociationSet>
+          <AssociationSet Name="FK_RatingContext_TrainingTask" Association="Self.FK_RatingContext_TrainingTask">
+            <End Role="Course_Task" EntitySet="Course_Task" />
+            <End Role="RatingContext" EntitySet="RatingContext" />
+          </AssociationSet>
+          <AssociationSet Name="FK_RatingContext_WorkRole" Association="Self.FK_RatingContext_WorkRole">
+            <End Role="WorkRole" EntitySet="WorkRole" />
+            <End Role="RatingContext" EntitySet="RatingContext" />
           </AssociationSet>
           <AssociationSet Name="FK_RatingLevelTask_Level" Association="Self.FK_RatingLevelTask_Level">
             <End Role="ConceptScheme_Concept" EntitySet="ConceptScheme_Concept" />
@@ -1380,7 +1804,7 @@
             <End Role="Course_Task" EntitySet="Course_Task" />
             <End Role="RatingTask_HasRatingContext" EntitySet="RatingTask_HasRatingContext" />
           </AssociationSet>
-          <AssociationSet Name="FK_RatingTask_HasRatingContextTask_Task" Association="Self.FK_RatingTask_HasRatingContextTask_Task">
+          <AssociationSet Name="FK_RatingTask_HasRatingContextTask_RatingTask" Association="Self.FK_RatingTask_HasRatingContextTask_RatingTask">
             <End Role="RatingTask" EntitySet="RatingTask" />
             <End Role="RatingTask_HasRatingContext" EntitySet="RatingTask_HasRatingContext" />
           </AssociationSet>
@@ -1668,6 +2092,89 @@
             <End Role="RatingTask" EntitySet="RatingTask" />
             <End Role="RatingTask_HasRatingContext" EntitySet="RatingTask_HasRatingContext" />
           </AssociationSet>
+          <EntitySet Name="AppFunctionPermission" EntityType="NavyRRLModel.AppFunctionPermission" />
+          <EntitySet Name="ApplicationFunction" EntityType="NavyRRLModel.ApplicationFunction" />
+          <EntitySet Name="ApplicationRole" EntityType="NavyRRLModel.ApplicationRole" />
+          <EntitySet Name="ClusterAnalysis_HasCandidatePlatform" EntityType="NavyRRLModel.ClusterAnalysis_HasCandidatePlatform" />
+          <EntitySet Name="CourseContext" EntityType="NavyRRLModel.CourseContext" />
+          <EntitySet Name="RatingContext" EntityType="NavyRRLModel.RatingContext" />
+          <EntitySet Name="TrainingTask" EntityType="NavyRRLModel.TrainingTask" />
+          <AssociationSet Name="FK_AppFunctionPermission_ApplicationFunction" Association="NavyRRLModel.FK_AppFunctionPermission_ApplicationFunction">
+            <End Role="ApplicationFunction" EntitySet="ApplicationFunction" />
+            <End Role="AppFunctionPermission" EntitySet="AppFunctionPermission" />
+          </AssociationSet>
+          <AssociationSet Name="FK_AppFunctionPermission_ApplicationRole" Association="NavyRRLModel.FK_AppFunctionPermission_ApplicationRole">
+            <End Role="ApplicationRole" EntitySet="ApplicationRole" />
+            <End Role="AppFunctionPermission" EntitySet="AppFunctionPermission" />
+          </AssociationSet>
+          <AssociationSet Name="FK_ClusterAnalysis_CFMPlacement_Concept" Association="NavyRRLModel.FK_ClusterAnalysis_CFMPlacement_Concept">
+            <End Role="ConceptScheme_Concept" EntitySet="ConceptScheme_Concept" />
+            <End Role="ClusterAnalysis" EntitySet="ClusterAnalysis" />
+          </AssociationSet>
+          <AssociationSet Name="FK_HasCandidatePlatform_ClusterAnalysis" Association="NavyRRLModel.FK_HasCandidatePlatform_ClusterAnalysis">
+            <End Role="ClusterAnalysis" EntitySet="ClusterAnalysis" />
+            <End Role="ClusterAnalysis_HasCandidatePlatform" EntitySet="ClusterAnalysis_HasCandidatePlatform" />
+          </AssociationSet>
+          <AssociationSet Name="FK_RatingContext_ClusterAnalysis" Association="NavyRRLModel.FK_RatingContext_ClusterAnalysis">
+            <End Role="ClusterAnalysis" EntitySet="ClusterAnalysis" />
+            <End Role="RatingContext" EntitySet="RatingContext" />
+          </AssociationSet>
+          <AssociationSet Name="FK_HasCandidatePlatform_CandidatePlatform_Concept" Association="NavyRRLModel.FK_HasCandidatePlatform_CandidatePlatform_Concept">
+            <End Role="ConceptScheme_Concept" EntitySet="ConceptScheme_Concept" />
+            <End Role="ClusterAnalysis_HasCandidatePlatform" EntitySet="ClusterAnalysis_HasCandidatePlatform" />
+          </AssociationSet>
+          <AssociationSet Name="FK_HasRatingContext_Rank" Association="NavyRRLModel.FK_HasRatingContext_Rank">
+            <End Role="ConceptScheme_Concept" EntitySet="ConceptScheme_Concept" />
+            <End Role="RatingTask_HasRatingContext" EntitySet="RatingTask_HasRatingContext" />
+          </AssociationSet>
+          <AssociationSet Name="FK_HasRatingContext_TaskApplicability" Association="NavyRRLModel.FK_HasRatingContext_TaskApplicability">
+            <End Role="ConceptScheme_Concept" EntitySet="ConceptScheme_Concept" />
+            <End Role="RatingTask_HasRatingContext" EntitySet="RatingTask_HasRatingContext" />
+          </AssociationSet>
+          <AssociationSet Name="FK_HasRatingContext_TrainingGap" Association="NavyRRLModel.FK_HasRatingContext_TrainingGap">
+            <End Role="ConceptScheme_Concept" EntitySet="ConceptScheme_Concept" />
+            <End Role="RatingTask_HasRatingContext" EntitySet="RatingTask_HasRatingContext" />
+          </AssociationSet>
+          <AssociationSet Name="FK_RatingContext_Rank" Association="NavyRRLModel.FK_RatingContext_Rank">
+            <End Role="ConceptScheme_Concept" EntitySet="ConceptScheme_Concept" />
+            <End Role="RatingContext" EntitySet="RatingContext" />
+          </AssociationSet>
+          <AssociationSet Name="FK_RatingContext_TaskApplicability" Association="NavyRRLModel.FK_RatingContext_TaskApplicability">
+            <End Role="ConceptScheme_Concept" EntitySet="ConceptScheme_Concept" />
+            <End Role="RatingContext" EntitySet="RatingContext" />
+          </AssociationSet>
+          <AssociationSet Name="FK_RatingContext_TrainingGap" Association="NavyRRLModel.FK_RatingContext_TrainingGap">
+            <End Role="ConceptScheme_Concept" EntitySet="ConceptScheme_Concept" />
+            <End Role="RatingContext" EntitySet="RatingContext" />
+          </AssociationSet>
+          <AssociationSet Name="FK_CourseContext_Course" Association="NavyRRLModel.FK_CourseContext_Course">
+            <End Role="Course" EntitySet="Course" />
+            <End Role="CourseContext" EntitySet="CourseContext" />
+          </AssociationSet>
+          <AssociationSet Name="FK_RatingContext_TrainingTask" Association="NavyRRLModel.FK_RatingContext_TrainingTask">
+            <End Role="Course_Task" EntitySet="Course_Task" />
+            <End Role="RatingContext" EntitySet="RatingContext" />
+          </AssociationSet>
+          <AssociationSet Name="FK_CourseContext_TrainingTask" Association="NavyRRLModel.FK_CourseContext_TrainingTask">
+            <End Role="TrainingTask" EntitySet="TrainingTask" />
+            <End Role="CourseContext" EntitySet="CourseContext" />
+          </AssociationSet>
+          <AssociationSet Name="FK_RatingContext_BilletTitle" Association="NavyRRLModel.FK_RatingContext_BilletTitle">
+            <End Role="Job" EntitySet="Job" />
+            <End Role="RatingContext" EntitySet="RatingContext" />
+          </AssociationSet>
+          <AssociationSet Name="FK_RatingContext_Rating" Association="NavyRRLModel.FK_RatingContext_Rating">
+            <End Role="Rating" EntitySet="Rating" />
+            <End Role="RatingContext" EntitySet="RatingContext" />
+          </AssociationSet>
+          <AssociationSet Name="FK_RatingContext_RatingTask" Association="NavyRRLModel.FK_RatingContext_RatingTask">
+            <End Role="RatingTask" EntitySet="RatingTask" />
+            <End Role="RatingContext" EntitySet="RatingContext" />
+          </AssociationSet>
+          <AssociationSet Name="FK_RatingContext_WorkRole" Association="NavyRRLModel.FK_RatingContext_WorkRole">
+            <End Role="WorkRole" EntitySet="WorkRole" />
+            <End Role="RatingContext" EntitySet="RatingContext" />
+          </AssociationSet>
         </EntityContainer>
         <EntityType Name="Account">
           <Key>
@@ -1798,6 +2305,14 @@
           <NavigationProperty Name="ClusterAnalysis1" Relationship="NavyRRLModel.FK_ClusterAnalysis_RecommendedModality_Concept1" FromRole="ConceptScheme_Concept" ToRole="ClusterAnalysis" />
           <NavigationProperty Name="ClusterAnalysis2" Relationship="NavyRRLModel.FK_ClusterAnalysis_TrainingSolution_Concept" FromRole="ConceptScheme_Concept" ToRole="ClusterAnalysis" />
           <NavigationProperty Name="ConceptScheme" Relationship="NavyRRLModel.FK_ConceptScheme_Concept_ConceptScheme" FromRole="ConceptScheme_Concept" ToRole="ConceptScheme" />
+          <NavigationProperty Name="ClusterAnalysis3" Relationship="NavyRRLModel.FK_ClusterAnalysis_CFMPlacement_Concept" FromRole="ConceptScheme_Concept" ToRole="ClusterAnalysis" />
+          <NavigationProperty Name="ClusterAnalysis_HasCandidatePlatform" Relationship="NavyRRLModel.FK_HasCandidatePlatform_CandidatePlatform_Concept" FromRole="ConceptScheme_Concept" ToRole="ClusterAnalysis_HasCandidatePlatform" />
+          <NavigationProperty Name="RatingTask_HasRatingContext" Relationship="NavyRRLModel.FK_HasRatingContext_Rank" FromRole="ConceptScheme_Concept" ToRole="RatingTask_HasRatingContext" />
+          <NavigationProperty Name="RatingTask_HasRatingContext1" Relationship="NavyRRLModel.FK_HasRatingContext_TaskApplicability" FromRole="ConceptScheme_Concept" ToRole="RatingTask_HasRatingContext" />
+          <NavigationProperty Name="RatingTask_HasRatingContext2" Relationship="NavyRRLModel.FK_HasRatingContext_TrainingGap" FromRole="ConceptScheme_Concept" ToRole="RatingTask_HasRatingContext" />
+          <NavigationProperty Name="RatingContext" Relationship="NavyRRLModel.FK_RatingContext_Rank" FromRole="ConceptScheme_Concept" ToRole="RatingContext" />
+          <NavigationProperty Name="RatingContext1" Relationship="NavyRRLModel.FK_RatingContext_TaskApplicability" FromRole="ConceptScheme_Concept" ToRole="RatingContext" />
+          <NavigationProperty Name="RatingContext2" Relationship="NavyRRLModel.FK_RatingContext_TrainingGap" FromRole="ConceptScheme_Concept" ToRole="RatingContext" />
         </EntityType>
         <EntityType Name="Course">
           <Key>
@@ -1820,6 +2335,7 @@
           <NavigationProperty Name="Course_Task" Relationship="NavyRRLModel.FK_Course_Task_Course" FromRole="Course" ToRole="Course_Task" />
           <NavigationProperty Name="Organization" Relationship="NavyRRLModel.FK_Course_Organization" FromRole="Course" ToRole="Organization" />
           <NavigationProperty Name="Course_CourseType" Relationship="NavyRRLModel.FK_CourseCourseType_Course" FromRole="Course" ToRole="Course_CourseType" />
+          <NavigationProperty Name="CourseContext" Relationship="NavyRRLModel.FK_CourseContext_Course" FromRole="Course" ToRole="CourseContext" />
         </EntityType>
         <EntityType Name="Course_CourseType">
           <Key>
@@ -1851,6 +2367,7 @@
           <NavigationProperty Name="CourseTask_AssessmentType" Relationship="NavyRRLModel.FK_CourseTask_AssessmentType_Course_Task" FromRole="Course_Task" ToRole="CourseTask_AssessmentType" />
           <NavigationProperty Name="RatingTask_HasTrainingTask" Relationship="NavyRRLModel.FK_RatingTask_HasTrainingTask_TrainingTask" FromRole="Course_Task" ToRole="RatingTask_HasTrainingTask" />
           <NavigationProperty Name="RatingTask_HasRatingContext" Relationship="NavyRRLModel.FK_RatingTask_HasRatingContext_TrainingTask" FromRole="Course_Task" ToRole="RatingTask_HasRatingContext" />
+          <NavigationProperty Name="RatingContext" Relationship="NavyRRLModel.FK_RatingContext_TrainingTask" FromRole="Course_Task" ToRole="RatingContext" />
         </EntityType>
         <EntityType Name="CourseTask_AssessmentType">
           <Key>
@@ -1965,6 +2482,7 @@
           <NavigationProperty Name="Rating" Relationship="NavyRRLModel.FK_Job_Rating1" FromRole="Job" ToRole="Rating" />
           <NavigationProperty Name="RatingTask_HasJob" Relationship="NavyRRLModel.FK_RatingTask_HasJob_Job" FromRole="Job" ToRole="RatingTask_HasJob" />
           <NavigationProperty Name="RmtlProject_Billet" Relationship="NavyRRLModel.FK_RmtlProject_Billet_Job" FromRole="Job" ToRole="RmtlProject_Billet" />
+          <NavigationProperty Name="RatingContext" Relationship="NavyRRLModel.FK_RatingContext_BilletTitle" FromRole="Job" ToRole="RatingContext" />
         </EntityType>
         <EntityType Name="Organization">
           <Key>
@@ -2005,6 +2523,7 @@
           <NavigationProperty Name="Job" Relationship="NavyRRLModel.FK_Job_Rating1" FromRole="Rating" ToRole="Job" />
           <NavigationProperty Name="RatingTask_HasRating" Relationship="NavyRRLModel.FK_RatingTask_HasRating_Rating" FromRole="Rating" ToRole="RatingTask_HasRating" />
           <NavigationProperty Name="RatingTask_HasRatingContext" Relationship="NavyRRLModel.FK_RatingTask_HasRatingContext_Rating" FromRole="Rating" ToRole="RatingTask_HasRatingContext" />
+          <NavigationProperty Name="RatingContext" Relationship="NavyRRLModel.FK_RatingContext_Rating" FromRole="Rating" ToRole="RatingContext" />
         </EntityType>
         <EntityType Name="RatingTask">
           <Key>
@@ -2040,6 +2559,7 @@
           <NavigationProperty Name="RmtlProject_BilletTask" Relationship="NavyRRLModel.FK_RmtlProject_BilletTask_RatingTask" FromRole="RatingTask" ToRole="RmtlProject_BilletTask" />
           <NavigationProperty Name="ClusterAnalysis" Relationship="NavyRRLModel.FK_ClusterAnalysis_RatingTask" FromRole="RatingTask" ToRole="ClusterAnalysis" />
           <NavigationProperty Name="RatingTask_HasRatingContext" Relationship="NavyRRLModel.FK_RatingTask_HasRatingContextTask_Task" FromRole="RatingTask" ToRole="RatingTask_HasRatingContext" />
+          <NavigationProperty Name="RatingContext" Relationship="NavyRRLModel.FK_RatingContext_RatingTask" FromRole="RatingTask" ToRole="RatingContext" />
         </EntityType>
         <EntityType Name="RatingTask_HasJob">
           <Key>
@@ -2200,6 +2720,7 @@
           <Property Name="LastUpdated" Type="DateTime" Nullable="false" Precision="3" />
           <Property Name="LastUpdatedById" Type="Int32" />
           <NavigationProperty Name="RatingTask_WorkRole" Relationship="NavyRRLModel.FK_RatingTask_WorkRole_WorkRole" FromRole="WorkRole" ToRole="RatingTask_WorkRole" />
+          <NavigationProperty Name="RatingContext" Relationship="NavyRRLModel.FK_RatingContext_WorkRole" FromRole="WorkRole" ToRole="RatingContext" />
         </EntityType>
         <Association Name="FK_Account_AspNetUsers">
           <End Type="NavyRRLModel.AspNetUsers" Role="AspNetUsers" Multiplicity="0..1">
@@ -2706,7 +3227,7 @@
           <Property Name="CFMPlacement" Type="String" MaxLength="500" FixedLength="false" Unicode="false" />
           <Property Name="PriorityPlacement" Type="Int32" />
           <Property Name="DevelopmentRatio" Type="String" MaxLength="500" FixedLength="false" Unicode="false" />
-          <Property Name="EstimatedInstructionalTime" Type="Decimal" Precision="19" Scale="2" />
+          <Property Name="EstimatedInstructionalTime" Type="Decimal" Precision="9" Scale="2" />
           <Property Name="DevelopmentTime" Type="Int32" />
           <Property Name="CTID" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
           <Property Name="Notes" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
@@ -2721,6 +3242,10 @@
           <NavigationProperty Name="RatingTask" Relationship="NavyRRLModel.FK_ClusterAnalysis_RatingTask" FromRole="ClusterAnalysis" ToRole="RatingTask" />
           <NavigationProperty Name="ConceptScheme_RecommendedModality" Relationship="NavyRRLModel.FK_ClusterAnalysis_RecommendedModality_Concept1" FromRole="ClusterAnalysis" ToRole="ConceptScheme_Concept" />
           <NavigationProperty Name="ConceptScheme_TrainingSolution" Relationship="NavyRRLModel.FK_ClusterAnalysis_TrainingSolution_Concept" FromRole="ClusterAnalysis" ToRole="ConceptScheme_Concept" />
+          <Property Name="CFMPlacementId" Type="Int32" />
+          <NavigationProperty Name="ConceptScheme_Concept" Relationship="NavyRRLModel.FK_ClusterAnalysis_CFMPlacement_Concept" FromRole="ClusterAnalysis" ToRole="ConceptScheme_Concept" />
+          <NavigationProperty Name="ClusterAnalysis_HasCandidatePlatform" Relationship="NavyRRLModel.FK_HasCandidatePlatform_ClusterAnalysis" FromRole="ClusterAnalysis" ToRole="ClusterAnalysis_HasCandidatePlatform" />
+          <NavigationProperty Name="RatingContext" Relationship="NavyRRLModel.FK_RatingContext_ClusterAnalysis" FromRole="ClusterAnalysis" ToRole="RatingContext" />
         </EntityType>
         <Association Name="FK_ClusterAnalysis_DevSpec_Concept">
           <End Type="NavyRRLModel.ConceptScheme_Concept" Role="ConceptScheme_Concept" Multiplicity="0..1" />
@@ -2928,6 +3453,19 @@
           <NavigationProperty Name="Course_Task" Relationship="NavyRRLModel.FK_RatingTask_HasRatingContext_TrainingTask" FromRole="RatingTask_HasRatingContext" ToRole="Course_Task" />
           <NavigationProperty Name="Rating" Relationship="NavyRRLModel.FK_RatingTask_HasRatingContext_Rating" FromRole="RatingTask_HasRatingContext" ToRole="Rating" />
           <NavigationProperty Name="RatingTask" Relationship="NavyRRLModel.FK_RatingTask_HasRatingContextTask_Task" FromRole="RatingTask_HasRatingContext" ToRole="RatingTask" />
+          <Property Name="BilletTitleId" Type="Int32" />
+          <Property Name="RankId" Type="Int32" Nullable="false" />
+          <Property Name="WorkRoleId" Type="Int32" />
+          <Property Name="TaskApplicabilityId" Type="Int32" />
+          <Property Name="TaskStatusId" Type="Int32" />
+          <Property Name="CodedNotation" Type="String" MaxLength="100" FixedLength="false" Unicode="false" />
+          <Property Name="CTID" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+          <Property Name="Notes" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
+          <Property Name="LastUpdated" Type="DateTime" Nullable="false" Precision="3" />
+          <Property Name="LastUpdatedById" Type="Int32" />
+          <NavigationProperty Name="ConceptScheme_Concept" Relationship="NavyRRLModel.FK_HasRatingContext_Rank" FromRole="RatingTask_HasRatingContext" ToRole="ConceptScheme_Concept" />
+          <NavigationProperty Name="ConceptScheme_Concept1" Relationship="NavyRRLModel.FK_HasRatingContext_TaskApplicability" FromRole="RatingTask_HasRatingContext" ToRole="ConceptScheme_Concept" />
+          <NavigationProperty Name="ConceptScheme_Concept2" Relationship="NavyRRLModel.FK_HasRatingContext_TrainingGap" FromRole="RatingTask_HasRatingContext" ToRole="ConceptScheme_Concept" />
         </EntityType>
         <Association Name="FK_RatingTask_HasRatingContext_TrainingTask">
           <End Type="NavyRRLModel.Course_Task" Role="Course_Task" Multiplicity="0..1" />
@@ -2966,6 +3504,354 @@
             </Principal>
             <Dependent Role="RatingTask_HasRatingContext">
               <PropertyRef Name="RatingTaskId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <EntityType Name="AppFunctionPermission">
+          <Key>
+            <PropertyRef Name="ApplicationFunctionId" />
+            <PropertyRef Name="RoleId" />
+          </Key>
+          <Property Name="ApplicationFunctionId" Type="Int32" Nullable="false" />
+          <Property Name="RoleId" Type="Int32" Nullable="false" />
+          <Property Name="CanCreate" Type="Boolean" Nullable="false" />
+          <Property Name="CanRead" Type="Boolean" Nullable="false" />
+          <Property Name="CanUpdate" Type="Boolean" Nullable="false" />
+          <Property Name="CanDelete" Type="Boolean" Nullable="false" />
+          <NavigationProperty Name="ApplicationFunction" Relationship="NavyRRLModel.FK_AppFunctionPermission_ApplicationFunction" FromRole="AppFunctionPermission" ToRole="ApplicationFunction" />
+          <NavigationProperty Name="ApplicationRole" Relationship="NavyRRLModel.FK_AppFunctionPermission_ApplicationRole" FromRole="AppFunctionPermission" ToRole="ApplicationRole" />
+        </EntityType>
+        <EntityType Name="ApplicationFunction">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="Name" Type="String" Nullable="false" MaxLength="100" FixedLength="false" Unicode="false" />
+          <Property Name="CodedNotation" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+          <Property Name="Description" Type="String" MaxLength="Max" FixedLength="false" Unicode="false" />
+          <NavigationProperty Name="AppFunctionPermission" Relationship="NavyRRLModel.FK_AppFunctionPermission_ApplicationFunction" FromRole="ApplicationFunction" ToRole="AppFunctionPermission" />
+        </EntityType>
+        <EntityType Name="ApplicationRole">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="Name" Type="String" Nullable="false" MaxLength="100" FixedLength="false" Unicode="true" />
+          <Property Name="IsActive" Type="Boolean" />
+          <NavigationProperty Name="AppFunctionPermission" Relationship="NavyRRLModel.FK_AppFunctionPermission_ApplicationRole" FromRole="ApplicationRole" ToRole="AppFunctionPermission" />
+        </EntityType>
+        <EntityType Name="ClusterAnalysis_HasCandidatePlatform">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="RowId" Type="Guid" Nullable="false" />
+          <Property Name="ClusterAnalysisId" Type="Int32" Nullable="false" />
+          <Property Name="CandidatePlatformConceptId" Type="Int32" Nullable="false" />
+          <Property Name="Created" Type="DateTime" Nullable="false" Precision="3" />
+          <Property Name="CreatedById" Type="Int32" />
+          <NavigationProperty Name="ClusterAnalysis" Relationship="NavyRRLModel.FK_HasCandidatePlatform_ClusterAnalysis" FromRole="ClusterAnalysis_HasCandidatePlatform" ToRole="ClusterAnalysis" />
+          <NavigationProperty Name="ConceptScheme_Concept" Relationship="NavyRRLModel.FK_HasCandidatePlatform_CandidatePlatform_Concept" FromRole="ClusterAnalysis_HasCandidatePlatform" ToRole="ConceptScheme_Concept" />
+        </EntityType>
+        <EntityType Name="CourseContext">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="RowId" Type="Guid" Nullable="false" />
+          <Property Name="CourseId" Type="Int32" Nullable="false" />
+          <Property Name="TrainingTaskId" Type="Int32" />
+          <Property Name="Created" Type="DateTime" Nullable="false" Precision="3" />
+          <Property Name="CreatedById" Type="Int32" />
+          <Property Name="LastUpdated" Type="DateTime" Nullable="false" Precision="3" />
+          <Property Name="LastUpdatedById" Type="Int32" />
+          <NavigationProperty Name="Course" Relationship="NavyRRLModel.FK_CourseContext_Course" FromRole="CourseContext" ToRole="Course" />
+          <NavigationProperty Name="TrainingTask" Relationship="NavyRRLModel.FK_CourseContext_TrainingTask" FromRole="CourseContext" ToRole="TrainingTask" />
+        </EntityType>
+        <EntityType Name="RatingContext">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="RowId" Type="Guid" Nullable="false" />
+          <Property Name="RatingId" Type="Int32" Nullable="false" />
+          <Property Name="RatingTaskId" Type="Int32" Nullable="false" />
+          <Property Name="BilletTitleId" Type="Int32" />
+          <Property Name="RankId" Type="Int32" Nullable="false" />
+          <Property Name="WorkRoleId" Type="Int32" />
+          <Property Name="TaskApplicabilityId" Type="Int32" />
+          <Property Name="FormalTrainingGapId" Type="Int32" />
+          <Property Name="TrainingTaskId" Type="Int32" />
+          <Property Name="TaskStatusId" Type="Int32" />
+          <Property Name="CodedNotation" Type="String" MaxLength="100" FixedLength="false" Unicode="false" />
+          <Property Name="CTID" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+          <Property Name="Notes" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
+          <Property Name="Created" Type="DateTime" Nullable="false" Precision="3" />
+          <Property Name="CreatedById" Type="Int32" />
+          <Property Name="LastUpdated" Type="DateTime" Nullable="false" Precision="3" />
+          <Property Name="LastUpdatedById" Type="Int32" />
+          <Property Name="ClusterAnalysisId" Type="Int32" />
+          <NavigationProperty Name="ClusterAnalysis" Relationship="NavyRRLModel.FK_RatingContext_ClusterAnalysis" FromRole="RatingContext" ToRole="ClusterAnalysis" />
+          <NavigationProperty Name="ConceptScheme_Concept" Relationship="NavyRRLModel.FK_RatingContext_Rank" FromRole="RatingContext" ToRole="ConceptScheme_Concept" />
+          <NavigationProperty Name="ConceptScheme_Concept1" Relationship="NavyRRLModel.FK_RatingContext_TaskApplicability" FromRole="RatingContext" ToRole="ConceptScheme_Concept" />
+          <NavigationProperty Name="ConceptScheme_Concept2" Relationship="NavyRRLModel.FK_RatingContext_TrainingGap" FromRole="RatingContext" ToRole="ConceptScheme_Concept" />
+          <NavigationProperty Name="Course_Task" Relationship="NavyRRLModel.FK_RatingContext_TrainingTask" FromRole="RatingContext" ToRole="Course_Task" />
+          <NavigationProperty Name="Job" Relationship="NavyRRLModel.FK_RatingContext_BilletTitle" FromRole="RatingContext" ToRole="Job" />
+          <NavigationProperty Name="Rating" Relationship="NavyRRLModel.FK_RatingContext_Rating" FromRole="RatingContext" ToRole="Rating" />
+          <NavigationProperty Name="RatingTask" Relationship="NavyRRLModel.FK_RatingContext_RatingTask" FromRole="RatingContext" ToRole="RatingTask" />
+          <NavigationProperty Name="WorkRole" Relationship="NavyRRLModel.FK_RatingContext_WorkRole" FromRole="RatingContext" ToRole="WorkRole" />
+        </EntityType>
+        <EntityType Name="TrainingTask">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="RowId" Type="Guid" Nullable="false" />
+          <Property Name="Description" Type="String" Nullable="false" MaxLength="Max" FixedLength="false" Unicode="true" />
+          <Property Name="CTID" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+          <Property Name="Created" Type="DateTime" Nullable="false" Precision="3" />
+          <Property Name="CreatedById" Type="Int32" />
+          <Property Name="LastUpdated" Type="DateTime" Nullable="false" Precision="3" />
+          <Property Name="LastUpdatedById" Type="Int32" />
+          <NavigationProperty Name="CourseContext" Relationship="NavyRRLModel.FK_CourseContext_TrainingTask" FromRole="TrainingTask" ToRole="CourseContext" />
+        </EntityType>
+        <Association Name="FK_AppFunctionPermission_ApplicationFunction">
+          <End Type="NavyRRLModel.ApplicationFunction" Role="ApplicationFunction" Multiplicity="1">
+            <OnDelete Action="Cascade" />
+          </End>
+          <End Type="NavyRRLModel.AppFunctionPermission" Role="AppFunctionPermission" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="ApplicationFunction">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="AppFunctionPermission">
+              <PropertyRef Name="ApplicationFunctionId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_AppFunctionPermission_ApplicationRole">
+          <End Type="NavyRRLModel.ApplicationRole" Role="ApplicationRole" Multiplicity="1" />
+          <End Type="NavyRRLModel.AppFunctionPermission" Role="AppFunctionPermission" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="ApplicationRole">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="AppFunctionPermission">
+              <PropertyRef Name="RoleId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_ClusterAnalysis_CFMPlacement_Concept">
+          <End Type="NavyRRLModel.ConceptScheme_Concept" Role="ConceptScheme_Concept" Multiplicity="0..1" />
+          <End Type="NavyRRLModel.ClusterAnalysis" Role="ClusterAnalysis" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="ConceptScheme_Concept">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="ClusterAnalysis">
+              <PropertyRef Name="CFMPlacementId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_HasCandidatePlatform_ClusterAnalysis">
+          <End Type="NavyRRLModel.ClusterAnalysis" Role="ClusterAnalysis" Multiplicity="1">
+            <OnDelete Action="Cascade" />
+          </End>
+          <End Type="NavyRRLModel.ClusterAnalysis_HasCandidatePlatform" Role="ClusterAnalysis_HasCandidatePlatform" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="ClusterAnalysis">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="ClusterAnalysis_HasCandidatePlatform">
+              <PropertyRef Name="ClusterAnalysisId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_RatingContext_ClusterAnalysis">
+          <End Type="NavyRRLModel.ClusterAnalysis" Role="ClusterAnalysis" Multiplicity="0..1" />
+          <End Type="NavyRRLModel.RatingContext" Role="RatingContext" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="ClusterAnalysis">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="RatingContext">
+              <PropertyRef Name="ClusterAnalysisId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_HasCandidatePlatform_CandidatePlatform_Concept">
+          <End Type="NavyRRLModel.ConceptScheme_Concept" Role="ConceptScheme_Concept" Multiplicity="1" />
+          <End Type="NavyRRLModel.ClusterAnalysis_HasCandidatePlatform" Role="ClusterAnalysis_HasCandidatePlatform" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="ConceptScheme_Concept">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="ClusterAnalysis_HasCandidatePlatform">
+              <PropertyRef Name="CandidatePlatformConceptId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_HasRatingContext_Rank">
+          <End Type="NavyRRLModel.ConceptScheme_Concept" Role="ConceptScheme_Concept" Multiplicity="1" />
+          <End Type="NavyRRLModel.RatingTask_HasRatingContext" Role="RatingTask_HasRatingContext" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="ConceptScheme_Concept">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="RatingTask_HasRatingContext">
+              <PropertyRef Name="RankId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_HasRatingContext_TaskApplicability">
+          <End Type="NavyRRLModel.ConceptScheme_Concept" Role="ConceptScheme_Concept" Multiplicity="0..1" />
+          <End Type="NavyRRLModel.RatingTask_HasRatingContext" Role="RatingTask_HasRatingContext" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="ConceptScheme_Concept">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="RatingTask_HasRatingContext">
+              <PropertyRef Name="TaskApplicabilityId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_HasRatingContext_TrainingGap">
+          <End Type="NavyRRLModel.ConceptScheme_Concept" Role="ConceptScheme_Concept" Multiplicity="0..1" />
+          <End Type="NavyRRLModel.RatingTask_HasRatingContext" Role="RatingTask_HasRatingContext" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="ConceptScheme_Concept">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="RatingTask_HasRatingContext">
+              <PropertyRef Name="FormalTrainingGapId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_RatingContext_Rank">
+          <End Type="NavyRRLModel.ConceptScheme_Concept" Role="ConceptScheme_Concept" Multiplicity="1" />
+          <End Type="NavyRRLModel.RatingContext" Role="RatingContext" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="ConceptScheme_Concept">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="RatingContext">
+              <PropertyRef Name="RankId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_RatingContext_TaskApplicability">
+          <End Type="NavyRRLModel.ConceptScheme_Concept" Role="ConceptScheme_Concept" Multiplicity="0..1" />
+          <End Type="NavyRRLModel.RatingContext" Role="RatingContext" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="ConceptScheme_Concept">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="RatingContext">
+              <PropertyRef Name="TaskApplicabilityId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_RatingContext_TrainingGap">
+          <End Type="NavyRRLModel.ConceptScheme_Concept" Role="ConceptScheme_Concept" Multiplicity="0..1" />
+          <End Type="NavyRRLModel.RatingContext" Role="RatingContext" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="ConceptScheme_Concept">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="RatingContext">
+              <PropertyRef Name="FormalTrainingGapId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_CourseContext_Course">
+          <End Type="NavyRRLModel.Course" Role="Course" Multiplicity="1" />
+          <End Type="NavyRRLModel.CourseContext" Role="CourseContext" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Course">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="CourseContext">
+              <PropertyRef Name="CourseId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_RatingContext_TrainingTask">
+          <End Type="NavyRRLModel.Course_Task" Role="Course_Task" Multiplicity="0..1" />
+          <End Type="NavyRRLModel.RatingContext" Role="RatingContext" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Course_Task">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="RatingContext">
+              <PropertyRef Name="TrainingTaskId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_CourseContext_TrainingTask">
+          <End Type="NavyRRLModel.TrainingTask" Role="TrainingTask" Multiplicity="0..1" />
+          <End Type="NavyRRLModel.CourseContext" Role="CourseContext" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="TrainingTask">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="CourseContext">
+              <PropertyRef Name="TrainingTaskId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_RatingContext_BilletTitle">
+          <End Type="NavyRRLModel.Job" Role="Job" Multiplicity="0..1">
+            <OnDelete Action="Cascade" />
+          </End>
+          <End Type="NavyRRLModel.RatingContext" Role="RatingContext" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Job">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="RatingContext">
+              <PropertyRef Name="BilletTitleId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_RatingContext_Rating">
+          <End Type="NavyRRLModel.Rating" Role="Rating" Multiplicity="1">
+            <OnDelete Action="Cascade" />
+          </End>
+          <End Type="NavyRRLModel.RatingContext" Role="RatingContext" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Rating">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="RatingContext">
+              <PropertyRef Name="RatingId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_RatingContext_RatingTask">
+          <End Type="NavyRRLModel.RatingTask" Role="RatingTask" Multiplicity="1">
+            <OnDelete Action="Cascade" />
+          </End>
+          <End Type="NavyRRLModel.RatingContext" Role="RatingContext" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="RatingTask">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="RatingContext">
+              <PropertyRef Name="RatingTaskId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_RatingContext_WorkRole">
+          <End Type="NavyRRLModel.WorkRole" Role="WorkRole" Multiplicity="0..1">
+            <OnDelete Action="Cascade" />
+          </End>
+          <End Type="NavyRRLModel.RatingContext" Role="RatingContext" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="WorkRole">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="RatingContext">
+              <PropertyRef Name="WorkRoleId" />
             </Dependent>
           </ReferentialConstraint>
         </Association>
@@ -3451,6 +4337,7 @@
           <EntitySetMapping Name="ClusterAnalysis">
             <EntityTypeMapping TypeName="NavyRRLModel.ClusterAnalysis">
               <MappingFragment StoreEntitySet="ClusterAnalysis">
+                <ScalarProperty Name="CFMPlacementId" ColumnName="CFMPlacementId" />
                 <ScalarProperty Name="DevelopmentSpecification" ColumnName="DevelopmentSpecification" />
                 <ScalarProperty Name="RecommendedModality" ColumnName="RecommendedModality" />
                 <ScalarProperty Name="TrainingSolutionType" ColumnName="TrainingSolutionType" />
@@ -3579,12 +4466,118 @@
           <EntitySetMapping Name="RatingTask_HasRatingContext">
             <EntityTypeMapping TypeName="NavyRRLModel.RatingTask_HasRatingContext">
               <MappingFragment StoreEntitySet="RatingTask_HasRatingContext">
+                <ScalarProperty Name="LastUpdatedById" ColumnName="LastUpdatedById" />
+                <ScalarProperty Name="LastUpdated" ColumnName="LastUpdated" />
+                <ScalarProperty Name="Notes" ColumnName="Notes" />
+                <ScalarProperty Name="CTID" ColumnName="CTID" />
+                <ScalarProperty Name="CodedNotation" ColumnName="CodedNotation" />
+                <ScalarProperty Name="TaskStatusId" ColumnName="TaskStatusId" />
+                <ScalarProperty Name="TaskApplicabilityId" ColumnName="TaskApplicabilityId" />
+                <ScalarProperty Name="WorkRoleId" ColumnName="WorkRoleId" />
+                <ScalarProperty Name="RankId" ColumnName="RankId" />
+                <ScalarProperty Name="BilletTitleId" ColumnName="BilletTitleId" />
                 <ScalarProperty Name="CreatedById" ColumnName="CreatedById" />
                 <ScalarProperty Name="Created" ColumnName="Created" />
                 <ScalarProperty Name="TrainingTaskId" ColumnName="TrainingTaskId" />
                 <ScalarProperty Name="FormalTrainingGapId" ColumnName="FormalTrainingGapId" />
                 <ScalarProperty Name="RatingId" ColumnName="RatingId" />
                 <ScalarProperty Name="RatingTaskId" ColumnName="RatingTaskId" />
+                <ScalarProperty Name="RowId" ColumnName="RowId" />
+                <ScalarProperty Name="Id" ColumnName="Id" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="AppFunctionPermission">
+            <EntityTypeMapping TypeName="NavyRRLModel.AppFunctionPermission">
+              <MappingFragment StoreEntitySet="AppFunctionPermission">
+                <ScalarProperty Name="CanDelete" ColumnName="CanDelete" />
+                <ScalarProperty Name="CanUpdate" ColumnName="CanUpdate" />
+                <ScalarProperty Name="CanRead" ColumnName="CanRead" />
+                <ScalarProperty Name="CanCreate" ColumnName="CanCreate" />
+                <ScalarProperty Name="RoleId" ColumnName="RoleId" />
+                <ScalarProperty Name="ApplicationFunctionId" ColumnName="ApplicationFunctionId" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="ApplicationFunction">
+            <EntityTypeMapping TypeName="NavyRRLModel.ApplicationFunction">
+              <MappingFragment StoreEntitySet="ApplicationFunction">
+                <ScalarProperty Name="Description" ColumnName="Description" />
+                <ScalarProperty Name="CodedNotation" ColumnName="CodedNotation" />
+                <ScalarProperty Name="Name" ColumnName="Name" />
+                <ScalarProperty Name="Id" ColumnName="Id" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="ApplicationRole">
+            <EntityTypeMapping TypeName="NavyRRLModel.ApplicationRole">
+              <MappingFragment StoreEntitySet="ApplicationRole">
+                <ScalarProperty Name="IsActive" ColumnName="IsActive" />
+                <ScalarProperty Name="Name" ColumnName="Name" />
+                <ScalarProperty Name="Id" ColumnName="Id" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="ClusterAnalysis_HasCandidatePlatform">
+            <EntityTypeMapping TypeName="NavyRRLModel.ClusterAnalysis_HasCandidatePlatform">
+              <MappingFragment StoreEntitySet="ClusterAnalysis_HasCandidatePlatform">
+                <ScalarProperty Name="CreatedById" ColumnName="CreatedById" />
+                <ScalarProperty Name="Created" ColumnName="Created" />
+                <ScalarProperty Name="CandidatePlatformConceptId" ColumnName="CandidatePlatformConceptId" />
+                <ScalarProperty Name="ClusterAnalysisId" ColumnName="ClusterAnalysisId" />
+                <ScalarProperty Name="RowId" ColumnName="RowId" />
+                <ScalarProperty Name="Id" ColumnName="Id" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="CourseContext">
+            <EntityTypeMapping TypeName="NavyRRLModel.CourseContext">
+              <MappingFragment StoreEntitySet="CourseContext">
+                <ScalarProperty Name="LastUpdatedById" ColumnName="LastUpdatedById" />
+                <ScalarProperty Name="LastUpdated" ColumnName="LastUpdated" />
+                <ScalarProperty Name="CreatedById" ColumnName="CreatedById" />
+                <ScalarProperty Name="Created" ColumnName="Created" />
+                <ScalarProperty Name="TrainingTaskId" ColumnName="TrainingTaskId" />
+                <ScalarProperty Name="CourseId" ColumnName="CourseId" />
+                <ScalarProperty Name="RowId" ColumnName="RowId" />
+                <ScalarProperty Name="Id" ColumnName="Id" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="RatingContext">
+            <EntityTypeMapping TypeName="NavyRRLModel.RatingContext">
+              <MappingFragment StoreEntitySet="RatingContext">
+                <ScalarProperty Name="ClusterAnalysisId" ColumnName="ClusterAnalysisId" />
+                <ScalarProperty Name="LastUpdatedById" ColumnName="LastUpdatedById" />
+                <ScalarProperty Name="LastUpdated" ColumnName="LastUpdated" />
+                <ScalarProperty Name="CreatedById" ColumnName="CreatedById" />
+                <ScalarProperty Name="Created" ColumnName="Created" />
+                <ScalarProperty Name="Notes" ColumnName="Notes" />
+                <ScalarProperty Name="CTID" ColumnName="CTID" />
+                <ScalarProperty Name="CodedNotation" ColumnName="CodedNotation" />
+                <ScalarProperty Name="TaskStatusId" ColumnName="TaskStatusId" />
+                <ScalarProperty Name="TrainingTaskId" ColumnName="TrainingTaskId" />
+                <ScalarProperty Name="FormalTrainingGapId" ColumnName="FormalTrainingGapId" />
+                <ScalarProperty Name="TaskApplicabilityId" ColumnName="TaskApplicabilityId" />
+                <ScalarProperty Name="WorkRoleId" ColumnName="WorkRoleId" />
+                <ScalarProperty Name="RankId" ColumnName="RankId" />
+                <ScalarProperty Name="BilletTitleId" ColumnName="BilletTitleId" />
+                <ScalarProperty Name="RatingTaskId" ColumnName="RatingTaskId" />
+                <ScalarProperty Name="RatingId" ColumnName="RatingId" />
+                <ScalarProperty Name="RowId" ColumnName="RowId" />
+                <ScalarProperty Name="Id" ColumnName="Id" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="TrainingTask">
+            <EntityTypeMapping TypeName="NavyRRLModel.TrainingTask">
+              <MappingFragment StoreEntitySet="TrainingTask">
+                <ScalarProperty Name="LastUpdatedById" ColumnName="LastUpdatedById" />
+                <ScalarProperty Name="LastUpdated" ColumnName="LastUpdated" />
+                <ScalarProperty Name="CreatedById" ColumnName="CreatedById" />
+                <ScalarProperty Name="Created" ColumnName="Created" />
+                <ScalarProperty Name="CTID" ColumnName="CTID" />
+                <ScalarProperty Name="Description" ColumnName="Description" />
                 <ScalarProperty Name="RowId" ColumnName="RowId" />
                 <ScalarProperty Name="Id" ColumnName="Id" />
               </MappingFragment>

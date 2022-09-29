@@ -50,7 +50,7 @@ namespace Models.Schema
         /// <summary>
         /// duration in hours
         /// </summary>
-        public int DevelopmentTime { get; set; }
+        public decimal? DevelopmentTime { get; set; }
         public string DevelopmentTimeLabel { get; set; }
 
         /// <summary>

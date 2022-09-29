@@ -1,14 +1,14 @@
 /****** Script for SelectTopNRows command from SSMS  ******/
 
-Create View ApplicationFunctionPermissionSummary
+Alter View ApplicationFunctionPermissionSummary
 AS
 SELECT a.[Id]	as RoleId
       ,a.[Name] as UserRole
 	  ,c.Name	as ApplicationFunction
 	  , c.CodedNotation
-	  ,b.Action
+	  --,b.Action
      --,a.[IsActive]
-  FROM [NavyRRL].[dbo].[AspNetRoles] a
+  FROM [dbo].ApplicationRole a
   inner join AppFunctionPermission b on a.Id = b.RoleId
   inner join ApplicationFunction c on b.ApplicationFunctionId = c.Id 
  go

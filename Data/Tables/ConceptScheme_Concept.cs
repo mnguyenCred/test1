@@ -30,6 +30,14 @@ namespace Data.Tables
             this.ClusterAnalysis = new HashSet<ClusterAnalysis>();
             this.ClusterAnalysis1 = new HashSet<ClusterAnalysis>();
             this.ClusterAnalysis2 = new HashSet<ClusterAnalysis>();
+            this.ClusterAnalysis3 = new HashSet<ClusterAnalysis>();
+            this.ClusterAnalysis_HasCandidatePlatform = new HashSet<ClusterAnalysis_HasCandidatePlatform>();
+            this.RatingTask_HasRatingContext = new HashSet<RatingTask_HasRatingContext>();
+            this.RatingTask_HasRatingContext1 = new HashSet<RatingTask_HasRatingContext>();
+            this.RatingTask_HasRatingContext2 = new HashSet<RatingTask_HasRatingContext>();
+            this.RatingContext = new HashSet<RatingContext>();
+            this.RatingContext1 = new HashSet<RatingContext>();
+            this.RatingContext2 = new HashSet<RatingContext>();
         }
     
         public int Id { get; set; }
@@ -75,5 +83,21 @@ namespace Data.Tables
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<ClusterAnalysis> ClusterAnalysis2 { get; set; }
         public virtual ConceptScheme ConceptScheme { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<ClusterAnalysis> ClusterAnalysis3 { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<ClusterAnalysis_HasCandidatePlatform> ClusterAnalysis_HasCandidatePlatform { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<RatingTask_HasRatingContext> RatingTask_HasRatingContext { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<RatingTask_HasRatingContext> RatingTask_HasRatingContext1 { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<RatingTask_HasRatingContext> RatingTask_HasRatingContext2 { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<RatingContext> RatingContext { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<RatingContext> RatingContext1 { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<RatingContext> RatingContext2 { get; set; }
     }
 }

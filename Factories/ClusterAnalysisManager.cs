@@ -1,19 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Models.Curation;
-using AppEntity = Models.Schema.ClusterAnalysis;
-using DBEntity = Data.Tables.ClusterAnalysis;
-using MSc = Models.Schema;
 
-using DataEntities = Data.Tables.NavyRRLEntities;
-using ViewContext = Data.Views.ceNavyViewEntities;
-using Data.Tables;
 using Models.Application;
-using Navy.Utilities;
+using Models.Curation;
 using Models.Search;
+
+using Navy.Utilities;
+
+using AppEntity = Models.Schema.ClusterAnalysis;
+using DataEntities = Data.Tables.NavyRRLEntities;
+using DBEntity = Data.Tables.ClusterAnalysis;
 
 namespace Factories
 {
@@ -487,7 +484,7 @@ namespace Factories
 
             if ( input.DevelopmentTime != null )
             {
-                output.DevelopmentTime = ( int ) input.DevelopmentTime;
+                output.DevelopmentTime = input.DevelopmentTime;
                 output.DevelopmentTimeLabel = output.DevelopmentTime.ToString();
             }
             if ( formatForSearch )
@@ -531,7 +528,7 @@ namespace Factories
             }
             if ( input.DevelopmentTime != null )
             {
-                output.DevelopmentTime = ( int ) input.DevelopmentTime;
+                output.DevelopmentTime = input.DevelopmentTime;
             }
 
             return output;

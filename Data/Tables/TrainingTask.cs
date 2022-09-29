@@ -12,36 +12,23 @@ namespace Data.Tables
     using System;
     using System.Collections.Generic;
     
-    public partial class Course
+    public partial class TrainingTask
     {
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2214:DoNotCallOverridableMethodsInConstructors")]
-        public Course()
+        public TrainingTask()
         {
-            this.Course_Task = new HashSet<Course_Task>();
-            this.Course_CourseType = new HashSet<Course_CourseType>();
             this.CourseContext = new HashSet<CourseContext>();
         }
     
         public int Id { get; set; }
         public System.Guid RowId { get; set; }
-        public string CodedNotation { get; set; }
-        public string Name { get; set; }
         public string Description { get; set; }
-        public Nullable<int> CurriculumControlAuthorityId { get; set; }
-        public Nullable<int> LifeCycleControlDocumentTypeId { get; set; }
-        public Nullable<int> LastUpdatedById { get; set; }
         public string CTID { get; set; }
         public System.DateTime Created { get; set; }
         public Nullable<int> CreatedById { get; set; }
         public System.DateTime LastUpdated { get; set; }
-        public byte[] RowVersion { get; set; }
+        public Nullable<int> LastUpdatedById { get; set; }
     
-        public virtual ConceptScheme_Concept LifeCycleControlDocument_Concept { get; set; }
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<Course_Task> Course_Task { get; set; }
-        public virtual Organization Organization { get; set; }
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<Course_CourseType> Course_CourseType { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<CourseContext> CourseContext { get; set; }
     }

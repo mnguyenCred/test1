@@ -12,30 +12,20 @@ namespace Data.Tables
     using System;
     using System.Collections.Generic;
     
-    public partial class WorkRole
+    public partial class ApplicationFunction
     {
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2214:DoNotCallOverridableMethodsInConstructors")]
-        public WorkRole()
+        public ApplicationFunction()
         {
-            this.RatingTask_WorkRole = new HashSet<RatingTask_WorkRole>();
-            this.RatingContext = new HashSet<RatingContext>();
+            this.AppFunctionPermission = new HashSet<AppFunctionPermission>();
         }
     
         public int Id { get; set; }
-        public System.Guid RowId { get; set; }
         public string Name { get; set; }
-        public string Description { get; set; }
         public string CodedNotation { get; set; }
-        public string Version { get; set; }
-        public string CTID { get; set; }
-        public System.DateTime Created { get; set; }
-        public Nullable<int> CreatedById { get; set; }
-        public System.DateTime LastUpdated { get; set; }
-        public Nullable<int> LastUpdatedById { get; set; }
+        public string Description { get; set; }
     
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<RatingTask_WorkRole> RatingTask_WorkRole { get; set; }
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<RatingContext> RatingContext { get; set; }
+        public virtual ICollection<AppFunctionPermission> AppFunctionPermission { get; set; }
     }
 }

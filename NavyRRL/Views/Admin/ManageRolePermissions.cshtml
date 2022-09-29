@@ -1,10 +1,11 @@
 ﻿@using Models.Application;
 @using Newtonsoft.Json;
+@using Services;
 @{
 	ViewBag.Title = "ManageRoles";
-
+	var allApplicationFunctions = AccountServices.GetApplicationFunctions();
 	//Temporary Sample/Test data, to be replaced with database call
-	var allApplicationFunctions = new List<ApplicationFunction>()
+	var allApplicationFunctions2 = new List<ApplicationFunction>()
 	{
 		new ApplicationFunction()
 		{

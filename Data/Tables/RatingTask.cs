@@ -24,6 +24,7 @@ namespace Data.Tables
             this.RmtlProject_BilletTask = new HashSet<RmtlProject_BilletTask>();
             this.ClusterAnalysis = new HashSet<ClusterAnalysis>();
             this.RatingTask_HasRatingContext = new HashSet<RatingTask_HasRatingContext>();
+            this.RatingContext = new HashSet<RatingContext>();
         }
     
         public int Id { get; set; }
@@ -64,5 +65,7 @@ namespace Data.Tables
         public virtual ICollection<ClusterAnalysis> ClusterAnalysis { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<RatingTask_HasRatingContext> RatingTask_HasRatingContext { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<RatingContext> RatingContext { get; set; }
     }
 }

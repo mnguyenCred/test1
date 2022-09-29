@@ -48,28 +48,46 @@ namespace NavyRRL.Controllers
 		[HttpGet]
 		public ActionResult GetAllUserRoles()
 		{
-			//Temporary/test data to be replaced with database call
-			var roles = new List<UserRole>()
-			{
-				new UserRole()
-				{
-					Id = 99991,
-					Name = "Test Role 1",
-					HasApplicationFunctionIds = new List<int>() { 991, 992 }
-				},
-				new UserRole()
-				{
-					Id = 99992,
-					Name = "Test Role 2",
-					HasApplicationFunctionIds = new List<int>() { 993 }
-				},
-				new UserRole()
-				{
-					Id = 99993,
-					Name = "Test Role 3",
-					HasApplicationFunctionIds = new List<int>() { 991, 994 }
-				}
-			};
+            var output = new List<UserRole>();
+            //Temporary/test data to be replaced with database call
+            var roles = AccountServices.GetUserApplicationRoles();
+            //foreach( var item in roles2)
+            //{
+            //    var role = new UserRole()
+            //    {
+            //        Name = item.Name,
+            //    };
+            //    //convert
+            //    role.Id = int.Parse(item.Id);
+            //    if ( item.AppFunctionPermission != null && item.AppFunctionPermission.Count > 0 )
+            //    {
+            //        var HasApplicationFunctionIds = item.AppFunctionPermission.Select( a => a.ApplicationFunctionId ).ToList();
+            //    }
+
+            //    output.Add( role);
+            //}
+
+   //         var roles = new List<UserRole>()
+			//{
+			//	new UserRole()
+			//	{
+			//		Id = 99991,
+			//		Name = "Test Role 1",
+			//		HasApplicationFunctionIds = new List<int>() { 991, 992 }
+			//	},
+			//	new UserRole()
+			//	{
+			//		Id = 99992,
+			//		Name = "Test Role 2",
+			//		HasApplicationFunctionIds = new List<int>() { 993 }
+			//	},
+			//	new UserRole()
+			//	{
+			//		Id = 99993,
+			//		Name = "Test Role 3",
+			//		HasApplicationFunctionIds = new List<int>() { 991, 994 }
+			//	}
+			//};
 
 			//Return response
 			return BaseController.JsonResponse( roles, true );
@@ -77,11 +95,12 @@ namespace NavyRRL.Controllers
 
 		[HttpPost]
 		public ActionResult SaveUserRole( UserRole role )
-		{
-			//Save the user role
-
-			//Return response
-			return BaseController.JsonResponse( null, true );
+        {
+            //Save the user role
+            string statusMessage = "";
+            var isValid = new AccountServices().SaveApplicationRolePermissions( role, ref statusMessage );
+            //Return response
+            return BaseController.JsonResponse( null, isValid );
 		}
 
 		[HttpPost]

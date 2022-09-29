@@ -59,5 +59,12 @@ namespace Data.Tables
         public virtual DbSet<ImportRMTL> ImportRMTL { get; set; }
         public virtual DbSet<System_ProxyCodes> System_ProxyCodes { get; set; }
         public virtual DbSet<RatingTask_HasRatingContext> RatingTask_HasRatingContext { get; set; }
+        public virtual DbSet<AppFunctionPermission> AppFunctionPermission { get; set; }
+        public virtual DbSet<ApplicationFunction> ApplicationFunction { get; set; }
+        public virtual DbSet<ApplicationRole> ApplicationRole { get; set; }
+        public virtual DbSet<ClusterAnalysis_HasCandidatePlatform> ClusterAnalysis_HasCandidatePlatform { get; set; }
+        public virtual DbSet<CourseContext> CourseContext { get; set; }
+        public virtual DbSet<RatingContext> RatingContext { get; set; }
+        public virtual DbSet<TrainingTask> TrainingTask { get; set; }
     }
 }

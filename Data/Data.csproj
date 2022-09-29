@@ -74,6 +74,15 @@
     <Compile Include="Tables\ActivityLog.cs">
       <DependentUpon>NavyRRLTables.tt</DependentUpon>
     </Compile>
+    <Compile Include="Tables\AppFunctionPermission.cs">
+      <DependentUpon>NavyRRLTables.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Tables\ApplicationFunction.cs">
+      <DependentUpon>NavyRRLTables.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Tables\ApplicationRole.cs">
+      <DependentUpon>NavyRRLTables.tt</DependentUpon>
+    </Compile>
     <Compile Include="Tables\AspNetRoles.cs">
       <DependentUpon>NavyRRLTables.tt</DependentUpon>
     </Compile>
@@ -86,6 +95,9 @@
     <Compile Include="Tables\ClusterAnalysis.cs">
       <DependentUpon>NavyRRLTables.tt</DependentUpon>
     </Compile>
+    <Compile Include="Tables\ClusterAnalysis_HasCandidatePlatform.cs">
+      <DependentUpon>NavyRRLTables.tt</DependentUpon>
+    </Compile>
     <Compile Include="Tables\Comment.cs">
       <DependentUpon>NavyRRLTables.tt</DependentUpon>
     </Compile>
@@ -96,6 +108,9 @@
       <DependentUpon>NavyRRLTables.tt</DependentUpon>
     </Compile>
     <Compile Include="Tables\Course.cs">
+      <DependentUpon>NavyRRLTables.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Tables\CourseContext.cs">
       <DependentUpon>NavyRRLTables.tt</DependentUpon>
     </Compile>
     <Compile Include="Tables\CourseTask_AssessmentType.cs">
@@ -146,6 +161,9 @@
     <Compile Include="Tables\Rating.cs">
       <DependentUpon>NavyRRLTables.tt</DependentUpon>
     </Compile>
+    <Compile Include="Tables\RatingContext.cs">
+      <DependentUpon>NavyRRLTables.tt</DependentUpon>
+    </Compile>
     <Compile Include="Tables\RatingTask.cs">
       <DependentUpon>NavyRRLTables.tt</DependentUpon>
     </Compile>
@@ -180,6 +198,9 @@
       <DependentUpon>NavyRRLTables.tt</DependentUpon>
     </Compile>
     <Compile Include="Tables\System_ProxyCodes.cs">
+      <DependentUpon>NavyRRLTables.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Tables\TrainingTask.cs">
       <DependentUpon>NavyRRLTables.tt</DependentUpon>
     </Compile>
     <Compile Include="Tables\WorkRole.cs">

@@ -20,6 +20,7 @@ namespace Data.Tables
             this.Job = new HashSet<Job>();
             this.RatingTask_HasRating = new HashSet<RatingTask_HasRating>();
             this.RatingTask_HasRatingContext = new HashSet<RatingTask_HasRatingContext>();
+            this.RatingContext = new HashSet<RatingContext>();
         }
     
         public int Id { get; set; }
@@ -44,5 +45,7 @@ namespace Data.Tables
         public virtual ICollection<RatingTask_HasRating> RatingTask_HasRating { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<RatingTask_HasRatingContext> RatingTask_HasRatingContext { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<RatingContext> RatingContext { get; set; }
     }
 }

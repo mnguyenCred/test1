@@ -12,7 +12,7 @@ using Navy.Utilities;
 
 using AppEntity = Models.Schema.RatingContext;
 using DataEntities = Data.Tables.NavyRRLEntities;
-using DBEntity = Models.Schema.RatingContext; //TODO: Create Data.Tables.RatingContext
+using DBEntity = Data.Tables.RatingContext; 
 
 namespace Factories
 {

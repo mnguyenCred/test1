@@ -795,7 +795,7 @@ namespace Services
 				false
 			);
 			var priorityPlacement = UtilityManager.MapIntegerOrDefault( item.Row.Priority_Placement );
-			var developmentTime = UtilityManager.MapIntegerOrDefault( item.Row.Development_Time );
+			var developmentTime = ( decimal? ) UtilityManager.MapDecimalOrDefault( item.Row.Development_Time );
 			var estimatedInstructionalTime = (decimal?) UtilityManager.MapDecimalOrDefault( item.Row.Estimated_Instructional_Time );
 
 			//If errors/warnings should happen due to Cluster Analysis data, do so here
@@ -1143,8 +1143,10 @@ namespace Services
 			HandleValueChange( summary, summary.ItemsToBeCreated.ClusterAnalysis, summary.FinalizedChanges.ClusterAnalysis, result, rowClusterAnalysis, nameof( ClusterAnalysis.CFMPlacement ), item.Row.CFM_Placement );
 			HandleValueChange( summary, summary.ItemsToBeCreated.ClusterAnalysis, summary.FinalizedChanges.ClusterAnalysis, result, rowClusterAnalysis, nameof( ClusterAnalysis.PriorityPlacement ), priorityPlacement );
 			HandleValueChange( summary, summary.ItemsToBeCreated.ClusterAnalysis, summary.FinalizedChanges.ClusterAnalysis, result, rowClusterAnalysis, nameof( ClusterAnalysis.DevelopmentRatio ), item.Row.Development_Ratio );
+
 			HandleValueChange( summary, summary.ItemsToBeCreated.ClusterAnalysis, summary.FinalizedChanges.ClusterAnalysis, result, rowClusterAnalysis, nameof( ClusterAnalysis.DevelopmentTime ), developmentTime );
 			HandleValueChange( summary, summary.ItemsToBeCreated.ClusterAnalysis, summary.FinalizedChanges.ClusterAnalysis, result, rowClusterAnalysis, nameof( ClusterAnalysis.EstimatedInstructionalTime ), estimatedInstructionalTime );
+
 			HandleValueChange( summary, summary.ItemsToBeCreated.ClusterAnalysis, summary.FinalizedChanges.ClusterAnalysis, result, rowClusterAnalysis, nameof( ClusterAnalysis.Notes ), item.Row.Cluster_Analysis_Notes ?? "" );
 
             #endregion

@@ -4,7 +4,7 @@ using System.Web;
 //using System.Web.Mvc;
 using System.Web.SessionState;
 
-using Data.Tables;
+using DT = Data.Tables;
 using Factories;
 
 using Models.Application;
@@ -1036,11 +1036,22 @@ namespace Services
 
 		}
 
-		public static List<AspNetRoles> GetRoles()
+		public static List<DT.AspNetRoles> GetRoles()
 		{
 			return AccountManager.GetRoles();
 		}
-
+		public static List<UserRole> GetUserApplicationRoles()
+		{
+			return AccountManager.GetUserRoles();
+		}
+		public bool SaveApplicationRolePermissions( UserRole role, ref string statusMessage )
+		{
+			return AccountManager.SaveApplicationRolePermissions( role, ref statusMessage );
+		}
+		public static List<ApplicationFunction> GetApplicationFunctions()
+		{
+			return AccountManager.GetApplicationFunctions();
+		}
 
 		#endregion
 		#region Session methods

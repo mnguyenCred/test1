@@ -14,6 +14,13 @@ namespace Data.Tables
     
     public partial class ClusterAnalysis
     {
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2214:DoNotCallOverridableMethodsInConstructors")]
+        public ClusterAnalysis()
+        {
+            this.ClusterAnalysis_HasCandidatePlatform = new HashSet<ClusterAnalysis_HasCandidatePlatform>();
+            this.RatingContext = new HashSet<RatingContext>();
+        }
+    
         public int Id { get; set; }
         public System.Guid RowId { get; set; }
         public int RatingTaskId { get; set; }
@@ -26,7 +33,7 @@ namespace Data.Tables
         public Nullable<int> PriorityPlacement { get; set; }
         public string DevelopmentRatio { get; set; }
         public Nullable<decimal> EstimatedInstructionalTime { get; set; }
-        public Nullable<int> DevelopmentTime { get; set; }
+        public Nullable<decimal> DevelopmentTime { get; set; }
         public string CTID { get; set; }
         public string Notes { get; set; }
         public System.DateTime Created { get; set; }
@@ -36,10 +43,16 @@ namespace Data.Tables
         public string TrainingSolutionType { get; set; }
         public string RecommendedModality { get; set; }
         public string DevelopmentSpecification { get; set; }
+        public Nullable<int> CFMPlacementId { get; set; }
     
         public virtual ConceptScheme_Concept ConceptScheme_DevelopementSpec { get; set; }
         public virtual RatingTask RatingTask { get; set; }
         public virtual ConceptScheme_Concept ConceptScheme_RecommendedModality { get; set; }
         public virtual ConceptScheme_Concept ConceptScheme_TrainingSolution { get; set; }
+        public virtual ConceptScheme_Concept ConceptScheme_Concept { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<ClusterAnalysis_HasCandidatePlatform> ClusterAnalysis_HasCandidatePlatform { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<RatingContext> RatingContext { get; set; }
     }
 }

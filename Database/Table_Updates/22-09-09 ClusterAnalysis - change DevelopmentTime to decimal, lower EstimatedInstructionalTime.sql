@@ -1,6 +1,7 @@
+use NavyRRL
+go
 
 --22-09-09 ClusterAnalysis - change DevelopmentTime to decimal, lower EstimatedInstructionalTime
-
 /* To prevent any potential data loss issues, you should review this script in detail before running it outside the context of the database designer.*/
 BEGIN TRANSACTION
 SET QUOTED_IDENTIFIER ON
@@ -14,6 +15,21 @@ COMMIT
 BEGIN TRANSACTION
 GO
 ALTER TABLE dbo.ClusterAnalysis
+	DROP CONSTRAINT [FK_ClusterAnalysis_CFMPlacement.Concept]
+GO
+ALTER TABLE dbo.ClusterAnalysis
+	DROP CONSTRAINT [FK_ClusterAnalysis_TrainingSolution.Concept]
+GO
+ALTER TABLE dbo.ClusterAnalysis
+	DROP CONSTRAINT [FK_ClusterAnalysis_RecommendedModality.Concept]
+GO
+ALTER TABLE dbo.ClusterAnalysis
+	DROP CONSTRAINT [FK_ClusterAnalysis_DevSpec.Concept]
+GO
+ALTER TABLE dbo.ClusterAnalysis
+	DROP CONSTRAINT FK_ClusterAnalysis_CFMPlacementConcept
+GO
+ALTER TABLE dbo.ClusterAnalysis
 	DROP CONSTRAINT [FK_ClusterAnalysis_ConceptScheme.Concept]
 GO
 ALTER TABLE dbo.ClusterAnalysis
@@ -21,12 +37,6 @@ ALTER TABLE dbo.ClusterAnalysis
 GO
 ALTER TABLE dbo.ClusterAnalysis
 	DROP CONSTRAINT FK_ClusterAnalysis_DevSpecificationConcept
-GO
-ALTER TABLE dbo.ClusterAnalysis
-	DROP CONSTRAINT [FK_ClusterAnalysis_CandidatePlatform.Concept]
-GO
-ALTER TABLE dbo.ClusterAnalysis
-	DROP CONSTRAINT [FK_ClusterAnalysis_CFMPlacement.Concept]
 GO
 ALTER TABLE dbo.[ConceptScheme.Concept] SET (LOCK_ESCALATION = TABLE)
 GO
@@ -58,14 +68,13 @@ CREATE TABLE dbo.Tmp_ClusterAnalysis
 	Id int NOT NULL IDENTITY (1, 1),
 	RowId uniqueidentifier NOT NULL,
 	RatingTaskId int NOT NULL,
-	TrainingSolutionTypeId int NOT NULL,
-	ClusterAnalysisTitle nvarchar(500) NOT NULL,
+	TrainingSolutionTypeId int NULL,
+	ClusterAnalysisTitle nvarchar(500) NULL,
 	RecommendedModalityId int NULL,
-	DevelopmentSpecification varchar(200) NULL,
-	CandidatePlatform nvarchar(100) NOT NULL,
-	CFMPlacement varchar(100) NULL,
+	DevelopmentSpecificationId int NULL,
+	CFMPlacementId int NULL,
 	PriorityPlacement int NULL,
-	DevelopmentRatio varchar(100) NULL,
+	DevelopmentRatio varchar(500) NULL,
 	EstimatedInstructionalTime decimal(9, 2) NULL,
 	DevelopmentTime decimal(9, 2) NULL,
 	CTID varchar(50) NULL,
@@ -76,9 +85,9 @@ CREATE TABLE dbo.Tmp_ClusterAnalysis
 	LastUpdatedById int NULL,
 	TrainingSolutionType varchar(100) NULL,
 	RecommendedModality varchar(100) NULL,
-	DevelopmentSpecificationId int NULL,
-	CandidatePlatformId int NULL,
-	CFMPlacementId int NULL
+	DevelopmentSpecification varchar(200) NULL,
+	CandidatePlatform nvarchar(MAX) NULL,
+	CFMPlacement varchar(500) NULL
 	)  ON [PRIMARY]
 	 TEXTIMAGE_ON [PRIMARY]
 GO
@@ -99,10 +108,13 @@ GO
 SET IDENTITY_INSERT dbo.Tmp_ClusterAnalysis ON
 GO
 IF EXISTS(SELECT * FROM dbo.ClusterAnalysis)
-	 EXEC('INSERT INTO dbo.Tmp_ClusterAnalysis (Id, RowId, RatingTaskId, TrainingSolutionTypeId, ClusterAnalysisTitle, RecommendedModalityId, DevelopmentSpecification, CandidatePlatform, CFMPlacement, PriorityPlacement, DevelopmentRatio, EstimatedInstructionalTime, DevelopmentTime, CTID, Notes, Created, CreatedById, LastUpdated, LastUpdatedById, TrainingSolutionType, RecommendedModality, DevelopmentSpecificationId, CandidatePlatformId, CFMPlacementId)
-		SELECT Id, RowId, RatingTaskId, TrainingSolutionTypeId, ClusterAnalysisTitle, RecommendedModalityId, DevelopmentSpecification, CandidatePlatform, CFMPlacement, PriorityPlacement, DevelopmentRatio, CONVERT(decimal(9, 2), EstimatedInstructionalTime), CONVERT(decimal(9, 2), DevelopmentTime), CTID, Notes, Created, CreatedById, LastUpdated, LastUpdatedById, TrainingSolutionType, RecommendedModality, DevelopmentSpecificationId, CandidatePlatformId, CFMPlacementId FROM dbo.ClusterAnalysis WITH (HOLDLOCK TABLOCKX)')
+	 EXEC('INSERT INTO dbo.Tmp_ClusterAnalysis (Id, RowId, RatingTaskId, TrainingSolutionTypeId, ClusterAnalysisTitle, RecommendedModalityId, DevelopmentSpecificationId, CFMPlacementId, PriorityPlacement, DevelopmentRatio, EstimatedInstructionalTime, DevelopmentTime, CTID, Notes, Created, CreatedById, LastUpdated, LastUpdatedById, TrainingSolutionType, RecommendedModality, DevelopmentSpecification, CandidatePlatform, CFMPlacement)
+		SELECT Id, RowId, RatingTaskId, TrainingSolutionTypeId, ClusterAnalysisTitle, RecommendedModalityId, DevelopmentSpecificationId, CFMPlacementId, PriorityPlacement, DevelopmentRatio, CONVERT(decimal(9, 2), EstimatedInstructionalTime), CONVERT(decimal(9, 2), DevelopmentTime), CTID, Notes, Created, CreatedById, LastUpdated, LastUpdatedById, TrainingSolutionType, RecommendedModality, DevelopmentSpecification, CandidatePlatform, CFMPlacement FROM dbo.ClusterAnalysis WITH (HOLDLOCK TABLOCKX)')
 GO
 SET IDENTITY_INSERT dbo.Tmp_ClusterAnalysis OFF
+GO
+ALTER TABLE dbo.[ClusterAnalysis.HasCandidatePlatform]
+	DROP CONSTRAINT FK_HasCandidatePlatform_ClusterAnalysis
 GO
 DROP TABLE dbo.ClusterAnalysis
 GO
@@ -127,7 +139,18 @@ ALTER TABLE dbo.ClusterAnalysis ADD CONSTRAINT
 	
 GO
 ALTER TABLE dbo.ClusterAnalysis ADD CONSTRAINT
-	[FK_ClusterAnalysis_ConceptScheme.Concept] FOREIGN KEY
+	[FK_ClusterAnalysis_CFMPlacement.Concept] FOREIGN KEY
+	(
+	CFMPlacementId
+	) REFERENCES dbo.[ConceptScheme.Concept]
+	(
+	Id
+	) ON UPDATE  NO ACTION 
+	 ON DELETE  NO ACTION 
+	
+GO
+ALTER TABLE dbo.ClusterAnalysis ADD CONSTRAINT
+	[FK_ClusterAnalysis_TrainingSolution.Concept] FOREIGN KEY
 	(
 	TrainingSolutionTypeId
 	) REFERENCES dbo.[ConceptScheme.Concept]
@@ -138,7 +161,7 @@ ALTER TABLE dbo.ClusterAnalysis ADD CONSTRAINT
 	
 GO
 ALTER TABLE dbo.ClusterAnalysis ADD CONSTRAINT
-	[FK_ClusterAnalysis_ConceptScheme.Concept1] FOREIGN KEY
+	[FK_ClusterAnalysis_RecommendedModality.Concept] FOREIGN KEY
 	(
 	RecommendedModalityId
 	) REFERENCES dbo.[ConceptScheme.Concept]
@@ -159,26 +182,20 @@ ALTER TABLE dbo.ClusterAnalysis ADD CONSTRAINT
 	 ON DELETE  NO ACTION 
 	
 GO
-ALTER TABLE dbo.ClusterAnalysis ADD CONSTRAINT
-	[FK_ClusterAnalysis_CandidatePlatform.Concept] FOREIGN KEY
+COMMIT
+BEGIN TRANSACTION
+GO
+ALTER TABLE dbo.[ClusterAnalysis.HasCandidatePlatform] ADD CONSTRAINT
+	FK_HasCandidatePlatform_ClusterAnalysis FOREIGN KEY
 	(
-	CandidatePlatformId
-	) REFERENCES dbo.[ConceptScheme.Concept]
+	ClusterAnalysisId
+	) REFERENCES dbo.ClusterAnalysis
 	(
 	Id
 	) ON UPDATE  NO ACTION 
-	 ON DELETE  NO ACTION 
+	 ON DELETE  CASCADE 
 	
 GO
-ALTER TABLE dbo.ClusterAnalysis ADD CONSTRAINT
-	[FK_ClusterAnalysis_CFMPlacement.Concept] FOREIGN KEY
-	(
-	CFMPlacementId
-	) REFERENCES dbo.[ConceptScheme.Concept]
-	(
-	Id
-	) ON UPDATE  NO ACTION 
-	 ON DELETE  NO ACTION 
-	
+ALTER TABLE dbo.[ClusterAnalysis.HasCandidatePlatform] SET (LOCK_ESCALATION = TABLE)
 GO
 COMMIT
