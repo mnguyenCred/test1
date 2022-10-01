@@ -4,7 +4,7 @@
   <edmx:Designer xmlns="http://schemas.microsoft.com/ado/2009/11/edmx">
     <!-- Diagram content (shape and connector positions) -->
     <edmx:Diagrams>
-      <Diagram DiagramId="1cbd21b9a0474d02b074dae2db684a6a" Name="Diagram1" ZoomLevel="67">
+      <Diagram DiagramId="1cbd21b9a0474d02b074dae2db684a6a" Name="Diagram1" ZoomLevel="106">
         <EntityTypeShape EntityType="NavyRRLModel.Course_Concept" Width="2.625" PointX="12.375" PointY="10.875" FillColor="128, 255, 128" />
         <AssociationConnector Association="NavyRRLModel.FK_Course_Concept_ConceptScheme_Concept" />
         <AssociationConnector Association="NavyRRLModel.FK_Course_Concept_Course" />
@@ -91,10 +91,10 @@
         <AssociationConnector Association="NavyRRLModel.FK_RatingTask_HasRatingContext_TrainingTask" />
         <AssociationConnector Association="NavyRRLModel.FK_RatingTask_HasRatingContext_Rating" />
         <AssociationConnector Association="NavyRRLModel.FK_RatingTask_HasRatingContextTask_Task" />
-        <EntityTypeShape EntityType="NavyRRLModel.AppFunctionPermission" Width="1.5" PointX="3" PointY="1" />
-        <EntityTypeShape EntityType="NavyRRLModel.ApplicationFunction" Width="1.5" PointX="0.75" PointY="5.25" />
+        <EntityTypeShape EntityType="NavyRRLModel.AppFunctionPermission" Width="2.125" PointX="3.125" PointY="1" />
+        <EntityTypeShape EntityType="NavyRRLModel.ApplicationFunction" Width="2.5" PointX="6.25" PointY="1.125" />
         <EntityTypeShape EntityType="NavyRRLModel.ApplicationRole" Width="1.5" PointX="0.75" PointY="1.375" />
-        <EntityTypeShape EntityType="NavyRRLModel.ClusterAnalysis_HasCandidatePlatform" Width="1.5" PointX="15.375" PointY="25.5" />
+        <EntityTypeShape EntityType="NavyRRLModel.ClusterAnalysis_HasCandidatePlatform" Width="2.625" PointX="16.125" PointY="26.125" />
         <EntityTypeShape EntityType="NavyRRLModel.CourseContext" Width="1.5" PointX="20.375" PointY="14" />
         <EntityTypeShape EntityType="NavyRRLModel.RatingContext" Width="1.5" PointX="43.375" PointY="16.125" />
         <EntityTypeShape EntityType="NavyRRLModel.TrainingTask" Width="1.5" PointX="18.125" PointY="3.125" />
@@ -117,6 +117,8 @@
         <AssociationConnector Association="NavyRRLModel.FK_RatingContext_Rating" />
         <AssociationConnector Association="NavyRRLModel.FK_RatingContext_RatingTask" />
         <AssociationConnector Association="NavyRRLModel.FK_RatingContext_WorkRole" />
+        <EntityTypeShape EntityType="NavyRRLModel.ClusterAnalysisTitle" Width="1.5" PointX="4.25" PointY="23.625" />
+        <AssociationConnector Association="NavyRRLModel.FK_ClusterAnalysis_ClusterAnalysisTitle" />
         </Diagram>
     </edmx:Diagrams>
   </edmx:Designer>

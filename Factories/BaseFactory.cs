@@ -2286,4 +2286,16 @@ namespace Factories
         public List<MSc.BilletTitle> Billets { get; set; }
 
     }
+    //
+    [Serializable]
+    public class CachedClusterAnalysisTitles
+    {
+        public CachedClusterAnalysisTitles()
+        {
+            LastUpdated = DateTime.Now;
+        }
+        public DateTime LastUpdated { get; set; }
+        public List<MSc.ClusterAnalysisTitle> Titles { get; set; }
+
+    }
 }

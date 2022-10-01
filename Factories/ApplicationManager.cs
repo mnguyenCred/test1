@@ -8,10 +8,11 @@ using Models.Search;
 
 using Navy.Utilities;
 
-using AppEntity = Models.Application.ApplicationRole;
+using AppRole = Models.Application.ApplicationRole;
 using AppFunction = Models.Application.ApplicationFunction;
 using DataEntities = Data.Tables.NavyRRLEntities;
 using DBEntity = Data.Tables.ApplicationRole;
+using DBFunctionEntity = Data.Tables.ApplicationFunction;
 
 namespace Factories
 {
@@ -25,7 +26,7 @@ namespace Factories
         /// <param name="entity"></param>
         /// <param name="status"></param>
         /// <returns></returns>
-        public bool Save( AppEntity entity, ref ChangeSummary status )
+        public bool Save( AppRole entity, ref ChangeSummary status )
         {
             bool isValid = true;
             int count = 0;
@@ -34,19 +35,20 @@ namespace Factories
 
                 using ( var context = new DataEntities() )
                 {
-                    //if ( ValidateProfile( entity, ref status ) == false )
-                    //    return false;
+                    if ( ValidateProfile( entity, ref status ) == false )
+                        return false;
                     //look up if no id
                     if ( entity.Id == 0 )
                     {
-                        //how to check for existing?
-                        //just by rating task id for now
+                        //names must be unique, check if exists. Probably should be an error
                         var record = GetExisting( entity );
-                        if ( record?.Id > 0 )
+                        if ( record.Id > 0 )
                         {
                             entity.Id = record.Id;
                             //could be other updates, fall thru to the update
-                            //return true;
+                            //or what if it was an error and the related code and description are wrong?
+                            status.AddError( String.Format( "Error: the request to add the new role failed as there is an existing role with the same name {0} {1}", record.Name, (record.CodedNotation != null ? String.Format("/{0}", record.CodedNotation) :"" ) ));
+                            return false;
                         }
                         else
                         {
@@ -90,7 +92,6 @@ namespace Factories
                                 status.AddError( "Error - the update was not successful. " + message );
                                 EmailManager.NotifyAdmin( thisClassName + ".Save Failed Failed", message );
                             }
-
                         }
 
                         if ( isValid )
@@ -114,8 +115,6 @@ namespace Factories
                     {
                         status.AddError( thisClassName + " Error - update failed, as record was not found." );
                     }
-
-
                 }
             }
             catch ( System.Data.Entity.Validation.DbEntityValidationException dbex )
@@ -141,7 +140,7 @@ namespace Factories
         /// <param name="entity"></param>
         /// <param name="status"></param>
         /// <returns></returns>
-        private int ApplicationRoleAdd( AppEntity entity, ref ChangeSummary status )
+        private int ApplicationRoleAdd( AppRole entity, ref ChangeSummary status )
         {
             DBEntity efEntity = new DBEntity();
             status.HasSectionErrors = false;
@@ -197,18 +196,36 @@ namespace Factories
             return efEntity.Id;
         }
 
+        public static bool ValidateProfile( AppRole entity, ref ChangeSummary status )
+        {
+            var isValid = true;
+            if ( entity == null )
+            {
+                status.AddError( "Error - the provided application role was null. ");
+                return false;
+            }
+            if (string.IsNullOrWhiteSpace(entity.Name))
+                status.AddError( "Error - the application role name is required and is missing. " );
+
+            return status.HasErrors;
+        }
         #endregion
         #region Retrieval
 
-        public static AppEntity GetExisting( AppEntity entity )
+        /// <summary>
+        /// Need to avoid duplicate roles
+        /// </summary>
+        /// <param name="entity"></param>
+        /// <returns></returns>
+        public static AppRole GetExisting( AppRole entity )
         {
             //just by rating task id for now
-            var existing = new AppEntity();
+            var existing = new AppRole();
 
             using ( var context = new DataEntities() )
             {
                 var item = context.ApplicationRole
-                            .FirstOrDefault( s => s.Id == entity.Id );
+                            .FirstOrDefault( s => s.Name.ToLower() == entity.Name.ToLower() );
 
                 if ( item != null && item.Id > 0 )
                 {
@@ -218,9 +235,9 @@ namespace Factories
             return existing;
         }
 
-        public static AppEntity Get( int id )
+        public static AppRole Get( int id )
         {
-            var entity = new AppEntity();
+            var entity = new AppRole();
             if ( id < 1 )
                 return entity;
 
@@ -241,10 +258,10 @@ namespace Factories
         /// Get all 
         /// </summary>
         /// <returns></returns>
-        public static List<AppEntity> GetAll()
+        public static List<AppRole> GetAll()
         {
-            var entity = new AppEntity();
-            var list = new List<AppEntity>();
+            var entity = new AppRole();
+            var list = new List<AppRole>();
 
             using ( var context = new DataEntities() )
             {
@@ -257,7 +274,7 @@ namespace Factories
                     {
                         if ( item != null && item.Id > 0 )
                         {
-                            entity = new AppEntity();
+                            entity = new AppRole();
                             MapFromDB( item, entity );
                             list.Add( ( entity ) );
                         }
@@ -267,7 +284,7 @@ namespace Factories
             }
             return list;
         }
-        public static void MapToDB( AppEntity input, DBEntity output, ChangeSummary status )
+        public static void MapToDB( AppRole input, DBEntity output, ChangeSummary status )
         {
             status.HasSectionErrors = false;
             //watch for missing properties like rowId
@@ -276,7 +293,7 @@ namespace Factories
             BaseFactory.AutoMap( input, output, errors );
             //validate
         }
-        public static void MapFromDB( DBEntity input, AppEntity output, bool formatForSearch = false )
+        public static void MapFromDB( DBEntity input, AppRole output, bool formatForSearch = false )
         {
             //should include list of concepts
             List<string> errors = new List<string>();
@@ -284,9 +301,9 @@ namespace Factories
             //validate
 
         }
-        public static AppEntity MapFromDB( DBEntity input, bool formatForSearch = false )
+        public static AppRole MapFromDB( DBEntity input, bool formatForSearch = false )
         {
-            AppEntity output = new AppEntity();
+            AppRole output = new AppRole();
             //should include list of concepts
             List<string> errors = new List<string>();
             BaseFactory.AutoMap( input, output, errors );
@@ -304,7 +321,7 @@ namespace Factories
         /// </summary>
         /// <param name="input"></param>
         /// <param name="status"></param>
-        public void UpdateParts( AppEntity input, ChangeSummary status )
+        public void UpdateParts( AppRole input, ChangeSummary status )
         {
             try
             {

@@ -1,31 +1,27 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Data.SqlClient;
 using System.Data;
+using System.Data.SqlClient;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.Runtime.Caching;
 
 using Models.Application;
 using Models.Curation;
-
 using Models.Import;
 using Models.Schema;
-using AppEntity = Models.Schema.RatingTask;
-using EntitySummary = Models.Schema.RatingTaskSummary;
-using DataEntities = Data.Tables.NavyRRLEntities;
-using ViewContext = Data.Views.ceNavyViewEntities;
-using DBEntity = Data.Tables.RatingTask;
-
-using Navy.Utilities;
-using System.Runtime.Caching;
 using Models.Search;
 
-using System.Linq.Expressions;
+using Navy.Utilities;
+
+using AppEntity = Models.Schema.RatingTask;
+using DataEntities = Data.Tables.NavyRRLEntities;
+using DBEntity = Data.Tables.RatingTask;
+using EntitySummary = Models.Schema.RatingTaskSummary;
+using ViewContext = Data.Views.ceNavyViewEntities;
 
 namespace Factories
 {
-	public class RatingTaskManager : BaseFactory
+    public class RatingTaskManager : BaseFactory
 	{
 		public static new string thisClassName = "RatingTaskManager";
 		public static string cacheKey = "RatingTaskCache";
@@ -78,30 +74,30 @@ namespace Factories
 			return entity;
 		}
 
-		public static AppEntity Get( ImportRMTL importEntity )
-		{
-			var entity = new AppEntity();
-			//will probably have to d
+		//public static AppEntity Get( ImportRMTL importEntity )
+		//{
+		//	var entity = new AppEntity();
+		//	//will probably have to d
 
-			using ( var context = new ViewContext() )
-			{
-				var item = context.RatingTaskSummary
-							.FirstOrDefault( s => s.Rank == importEntity.Rank
-							&& s.FunctionalArea == importEntity.Functional_Area
-							&& s.ReferenceResource == importEntity.Source
-							&& s.RatingTask.ToLower() == importEntity.Work_Element_Task.ToLower()
-							);
+		//	using ( var context = new ViewContext() )
+		//	{
+		//		var item = context.RatingTaskSummary
+		//					.FirstOrDefault( s => s.Rank == importEntity.Rank
+		//					&& s.FunctionalArea == importEntity.Functional_Area
+		//					&& s.ReferenceResource == importEntity.Source
+		//					&& s.RatingTask.ToLower() == importEntity.Work_Element_Task.ToLower()
+		//					);
 
-				if ( item != null && item.Id > 0 )
-				{
-					//if exists, will just return the Id?
-					//or do a get, and continue?
-					entity = Get( item.Id, true );
-				}
-			}
+		//		if ( item != null && item.Id > 0 )
+		//		{
+		//			//if exists, will just return the Id?
+		//			//or do a get, and continue?
+		//			entity = Get( item.Id, true );
+		//		}
+		//	}
 
-			return entity;
-		}
+		//	return entity;
+		//}
 
 		public static AppEntity Get( int id, bool includingConcepts )
 		{

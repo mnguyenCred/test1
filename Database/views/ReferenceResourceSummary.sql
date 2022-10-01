@@ -39,7 +39,9 @@ a.[Id]
 	  --obsolete as can be multiple
       --,a.[ReferenceTypeId]
 	  ,b.ReferenceTypeId
-		,c.Name as ReferenceType, c.CodedNotation as ReferenceTypeCodedNotation
+	  --WorkElementType
+		,c.Name as ReferenceType
+		, c.CodedNotation as ReferenceTypeCodedNotation
       ,a.[Description]
       ,a.[CodedNotation]
       ,a.[PublicationDate]

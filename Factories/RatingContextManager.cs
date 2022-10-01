@@ -25,13 +25,125 @@ namespace Factories
 		/// <summary>
 		/// Update a RatingContext
 		/// </summary>
-		/// <param name="entity"></param>
+		/// <param name="input"></param>
 		/// <param name="status"></param>
 		/// <returns></returns>
-		public bool Save( AppEntity entity, ref ChangeSummary status )
+		public bool Save( AppEntity input, ref ChangeSummary status )
 		{
-			throw new NotImplementedException();
-		}
+            bool isValid = true;
+            int count = 0;
+            //try
+            //{
+            //    using ( var context = new DataEntities() )
+            //    {
+            //        //if ( ValidateProfile( entity, ref status ) == false )
+            //        //    return false;
+            //        //look up if no id
+            //        if ( input.Id == 0 )
+            //        {
+            //            //need to identify for sure what is unique
+            //            //use codedNotation first if present
+            //            var record = Get( input, status.RatingCodedNotation );
+            //            if ( record?.Id > 0 )
+            //            {
+            //                //
+            //                input.Id = record.Id;
+            //                UpdateParts( input, status, fromUpload );
+            //                //??
+            //                return true;
+            //            }
+            //            else
+            //            {
+            //                //add
+            //                int newId = Add( input, ref status, fromUpload );
+            //                if ( newId == 0 || status.HasSectionErrors )
+            //                    isValid = false;
+            //            }
+            //        }
+            //        else
+            //        {
+            //            //TODO - consider if necessary, or interferes with anything
+            //            context.Configuration.LazyLoadingEnabled = false;
+            //            DBEntity efEntity = context.RatingTask
+            //                    .SingleOrDefault( s => s.Id == input.Id );
+
+            //            if ( efEntity != null && efEntity.Id > 0 )
+            //            {
+            //                //fill in fields that may not be in entity
+            //                input.RowId = efEntity.RowId;
+            //                input.Created = efEntity.Created;
+            //                input.CreatedById = ( efEntity.CreatedById ?? 0 );
+            //                input.Id = efEntity.Id;
+
+            //                MapToDB( input, efEntity, ref status );
+            //                bool hasChanged = false;
+            //                if ( HasStateChanged( context ) )
+            //                {
+            //                    hasChanged = true;
+            //                    efEntity.LastUpdated = DateTime.Now;
+            //                    efEntity.LastUpdatedById = input.LastUpdatedById;
+            //                    count = context.SaveChanges();
+            //                    //can be zero if no data changed
+            //                    if ( count >= 0 )
+            //                    {
+            //                        input.LastUpdated = ( DateTime ) efEntity.LastUpdated;
+            //                        isValid = true;
+            //                    }
+            //                    else
+            //                    {
+            //                        //?no info on error
+
+            //                        isValid = false;
+            //                        string message = string.Format( thisClassName + ".Save Failed", "Attempted to update a RatingTask. The process appeared to not work, but was not an exception, so we have no message, or no clue. RatingTask: {0}, Id: {1}", FormatLongLabel( input.Description ), input.Id );
+            //                        status.AddError( "Error - the update was not successful. " + message );
+            //                        EmailManager.NotifyAdmin( thisClassName + ".Save Failed Failed", message );
+            //                    }
+
+            //                }
+
+            //                if ( isValid )
+            //                {
+            //                    //update parts
+            //                    UpdateParts( input, status, fromUpload );
+            //                    if ( hasChanged )
+            //                    {
+            //                        SiteActivity sa = new SiteActivity()
+            //                        {
+            //                            ActivityType = "RatingTask",
+            //                            Activity = status.Action,
+            //                            Event = "Update",
+            //                            Comment = string.Format( "RatingTask was updated. Name: {0}", FormatLongLabel( input.Description ) ),
+            //                            ActionByUserId = input.LastUpdatedById,
+            //                            ActivityObjectId = input.Id
+            //                        };
+            //                        new ActivityManager().SiteActivityAdd( sa );
+            //                    }
+            //                }
+            //            }
+            //            else
+            //            {
+            //                status.AddError( "Error - update failed, as record was not found." );
+            //            }
+            //        }
+
+            //    }
+            //}
+            //catch ( System.Data.Entity.Validation.DbEntityValidationException dbex )
+            //{
+            //    string message = HandleDBValidationError( dbex, thisClassName + string.Format( ".Save. id: {0}, Name: {1}", input.Id, FormatLongLabel( input.Description ) ), "RatingTask" );
+            //    status.AddError( thisClassName + ".Save(). Error - the save was not successful. " + message );
+            //}
+            //catch ( Exception ex )
+            //{
+            //    string message = FormatExceptions( ex );
+            //    LoggingHelper.LogError( ex, thisClassName + string.Format( ".Save. id: {0}, Name: {1}", input.Id, FormatLongLabel( input.Description ) ), true );
+            //    status.AddError( thisClassName + ".Save(). Error - the save was not successful. " + message );
+            //    isValid = false;
+            //}
+
+
+            return isValid;
+        }
 		//
 
 		/// <summary>

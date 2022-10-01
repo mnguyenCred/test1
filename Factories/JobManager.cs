@@ -12,6 +12,7 @@ using Navy.Utilities;
 using AppEntity = Models.Schema.BilletTitle;
 using DataEntities = Data.Tables.NavyRRLEntities;
 using DBEntity = Data.Tables.Job;
+using CachedEntity = Factories.CachedBillets;
 namespace Factories
 {
     public class JobManager : BaseFactory
@@ -204,19 +205,7 @@ namespace Factories
 
             return efEntity.Id;
         }
-        public void UpdateParts( AppEntity input, ChangeSummary status )
-        {
-            try
-            {
-                //HasRatingTask - this is done from RatingTask
-                //HasRatingTaskUpdate( input, ref status );
 
-            }
-            catch ( Exception ex )
-            {
-                LoggingHelper.LogError( ex, thisClassName + "UpdateParts" );
-            }
-        }
 
         public static void MapToDB( AppEntity input, DBEntity output )
         {
@@ -507,13 +496,13 @@ namespace Factories
 
 		public static List<AppEntity> CheckCache()
         {
-            var cache = new CachedBillets();
+            var cache = new CachedEntity();
             var list = new List<AppEntity>();
             int cacheHours = 1;
             DateTime maxTime = DateTime.Now.AddHours( cacheHours * -1 );
             if ( MemoryCache.Default.Get( cacheKey ) != null && cacheHours > 0 )
             {
-                cache = ( CachedBillets ) MemoryCache.Default.Get( cacheKey );
+                cache = ( CachedEntity ) MemoryCache.Default.Get( cacheKey );
                 try
                 {
                     if ( cache.LastUpdated > maxTime )
@@ -538,7 +527,7 @@ namespace Factories
             //add to cache
             if ( cacheKey.Length > 0 && cacheHours > 0 )
             {
-                var newCache = new CachedBillets()
+                var newCache = new CachedEntity()
                 {
                     Billets = input,
                     LastUpdated = DateTime.Now

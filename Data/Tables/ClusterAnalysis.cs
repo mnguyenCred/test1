@@ -33,7 +33,6 @@ namespace Data.Tables
         public Nullable<int> PriorityPlacement { get; set; }
         public string DevelopmentRatio { get; set; }
         public Nullable<decimal> EstimatedInstructionalTime { get; set; }
-        public Nullable<decimal> DevelopmentTime { get; set; }
         public string CTID { get; set; }
         public string Notes { get; set; }
         public System.DateTime Created { get; set; }
@@ -44,6 +43,8 @@ namespace Data.Tables
         public string RecommendedModality { get; set; }
         public string DevelopmentSpecification { get; set; }
         public Nullable<int> CFMPlacementId { get; set; }
+        public Nullable<int> ClusterAnalysisTitleId { get; set; }
+        public Nullable<decimal> DevelopmentTime { get; set; }
     
         public virtual ConceptScheme_Concept ConceptScheme_DevelopementSpec { get; set; }
         public virtual RatingTask RatingTask { get; set; }
@@ -54,5 +55,6 @@ namespace Data.Tables
         public virtual ICollection<ClusterAnalysis_HasCandidatePlatform> ClusterAnalysis_HasCandidatePlatform { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<RatingContext> RatingContext { get; set; }
+        public virtual ClusterAnalysisTitle ClusterAnalysisTitle1 { get; set; }
     }
 }

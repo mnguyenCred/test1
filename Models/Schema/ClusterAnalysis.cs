@@ -19,18 +19,19 @@ namespace Models.Schema
 		/// </summary>
         public int PriorityPlacement { get; set; }
 
-        /// <summary>
-        /// Estimated Instructional Time
-        /// </summary>
-        public decimal? EstimatedInstructionalTime { get; set; }
+		/// <summary>
+		/// Included with STG V1, but not later one
+		/// possibly a decimal
+		/// </summary>
+		public decimal? EstimatedInstructionalTime { get; set; }
 
-        /// <summary>
-        /// Development Time<br />
+		/// <summary>
+		/// Development Time<br />
 		/// Duration in hours
-        /// </summary>
-        public int DevelopmentTime { get; set; }
+		/// </summary>
+		public decimal? DevelopmentTime { get; set; }
 
- 		/// <summary>
+		/// <summary>
 		/// GUID reference to an instance of the Cluster Analysis Title class<br />
 		/// Allows grouping multiple Cluster Analysis instances under one Title, similar to how a Functional Area or a Billet Title allows grouping of Rating Tasks
 		/// </summary>
@@ -108,16 +109,18 @@ namespace Models.Schema
 
 
 		//Obsolete properties
+		//or for display purposes
 
         /// <summary>
-        /// Used for general search<br />
+        /// Used for general search. A label for the key properties to distinguish ?
 		/// Obsolete: Use Cluster Analysis Title (the class) to provide the "name"
         /// </summary>
 		[Obsolete]
-        public string Name { get; set; }
+        public string Label { get; set; }
 
 		/// <summary>
 		/// Obsolete: Use Cluster Analysis Title (the class) to provide this
+		/// MP - still need something to reference for messages/issues other than a Guid
 		/// </summary>
 		[Obsolete]
         public string ClusterAnalysisTitle { get; set; }
@@ -174,24 +177,7 @@ namespace Models.Schema
 		public string CFMPlacement { get; set; }
 
 
-        public int PriorityPlacement { get; set; }
-        public string PriorityPlacementLabel { get; set; }
-        /// <summary>
-        /// TBD
-        /// </summary>
-        public string DevelopmentRatio { get; set; }
-        //
-        /// <summary>
-        /// Included with STG V1, but not later one
-        /// possibly a decimal
-        /// </summary>
-        public decimal? EstimatedInstructionalTime { get; set; }
-        public string EstimatedInstructionalTimeLabel { get; set; }
-        /// <summary>
-        /// duration in hours
-        /// </summary>
-        public decimal? DevelopmentTime { get; set; }
-        public string DevelopmentTimeLabel { get; set; }
+     
 		/// <summary>
 		/// Development Cost (ROM)<br />
 		/// Ratio time $100<br />

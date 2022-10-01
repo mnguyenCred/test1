@@ -118,9 +118,8 @@
           </Key>
           <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
           <Property Name="RowId" Type="uniqueidentifier" Nullable="false" />
-          <Property Name="RatingTaskId" Type="int" Nullable="false" />
           <Property Name="TrainingSolutionTypeId" Type="int" />
-          <Property Name="ClusterAnalysisTitle" Type="nvarchar" MaxLength="500" />
+          <Property Name="ClusterAnalysisTitleId" Type="int" />
           <Property Name="RecommendedModalityId" Type="int" />
           <Property Name="DevelopmentSpecificationId" Type="int" />
           <Property Name="CFMPlacementId" Type="int" />
@@ -135,10 +134,12 @@
           <Property Name="LastUpdated" Type="datetime" Nullable="false" />
           <Property Name="LastUpdatedById" Type="int" />
           <Property Name="TrainingSolutionType" Type="varchar" MaxLength="100" />
+          <Property Name="ClusterAnalysisTitle" Type="nvarchar" MaxLength="500" />
           <Property Name="RecommendedModality" Type="varchar" MaxLength="100" />
           <Property Name="DevelopmentSpecification" Type="varchar" MaxLength="200" />
           <Property Name="CandidatePlatform" Type="nvarchar(max)" />
           <Property Name="CFMPlacement" Type="varchar" MaxLength="500" />
+          <Property Name="RatingTaskId" Type="int" Nullable="false" />
         </EntityType>
         <EntityType Name="ClusterAnalysis_HasCandidatePlatform">
           <Key>
@@ -150,6 +151,20 @@
           <Property Name="CandidatePlatformConceptId" Type="int" Nullable="false" />
           <Property Name="Created" Type="datetime" Nullable="false" />
           <Property Name="CreatedById" Type="int" />
+        </EntityType>
+        <EntityType Name="ClusterAnalysisTitle">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="RowId" Type="uniqueidentifier" Nullable="false" />
+          <Property Name="Name" Type="nvarchar" MaxLength="500" Nullable="false" />
+          <Property Name="Description" Type="nvarchar(max)" />
+          <Property Name="CTID" Type="varchar" MaxLength="50" />
+          <Property Name="Created" Type="datetime" Nullable="false" />
+          <Property Name="CreatedById" Type="int" />
+          <Property Name="LastUpdated" Type="datetime" Nullable="false" />
+          <Property Name="LastUpdatedById" Type="int" />
         </EntityType>
         <EntityType Name="Comment">
           <Key>
@@ -780,6 +795,18 @@
             </Dependent>
           </ReferentialConstraint>
         </Association>
+        <Association Name="FK_ClusterAnalysis_ClusterAnalysisTitle">
+          <End Role="ClusterAnalysisTitle" Type="Self.ClusterAnalysisTitle" Multiplicity="0..1" />
+          <End Role="ClusterAnalysis" Type="Self.ClusterAnalysis" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="ClusterAnalysisTitle">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="ClusterAnalysis">
+              <PropertyRef Name="ClusterAnalysisTitleId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
         <Association Name="FK_ClusterAnalysis_DevSpecificationConcept">
           <End Role="ConceptScheme_Concept" Type="Self.ConceptScheme_Concept" Multiplicity="0..1" />
           <End Role="ClusterAnalysis" Type="Self.ClusterAnalysis" Multiplicity="*" />
@@ -789,20 +816,6 @@
             </Principal>
             <Dependent Role="ClusterAnalysis">
               <PropertyRef Name="DevelopmentSpecificationId" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
-        <Association Name="FK_ClusterAnalysis_RatingTask">
-          <End Role="RatingTask" Type="Self.RatingTask" Multiplicity="1">
-            <OnDelete Action="Cascade" />
-          </End>
-          <End Role="ClusterAnalysis" Type="Self.ClusterAnalysis" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="RatingTask">
-              <PropertyRef Name="Id" />
-            </Principal>
-            <Dependent Role="ClusterAnalysis">
-              <PropertyRef Name="RatingTaskId" />
             </Dependent>
           </ReferentialConstraint>
         </Association>
@@ -1561,6 +1574,7 @@
           <EntitySet Name="AspNetUsers" EntityType="Self.AspNetUsers" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="ClusterAnalysis" EntityType="Self.ClusterAnalysis" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="ClusterAnalysis_HasCandidatePlatform" EntityType="Self.ClusterAnalysis_HasCandidatePlatform" Schema="dbo" Table="ClusterAnalysis.HasCandidatePlatform" store:Type="Tables" />
+          <EntitySet Name="ClusterAnalysisTitle" EntityType="Self.ClusterAnalysisTitle" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="Comment" EntityType="Self.Comment" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="ConceptScheme" EntityType="Self.ConceptScheme" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="ConceptScheme_Concept" EntityType="Self.ConceptScheme_Concept" Schema="dbo" Table="ConceptScheme.Concept" store:Type="Tables" />
@@ -1620,12 +1634,12 @@
             <End Role="ConceptScheme_Concept" EntitySet="ConceptScheme_Concept" />
             <End Role="ClusterAnalysis" EntitySet="ClusterAnalysis" />
           </AssociationSet>
-          <AssociationSet Name="FK_ClusterAnalysis_DevSpecificationConcept" Association="Self.FK_ClusterAnalysis_DevSpecificationConcept">
-            <End Role="ConceptScheme_Concept" EntitySet="ConceptScheme_Concept" />
+          <AssociationSet Name="FK_ClusterAnalysis_ClusterAnalysisTitle" Association="Self.FK_ClusterAnalysis_ClusterAnalysisTitle">
+            <End Role="ClusterAnalysisTitle" EntitySet="ClusterAnalysisTitle" />
             <End Role="ClusterAnalysis" EntitySet="ClusterAnalysis" />
           </AssociationSet>
-          <AssociationSet Name="FK_ClusterAnalysis_RatingTask" Association="Self.FK_ClusterAnalysis_RatingTask">
-            <End Role="RatingTask" EntitySet="RatingTask" />
+          <AssociationSet Name="FK_ClusterAnalysis_DevSpecificationConcept" Association="Self.FK_ClusterAnalysis_DevSpecificationConcept">
+            <End Role="ConceptScheme_Concept" EntitySet="ConceptScheme_Concept" />
             <End Role="ClusterAnalysis" EntitySet="ClusterAnalysis" />
           </AssociationSet>
           <AssociationSet Name="FK_ClusterAnalysis_RecommendedModality_Concept" Association="Self.FK_ClusterAnalysis_RecommendedModality_Concept">
@@ -2174,6 +2188,11 @@
           <AssociationSet Name="FK_RatingContext_WorkRole" Association="NavyRRLModel.FK_RatingContext_WorkRole">
             <End Role="WorkRole" EntitySet="WorkRole" />
             <End Role="RatingContext" EntitySet="RatingContext" />
+          </AssociationSet>
+          <EntitySet Name="ClusterAnalysisTitle" EntityType="NavyRRLModel.ClusterAnalysisTitle" />
+          <AssociationSet Name="FK_ClusterAnalysis_ClusterAnalysisTitle" Association="NavyRRLModel.FK_ClusterAnalysis_ClusterAnalysisTitle">
+            <End Role="ClusterAnalysisTitle" EntitySet="ClusterAnalysisTitle" />
+            <End Role="ClusterAnalysis" EntitySet="ClusterAnalysis" />
           </AssociationSet>
         </EntityContainer>
         <EntityType Name="Account">
@@ -3228,7 +3247,6 @@
           <Property Name="PriorityPlacement" Type="Int32" />
           <Property Name="DevelopmentRatio" Type="String" MaxLength="500" FixedLength="false" Unicode="false" />
           <Property Name="EstimatedInstructionalTime" Type="Decimal" Precision="9" Scale="2" />
-          <Property Name="DevelopmentTime" Type="Int32" />
           <Property Name="CTID" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
           <Property Name="Notes" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
           <Property Name="Created" Type="DateTime" Nullable="false" Precision="3" />
@@ -3246,6 +3264,9 @@
           <NavigationProperty Name="ConceptScheme_Concept" Relationship="NavyRRLModel.FK_ClusterAnalysis_CFMPlacement_Concept" FromRole="ClusterAnalysis" ToRole="ConceptScheme_Concept" />
           <NavigationProperty Name="ClusterAnalysis_HasCandidatePlatform" Relationship="NavyRRLModel.FK_HasCandidatePlatform_ClusterAnalysis" FromRole="ClusterAnalysis" ToRole="ClusterAnalysis_HasCandidatePlatform" />
           <NavigationProperty Name="RatingContext" Relationship="NavyRRLModel.FK_RatingContext_ClusterAnalysis" FromRole="ClusterAnalysis" ToRole="RatingContext" />
+          <Property Name="ClusterAnalysisTitleId" Type="Int32" />
+          <NavigationProperty Name="ClusterAnalysisTitle1" Relationship="NavyRRLModel.FK_ClusterAnalysis_ClusterAnalysisTitle" FromRole="ClusterAnalysis" ToRole="ClusterAnalysisTitle" />
+          <Property Name="DevelopmentTime" Type="Decimal" Precision="9" Scale="2" />
         </EntityType>
         <Association Name="FK_ClusterAnalysis_DevSpec_Concept">
           <End Type="NavyRRLModel.ConceptScheme_Concept" Role="ConceptScheme_Concept" Multiplicity="0..1" />
@@ -3855,6 +3876,33 @@
             </Dependent>
           </ReferentialConstraint>
         </Association>
+        <EntityType Name="ClusterAnalysisTitle">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="RowId" Type="Guid" Nullable="false" />
+          <Property Name="Name" Type="String" Nullable="false" MaxLength="500" FixedLength="false" Unicode="true" />
+          <Property Name="Description" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
+          <Property Name="CTID" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+          <Property Name="Created" Type="DateTime" Nullable="false" Precision="3" />
+          <Property Name="CreatedById" Type="Int32" />
+          <Property Name="LastUpdated" Type="DateTime" Nullable="false" Precision="3" />
+          <Property Name="LastUpdatedById" Type="Int32" />
+          <NavigationProperty Name="ClusterAnalysis" Relationship="NavyRRLModel.FK_ClusterAnalysis_ClusterAnalysisTitle" FromRole="ClusterAnalysisTitle" ToRole="ClusterAnalysis" />
+        </EntityType>
+        <Association Name="FK_ClusterAnalysis_ClusterAnalysisTitle">
+          <End Type="NavyRRLModel.ClusterAnalysisTitle" Role="ClusterAnalysisTitle" Multiplicity="0..1" />
+          <End Type="NavyRRLModel.ClusterAnalysis" Role="ClusterAnalysis" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="ClusterAnalysisTitle">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="ClusterAnalysis">
+              <PropertyRef Name="ClusterAnalysisTitleId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
         </Schema>
     </edmx:ConceptualModels>
     <!-- C-S mapping content -->
@@ -4337,6 +4385,8 @@
           <EntitySetMapping Name="ClusterAnalysis">
             <EntityTypeMapping TypeName="NavyRRLModel.ClusterAnalysis">
               <MappingFragment StoreEntitySet="ClusterAnalysis">
+                <ScalarProperty Name="DevelopmentTime" ColumnName="DevelopmentTime" />
+                <ScalarProperty Name="ClusterAnalysisTitleId" ColumnName="ClusterAnalysisTitleId" />
                 <ScalarProperty Name="CFMPlacementId" ColumnName="CFMPlacementId" />
                 <ScalarProperty Name="DevelopmentSpecification" ColumnName="DevelopmentSpecification" />
                 <ScalarProperty Name="RecommendedModality" ColumnName="RecommendedModality" />
@@ -4347,7 +4397,6 @@
                 <ScalarProperty Name="Created" ColumnName="Created" />
                 <ScalarProperty Name="Notes" ColumnName="Notes" />
                 <ScalarProperty Name="CTID" ColumnName="CTID" />
-                <ScalarProperty Name="DevelopmentTime" ColumnName="DevelopmentTime" />
                 <ScalarProperty Name="EstimatedInstructionalTime" ColumnName="EstimatedInstructionalTime" />
                 <ScalarProperty Name="DevelopmentRatio" ColumnName="DevelopmentRatio" />
                 <ScalarProperty Name="PriorityPlacement" ColumnName="PriorityPlacement" />
@@ -4578,6 +4627,21 @@
                 <ScalarProperty Name="Created" ColumnName="Created" />
                 <ScalarProperty Name="CTID" ColumnName="CTID" />
                 <ScalarProperty Name="Description" ColumnName="Description" />
+                <ScalarProperty Name="RowId" ColumnName="RowId" />
+                <ScalarProperty Name="Id" ColumnName="Id" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="ClusterAnalysisTitle">
+            <EntityTypeMapping TypeName="NavyRRLModel.ClusterAnalysisTitle">
+              <MappingFragment StoreEntitySet="ClusterAnalysisTitle">
+                <ScalarProperty Name="LastUpdatedById" ColumnName="LastUpdatedById" />
+                <ScalarProperty Name="LastUpdated" ColumnName="LastUpdated" />
+                <ScalarProperty Name="CreatedById" ColumnName="CreatedById" />
+                <ScalarProperty Name="Created" ColumnName="Created" />
+                <ScalarProperty Name="CTID" ColumnName="CTID" />
+                <ScalarProperty Name="Description" ColumnName="Description" />
+                <ScalarProperty Name="Name" ColumnName="Name" />
                 <ScalarProperty Name="RowId" ColumnName="RowId" />
                 <ScalarProperty Name="Id" ColumnName="Id" />
               </MappingFragment>

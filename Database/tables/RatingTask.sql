@@ -1,7 +1,7 @@
-USE [NavyRRL]
+USE [Navy_RRL_V2]
 GO
 
-/****** Object:  Table [dbo].[RatingTask]    Script Date: 1/9/2022 12:20:24 AM ******/
+/****** Object:  Table [dbo].[RatingTask]    Script Date: 10/1/2022 6:40:39 PM ******/
 SET ANSI_NULLS ON
 GO
 
@@ -11,22 +11,13 @@ GO
 CREATE TABLE [dbo].[RatingTask](
 	[Id] [int] IDENTITY(1,1) NOT NULL,
 	[RowId] [uniqueidentifier] NOT NULL,
-	[RankId] [int] NOT NULL,
-	[LevelId] [int] NOT NULL,
-	[FunctionalAreaId] [int] NULL,
-	[SourceId] [int] NULL,
-	[WorkElementTypeId] [int] NULL,
-	[WorkElementTask] [nvarchar](max) NOT NULL,
-	[TaskApplicabilityId] [int] NULL,
-	[TaskStatusId] [int] NULL,
-	[FormalTrainingGapId] [int] NULL,
-	[CodedNotation] [varchar](100) NULL,
-	[TrainingTaskId] [int] NULL,
+	[HasReferenceResourceId] [int] NULL,
+	[Description] [nvarchar](max) NOT NULL,
 	[CTID] [varchar](50) NULL,
 	[Notes] [nvarchar](max) NULL,
-	[Created] [datetime] NULL,
+	[Created] [datetime] NOT NULL,
 	[CreatedById] [int] NULL,
-	[LastUpdated] [datetime] NULL,
+	[LastUpdated] [datetime] NOT NULL,
 	[LastUpdatedById] [int] NULL,
  CONSTRAINT [PK_RatingLevelTask] PRIMARY KEY CLUSTERED 
 (
@@ -35,66 +26,20 @@ CREATE TABLE [dbo].[RatingTask](
 ) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
 GO
 
+ALTER TABLE [dbo].[RatingTask] ADD  CONSTRAINT [DF_RatingTask_RowId]  DEFAULT (newid()) FOR [RowId]
+GO
+
 ALTER TABLE [dbo].[RatingTask] ADD  CONSTRAINT [DF_RatingLevelTask_Created]  DEFAULT (getdate()) FOR [Created]
 GO
 
 ALTER TABLE [dbo].[RatingTask] ADD  CONSTRAINT [DF_RatingLevelTask_LastUpdated]  DEFAULT (getdate()) FOR [LastUpdated]
 GO
 
-ALTER TABLE [dbo].[RatingTask]  WITH CHECK ADD  CONSTRAINT [FK_RatingLevelTask_Course.Task] FOREIGN KEY([TrainingTaskId])
-REFERENCES [dbo].[Course.Task] ([Id])
+ALTER TABLE [dbo].[RatingTask]  WITH CHECK ADD  CONSTRAINT [FK_RatingTask_to_ReferenceResource] FOREIGN KEY([HasReferenceResourceId])
+REFERENCES [dbo].[ReferenceResource] ([Id])
 GO
 
-ALTER TABLE [dbo].[RatingTask] CHECK CONSTRAINT [FK_RatingLevelTask_Course.Task]
-GO
-
-ALTER TABLE [dbo].[RatingTask]  WITH CHECK ADD  CONSTRAINT [FK_RatingLevelTask_FunctionalArea] FOREIGN KEY([FunctionalAreaId])
-REFERENCES [dbo].[FunctionalArea] ([Id])
-GO
-
-ALTER TABLE [dbo].[RatingTask] CHECK CONSTRAINT [FK_RatingLevelTask_FunctionalArea]
-GO
-
-ALTER TABLE [dbo].[RatingTask]  WITH CHECK ADD  CONSTRAINT [FK_RatingLevelTask_Level] FOREIGN KEY([LevelId])
-REFERENCES [dbo].[ConceptScheme.Concept] ([Id])
-GO
-
-ALTER TABLE [dbo].[RatingTask] CHECK CONSTRAINT [FK_RatingLevelTask_Level]
-GO
-
-ALTER TABLE [dbo].[RatingTask]  WITH CHECK ADD  CONSTRAINT [FK_RatingLevelTask_Rank] FOREIGN KEY([RankId])
-REFERENCES [dbo].[ConceptScheme.Concept] ([Id])
-GO
-
-ALTER TABLE [dbo].[RatingTask] CHECK CONSTRAINT [FK_RatingLevelTask_Rank]
-GO
-
-ALTER TABLE [dbo].[RatingTask]  WITH CHECK ADD  CONSTRAINT [FK_RatingLevelTask_Source] FOREIGN KEY([SourceId])
-REFERENCES [dbo].[Source] ([Id])
-GO
-
-ALTER TABLE [dbo].[RatingTask] CHECK CONSTRAINT [FK_RatingLevelTask_Source]
-GO
-
-ALTER TABLE [dbo].[RatingTask]  WITH CHECK ADD  CONSTRAINT [FK_RatingLevelTask_TaskApplicability] FOREIGN KEY([TaskApplicabilityId])
-REFERENCES [dbo].[ConceptScheme.Concept] ([Id])
-GO
-
-ALTER TABLE [dbo].[RatingTask] CHECK CONSTRAINT [FK_RatingLevelTask_TaskApplicability]
-GO
-
-ALTER TABLE [dbo].[RatingTask]  WITH CHECK ADD  CONSTRAINT [FK_RatingLevelTask_TrainingGap] FOREIGN KEY([FormalTrainingGapId])
-REFERENCES [dbo].[ConceptScheme.Concept] ([Id])
-GO
-
-ALTER TABLE [dbo].[RatingTask] CHECK CONSTRAINT [FK_RatingLevelTask_TrainingGap]
-GO
-
-ALTER TABLE [dbo].[RatingTask]  WITH CHECK ADD  CONSTRAINT [FK_RatingLevelTask_WorkElementType] FOREIGN KEY([WorkElementTypeId])
-REFERENCES [dbo].[WorkElementType] ([Id])
-GO
-
-ALTER TABLE [dbo].[RatingTask] CHECK CONSTRAINT [FK_RatingLevelTask_WorkElementType]
+ALTER TABLE [dbo].[RatingTask] CHECK CONSTRAINT [FK_RatingTask_to_ReferenceResource]
 GO
 
 

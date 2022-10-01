@@ -17,6 +17,10 @@ namespace Factories
     public class ClusterAnalysisManager : BaseFactory
     {
         public static new string thisClassName = "ClusterAnalysisManager";
+        /*
+
+
+        */
         #region ClusterAnalysis - persistance ==================
         /// <summary>
         /// Update a ClusterAnalysis
@@ -31,17 +35,17 @@ namespace Factories
             entity.LastUpdatedById = entity.CreatedById;
             try
             {
-                if ( entity.RatingTaskId < 1)
-                {
-                    var ratingTask = RatingTaskManager.Get( entity.RatingTaskRowId );
-                    if ( ratingTask?.Id > 0 )
-                        entity.RatingTaskId = ratingTask.Id;
-                    else
-                    {
-                        status.AddError( String.Format("A valid rating task identifier was not provided for Cluster Analysis record ({0}).", entity.RowId ));
-                        return false;
-                    }
-                }
+                //if ( entity.RatingTaskId < 1)
+                //{
+                //    var ratingTask = RatingTaskManager.Get( entity.RatingTaskRowId );
+                //    if ( ratingTask?.Id > 0 )
+                //        entity.RatingTaskId = ratingTask.Id;
+                //    else
+                //    {
+                //        status.AddError( String.Format("A valid rating task identifier was not provided for Cluster Analysis record ({0}).", entity.RowId ));
+                //        return false;
+                //    }
+                //}
                 using ( var context = new DataEntities() )
                 {
                     //if ( ValidateProfile( entity, ref status ) == false )
@@ -51,14 +55,15 @@ namespace Factories
                     {
                         //how to check for existing?
                         //just by rating task id for now
-                        var record = GetExisting( entity );
-                        if ( record?.Id > 0 )
-                        {
-                            entity.Id = record.Id;
-                            //could be other updates, fall thru to the update
-                            //return true;
-                        }
-                        else
+                        //this is more difficult now!
+                        //var record = GetExisting( entity );
+                        //if ( record?.Id > 0 )
+                        //{
+                        //    entity.Id = record.Id;
+                        //    //could be other updates, fall thru to the update
+                        //    //return true;
+                        //}
+                        //else
                         {
                             //add
                             int newId = Add( entity, ref status );
@@ -284,12 +289,19 @@ namespace Factories
         #endregion
         #region Retrieval
 
+        /// <summary>
+        /// this is more difficult now!
+        /// For updates, the rating context would have a clusterAnalysisId
+        /// May not do this now. would have to check almost all properties
+        /// </summary>
+        /// <param name="entity"></param>
+        /// <returns></returns>
         public static AppEntity GetExisting( AppEntity entity )
         {
             //just by rating task id for now
             var existing = new AppEntity();
-            if ( entity.RatingTaskId == 0 )
-                return null;
+            //if ( entity.RatingTaskId == 0 )
+            //    return null;
 
             using ( var context = new DataEntities() )
             {
@@ -489,7 +501,7 @@ namespace Factories
             }
             if ( formatForSearch )
             {
-                output.Name = String.Format( "{0} ~ {1} ~ {2} ~ {3}", output.TrainingSolution, output.ClusterAnalysisTitle, output.RecommendedModality, output.DevelopmentSpecification );
+                output.Label = String.Format( "{0} ~ {1} ~ {2} ~ {3}", output.TrainingSolution, output.ClusterAnalysisTitle, output.RecommendedModality, output.DevelopmentSpecification );
             }
             /*
 
@@ -507,7 +519,7 @@ namespace Factories
             }
             if ( formatForSearch )
             {
-                output.Name = String.Format( "", output.ClusterAnalysisTitle, output.TrainingSolution, output.RecommendedModality );
+                output.Label = String.Format( "", output.ClusterAnalysisTitle, output.TrainingSolution, output.RecommendedModality );
             }
             //handle nullables
             if ( input.TrainingSolutionTypeId != null )

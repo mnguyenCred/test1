@@ -1,7 +1,7 @@
-USE [Navy_RRL_V2]
+USE [NavyRRL]
 GO
 
-/****** Object:  Table [dbo].[ReferenceResource.ReferenceType]    Script Date: 10/1/2022 6:41:41 PM ******/
+/****** Object:  Table [dbo].[ReferenceResource.ReferenceType]    Script Date: 1/12/2022 12:32:04 PM ******/
 SET ANSI_NULLS ON
 GO
 
@@ -14,7 +14,6 @@ CREATE TABLE [dbo].[ReferenceResource.ReferenceType](
 	[ReferenceResourceId] [int] NOT NULL,
 	[ReferenceTypeId] [int] NOT NULL,
 	[Created] [datetime] NOT NULL,
-	[CreatedById] [int] NULL,
  CONSTRAINT [PK_ReferenceResource.ReferenceType] PRIMARY KEY CLUSTERED 
 (
 	[Id] ASC
@@ -43,5 +42,22 @@ GO
 
 ALTER TABLE [dbo].[ReferenceResource.ReferenceType] CHECK CONSTRAINT [FK_ReferenceResource.ReferenceType_ReferenceResource]
 GO
+--populate from existing ReferenceResource
+INSERT INTO [dbo].[ReferenceResource.ReferenceType]
+           (	
+		   [ReferenceResourceId]
+           ,[ReferenceTypeId]
+           ,[Created])
 
+SELECT [Id] ,[ReferenceType]   ,[Created]
+    
+      --,[Name]
+      --,[Description]
+      --,[CodedNotation]
+      --,[PublicationDate]
+      --,[Note]
+      --,[CTID]
+  FROM [dbo].[ReferenceResource]
+
+GO
 

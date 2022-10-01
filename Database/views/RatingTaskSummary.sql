@@ -190,6 +190,7 @@ SELECT
 	,a.FormalTrainingGapId
 	, isnull(f.Name,'') As FormalTrainingGap
 	,f.RowId as TrainingGapType
+--====================== Part II ====================== 
 	-- individual course parts
 	/*
 		,h.CodedNotation
@@ -227,7 +228,7 @@ SELECT
 		,g.LifeCycleControlDocument
 
 	,a.Notes
-	--Part III
+	--====================== Part III ====================== 
 	,cas.[TrainingSolutionTypeId]
 	,cas.[TrainingSolutionType]
       

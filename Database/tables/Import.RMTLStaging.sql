@@ -1,15 +1,7 @@
-USE [NavyRRL]
+USE [Navy_RRL_V2]
 GO
 
-ALTER TABLE [dbo].[Import.RMTLStaging] DROP CONSTRAINT [DF_Import.RMTLStaging_Created]
-GO
-
-/****** Object:  Table [dbo].[Import.RMTLStaging]    Script Date: 4/6/2022 4:15:21 PM ******/
-IF  EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[Import.RMTLStaging]') AND type in (N'U'))
-DROP TABLE [dbo].[Import.RMTLStaging]
-GO
-
-/****** Object:  Table [dbo].[Import.RMTLStaging]    Script Date: 4/6/2022 4:15:21 PM ******/
+/****** Object:  Table [dbo].[Import.RMTLStaging]    Script Date: 10/1/2022 6:44:21 PM ******/
 SET ANSI_NULLS ON
 GO
 
@@ -45,8 +37,8 @@ CREATE TABLE [dbo].[Import.RMTLStaging](
 	[CFM_Placement] [nvarchar](500) NULL,
 	[Priority_Placement] [nvarchar](500) NULL,
 	[Development_Ratio] [nvarchar](500) NULL,
-	[Development_Time] [nvarchar](500) NULL,
 	[EstimatedInstructionalTime] [nvarchar](500) NULL,
+	[Development_Time] [nvarchar](500) NULL,
 	[Part3Notes] [nvarchar](max) NULL,
 	[Id] [int] IDENTITY(1,1) NOT NULL,
 	[Created] [datetime] NULL,
@@ -59,4 +51,5 @@ GO
 
 ALTER TABLE [dbo].[Import.RMTLStaging] ADD  CONSTRAINT [DF_Import.RMTLStaging_Created]  DEFAULT (getdate()) FOR [Created]
 GO
+
 

@@ -66,5 +66,6 @@ namespace Data.Tables
         public virtual DbSet<CourseContext> CourseContext { get; set; }
         public virtual DbSet<RatingContext> RatingContext { get; set; }
         public virtual DbSet<TrainingTask> TrainingTask { get; set; }
+        public virtual DbSet<ClusterAnalysisTitle> ClusterAnalysisTitle { get; set; }
     }
 }
