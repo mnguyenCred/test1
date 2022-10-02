@@ -20,7 +20,6 @@ namespace Data.Views
         public string Description { get; set; }
         public Nullable<int> CurriculumControlAuthorityId { get; set; }
         public string CurriculumControlAuthority { get; set; }
-        public Nullable<int> LifeCycleControlDocumentId { get; set; }
         public string LifeCycleControlDocument { get; set; }
         public System.Guid LifeCycleControlDocumentUID { get; set; }
         public string CourseTypes { get; set; }

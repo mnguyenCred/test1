@@ -1,6 +1,8 @@
 Use NavyRRL
 go
 
+USE [Navy_RRL_V2]
+GO
 /*
 SELECT base.[Id]
       ,base.[RowId]
@@ -90,7 +92,8 @@ SELECT base.[Id]
     CROSS APPLY (
     SELECT distinct d.Name + ' | '
     FROM dbo.[Course]  a
-		Inner join [dbo].[Course.AssessmentType]	c on a.Id = c.CourseId
+	Inner join [dbo].[CourseContext]	cc on a.Id = cc.CourseId
+		Inner join [dbo].[CourseContext.AssessmentType]	c on cc.Id = c.CourseContextId
 		inner join [ConceptScheme.Concept] d on c.AssessmentMethodConceptId = d.Id --and d.ConceptSchemeId=13
     WHERE  base.Id = a.Id
     FOR XML Path('') 

@@ -1136,7 +1136,6 @@ warning 6002: The table/view 'Navy_RRL_V2.dbo.WorkRoleSummary' does not have a p
           <Property Name="Description" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
           <Property Name="CurriculumControlAuthorityId" Type="Int32" />
           <Property Name="CurriculumControlAuthority" Type="String" MaxLength="300" FixedLength="false" Unicode="true" Nullable="false" />
-          <Property Name="LifeCycleControlDocumentId" Type="Int32" />
           <Property Name="LifeCycleControlDocument" Type="String" Nullable="false" MaxLength="1000" FixedLength="false" Unicode="false" />
           <Property Name="LifeCycleControlDocumentUID" Type="Guid" Nullable="false" />
           <Property Name="CourseTypes" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
@@ -1171,11 +1170,9 @@ warning 6002: The table/view 'Navy_RRL_V2.dbo.WorkRoleSummary' does not have a p
           <Property Name="TrainingTaskUID" Type="Guid" Nullable="false" />
           <Property Name="CurriculumControlAuthorityId" Type="Int32" />
           <Property Name="CurriculumControlAuthority" Type="String" MaxLength="503" FixedLength="false" Unicode="true" />
-          <Property Name="LifeCycleControlDocumentId" Type="Int32" />
           <Property Name="LifeCycleControlDocument" Type="String" Nullable="false" MaxLength="1000" FixedLength="false" Unicode="false" />
           <Property Name="LifeCycleControlDocumentUID" Type="Guid" Nullable="false" />
           <Property Name="CourseTypes" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
-          <Property Name="AssessmentMethodTypes" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
           <Property Name="CTID" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
           <Property Name="Created" Type="DateTime" Nullable="false" Precision="3" />
           <Property Name="CreatedById" Type="Int32" />
