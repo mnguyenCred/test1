@@ -1,6 +1,6 @@
 USE [Navy_RRL_V2]
 GO
-/****** Object:  StoredProcedure [dbo].[RatingTaskSearch]    Script Date: 12/13/2021 1:37:57 PM ******/
+/****** Object:  StoredProcedure [dbo].[RatingContextSearch]    Script Date: 12/13/2021 1:37:57 PM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -46,7 +46,7 @@ set @Filter = ' ( base.WorkElementTypeId in ( 1120 ) )  '
 set @StartPageIndex = 1
 set @PageSize = 100
 --set statistics time on       
-EXECUTE @RC = [RatingTaskSearch]
+EXECUTE @RC = [RatingContextSearch]
      @Filter, @SortOrder, @StartPageIndex  ,@PageSize,  @CurrentUserId, @TotalRows OUTPUT
 
 select 'total rows = ' + convert(varchar,@TotalRows)
@@ -71,11 +71,11 @@ page is requested, this would be set to 21?
 custom pager
   ------------------------------------------------------
 Modifications
-22-01-11 mparsons - new
+22-09-30 mparsons - new
 22-10-02 mparsons - Changed to use ApplicationRoleSummary
 */
 
-Alter PROCEDURE [dbo].[RatingTaskSearch]
+Create PROCEDURE [dbo].[RatingContextSearch]
 		@Filter           varchar(5000)
 		,@SortOrder         varchar(500)
 		,@StartPageIndex  int
@@ -88,14 +88,14 @@ As
 SET NOCOUNT ON;
 -- paging
 DECLARE
-      @first_id               int
-      ,@startRow        int
-	    ,@lastRow int
-      ,@debugLevel      int
-      ,@SQL             varchar(5000)
-	   ,@HasSitePrivileges bit
-	   ,@OrderDir         varchar(50)
-      ,@OrderBy         varchar(800)
+	@first_id int
+	,@startRow int
+	,@lastRow int
+	,@debugLevel int
+	,@SQL varchar(5000)
+	,@HasSitePrivileges bit
+	,@OrderDir varchar(50)
+	,@OrderBy varchar(800)
 
 -- =================================
 set @SortOrder= replace(@SortOrder,'description','RatingTask')
@@ -198,7 +198,7 @@ CREATE TABLE #tempWorkTable(
 
   print '@Filter len: '  +  convert(varchar,len(@Filter))
 
-  set @SQL = 'SELECT Id, RatingTask  FROM [dbo].[RatingTaskSummary] base '
+  set @SQL = 'SELECT Id, RatingTask  FROM [dbo].[RatingContextSummary] base '
 		+ @Filter
 
 
@@ -208,7 +208,7 @@ if charindex( 'order by', lower(@Filter) ) = 0
   print '@SQL len: '  +  convert(varchar,len(@SQL))
   print @SQL
 -- ================================= 
-set @SQL = '   SELECT count(*) as TotalRows  FROM [dbo].RatingTaskSummary base  '  + @Filter 
+set @SQL = '   SELECT count(*) as TotalRows  FROM [dbo].RatingContextSummary base  '  + @Filter 
 INSERT INTO #tempQueryTotalTable (TotalRows)
 exec (@SQL)
 --select * from #tempQueryTotalTable
@@ -223,10 +223,10 @@ From
 SELECT 
          ROW_NUMBER() OVER(' + @OrderBy + ') as RowNumber,
           base.Id, base.RatingTask
-		from [RatingTaskSummary] base  ' 
+		from [RatingContextSummary] base  ' 
         + @Filter + ' 
    ) as DerivedTable
-       Inner join [dbo].[RatingTaskSummary] base on DerivedTable.Id = base.Id
+       Inner join [dbo].[RatingContextSummary] base on DerivedTable.Id = base.Id
 WHERE RowNumber BETWEEN ' + convert(varchar,@StartPageIndex) + ' AND ' + convert(varchar,@lastRow) + ' '  
 
   print '@SQL len: '  +  convert(varchar,len(@SQL))
@@ -268,11 +268,11 @@ SELECT
 	,b.Ratings,b.RatingName, b.HasRating
 	,b.BilletTitles
       ,b.[CodedNotation]
-      ,b.[RankId]
+      ,b.PayGradeTypeId
       ,b.[Rank]
 	  ,b.[RankName]
       ,b.[PayGradeType]
-      ,b.[LevelId]
+      --,b.[LevelId]
       ,b.[Level]
      -- ,b.[FunctionalAreaId], FunctionalAreaUID
       ,b.[FunctionalArea]
@@ -339,10 +339,10 @@ SELECT
       ,[ModifiedBy],ModifiedByUID
 	  ,ClusterAnalysisLastUpdated
 From #tempWorkTable a
-Inner Join RatingTaskSummary b on a.Id = b.Id
+Inner Join RatingContextSummary b on a.Id = b.Id
 WHERE RowNumber > @first_id
 order by RowNumber 
 
 go
-grant execute on [RatingTaskSearch] to public
+grant execute on [RatingContextSearch] to public
 go

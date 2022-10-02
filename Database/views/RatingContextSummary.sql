@@ -131,7 +131,7 @@ Modifications
 22-06-03 mp - temp change to FunctionalArea to not include the Guids 
 
 */
-Create  VIEW [dbo].RatingContextSummary
+Alter  VIEW [dbo].RatingContextSummary
 AS
 
 SELECT 

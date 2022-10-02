@@ -1,6 +1,7 @@
+USE [NavyRRL]
+GO
 USE Navy_RRL_V2
 GO
-
 /****** Object:  View [dbo].[ClusterAnalysisSummary]    Script Date: 4/9/2022 11:24:13 AM ******/
 SET ANSI_NULLS ON
 GO
