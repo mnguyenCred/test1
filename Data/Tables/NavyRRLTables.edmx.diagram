@@ -26,13 +26,13 @@
         <EntityTypeShape EntityType="NavyRRLModel.Course" Width="1.5" PointX="6" PointY="12.25" />
         <EntityTypeShape EntityType="NavyRRLModel.Course_CourseType" Width="1.5" PointX="8.25" PointY="13.125" />
         <EntityTypeShape EntityType="NavyRRLModel.CourseContext" Width="1.5" PointX="11.25" PointY="12.875" />
-        <EntityTypeShape EntityType="NavyRRLModel.CourseContext_AssessmentType" Width="1.5" PointX="3" PointY="8.125" />
+        <EntityTypeShape EntityType="NavyRRLModel.CourseContext_AssessmentType" Width="1.5" PointX="0.5" PointY="7.875" />
         <EntityTypeShape EntityType="NavyRRLModel.Entity" Width="1.5" PointX="12.75" PointY="6.875" />
         <EntityTypeShape EntityType="NavyRRLModel.ImportRMTL" Width="1.5" PointX="14.75" PointY="0.875" />
         <EntityTypeShape EntityType="NavyRRLModel.Job" Width="1.5" PointX="3" PointY="39.25" />
         <EntityTypeShape EntityType="NavyRRLModel.Organization" Width="1.5" PointX="3.75" PointY="21.75" />
         <EntityTypeShape EntityType="NavyRRLModel.Rating" Width="1.5" PointX="3" PointY="34.375" />
-        <EntityTypeShape EntityType="NavyRRLModel.RatingContext" Width="1.5" PointX="5.25" PointY="5.25" />
+        <EntityTypeShape EntityType="NavyRRLModel.RatingContext" Width="2.5" PointX="4" PointY="4.875" />
         <EntityTypeShape EntityType="NavyRRLModel.RatingContext_WorkRole" Width="1.5" PointX="7.5" PointY="5.125" />
         <EntityTypeShape EntityType="NavyRRLModel.RatingContextV2" Width="1.5" PointX="16.75" PointY="0.875" />
         <EntityTypeShape EntityType="NavyRRLModel.RatingTask" Width="1.5" PointX="3" PointY="44.625" />

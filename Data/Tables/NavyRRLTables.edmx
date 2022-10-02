@@ -929,7 +929,9 @@
           </ReferentialConstraint>
         </Association>
         <Association Name="FK_RatingContext_ClusterAnalysis">
-          <End Role="ClusterAnalysis" Type="Self.ClusterAnalysis" Multiplicity="0..1" />
+          <End Role="ClusterAnalysis" Type="Self.ClusterAnalysis" Multiplicity="0..1">
+            <OnDelete Action="Cascade" />
+          </End>
           <End Role="RatingContext" Type="Self.RatingContext" Multiplicity="*" />
           <ReferentialConstraint>
             <Principal Role="ClusterAnalysis">
@@ -941,7 +943,9 @@
           </ReferentialConstraint>
         </Association>
         <Association Name="FK_RatingContext_Rank">
-          <End Role="ConceptScheme_Concept" Type="Self.ConceptScheme_Concept" Multiplicity="1" />
+          <End Role="ConceptScheme_Concept" Type="Self.ConceptScheme_Concept" Multiplicity="1">
+            <OnDelete Action="Cascade" />
+          </End>
           <End Role="RatingContext" Type="Self.RatingContext" Multiplicity="*" />
           <ReferentialConstraint>
             <Principal Role="ConceptScheme_Concept">
@@ -1005,7 +1009,9 @@
           </ReferentialConstraint>
         </Association>
         <Association Name="FK_RatingContext_TrainingTask">
-          <End Role="TrainingTask" Type="Self.TrainingTask" Multiplicity="0..1" />
+          <End Role="TrainingTask" Type="Self.TrainingTask" Multiplicity="0..1">
+            <OnDelete Action="Cascade" />
+          </End>
           <End Role="RatingContext" Type="Self.RatingContext" Multiplicity="*" />
           <ReferentialConstraint>
             <Principal Role="TrainingTask">
@@ -1943,9 +1949,9 @@ warning 6035: The relationship 'FK_RatingContextV2_TrainingTask' has columns tha
           <Property Name="LastUpdated" Type="DateTime" Nullable="false" Precision="3" />
           <Property Name="LastUpdatedById" Type="Int32" />
           <NavigationProperty Name="ClusterAnalysis" Relationship="NavyRRLModel.FK_RatingContext_ClusterAnalysis" FromRole="RatingContext" ToRole="ClusterAnalysis" />
-          <NavigationProperty Name="ConceptScheme_Concept" Relationship="NavyRRLModel.FK_RatingContext_Rank" FromRole="RatingContext" ToRole="ConceptScheme_Concept" />
-          <NavigationProperty Name="ConceptScheme_Concept1" Relationship="NavyRRLModel.FK_RatingContext_TaskApplicability" FromRole="RatingContext" ToRole="ConceptScheme_Concept" />
-          <NavigationProperty Name="ConceptScheme_Concept2" Relationship="NavyRRLModel.FK_RatingContext_TrainingGap" FromRole="RatingContext" ToRole="ConceptScheme_Concept" />
+          <NavigationProperty Name="ConceptScheme_Rank" Relationship="NavyRRLModel.FK_RatingContext_Rank" FromRole="RatingContext" ToRole="ConceptScheme_Concept" />
+          <NavigationProperty Name="ConceptScheme_TaskApplicability" Relationship="NavyRRLModel.FK_RatingContext_TaskApplicability" FromRole="RatingContext" ToRole="ConceptScheme_Concept" />
+          <NavigationProperty Name="ConceptScheme_TrainingGap" Relationship="NavyRRLModel.FK_RatingContext_TrainingGap" FromRole="RatingContext" ToRole="ConceptScheme_Concept" />
           <NavigationProperty Name="Job" Relationship="NavyRRLModel.FK_RatingContext_BilletTitle" FromRole="RatingContext" ToRole="Job" />
           <NavigationProperty Name="Rating" Relationship="NavyRRLModel.FK_RatingContext_Rating" FromRole="RatingContext" ToRole="Rating" />
           <NavigationProperty Name="RatingTask" Relationship="NavyRRLModel.FK_RatingContext_RatingTask" FromRole="RatingContext" ToRole="RatingTask" />

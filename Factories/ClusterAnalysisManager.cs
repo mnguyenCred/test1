@@ -317,6 +317,8 @@ namespace Factories
         }
 
         //TODO - Sigh, now a list
+        //ratingContext -> clusterAnalysisId -> clusterAnalysis
+        //ratingTask -> ratingContext.RatingTaskId -> ratingContext -> clusterAnalysisId -> clusterAnalysis
         public static AppEntity GetForUpload( Guid rowRatingTaskRowId )
         {
             var entity = new AppEntity();
@@ -416,13 +418,13 @@ namespace Factories
                                select Results;
                     if ( !string.IsNullOrWhiteSpace( filter ) )
                     {
-                        list = from Results in list
-                                .Where( s =>
-                                ( s.ClusterAnalysisTitle.ToLower().Contains( filter.ToLower() ) )
-                                    || ( s.ConceptScheme_TrainingSolution!= null && s.ConceptScheme_TrainingSolution.Name.ToLower().Contains(filter.ToLower()) )
-                                    || ( s.ConceptScheme_RecommendedModality != null && s.ConceptScheme_RecommendedModality.Name.ToLower().Contains(filter.ToLower()) )
-                                )
-                               select Results;
+                        //list = from Results in list
+                        //        .Where( s =>
+                        //        ( s.ClusterAnalysisTitle.ToLower().Contains( filter.ToLower() ) )
+                        //            || ( s.ConceptScheme_TrainingSolution!= null && s.ConceptScheme_TrainingSolution.Name.ToLower().Contains(filter.ToLower()) )
+                        //            || ( s.ConceptScheme_RecommendedModality != null && s.ConceptScheme_RecommendedModality.Name.ToLower().Contains(filter.ToLower()) )
+                        //        )
+                        //       select Results;
                     }
                     query.TotalResults = list.Count();
                     //sort order not handled
@@ -466,44 +468,44 @@ namespace Factories
             if ( input.TrainingSolutionTypeId != null )
             {
                 output.TrainingSolutionTypeId = ( int ) input.TrainingSolutionTypeId;
-                if ( input.ConceptScheme_TrainingSolution?.Id > 0 )
-                {
-                    output.TrainingSolution = input.ConceptScheme_TrainingSolution.Name;
-                    output.TrainingSolutionType = input.ConceptScheme_TrainingSolution.RowId;
-                }
+                //if ( input.ConceptScheme_TrainingSolution?.Id > 0 )
+                //{
+                //    output.TrainingSolution = input.ConceptScheme_TrainingSolution.Name;
+                //    output.TrainingSolutionType = input.ConceptScheme_TrainingSolution.RowId;
+                //}
             }
             if ( input.DevelopmentSpecificationId != null )
             {
                 output.DevelopmentSpecificationTypeId = ( int ) input.DevelopmentSpecificationId;
-                if ( input.ConceptScheme_DevelopementSpec?.Id > 0 )
-                {
-                    output.DevelopmentSpecification = input.ConceptScheme_DevelopementSpec.Name;
-                    output.DevelopmentSpecificationType = input.ConceptScheme_DevelopementSpec.RowId;
-                }
+                //if ( input.ConceptScheme_DevelopementSpec?.Id > 0 )
+                //{
+                //    output.DevelopmentSpecification = input.ConceptScheme_DevelopementSpec.Name;
+                //    output.DevelopmentSpecificationType = input.ConceptScheme_DevelopementSpec.RowId;
+                //}
             }
             if ( input.RecommendedModalityId != null )
             {
                 output.RecommendedModalityTypeId = ( int ) input.RecommendedModalityId;
-                if ( input.ConceptScheme_RecommendedModality?.Id > 0 )
-                {
-                    output.RecommendedModality = input.ConceptScheme_RecommendedModality.Name;
-                    output.RecommendedModalityType = input.ConceptScheme_RecommendedModality.RowId;
-                }
+                //if ( input.ConceptScheme_RecommendedModality?.Id > 0 )
+                //{
+                //    output.RecommendedModality = input.ConceptScheme_RecommendedModality.Name;
+                //    output.RecommendedModalityType = input.ConceptScheme_RecommendedModality.RowId;
+                //}
             }
             if ( input.PriorityPlacement != null )
             {
                 output.PriorityPlacement = ( int ) input.PriorityPlacement;
-                output.PriorityPlacementLabel = output.PriorityPlacement.ToString();
+               // output.PriorityPlacementLabel = output.PriorityPlacement.ToString();
             }
 
             if ( input.DevelopmentTime != null )
             {
                 output.DevelopmentTime = input.DevelopmentTime;
-                output.DevelopmentTimeLabel = output.DevelopmentTime.ToString();
+              //  output.DevelopmentTimeLabel = output.DevelopmentTime.ToString();
             }
             if ( formatForSearch )
             {
-                output.Label = String.Format( "{0} ~ {1} ~ {2} ~ {3}", output.TrainingSolution, output.ClusterAnalysisTitle, output.RecommendedModality, output.DevelopmentSpecification );
+                //output.Label = String.Format( "{0} ~ {1} ~ {2} ~ {3}", output.TrainingSolution, output.ClusterAnalysisTitle, output.RecommendedModality, output.DevelopmentSpecification );
             }
             /*
 
@@ -521,7 +523,7 @@ namespace Factories
             }
             if ( formatForSearch )
             {
-                output.Label = String.Format( "", output.ClusterAnalysisTitle, output.TrainingSolution, output.RecommendedModality );
+                //output.Label = String.Format( "", output.ClusterAnalysisTitle, output.TrainingSolution, output.RecommendedModality );
             }
             //handle nullables
             if ( input.TrainingSolutionTypeId != null )
