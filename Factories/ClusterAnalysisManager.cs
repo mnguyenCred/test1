@@ -296,7 +296,7 @@ namespace Factories
         /// </summary>
         /// <param name="entity"></param>
         /// <returns></returns>
-        public static AppEntity GetExisting( AppEntity entity )
+        public static AppEntity GetExisting( int id )
         {
             //just by rating task id for now
             var existing = new AppEntity();
@@ -306,7 +306,7 @@ namespace Factories
             using ( var context = new DataEntities() )
             {
                 var item = context.ClusterAnalysis
-                            .FirstOrDefault( s => s.RatingTaskId == entity.RatingTaskId );
+                            .FirstOrDefault( s => s.Id == id );
 
                 if ( item != null && item.Id > 0 )
                 {
@@ -315,20 +315,22 @@ namespace Factories
             }
             return existing;
         }
+
+        //TODO - Sigh, now a list
         public static AppEntity GetForUpload( Guid rowRatingTaskRowId )
         {
             var entity = new AppEntity();
 
-            using ( var context = new DataEntities() )
-            {
-                var item = context.ClusterAnalysis
-                            .FirstOrDefault( s => s.RatingTask.RowId == rowRatingTaskRowId );
+            //using ( var context = new DataEntities() )
+            //{
+            //    var item = context.ClusterAnalysis
+            //                .FirstOrDefault( s => s.RatingContext.RowId == rowRatingTaskRowId );
 
-                if ( item != null && item.Id > 0 )
-                {
-                    MapFromDB( item, entity );
-                }
-            }
+            //    if ( item != null && item.Id > 0 )
+            //    {
+            //        MapFromDB( item, entity );
+            //    }
+            //}
             return entity;
         }
         public static AppEntity Get( Guid rowId)

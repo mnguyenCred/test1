@@ -12,16 +12,13 @@ namespace Data.Tables
     using System;
     using System.Collections.Generic;
     
-    public partial class RatingTask_HasJob
+    public partial class ApplicationUserRole
     {
-        public int Id { get; set; }
-        public System.Guid RowId { get; set; }
-        public int RatingTaskId { get; set; }
-        public int JobId { get; set; }
-        public System.DateTime Created { get; set; }
-        public Nullable<int> CreatedById { get; set; }
+        public int UserId { get; set; }
+        public int RoleId { get; set; }
+        public Nullable<System.DateTime> Created { get; set; }
     
-        public virtual Job Job { get; set; }
-        public virtual RatingTask RatingTask { get; set; }
+        public virtual Account Account { get; set; }
+        public virtual ApplicationRole ApplicationRole { get; set; }
     }
 }

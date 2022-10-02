@@ -437,10 +437,11 @@ namespace Factories
 					var ratingTaskFilter = query.GetFilterByName( "navy:RatingTask" );
 					if ( ratingTaskFilter != null && ratingTaskFilter.ItemIds?.Count() > 0 )
 					{
-						//Need to handle the negation (i.e. work roles that are not associated with this task), but all work roles get returned since there are many rows for each rating, each with a different task ID.
-						//So get the work roles that do match first, then negate (or not). 
-						//There's probably a better way to do this.
-						var matchingWorkRoleIDs = context.RatingTask_WorkRole.Where( s => ratingTaskFilter.ItemIds.Contains( s.RatingTaskId ) ).Select( m => m.WorkRoleId ).Distinct().ToList();
+                        //Need to handle the negation (i.e. work roles that are not associated with this task), but all work roles get returned since there are many rows for each rating, each with a different task ID.
+                        //So get the work roles that do match first, then negate (or not). 
+                        //There's probably a better way to do this.
+                        //TODO - this would now use RatingContextId, so ratingTaskFilter would need to include the latter!!!
+                        var matchingWorkRoleIDs = context.RatingContext_WorkRole.Where( s => ratingTaskFilter.ItemIds.Contains( s.RatingContextId ) ).Select( m => m.WorkRoleId ).Distinct().ToList();
 						if ( ratingTaskFilter.IsNegation )
 						{
 							list = list.Where( s => !matchingWorkRoleIDs.Contains( s.Id ) );
@@ -449,15 +450,7 @@ namespace Factories
 						{
 							list = list.Where( s => matchingWorkRoleIDs.Contains( s.Id ) );
 						}
-						/*
-						list = list.Where( s =>
-							 s.RatingTask_HasJob.Where( t =>
-								  ratingTaskFilter.IsNegation ?
-									  !ratingTaskFilter.ItemIds.Contains( t.RatingTaskId ) :
-									  ratingTaskFilter.ItemIds.Contains( t.RatingTaskId )
-							 ).Count() > 0
-						);
-						*/
+
 					}
 
 					//Get total

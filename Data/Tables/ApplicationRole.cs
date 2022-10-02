@@ -18,6 +18,7 @@ namespace Data.Tables
         public ApplicationRole()
         {
             this.AppFunctionPermission = new HashSet<AppFunctionPermission>();
+            this.ApplicationUserRole = new HashSet<ApplicationUserRole>();
         }
     
         public int Id { get; set; }
@@ -26,5 +27,7 @@ namespace Data.Tables
     
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<AppFunctionPermission> AppFunctionPermission { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<ApplicationUserRole> ApplicationUserRole { get; set; }
     }
 }

@@ -12,19 +12,25 @@ namespace Data.Tables
     using System;
     using System.Collections.Generic;
     
-    public partial class Comment
+    public partial class RatingContextV2
     {
         public int Id { get; set; }
         public System.Guid RowId { get; set; }
-        public Nullable<int> RmtlProjectId { get; set; }
-        public System.Guid AppliesTo { get; set; }
-        public string Description { get; set; }
-        public Nullable<int> StatusTypeId { get; set; }
+        public int RatingId { get; set; }
+        public System.Guid RatingTaskId { get; set; }
+        public Nullable<System.Guid> BilletTitleId { get; set; }
+        public System.Guid PayGradeTypeId { get; set; }
+        public Nullable<System.Guid> TaskApplicabilityId { get; set; }
+        public Nullable<System.Guid> FormalTrainingGapId { get; set; }
+        public Nullable<System.Guid> TrainingTaskId { get; set; }
+        public Nullable<System.Guid> ClusterAnalysisId { get; set; }
+        public Nullable<int> TaskStatusId { get; set; }
+        public string CodedNotation { get; set; }
+        public string Notes { get; set; }
+        public string CTID { get; set; }
         public System.DateTime Created { get; set; }
         public Nullable<int> CreatedById { get; set; }
         public System.DateTime LastUpdated { get; set; }
         public Nullable<int> LastUpdatedById { get; set; }
-    
-        public virtual RMTLProject RMTLProject { get; set; }
     }
 }

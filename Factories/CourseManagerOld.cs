@@ -571,58 +571,59 @@ namespace Factories
             if ( input.LifeCycleControlDocumentTypeId != null )
             {
                 output.LifeCycleControlDocumentTypeId = ( int ) input.LifeCycleControlDocumentTypeId;
-                if ( input.ConceptScheme_Concept?.Id > 0 )
+                if ( input.LifeCycleControlDocument_Concept?.Id > 0 )
                 {
-                    output.LifeCycleControlDocument = input.ConceptScheme_Concept.Name;
-                    output.LifeCycleControlDocumentType = input.ConceptScheme_Concept.RowId;
+                    output.LifeCycleControlDocument = input.LifeCycleControlDocument_Concept.Name;
+                    output.LifeCycleControlDocumentType = input.LifeCycleControlDocument_Concept.RowId;
                 }
             }
             //
-            if ( input.CourseContext != null && input?.CourseContext?.Count > 0 && includingTrainingTasks )
+            if ( input?.Course_Task?.Count > 0 )
             {
                 if ( isSearchContext )
                 {
-                    output.Description = ( string.IsNullOrWhiteSpace( output.Description ) ? "" : output.Description + "<br/>" ) + string.Format( "Includes {0} training tasks.", input.CourseContext.Count );
+                    output.Description = (string.IsNullOrWhiteSpace( output.Description) ? "" : output.Description + "<br/>" ) + string.Format( "Includes {0} training tasks.", input.Course_Task.Count );
+                    //output.Name += String.Format( " (Training Tasks: {0})", input.Course_Task.Count );
                 }
-
+                
+                
                 if ( includingTrainingTasks )
                 {
-                    foreach ( var item in input.CourseContext )
+                    foreach ( var item in input.Course_Task )
                     {
-                        output.HasTrainingTask.Add( item.TrainingTask.RowId );
-                        //output.AssessmentMethods.Add( item.CourseContext_AssessmentType.Description );
+                        output.HasTrainingTask.Add( item.RowId );
+                        output.AssessmentMethods.Add( item.Description );
                         //really only need the text
-                        output.TrainingTasks.Add( TrainingTaskManager.MapFromDB( item.TrainingTask ) );
+                        output.TrainingTasks.Add( TrainingTaskManager.MapFromDB( item ) );
                     }
-                    //output.AssessmentMethods = output.AssessmentMethods.OrderBy( s => s ).ToList();
+                    output.AssessmentMethods = output.AssessmentMethods.OrderBy( s => s ).ToList();
                     output.TrainingTasks = output.TrainingTasks.OrderBy( s => s.Description ).ToList();
                 }
             }
-            //
-            //if ( input?.Course_Task?.Count > 0 )
-            //{
-            //    if ( isSearchContext )
-            //    {
-            //        output.Description = (string.IsNullOrWhiteSpace( output.Description) ? "" : output.Description + "<br/>" ) + string.Format( "Includes {0} training tasks.", input.Course_Task.Count );
-            //        //output.Name += String.Format( " (Training Tasks: {0})", input.Course_Task.Count );
-            //    }
-
-
-            //    if ( includingTrainingTasks )
-            //    {
-            //        foreach ( var item in input.Course_Task )
-            //        {
-            //            output.HasTrainingTask.Add( item.RowId );
-            //            output.AssessmentMethods.Add( item.Description );
-            //            //really only need the text
-            //            output.TrainingTasks.Add( TrainingTaskManager.MapFromDB( item ) );
-            //        }
-            //        output.AssessmentMethods = output.AssessmentMethods.OrderBy( s => s ).ToList();
-            //        output.TrainingTasks = output.TrainingTasks.OrderBy( s => s.Description ).ToList();
-            //    }
-            //}
         }
 
+		public static AppEntity GetForUpload( string courseName, string courseCodedNotation, Guid courseTypeRowID, Guid courseCCARowID )
+		{
+			var result = new AppEntity();
+
+			using ( var context = new DataEntities() )
+			{
+				var matches = context.Course.Where( m =>
+					 m.Name.ToLower() == courseName.ToLower() &&
+					 m.CodedNotation.ToLower() == courseCodedNotation.ToLower() &&
+					 m.Course_CourseType.Where( n => n.RowId == courseTypeRowID ).Count() > 0 &&
+					 context.Organization.Where( n => n.RowId == courseCCARowID && m.CurriculumControlAuthorityId == n.Id ).Count() > 0
+				);
+
+				var course = matches.FirstOrDefault();
+				if( course != null )
+				{
+					MapFromDB( course, result, false );
+				}
+			}
+
+			return result;
+		}
         #endregion
 
         /// <summary>

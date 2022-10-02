@@ -64,6 +64,7 @@
     <Compile Include="ClusterAnalysisTitleManager.cs" />
     <Compile Include="CodesManager.cs" />
     <Compile Include="ConceptSchemeManager.cs" />
+    <Compile Include="CourseContextManager.cs" />
     <Compile Include="CourseManager.cs" />
     <Compile Include="JobManager.cs" />
     <Compile Include="RatingContextManager.cs" />

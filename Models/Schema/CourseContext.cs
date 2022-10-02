@@ -11,9 +11,11 @@ namespace Models.Schema
 		public Guid HasTrainingTask { get; set; }
 		public Guid HasCourse { get; set; }
 		public Guid AssessmentMethodType { get; set; }
+		public List<Guid> AssessmentMethodTypes { get; set; } = new List<Guid>();
 
-		public int HasTrainingTaskId { get; set; }
+        public int HasTrainingTaskId { get; set; }
 		public int HasCourseId { get; set; }
+		//TODO - can this be a list - used to be
 		public int AssessmentMethodTypeId { get; set; }
 	}
 	//

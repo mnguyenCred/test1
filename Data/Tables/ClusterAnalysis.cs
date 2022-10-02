@@ -23,38 +23,30 @@ namespace Data.Tables
     
         public int Id { get; set; }
         public System.Guid RowId { get; set; }
-        public int RatingTaskId { get; set; }
         public Nullable<int> TrainingSolutionTypeId { get; set; }
-        public string ClusterAnalysisTitle { get; set; }
+        public Nullable<int> ClusterAnalysisTitleId { get; set; }
         public Nullable<int> RecommendedModalityId { get; set; }
         public Nullable<int> DevelopmentSpecificationId { get; set; }
-        public string CandidatePlatform { get; set; }
-        public string CFMPlacement { get; set; }
+        public Nullable<int> CFMPlacementId { get; set; }
         public Nullable<int> PriorityPlacement { get; set; }
         public string DevelopmentRatio { get; set; }
         public Nullable<decimal> EstimatedInstructionalTime { get; set; }
+        public Nullable<decimal> DevelopmentTime { get; set; }
         public string CTID { get; set; }
         public string Notes { get; set; }
         public System.DateTime Created { get; set; }
         public Nullable<int> CreatedById { get; set; }
         public System.DateTime LastUpdated { get; set; }
         public Nullable<int> LastUpdatedById { get; set; }
-        public string TrainingSolutionType { get; set; }
-        public string RecommendedModality { get; set; }
-        public string DevelopmentSpecification { get; set; }
-        public Nullable<int> CFMPlacementId { get; set; }
-        public Nullable<int> ClusterAnalysisTitleId { get; set; }
-        public Nullable<decimal> DevelopmentTime { get; set; }
     
-        public virtual ConceptScheme_Concept ConceptScheme_DevelopementSpec { get; set; }
-        public virtual RatingTask RatingTask { get; set; }
-        public virtual ConceptScheme_Concept ConceptScheme_RecommendedModality { get; set; }
-        public virtual ConceptScheme_Concept ConceptScheme_TrainingSolution { get; set; }
         public virtual ConceptScheme_Concept ConceptScheme_Concept { get; set; }
+        public virtual ClusterAnalysisTitle ClusterAnalysisTitle { get; set; }
+        public virtual ConceptScheme_Concept ConceptScheme_Concept1 { get; set; }
+        public virtual ConceptScheme_Concept ConceptScheme_Concept2 { get; set; }
+        public virtual ConceptScheme_Concept ConceptScheme_Concept3 { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<ClusterAnalysis_HasCandidatePlatform> ClusterAnalysis_HasCandidatePlatform { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<RatingContext> RatingContext { get; set; }
-        public virtual ClusterAnalysisTitle ClusterAnalysisTitle1 { get; set; }
     }
 }

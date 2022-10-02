@@ -14,13 +14,6 @@ namespace Data.Tables
     
     public partial class Entity
     {
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2214:DoNotCallOverridableMethodsInConstructors")]
-        public Entity()
-        {
-            this.Entity_Comment = new HashSet<Entity_Comment>();
-            this.Entity_Concept = new HashSet<Entity_Concept>();
-        }
-    
         public int Id { get; set; }
         public System.Guid EntityUid { get; set; }
         public int EntityTypeId { get; set; }
@@ -28,10 +21,5 @@ namespace Data.Tables
         public Nullable<int> EntityBaseId { get; set; }
         public string EntityBaseName { get; set; }
         public Nullable<System.DateTime> LastUpdated { get; set; }
-    
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<Entity_Comment> Entity_Comment { get; set; }
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<Entity_Concept> Entity_Concept { get; set; }
     }
 }

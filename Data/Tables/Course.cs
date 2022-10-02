@@ -17,9 +17,8 @@ namespace Data.Tables
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2214:DoNotCallOverridableMethodsInConstructors")]
         public Course()
         {
-            this.Course_Task = new HashSet<Course_Task>();
-            this.Course_CourseType = new HashSet<Course_CourseType>();
             this.CourseContext = new HashSet<CourseContext>();
+            this.Course_CourseType = new HashSet<Course_CourseType>();
         }
     
         public int Id { get; set; }
@@ -36,13 +35,11 @@ namespace Data.Tables
         public System.DateTime LastUpdated { get; set; }
         public byte[] RowVersion { get; set; }
     
-        public virtual ConceptScheme_Concept LifeCycleControlDocument_Concept { get; set; }
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<Course_Task> Course_Task { get; set; }
+        public virtual ConceptScheme_Concept ConceptScheme_Concept { get; set; }
         public virtual Organization Organization { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<Course_CourseType> Course_CourseType { get; set; }
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<CourseContext> CourseContext { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<Course_CourseType> Course_CourseType { get; set; }
     }
 }

@@ -393,24 +393,17 @@ namespace Factories
 						//Need to handle the negation (i.e. billet titles that are not associated with this task), but all billet titles get returned since there are many rows for each rating, each with a different task ID.
 						//So get the billet titles that do match first, then negate (or not). 
 						//There's probably a better way to do this.
-						var matchingBilletTitleIDs = context.RatingTask_HasJob.Where( s => ratingTaskFilter.ItemIds.Contains( s.RatingTaskId ) ).Select( m => m.JobId ).Distinct().ToList();
-						if ( ratingTaskFilter.IsNegation )
-						{
-							list = list.Where( s => !matchingBilletTitleIDs.Contains( s.Id ) );
-						}
-						else
-						{
-							list = list.Where( s => matchingBilletTitleIDs.Contains( s.Id ) );
-						}
-						/*
-						list = list.Where( s =>
-							 s.RatingTask_HasJob.Where( t =>
-								  ratingTaskFilter.IsNegation ?
-									  !ratingTaskFilter.ItemIds.Contains( t.RatingTaskId ) :
-									  ratingTaskFilter.ItemIds.Contains( t.RatingTaskId )
-							 ).Count() > 0
-						);
-						*/
+                        //TODO
+						//var matchingBilletTitleIDs = context.RatingTask_HasJob.Where( s => ratingTaskFilter.ItemIds.Contains( s.RatingTaskId ) ).Select( m => m.JobId ).Distinct().ToList();
+						//if ( ratingTaskFilter.IsNegation )
+						//{
+						//	list = list.Where( s => !matchingBilletTitleIDs.Contains( s.Id ) );
+						//}
+						//else
+						//{
+						//	list = list.Where( s => matchingBilletTitleIDs.Contains( s.Id ) );
+						//}
+
 					}
 
 					//Get total

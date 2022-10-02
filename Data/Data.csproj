@@ -83,6 +83,9 @@
     <Compile Include="Tables\ApplicationRole.cs">
       <DependentUpon>NavyRRLTables.tt</DependentUpon>
     </Compile>
+    <Compile Include="Tables\ApplicationUserRole.cs">
+      <DependentUpon>NavyRRLTables.tt</DependentUpon>
+    </Compile>
     <Compile Include="Tables\AspNetRoles.cs">
       <DependentUpon>NavyRRLTables.tt</DependentUpon>
     </Compile>
@@ -101,9 +104,6 @@
     <Compile Include="Tables\ClusterAnalysis_HasCandidatePlatform.cs">
       <DependentUpon>NavyRRLTables.tt</DependentUpon>
     </Compile>
-    <Compile Include="Tables\Comment.cs">
-      <DependentUpon>NavyRRLTables.tt</DependentUpon>
-    </Compile>
     <Compile Include="Tables\ConceptScheme.cs">
       <DependentUpon>NavyRRLTables.tt</DependentUpon>
     </Compile>
@@ -116,28 +116,16 @@
     <Compile Include="Tables\CourseContext.cs">
       <DependentUpon>NavyRRLTables.tt</DependentUpon>
     </Compile>
-    <Compile Include="Tables\CourseTask_AssessmentType.cs">
+    <Compile Include="Tables\CourseContext_AssessmentType.cs">
       <DependentUpon>NavyRRLTables.tt</DependentUpon>
     </Compile>
     <Compile Include="Tables\Course_CourseType.cs">
       <DependentUpon>NavyRRLTables.tt</DependentUpon>
     </Compile>
-    <Compile Include="Tables\Course_Task.cs">
-      <DependentUpon>NavyRRLTables.tt</DependentUpon>
-    </Compile>
     <Compile Include="Tables\Entity.cs">
       <DependentUpon>NavyRRLTables.tt</DependentUpon>
     </Compile>
-    <Compile Include="Tables\Entity_Comment.cs">
-      <DependentUpon>NavyRRLTables.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Tables\Entity_Concept.cs">
-      <DependentUpon>NavyRRLTables.tt</DependentUpon>
-    </Compile>
     <Compile Include="Tables\ImportRMTL.cs">
-      <DependentUpon>NavyRRLTables.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Tables\Import_RMTLStaging.cs">
       <DependentUpon>NavyRRLTables.tt</DependentUpon>
     </Compile>
     <Compile Include="Tables\Job.cs">
@@ -167,22 +155,13 @@
     <Compile Include="Tables\RatingContext.cs">
       <DependentUpon>NavyRRLTables.tt</DependentUpon>
     </Compile>
+    <Compile Include="Tables\RatingContextV2.cs">
+      <DependentUpon>NavyRRLTables.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Tables\RatingContext_WorkRole.cs">
+      <DependentUpon>NavyRRLTables.tt</DependentUpon>
+    </Compile>
     <Compile Include="Tables\RatingTask.cs">
-      <DependentUpon>NavyRRLTables.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Tables\RatingTask_HasJob.cs">
-      <DependentUpon>NavyRRLTables.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Tables\RatingTask_HasRating.cs">
-      <DependentUpon>NavyRRLTables.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Tables\RatingTask_HasRatingContext.cs">
-      <DependentUpon>NavyRRLTables.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Tables\RatingTask_HasTrainingTask.cs">
-      <DependentUpon>NavyRRLTables.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Tables\RatingTask_WorkRole.cs">
       <DependentUpon>NavyRRLTables.tt</DependentUpon>
     </Compile>
     <Compile Include="Tables\ReferenceResource.cs">
@@ -192,12 +171,6 @@
       <DependentUpon>NavyRRLTables.tt</DependentUpon>
     </Compile>
     <Compile Include="Tables\RMTLProject.cs">
-      <DependentUpon>NavyRRLTables.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Tables\RmtlProject_Billet.cs">
-      <DependentUpon>NavyRRLTables.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Tables\RmtlProject_BilletTask.cs">
       <DependentUpon>NavyRRLTables.tt</DependentUpon>
     </Compile>
     <Compile Include="Tables\System_ProxyCodes.cs">

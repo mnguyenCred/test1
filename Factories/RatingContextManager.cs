@@ -286,7 +286,7 @@ namespace Factories
             //
             if ( IsValidGuid( input.PayGradeType ) )
             {
-                var currentRankId = output.RankId;
+               // var currentRankId = output.RankId;
                // var currentLevelId = output.LevelId;
                 //
                 //var concept = ConceptSchemeManager.GetConcept( input.PayGradeType );
@@ -304,7 +304,7 @@ namespace Factories
             }
             else
             {
-                output.RankId = 0;
+               // output.RankId = 0;
             }
             //TaskApplicability
             if ( IsValidGuid( input.ApplicabilityType ) )

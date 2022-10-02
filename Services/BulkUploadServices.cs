@@ -172,6 +172,8 @@ namespace Services
 						
 						parent.LastUpdatedById = user.Id;
 						parent.TrainingTasks.AddRange( results );
+						//ugh
+						//have to create courseContextas part of the training update
 						trainTaskMgr.SaveList( parent, ref summary );
 					}
 					//foreach ( var item in summary.ItemsToBeCreated.TrainingTask )

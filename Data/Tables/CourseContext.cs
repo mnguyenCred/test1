@@ -14,16 +14,24 @@ namespace Data.Tables
     
     public partial class CourseContext
     {
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2214:DoNotCallOverridableMethodsInConstructors")]
+        public CourseContext()
+        {
+            this.CourseContext_AssessmentType = new HashSet<CourseContext_AssessmentType>();
+        }
+    
         public int Id { get; set; }
         public System.Guid RowId { get; set; }
-        public int CourseId { get; set; }
-        public Nullable<int> TrainingTaskId { get; set; }
+        public int HasCourseId { get; set; }
+        public int HasTrainingTaskId { get; set; }
         public System.DateTime Created { get; set; }
         public Nullable<int> CreatedById { get; set; }
         public System.DateTime LastUpdated { get; set; }
         public Nullable<int> LastUpdatedById { get; set; }
     
         public virtual Course Course { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<CourseContext_AssessmentType> CourseContext_AssessmentType { get; set; }
         public virtual TrainingTask TrainingTask { get; set; }
     }
 }

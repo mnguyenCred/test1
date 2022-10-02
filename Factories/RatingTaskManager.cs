@@ -265,153 +265,154 @@ namespace Factories
         public bool TrainingTaskUpdate( AppEntity input, ref ChangeSummary status, bool fromUpload )
         {
             status.HasSectionErrors = false;
-            var efEntity = new Data.Tables.RatingTask_HasTrainingTask();
-            var entityType = "RatingTask_HasTrainingTask";
-            using ( var context = new DataEntities() )
-            {
-                try
-                {
-                    if ( input.HasTrainingTask == null )
-                        input.HasTrainingTask = new List<Guid>();
+            return true;
+            //var efEntity = new Data.Tables.RatingTask_HasTrainingTask();
+            //var entityType = "RatingTask_HasTrainingTask";
+            //using ( var context = new DataEntities() )
+            //{
+            //    try
+            //    {
+            //        if ( input.HasTrainingTask == null )
+            //            input.HasTrainingTask = new List<Guid>();
 
-                    //if ( input.HasTrainingTaskList?.Count == 0 )
-                    //{
-                    //    //temp handling of old approach
-                    //    if ( IsValidGuid( input.HasTrainingTask ))
-                    //    {
-                    //        input.HasTrainingTaskList.Add( input.HasTrainingTask );
-                    //    }
-                    //    else 
-                    //        input.HasTrainingTaskList = new List<Guid>();
-                    //}
-                    //get existing
-                    //should include current rating
-                    //if not fromUpload, there will not be a current rating
-                    var results =   from hasTrainingTask in context.RatingTask_HasTrainingTask
-                                    join task in context.Course_Task
-                                        on hasTrainingTask.TrainingTaskId equals task.Id
-                                    join hasRating in context.RatingTask_HasRating
-                                        on hasTrainingTask.RatingTaskId equals hasRating.RatingTaskId
-                                    join rating in context.Rating
-                                          on hasRating.RatingId equals rating.Id
-                                    where hasTrainingTask.RatingTaskId == input.Id
-                                    && ( input.CurrentRatingCode.Length > 0 ? true : rating.CodedNotation.ToLower() == input.CurrentRatingCode.ToLower() 
-                                        || !fromUpload ) //don't really need this now?
+            //        //if ( input.HasTrainingTaskList?.Count == 0 )
+            //        //{
+            //        //    //temp handling of old approach
+            //        //    if ( IsValidGuid( input.HasTrainingTask ))
+            //        //    {
+            //        //        input.HasTrainingTaskList.Add( input.HasTrainingTask );
+            //        //    }
+            //        //    else 
+            //        //        input.HasTrainingTaskList = new List<Guid>();
+            //        //}
+            //        //get existing
+            //        //should include current rating
+            //        //if not fromUpload, there will not be a current rating
+            //        var results =   from hasTrainingTask in context.RatingTask_HasTrainingTask
+            //                        join task in context.Course_Task
+            //                            on hasTrainingTask.TrainingTaskId equals task.Id
+            //                        join hasRating in context.RatingTask_HasRating
+            //                            on hasTrainingTask.RatingTaskId equals hasRating.RatingTaskId
+            //                        join rating in context.Rating
+            //                              on hasRating.RatingId equals rating.Id
+            //                        where hasTrainingTask.RatingTaskId == input.Id
+            //                        && ( input.CurrentRatingCode.Length > 0 ? true : rating.CodedNotation.ToLower() == input.CurrentRatingCode.ToLower() 
+            //                            || !fromUpload ) //don't really need this now?
 
-                                    select task;
-                    var existing = results?.ToList();
-                    #region deletes check
-                    if ( existing.Any() )
-                    {
-                        //if exists not in input, delete it
-                        foreach ( var e in existing )
-                        {
-                            var key = e.RowId;
-                            if ( IsValidGuid( key ) )
-                            {
-                                //if from upload, will be for a single rating, so if current is not in existing 
-                                if ( fromUpload && !input.HasTrainingTask.Contains( ( Guid ) key ) )
-                                {
-                                    //now with the rating check, can probably do a delete?
-                                    DeleteRatingTaskTrainingTask( input.Id, e.Id, ref status );
-                                }
-                            }
-                        }
-                    }
-                    #endregion
-                    //adds
-                    if ( input.HasTrainingTask != null )
-                    {
-                        foreach ( var child in input.HasTrainingTask )
-                        {
-                            //if not in existing, then add
-                            bool doingAdd = true;
-                            if ( existing?.Count > 0 )
-                            {
-                                var isfound = existing.Select( s => s.RowId == child ).ToList();
-                                if ( isfound.Any() )
-                                    doingAdd = false;
-                            }
-                            if ( doingAdd )
-                            {
-                                var related = TrainingTaskManager.Get( child );
-                                if ( related?.Id > 0 )
-                                {
-                                    //ReferenceConceptAdd( input, concept.Id, input.LastUpdatedById, ref status );
-                                    efEntity.RatingTaskId = input.Id;
-                                    efEntity.TrainingTaskId = related.Id;
-                                    efEntity.RowId = Guid.NewGuid();
-                                    efEntity.CreatedById = input.LastUpdatedById;
-                                    efEntity.Created = DateTime.Now;
+            //                        select task;
+            //        var existing = results?.ToList();
+            //        #region deletes check
+            //        if ( existing.Any() )
+            //        {
+            //            //if exists not in input, delete it
+            //            foreach ( var e in existing )
+            //            {
+            //                var key = e.RowId;
+            //                if ( IsValidGuid( key ) )
+            //                {
+            //                    //if from upload, will be for a single rating, so if current is not in existing 
+            //                    if ( fromUpload && !input.HasTrainingTask.Contains( ( Guid ) key ) )
+            //                    {
+            //                        //now with the rating check, can probably do a delete?
+            //                        DeleteRatingTaskTrainingTask( input.Id, e.Id, ref status );
+            //                    }
+            //                }
+            //            }
+            //        }
+            //        #endregion
+            //        //adds
+            //        if ( input.HasTrainingTask != null )
+            //        {
+            //            foreach ( var child in input.HasTrainingTask )
+            //            {
+            //                //if not in existing, then add
+            //                bool doingAdd = true;
+            //                if ( existing?.Count > 0 )
+            //                {
+            //                    var isfound = existing.Select( s => s.RowId == child ).ToList();
+            //                    if ( isfound.Any() )
+            //                        doingAdd = false;
+            //                }
+            //                if ( doingAdd )
+            //                {
+            //                    var related = TrainingTaskManager.Get( child );
+            //                    if ( related?.Id > 0 )
+            //                    {
+            //                        //ReferenceConceptAdd( input, concept.Id, input.LastUpdatedById, ref status );
+            //                        efEntity.RatingTaskId = input.Id;
+            //                        efEntity.TrainingTaskId = related.Id;
+            //                        efEntity.RowId = Guid.NewGuid();
+            //                        efEntity.CreatedById = input.LastUpdatedById;
+            //                        efEntity.Created = DateTime.Now;
 
-                                    context.RatingTask_HasTrainingTask.Add( efEntity );
+            //                        context.RatingTask_HasTrainingTask.Add( efEntity );
 
-                                    // submit the change to database
-                                    int count = context.SaveChanges();
-                                    if ( count > 0 )
-                                    {
-                                        SiteActivity sa = new SiteActivity()
-                                        {
-                                            ActivityType = "RatingTask TrainingTask",
-                                            Activity = status.Action,
-                                            Event = "Add",
-                                            Comment = string.Format( "RatingTask TrainingTask was added. Name: {0}", FormatLongLabel( related.Description ) ),
-                                            ActionByUserId = input.LastUpdatedById,
-                                            ActivityObjectId = input.Id
-                                        };
-                                        new ActivityManager().SiteActivityAdd( sa );
+            //                        // submit the change to database
+            //                        int count = context.SaveChanges();
+            //                        if ( count > 0 )
+            //                        {
+            //                            SiteActivity sa = new SiteActivity()
+            //                            {
+            //                                ActivityType = "RatingTask TrainingTask",
+            //                                Activity = status.Action,
+            //                                Event = "Add",
+            //                                Comment = string.Format( "RatingTask TrainingTask was added. Name: {0}", FormatLongLabel( related.Description ) ),
+            //                                ActionByUserId = input.LastUpdatedById,
+            //                                ActivityObjectId = input.Id
+            //                            };
+            //                            new ActivityManager().SiteActivityAdd( sa );
 
-                                    }
-                                }
-                                else
-                                {
-                                    status.AddError( String.Format( "Error. For RatingTask: '{0}' ({1} code: {2}) a HasTrainingTask was not found for Identifier: {3}", FormatLongLabel( input.Description ), input.Id, input.CodedNotation, child ) );
-                                }
-                            }
-                        }
-                        //
-                        return true;
-                    }
-                }
-                catch ( Exception ex )
-                {
-                    string message = FormatExceptions( ex );
-                    LoggingHelper.LogError( ex, thisClassName + string.Format( ".HasTrainingTaskUpdate-'{0}', RatingTask: '{1}' ({2})", entityType, FormatLongLabel( input.Description ), input.Id ) );
-                    status.AddError( thisClassName + ".HasTrainingTaskUpdate(). Error - the save was not successful. \r\n" + message );
-                }
-            }
-            return false;
+            //                        }
+            //                    }
+            //                    else
+            //                    {
+            //                        status.AddError( String.Format( "Error. For RatingTask: '{0}' ({1} code: {2}) a HasTrainingTask was not found for Identifier: {3}", FormatLongLabel( input.Description ), input.Id, input.CodedNotation, child ) );
+            //                    }
+            //                }
+            //            }
+            //            //
+            //            return true;
+            //        }
+            //    }
+            //    catch ( Exception ex )
+            //    {
+            //        string message = FormatExceptions( ex );
+            //        LoggingHelper.LogError( ex, thisClassName + string.Format( ".HasTrainingTaskUpdate-'{0}', RatingTask: '{1}' ({2})", entityType, FormatLongLabel( input.Description ), input.Id ) );
+            //        status.AddError( thisClassName + ".HasTrainingTaskUpdate(). Error - the save was not successful. \r\n" + message );
+            //    }
+            //}
+            //return false;
         }
 
         public bool DeleteRatingTaskTrainingTask( int ratingTaskId, int trainingTaskId, ref ChangeSummary status )
         {
-            bool isValid = false;
+            bool isValid = true;
             if ( trainingTaskId == 0 )
             {
                 //statusMessage = "Error - missing an identifier for the HasTrainingTask to remove";
                 return false;
             }
 
-            using ( var context = new DataEntities() )
-            {
-                var efEntity = context.RatingTask_HasTrainingTask
-                                .FirstOrDefault( s => s.RatingTaskId == ratingTaskId && s.TrainingTaskId == trainingTaskId );
+            //using ( var context = new DataEntities() )
+            //{
+            //    var efEntity = context.RatingTask_HasTrainingTask
+            //                    .FirstOrDefault( s => s.RatingTaskId == ratingTaskId && s.TrainingTaskId == trainingTaskId );
 
-                if ( efEntity != null && efEntity.Id > 0 )
-                {
-                    context.RatingTask_HasTrainingTask.Remove( efEntity );
-                    int count = context.SaveChanges();
-                    if ( count > 0 )
-                    {
-                        isValid = true;
-                    }
-                }
-                else
-                {
-                    //statusMessage = "Warning - the record was not found - probably because the target had been previously deleted";
-                    isValid = true;
-                }
-            }
+            //    if ( efEntity != null && efEntity.Id > 0 )
+            //    {
+            //        context.RatingTask_HasTrainingTask.Remove( efEntity );
+            //        int count = context.SaveChanges();
+            //        if ( count > 0 )
+            //        {
+            //            isValid = true;
+            //        }
+            //    }
+            //    else
+            //    {
+            //        //statusMessage = "Warning - the record was not found - probably because the target had been previously deleted";
+            //        isValid = true;
+            //    }
+            //}
 
             return isValid;
         }
@@ -421,274 +422,267 @@ namespace Factories
         public bool WorkRoleUpdate( AppEntity input, ref ChangeSummary status )
         {
             status.HasSectionErrors = false;
-            var efEntity = new Data.Tables.RatingTask_WorkRole();
-            var entityType = "RatingTask_WorkRole";
-            using ( var context = new DataEntities() )
-            {
-                try
-                {
-                    if ( input.HasWorkRole?.Count == 0 )
-                        input.HasWorkRole = new List<Guid>();
-                    var results =
-                                    from entity in context.RatingTask_WorkRole
-                                    join related in context.WorkRole
-                                    on entity.WorkRoleId equals related.Id
-                                    where entity.RatingTaskId == input.Id
+            //var efEntity = new Data.Tables.RatingTask_WorkRole();
+            //var entityType = "RatingTask_WorkRole";
+            //using ( var context = new DataEntities() )
+            //{
+            //    try
+            //    {
+            //        if ( input.HasWorkRole?.Count == 0 )
+            //            input.HasWorkRole = new List<Guid>();
+            //        var results =
+            //                        from entity in context.RatingTask_WorkRole
+            //                        join related in context.WorkRole
+            //                        on entity.WorkRoleId equals related.Id
+            //                        where entity.RatingTaskId == input.Id
 
-                                    select related;
-                    var existing = results?.ToList();
-                    #region deletes check
-                    if ( existing.Any() )
-                    {
-                        //if exists not in input, delete it
-                        foreach ( var e in existing )
-                        {
-                            var key = e.RowId;
-                            if ( IsValidGuid( key ) )
-                            {
-                                if ( !input.HasWorkRole.Contains( ( Guid ) key ) )
-                                {
-                                    //DeleteRatingTaskWorkRole( input.Id, e.Id, ref status );
-                                }
-                            }
-                        }
-                    }
-                    #endregion
-                    //adds
-                    if ( input.HasWorkRole != null )
-                    {
-                        foreach ( var child in input.HasWorkRole )
-                        {
-                            //if not in existing, then add
-                            bool doingAdd = true;
-                            if ( existing?.Count > 0 )
-                            {
-                                var isfound = existing.Select( s => s.RowId == child ).ToList();
-                                if ( isfound.Any() )
-                                    doingAdd = false;
-                            }
-                            if ( doingAdd )
-                            {
-                                var related = WorkRoleManager.Get( child );
-                                if ( related?.Id > 0 )
-                                {
-                                    //ReferenceConceptAdd( input, concept.Id, input.LastUpdatedById, ref status );
-                                    efEntity.RatingTaskId = input.Id;
-                                    efEntity.WorkRoleId = related.Id;
-                                    efEntity.RowId = Guid.NewGuid();
-                                    efEntity.CreatedById = input.LastUpdatedById;
-                                    efEntity.Created = DateTime.Now;
+            //                        select related;
+            //        var existing = results?.ToList();
+            //        #region deletes check
+            //        if ( existing.Any() )
+            //        {
+            //            //if exists not in input, delete it
+            //            foreach ( var e in existing )
+            //            {
+            //                var key = e.RowId;
+            //                if ( IsValidGuid( key ) )
+            //                {
+            //                    if ( !input.HasWorkRole.Contains( ( Guid ) key ) )
+            //                    {
+            //                        //DeleteRatingTaskWorkRole( input.Id, e.Id, ref status );
+            //                    }
+            //                }
+            //            }
+            //        }
+            //        #endregion
+            //        //adds
+            //        if ( input.HasWorkRole != null )
+            //        {
+            //            foreach ( var child in input.HasWorkRole )
+            //            {
+            //                //if not in existing, then add
+            //                bool doingAdd = true;
+            //                if ( existing?.Count > 0 )
+            //                {
+            //                    var isfound = existing.Select( s => s.RowId == child ).ToList();
+            //                    if ( isfound.Any() )
+            //                        doingAdd = false;
+            //                }
+            //                if ( doingAdd )
+            //                {
+            //                    var related = WorkRoleManager.Get( child );
+            //                    if ( related?.Id > 0 )
+            //                    {
+            //                        //ReferenceConceptAdd( input, concept.Id, input.LastUpdatedById, ref status );
+            //                        efEntity.RatingTaskId = input.Id;
+            //                        efEntity.WorkRoleId = related.Id;
+            //                        efEntity.RowId = Guid.NewGuid();
+            //                        efEntity.CreatedById = input.LastUpdatedById;
+            //                        efEntity.Created = DateTime.Now;
 
-                                    context.RatingTask_WorkRole.Add( efEntity );
+            //                        context.RatingTask_WorkRole.Add( efEntity );
 
-                                    // submit the change to database
-                                    int count = context.SaveChanges();
-                                    if ( count > 0 )
-                                    {
-                                        SiteActivity sa = new SiteActivity()
-                                        {
-                                            ActivityType = "RatingTask WorkRole",
-                                            Activity = status.Action,
-                                            Event = "Add",
-                                            Comment = string.Format( "RatingTask WorkRole was added. Name: {0}", related.Name ),
-                                            ActionByUserId = input.LastUpdatedById,
-                                            ActivityObjectId = input.Id
-                                        };
-                                        new ActivityManager().SiteActivityAdd( sa );
+            //                        // submit the change to database
+            //                        int count = context.SaveChanges();
+            //                        if ( count > 0 )
+            //                        {
+            //                            SiteActivity sa = new SiteActivity()
+            //                            {
+            //                                ActivityType = "RatingTask WorkRole",
+            //                                Activity = status.Action,
+            //                                Event = "Add",
+            //                                Comment = string.Format( "RatingTask WorkRole was added. Name: {0}", related.Name ),
+            //                                ActionByUserId = input.LastUpdatedById,
+            //                                ActivityObjectId = input.Id
+            //                            };
+            //                            new ActivityManager().SiteActivityAdd( sa );
                                        
-                                    }
-                                }
-                                else
-                                {
-                                    status.AddError( String.Format( "Error. For RatingTask: '{0}' ({1}) a HasWorkRole was not found for Identifier: {2}", FormatLongLabel(input.Description), input.Id, child ) );
-                                }
-                            }
-                        }
-                        //
-                        return true;
-                    }
-                }
-                catch ( Exception ex )
-                {
-                    string message = FormatExceptions( ex );
-                    LoggingHelper.LogError( ex, thisClassName + string.Format( ".HasWorkRoleUpdate-'{0}', RatingTask: '{1}' ({2})", entityType, FormatLongLabel( input.Description ), input.Id ) );
-                    status.AddError( thisClassName + ".HasWorkRoleUpdate(). Error - the save was not successful. \r\n" + message );
-                }
-            }
-            return false;
+            //                        }
+            //                    }
+            //                    else
+            //                    {
+            //                        status.AddError( String.Format( "Error. For RatingTask: '{0}' ({1}) a HasWorkRole was not found for Identifier: {2}", FormatLongLabel(input.Description), input.Id, child ) );
+            //                    }
+            //                }
+            //            }
+            //            //
+            //            return true;
+            //        }
+            //    }
+            //    catch ( Exception ex )
+            //    {
+            //        string message = FormatExceptions( ex );
+            //        LoggingHelper.LogError( ex, thisClassName + string.Format( ".HasWorkRoleUpdate-'{0}', RatingTask: '{1}' ({2})", entityType, FormatLongLabel( input.Description ), input.Id ) );
+            //        status.AddError( thisClassName + ".HasWorkRoleUpdate(). Error - the save was not successful. \r\n" + message );
+            //    }
+            //}
+            return true;
         }
         public bool DeleteRatingTaskWorkRole( int ratingTaskId, int workRoleId, ref ChangeSummary status )
         {
-            bool isValid = false;
+            bool isValid = true;
             if ( workRoleId == 0 )
             {
                 //statusMessage = "Error - missing an identifier for the RatingTaskWorkRole( to remove";
                 return false;
             }
 
-            using ( var context = new DataEntities() )
-            {
-                var efEntity = context.RatingTask_WorkRole
-                                .FirstOrDefault( s => s.RatingTaskId == ratingTaskId && s.WorkRoleId == workRoleId );
+            //using ( var context = new DataEntities() )
+            //{
+            //    var efEntity = context.RatingTask_WorkRole
+            //                    .FirstOrDefault( s => s.RatingTaskId == ratingTaskId && s.WorkRoleId == workRoleId );
 
-                if ( efEntity != null && efEntity.Id > 0 )
-                {
-                    context.RatingTask_WorkRole.Remove( efEntity );
-                    int count = context.SaveChanges();
-                    if ( count > 0 )
-                    {
-                        isValid = true;
-                    }
-                }
-                else
-                {
-                    //statusMessage = "Warning - the record was not found - probably because the target had been previously deleted";
-                    isValid = true;
-                }
-            }
+            //    if ( efEntity != null && efEntity.Id > 0 )
+            //    {
+            //        context.RatingTask_WorkRole.Remove( efEntity );
+            //        int count = context.SaveChanges();
+            //        if ( count > 0 )
+            //        {
+            //            isValid = true;
+            //        }
+            //    }
+            //    else
+            //    {
+            //        //statusMessage = "Warning - the record was not found - probably because the target had been previously deleted";
+            //        isValid = true;
+            //    }
+            //}
 
             return isValid;
         }
         #endregion
-        public bool HasRatingContextUpdate( AppEntity input, ref ChangeSummary status )
-        {
-            status.HasSectionErrors = false;
-            var efEntity = new Data.Tables.RatingTask_HasRatingContext();
-            var entityType = "RatingTask_HasRatingContext";
-            
-            return false;
-        }
+
 
         public bool HasRatingUpdate( AppEntity input, ref ChangeSummary status )
         {
             status.HasSectionErrors = false;
-            var efEntity = new Data.Tables.RatingTask_HasRating();
-            var entityType = "RatingTask_HasRating";
-            using ( var context = new DataEntities() )
-            {
-                try
-                {
-                    if ( input.HasRating?.Count == 0 )
-                        input.HasRating = new List<Guid>();
-                    var results =
-                                    from entity in context.RatingTask_HasRating
-                                    join related in context.Rating
-                                    on entity.RatingId equals related.Id
-                                    where entity.RatingTaskId == input.Id
+       //     var efEntity = new Data.Tables.RatingTask_HasRating();
+       //     var entityType = "RatingTask_HasRating";
+       //     using ( var context = new DataEntities() )
+       //     {
+       //         try
+       //         {
+       //             if ( input.HasRating?.Count == 0 )
+       //                 input.HasRating = new List<Guid>();
+       //             var results =
+       //                             from entity in context.RatingTask_HasRating
+       //                             join related in context.Rating
+       //                             on entity.RatingId equals related.Id
+       //                             where entity.RatingTaskId == input.Id
 
-                                    select related;
-                    var existing = results?.ToList();
-                    #region deletes check
-                    if ( existing.Any() )
-                    {
-                        //if exists not in input, delete it
-                        foreach ( var e in existing )
-                        {
-                            var key = e.RowId;
-                            if ( IsValidGuid( key ) )
-                            {
-                                if ( !input.HasRating.Contains( ( Guid ) key ) )
-                                {
-                                    //DeleteRatingTaskHasRating( input.Id, e.Id, ref status );
-                                }
-                            }
-                        }
-                    }
-                    #endregion
-                    //adds
-                    if ( input.HasRating != null )
-                    {
-                        foreach ( var child in input.HasRating )
-                        {
-                            //if not in existing, then add
-							/*
-                            bool doingAdd = true;
-                            if ( existing?.Count > 0 )
-                            {
-                                var isfound = existing.Select( s => s.RowId == child ).ToList();
-                                if ( isfound.Any() )
-                                    doingAdd = false;
-                            }
-							*/
-							if( existing.Where( s => s.RowId == child ).Count() == 0 ) //Not sure why .Select() always returns at least one value but .Where() does not
-                            //if ( doingAdd )
-                            {
-                                var related = RatingManager.Get( child );
-                                if ( related?.Id > 0 )
-                                {
-                                    //ReferenceConceptAdd( input, concept.Id, input.LastUpdatedById, ref status );
-                                    efEntity.RatingTaskId = input.Id;
-                                    efEntity.RatingId = related.Id;
-                                    efEntity.RowId = Guid.NewGuid();
-                                    efEntity.CreatedById = input.LastUpdatedById;
-                                    efEntity.Created = DateTime.Now;
+       //                             select related;
+       //             var existing = results?.ToList();
+       //             #region deletes check
+       //             if ( existing.Any() )
+       //             {
+       //                 //if exists not in input, delete it
+       //                 foreach ( var e in existing )
+       //                 {
+       //                     var key = e.RowId;
+       //                     if ( IsValidGuid( key ) )
+       //                     {
+       //                         if ( !input.HasRating.Contains( ( Guid ) key ) )
+       //                         {
+       //                             //DeleteRatingTaskHasRating( input.Id, e.Id, ref status );
+       //                         }
+       //                     }
+       //                 }
+       //             }
+       //             #endregion
+       //             //adds
+       //             if ( input.HasRating != null )
+       //             {
+       //                 foreach ( var child in input.HasRating )
+       //                 {
+       //                     //if not in existing, then add
+							///*
+       //                     bool doingAdd = true;
+       //                     if ( existing?.Count > 0 )
+       //                     {
+       //                         var isfound = existing.Select( s => s.RowId == child ).ToList();
+       //                         if ( isfound.Any() )
+       //                             doingAdd = false;
+       //                     }
+							//*/
+							//if( existing.Where( s => s.RowId == child ).Count() == 0 ) //Not sure why .Select() always returns at least one value but .Where() does not
+       //                     //if ( doingAdd )
+       //                     {
+       //                         var related = RatingManager.Get( child );
+       //                         if ( related?.Id > 0 )
+       //                         {
+       //                             //ReferenceConceptAdd( input, concept.Id, input.LastUpdatedById, ref status );
+       //                             efEntity.RatingTaskId = input.Id;
+       //                             efEntity.RatingId = related.Id;
+       //                             efEntity.RowId = Guid.NewGuid();
+       //                             efEntity.CreatedById = input.LastUpdatedById;
+       //                             efEntity.Created = DateTime.Now;
 
-                                    context.RatingTask_HasRating.Add( efEntity );
+       //                             context.RatingTask_HasRating.Add( efEntity );
 
-                                    // submit the change to database
-                                    int count = context.SaveChanges();
-                                    if ( count > 0 )
-                                    {
-                                        SiteActivity sa = new SiteActivity()
-                                        {
-                                            ActivityType = "RatingTask HasRating",
-                                            Activity = status.Action,
-                                            Event = "Add",
-                                            Comment = string.Format( "RatingTask Rating was added. Name: {0}", related.Name ),
-                                            ActionByUserId = input.LastUpdatedById,
-                                            ActivityObjectId = input.Id
-                                        };
-                                        new ActivityManager().SiteActivityAdd( sa );
-                                        //                                       
-                                    }
-                                }
-                                else
-                                {
-                                    status.AddError( String.Format( "Error. For RatingTask: '{0}' ({1}) a HasRating was not found for Identifier: {2}", FormatLongLabel( input.Description ), input.Id, child ) );
-                                }
-                            }
-                        }
-                        return true;
-                    }
-                }
-                catch ( Exception ex )
-                {
-                    string message = FormatExceptions( ex );
-                    LoggingHelper.LogError( ex, thisClassName + string.Format( ".HasRatingUpdate-'{0}', RatingTask: '{1}' ({2})", entityType, FormatLongLabel( input.Description ), input.Id ) );
-                    status.AddError( thisClassName + ".HasRatingUpdate(). Error - the save was not successful. \r\n" + message );
-                }
-            }
-            return false;
+       //                             // submit the change to database
+       //                             int count = context.SaveChanges();
+       //                             if ( count > 0 )
+       //                             {
+       //                                 SiteActivity sa = new SiteActivity()
+       //                                 {
+       //                                     ActivityType = "RatingTask HasRating",
+       //                                     Activity = status.Action,
+       //                                     Event = "Add",
+       //                                     Comment = string.Format( "RatingTask Rating was added. Name: {0}", related.Name ),
+       //                                     ActionByUserId = input.LastUpdatedById,
+       //                                     ActivityObjectId = input.Id
+       //                                 };
+       //                                 new ActivityManager().SiteActivityAdd( sa );
+       //                                 //                                       
+       //                             }
+       //                         }
+       //                         else
+       //                         {
+       //                             status.AddError( String.Format( "Error. For RatingTask: '{0}' ({1}) a HasRating was not found for Identifier: {2}", FormatLongLabel( input.Description ), input.Id, child ) );
+       //                         }
+       //                     }
+       //                 }
+       //                 return true;
+       //             }
+       //         }
+       //         catch ( Exception ex )
+       //         {
+       //             string message = FormatExceptions( ex );
+       //             LoggingHelper.LogError( ex, thisClassName + string.Format( ".HasRatingUpdate-'{0}', RatingTask: '{1}' ({2})", entityType, FormatLongLabel( input.Description ), input.Id ) );
+       //             status.AddError( thisClassName + ".HasRatingUpdate(). Error - the save was not successful. \r\n" + message );
+       //         }
+       //     }
+            return true;
         }
         public bool DeleteRatingTaskHasRating( int ratingTaskId, int workRoleId, ref ChangeSummary status )
         {
-            bool isValid = false;
+            bool isValid = true;
             if ( workRoleId == 0 )
             {
                 //statusMessage = "Error - missing an identifier for the CourseConcept to remove";
                 return false;
             }
 
-            using ( var context = new DataEntities() )
-            {
-                var efEntity = context.RatingTask_HasRating
-                                .FirstOrDefault( s => s.RatingTaskId == ratingTaskId && s.RatingId == workRoleId );
+            //using ( var context = new DataEntities() )
+            //{
+            //    var efEntity = context.RatingTask_HasRating
+            //                    .FirstOrDefault( s => s.RatingTaskId == ratingTaskId && s.RatingId == workRoleId );
 
-                if ( efEntity != null && efEntity.Id > 0 )
-                {
-                    context.RatingTask_HasRating.Remove( efEntity );
-                    int count = context.SaveChanges();
-                    if ( count > 0 )
-                    {
-                        isValid = true;
-                    }
-                }
-                else
-                {
-                    //statusMessage = "Warning - the record was not found - probably because the target had been previously deleted";
-                    isValid = true;
-                }
-            }
+            //    if ( efEntity != null && efEntity.Id > 0 )
+            //    {
+            //        context.RatingTask_HasRating.Remove( efEntity );
+            //        int count = context.SaveChanges();
+            //        if ( count > 0 )
+            //        {
+            //            isValid = true;
+            //        }
+            //    }
+            //    else
+            //    {
+            //        //statusMessage = "Warning - the record was not found - probably because the target had been previously deleted";
+            //        isValid = true;
+            //    }
+            //}
 
             return isValid;
         }
@@ -696,129 +690,129 @@ namespace Factories
         public bool HasJobUpdate( AppEntity input, ref ChangeSummary status )
         {
             status.HasSectionErrors = false;
-            var efEntity = new Data.Tables.RatingTask_HasJob();
-            var entityType = "RatingTask_HasJob";
-            using ( var context = new DataEntities() )
-            {
-                try
-                {
-                    if ( input.HasBilletTitle?.Count == 0 )
-                        input.HasBilletTitle = new List<Guid>();
-                    var results =
-                                    from entity in context.RatingTask_HasJob
-                                    join related in context.Job
-                                    on entity.JobId equals related.Id
-                                    where entity.RatingTaskId == input.Id
+            //var efEntity = new Data.Tables.RatingTask_HasJob();
+            //var entityType = "RatingTask_HasJob";
+            //using ( var context = new DataEntities() )
+            //{
+            //    try
+            //    {
+            //        if ( input.HasBilletTitle?.Count == 0 )
+            //            input.HasBilletTitle = new List<Guid>();
+            //        var results =
+            //                        from entity in context.RatingTask_HasJob
+            //                        join related in context.Job
+            //                        on entity.JobId equals related.Id
+            //                        where entity.RatingTaskId == input.Id
 
-                                    select related;
-                    var existing = results?.ToList();
-                    #region deletes check
-                    if ( existing.Any() )
-                    {
-                        //if exists not in input, delete it
-                        foreach ( var e in existing )
-                        {
-                            var key = e.RowId;
-                            if ( IsValidGuid( key ) )
-                            {
-                                if ( !input.HasBilletTitle.Contains( ( Guid ) key ) )
-                                {
-                                    //DeleteRatingTaskHasJob( input.Id, e.Id, ref status );
-                                }
-                            }
-                        }
-                    }
-                    #endregion
-                    //adds
-                    if ( input.HasBilletTitle != null )
-                    {
-                        foreach ( var child in input.HasBilletTitle )
-                        {
-                            //if not in existing, then add
-                            bool doingAdd = true;
-                            if ( existing?.Count > 0 )
-                            {
-                                var isfound = existing.Select( s => s.RowId == child ).ToList();
-                                if ( isfound.Any() )
-                                    doingAdd = false;
-                            }
-                            if ( doingAdd )
-                            {
-                                var related = JobManager.Get( child );
-                                if ( related?.Id > 0 )
-                                {
-                                    //ReferenceConceptAdd( input, concept.Id, input.LastUpdatedById, ref status );
-                                    efEntity.RatingTaskId = input.Id;
-                                    efEntity.JobId = related.Id;
-                                    efEntity.RowId = Guid.NewGuid();
-                                    efEntity.CreatedById = input.LastUpdatedById;
-                                    efEntity.Created = DateTime.Now;
+            //                        select related;
+            //        var existing = results?.ToList();
+            //        #region deletes check
+            //        if ( existing.Any() )
+            //        {
+            //            //if exists not in input, delete it
+            //            foreach ( var e in existing )
+            //            {
+            //                var key = e.RowId;
+            //                if ( IsValidGuid( key ) )
+            //                {
+            //                    if ( !input.HasBilletTitle.Contains( ( Guid ) key ) )
+            //                    {
+            //                        //DeleteRatingTaskHasJob( input.Id, e.Id, ref status );
+            //                    }
+            //                }
+            //            }
+            //        }
+            //        #endregion
+            //        //adds
+            //        if ( input.HasBilletTitle != null )
+            //        {
+            //            foreach ( var child in input.HasBilletTitle )
+            //            {
+            //                //if not in existing, then add
+            //                bool doingAdd = true;
+            //                if ( existing?.Count > 0 )
+            //                {
+            //                    var isfound = existing.Select( s => s.RowId == child ).ToList();
+            //                    if ( isfound.Any() )
+            //                        doingAdd = false;
+            //                }
+            //                if ( doingAdd )
+            //                {
+            //                    var related = JobManager.Get( child );
+            //                    if ( related?.Id > 0 )
+            //                    {
+            //                        //ReferenceConceptAdd( input, concept.Id, input.LastUpdatedById, ref status );
+            //                        efEntity.RatingTaskId = input.Id;
+            //                        efEntity.JobId = related.Id;
+            //                        efEntity.RowId = Guid.NewGuid();
+            //                        efEntity.CreatedById = input.LastUpdatedById;
+            //                        efEntity.Created = DateTime.Now;
 
-                                    context.RatingTask_HasJob.Add( efEntity );
+            //                        context.RatingTask_HasJob.Add( efEntity );
 
-                                    // submit the change to database
-                                    int count = context.SaveChanges();
-                                    if ( count > 0 )
-                                    {
-                                        SiteActivity sa = new SiteActivity()
-                                        {
-                                            ActivityType = "RatingTask BilletTitle",
-                                            Activity = status.Action,
-                                            Event = "Add",
-                                            Comment = string.Format( "RatingTask BilletTitle was added. Name: {0}", related.Name ),
-                                            ActionByUserId = input.LastUpdatedById,
-                                            ActivityObjectId = input.Id
-                                        };
-                                        new ActivityManager().SiteActivityAdd( sa );
-                                        //                                       
-                                    }
-                                }
-                                else
-                                {
-                                    status.AddError( String.Format( "Error. For RatingTask: '{0}' ({1}) a HasBillet was not found for Identifier: {2}", FormatLongLabel( input.Description ), input.Id, child ) );
-                                }
-                            }
-                        }
-                    }
-                }
-                catch ( Exception ex )
-                {
-                    string message = FormatExceptions( ex );
-                    LoggingHelper.LogError( ex, thisClassName + string.Format( ".HasRatingUpdate-'{0}', RatingTask: '{1}' ({2})", entityType, FormatLongLabel( input.Description ), input.Id ) );
-                    status.AddError( thisClassName + ".HasRatingUpdate(). Error - the save was not successful. \r\n" + message );
-                }
-            }
-            return false;
+            //                        // submit the change to database
+            //                        int count = context.SaveChanges();
+            //                        if ( count > 0 )
+            //                        {
+            //                            SiteActivity sa = new SiteActivity()
+            //                            {
+            //                                ActivityType = "RatingTask BilletTitle",
+            //                                Activity = status.Action,
+            //                                Event = "Add",
+            //                                Comment = string.Format( "RatingTask BilletTitle was added. Name: {0}", related.Name ),
+            //                                ActionByUserId = input.LastUpdatedById,
+            //                                ActivityObjectId = input.Id
+            //                            };
+            //                            new ActivityManager().SiteActivityAdd( sa );
+            //                            //                                       
+            //                        }
+            //                    }
+            //                    else
+            //                    {
+            //                        status.AddError( String.Format( "Error. For RatingTask: '{0}' ({1}) a HasBillet was not found for Identifier: {2}", FormatLongLabel( input.Description ), input.Id, child ) );
+            //                    }
+            //                }
+            //            }
+            //        }
+            //    }
+            //    catch ( Exception ex )
+            //    {
+            //        string message = FormatExceptions( ex );
+            //        LoggingHelper.LogError( ex, thisClassName + string.Format( ".HasRatingUpdate-'{0}', RatingTask: '{1}' ({2})", entityType, FormatLongLabel( input.Description ), input.Id ) );
+            //        status.AddError( thisClassName + ".HasRatingUpdate(). Error - the save was not successful. \r\n" + message );
+            //    }
+            //}
+            return true;
         }
         public bool DeleteRatingTaskHasJob( int ratingTaskId, int jobId, ref ChangeSummary status )
         {
-            bool isValid = false;
+            bool isValid = true;
             if ( jobId == 0 )
             {
                 //statusMessage = "Error - missing an identifier for the CourseConcept to remove";
                 return false;
             }
 
-            using ( var context = new DataEntities() )
-            {
-                var efEntity = context.RatingTask_HasJob
-                                .FirstOrDefault( s => s.RatingTaskId == ratingTaskId && s.JobId == jobId );
+            //using ( var context = new DataEntities() )
+            //{
+            //    var efEntity = context.RatingTask_HasJob
+            //                    .FirstOrDefault( s => s.RatingTaskId == ratingTaskId && s.JobId == jobId );
 
-                if ( efEntity != null && efEntity.Id > 0 )
-                {
-                    context.RatingTask_HasJob.Remove( efEntity );
-                    int count = context.SaveChanges();
-                    if ( count > 0 )
-                    {
-                        isValid = true;
-                    }
-                }
-                else
-                {
-                    //statusMessage = "Warning - the record was not found - probably because the target had been previously deleted";
-                    isValid = true;
-                }
-            }
+            //    if ( efEntity != null && efEntity.Id > 0 )
+            //    {
+            //        context.RatingTask_HasJob.Remove( efEntity );
+            //        int count = context.SaveChanges();
+            //        if ( count > 0 )
+            //        {
+            //            isValid = true;
+            //        }
+            //    }
+            //    else
+            //    {
+            //        //statusMessage = "Warning - the record was not found - probably because the target had been previously deleted";
+            //        isValid = true;
+            //    }
+            //}
 
             return isValid;
         }
@@ -834,124 +828,86 @@ namespace Factories
 
             //check if can handle nullables - or do these get missed
             //
-            if ( IsValidGuid( input.PayGradeType ) )
-            {
-                var currentRankId = output.RankId;
-                var currentLevelId = output.LevelId;
-                //
-                var concept = ConceptSchemeManager.GetConcept( input.PayGradeType );
-                if ( concept?.Id > 0 )
-                {
-                    output.RankId = concept.Id;
-                    if (output.RankId != currentRankId || currentLevelId == 0)
-                    {
-                        //level is tied to Paygrade.so
-                        var paygradeLevel = GetPayGradeLevel( concept.CodedNotation );
-                        output.LevelId = ( int ) ConceptSchemeManager.GetConcept( ConceptSchemeManager.ConceptScheme_RatingLevel, paygradeLevel )?.Id;
-
-                    }
-                }
-            } else
-            {
-                output.RankId = 0;
-                output.LevelId = 0;
-            }
-            //TaskApplicability
-            if ( IsValidGuid( input.ApplicabilityType ) )
-            {
-                output.TaskApplicabilityId = ( int ) ConceptSchemeManager.GetConcept( input.ApplicabilityType )?.Id;
-            }
-            else
-                output.TaskApplicabilityId = null;
-            //HasReferenceResource - ReferenceResourceId
-            if ( IsValidGuid( input.HasReferenceResource ) )
-            {
-                //TODO - can we get this info prior to here??
-                //output.ReferenceResourceId = ReferenceResourceManager.Get( input.HasReferenceResource )?.Id;
-
-                if ( output.ReferenceResourceId != null && output.ToReferenceResource?.RowId == input.HasReferenceResource )
-                {
-                    //no action
-                }
-                else
-                {
-                    var entity = ReferenceResourceManager.Get( input.HasReferenceResource );
-                    if ( entity?.Id > 0 )
-                        output.ReferenceResourceId = ( int ) entity?.Id;
-                    else
-                    {
-                        status.AddError( thisClassName + String.Format( ".MapToDB. CodedNotation: '{0}' RatingTask: '{1}'. The related SOURCE (HasReferenceResource) '{2}' was not found", input.CodedNotation, FormatLongLabel( input.Description ), input.HasReferenceResource ) );
-                    }
-                }
-            }
-            else
-                output.ReferenceResourceId = null;
-            //ReferenceType-WorkElementType
-            if ( IsValidGuid( input.ReferenceType ) )
-            {
-                if ( output.WorkElementTypeId != null && output.ConceptScheme_WorkElementType?.RowId == input.ReferenceType )
-                {
-                    //no action
-                }
-                else
-                {
-                    var entity = ConceptSchemeManager.GetConcept( input.ReferenceType );
-                    if ( entity?.Id > 0 )
-                        output.WorkElementTypeId = ( int ) entity?.Id;
-                    else
-                    {
-                        status.AddError( thisClassName + String.Format( ".MapToDB. RatingTask: '{0}'. The related WorkElementType (ReferenceType) '{1}' was not found", FormatLongLabel( input.Description ), input.ReferenceType ) );
-                    }
-                }
-                
-            }
-            else
-                output.WorkElementTypeId = null;
-
-            if ( IsValidGuid( input.TrainingGapType ) )
-            {
-                output.FormalTrainingGapId = ( int ) ConceptSchemeManager.GetConcept( input.TrainingGapType )?.Id;
-            }
-            //
-            //if (UtilityManager.GetAppKeyValue( "handlingMultipleTrainingTasksPerRatingTask", false ) )
+            //if ( IsValidGuid( input.PayGradeType ) )
             //{
-            //    output.TrainingTaskId = null;
-            //} 
-            //else
-            //{
-            //    if ( IsValidGuid( input.HasTrainingTask ) )
+            //    var currentRankId = output.RankId;
+            //    var currentLevelId = output.LevelId;
+            //    //
+            //    var concept = ConceptSchemeManager.GetConcept( input.PayGradeType );
+            //    if ( concept?.Id > 0 )
             //    {
-            //        //this sucks, having to do lookups!
-            //        //if ( output.TrainingTaskId != null && output.Course_Task?.RowId == input.HasTrainingTaskOld )
-            //        //{
-            //        //    //no action
-            //        //}
-            //        //else
+            //        output.RankId = concept.Id;
+            //        if (output.RankId != currentRankId || currentLevelId == 0)
             //        {
-            //            var trainingTask = TrainingTaskManager.Get( input.HasTrainingTask );
-            //            if ( trainingTask?.Id > 0 )
-            //                output.TrainingTaskId = ( int ) trainingTask?.Id;
-            //            else
-            //            {
-            //                status.AddError( thisClassName + String.Format( ".MapToDB. RatingTask: '{0}'. The related training task '{1}' was not found", FormatLongLabel( input.Description ), input.HasTrainingTask ) );
-            //            }
+            //            //level is tied to Paygrade.so
+            //            var paygradeLevel = GetPayGradeLevel( concept.CodedNotation );
+            //            output.LevelId = ( int ) ConceptSchemeManager.GetConcept( ConceptSchemeManager.ConceptScheme_RatingLevel, paygradeLevel )?.Id;
+
             //        }
             //    }
-            //    else
-            //        output.TrainingTaskId = null;
-            //}
-            
-            //FunctionalAreaId
-            //NOTE this can be multiple. Setting here for current demo code. will remove once the search stuff is adjusted
-            //output.FunctionalAreaId = null;
-            //if ( input.HasWorkRole?.Count > 0 )
+            //} else
             //{
-            //    if ( input.HasWorkRole?.Count == 1 )
+            //    output.RankId = 0;
+            //    output.LevelId = 0;
+            //}
+            ////TaskApplicability
+            //if ( IsValidGuid( input.ApplicabilityType ) )
+            //{
+            //    output.TaskApplicabilityId = ( int ) ConceptSchemeManager.GetConcept( input.ApplicabilityType )?.Id;
+            //}
+            //else
+            //    output.TaskApplicabilityId = null;
+            ////HasReferenceResource - ReferenceResourceId
+            //if ( IsValidGuid( input.HasReferenceResource ) )
+            //{
+            //    //TODO - can we get this info prior to here??
+            //    //output.ReferenceResourceId = ReferenceResourceManager.Get( input.HasReferenceResource )?.Id;
+
+            //    if ( output.ReferenceResourceId != null && output.ToReferenceResource?.RowId == input.HasReferenceResource )
             //    {
-            //        var workRole = WorkRoleManager.Get( input.HasWorkRole[0] );
-            //        output.FunctionalAreaId = ( int ) workRole?.Id;
+            //        //no action
+            //    }
+            //    else
+            //    {
+            //        var entity = ReferenceResourceManager.Get( input.HasReferenceResource );
+            //        if ( entity?.Id > 0 )
+            //            output.ReferenceResourceId = ( int ) entity?.Id;
+            //        else
+            //        {
+            //            status.AddError( thisClassName + String.Format( ".MapToDB. CodedNotation: '{0}' RatingTask: '{1}'. The related SOURCE (HasReferenceResource) '{2}' was not found", input.CodedNotation, FormatLongLabel( input.Description ), input.HasReferenceResource ) );
+            //        }
             //    }
             //}
+            //else
+            //    output.ReferenceResourceId = null;
+            ////ReferenceType-WorkElementType
+            //if ( IsValidGuid( input.ReferenceType ) )
+            //{
+            //    if ( output.WorkElementTypeId != null && output.ConceptScheme_WorkElementType?.RowId == input.ReferenceType )
+            //    {
+            //        //no action
+            //    }
+            //    else
+            //    {
+            //        var entity = ConceptSchemeManager.GetConcept( input.ReferenceType );
+            //        if ( entity?.Id > 0 )
+            //            output.WorkElementTypeId = ( int ) entity?.Id;
+            //        else
+            //        {
+            //            status.AddError( thisClassName + String.Format( ".MapToDB. RatingTask: '{0}'. The related WorkElementType (ReferenceType) '{1}' was not found", FormatLongLabel( input.Description ), input.ReferenceType ) );
+            //        }
+            //    }
+                
+            //}
+            //else
+            //    output.WorkElementTypeId = null;
+
+            //if ( IsValidGuid( input.TrainingGapType ) )
+            //{
+            //    output.FormalTrainingGapId = ( int ) ConceptSchemeManager.GetConcept( input.TrainingGapType )?.Id;
+            //}
+            //
+           
         }
         public static string FormatMessage( string className, string method, string message )
         {
@@ -1069,32 +1025,7 @@ namespace Factories
 
             return entity;
         }
-        /// <summary>
-        /// Get a rating task by coded notation. Need to also use rating! or RatingId.
-        /// Start with getting a list. At some point could lead to sharing a rating task. 
-        /// </summary>
-        /// <param name="codedNotation"></param>
-        /// <param name="includingConcepts"></param>
-        /// <returns></returns>
-        public static AppEntity Get( string codedNotation, bool includingConcepts )
-        {
-            var entity = new AppEntity();
-            if ( string.IsNullOrWhiteSpace( codedNotation ) )
-                return entity;
 
-            using ( var context = new DataEntities() )
-            {
-                var item = context.RatingTask
-                            .FirstOrDefault( s => s.CodedNotation == codedNotation );
-
-                if ( item != null && item.Id > 0 )
-                {
-                    MapFromDB( item, entity, includingConcepts );
-                }
-            }
-
-            return entity;
-        }
         public static AppEntity Get( Guid rowId, bool includingConcepts = false )
         {
             var entity = new AppEntity();
@@ -1204,25 +1135,25 @@ namespace Factories
         public static RatingTask GetForUpload( string ratingTaskDescription, Guid applicabilityTypeRowID, Guid sourceRowID, Guid payGradeRowID, Guid trainingGapTypeRowID )
         {
             var result = new RatingTask();
+            //TODO
+            //using ( var context = new DataEntities() )
+            //{
+            //    var matches = context.RatingTask.Where( m =>
+            //        m.Description.ToLower() == ratingTaskDescription.ToLower() &&
+            //        m.ConceptScheme_Applicability.RowId == applicabilityTypeRowID &&
+            //        m.ToReferenceResource.RowId == sourceRowID &&
+            //        m.ConceptScheme_Rank.RowId == payGradeRowID// &&
+            //                                                   //m.ConceptScheme_TrainingGap.RowId == trainingGapTypeRowID //Using training gap type as a discriminator leads to duplicate tasks getting created when really they're just linked (or not) to training for one rating but not the other
+            //    );
+            //    if ( matches != null && matches.Count() > 0 )
+            //    {
+            //        foreach ( var item in matches )
+            //        {
+            //            MapFromDB( item, result, false );
+            //        }
+            //    }
 
-            using ( var context = new DataEntities() )
-            {
-                var matches = context.RatingTask.Where( m =>
-                    m.Description.ToLower() == ratingTaskDescription.ToLower() &&
-                    m.ConceptScheme_Applicability.RowId == applicabilityTypeRowID &&
-                    m.ToReferenceResource.RowId == sourceRowID &&
-                    m.ConceptScheme_Rank.RowId == payGradeRowID// &&
-                                                               //m.ConceptScheme_TrainingGap.RowId == trainingGapTypeRowID //Using training gap type as a discriminator leads to duplicate tasks getting created when really they're just linked (or not) to training for one rating but not the other
-                );
-                if ( matches != null && matches.Count() > 0 )
-                {
-                    foreach ( var item in matches )
-                    {
-                        MapFromDB( item, result, false );
-                    }
-                }
-
-            }
+            //}
 
             return result;
         }
@@ -1233,40 +1164,41 @@ namespace Factories
             {
                 return result;
             }
-            using ( var context = new DataEntities() )
-            {
-                try
-                {
-                    //get existing
-                    var results = from ratingTask in context.RatingTask
-                                  join hasRating in context.RatingTask_HasRating
-                                    on ratingTask.Id equals hasRating.RatingTaskId
-                                  join rating in context.Rating
-                                    on hasRating.RatingId equals rating.Id
-                                  where ratingTask.CodedNotation.ToLower() == codedNotation.ToLower()
-                                  && rating.CodedNotation.ToLower() == ratingCodedNotation.ToLower()
+            //TODO
+            //using ( var context = new DataEntities() )
+            //{
+            //    try
+            //    {
+            //        //get existing
+            //        var results = from ratingTask in context.RatingTask
+            //                      join hasRating in context.RatingTask_HasRating
+            //                        on ratingTask.Id equals hasRating.RatingTaskId
+            //                      join rating in context.Rating
+            //                        on hasRating.RatingId equals rating.Id
+            //                      where ratingTask.CodedNotation.ToLower() == codedNotation.ToLower()
+            //                      && rating.CodedNotation.ToLower() == ratingCodedNotation.ToLower()
 
-                                  select ratingTask;
-                    var existing = results?.ToList();
-                    if ( existing != null && existing.Count() > 0 )
-                    {
-                        if ( existing.Count() == 1 )
-                        {
-                            MapFromDB( existing[0], result, false );
-                        }
-                        else
-                        {
-                            //this should not be possible - as long as there is a check to prevent duplicate RT codes in an upload!
-                        }
-                    }
+            //                      select ratingTask;
+            //        var existing = results?.ToList();
+            //        if ( existing != null && existing.Count() > 0 )
+            //        {
+            //            if ( existing.Count() == 1 )
+            //            {
+            //                MapFromDB( existing[0], result, false );
+            //            }
+            //            else
+            //            {
+            //                //this should not be possible - as long as there is a check to prevent duplicate RT codes in an upload!
+            //            }
+            //        }
 
-                }
-                catch ( Exception ex )
-                {
-                    string message = FormatExceptions( ex );
-                    LoggingHelper.LogError( ex, thisClassName + string.Format( ".GetForUpload()- ratingCodedNotation:'{0}', codedNotation: '{1}' ", ratingCodedNotation, codedNotation ) );
-                }
-            }
+            //    }
+            //    catch ( Exception ex )
+            //    {
+            //        string message = FormatExceptions( ex );
+            //        LoggingHelper.LogError( ex, thisClassName + string.Format( ".GetForUpload()- ratingCodedNotation:'{0}', codedNotation: '{1}' ", ratingCodedNotation, codedNotation ) );
+            //    }
+            //}
 
             //using ( var context = new ViewContext() )
             //{
@@ -1277,15 +1209,6 @@ namespace Factories
             //                ( s.CodedNotation ?? "" ).ToLower() == codedNotation.ToLower() 
             //                    && s.Ratings == ratingCodedNotation 
             //                 );
-
-
-            //    if ( item != null && item.Id > 0 )
-            //    {
-            //        //if exists, map and return
-            //        MapFromDB(item, result);
-            //    }
-            //}
-
 
             return result;
         }
@@ -1306,49 +1229,49 @@ namespace Factories
                     if ( !string.IsNullOrWhiteSpace( keywordsText ) )
                     {
                         list = list.Where( s =>
-                             s.Description.ToLower().Contains( keywordsText ) ||
-                             s.CodedNotation.ToLower().Contains( keywordsText )
+                             s.Description.ToLower().Contains( keywordsText )
+                           //****  || s.CodedNotation.ToLower().Contains( keywordsText )
                         );
                     }
 
                     //Handle Has Rating
                     var ratingFilter = query.GetFilterByName( "navy:Rating" );
-                    if ( ratingFilter != null && ratingFilter.ItemIds?.Count() > 0 )
-                    {
-                        list = list.Where( s =>
-                             s.RatingTask_HasRating.Where( t =>
-                                  ratingFilter.IsNegation ?
-                                      !ratingFilter.ItemIds.Contains( t.RatingId ) :
-                                      ratingFilter.ItemIds.Contains( t.RatingId )
-                             ).Count() > 0
-                        );
-                    }
+                    //if ( ratingFilter != null && ratingFilter.ItemIds?.Count() > 0 )
+                    //{
+                    //    list = list.Where( s =>
+                    //         s.RatingTask_HasRating.Where( t =>
+                    //              ratingFilter.IsNegation ?
+                    //                  !ratingFilter.ItemIds.Contains( t.RatingId ) :
+                    //                  ratingFilter.ItemIds.Contains( t.RatingId )
+                    //         ).Count() > 0
+                    //    );
+                    //}
 
                     //Handle Has Job
                     var jobFilter = query.GetFilterByName( "navy:Job" );
-                    if ( jobFilter != null && jobFilter.ItemIds?.Count() > 0 )
-                    {
-                        list = list.Where( s =>
-                             s.RatingTask_HasJob.Where( t =>
-                                jobFilter.IsNegation ?
-                                    !jobFilter.ItemIds.Contains( t.JobId ) :
-                                    jobFilter.ItemIds.Contains( t.JobId )
-                             ).Count() > 0
-                        );
-                    }
+                    //if ( jobFilter != null && jobFilter.ItemIds?.Count() > 0 )
+                    //{
+                    //    list = list.Where( s =>
+                    //         s.RatingTask_HasJob.Where( t =>
+                    //            jobFilter.IsNegation ?
+                    //                !jobFilter.ItemIds.Contains( t.JobId ) :
+                    //                jobFilter.ItemIds.Contains( t.JobId )
+                    //         ).Count() > 0
+                    //    );
+                    //}
 
                     //Handle Has Work Role
                     var workRoleFilter = query.GetFilterByName( "ceterms:WorkRole" );
-                    if ( workRoleFilter != null && workRoleFilter.ItemIds?.Count() > 0 )
-                    {
-                        list = list.Where( s =>
-                             s.RatingTask_WorkRole.Where( t =>
-                                workRoleFilter.IsNegation ?
-                                    !workRoleFilter.ItemIds.Contains( t.WorkRoleId ) :
-                                    workRoleFilter.ItemIds.Contains( t.WorkRoleId )
-                             ).Count() > 0
-                        );
-                    }
+                    //if ( workRoleFilter != null && workRoleFilter.ItemIds?.Count() > 0 )
+                    //{
+                    //    list = list.Where( s =>
+                    //         s.RatingTask_WorkRole.Where( t =>
+                    //            workRoleFilter.IsNegation ?
+                    //                !workRoleFilter.ItemIds.Contains( t.WorkRoleId ) :
+                    //                workRoleFilter.ItemIds.Contains( t.WorkRoleId )
+                    //         ).Count() > 0
+                    //    );
+                    //}
 
                     //Handle Has Reference Resource
                     var referenceResourceFilter = query.GetFilterByName( "navy:ReferenceResource" );
@@ -1363,47 +1286,47 @@ namespace Factories
 
                     //Handle Has Reference Resource Category
                     var referenceResourceCategoryFilter = query.GetFilterByName( "navy:ReferenceResourceCategory" );
-                    if ( referenceResourceCategoryFilter != null && referenceResourceCategoryFilter.ItemIds?.Count() > 0 )
-                    {
-                        list = list.Where( s =>
-                            referenceResourceCategoryFilter.IsNegation ?
-                                !referenceResourceCategoryFilter.ItemIds.Contains( s.WorkElementTypeId ?? 0 ) :
-                                referenceResourceCategoryFilter.ItemIds.Contains( s.WorkElementTypeId ?? 0 )
-                        );
-                    }
+                    //if ( referenceResourceCategoryFilter != null && referenceResourceCategoryFilter.ItemIds?.Count() > 0 )
+                    //{
+                    //    list = list.Where( s =>
+                    //        referenceResourceCategoryFilter.IsNegation ?
+                    //            !referenceResourceCategoryFilter.ItemIds.Contains( s.WorkElementTypeId ?? 0 ) :
+                    //            referenceResourceCategoryFilter.ItemIds.Contains( s.WorkElementTypeId ?? 0 )
+                    //    );
+                    //}
 
                     //Handle Training Gap Category
                     var trainingGapCategoryFilter = query.GetFilterByName( "navy:TrainingGapCategory" );
-                    if ( trainingGapCategoryFilter != null && trainingGapCategoryFilter.ItemIds?.Count() > 0 )
-                    {
-                        list = list.Where( s =>
-                            trainingGapCategoryFilter.IsNegation ?
-                                !trainingGapCategoryFilter.ItemIds.Contains( s.FormalTrainingGapId ?? 0 ) :
-                                trainingGapCategoryFilter.ItemIds.Contains( s.FormalTrainingGapId ?? 0 )
-                        );
-                    }
+                    //if ( trainingGapCategoryFilter != null && trainingGapCategoryFilter.ItemIds?.Count() > 0 )
+                    //{
+                    //    list = list.Where( s =>
+                    //        trainingGapCategoryFilter.IsNegation ?
+                    //            !trainingGapCategoryFilter.ItemIds.Contains( s.FormalTrainingGapId ?? 0 ) :
+                    //            trainingGapCategoryFilter.ItemIds.Contains( s.FormalTrainingGapId ?? 0 )
+                    //    );
+                    //}
 
                     //Handle Applicability Category
                     var applicabilityCategoryFilter = query.GetFilterByName( "navy:ApplicabilityCategory" );
-                    if ( applicabilityCategoryFilter != null && applicabilityCategoryFilter.ItemIds?.Count() > 0 )
-                    {
-                        list = list.Where( s =>
-                            applicabilityCategoryFilter.IsNegation ?
-                                !applicabilityCategoryFilter.ItemIds.Contains( s.TaskApplicabilityId ?? 0 ) :
-                                applicabilityCategoryFilter.ItemIds.Contains( s.TaskApplicabilityId ?? 0 )
-                        );
-                    }
+                    //if ( applicabilityCategoryFilter != null && applicabilityCategoryFilter.ItemIds?.Count() > 0 )
+                    //{
+                    //    list = list.Where( s =>
+                    //        applicabilityCategoryFilter.IsNegation ?
+                    //            !applicabilityCategoryFilter.ItemIds.Contains( s.TaskApplicabilityId ?? 0 ) :
+                    //            applicabilityCategoryFilter.ItemIds.Contains( s.TaskApplicabilityId ?? 0 )
+                    //    );
+                    //}
 
                     //Handle Pay Grade Category
                     var payGradeCategoryFilter = query.GetFilterByName( "navy:PayGradeCategory" );
-                    if ( payGradeCategoryFilter != null && payGradeCategoryFilter.ItemIds?.Count() > 0 )
-                    {
-                        list = list.Where( s =>
-                            payGradeCategoryFilter.IsNegation ?
-                                !payGradeCategoryFilter.ItemIds.Contains( s.RankId ) :
-                                payGradeCategoryFilter.ItemIds.Contains( s.RankId )
-                        );
-                    }
+                    //if ( payGradeCategoryFilter != null && payGradeCategoryFilter.ItemIds?.Count() > 0 )
+                    //{
+                    //    list = list.Where( s =>
+                    //        payGradeCategoryFilter.IsNegation ?
+                    //            !payGradeCategoryFilter.ItemIds.Contains( s.RankId ) :
+                    //            payGradeCategoryFilter.ItemIds.Contains( s.RankId )
+                    //    );
+                    //}
 
 
                     //Get total
@@ -1851,99 +1774,94 @@ namespace Factories
             BaseFactory.AutoMap( input, output, errors );
 
 
-            //output.Id = input.Id;
-            //the status may have to specific to the project - task context?
-            //Yes, this would be specific to a project
-            //output.StatusId = input.TaskStatusId ?? 1;
-            //output.RowId = input.RowId;
+            //TODO
+            //if ( input.RatingTask_HasRating?.Count > 0 )
+            //{
+            //    foreach ( var item in input.RatingTask_HasRating )
+            //    {
+            //        if ( item.Rating?.RowId != null )
+            //        {
+            //            output.HasRating.Add( item.Rating.RowId );
+            //            output.RatingTitles.Add( item.Rating.Name );
+            //            output.CurrentRatingCode = item.Rating.CodedNotation;
+            //            //
+            //        }
+            //    }
+            //}
+            //if ( input.RatingTask_HasJob?.Count > 0 )
+            //{
+            //    foreach ( var item in input.RatingTask_HasJob )
+            //    {
+            //        if ( item.Job?.RowId != null )
+            //        {
+            //            output.HasBilletTitle.Add( item.Job.RowId );
+            //            output.BilletTitles.Add( item.Job.Name );
+            //            output.BilletTitle = item.Job.Name;
+            //        }
+            //    }
+            //}
+            //if ( !isSearchContext && input.RatingTask_WorkRole?.Count > 0 )
+            //{
+            //    foreach ( var item in input.RatingTask_WorkRole )
+            //    {
+            //        if ( item.WorkRole?.RowId != null )
+            //        {
+            //            output.HasWorkRole.Add( item.WorkRole.RowId );
+            //            output.FunctionalArea.Add( item.WorkRole.Name );
+            //        }
+            //    }
+            //}
+            //if ( !isSearchContext && input.RankId > 0 )
+            //{
+            //    ConceptSchemeManager.MapFromDB( input.ConceptScheme_Rank, output.TaskPayGrade );
+            //    output.PayGradeType = ( output.TaskPayGrade )?.RowId ?? Guid.Empty;
+            //}
+            //if ( !isSearchContext && input.ReferenceResourceId > 0 )
+            //{
+            //    ReferenceResourceManager.MapFromDB( input.ToReferenceResource, output.ReferenceResource );
+            //    output.HasReferenceResource = ( output.ReferenceResource )?.RowId ?? Guid.Empty;
+            //}
+            //if ( !isSearchContext && input.WorkElementTypeId > 0 )
+            //{
+            //    ConceptSchemeManager.MapFromDB( input.ConceptScheme_WorkElementType, output.TaskReferenceType );
+            //    output.ReferenceType = ( output.TaskReferenceType )?.RowId ?? Guid.Empty;
+            //}
+            //if ( !isSearchContext && input.TaskApplicabilityId > 0 )
+            //{
+            //    ConceptSchemeManager.MapFromDB( input.ConceptScheme_Applicability, output.TaskApplicabilityType );
+            //    output.ApplicabilityType = ( output.TaskApplicabilityType )?.RowId ?? Guid.Empty;
+            //    //OR
+            //    //output.ApplicabilityType = ConceptSchemeManager.MapConcept( input.ConceptScheme_Applicability )?.RowId ?? Guid.Empty;
 
-            if ( input.RatingTask_HasRating?.Count > 0 )
-            {
-                foreach ( var item in input.RatingTask_HasRating )
-                {
-                    if ( item.Rating?.RowId != null )
-                    {
-                        output.HasRating.Add( item.Rating.RowId );
-                        output.RatingTitles.Add( item.Rating.Name );
-                        output.CurrentRatingCode = item.Rating.CodedNotation;
-                        //
-                    }
-                }
-            }
-            if ( input.RatingTask_HasJob?.Count > 0 )
-            {
-                foreach ( var item in input.RatingTask_HasJob )
-                {
-                    if ( item.Job?.RowId != null )
-                    {
-                        output.HasBilletTitle.Add( item.Job.RowId );
-                        output.BilletTitles.Add( item.Job.Name );
-                        output.BilletTitle = item.Job.Name;
-                    }
-                }
-            }
-            if ( !isSearchContext && input.RatingTask_WorkRole?.Count > 0 )
-            {
-                foreach ( var item in input.RatingTask_WorkRole )
-                {
-                    if ( item.WorkRole?.RowId != null )
-                    {
-                        output.HasWorkRole.Add( item.WorkRole.RowId );
-                        output.FunctionalArea.Add( item.WorkRole.Name );
-                    }
-                }
-            }
-            if ( !isSearchContext && input.RankId > 0 )
-            {
-                ConceptSchemeManager.MapFromDB( input.ConceptScheme_Rank, output.TaskPayGrade );
-                output.PayGradeType = ( output.TaskPayGrade )?.RowId ?? Guid.Empty;
-            }
-            if ( !isSearchContext && input.ReferenceResourceId > 0 )
-            {
-                ReferenceResourceManager.MapFromDB( input.ToReferenceResource, output.ReferenceResource );
-                output.HasReferenceResource = ( output.ReferenceResource )?.RowId ?? Guid.Empty;
-            }
-            if ( !isSearchContext && input.WorkElementTypeId > 0 )
-            {
-                ConceptSchemeManager.MapFromDB( input.ConceptScheme_WorkElementType, output.TaskReferenceType );
-                output.ReferenceType = ( output.TaskReferenceType )?.RowId ?? Guid.Empty;
-            }
-            if ( !isSearchContext && input.TaskApplicabilityId > 0 )
-            {
-                ConceptSchemeManager.MapFromDB( input.ConceptScheme_Applicability, output.TaskApplicabilityType );
-                output.ApplicabilityType = ( output.TaskApplicabilityType )?.RowId ?? Guid.Empty;
-                //OR
-                //output.ApplicabilityType = ConceptSchemeManager.MapConcept( input.ConceptScheme_Applicability )?.RowId ?? Guid.Empty;
+            //}
+            //if ( !isSearchContext && input.FormalTrainingGapId > 0 )
+            //{
+            //    ConceptSchemeManager.MapFromDB( input.ConceptScheme_TrainingGap, output.TaskTrainingGap );
+            //    output.TrainingGapType = ( output.TaskTrainingGap )?.RowId ?? Guid.Empty;
+            //    //OR
+            //    //output.TrainingGapType = ConceptSchemeManager.MapConcept( input.ConceptScheme_TrainingGap )?.RowId ?? Guid.Empty;
+            //}
 
-            }
-            if ( !isSearchContext && input.FormalTrainingGapId > 0 )
-            {
-                ConceptSchemeManager.MapFromDB( input.ConceptScheme_TrainingGap, output.TaskTrainingGap );
-                output.TrainingGapType = ( output.TaskTrainingGap )?.RowId ?? Guid.Empty;
-                //OR
-                //output.TrainingGapType = ConceptSchemeManager.MapConcept( input.ConceptScheme_TrainingGap )?.RowId ?? Guid.Empty;
-            }
+            //if ( !isSearchContext && input.RatingTask_HasTrainingTask?.Count > 0 )
+            //{
+            //    foreach ( var item in input.RatingTask_HasTrainingTask )
+            //    {
+            //        if ( item.Course_Task?.RowId != null )
+            //        {
+            //            output.HasTrainingTask.Add( item.Course_Task.RowId );
+            //            output.TrainingTasks.Add( TrainingTaskManager.MapFromDB( item.Course_Task ) );
+            //        }
+            //    }
+            //}
 
-            if ( !isSearchContext && input.RatingTask_HasTrainingTask?.Count > 0 )
-            {
-                foreach ( var item in input.RatingTask_HasTrainingTask )
-                {
-                    if ( item.Course_Task?.RowId != null )
-                    {
-                        output.HasTrainingTask.Add( item.Course_Task.RowId );
-                        output.TrainingTasks.Add( TrainingTaskManager.MapFromDB( item.Course_Task ) );
-                    }
-                }
-            }
-
-            if ( !isSearchContext && input.ClusterAnalysis?.Count > 0 )
-            {
-                //should only be one
-                foreach ( var item in input.ClusterAnalysis )
-                {
-                    output.ClusterAnalysis = ClusterAnalysisManager.MapFromDB( item );
-                }
-            }
+            //if ( !isSearchContext && input.ClusterAnalysis?.Count > 0 )
+            //{
+            //    //should only be one
+            //    foreach ( var item in input.ClusterAnalysis )
+            //    {
+            //        output.ClusterAnalysis = ClusterAnalysisManager.MapFromDB( item );
+            //    }
+            //}
         }
         #endregion
 

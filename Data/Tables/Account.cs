@@ -17,6 +17,7 @@ namespace Data.Tables
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2214:DoNotCallOverridableMethodsInConstructors")]
         public Account()
         {
+            this.ApplicationUserRole = new HashSet<ApplicationUserRole>();
             this.ConceptScheme = new HashSet<ConceptScheme>();
             this.ConceptScheme1 = new HashSet<ConceptScheme>();
             this.ConceptScheme2 = new HashSet<ConceptScheme>();
@@ -37,6 +38,8 @@ namespace Data.Tables
         public string ExternalAccountIdentifier { get; set; }
     
         public virtual AspNetUsers AspNetUsers { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<ApplicationUserRole> ApplicationUserRole { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<ConceptScheme> ConceptScheme { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]

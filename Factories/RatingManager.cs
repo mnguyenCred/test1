@@ -428,24 +428,17 @@ namespace Factories
 						//Need to handle the negation (i.e. ratings that are not associated with this task), but all ratings get returned since there are many rows for each rating, each with a different task ID.
 						//So get the ratings that do match first, then negate (or not). 
 						//There's probably a better way to do this.
-						var matchingRatingIDs = context.RatingTask_HasRating.Where( s => ratingTaskFilter.ItemIds.Contains( s.RatingTaskId ) ).Select( m => m.RatingId ).Distinct().ToList();
-						if ( ratingTaskFilter.IsNegation )
-						{
-							list = list.Where( s => !matchingRatingIDs.Contains( s.Id ) );
-						}
-						else
-						{
-							list = list.Where( s => matchingRatingIDs.Contains( s.Id ) );
-						}
-						/*
-						list = list.Where( s =>
-							 s.RatingTask_HasRating.Where( t =>
-								  ratingTaskFilter.IsNegation ?
-									  !ratingTaskFilter.ItemIds.Contains( t.RatingTaskId ) :
-									  ratingTaskFilter.ItemIds.Contains( t.RatingTaskId )
-							 ).Count() > 0
-						);
-						*/
+                        //TODO
+						//var matchingRatingIDs = context.RatingTask_HasRating.Where( s => ratingTaskFilter.ItemIds.Contains( s.RatingTaskId ) ).Select( m => m.RatingId ).Distinct().ToList();
+						//if ( ratingTaskFilter.IsNegation )
+						//{
+						//	list = list.Where( s => !matchingRatingIDs.Contains( s.Id ) );
+						//}
+						//else
+						//{
+						//	list = list.Where( s => matchingRatingIDs.Contains( s.Id ) );
+						//}
+
 					}
 
 					//Get total

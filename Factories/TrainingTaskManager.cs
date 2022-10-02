@@ -9,7 +9,7 @@ using Models.Curation;
 
 using ParentEntity = Models.Schema.Course;
 using AppEntity = Models.Schema.TrainingTask;
-using DBEntity = Data.Tables.Course_Task;
+using DBEntity = Data.Tables.TrainingTask;
 
 using DataEntities = Data.Tables.NavyRRLEntities;
 using ViewContext = Data.Views.ceNavyViewEntities;
@@ -49,38 +49,10 @@ namespace Factories
             {
                 //these are the guids, but the task can't be created before the course, so are these for tasks that exist?
                 //and task cannot be orphaned as CourseId is non nullable
+                //22-10-02 now with courseContext, can have orphan tasks
                 //
                 //this note came while working with the created list (although this course did already exist?)
             }
-        }
-        public void SaveList( string courseCodedNotation, List<AppEntity> inputList, ref ChangeSummary status )
-        {
-            //get parent
-            ParentEntity parent = new ParentEntity();
-            if ( !string.IsNullOrWhiteSpace( courseCodedNotation ) )
-            {
-                parent = CourseManager.GetByCodedNotation( courseCodedNotation );
-                if (parent?.Id == 0)
-                {
-                    status.AddError( thisClassName + String.Format( ".SaveList(courseCodedNotation, inputList). Error - A course was not found for the provided CIN: {0}. ", courseCodedNotation ) );
-                    return;
-                }
-            }
-            else
-            {
-                //error. Or fall thru and see if present in the list
-                status.AddError( thisClassName + String.Format( ".SaveList(courseCodedNotation, inputList). Error - A course code was not provided for method to save a list of tasks. " ) );
-                return;
-            }
-
-            if ( inputList != null )
-            {
-                foreach ( var item in inputList )
-                {
-                    Save( parent, item, ref status );
-                }
-            }
-
         }
         public bool Save(  AppEntity entity, ref ChangeSummary status )
         {
@@ -98,6 +70,7 @@ namespace Factories
             return Save( parent, entity, ref status );
         }
 
+        //from edit view
         public bool Save( string courseCodedNotation, AppEntity entity, ref ChangeSummary status )
         {
             //get parent
@@ -125,14 +98,14 @@ namespace Factories
                     DBEntity efEntity = new DBEntity();
                     if ( IsValidGuid( input.RowId ) )
                     {
-                        efEntity = context.Course_Task.FirstOrDefault( s => s.RowId == input.RowId );
+                        efEntity = context.TrainingTask.FirstOrDefault( s => s.RowId == input.RowId );
                     }
-
-                    if ( efEntity == null )
-                    {
-                        efEntity = context.Course_Task
-                            .FirstOrDefault( s => s.CourseId == parent.Id && s.Description.ToLower() == input.Description.ToLower() );
-                    }
+                    //don't have a means to do other checks now
+                    //if ( efEntity == null )
+                    //{
+                    //    efEntity = context.TrainingTask
+                    //        .FirstOrDefault( s => s.CourseId == parent.Id && s.Description.ToLower() == input.Description.ToLower() );
+                    //}
                     if ( efEntity?.Id > 0 )
                     {
                         //update
@@ -140,7 +113,7 @@ namespace Factories
                         //this will include the extra props (like LifeCycleControlDocument, etc. for now)
                         //fill in fields that may not be in entity
                         input.RowId = efEntity.RowId;
-                        input.CourseId = efEntity.CourseId;
+                       // input.CourseId = efEntity.CourseId;
                         input.Created = efEntity.Created;
                         input.LastUpdated = efEntity.LastUpdated;
                         input.CreatedById = ( efEntity.CreatedById ?? 0 );
@@ -183,7 +156,7 @@ namespace Factories
                         //TBD: will AssessmentMethodType still be on the course, or on the training task.
                         //NOTE: if save comes from the standalone editor, there will be no asmts
 
-                        TrainingTaskAssessmentMethodSave( input, ref status );
+                        //TrainingTaskAssessmentMethodSave( input, ref status );
                     }
                     else
                     {
@@ -203,7 +176,7 @@ namespace Factories
         public bool Add( ParentEntity parent, AppEntity input, ref ChangeSummary status )
         {
             var entityType = "CourseTask";
-            var efEntity = new Data.Tables.Course_Task();
+            var efEntity = new Data.Tables.TrainingTask();
             status.HasSectionErrors = false;
             //need to do a look up
 
@@ -220,12 +193,12 @@ namespace Factories
                     else
                         efEntity.CTID = "ce-" + efEntity.RowId.ToString().ToLower();
 
-                    efEntity.CourseId = parent.Id;
+                   // efEntity.CourseId = parent.Id;
                     efEntity.Description = input.Description;
                     efEntity.CreatedById = efEntity.LastUpdatedById = parent.LastUpdatedById;
                     efEntity.Created = efEntity.LastUpdated = DateTime.Now;
 
-                    context.Course_Task.Add( efEntity );
+                    context.TrainingTask.Add( efEntity );
 
                     // submit the change to database
                     int count = context.SaveChanges();
@@ -243,7 +216,7 @@ namespace Factories
                         new ActivityManager().SiteActivityAdd( sa );
                         //add assessments
                         input.Id = efEntity.Id;
-                        TrainingTaskAssessmentMethodSave( input, ref status );
+                        //TrainingTaskAssessmentMethodSave( input, ref status );
 
                         //
                         return true;
@@ -266,240 +239,148 @@ namespace Factories
             return false;
         }
 
-        /// <summary>
-        /// the asmt methods will be passed in the trainingTask now
-        /// </summary>
-        /// <param name="input"></param>
-        /// <param name="concepts"></param>
-        /// <param name="status"></param>
-        /// <returns></returns>
-        public bool TrainingTaskAssessmentMethodSave( AppEntity input, ref ChangeSummary status )
-        {
-            bool success = false;
-            status.HasSectionErrors = false;
-            var efEntity = new Data.Tables.CourseTask_AssessmentType();
-            var entityType = "CourseTask_AssessmentType";
+        ///// <summary>
+        ///// the asmt methods will be passed in the trainingTask now
+        ///// </summary>
+        ///// <param name="input"></param>
+        ///// <param name="concepts"></param>
+        ///// <param name="status"></param>
+        ///// <returns></returns>
+        //public bool TrainingTaskAssessmentMethodSave( AppEntity input, ref ChangeSummary status )
+        //{
+        //    bool success = false;
+        //    status.HasSectionErrors = false;
+        //    var efEntity = new Data.Tables.CourseTask_AssessmentType();
+        //    var entityType = "CourseTask_AssessmentType";
 
-            using ( var context = new DataEntities() )
-            {
-                try
-                {
-                    if ( input.AssessmentMethodType?.Count == 0 )
-                        input.AssessmentMethodType = new List<Guid>();
-                    //check existance
-                    var results =   from entity in context.CourseTask_AssessmentType
-                                    join concept in context.ConceptScheme_Concept
-                                    on entity.AssessmentMethodConceptId equals concept.Id
-                                    where entity.CourseTaskId == input.Id
+        //    using ( var context = new DataEntities() )
+        //    {
+        //        try
+        //        {
+        //            if ( input.AssessmentMethodType?.Count == 0 )
+        //                input.AssessmentMethodType = new List<Guid>();
+        //            //check existance
+        //            var results =   from entity in context.CourseTask_AssessmentType
+        //                            join concept in context.ConceptScheme_Concept
+        //                            on entity.AssessmentMethodConceptId equals concept.Id
+        //                            where entity.CourseTaskId == input.Id
 
-                                    select concept;
+        //                            select concept;
 
-                    //if ( existing == null )
-                    //    existing = new List<ConceptScheme_Concept>();  
-                    var existing = results?.ToList();
+        //            //if ( existing == null )
+        //            //    existing = new List<ConceptScheme_Concept>();  
+        //            var existing = results?.ToList();
 
-                    #region deletes check
-                    if ( existing.Any() )
-                    {
-                        //if exists not in input, delete it
-                        foreach ( var e in existing )
-                        {
-                            var key = e.RowId;
-                            if ( IsValidGuid( key ) )
-                            {
-                                if ( !input.AssessmentMethodType.Contains( ( Guid ) key ) )
-                                {
-                                    if ( status.Action == "Edit" )
-                                    {
-                                        DeleteTrainingAssessmentType( input.Id, e.Id, ref status );
-                                    }
-                                    else
-                                    {
-                                        status.AddWarning( String.Format( "The current training task: '{0}', (course: {1}) didn't include an assessment method that was previously saved: '{2}'. Deletes are currently suspended to prevent incorrect deletes. ", FormatLongLabel( input.Description ), input.CourseCodedNotation, e.Name ) );
+        //            #region deletes check
+        //            if ( existing.Any() )
+        //            {
+        //                //if exists not in input, delete it
+        //                foreach ( var e in existing )
+        //                {
+        //                    var key = e.RowId;
+        //                    if ( IsValidGuid( key ) )
+        //                    {
+        //                        if ( !input.AssessmentMethodType.Contains( ( Guid ) key ) )
+        //                        {
+        //                            if ( status.Action == "Edit" )
+        //                            {
+        //                                DeleteTrainingAssessmentType( input.Id, e.Id, ref status );
+        //                            }
+        //                            else
+        //                            {
+        //                                status.AddWarning( String.Format( "The current training task: '{0}', (course: {1}) didn't include an assessment method that was previously saved: '{2}'. Deletes are currently suspended to prevent incorrect deletes. ", FormatLongLabel( input.Description ), input.CourseCodedNotation, e.Name ) );
 
-                                        //a training task could be on multiple rows or rmtls, the asmt types may not be consistent
-                                        //DeleteTrainingAssessmentType( input.Id, e.Id, ref status );
-                                    }
-                                }
-                            }
-                        }
-                    }
-                    #endregion
-                    //adds
-                    if ( input.AssessmentMethodType != null )
-                    {
-                        foreach ( var child in input.AssessmentMethodType )
-                        {
-                            //if not in existing, then add
-                            bool doingAdd = true;
-                            if ( existing?.Count > 0 )
-                            {
-                                foreach ( var item in existing )
-                                {
-                                    if ( item.RowId == child )
-                                    {
-                                        doingAdd = false;
-                                        break;
-                                    }
-                                }
-                            }
-                            if ( doingAdd )
-                            {
-                                var concept = ConceptSchemeManager.GetConcept( child );
-                                if ( concept?.Id > 0 )
-                                {
-                                    efEntity.CourseTaskId = input.Id;
-                                    efEntity.AssessmentMethodConceptId = concept.Id;
-                                    efEntity.RowId = Guid.NewGuid();
-                                    efEntity.CreatedById = input.LastUpdatedById;
-                                    efEntity.Created = DateTime.Now;
+        //                                //a training task could be on multiple rows or rmtls, the asmt types may not be consistent
+        //                                //DeleteTrainingAssessmentType( input.Id, e.Id, ref status );
+        //                            }
+        //                        }
+        //                    }
+        //                }
+        //            }
+        //            #endregion
+        //            //adds
+        //            if ( input.AssessmentMethodType != null )
+        //            {
+        //                foreach ( var child in input.AssessmentMethodType )
+        //                {
+        //                    //if not in existing, then add
+        //                    bool doingAdd = true;
+        //                    if ( existing?.Count > 0 )
+        //                    {
+        //                        foreach ( var item in existing )
+        //                        {
+        //                            if ( item.RowId == child )
+        //                            {
+        //                                doingAdd = false;
+        //                                break;
+        //                            }
+        //                        }
+        //                    }
+        //                    if ( doingAdd )
+        //                    {
+        //                        var concept = ConceptSchemeManager.GetConcept( child );
+        //                        if ( concept?.Id > 0 )
+        //                        {
+        //                            efEntity.CourseTaskId = input.Id;
+        //                            efEntity.AssessmentMethodConceptId = concept.Id;
+        //                            efEntity.RowId = Guid.NewGuid();
+        //                            efEntity.CreatedById = input.LastUpdatedById;
+        //                            efEntity.Created = DateTime.Now;
 
-                                    context.CourseTask_AssessmentType.Add( efEntity );
+        //                            context.CourseTask_AssessmentType.Add( efEntity );
 
-                                    int count = context.SaveChanges();
-                                }
-                                else
-                                {
-                                    status.AddError( String.Format( "Error. For TrainingTask: '{0}' ({1}) an AssessmentMethod entity was not found for Identifier: {2}", FormatLongLabel( input.Description ), input.Id, child ) );
-                                }
-                            }
-                        }
-                    }
-                }
-                catch ( Exception ex )
-                {
-                    string message = FormatExceptions( ex );
-                    LoggingHelper.LogError( ex, thisClassName + string.Format( ".TrainingTaskAssessmentMethodSave failed, Course: '{0}' ({1})", entityType, FormatLongLabel( input.Description ), input.Id ) );
-                    status.AddError( thisClassName + ".TrainingTaskAssessmentMethodSave(). Error - the save was not successful. \r\n" + message );
-                }
-            }
-            return success;
-        }
-        public bool TrainingTaskAssessmentMethodSave( AppEntity input, List<Guid> concepts, ref ChangeSummary status )
-        {
-            bool success = false;
-            status.HasSectionErrors = false;
-            var efEntity = new Data.Tables.CourseTask_AssessmentType();
-            var entityType = "CourseTask_AssessmentType";
+        //                            int count = context.SaveChanges();
+        //                        }
+        //                        else
+        //                        {
+        //                            status.AddError( String.Format( "Error. For TrainingTask: '{0}' ({1}) an AssessmentMethod entity was not found for Identifier: {2}", FormatLongLabel( input.Description ), input.Id, child ) );
+        //                        }
+        //                    }
+        //                }
+        //            }
+        //        }
+        //        catch ( Exception ex )
+        //        {
+        //            string message = FormatExceptions( ex );
+        //            LoggingHelper.LogError( ex, thisClassName + string.Format( ".TrainingTaskAssessmentMethodSave failed, Course: '{0}' ({1})", entityType, FormatLongLabel( input.Description ), input.Id ) );
+        //            status.AddError( thisClassName + ".TrainingTaskAssessmentMethodSave(). Error - the save was not successful. \r\n" + message );
+        //        }
+        //    }
+        //    return success;
+        //}
 
-            using ( var context = new DataEntities() )
-            {
-                try
-                {
-                    if ( input.AssessmentMethodType?.Count == 0 )
-                        input.AssessmentMethodType = new List<Guid>();
-                    //check existance
-                    var results = from entity in context.CourseTask_AssessmentType
-                                  join concept in context.ConceptScheme_Concept
-                                  on entity.AssessmentMethodConceptId equals concept.Id
-                                  where entity.CourseTaskId == input.Id
+        //public bool DeleteTrainingAssessmentType( int courseId, int conceptId, ref ChangeSummary status )
+        //{
+        //    bool isValid = false;
+        //    if ( conceptId == 0 )
+        //    {
+        //        //statusMessage = "Error - missing an identifier for the CourseConcept to remove";
+        //        return false;
+        //    }
 
-                                  select concept;
+        //    using ( var context = new DataEntities() )
+        //    {
+        //        var efEntity = context.CourseTask_AssessmentType
+        //                        .FirstOrDefault( s => s.CourseTaskId == courseId && s.AssessmentMethodConceptId == conceptId );
 
-                    //if ( existing == null )
-                    //    existing = new List<ConceptScheme_Concept>();  
-                    var existing = results?.ToList();
+        //        if ( efEntity != null && efEntity.Id > 0 )
+        //        {
+        //            context.CourseTask_AssessmentType.Remove( efEntity );
+        //            int count = context.SaveChanges();
+        //            if ( count > 0 )
+        //            {
+        //                isValid = true;
+        //            }
+        //        }
+        //        else
+        //        {
+        //            //statusMessage = "Warning - the record was not found - probably because the target had been previously deleted";
+        //            isValid = true;
+        //        }
+        //    }
 
-                    #region deletes check
-                    if ( existing.Any() )
-                    {
-                        //if exists not in input, delete it
-                        foreach ( var e in existing )
-                        {
-                            var key = e.RowId;
-                            if ( IsValidGuid( key ) )
-                            {
-                                if ( !input.AssessmentMethodType.Contains( ( Guid ) key ) )
-                                {
-                                    DeleteTrainingAssessmentType( input.Id, e.Id, ref status );
-                                }
-                            }
-                        }
-                    }
-                    #endregion
-                    //adds
-                    if ( input.AssessmentMethodType != null )
-                    {
-                        foreach ( var child in input.AssessmentMethodType )
-                        {
-                            //if not in existing, then add
-                            bool doingAdd = true;
-                            if ( existing?.Count > 0 )
-                            {
-                                foreach ( var item in existing )
-                                {
-                                    if ( item.RowId == child )
-                                    {
-                                        doingAdd = false;
-                                        break;
-                                    }
-                                }
-                            }
-                            if ( doingAdd )
-                            {
-                                var concept = ConceptSchemeManager.GetConcept( child );
-                                if ( concept?.Id > 0 )
-                                {
-                                    efEntity.CourseTaskId = input.Id;
-                                    efEntity.AssessmentMethodConceptId = concept.Id;
-                                    efEntity.RowId = Guid.NewGuid();
-                                    efEntity.CreatedById = input.LastUpdatedById;
-                                    efEntity.Created = DateTime.Now;
-
-                                    context.CourseTask_AssessmentType.Add( efEntity );
-
-                                    int count = context.SaveChanges();
-                                }
-                                else
-                                {
-                                    status.AddError( String.Format( "Error. For TrainingTask: '{0}' ({1}) an AssessmentMethod entity was not found for Identifier: {2}", FormatLongLabel( input.Description ), input.Id, child ) );
-                                }
-                            }
-                        }
-                    }
-                }
-                catch ( Exception ex )
-                {
-                    string message = FormatExceptions( ex );
-                    LoggingHelper.LogError( ex, thisClassName + string.Format( ".TrainingTaskAssessmentMethodSave failed, Course: '{0}' ({1})", entityType, FormatLongLabel( input.Description ), input.Id ) );
-                    status.AddError( thisClassName + ".TrainingTaskAssessmentMethodSave(). Error - the save was not successful. \r\n" + message );
-                }
-            }
-            return success;
-        }
-
-        public bool DeleteTrainingAssessmentType( int courseId, int conceptId, ref ChangeSummary status )
-        {
-            bool isValid = false;
-            if ( conceptId == 0 )
-            {
-                //statusMessage = "Error - missing an identifier for the CourseConcept to remove";
-                return false;
-            }
-
-            using ( var context = new DataEntities() )
-            {
-                var efEntity = context.CourseTask_AssessmentType
-                                .FirstOrDefault( s => s.CourseTaskId == courseId && s.AssessmentMethodConceptId == conceptId );
-
-                if ( efEntity != null && efEntity.Id > 0 )
-                {
-                    context.CourseTask_AssessmentType.Remove( efEntity );
-                    int count = context.SaveChanges();
-                    if ( count > 0 )
-                    {
-                        isValid = true;
-                    }
-                }
-                else
-                {
-                    //statusMessage = "Warning - the record was not found - probably because the target had been previously deleted";
-                    isValid = true;
-                }
-            }
-
-            return isValid;
-        }
+        //    return isValid;
+        //}
 
         #endregion
 
@@ -512,7 +393,7 @@ namespace Factories
 
 			using ( var context = new DataEntities() )
 			{
-				var item = context.Course_Task
+				var item = context.TrainingTask
 							.FirstOrDefault( s => s.Description.ToLower() == description.ToLower() );
 
 				if ( item != null && item.Id > 0 )
@@ -534,17 +415,18 @@ namespace Factories
 
             using ( var context = new DataEntities() )
             {
-                var item = context.Course_Task
-                            .FirstOrDefault( s => s.Course.CodedNotation.ToLower() == courseCodedNotation.ToLower()
-                            && s.Description.ToLower() == description.ToLower() );
+                //TODO - course is now a list, so sigh.....
+                //var item = context.TrainingTask
+                //            .FirstOrDefault( s => s.CourseContext.Course.CodedNotation.ToLower() == courseCodedNotation.ToLower()
+                //            && s.Description.ToLower() == description.ToLower() );
 
-                if ( item != null && item.Id > 0 )
-                {
-                    MapFromDB( item, entity );
-                } else
-                {
-                    //attempt partial match? - no clear dependable approach
-                }
+                //if ( item != null && item.Id > 0 )
+                //{
+                //    MapFromDB( item, entity );
+                //} else
+                //{
+                //    //attempt partial match? - no clear dependable approach
+                //}
             }
             return entity;
 		}
@@ -557,7 +439,7 @@ namespace Factories
 
 			using ( var context = new DataEntities() )
 			{
-				var item = context.Course_Task
+				var item = context.TrainingTask
 							.SingleOrDefault( s => s.CTID == ctid );
 
 				if ( item != null && item.Id > 0 )
@@ -587,42 +469,43 @@ namespace Factories
             using ( var context = new DataEntities() )
             {
                 //first just get existing RT->TT for current rating
-                var results = from task in context.Course_Task
-                              join hasTrainingTask in context.RatingTask_HasTrainingTask
-                                    on task.Id equals hasTrainingTask.TrainingTaskId
-                              //get ratingTask
-                              join ratingTask in context.RatingTask
-                                    on hasTrainingTask.RatingTaskId equals ratingTask.Id
-                              join hasRating in context.RatingTask_HasRating
-                                    on ratingTask.Id equals hasRating.RatingTaskId
-                              join rating in context.Rating
-                                    on hasRating.RatingId equals rating.Id
-                              //Want to training task related to a particular ratingTask row!
-                              //currently codes like NEC001 can be on multiple sheets
-                              where ratingTask.CodedNotation.ToLower() == ratingTaskCodedNotation.ToLower()
-                              && rating.CodedNotation.ToLower().Equals( ratingCode.ToLower() )
+                //TODO
+                //var results = from task in context.TrainingTask
+                //              join hasTrainingTask in context.RatingTask_HasTrainingTask
+                //                    on task.Id equals hasTrainingTask.TrainingTaskId
+                //              //get ratingTask
+                //              join ratingTask in context.RatingTask
+                //                    on hasTrainingTask.RatingTaskId equals ratingTask.Id
+                //              join hasRating in context.RatingTask_HasRating
+                //                    on ratingTask.Id equals hasRating.RatingTaskId
+                //              join rating in context.Rating
+                //                    on hasRating.RatingId equals rating.Id
+                //              //Want to training task related to a particular ratingTask row!
+                //              //currently codes like NEC001 can be on multiple sheets
+                //              where ratingTask.CodedNotation.ToLower() == ratingTaskCodedNotation.ToLower()
+                //              && rating.CodedNotation.ToLower().Equals( ratingCode.ToLower() )
 
-                              select task;
-                //should only be one, but just in case
-                var existing = results?.ToList().FirstOrDefault();
-                if ( existing?.Id > 0 )
-                {
-                    if (existing.Course.CodedNotation.ToLower() != courseCodedNotation.ToLower() )
-                    {
-                        //if there is a change to a different course/training task, then probably should return essentially not found
-                        //  also want to have a warning that the course changed for rating task!
-                        summary.AddWarning( string.Format( "For RatingTask Identifier: '{0}' there is a change in Course. Previous CIN: '{1}', Current CIN: '{2}'", ratingTaskCodedNotation, existing.Course.CodedNotation, courseCodedNotation ) );
-                        return entity;
-                    } else
-                    {
-                        //same course, so return training task
-                        MapFromDB( existing, entity );
-                    }
-                } else
-                {
-                    //otherwise not associated with a rating tasks, so look up for existing course training task
-                    entity = Get( courseCodedNotation, description );
-                }
+                //              select task;
+                ////should only be one, but just in case
+                //var existing = results?.ToList().FirstOrDefault();
+                //if ( existing?.Id > 0 )
+                //{
+                //    if (existing.Course.CodedNotation.ToLower() != courseCodedNotation.ToLower() )
+                //    {
+                //        //if there is a change to a different course/training task, then probably should return essentially not found
+                //        //  also want to have a warning that the course changed for rating task!
+                //        summary.AddWarning( string.Format( "For RatingTask Identifier: '{0}' there is a change in Course. Previous CIN: '{1}', Current CIN: '{2}'", ratingTaskCodedNotation, existing.Course.CodedNotation, courseCodedNotation ) );
+                //        return entity;
+                //    } else
+                //    {
+                //        //same course, so return training task
+                //        MapFromDB( existing, entity );
+                //    }
+                //} else
+                //{
+                //    //otherwise not associated with a rating tasks, so look up for existing course training task
+                //    entity = Get( courseCodedNotation, description );
+                //}
             }
             return entity;
         }
@@ -632,7 +515,7 @@ namespace Factories
 
             using ( var context = new DataEntities() )
             {
-                var item = context.Course_Task
+                var item = context.TrainingTask
                             .FirstOrDefault( s => s.RowId == rowId );
 
                 if ( item != null && item.Id > 0 )
@@ -650,7 +533,7 @@ namespace Factories
 
             using ( var context = new DataEntities() )
             {
-                var item = context.Course_Task
+                var item = context.TrainingTask
                             .SingleOrDefault( s => s.Id == id );
 
                 if ( item != null && item.Id > 0 )
@@ -668,7 +551,7 @@ namespace Factories
 
 		//	using ( var context = new DataEntities() )
 		//	{
-		//		var item = context.Course_Task
+		//		var item = context.TrainingTask
 		//					.FirstOrDefault( s => s.RatingTask.Where( m => m.Id == ratingTaskId ).Count() > 0 );
 
 		//		if ( item != null && item.Id > 0 )
@@ -690,7 +573,7 @@ namespace Factories
 
             using ( var context = new DataEntities() )
             {
-                var results = context.Course_Task
+                var results = context.TrainingTask
                         .OrderBy( s => s.Description )
                         .ToList();
                 if ( results?.Count > 0 )
@@ -717,7 +600,7 @@ namespace Factories
 
 			using ( var context = new DataEntities() )
 			{
-				var items = context.Course_Task
+				var items = context.TrainingTask
 					.Where( m => guids.Contains( m.RowId ) )
 					.OrderBy( m => m.Description )
 					.ToList();
@@ -869,6 +752,7 @@ namespace Factories
             }
         }
 
+        //TODO - need to use a summary that includes course context
 		public static List<AppEntity> Search( SearchQuery query )
 		{
 			var output = new List<AppEntity>();
@@ -878,49 +762,46 @@ namespace Factories
 				using ( var context = new DataEntities() )
 				{
 					//Start query
-					var list = context.Course_Task.AsQueryable();
+					var list = context.TrainingTask.AsQueryable();
 
 					//Handle keywords filter
 					var keywordsText = query.GetFilterTextByName( "search:Keyword" )?.ToLower();
                     var courseFilter = query.GetFilterByName( "ceterms:Course" );
 
-     //               if ( !string.IsNullOrWhiteSpace( keywordsText ) )
-					//{
-					//	list = list.Where( s =>
-					//		 s.Description.ToLower().Contains( keywordsText )
-					//	);
-					//}
 
-					//Handle Course Connection					
+
+					//Handle Course Connection	
+                    //TODO - can no longer do this with course less training tasls				
                     if ( courseFilter != null && courseFilter.ItemIds?.Count() > 0 )
                     {
-                        list = list.Where( s =>
-                            courseFilter.IsNegation ?
-                                !courseFilter.ItemIds.Contains( s.CourseId ) :
-                                courseFilter.ItemIds.Contains( s.CourseId )
-                        );
+                        //list = list.Where( s =>
+                        //    courseFilter.IsNegation ?
+                        //        !courseFilter.ItemIds.Contains( s.CourseId ) :
+                        //        courseFilter.ItemIds.Contains( s.CourseId )
+                        //);
                     }
 
 					//Handle Rating Task Connection
 					var ratingTaskFilter = query.GetFilterByName( "navy:RatingTask" );
                     if ( ratingTaskFilter != null && ratingTaskFilter.ItemIds?.Count() > 0 )
                     {
-                        //not sure yet. get training task for a rating task
-                        list = list.Where( s =>
-                            s.RatingTask_HasTrainingTask.Where( t =>
-                                ratingTaskFilter.IsNegation ?
-                                    !ratingTaskFilter.ItemIds.Contains( t.RatingTaskId ) :
-                                    ratingTaskFilter.ItemIds.Contains( t.RatingTaskId )
-                            ).Count() > 0
-                        );
+                        //TODO
+                        //list = list.Where( s =>
+                        //    s.RatingTask_HasTrainingTask.Where( t =>
+                        //        ratingTaskFilter.IsNegation ?
+                        //            !ratingTaskFilter.ItemIds.Contains( t.RatingTaskId ) :
+                        //            ratingTaskFilter.ItemIds.Contains( t.RatingTaskId )
+                        //    ).Count() > 0
+                        //);
                     }
 
 					//Handle keywords text
 					if ( !string.IsNullOrWhiteSpace( keywordsText ) )
 					{
+                        //TODO
 						list = list.Where( s => s.Description.ToLower().Contains( keywordsText )
-						|| s.Course.Name.ToLower().Contains( keywordsText )
-						|| s.Course.CodedNotation.ToLower().Contains( keywordsText )
+						//|| s.CourseContext.Course.Name.ToLower().Contains( keywordsText )
+						//|| s.Course.CodedNotation.ToLower().Contains( keywordsText )
 						);
 					}
 
@@ -928,7 +809,8 @@ namespace Factories
                     query.TotalResults = list.Count();
 
 					//Sort
-					list = list.OrderBy( p => p.Course.Name ).ThenBy( s => s.Description);
+                    //TODO
+					//list = list.OrderBy( p => p.Course.Name ).ThenBy( s => s.Description);
 
 					//Get page and populate
 					var results = list.Skip( skip ).Take( query.PageSize )
@@ -966,7 +848,7 @@ namespace Factories
             {
                 using ( var context = new DataEntities() )
                 {
-                    var list = from Results in context.Course_Task
+                    var list = from Results in context.TrainingTask
                                select Results;
                     if ( !string.IsNullOrWhiteSpace( filter ) )
                     {
@@ -1016,30 +898,30 @@ namespace Factories
             {
                 output.RowId = input.RowId;
             }
-            //
-            if (input.Course?.Id > 0 )
-            {
-                output.CourseName = output.CourseName = input.Course.Name;
-                output.CourseCodedNotation = input.Course.CodedNotation;
-                if ( appendingCourseCode )
-                {
-                    output.Description += " (" + output.CourseCodedNotation + ")";
-                    //add fake name for search
-                    output.Name = string.Format("Course: {0} ({1}) ", output.CourseName, output.CourseCodedNotation);
-                }
-            }
-
-            if ( input.CourseTask_AssessmentType != null )
-            {
-                foreach ( var item in input.CourseTask_AssessmentType )
-                {
-                    if ( item != null && item.ConceptScheme_Concept != null )
-                    {
-                        output.AssessmentMethodType.Add( item.ConceptScheme_Concept.RowId );
-                        output.AssessmentMethods.Add( item.ConceptScheme_Concept.Name );
-                    }
-                }
-            }
+            //Now a list so >>>>>>>>>
+            //if (input.CourseContext.Course?.Id > 0 )
+            //{
+            //    output.CourseName = output.CourseName = input.Course.Name;
+            //    output.CourseCodedNotation = input.Course.CodedNotation;
+            //    if ( appendingCourseCode )
+            //    {
+            //        output.Description += " (" + output.CourseCodedNotation + ")";
+            //        //add fake name for search
+            //        output.Name = string.Format("Course: {0} ({1}) ", output.CourseName, output.CourseCodedNotation);
+            //    }
+            //}
+            //who knows
+            //if ( input.CourseTask_AssessmentType != null )
+            //{
+            //    foreach ( var item in input.CourseTask_AssessmentType )
+            //    {
+            //        if ( item != null && item.ConceptScheme_Concept != null )
+            //        {
+            //            output.AssessmentMethodType.Add( item.ConceptScheme_Concept.RowId );
+            //            output.AssessmentMethods.Add( item.ConceptScheme_Concept.Name );
+            //        }
+            //    }
+            //}
         }
 
         public static AppEntity MapFromDB( DBEntity input, bool appendingCourseCode = false )
@@ -1053,29 +935,29 @@ namespace Factories
                 output.RowId = input.RowId;
             }
             //
-            if ( input.Course?.Id > 0 )
-            {
-                output.CourseName = output.CourseName = input.Course.Name;
-                output.CourseCodedNotation = input.Course.CodedNotation;
-                if ( appendingCourseCode )
-                {
-                    output.Description += " (" + output.CourseCodedNotation + ")";
-                    //add fake name for search
-                    output.Name = string.Format( "Course: {0} ({1}) ", output.CourseName, output.CourseCodedNotation );
-                }
-            }
+            //if ( input.Course?.Id > 0 )
+            //{
+            //    output.CourseName = output.CourseName = input.Course.Name;
+            //    output.CourseCodedNotation = input.Course.CodedNotation;
+            //    if ( appendingCourseCode )
+            //    {
+            //        output.Description += " (" + output.CourseCodedNotation + ")";
+            //        //add fake name for search
+            //        output.Name = string.Format( "Course: {0} ({1}) ", output.CourseName, output.CourseCodedNotation );
+            //    }
+            //}
 
-            if ( input.CourseTask_AssessmentType != null )
-            {
-                foreach ( var item in input.CourseTask_AssessmentType )
-                {
-                    if ( item != null && item.ConceptScheme_Concept != null )
-                    {
-                        output.AssessmentMethodType.Add( item.ConceptScheme_Concept.RowId );
-                        output.AssessmentMethods.Add( item.ConceptScheme_Concept.Name );
-                    }
-                }
-            }
+            //if ( input.CourseTask_AssessmentType != null )
+            //{
+            //    foreach ( var item in input.CourseTask_AssessmentType )
+            //    {
+            //        if ( item != null && item.ConceptScheme_Concept != null )
+            //        {
+            //            output.AssessmentMethodType.Add( item.ConceptScheme_Concept.RowId );
+            //            output.AssessmentMethods.Add( item.ConceptScheme_Concept.Name );
+            //        }
+            //    }
+            //}
 
             return output;
         }

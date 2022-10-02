@@ -18,6 +18,7 @@ namespace Data.Tables
         public TrainingTask()
         {
             this.CourseContext = new HashSet<CourseContext>();
+            this.RatingContext = new HashSet<RatingContext>();
         }
     
         public int Id { get; set; }
@@ -31,5 +32,7 @@ namespace Data.Tables
     
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<CourseContext> CourseContext { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<RatingContext> RatingContext { get; set; }
     }
 }
