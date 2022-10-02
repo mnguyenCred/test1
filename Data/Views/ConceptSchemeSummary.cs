@@ -17,11 +17,13 @@ namespace Data.Views
         public int ConceptSchemeId { get; set; }
         public string Name { get; set; }
         public int conceptid { get; set; }
-        public Nullable<int> ListId { get; set; }
+        public int ListId { get; set; }
         public string Concept { get; set; }
         public string CodedNotation { get; set; }
         public string Description { get; set; }
         public string AlternateLabel { get; set; }
         public System.Guid ConceptUID { get; set; }
+        public bool IsActive { get; set; }
+        public string WorkElementType { get; set; }
     }
 }

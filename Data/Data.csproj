@@ -215,6 +215,9 @@
     <Compile Include="Views\Activity_Summary.cs">
       <DependentUpon>NavyViews.tt</DependentUpon>
     </Compile>
+    <Compile Include="Views\ApplicationRoleSummary.cs">
+      <DependentUpon>NavyViews.tt</DependentUpon>
+    </Compile>
     <Compile Include="Views\AspNetUserRoles_Summary.cs">
       <DependentUpon>NavyViews.tt</DependentUpon>
     </Compile>
@@ -238,6 +241,9 @@
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>NavyViews.edmx</DependentUpon>
+    </Compile>
+    <Compile Include="Views\RatingContextSummary.cs">
+      <DependentUpon>NavyViews.tt</DependentUpon>
     </Compile>
     <Compile Include="Views\RatingSummary.cs">
       <DependentUpon>NavyViews.tt</DependentUpon>

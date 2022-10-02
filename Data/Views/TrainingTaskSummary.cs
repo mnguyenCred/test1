@@ -34,5 +34,7 @@ namespace Data.Views
         public Nullable<int> LastUpdatedById { get; set; }
         public string CodedNotation { get; set; }
         public Nullable<System.Guid> CurriculumControlAuthorityUID { get; set; }
+        public Nullable<int> LifeCycleControlDocumentTypeId { get; set; }
+        public string CurrentAssessmentApproach { get; set; }
     }
 }

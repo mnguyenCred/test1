@@ -2298,4 +2298,16 @@ namespace Factories
         public List<MSc.ClusterAnalysisTitle> Titles { get; set; }
 
     }
+
+    [Serializable]
+    public class CachedRatingContext
+    {
+        public CachedRatingContext()
+        {
+            LastUpdated = DateTime.Now;
+        }
+        public DateTime LastUpdated { get; set; }
+        public List<MSc.RatingContext> Objects { get; set; }
+
+    }
 }

@@ -81,7 +81,7 @@ namespace NavyRRL.Controllers
 				Action = "Edit"
 			};
 			data.LastUpdatedById = user.Id;
-			var results = new Factories.RatingContextManager().Save( data, ref status );
+			var results = new Factories.RatingContextManager().Save( data, ref status, false );
 			if ( status.HasAnyErrors )
 			{
 				var msg = string.Join( "</br>", status.Messages.Error.ToArray() );

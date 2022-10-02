@@ -31,5 +31,6 @@ namespace Data.Views
         public System.DateTime LastUpdated { get; set; }
         public Nullable<int> LastUpdatedById { get; set; }
         public string CodedNotation { get; set; }
+        public Nullable<int> LifeCycleControlDocumentTypeId { get; set; }
     }
 }

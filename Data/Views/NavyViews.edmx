@@ -6,7 +6,7 @@
     <edmx:StorageModels>
     <Schema Namespace="ceNavyViewModel.Store" Provider="System.Data.SqlClient" ProviderManifestToken="2012" Alias="Self" xmlns:store="http://schemas.microsoft.com/ado/2007/12/edm/EntityStoreSchemaGenerator" xmlns:customannotation="http://schemas.microsoft.com/ado/2013/11/edm/customannotation" xmlns="http://schemas.microsoft.com/ado/2009/11/edm/ssdl">
         <!--Errors Found During Generation:
-warning 6002: The table/view 'NavyRRL.dbo.Account_Summary' does not have a primary key defined. The key has been inferred and the definition was created as a read-only table/view.-->
+warning 6002: The table/view 'Navy_RRL_V2.dbo.Account_Summary' does not have a primary key defined. The key has been inferred and the definition was created as a read-only table/view.-->
         <EntityType Name="Account_Summary">
           <Key>
             <PropertyRef Name="Id" />
@@ -36,7 +36,7 @@ warning 6002: The table/view 'NavyRRL.dbo.Account_Summary' does not have a prima
           <Property Name="lastLogon" Type="datetime" />
         </EntityType>
         <!--Errors Found During Generation:
-warning 6002: The table/view 'NavyRRL.dbo.Activity_Summary' does not have a primary key defined. The key has been inferred and the definition was created as a read-only table/view.-->
+warning 6002: The table/view 'Navy_RRL_V2.dbo.Activity_Summary' does not have a primary key defined. The key has been inferred and the definition was created as a read-only table/view.-->
         <EntityType Name="Activity_Summary">
           <Key>
             <PropertyRef Name="Id" />
@@ -64,7 +64,25 @@ warning 6002: The table/view 'NavyRRL.dbo.Activity_Summary' does not have a prim
           <Property Name="Referrer" Type="varchar(max)" />
         </EntityType>
         <!--Errors Found During Generation:
-warning 6002: The table/view 'NavyRRL.dbo.AspNetUserRoles_Summary' does not have a primary key defined. The key has been inferred and the definition was created as a read-only table/view.-->
+warning 6002: The table/view 'Navy_RRL_V2.dbo.ApplicationRoleSummary' does not have a primary key defined. The key has been inferred and the definition was created as a read-only table/view.-->
+        <EntityType Name="ApplicationRoleSummary">
+          <Key>
+            <PropertyRef Name="Id" />
+            <PropertyRef Name="Email" />
+            <PropertyRef Name="SortName" />
+            <PropertyRef Name="RoleName" />
+            <PropertyRef Name="RoleId" />
+          </Key>
+          <Property Name="Id" Type="int" Nullable="false" />
+          <Property Name="Email" Type="varchar" MaxLength="100" Nullable="false" />
+          <Property Name="SortName" Type="varchar" MaxLength="102" Nullable="false" />
+          <Property Name="RoleName" Type="nvarchar" MaxLength="100" Nullable="false" />
+          <Property Name="RoleId" Type="int" Nullable="false" />
+          <Property Name="Created" Type="datetime" />
+          <Property Name="AspNetId" Type="nvarchar" MaxLength="128" />
+        </EntityType>
+        <!--Errors Found During Generation:
+warning 6002: The table/view 'Navy_RRL_V2.dbo.AspNetUserRoles_Summary' does not have a primary key defined. The key has been inferred and the definition was created as a read-only table/view.-->
         <EntityType Name="AspNetUserRoles_Summary">
           <Key>
             <PropertyRef Name="Id" />
@@ -82,27 +100,31 @@ warning 6002: The table/view 'NavyRRL.dbo.AspNetUserRoles_Summary' does not have
           <Property Name="AspNetId" Type="nvarchar" MaxLength="128" />
         </EntityType>
         <!--Errors Found During Generation:
-warning 6002: The table/view 'NavyRRL.dbo.ConceptSchemeSummary' does not have a primary key defined. The key has been inferred and the definition was created as a read-only table/view.-->
+warning 6002: The table/view 'Navy_RRL_V2.dbo.ConceptSchemeSummary' does not have a primary key defined. The key has been inferred and the definition was created as a read-only table/view.-->
         <EntityType Name="ConceptSchemeSummary">
           <Key>
             <PropertyRef Name="ConceptSchemeId" />
             <PropertyRef Name="Name" />
             <PropertyRef Name="conceptid" />
+            
             <PropertyRef Name="Concept" />
+            <PropertyRef Name="IsActive" />
             <PropertyRef Name="ConceptUID" />
           </Key>
           <Property Name="ConceptSchemeId" Type="int" Nullable="false" />
           <Property Name="Name" Type="nvarchar" MaxLength="400" Nullable="false" />
           <Property Name="conceptid" Type="int" Nullable="false" />
-          <Property Name="ListId" Type="int" />
+          <Property Name="ListId" Type="int" Nullable="false" />
           <Property Name="Concept" Type="varchar" MaxLength="1000" Nullable="false" />
           <Property Name="CodedNotation" Type="varchar" MaxLength="50" />
           <Property Name="AlternateLabel" Type="varchar" MaxLength="500" />
           <Property Name="Description" Type="varchar(max)" />
+          <Property Name="IsActive" Type="bit" Nullable="false" />
+          <Property Name="WorkElementType" Type="varchar" MaxLength="200" />
           <Property Name="ConceptUID" Type="uniqueidentifier" Nullable="false" />
         </EntityType>
         <!--Errors Found During Generation:
-warning 6002: The table/view 'NavyRRL.dbo.CourseSummary' does not have a primary key defined. The key has been inferred and the definition was created as a read-only table/view.-->
+warning 6002: The table/view 'Navy_RRL_V2.dbo.CourseSummary' does not have a primary key defined. The key has been inferred and the definition was created as a read-only table/view.-->
         <EntityType Name="CourseSummary">
           <Key>
             <PropertyRef Name="Id" />
@@ -122,7 +144,7 @@ warning 6002: The table/view 'NavyRRL.dbo.CourseSummary' does not have a primary
           <Property Name="Description" Type="nvarchar(max)" />
           <Property Name="CurriculumControlAuthorityId" Type="int" />
           <Property Name="CurriculumControlAuthority" Type="nvarchar" MaxLength="300" Nullable="false" />
-          <Property Name="LifeCycleControlDocumentId" Type="int" />
+          <Property Name="LifeCycleControlDocumentTypeId" Type="int" />
           <Property Name="LifeCycleControlDocument" Type="varchar" MaxLength="1000" Nullable="false" />
           <Property Name="LifeCycleControlDocumentUID" Type="uniqueidentifier" Nullable="false" />
           <Property Name="CourseTypes" Type="nvarchar(max)" />
@@ -134,7 +156,103 @@ warning 6002: The table/view 'NavyRRL.dbo.CourseSummary' does not have a primary
           <Property Name="LastUpdatedById" Type="int" />
         </EntityType>
         <!--Errors Found During Generation:
-warning 6002: The table/view 'NavyRRL.dbo.RatingSummary' does not have a primary key defined. The key has been inferred and the definition was created as a read-only table/view.-->
+warning 6002: The table/view 'Navy_RRL_V2.dbo.RatingContextSummary' does not have a primary key defined. The key has been inferred and the definition was created as a read-only table/view.-->
+        <EntityType Name="RatingContextSummary">
+          <Key>
+            <PropertyRef Name="Id" />
+            <PropertyRef Name="RowId" />
+            <PropertyRef Name="RatingName" />
+            <PropertyRef Name="Ratings" />
+            <PropertyRef Name="BilletTitles" />
+            <PropertyRef Name="PayGradeTypeId" />
+            <PropertyRef Name="Rank" />
+            <PropertyRef Name="RankName" />
+            <PropertyRef Name="Level" />
+            <PropertyRef Name="RatingTask" />
+            <PropertyRef Name="ReferenceResource" />
+            <PropertyRef Name="WorkElementTypeId" />
+            <PropertyRef Name="WorkElementType" />
+            <PropertyRef Name="WorkElementTypeAlternateName" />
+            <PropertyRef Name="WorkElementTypeOrder" />
+            <PropertyRef Name="ReferenceType" />
+            <PropertyRef Name="TaskApplicability" />
+            <PropertyRef Name="FormalTrainingGap" />
+            <PropertyRef Name="Created" />
+            <PropertyRef Name="LastUpdated" />
+          </Key>
+          <Property Name="Id" Type="int" Nullable="false" />
+          <Property Name="CTID" Type="varchar" MaxLength="50" />
+          <Property Name="RowId" Type="uniqueidentifier" Nullable="false" />
+          <Property Name="RatingName" Type="nvarchar" MaxLength="500" Nullable="false" />
+          <Property Name="Ratings" Type="varchar" MaxLength="100" Nullable="false" />
+          <Property Name="HasRating" Type="uniqueidentifier" />
+          <Property Name="ratingId" Type="int" />
+          <Property Name="BilletTitles" Type="nvarchar" MaxLength="500" Nullable="false" />
+          <Property Name="CodedNotation" Type="varchar" MaxLength="100" />
+          <Property Name="PayGradeTypeId" Type="int" Nullable="false" />
+          <Property Name="Rank" Type="varchar" MaxLength="50" Nullable="false" />
+          <Property Name="RankName" Type="varchar" MaxLength="1000" Nullable="false" />
+          <Property Name="PayGradeType" Type="uniqueidentifier" />
+          <Property Name="Level" Type="varchar" MaxLength="10" Nullable="false" />
+          <Property Name="FunctionalArea" Type="nvarchar(max)" />
+          <Property Name="SourceDate" Type="nvarchar" MaxLength="50" />
+          <Property Name="HasReferenceResource" Type="uniqueidentifier" />
+          <Property Name="RatingTask" Type="nvarchar(max)" Nullable="false" />
+          <Property Name="ReferenceResourceId" Type="int" />
+          <Property Name="ReferenceResource" Type="nvarchar" MaxLength="300" Nullable="false" />
+          <Property Name="WorkElementTypeId" Type="int" Nullable="false" />
+          <Property Name="WorkElementType" Type="varchar" MaxLength="1000" Nullable="false" />
+          <Property Name="WorkElementTypeAlternateName" Type="varchar" MaxLength="200" Nullable="false" />
+          <Property Name="WorkElementTypeOrder" Type="int" Nullable="false" />
+          <Property Name="ReferenceType" Type="uniqueidentifier" Nullable="false" />
+          <Property Name="TaskApplicabilityId" Type="int" />
+          <Property Name="TaskApplicability" Type="varchar" MaxLength="1000" Nullable="false" />
+          <Property Name="ApplicabilityType" Type="uniqueidentifier" />
+          <Property Name="FormalTrainingGapId" Type="int" />
+          <Property Name="FormalTrainingGap" Type="varchar" MaxLength="1000" Nullable="false" />
+          <Property Name="TrainingGapType" Type="uniqueidentifier" />
+          <Property Name="CourseId" Type="int" />
+          <Property Name="CourseUID" Type="uniqueidentifier" />
+          <Property Name="CIN" Type="nvarchar" MaxLength="50" />
+          <Property Name="CourseName" Type="nvarchar" MaxLength="300" />
+          <Property Name="CourseTypes" Type="nvarchar(max)" />
+          <Property Name="TrainingTaskId" Type="int" />
+          <Property Name="TrainingTask" Type="nvarchar(max)" />
+          <Property Name="HasTrainingTask" Type="uniqueidentifier" />
+          <Property Name="CurrentAssessmentApproach" Type="nvarchar(max)" />
+          <Property Name="AssessmentMethodTypes" Type="nvarchar(max)" />
+          <Property Name="CurriculumControlAuthority" Type="nvarchar" MaxLength="503" />
+          <Property Name="CurriculumControlAuthorityId" Type="int" />
+          <Property Name="CurriculumControlAuthorityUID" Type="uniqueidentifier" />
+          <Property Name="LifeCycleControlDocument" Type="varchar" MaxLength="1000" />
+          <Property Name="Notes" Type="nvarchar(max)" />
+          <Property Name="TrainingSolutionTypeId" Type="int" />
+          <Property Name="TrainingSolutionType" Type="varchar" MaxLength="1000" />
+          <Property Name="ClusterAnalysisTitle" Type="nvarchar" MaxLength="500" />
+          <Property Name="RecommendedModalityId" Type="int" />
+          <Property Name="RecommendedModality" Type="varchar" MaxLength="1000" />
+          <Property Name="RecommentedModalityCodedNotation" Type="varchar" MaxLength="50" />
+          <Property Name="DevelopmentSpecificationId" Type="int" />
+          <Property Name="DevelopmentSpecification" Type="varchar" MaxLength="1000" />
+          <Property Name="CandidatePlatform" Type="nvarchar(max)" />
+          <Property Name="CFMPlacement" Type="varchar" MaxLength="1000" />
+          <Property Name="PriorityPlacement" Type="int" />
+          <Property Name="DevelopmentRatio" Type="varchar" MaxLength="500" />
+          <Property Name="EstimatedInstructionalTime" Type="decimal" Precision="9" Scale="2" />
+          <Property Name="DevelopmentTime" Type="decimal" Precision="9" Scale="2" />
+          <Property Name="ClusterAnalysisNotes" Type="nvarchar(max)" />
+          <Property Name="Created" Type="datetime" Nullable="false" />
+          <Property Name="CreatedById" Type="int" />
+          <Property Name="CreatedBy" Type="varchar" MaxLength="101" />
+          <Property Name="CreatedByUID" Type="uniqueidentifier" />
+          <Property Name="LastUpdated" Type="datetime" Nullable="false" />
+          <Property Name="LastUpdatedById" Type="int" />
+          <Property Name="ModifiedBy" Type="varchar" MaxLength="101" />
+          <Property Name="ModifiedByUID" Type="uniqueidentifier" />
+          <Property Name="ClusterAnalysisLastUpdated" Type="datetime" />
+        </EntityType>
+        <!--Errors Found During Generation:
+warning 6002: The table/view 'Navy_RRL_V2.dbo.RatingSummary' does not have a primary key defined. The key has been inferred and the definition was created as a read-only table/view.-->
         <EntityType Name="RatingSummary">
           <Key>
             <PropertyRef Name="Id" />
@@ -154,11 +272,12 @@ warning 6002: The table/view 'NavyRRL.dbo.RatingSummary' does not have a primary
           <Property Name="Version" Type="varchar" MaxLength="30" />
         </EntityType>
         <!--Errors Found During Generation:
-warning 6002: The table/view 'NavyRRL.dbo.RatingTaskSummary' does not have a primary key defined. The key has been inferred and the definition was created as a read-only table/view.-->
+warning 6002: The table/view 'Navy_RRL_V2.dbo.RatingTaskSummary' does not have a primary key defined. The key has been inferred and the definition was created as a read-only table/view.-->
         <EntityType Name="RatingTaskSummary">
           <Key>
             <PropertyRef Name="Id" />
             <PropertyRef Name="RowId" />
+            <PropertyRef Name="RatingName" />
             <PropertyRef Name="Ratings" />
             <PropertyRef Name="BilletTitles" />
             <PropertyRef Name="RankId" />
@@ -180,8 +299,11 @@ warning 6002: The table/view 'NavyRRL.dbo.RatingTaskSummary' does not have a pri
           <Property Name="Id" Type="int" Nullable="false" />
           <Property Name="CTID" Type="varchar" MaxLength="50" />
           <Property Name="RowId" Type="uniqueidentifier" Nullable="false" />
-          <Property Name="Ratings" Type="nvarchar(max)" Nullable="false" />
-          <Property Name="BilletTitles" Type="nvarchar(max)" Nullable="false" />
+          <Property Name="RatingName" Type="nvarchar" MaxLength="500" Nullable="false" />
+          <Property Name="Ratings" Type="varchar" MaxLength="100" Nullable="false" />
+          <Property Name="HasRating" Type="uniqueidentifier" />
+          <Property Name="ratingId" Type="int" />
+          <Property Name="BilletTitles" Type="nvarchar" MaxLength="500" Nullable="false" />
           <Property Name="CodedNotation" Type="varchar" MaxLength="100" />
           <Property Name="RankId" Type="int" Nullable="false" />
           <Property Name="Rank" Type="varchar" MaxLength="50" Nullable="false" />
@@ -214,12 +336,28 @@ warning 6002: The table/view 'NavyRRL.dbo.RatingTaskSummary' does not have a pri
           <Property Name="TrainingTaskId" Type="int" />
           <Property Name="TrainingTask" Type="nvarchar(max)" />
           <Property Name="HasTrainingTask" Type="uniqueidentifier" />
+          <Property Name="CurrentAssessmentApproach" Type="nvarchar(max)" />
           <Property Name="AssessmentMethodTypes" Type="nvarchar(max)" />
           <Property Name="CurriculumControlAuthority" Type="nvarchar" MaxLength="503" />
           <Property Name="CurriculumControlAuthorityId" Type="int" />
           <Property Name="CurriculumControlAuthorityUID" Type="uniqueidentifier" />
-          <Property Name="LifeCycleControlDocument" Type="nvarchar" MaxLength="300" />
+          <Property Name="LifeCycleControlDocument" Type="varchar" MaxLength="1000" />
           <Property Name="Notes" Type="nvarchar(max)" />
+          <Property Name="TrainingSolutionTypeId" Type="int" />
+          <Property Name="TrainingSolutionType" Type="varchar" MaxLength="1000" />
+          <Property Name="ClusterAnalysisTitle" Type="nvarchar" MaxLength="500" />
+          <Property Name="RecommendedModalityId" Type="int" />
+          <Property Name="RecommendedModality" Type="varchar" MaxLength="1000" />
+          <Property Name="RecommentedModalityCodedNotation" Type="varchar" MaxLength="50" />
+          <Property Name="DevelopmentSpecificationId" Type="int" />
+          <Property Name="DevelopmentSpecification" Type="varchar" MaxLength="1000" />
+          <Property Name="CandidatePlatform" Type="nvarchar(max)" />
+          <Property Name="CFMPlacement" Type="varchar" MaxLength="500" />
+          <Property Name="PriorityPlacement" Type="int" />
+          <Property Name="DevelopmentRatio" Type="varchar" MaxLength="500" />
+          <Property Name="EstimatedInstructionalTime" Type="decimal" Precision="19" Scale="2" />
+          <Property Name="DevelopmentTime" Type="int" />
+          <Property Name="ClusterAnalysisNotes" Type="nvarchar(max)" />
           <Property Name="Created" Type="datetime" Nullable="false" />
           <Property Name="CreatedById" Type="int" />
           <Property Name="CreatedBy" Type="varchar" MaxLength="101" />
@@ -228,9 +366,10 @@ warning 6002: The table/view 'NavyRRL.dbo.RatingTaskSummary' does not have a pri
           <Property Name="LastUpdatedById" Type="int" />
           <Property Name="ModifiedBy" Type="varchar" MaxLength="101" />
           <Property Name="ModifiedByUID" Type="uniqueidentifier" />
+          <Property Name="ClusterAnalysisLastUpdated" Type="datetime" />
         </EntityType>
         <!--Errors Found During Generation:
-warning 6002: The table/view 'NavyRRL.dbo.ReferenceResourceSummary' does not have a primary key defined. The key has been inferred and the definition was created as a read-only table/view.-->
+warning 6002: The table/view 'Navy_RRL_V2.dbo.ReferenceResourceSummary' does not have a primary key defined. The key has been inferred and the definition was created as a read-only table/view.-->
         <EntityType Name="ReferenceResourceSummary">
           <Key>
             <PropertyRef Name="Id" />
@@ -260,7 +399,7 @@ warning 6002: The table/view 'NavyRRL.dbo.ReferenceResourceSummary' does not hav
           <Property Name="ModifiedBy" Type="varchar" MaxLength="101" />
         </EntityType>
         <!--Errors Found During Generation:
-warning 6002: The table/view 'NavyRRL.dbo.RMTLProjectSummary' does not have a primary key defined. The key has been inferred and the definition was created as a read-only table/view.-->
+warning 6002: The table/view 'Navy_RRL_V2.dbo.RMTLProjectSummary' does not have a primary key defined. The key has been inferred and the definition was created as a read-only table/view.-->
         <EntityType Name="RMTLProjectSummary">
           <Key>
             <PropertyRef Name="Id" />
@@ -296,7 +435,7 @@ warning 6002: The table/view 'NavyRRL.dbo.RMTLProjectSummary' does not have a pr
           <Property Name="LastPublishedById" Type="int" />
         </EntityType>
         <!--Errors Found During Generation:
-warning 6002: The table/view 'NavyRRL.dbo.RmtlSummary' does not have a primary key defined. The key has been inferred and the definition was created as a read-only table/view.-->
+warning 6002: The table/view 'Navy_RRL_V2.dbo.RmtlSummary' does not have a primary key defined. The key has been inferred and the definition was created as a read-only table/view.-->
         <EntityType Name="RmtlSummary">
           <Key>
             <PropertyRef Name="RMTLProject" />
@@ -333,20 +472,20 @@ warning 6002: The table/view 'NavyRRL.dbo.RmtlSummary' does not have a primary k
           <Property Name="LifeCycleControlDocument" Type="varchar" MaxLength="1000" />
         </EntityType>
         <!--Errors Found During Generation:
-warning 6002: The table/view 'NavyRRL.dbo.TrainingTaskSummary' does not have a primary key defined. The key has been inferred and the definition was created as a read-only table/view.-->
+warning 6002: The table/view 'Navy_RRL_V2.dbo.TrainingTaskSummary' does not have a primary key defined. The key has been inferred and the definition was created as a read-only table/view.-->
         <EntityType Name="TrainingTaskSummary">
           <Key>
             <PropertyRef Name="CourseId" />
             <PropertyRef Name="CourseUID" />
             <PropertyRef Name="CodedNotation" />
             <PropertyRef Name="CourseName" />
+            <PropertyRef Name="LifeCycleControlDocument" />
+            <PropertyRef Name="LifeCycleControlDocumentUID" />
             <PropertyRef Name="Created" />
             <PropertyRef Name="LastUpdated" />
             <PropertyRef Name="TrainingTaskId" />
             <PropertyRef Name="TrainingTask" />
             <PropertyRef Name="TrainingTaskUID" />
-            <PropertyRef Name="LifeCycleControlDocument" />
-            <PropertyRef Name="LifeCycleControlDocumentUID" />
           </Key>
           <Property Name="CourseId" Type="int" Nullable="false" />
           <Property Name="CourseUID" Type="uniqueidentifier" Nullable="false" />
@@ -358,11 +497,11 @@ warning 6002: The table/view 'NavyRRL.dbo.TrainingTaskSummary' does not have a p
           <Property Name="CurriculumControlAuthorityId" Type="int" />
           <Property Name="CurriculumControlAuthority" Type="nvarchar" MaxLength="503" />
           <Property Name="CurriculumControlAuthorityUID" Type="uniqueidentifier" />
-          <Property Name="LifeCycleControlDocumentId" Type="int" />
-          <Property Name="LifeCycleControlDocument" Type="nvarchar" MaxLength="300" Nullable="false" />
+          <Property Name="LifeCycleControlDocumentTypeId" Type="int" />
+          <Property Name="LifeCycleControlDocument" Type="varchar" MaxLength="1000" Nullable="false" />
           <Property Name="LifeCycleControlDocumentUID" Type="uniqueidentifier" Nullable="false" />
           <Property Name="CourseTypes" Type="nvarchar(max)" />
-          <Property Name="AssessmentMethodTypes" Type="nvarchar(max)" />
+          <Property Name="CurrentAssessmentApproach" Type="nvarchar(max)" />
           <Property Name="CTID" Type="varchar" MaxLength="50" />
           <Property Name="Created" Type="datetime" Nullable="false" />
           <Property Name="CreatedById" Type="int" />
@@ -370,7 +509,7 @@ warning 6002: The table/view 'NavyRRL.dbo.TrainingTaskSummary' does not have a p
           <Property Name="LastUpdatedById" Type="int" />
         </EntityType>
         <!--Errors Found During Generation:
-warning 6002: The table/view 'NavyRRL.dbo.WorkRoleSummary' does not have a primary key defined. The key has been inferred and the definition was created as a read-only table/view.-->
+warning 6002: The table/view 'Navy_RRL_V2.dbo.WorkRoleSummary' does not have a primary key defined. The key has been inferred and the definition was created as a read-only table/view.-->
         <EntityType Name="WorkRoleSummary">
           <Key>
             <PropertyRef Name="Id" />
@@ -435,6 +574,17 @@ warning 6002: The table/view 'NavyRRL.dbo.WorkRoleSummary' does not have a prima
     [Activity_Summary].[Referrer] AS [Referrer]
     FROM [dbo].[Activity_Summary] AS [Activity_Summary]</DefiningQuery>
           </EntitySet>
+          <EntitySet Name="ApplicationRoleSummary" EntityType="Self.ApplicationRoleSummary" store:Type="Views" store:Schema="dbo">
+            <DefiningQuery>SELECT 
+    [ApplicationRoleSummary].[Id] AS [Id], 
+    [ApplicationRoleSummary].[Email] AS [Email], 
+    [ApplicationRoleSummary].[SortName] AS [SortName], 
+    [ApplicationRoleSummary].[RoleName] AS [RoleName], 
+    [ApplicationRoleSummary].[RoleId] AS [RoleId], 
+    [ApplicationRoleSummary].[Created] AS [Created], 
+    [ApplicationRoleSummary].[AspNetId] AS [AspNetId]
+    FROM [dbo].[ApplicationRoleSummary] AS [ApplicationRoleSummary]</DefiningQuery>
+          </EntitySet>
           <EntitySet Name="AspNetUserRoles_Summary" EntityType="Self.AspNetUserRoles_Summary" store:Type="Views" store:Schema="dbo">
             <DefiningQuery>SELECT 
     [AspNetUserRoles_Summary].[Id] AS [Id], 
@@ -456,6 +606,8 @@ warning 6002: The table/view 'NavyRRL.dbo.WorkRoleSummary' does not have a prima
     [ConceptSchemeSummary].[CodedNotation] AS [CodedNotation], 
     [ConceptSchemeSummary].[AlternateLabel] AS [AlternateLabel], 
     [ConceptSchemeSummary].[Description] AS [Description], 
+    [ConceptSchemeSummary].[IsActive] AS [IsActive], 
+    [ConceptSchemeSummary].[WorkElementType] AS [WorkElementType], 
     [ConceptSchemeSummary].[ConceptUID] AS [ConceptUID]
     FROM [dbo].[ConceptSchemeSummary] AS [ConceptSchemeSummary]</DefiningQuery>
           </EntitySet>
@@ -468,7 +620,7 @@ warning 6002: The table/view 'NavyRRL.dbo.WorkRoleSummary' does not have a prima
     [CourseSummary].[Description] AS [Description], 
     [CourseSummary].[CurriculumControlAuthorityId] AS [CurriculumControlAuthorityId], 
     [CourseSummary].[CurriculumControlAuthority] AS [CurriculumControlAuthority], 
-    [CourseSummary].[LifeCycleControlDocumentId] AS [LifeCycleControlDocumentId], 
+    [CourseSummary].[LifeCycleControlDocumentTypeId] AS [LifeCycleControlDocumentTypeId], 
     [CourseSummary].[LifeCycleControlDocument] AS [LifeCycleControlDocument], 
     [CourseSummary].[LifeCycleControlDocumentUID] AS [LifeCycleControlDocumentUID], 
     [CourseSummary].[CourseTypes] AS [CourseTypes], 
@@ -479,6 +631,80 @@ warning 6002: The table/view 'NavyRRL.dbo.WorkRoleSummary' does not have a prima
     [CourseSummary].[LastUpdated] AS [LastUpdated], 
     [CourseSummary].[LastUpdatedById] AS [LastUpdatedById]
     FROM [dbo].[CourseSummary] AS [CourseSummary]</DefiningQuery>
+          </EntitySet>
+          <EntitySet Name="RatingContextSummary" EntityType="Self.RatingContextSummary" store:Type="Views" store:Schema="dbo">
+            <DefiningQuery>SELECT 
+    [RatingContextSummary].[Id] AS [Id], 
+    [RatingContextSummary].[CTID] AS [CTID], 
+    [RatingContextSummary].[RowId] AS [RowId], 
+    [RatingContextSummary].[RatingName] AS [RatingName], 
+    [RatingContextSummary].[Ratings] AS [Ratings], 
+    [RatingContextSummary].[HasRating] AS [HasRating], 
+    [RatingContextSummary].[ratingId] AS [ratingId], 
+    [RatingContextSummary].[BilletTitles] AS [BilletTitles], 
+    [RatingContextSummary].[CodedNotation] AS [CodedNotation], 
+    [RatingContextSummary].[PayGradeTypeId] AS [PayGradeTypeId], 
+    [RatingContextSummary].[Rank] AS [Rank], 
+    [RatingContextSummary].[RankName] AS [RankName], 
+    [RatingContextSummary].[PayGradeType] AS [PayGradeType], 
+    [RatingContextSummary].[Level] AS [Level], 
+    [RatingContextSummary].[FunctionalArea] AS [FunctionalArea], 
+    [RatingContextSummary].[SourceDate] AS [SourceDate], 
+    [RatingContextSummary].[HasReferenceResource] AS [HasReferenceResource], 
+    [RatingContextSummary].[RatingTask] AS [RatingTask], 
+    [RatingContextSummary].[ReferenceResourceId] AS [ReferenceResourceId], 
+    [RatingContextSummary].[ReferenceResource] AS [ReferenceResource], 
+    [RatingContextSummary].[WorkElementTypeId] AS [WorkElementTypeId], 
+    [RatingContextSummary].[WorkElementType] AS [WorkElementType], 
+    [RatingContextSummary].[WorkElementTypeAlternateName] AS [WorkElementTypeAlternateName], 
+    [RatingContextSummary].[WorkElementTypeOrder] AS [WorkElementTypeOrder], 
+    [RatingContextSummary].[ReferenceType] AS [ReferenceType], 
+    [RatingContextSummary].[TaskApplicabilityId] AS [TaskApplicabilityId], 
+    [RatingContextSummary].[TaskApplicability] AS [TaskApplicability], 
+    [RatingContextSummary].[ApplicabilityType] AS [ApplicabilityType], 
+    [RatingContextSummary].[FormalTrainingGapId] AS [FormalTrainingGapId], 
+    [RatingContextSummary].[FormalTrainingGap] AS [FormalTrainingGap], 
+    [RatingContextSummary].[TrainingGapType] AS [TrainingGapType], 
+    [RatingContextSummary].[CourseId] AS [CourseId], 
+    [RatingContextSummary].[CourseUID] AS [CourseUID], 
+    [RatingContextSummary].[CIN] AS [CIN], 
+    [RatingContextSummary].[CourseName] AS [CourseName], 
+    [RatingContextSummary].[CourseTypes] AS [CourseTypes], 
+    [RatingContextSummary].[TrainingTaskId] AS [TrainingTaskId], 
+    [RatingContextSummary].[TrainingTask] AS [TrainingTask], 
+    [RatingContextSummary].[HasTrainingTask] AS [HasTrainingTask], 
+    [RatingContextSummary].[CurrentAssessmentApproach] AS [CurrentAssessmentApproach], 
+    [RatingContextSummary].[AssessmentMethodTypes] AS [AssessmentMethodTypes], 
+    [RatingContextSummary].[CurriculumControlAuthority] AS [CurriculumControlAuthority], 
+    [RatingContextSummary].[CurriculumControlAuthorityId] AS [CurriculumControlAuthorityId], 
+    [RatingContextSummary].[CurriculumControlAuthorityUID] AS [CurriculumControlAuthorityUID], 
+    [RatingContextSummary].[LifeCycleControlDocument] AS [LifeCycleControlDocument], 
+    [RatingContextSummary].[Notes] AS [Notes], 
+    [RatingContextSummary].[TrainingSolutionTypeId] AS [TrainingSolutionTypeId], 
+    [RatingContextSummary].[TrainingSolutionType] AS [TrainingSolutionType], 
+    [RatingContextSummary].[ClusterAnalysisTitle] AS [ClusterAnalysisTitle], 
+    [RatingContextSummary].[RecommendedModalityId] AS [RecommendedModalityId], 
+    [RatingContextSummary].[RecommendedModality] AS [RecommendedModality], 
+    [RatingContextSummary].[RecommentedModalityCodedNotation] AS [RecommentedModalityCodedNotation], 
+    [RatingContextSummary].[DevelopmentSpecificationId] AS [DevelopmentSpecificationId], 
+    [RatingContextSummary].[DevelopmentSpecification] AS [DevelopmentSpecification], 
+    [RatingContextSummary].[CandidatePlatform] AS [CandidatePlatform], 
+    [RatingContextSummary].[CFMPlacement] AS [CFMPlacement], 
+    [RatingContextSummary].[PriorityPlacement] AS [PriorityPlacement], 
+    [RatingContextSummary].[DevelopmentRatio] AS [DevelopmentRatio], 
+    [RatingContextSummary].[EstimatedInstructionalTime] AS [EstimatedInstructionalTime], 
+    [RatingContextSummary].[DevelopmentTime] AS [DevelopmentTime], 
+    [RatingContextSummary].[ClusterAnalysisNotes] AS [ClusterAnalysisNotes], 
+    [RatingContextSummary].[Created] AS [Created], 
+    [RatingContextSummary].[CreatedById] AS [CreatedById], 
+    [RatingContextSummary].[CreatedBy] AS [CreatedBy], 
+    [RatingContextSummary].[CreatedByUID] AS [CreatedByUID], 
+    [RatingContextSummary].[LastUpdated] AS [LastUpdated], 
+    [RatingContextSummary].[LastUpdatedById] AS [LastUpdatedById], 
+    [RatingContextSummary].[ModifiedBy] AS [ModifiedBy], 
+    [RatingContextSummary].[ModifiedByUID] AS [ModifiedByUID], 
+    [RatingContextSummary].[ClusterAnalysisLastUpdated] AS [ClusterAnalysisLastUpdated]
+    FROM [dbo].[RatingContextSummary] AS [RatingContextSummary]</DefiningQuery>
           </EntitySet>
           <EntitySet Name="RatingSummary" EntityType="Self.RatingSummary" store:Type="Views" store:Schema="dbo">
             <DefiningQuery>SELECT 
@@ -498,7 +724,10 @@ warning 6002: The table/view 'NavyRRL.dbo.WorkRoleSummary' does not have a prima
     [RatingTaskSummary].[Id] AS [Id], 
     [RatingTaskSummary].[CTID] AS [CTID], 
     [RatingTaskSummary].[RowId] AS [RowId], 
+    [RatingTaskSummary].[RatingName] AS [RatingName], 
     [RatingTaskSummary].[Ratings] AS [Ratings], 
+    [RatingTaskSummary].[HasRating] AS [HasRating], 
+    [RatingTaskSummary].[ratingId] AS [ratingId], 
     [RatingTaskSummary].[BilletTitles] AS [BilletTitles], 
     [RatingTaskSummary].[CodedNotation] AS [CodedNotation], 
     [RatingTaskSummary].[RankId] AS [RankId], 
@@ -532,12 +761,28 @@ warning 6002: The table/view 'NavyRRL.dbo.WorkRoleSummary' does not have a prima
     [RatingTaskSummary].[TrainingTaskId] AS [TrainingTaskId], 
     [RatingTaskSummary].[TrainingTask] AS [TrainingTask], 
     [RatingTaskSummary].[HasTrainingTask] AS [HasTrainingTask], 
+    [RatingTaskSummary].[CurrentAssessmentApproach] AS [CurrentAssessmentApproach], 
     [RatingTaskSummary].[AssessmentMethodTypes] AS [AssessmentMethodTypes], 
     [RatingTaskSummary].[CurriculumControlAuthority] AS [CurriculumControlAuthority], 
     [RatingTaskSummary].[CurriculumControlAuthorityId] AS [CurriculumControlAuthorityId], 
     [RatingTaskSummary].[CurriculumControlAuthorityUID] AS [CurriculumControlAuthorityUID], 
     [RatingTaskSummary].[LifeCycleControlDocument] AS [LifeCycleControlDocument], 
     [RatingTaskSummary].[Notes] AS [Notes], 
+    [RatingTaskSummary].[TrainingSolutionTypeId] AS [TrainingSolutionTypeId], 
+    [RatingTaskSummary].[TrainingSolutionType] AS [TrainingSolutionType], 
+    [RatingTaskSummary].[ClusterAnalysisTitle] AS [ClusterAnalysisTitle], 
+    [RatingTaskSummary].[RecommendedModalityId] AS [RecommendedModalityId], 
+    [RatingTaskSummary].[RecommendedModality] AS [RecommendedModality], 
+    [RatingTaskSummary].[RecommentedModalityCodedNotation] AS [RecommentedModalityCodedNotation], 
+    [RatingTaskSummary].[DevelopmentSpecificationId] AS [DevelopmentSpecificationId], 
+    [RatingTaskSummary].[DevelopmentSpecification] AS [DevelopmentSpecification], 
+    [RatingTaskSummary].[CandidatePlatform] AS [CandidatePlatform], 
+    [RatingTaskSummary].[CFMPlacement] AS [CFMPlacement], 
+    [RatingTaskSummary].[PriorityPlacement] AS [PriorityPlacement], 
+    [RatingTaskSummary].[DevelopmentRatio] AS [DevelopmentRatio], 
+    [RatingTaskSummary].[EstimatedInstructionalTime] AS [EstimatedInstructionalTime], 
+    [RatingTaskSummary].[DevelopmentTime] AS [DevelopmentTime], 
+    [RatingTaskSummary].[ClusterAnalysisNotes] AS [ClusterAnalysisNotes], 
     [RatingTaskSummary].[Created] AS [Created], 
     [RatingTaskSummary].[CreatedById] AS [CreatedById], 
     [RatingTaskSummary].[CreatedBy] AS [CreatedBy], 
@@ -545,7 +790,8 @@ warning 6002: The table/view 'NavyRRL.dbo.WorkRoleSummary' does not have a prima
     [RatingTaskSummary].[LastUpdated] AS [LastUpdated], 
     [RatingTaskSummary].[LastUpdatedById] AS [LastUpdatedById], 
     [RatingTaskSummary].[ModifiedBy] AS [ModifiedBy], 
-    [RatingTaskSummary].[ModifiedByUID] AS [ModifiedByUID]
+    [RatingTaskSummary].[ModifiedByUID] AS [ModifiedByUID], 
+    [RatingTaskSummary].[ClusterAnalysisLastUpdated] AS [ClusterAnalysisLastUpdated]
     FROM [dbo].[RatingTaskSummary] AS [RatingTaskSummary]</DefiningQuery>
           </EntitySet>
           <EntitySet Name="ReferenceResourceSummary" EntityType="Self.ReferenceResourceSummary" store:Type="Views" store:Schema="dbo">
@@ -629,11 +875,11 @@ warning 6002: The table/view 'NavyRRL.dbo.WorkRoleSummary' does not have a prima
     [TrainingTaskSummary].[CurriculumControlAuthorityId] AS [CurriculumControlAuthorityId], 
     [TrainingTaskSummary].[CurriculumControlAuthority] AS [CurriculumControlAuthority], 
     [TrainingTaskSummary].[CurriculumControlAuthorityUID] AS [CurriculumControlAuthorityUID], 
-    [TrainingTaskSummary].[LifeCycleControlDocumentId] AS [LifeCycleControlDocumentId], 
+    [TrainingTaskSummary].[LifeCycleControlDocumentTypeId] AS [LifeCycleControlDocumentTypeId], 
     [TrainingTaskSummary].[LifeCycleControlDocument] AS [LifeCycleControlDocument], 
     [TrainingTaskSummary].[LifeCycleControlDocumentUID] AS [LifeCycleControlDocumentUID], 
     [TrainingTaskSummary].[CourseTypes] AS [CourseTypes], 
-    [TrainingTaskSummary].[AssessmentMethodTypes] AS [AssessmentMethodTypes], 
+    [TrainingTaskSummary].[CurrentAssessmentApproach] AS [CurrentAssessmentApproach], 
     [TrainingTaskSummary].[CTID] AS [CTID], 
     [TrainingTaskSummary].[Created] AS [Created], 
     [TrainingTaskSummary].[CreatedById] AS [CreatedById], 
@@ -675,6 +921,8 @@ warning 6002: The table/view 'NavyRRL.dbo.WorkRoleSummary' does not have a prima
           <EntitySet Name="WorkRoleSummary" EntityType="ceNavyViewModel.WorkRoleSummary" />
           <EntitySet Name="Activity_Summary" EntityType="ceNavyViewModel.Activity_Summary" />
           <EntitySet Name="RMTLProjectSummary" EntityType="ceNavyViewModel.RMTLProjectSummary" />
+          <EntitySet Name="ApplicationRoleSummary" EntityType="ceNavyViewModel.ApplicationRoleSummary" />
+          <EntitySet Name="RatingContextSummary" EntityType="ceNavyViewModel.RatingContextSummary" />
         </EntityContainer>
         <EntityType Name="Account_Summary">
           <Key>
@@ -727,16 +975,19 @@ warning 6002: The table/view 'NavyRRL.dbo.WorkRoleSummary' does not have a prima
             <PropertyRef Name="conceptid" />
             <PropertyRef Name="Concept" />
             <PropertyRef Name="ConceptUID" />
+            <PropertyRef Name="IsActive" />
           </Key>
           <Property Name="ConceptSchemeId" Type="Int32" Nullable="false" />
           <Property Name="Name" Type="String" Nullable="false" MaxLength="400" FixedLength="false" Unicode="true" />
           <Property Name="conceptid" Type="Int32" Nullable="false" />
-          <Property Name="ListId" Type="Int32" />
+          <Property Name="ListId" Type="Int32" Nullable="false" />
           <Property Name="Concept" Type="String" Nullable="false" MaxLength="1000" FixedLength="false" Unicode="false" />
           <Property Name="CodedNotation" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
           <Property Name="Description" Type="String" MaxLength="Max" FixedLength="false" Unicode="false" />
           <Property Name="AlternateLabel" Type="String" MaxLength="500" FixedLength="false" Unicode="false" />
           <Property Name="ConceptUID" Type="Guid" Nullable="false" />
+          <Property Name="IsActive" Type="Boolean" Nullable="false" />
+          <Property Name="WorkElementType" Type="String" MaxLength="200" FixedLength="false" Unicode="false" />
         </EntityType>
         <EntityType Name="RmtlSummary">
           <Key>
@@ -794,6 +1045,7 @@ warning 6002: The table/view 'NavyRRL.dbo.WorkRoleSummary' does not have a prima
             <PropertyRef Name="RankName" />
             <PropertyRef Name="WorkElementTypeAlternateName" />
             <PropertyRef Name="WorkElementTypeOrder" />
+            <PropertyRef Name="RatingName" />
           </Key>
           <Property Name="Id" Type="Int32" Nullable="false" />
           <Property Name="RankId" Type="Int32" Nullable="false" />
@@ -812,7 +1064,7 @@ warning 6002: The table/view 'NavyRRL.dbo.WorkRoleSummary' does not have a prima
           <Property Name="CourseName" Type="String" MaxLength="300" FixedLength="false" Unicode="true" />
           <Property Name="TrainingTaskId" Type="Int32" />
           <Property Name="CurriculumControlAuthority" Type="String" MaxLength="503" FixedLength="false" Unicode="true" />
-          <Property Name="LifeCycleControlDocument" Type="String" MaxLength="300" FixedLength="false" Unicode="true" />
+          <Property Name="LifeCycleControlDocument" Type="String" MaxLength="1000" FixedLength="false" Unicode="false" />
           <Property Name="Notes" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
           <Property Name="CodedNotation" Type="String" MaxLength="100" FixedLength="false" Unicode="false" />
           <Property Name="PayGradeType" Type="Guid" />
@@ -826,8 +1078,8 @@ warning 6002: The table/view 'NavyRRL.dbo.WorkRoleSummary' does not have a prima
           <Property Name="LastUpdated" Type="DateTime" Nullable="false" Precision="3" />
           <Property Name="TrainingTask" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
           <Property Name="RatingTask" Type="String" Nullable="false" MaxLength="Max" FixedLength="false" Unicode="true" />
-          <Property Name="Ratings" Type="String" Nullable="false" MaxLength="Max" FixedLength="false" Unicode="true" />
-          <Property Name="BilletTitles" Type="String" Nullable="false" MaxLength="Max" FixedLength="false" Unicode="true" />
+          <Property Name="Ratings" Type="String" Nullable="false" MaxLength="100" FixedLength="false" Unicode="false" />
+          <Property Name="BilletTitles" Type="String" Nullable="false" MaxLength="500" FixedLength="false" Unicode="true" />
           <Property Name="ReferenceResourceId" Type="Int32" />
           <Property Name="ReferenceResource" Type="String" Nullable="false" MaxLength="300" FixedLength="false" Unicode="true" />
           <Property Name="CourseId" Type="Int32" />
@@ -846,6 +1098,26 @@ warning 6002: The table/view 'NavyRRL.dbo.WorkRoleSummary' does not have a prima
           <Property Name="CurriculumControlAuthorityUID" Type="Guid" />
           <Property Name="WorkElementTypeAlternateName" Type="String" Nullable="false" MaxLength="200" FixedLength="false" Unicode="false" />
           <Property Name="WorkElementTypeOrder" Type="Int32" Nullable="false" />
+          <Property Name="RatingName" Type="String" Nullable="false" MaxLength="500" FixedLength="false" Unicode="true" />
+          <Property Name="HasRating" Type="Guid" />
+          <Property Name="ratingId" Type="Int32" />
+          <Property Name="CurrentAssessmentApproach" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
+          <Property Name="TrainingSolutionTypeId" Type="Int32" />
+          <Property Name="TrainingSolutionType" Type="String" MaxLength="1000" FixedLength="false" Unicode="false" />
+          <Property Name="ClusterAnalysisTitle" Type="String" MaxLength="500" FixedLength="false" Unicode="true" />
+          <Property Name="RecommendedModalityId" Type="Int32" />
+          <Property Name="RecommendedModality" Type="String" MaxLength="1000" FixedLength="false" Unicode="false" />
+          <Property Name="RecommentedModalityCodedNotation" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+          <Property Name="DevelopmentSpecificationId" Type="Int32" />
+          <Property Name="DevelopmentSpecification" Type="String" MaxLength="1000" FixedLength="false" Unicode="false" />
+          <Property Name="CandidatePlatform" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
+          <Property Name="CFMPlacement" Type="String" MaxLength="500" FixedLength="false" Unicode="false" />
+          <Property Name="PriorityPlacement" Type="Int32" />
+          <Property Name="DevelopmentRatio" Type="String" MaxLength="500" FixedLength="false" Unicode="false" />
+          <Property Name="EstimatedInstructionalTime" Type="Decimal" Precision="19" Scale="2" />
+          <Property Name="DevelopmentTime" Type="Int32" />
+          <Property Name="ClusterAnalysisNotes" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
+          <Property Name="ClusterAnalysisLastUpdated" Type="DateTime" Precision="3" />
         </EntityType>
         <EntityType Name="CourseSummary">
           <Key>
@@ -875,6 +1147,7 @@ warning 6002: The table/view 'NavyRRL.dbo.WorkRoleSummary' does not have a prima
           <Property Name="LastUpdated" Type="DateTime" Nullable="false" Precision="3" />
           <Property Name="LastUpdatedById" Type="Int32" />
           <Property Name="CodedNotation" Type="String" Nullable="false" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="LifeCycleControlDocumentTypeId" Type="Int32" />
         </EntityType>
         <EntityType Name="TrainingTaskSummary">
           <Key>
@@ -899,7 +1172,7 @@ warning 6002: The table/view 'NavyRRL.dbo.WorkRoleSummary' does not have a prima
           <Property Name="CurriculumControlAuthorityId" Type="Int32" />
           <Property Name="CurriculumControlAuthority" Type="String" MaxLength="503" FixedLength="false" Unicode="true" />
           <Property Name="LifeCycleControlDocumentId" Type="Int32" />
-          <Property Name="LifeCycleControlDocument" Type="String" Nullable="false" MaxLength="300" FixedLength="false" Unicode="true" />
+          <Property Name="LifeCycleControlDocument" Type="String" Nullable="false" MaxLength="1000" FixedLength="false" Unicode="false" />
           <Property Name="LifeCycleControlDocumentUID" Type="Guid" Nullable="false" />
           <Property Name="CourseTypes" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
           <Property Name="AssessmentMethodTypes" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
@@ -910,6 +1183,8 @@ warning 6002: The table/view 'NavyRRL.dbo.WorkRoleSummary' does not have a prima
           <Property Name="LastUpdatedById" Type="Int32" />
           <Property Name="CodedNotation" Type="String" Nullable="false" MaxLength="50" FixedLength="false" Unicode="true" />
           <Property Name="CurriculumControlAuthorityUID" Type="Guid" />
+          <Property Name="LifeCycleControlDocumentTypeId" Type="Int32" />
+          <Property Name="CurrentAssessmentApproach" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
         </EntityType>
         <EntityType Name="ReferenceResourceSummary">
           <Key>
@@ -1039,6 +1314,116 @@ warning 6002: The table/view 'NavyRRL.dbo.WorkRoleSummary' does not have a prima
           <Property Name="LastPublished" Type="DateTime" Precision="3" />
           <Property Name="LastPublishedById" Type="Int32" />
         </EntityType>
+        <EntityType Name="ApplicationRoleSummary">
+          <Key>
+            <PropertyRef Name="Id" />
+            <PropertyRef Name="Email" />
+            <PropertyRef Name="SortName" />
+            <PropertyRef Name="RoleName" />
+            <PropertyRef Name="RoleId" />
+          </Key>
+          <Property Name="Id" Type="Int32" Nullable="false" />
+          <Property Name="Email" Type="String" Nullable="false" MaxLength="100" FixedLength="false" Unicode="false" />
+          <Property Name="SortName" Type="String" Nullable="false" MaxLength="102" FixedLength="false" Unicode="false" />
+          <Property Name="RoleName" Type="String" Nullable="false" MaxLength="100" FixedLength="false" Unicode="true" />
+          <Property Name="RoleId" Type="Int32" Nullable="false" />
+          <Property Name="Created" Type="DateTime" Precision="3" />
+          <Property Name="AspNetId" Type="String" MaxLength="128" FixedLength="false" Unicode="true" />
+        </EntityType>
+        <EntityType Name="RatingContextSummary">
+          <Key>
+            <PropertyRef Name="Id" />
+            <PropertyRef Name="RowId" />
+            <PropertyRef Name="RatingName" />
+            <PropertyRef Name="Ratings" />
+            <PropertyRef Name="BilletTitles" />
+            <PropertyRef Name="PayGradeTypeId" />
+            <PropertyRef Name="Rank" />
+            <PropertyRef Name="RankName" />
+            <PropertyRef Name="Level" />
+            <PropertyRef Name="RatingTask" />
+            <PropertyRef Name="ReferenceResource" />
+            <PropertyRef Name="WorkElementTypeId" />
+            <PropertyRef Name="WorkElementType" />
+            <PropertyRef Name="WorkElementTypeAlternateName" />
+            <PropertyRef Name="WorkElementTypeOrder" />
+            <PropertyRef Name="ReferenceType" />
+            <PropertyRef Name="TaskApplicability" />
+            <PropertyRef Name="FormalTrainingGap" />
+            <PropertyRef Name="Created" />
+            <PropertyRef Name="LastUpdated" />
+          </Key>
+          <Property Name="Id" Type="Int32" Nullable="false" />
+          <Property Name="CTID" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+          <Property Name="RowId" Type="Guid" Nullable="false" />
+          <Property Name="RatingName" Type="String" Nullable="false" MaxLength="500" FixedLength="false" Unicode="true" />
+          <Property Name="Ratings" Type="String" Nullable="false" MaxLength="100" FixedLength="false" Unicode="false" />
+          <Property Name="HasRating" Type="Guid" />
+          <Property Name="ratingId" Type="Int32" />
+          <Property Name="BilletTitles" Type="String" Nullable="false" MaxLength="500" FixedLength="false" Unicode="true" />
+          <Property Name="CodedNotation" Type="String" MaxLength="100" FixedLength="false" Unicode="false" />
+          <Property Name="PayGradeTypeId" Type="Int32" Nullable="false" />
+          <Property Name="Rank" Type="String" Nullable="false" MaxLength="50" FixedLength="false" Unicode="false" />
+          <Property Name="RankName" Type="String" Nullable="false" MaxLength="1000" FixedLength="false" Unicode="false" />
+          <Property Name="PayGradeType" Type="Guid" />
+          <Property Name="Level" Type="String" Nullable="false" MaxLength="10" FixedLength="false" Unicode="false" />
+          <Property Name="FunctionalArea" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
+          <Property Name="SourceDate" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="HasReferenceResource" Type="Guid" />
+          <Property Name="RatingTask" Type="String" Nullable="false" MaxLength="Max" FixedLength="false" Unicode="true" />
+          <Property Name="ReferenceResourceId" Type="Int32" />
+          <Property Name="ReferenceResource" Type="String" Nullable="false" MaxLength="300" FixedLength="false" Unicode="true" />
+          <Property Name="WorkElementTypeId" Type="Int32" Nullable="false" />
+          <Property Name="WorkElementType" Type="String" Nullable="false" MaxLength="1000" FixedLength="false" Unicode="false" />
+          <Property Name="WorkElementTypeAlternateName" Type="String" Nullable="false" MaxLength="200" FixedLength="false" Unicode="false" />
+          <Property Name="WorkElementTypeOrder" Type="Int32" Nullable="false" />
+          <Property Name="ReferenceType" Type="Guid" Nullable="false" />
+          <Property Name="TaskApplicabilityId" Type="Int32" />
+          <Property Name="TaskApplicability" Type="String" Nullable="false" MaxLength="1000" FixedLength="false" Unicode="false" />
+          <Property Name="ApplicabilityType" Type="Guid" />
+          <Property Name="FormalTrainingGapId" Type="Int32" />
+          <Property Name="FormalTrainingGap" Type="String" Nullable="false" MaxLength="1000" FixedLength="false" Unicode="false" />
+          <Property Name="TrainingGapType" Type="Guid" />
+          <Property Name="CourseId" Type="Int32" />
+          <Property Name="CourseUID" Type="Guid" />
+          <Property Name="CIN" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="CourseName" Type="String" MaxLength="300" FixedLength="false" Unicode="true" />
+          <Property Name="CourseTypes" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
+          <Property Name="TrainingTaskId" Type="Int32" />
+          <Property Name="TrainingTask" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
+          <Property Name="HasTrainingTask" Type="Guid" />
+          <Property Name="CurrentAssessmentApproach" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
+          <Property Name="AssessmentMethodTypes" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
+          <Property Name="CurriculumControlAuthority" Type="String" MaxLength="503" FixedLength="false" Unicode="true" />
+          <Property Name="CurriculumControlAuthorityId" Type="Int32" />
+          <Property Name="CurriculumControlAuthorityUID" Type="Guid" />
+          <Property Name="LifeCycleControlDocument" Type="String" MaxLength="1000" FixedLength="false" Unicode="false" />
+          <Property Name="Notes" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
+          <Property Name="TrainingSolutionTypeId" Type="Int32" />
+          <Property Name="TrainingSolutionType" Type="String" MaxLength="1000" FixedLength="false" Unicode="false" />
+          <Property Name="ClusterAnalysisTitle" Type="String" MaxLength="500" FixedLength="false" Unicode="true" />
+          <Property Name="RecommendedModalityId" Type="Int32" />
+          <Property Name="RecommendedModality" Type="String" MaxLength="1000" FixedLength="false" Unicode="false" />
+          <Property Name="RecommentedModalityCodedNotation" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+          <Property Name="DevelopmentSpecificationId" Type="Int32" />
+          <Property Name="DevelopmentSpecification" Type="String" MaxLength="1000" FixedLength="false" Unicode="false" />
+          <Property Name="CandidatePlatform" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
+          <Property Name="CFMPlacement" Type="String" MaxLength="1000" FixedLength="false" Unicode="false" />
+          <Property Name="PriorityPlacement" Type="Int32" />
+          <Property Name="DevelopmentRatio" Type="String" MaxLength="500" FixedLength="false" Unicode="false" />
+          <Property Name="EstimatedInstructionalTime" Type="Decimal" Precision="9" Scale="2" />
+          <Property Name="DevelopmentTime" Type="Decimal" Precision="9" Scale="2" />
+          <Property Name="ClusterAnalysisNotes" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
+          <Property Name="Created" Type="DateTime" Nullable="false" Precision="3" />
+          <Property Name="CreatedById" Type="Int32" />
+          <Property Name="CreatedBy" Type="String" MaxLength="101" FixedLength="false" Unicode="false" />
+          <Property Name="CreatedByUID" Type="Guid" />
+          <Property Name="LastUpdated" Type="DateTime" Nullable="false" Precision="3" />
+          <Property Name="LastUpdatedById" Type="Int32" />
+          <Property Name="ModifiedBy" Type="String" MaxLength="101" FixedLength="false" Unicode="false" />
+          <Property Name="ModifiedByUID" Type="Guid" />
+          <Property Name="ClusterAnalysisLastUpdated" Type="DateTime" Precision="3" />
+        </EntityType>
       </Schema>
     </edmx:ConceptualModels>
     <!-- C-S mapping content -->
@@ -1083,6 +1468,8 @@ warning 6002: The table/view 'NavyRRL.dbo.WorkRoleSummary' does not have a prima
           <EntitySetMapping Name="ConceptSchemeSummary">
             <EntityTypeMapping TypeName="ceNavyViewModel.ConceptSchemeSummary">
               <MappingFragment StoreEntitySet="ConceptSchemeSummary">
+                <ScalarProperty Name="WorkElementType" ColumnName="WorkElementType" />
+                <ScalarProperty Name="IsActive" ColumnName="IsActive" />
                 <ScalarProperty Name="ConceptUID" ColumnName="ConceptUID" />
                 <ScalarProperty Name="AlternateLabel" ColumnName="AlternateLabel" />
                 <ScalarProperty Name="Description" ColumnName="Description" />
@@ -1123,6 +1510,26 @@ warning 6002: The table/view 'NavyRRL.dbo.WorkRoleSummary' does not have a prima
           <EntitySetMapping Name="RatingTaskSummary">
             <EntityTypeMapping TypeName="ceNavyViewModel.RatingTaskSummary">
               <MappingFragment StoreEntitySet="RatingTaskSummary">
+                <ScalarProperty Name="ClusterAnalysisLastUpdated" ColumnName="ClusterAnalysisLastUpdated" />
+                <ScalarProperty Name="ClusterAnalysisNotes" ColumnName="ClusterAnalysisNotes" />
+                <ScalarProperty Name="DevelopmentTime" ColumnName="DevelopmentTime" />
+                <ScalarProperty Name="EstimatedInstructionalTime" ColumnName="EstimatedInstructionalTime" />
+                <ScalarProperty Name="DevelopmentRatio" ColumnName="DevelopmentRatio" />
+                <ScalarProperty Name="PriorityPlacement" ColumnName="PriorityPlacement" />
+                <ScalarProperty Name="CFMPlacement" ColumnName="CFMPlacement" />
+                <ScalarProperty Name="CandidatePlatform" ColumnName="CandidatePlatform" />
+                <ScalarProperty Name="DevelopmentSpecification" ColumnName="DevelopmentSpecification" />
+                <ScalarProperty Name="DevelopmentSpecificationId" ColumnName="DevelopmentSpecificationId" />
+                <ScalarProperty Name="RecommentedModalityCodedNotation" ColumnName="RecommentedModalityCodedNotation" />
+                <ScalarProperty Name="RecommendedModality" ColumnName="RecommendedModality" />
+                <ScalarProperty Name="RecommendedModalityId" ColumnName="RecommendedModalityId" />
+                <ScalarProperty Name="ClusterAnalysisTitle" ColumnName="ClusterAnalysisTitle" />
+                <ScalarProperty Name="TrainingSolutionType" ColumnName="TrainingSolutionType" />
+                <ScalarProperty Name="TrainingSolutionTypeId" ColumnName="TrainingSolutionTypeId" />
+                <ScalarProperty Name="CurrentAssessmentApproach" ColumnName="CurrentAssessmentApproach" />
+                <ScalarProperty Name="ratingId" ColumnName="ratingId" />
+                <ScalarProperty Name="HasRating" ColumnName="HasRating" />
+                <ScalarProperty Name="RatingName" ColumnName="RatingName" />
                 <ScalarProperty Name="WorkElementTypeOrder" ColumnName="WorkElementTypeOrder" />
                 <ScalarProperty Name="WorkElementTypeAlternateName" ColumnName="WorkElementTypeAlternateName" />
                 <ScalarProperty Name="CurriculumControlAuthorityUID" ColumnName="CurriculumControlAuthorityUID" />
@@ -1180,6 +1587,7 @@ warning 6002: The table/view 'NavyRRL.dbo.WorkRoleSummary' does not have a prima
           <EntitySetMapping Name="CourseSummary">
             <EntityTypeMapping TypeName="ceNavyViewModel.CourseSummary">
               <MappingFragment StoreEntitySet="CourseSummary">
+                <ScalarProperty Name="LifeCycleControlDocumentTypeId" ColumnName="LifeCycleControlDocumentTypeId" />
                 <ScalarProperty Name="CodedNotation" ColumnName="CodedNotation" />
                 <ScalarProperty Name="LastUpdatedById" ColumnName="LastUpdatedById" />
                 <ScalarProperty Name="LastUpdated" ColumnName="LastUpdated" />
@@ -1190,7 +1598,6 @@ warning 6002: The table/view 'NavyRRL.dbo.WorkRoleSummary' does not have a prima
                 <ScalarProperty Name="CourseTypes" ColumnName="CourseTypes" />
                 <ScalarProperty Name="LifeCycleControlDocumentUID" ColumnName="LifeCycleControlDocumentUID" />
                 <ScalarProperty Name="LifeCycleControlDocument" ColumnName="LifeCycleControlDocument" />
-                <ScalarProperty Name="LifeCycleControlDocumentId" ColumnName="LifeCycleControlDocumentId" />
                 <ScalarProperty Name="CurriculumControlAuthority" ColumnName="CurriculumControlAuthority" />
                 <ScalarProperty Name="CurriculumControlAuthorityId" ColumnName="CurriculumControlAuthorityId" />
                 <ScalarProperty Name="Description" ColumnName="Description" />
@@ -1203,6 +1610,8 @@ warning 6002: The table/view 'NavyRRL.dbo.WorkRoleSummary' does not have a prima
           <EntitySetMapping Name="TrainingTaskSummary">
             <EntityTypeMapping TypeName="ceNavyViewModel.TrainingTaskSummary">
               <MappingFragment StoreEntitySet="TrainingTaskSummary">
+                <ScalarProperty Name="CurrentAssessmentApproach" ColumnName="CurrentAssessmentApproach" />
+                <ScalarProperty Name="LifeCycleControlDocumentTypeId" ColumnName="LifeCycleControlDocumentTypeId" />
                 <ScalarProperty Name="CurriculumControlAuthorityUID" ColumnName="CurriculumControlAuthorityUID" />
                 <ScalarProperty Name="CodedNotation" ColumnName="CodedNotation" />
                 <ScalarProperty Name="LastUpdatedById" ColumnName="LastUpdatedById" />
@@ -1210,11 +1619,9 @@ warning 6002: The table/view 'NavyRRL.dbo.WorkRoleSummary' does not have a prima
                 <ScalarProperty Name="CreatedById" ColumnName="CreatedById" />
                 <ScalarProperty Name="Created" ColumnName="Created" />
                 <ScalarProperty Name="CTID" ColumnName="CTID" />
-                <ScalarProperty Name="AssessmentMethodTypes" ColumnName="AssessmentMethodTypes" />
                 <ScalarProperty Name="CourseTypes" ColumnName="CourseTypes" />
                 <ScalarProperty Name="LifeCycleControlDocumentUID" ColumnName="LifeCycleControlDocumentUID" />
                 <ScalarProperty Name="LifeCycleControlDocument" ColumnName="LifeCycleControlDocument" />
-                <ScalarProperty Name="LifeCycleControlDocumentId" ColumnName="LifeCycleControlDocumentId" />
                 <ScalarProperty Name="CurriculumControlAuthority" ColumnName="CurriculumControlAuthority" />
                 <ScalarProperty Name="CurriculumControlAuthorityId" ColumnName="CurriculumControlAuthorityId" />
                 <ScalarProperty Name="TrainingTaskUID" ColumnName="TrainingTaskUID" />
@@ -1328,6 +1735,95 @@ warning 6002: The table/view 'NavyRRL.dbo.WorkRoleSummary' does not have a prima
                 <ScalarProperty Name="Name" ColumnName="Name" />
                 <ScalarProperty Name="CTID" ColumnName="CTID" />
                 <ScalarProperty Name="RowId" ColumnName="RowId" />
+                <ScalarProperty Name="Id" ColumnName="Id" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="ApplicationRoleSummary">
+            <EntityTypeMapping TypeName="ceNavyViewModel.ApplicationRoleSummary">
+              <MappingFragment StoreEntitySet="ApplicationRoleSummary">
+                <ScalarProperty Name="AspNetId" ColumnName="AspNetId" />
+                <ScalarProperty Name="Created" ColumnName="Created" />
+                <ScalarProperty Name="RoleId" ColumnName="RoleId" />
+                <ScalarProperty Name="RoleName" ColumnName="RoleName" />
+                <ScalarProperty Name="SortName" ColumnName="SortName" />
+                <ScalarProperty Name="Email" ColumnName="Email" />
+                <ScalarProperty Name="Id" ColumnName="Id" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="RatingContextSummary">
+            <EntityTypeMapping TypeName="ceNavyViewModel.RatingContextSummary">
+              <MappingFragment StoreEntitySet="RatingContextSummary">
+                <ScalarProperty Name="ClusterAnalysisLastUpdated" ColumnName="ClusterAnalysisLastUpdated" />
+                <ScalarProperty Name="ModifiedByUID" ColumnName="ModifiedByUID" />
+                <ScalarProperty Name="ModifiedBy" ColumnName="ModifiedBy" />
+                <ScalarProperty Name="LastUpdatedById" ColumnName="LastUpdatedById" />
+                <ScalarProperty Name="LastUpdated" ColumnName="LastUpdated" />
+                <ScalarProperty Name="CreatedByUID" ColumnName="CreatedByUID" />
+                <ScalarProperty Name="CreatedBy" ColumnName="CreatedBy" />
+                <ScalarProperty Name="CreatedById" ColumnName="CreatedById" />
+                <ScalarProperty Name="Created" ColumnName="Created" />
+                <ScalarProperty Name="ClusterAnalysisNotes" ColumnName="ClusterAnalysisNotes" />
+                <ScalarProperty Name="DevelopmentTime" ColumnName="DevelopmentTime" />
+                <ScalarProperty Name="EstimatedInstructionalTime" ColumnName="EstimatedInstructionalTime" />
+                <ScalarProperty Name="DevelopmentRatio" ColumnName="DevelopmentRatio" />
+                <ScalarProperty Name="PriorityPlacement" ColumnName="PriorityPlacement" />
+                <ScalarProperty Name="CFMPlacement" ColumnName="CFMPlacement" />
+                <ScalarProperty Name="CandidatePlatform" ColumnName="CandidatePlatform" />
+                <ScalarProperty Name="DevelopmentSpecification" ColumnName="DevelopmentSpecification" />
+                <ScalarProperty Name="DevelopmentSpecificationId" ColumnName="DevelopmentSpecificationId" />
+                <ScalarProperty Name="RecommentedModalityCodedNotation" ColumnName="RecommentedModalityCodedNotation" />
+                <ScalarProperty Name="RecommendedModality" ColumnName="RecommendedModality" />
+                <ScalarProperty Name="RecommendedModalityId" ColumnName="RecommendedModalityId" />
+                <ScalarProperty Name="ClusterAnalysisTitle" ColumnName="ClusterAnalysisTitle" />
+                <ScalarProperty Name="TrainingSolutionType" ColumnName="TrainingSolutionType" />
+                <ScalarProperty Name="TrainingSolutionTypeId" ColumnName="TrainingSolutionTypeId" />
+                <ScalarProperty Name="Notes" ColumnName="Notes" />
+                <ScalarProperty Name="LifeCycleControlDocument" ColumnName="LifeCycleControlDocument" />
+                <ScalarProperty Name="CurriculumControlAuthorityUID" ColumnName="CurriculumControlAuthorityUID" />
+                <ScalarProperty Name="CurriculumControlAuthorityId" ColumnName="CurriculumControlAuthorityId" />
+                <ScalarProperty Name="CurriculumControlAuthority" ColumnName="CurriculumControlAuthority" />
+                <ScalarProperty Name="AssessmentMethodTypes" ColumnName="AssessmentMethodTypes" />
+                <ScalarProperty Name="CurrentAssessmentApproach" ColumnName="CurrentAssessmentApproach" />
+                <ScalarProperty Name="HasTrainingTask" ColumnName="HasTrainingTask" />
+                <ScalarProperty Name="TrainingTask" ColumnName="TrainingTask" />
+                <ScalarProperty Name="TrainingTaskId" ColumnName="TrainingTaskId" />
+                <ScalarProperty Name="CourseTypes" ColumnName="CourseTypes" />
+                <ScalarProperty Name="CourseName" ColumnName="CourseName" />
+                <ScalarProperty Name="CIN" ColumnName="CIN" />
+                <ScalarProperty Name="CourseUID" ColumnName="CourseUID" />
+                <ScalarProperty Name="CourseId" ColumnName="CourseId" />
+                <ScalarProperty Name="TrainingGapType" ColumnName="TrainingGapType" />
+                <ScalarProperty Name="FormalTrainingGap" ColumnName="FormalTrainingGap" />
+                <ScalarProperty Name="FormalTrainingGapId" ColumnName="FormalTrainingGapId" />
+                <ScalarProperty Name="ApplicabilityType" ColumnName="ApplicabilityType" />
+                <ScalarProperty Name="TaskApplicability" ColumnName="TaskApplicability" />
+                <ScalarProperty Name="TaskApplicabilityId" ColumnName="TaskApplicabilityId" />
+                <ScalarProperty Name="ReferenceType" ColumnName="ReferenceType" />
+                <ScalarProperty Name="WorkElementTypeOrder" ColumnName="WorkElementTypeOrder" />
+                <ScalarProperty Name="WorkElementTypeAlternateName" ColumnName="WorkElementTypeAlternateName" />
+                <ScalarProperty Name="WorkElementType" ColumnName="WorkElementType" />
+                <ScalarProperty Name="WorkElementTypeId" ColumnName="WorkElementTypeId" />
+                <ScalarProperty Name="ReferenceResource" ColumnName="ReferenceResource" />
+                <ScalarProperty Name="ReferenceResourceId" ColumnName="ReferenceResourceId" />
+                <ScalarProperty Name="RatingTask" ColumnName="RatingTask" />
+                <ScalarProperty Name="HasReferenceResource" ColumnName="HasReferenceResource" />
+                <ScalarProperty Name="SourceDate" ColumnName="SourceDate" />
+                <ScalarProperty Name="FunctionalArea" ColumnName="FunctionalArea" />
+                <ScalarProperty Name="Level" ColumnName="Level" />
+                <ScalarProperty Name="PayGradeType" ColumnName="PayGradeType" />
+                <ScalarProperty Name="RankName" ColumnName="RankName" />
+                <ScalarProperty Name="Rank" ColumnName="Rank" />
+                <ScalarProperty Name="PayGradeTypeId" ColumnName="PayGradeTypeId" />
+                <ScalarProperty Name="CodedNotation" ColumnName="CodedNotation" />
+                <ScalarProperty Name="BilletTitles" ColumnName="BilletTitles" />
+                <ScalarProperty Name="ratingId" ColumnName="ratingId" />
+                <ScalarProperty Name="HasRating" ColumnName="HasRating" />
+                <ScalarProperty Name="Ratings" ColumnName="Ratings" />
+                <ScalarProperty Name="RatingName" ColumnName="RatingName" />
+                <ScalarProperty Name="RowId" ColumnName="RowId" />
+                <ScalarProperty Name="CTID" ColumnName="CTID" />
                 <ScalarProperty Name="Id" ColumnName="Id" />
               </MappingFragment>
             </EntityTypeMapping>
