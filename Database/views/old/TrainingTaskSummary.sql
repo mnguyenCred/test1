@@ -1,8 +1,8 @@
-Use Navy_RRL_V2
+Use NavyRRL
 go
 
 /*
-USE [Navy_RRL_V2]
+USE [NavyRRL]
 GO
 
 SELECT [ConceptSchemeId]
@@ -17,7 +17,7 @@ SELECT [ConceptSchemeId]
   FROM [dbo].[ConceptSchemeSummary]
 GO
 
-USE [Navy_RRL_V2]
+USE [NavyRRL]
 GO
 
 SELECT [CourseId]
@@ -27,14 +27,13 @@ SELECT [CourseId]
       ,[TrainingTaskId]
       ,[TrainingTask]
       ,[TrainingTaskUID]
-      ,[CurriculumControlAuthorityId]
-      ,[CurriculumControlAuthority]
-      ,[CurriculumControlAuthorityUID]
       ,[LifeCycleControlDocumentTypeId]
       ,[LifeCycleControlDocument]
       ,[LifeCycleControlDocumentUID]
       ,[CourseTypes]
-      ,[CurrentAssessmentApproach]
+      ,[CurriculumControlAuthority]
+      ,[CurriculumControlAuthorityId]
+      ,[AssessmentMethodTypes]
       ,[CTID]
       ,[Created]
       ,[CreatedById]
@@ -95,16 +94,17 @@ SELECT base.[Id] as CourseId
 	,base.[Created]	,base.[CreatedById]
 	,base.[LastUpdated]	,base.[LastUpdatedById]
 
-FROM [dbo].[Course] base
-Left join [CourseContext] cc on base.Id  = cc.CourseId
-Left join [TrainingTask] task on cc.TrainingTaskId = task.Id
+  FROM [dbo].[Course] base
+  Left join [Course.Task] task on base.Id  = task.CourseId
 
-Left join Organization b on base.CurriculumControlAuthorityId = b.Id
---LCCD
-inner join [ConceptSchemeSummary] d on base.LifeCycleControlDocumentTypeId = d.conceptid
+  --Left join [Course.Organization] e on base.Id = e.CourseId 
+  Left join Organization b on base.CurriculumControlAuthorityId = b.Id
+  --left join [dbo].[Course.Concept]	c on base.Id = c.courseId
+	--LCCD
+	inner join [ConceptSchemeSummary] d on base.LifeCycleControlDocumentTypeId = d.conceptid
 
---Left join ReferenceResource d on base.[LifeCycleControlDocumentId] = d.Id 
---
+	--Left join ReferenceResource d on base.[LifeCycleControlDocumentId] = d.Id 
+	--
 
 
     CROSS APPLY (
@@ -117,10 +117,19 @@ inner join [ConceptSchemeSummary] d on base.LifeCycleControlDocumentTypeId = d.c
     FOR XML Path('') 
 ) CT (CourseTypes)
 ----
+--    CROSS APPLY (
+--    SELECT distinct d.Name + ' | '
+--    FROM dbo.[Course]  a
+--		Inner join [dbo].[Course.AssessmentType]	c on a.Id = c.CourseId
+--		inner join [ConceptScheme.Concept] d on c.AssessmentMethodConceptId = d.Id 
+--    WHERE  base.Id = a.Id
+--    FOR XML Path('') 
+--) AMT (AssessmentMethodTypes)
+--
     CROSS APPLY (
     SELECT distinct d.Name + ' , '
-    FROM dbo.[CourseContext]  a
-		Inner join [CourseContext.AssessmentType]	c on a.Id = c.CourseContextId
+    FROM dbo.[Course.Task]  a
+		Inner join [dbo].[CourseTask.AssessmentType]	c on a.Id = c.CourseTaskId
 		inner join [ConceptScheme.Concept] d on c.AssessmentMethodConceptId = d.Id 
     WHERE  base.Id = a.Id
     FOR XML Path('') 

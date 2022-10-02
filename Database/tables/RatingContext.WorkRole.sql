@@ -1,7 +1,7 @@
-USE Navy_RRL_V2
+USE [Navy_RRL_V2]
 GO
 
-/****** Object:  Table [dbo].[RatingContext.WorkRole]    Script Date: 10/1/2022 5:06:42 PM ******/
+/****** Object:  Table [dbo].[RatingContext.WorkRole]    Script Date: 10/1/2022 8:21:30 PM ******/
 SET ANSI_NULLS ON
 GO
 
@@ -34,14 +34,14 @@ GO
 
 ALTER TABLE [dbo].[RatingContext.WorkRole] CHECK CONSTRAINT [FK_RatingContext.WorkRole_WorkRole]
 GO
---================================
-ALTER TABLE [dbo].[RatingContext.WorkRole]  WITH CHECK ADD  CONSTRAINT [FK_RatingContextWorkRole_TO_RatingContextId] FOREIGN KEY([RatingContextId])
+
+ALTER TABLE [dbo].[RatingContext.WorkRole]  WITH CHECK ADD  CONSTRAINT [FK_RatingContextWorkRole_TO_RatingContext] FOREIGN KEY([RatingContextId])
 REFERENCES [dbo].[RatingContext] ([Id])
 ON UPDATE CASCADE
 ON DELETE CASCADE
 GO
 
-ALTER TABLE [dbo].[RatingContext.WorkRole] CHECK CONSTRAINT [FK_RatingContextWorkRole_TO_RatingContextId]
+ALTER TABLE [dbo].[RatingContext.WorkRole] CHECK CONSTRAINT [FK_RatingContextWorkRole_TO_RatingContext]
 GO
 
 

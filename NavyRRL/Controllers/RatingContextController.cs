@@ -32,7 +32,7 @@ namespace NavyRRL.Controllers
 		public ActionResult Detail( int id )
 		{
 			AuthenticateOrRedirect( "You must be authenticated and authorized to view Rating Context data." );
-			var data = Factories.RatingContextManager.Get( id );
+			var data = Factories.RatingContextManager.Get( id, true );
 
 			return View( data );
 		}
@@ -41,7 +41,7 @@ namespace NavyRRL.Controllers
 		public ActionResult JSON( int id )
 		{
 			AuthenticateOrRedirect( "You must be authenticated and authorized to view Rating Context data." );
-			var data = Factories.RatingContextManager.Get( id );
+			var data = Factories.RatingContextManager.Get( id, true );
 			var converted = RDFServices.GetRDF( data );
 
 			return RawJSONResponse( converted );
@@ -60,7 +60,7 @@ namespace NavyRRL.Controllers
 			var data = new RatingContext(); //Should get by ID or default to new (to enable new rating contexts to be created)
 			if ( id > 0 )
 			{
-				data = Factories.RatingContextManager.Get( id );
+				data = Factories.RatingContextManager.Get( id, true );
 			}
 
 			return View( data );

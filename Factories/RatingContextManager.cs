@@ -12,7 +12,8 @@ using Navy.Utilities;
 
 using AppEntity = Models.Schema.RatingContext;
 using DataEntities = Data.Tables.NavyRRLEntities;
-using DBEntity = Data.Tables.RatingContext; 
+using DBEntity = Data.Tables.RatingContext;
+using ViewContext = Data.Views.ceNavyViewEntities;
 
 namespace Factories
 {
@@ -28,7 +29,7 @@ namespace Factories
 		/// <param name="input"></param>
 		/// <param name="status"></param>
 		/// <returns></returns>
-		public bool Save( AppEntity input, ref ChangeSummary status )
+		public bool Save( AppEntity input, ref ChangeSummary status, bool fromUpload = true )
 		{
             bool isValid = true;
             int count = 0;
@@ -64,7 +65,7 @@ namespace Factories
             //        {
             //            //TODO - consider if necessary, or interferes with anything
             //            context.Configuration.LazyLoadingEnabled = false;
-            //            DBEntity efEntity = context.RatingTask
+            //            DBEntity efEntity = context.RatingContext
             //                    .SingleOrDefault( s => s.Id == input.Id );
 
             //            if ( efEntity != null && efEntity.Id > 0 )
@@ -94,7 +95,7 @@ namespace Factories
             //                        //?no info on error
 
             //                        isValid = false;
-            //                        string message = string.Format( thisClassName + ".Save Failed", "Attempted to update a RatingTask. The process appeared to not work, but was not an exception, so we have no message, or no clue. RatingTask: {0}, Id: {1}", FormatLongLabel( input.Description ), input.Id );
+            //                        string message = string.Format( thisClassName + ".Save Failed", "Attempted to update a RatingContext. The process appeared to not work, but was not an exception, so we have no message, or no clue. RatingContext: {0}, Id: {1}", FormatLongLabel( input.Description ), input.Id );
             //                        status.AddError( "Error - the update was not successful. " + message );
             //                        EmailManager.NotifyAdmin( thisClassName + ".Save Failed Failed", message );
             //                    }
@@ -109,10 +110,10 @@ namespace Factories
             //                    {
             //                        SiteActivity sa = new SiteActivity()
             //                        {
-            //                            ActivityType = "RatingTask",
+            //                            ActivityType = "RatingContext",
             //                            Activity = status.Action,
             //                            Event = "Update",
-            //                            Comment = string.Format( "RatingTask was updated. Name: {0}", FormatLongLabel( input.Description ) ),
+            //                            Comment = string.Format( "RatingContext was updated. Name: {0}", FormatLongLabel( input.Description ) ),
             //                            ActionByUserId = input.LastUpdatedById,
             //                            ActivityObjectId = input.Id
             //                        };
@@ -130,7 +131,7 @@ namespace Factories
             //}
             //catch ( System.Data.Entity.Validation.DbEntityValidationException dbex )
             //{
-            //    string message = HandleDBValidationError( dbex, thisClassName + string.Format( ".Save. id: {0}, Name: {1}", input.Id, FormatLongLabel( input.Description ) ), "RatingTask" );
+            //    string message = HandleDBValidationError( dbex, thisClassName + string.Format( ".Save. id: {0}, Name: {1}", input.Id, FormatLongLabel( input.Description ) ), "RatingContext" );
             //    status.AddError( thisClassName + ".Save(). Error - the save was not successful. " + message );
             //}
             //catch ( Exception ex )
@@ -156,15 +157,33 @@ namespace Factories
 		{
 			throw new NotImplementedException();
 		}
-		//
+        //
 
-		public void UpdateParts( AppEntity input, ChangeSummary status )
-		{
-			throw new NotImplementedException();
-		}
-		//
+        public void UpdateParts( AppEntity input, ChangeSummary status, bool fromUpload )
+        {
+            try
+            {
+                //FunctionArea/WorkRole
+                //WorkRoleUpdate( input, ref status );
 
-		public static void MapToDB( AppEntity input, DBEntity output )
+                ////RatingContext.HasRating
+                //HasRatingUpdate( input, ref status );
+                ////RatingContext.HasJob
+                //HasJobUpdate( input, ref status );
+
+                //if ( UtilityManager.GetAppKeyValue( "handlingMultipleTrainingTasksPerRatingContext", false ) )
+                //{
+                //    TrainingTaskUpdate( input, ref status, fromUpload );
+                //}
+            }
+            catch ( Exception ex )
+            {
+                LoggingHelper.LogError( ex, thisClassName + "UpdateParts" );
+            }
+        }
+        //
+
+        public static void MapToDB( AppEntity input, DBEntity output )
 		{
 			throw new NotImplementedException();
 		}
@@ -173,13 +192,57 @@ namespace Factories
 		#endregion
 
 		#region Retrieval
-		public static AppEntity Get( int id )
+		public static AppEntity Get( AppEntity importEntity, string currentRatingCodedNotation )
 		{
-			throw new NotImplementedException();
-		}
-		//
+			var entity = new AppEntity();
+			//will probably have to d
 
-		public static AppEntity Get( Guid rowId )
+			//using ( var context = new ViewContext() )
+			//{
+			//	var item = new Data.Views.RatingContextSummary();
+			//	//can't trust just coded notation, need to consider the current rating somewhere
+			//	if ( !string.IsNullOrWhiteSpace( importEntity.CodedNotation ) )
+			//	{
+			//		item = context.RatingContextSummary.FirstOrDefault( s => ( s.CodedNotation ?? "" ).ToLower() == importEntity.CodedNotation.ToLower()
+			//					&& s.Ratings.Contains( currentRatingCodedNotation ) );
+			//	}
+			//	if ( item == null || item.Id == 0 )
+			//	{
+			//		//22-04-14 - TBD - not sure we want to do this approach - risky
+
+			//	}
+			//	if ( item != null && item.Id > 0 )
+			//	{
+			//		//if exists, will just return the Id?
+			//		//or do a get, and continue?
+			//		entity = Get( item.Id, true );
+			//	}
+			//}
+
+			return entity;
+		}
+        public static AppEntity Get( int id, bool includingConcepts )
+        {
+            var entity = new AppEntity();
+            if ( id < 1 )
+                return entity;
+
+            using ( var context = new DataEntities() )
+            {
+                var item = context.RatingContext
+                            .SingleOrDefault( s => s.Id == id );
+
+                if ( item != null && item.Id > 0 )
+                {
+                    MapFromDB( item, entity, includingConcepts );
+                }
+            }
+
+            return entity;
+        }
+        //
+
+        public static AppEntity Get( Guid rowId )
 		{
 			throw new NotImplementedException();
 		}
@@ -209,7 +272,7 @@ namespace Factories
 		}
 		//
 
-		public static List<AppEntity> GetAllForRatingTask( Guid ratingTaskRowId )
+		public static List<AppEntity> GetAllForRatingContext( Guid ratingTaskRowId )
 		{
 			throw new NotImplementedException();
 		}
@@ -221,7 +284,7 @@ namespace Factories
 		}
 		//
 
-		public static void MapFromDB( DBEntity input, AppEntity output )
+		public static void MapFromDB( DBEntity input, AppEntity output, bool includingConcepts )
 		{
 			throw new NotImplementedException();
 		}
