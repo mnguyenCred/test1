@@ -14,13 +14,13 @@ namespace Models.Application
         public string Description { get; set; }
     }
     //
-    public class ApplicationRole
-    {
-        public int Id { get; set; }
-        public string Name { get; set; }
-        public string CodedNotation { get; set; }
-        public string Description { get; set; }
-    }
+    //public class UserRole2
+    //{
+    //    public int Id { get; set; }
+    //    public string Name { get; set; }
+    //    public string CodedNotation { get; set; }
+    //    public string Description { get; set; }
+    //}
     //
     public class ApplicationFunctionPermission
     {

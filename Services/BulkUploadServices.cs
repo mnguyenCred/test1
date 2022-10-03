@@ -44,7 +44,6 @@ namespace Services
 			AppUser user = AccountServices.GetCurrentUser();
 			if (user?.Id == 0 )
             {
-
 				summary.Messages.Error.Add( "Error - a current user was not found. You must authenticated and authorized to use this function!" );
 				return;
             }
@@ -282,15 +281,9 @@ namespace Services
 					foreach ( var item in summary.ItemsToBeCreated.ClusterAnalysis )
 					{						
 						item.CreatedById = item.LastUpdatedById = user.Id;
-						mgr.Save( item, ref summary );
+						//TODO - skip for now
+						//mgr.Save( item, ref summary );
 					}
-					//if ( UtilityManager.GetAppKeyValue( "listingInputRecords", false ) || UtilityManager.GetAppKeyValue( "environment" ) == "development" )
-					//{
-					//	foreach ( var item in summary.ItemsToBeCreated.Course )
-					//	{
-					//		LoggingHelper.DoTrace( 6, String.Format( "Course: {0}, CIN: {1}.", item.Name, item.CodedNotation ), false );
-					//	}
-					//}
 				}
 			}
 
@@ -298,89 +291,7 @@ namespace Services
 			#endregion
 			#region Handle AddedItemsToInnerListsForCopiesOfItems
 			//obsolete
-			/*
-			if ( summary.AddedItemsToInnerListsForCopiesOfItems != null )
-			{
-				//what to do with these? will be existing parents with child updates like course and training task
-				if ( summary.AddedItemsToInnerListsForCopiesOfItems.Course?.Count > 0 )
-				{
-					//is training task part of course, see there is a separate TrainingTask in UploadableData. the latter has no course Id/RowId to make an association?
-					var courseMgr = new CourseManager();
-					foreach ( var item in summary.AddedItemsToInnerListsForCopiesOfItems.Course )
-					{
-						//is all data present?
-						item.CreatedById = item.LastUpdatedById = user.Id;
-						//do we want a full save here, or just focus on training tasks?
-						//don't have the full course (just rowId), just parts, so 
-						//may need to get the core record. See what is needed for parts
-						var basicRecord = CourseManager.Get( item.RowId, false );
-						item.Id = basicRecord.Id;
-						item.Name = basicRecord.Name;
-						//other?
-
-						courseMgr.UpdateParts( item, summary );
-					}
-				}
-
-				if ( summary.AddedItemsToInnerListsForCopiesOfItems.BilletTitle?.Count > 0 )
-				{
-					var mgr = new JobManager();
-					//this will have HasRatingTasks. We save from the other side RatingTask.HasJob
-					//foreach ( var item in summary.AddedItemsToInnerListsForCopiesOfItems.BilletTitle )
-					//{						
-					//	//item.CreatedById = item.LastUpdatedById = user.Id;
-					//	//mgr.Save( item, ref summary );
-					//}
-				}
-
-
-				if ( summary.AddedItemsToInnerListsForCopiesOfItems.TrainingTask?.Count > 0 )
-				{
-					var mgr = new TrainingTaskManager();
-					foreach ( var item in summary.AddedItemsToInnerListsForCopiesOfItems.TrainingTask )
-					{
-						//TBD. Only item would be AssessmentMethodType
-						item.CreatedById = item.LastUpdatedById = user.Id;
-						//may need to get the core record. See what is needed for parts
-						var basicRecord = TrainingTaskManager.Get( item.RowId );
-						item.Id = basicRecord.Id;
-						item.Description = basicRecord.Description;
-						//TBD on if deletes will be an issue?
-						mgr.TrainingTaskAssessmentMethodSave( item, ref summary );
-					}
-				}
-				//
-
-				if ( summary.AddedItemsToInnerListsForCopiesOfItems.RatingTask?.Count > 0 )
-				{
-					var mgr = new RatingTaskManager();
-					foreach ( var item in summary.AddedItemsToInnerListsForCopiesOfItems.RatingTask )
-					{
-						//TBD. Only item would be AssessmentMethodType
-						item.CreatedById = item.LastUpdatedById = user.Id;
-						//may need to get the core record. See what is needed for parts
-						var basicRecord = RatingTaskManager.Get( item.RowId );
-						item.Id = basicRecord.Id;
-						item.Description = basicRecord.Description;
-						//TBD on if deletes will be an issue?
-						mgr.UpdateParts( item, summary );
-					}
-				}
-
-				if ( summary.AddedItemsToInnerListsForCopiesOfItems.ClusterAnalysis?.Count > 0 )
-				{
-
-					//not sure about this, no inner
-					var mgr = new ClusterAnalysisManager();
-					foreach ( var item in summary.AddedItemsToInnerListsForCopiesOfItems.ClusterAnalysis )
-					{
-						item.CreatedById = item.LastUpdatedById = user.Id;
-						mgr.Save( item, ref summary );
-					}
-				
-				}
-			}
-			*/
+			
 			#endregion
 			//
 			#region Handle FinalizedChanges
@@ -481,8 +392,23 @@ namespace Services
 						mgr.Save( item, ref summary );
 					}
 				}
+				//now need to do clusters before rating task/context
+				if ( summary.FinalizedChanges.ClusterAnalysis?.Count > 0 )
+				{
+					var titleList = summary.FinalizedChanges.ClusterAnalysis.Select( p => p.ClusterAnalysisTitle ).Distinct().ToList();
+                    foreach ( var item in titleList )
+                    {
+                    }
+                    var mgr = new ClusterAnalysisManager();
+                    foreach ( var item in summary.FinalizedChanges.ClusterAnalysis )
+                    {
+                        item.LastUpdatedById = user.Id;
+                        //TODO - skip for now
+                        //mgr.Save( item, ref summary );
+                    }
+                }
 
-				if ( summary.FinalizedChanges.RatingTask?.Count > 0 )
+                if ( summary.FinalizedChanges.RatingTask?.Count > 0 )
 				{
 					var mgr = new RatingTaskManager();
 					foreach ( var item in summary.FinalizedChanges.RatingTask )
@@ -512,15 +438,17 @@ namespace Services
 				}
 
 
-				if ( summary.FinalizedChanges.ClusterAnalysis?.Count > 0 )
-				{
-					var mgr = new ClusterAnalysisManager();
-					foreach ( var item in summary.FinalizedChanges.ClusterAnalysis )
-					{
-						item.LastUpdatedById = user.Id;
-						mgr.Save( item, ref summary );
-					}
-				}
+				//if ( summary.FinalizedChanges.ClusterAnalysis?.Count > 0 )
+				//{
+    //                var courseCodeList = summary.ItemsToBeCreated.TrainingTask.Select( p => p.CourseCodedNotation ).Distinct().ToList();
+    //                var mgr = new ClusterAnalysisManager();
+				//	foreach ( var item in summary.FinalizedChanges.ClusterAnalysis )
+				//	{
+				//		item.LastUpdatedById = user.Id;
+    //                    //TODO - skip for now
+    //                    //mgr.Save( item, ref summary );
+				//	}
+				//}
 			}
 			#endregion
 
@@ -1069,15 +997,67 @@ namespace Services
 				( newItem ) => { summary.ItemsToBeCreated.RatingTask.Add( newItem ); }
 			);
 
-			//Cluster Analysis
-			var rowClusterAnalysis = LookupOrGetFromDBOrCreateNew( summary, result,
+            //RatingContext
+            //OR do we use RatingTask and have a method to split out to ratingContext and ratingTask
+            //      var rowRatingContext = LookupOrGetFromDBOrCreateNew( summary, result,
+            //          //Find in summary - if found would be a duplicate
+            //          () =>
+            //          {
+            //              if ( matchingTasksAcrossAllRMTLSpreadsheets )
+            //              {
+            //                  //Catch matching tasks from earlier rows (example: the same task in two functional areas or in two billet titles within the same RMTL sheet)
+            //                  return summary.GetAll<RatingContext>()
+            //                  .FirstOrDefault( m =>
+            //                      m.Description.ToLower() == item.Row.RatingTask_Description.ToLower() &&
+            //                      m.ApplicabilityType == rowTaskApplicabilityType.RowId &&
+            //                      m.HasReferenceResource == rowRatingTaskSource.RowId &&
+            //                      m.ReferenceType == rowSourceType.RowId &&
+            //                      m.PayGradeType == rowPayGrade.RowId// &&
+            //                      //m.TrainingGapType == rowTrainingGapType.RowId //Using training gap type as a discriminator leads to duplicate tasks getting created when really they're just linked (or not) to training for one rating but not the other
+            //                  );
+            //              }
+            //              else
+            //              {
+            //                  return null; //Force each row to be a new RatingTask
+            //              }
+            //          },
+            //          //Or get from DB
+            //          () =>
+            //          {
+            //              if ( matchingTasksAcrossAllRMTLSpreadsheets )
+            //              {
+            //                  return RatingContextManager.GetForUpload( item.Row.RatingTask_Description, rowTaskApplicabilityType.RowId, rowRatingTaskSource.RowId, rowPayGrade.RowId, rowTrainingGapType.RowId );
+            //              }
+            //              else
+            //              {
+            ////???????????????????????
+            //                  return UtilityManager.GetAppKeyValue( "ratingTaskUsingCodedNotationForLookups", false ) ?
+            //                      RatingContextManager.GetForUpload( rowRating.CodedNotation, item.Row.Row_CodedNotation ) :
+            //                      RatingContextManager.GetForUpload( item.Row.RatingTask_Description, rowTaskApplicabilityType.RowId, rowRatingTaskSource.RowId, rowPayGrade.RowId, rowTrainingGapType.RowId );
+            //              }
+            //          },
+            //          //Or create new
+            //          () => new RatingContext()
+            //          {
+            //              RowId = Guid.NewGuid(),
+            //              CodedNotation = item.Row.Row_CodedNotation
+            //              //Other properties are handled in the next section
+            //          },
+            //          //Store if newly created
+            //          ( newItem ) => { summary.ItemsToBeCreated.RatingContext.Add( newItem ); }
+            //      );
+
+
+            //Cluster Analysis
+            //TODO - if not using RatingTaskRowId (using rc.HasCluster id), how to associate???
+            var rowClusterAnalysis = LookupOrGetFromDBOrCreateNew( summary, result,
 				//Find in summary
 				() => summary.GetAll<ClusterAnalysis>()
 				.FirstOrDefault( m =>
 					 m.RatingTaskRowId == rowRatingTask.RowId
 				),
 				//Or get from DB
-				() => ClusterAnalysisManager.GetForUpload( rowRatingTask.RowId ),
+				() => ClusterAnalysisManager.GetForUploadByRatingTask( rowRatingTask.RowId ),
 				//Or create new
 				() => new ClusterAnalysis()
 				{

@@ -31,7 +31,7 @@ SELECT [Id]
       ,[CreatedById]
       ,[LastUpdated]
       ,[LastUpdatedById]
-  FROM [dbo].[CourseSummary]
+  FROM [dbo].[CourseContextSummary]
 
   order by name
 GO
@@ -41,7 +41,7 @@ GO
 
 */
 
-Alter VIEW CourseSummary
+Create VIEW CourseContextSummary
 AS
 
 SELECT base.[Id]
@@ -99,5 +99,5 @@ SELECT base.[Id]
     FOR XML Path('') 
 ) AMT (AssessmentMethodTypes)
   go
-  grant select on CourseSummary to public
+  grant select on CourseContextSummary to public
   go

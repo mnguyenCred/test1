@@ -938,19 +938,20 @@ namespace Factories
 			return isValid;
 
 		}
-		#endregion
+        #endregion
 
 
-		#region Roles
-		/// <summary>
-		/// Add role for a user
-		/// </summary>
-		/// <param name="userId"></param>
-		/// <param name="roleId"></param>
-		/// <param name="createdByUserId"></param>
-		/// <param name="statusMessage"></param>
-		/// <returns></returns>
-		public bool AddRole( int userId, int roleId, int createdByUserId, ref string statusMessage )
+        #region Application Roles
+        #region Roles - old
+        /// <summary>
+        /// Add role for a user
+        /// </summary>
+        /// <param name="userId"></param>
+        /// <param name="roleId"></param>
+        /// <param name="createdByUserId"></param>
+        /// <param name="statusMessage"></param>
+        /// <returns></returns>
+        public bool AddRoleOld( int userId, int roleId, int createdByUserId, ref string statusMessage )
 		{
 			bool isValid = true;
 			string aspNetUserId = "";
@@ -1012,8 +1013,14 @@ namespace Factories
 			return isValid;
 		}
 
-
-		public bool DeleteRole( AppUser entity, int roleId, int updatedByUserId, ref string statusMessage )
+		/// <summary>
+		/// Remove a role from a user
+		/// </summary>
+		/// <param name="entity"></param>
+		/// <param name="roleId"></param>
+		/// <param name="statusMessage"></param>
+		/// <returns></returns>
+		public bool DeleteRoleFromUserOld( AppUser entity, int roleId, ref string statusMessage )
 		{
 			bool isValid = true;
 
@@ -1061,22 +1068,65 @@ namespace Factories
 			return isValid;
 		}
 
-		public void UpdateRoles( string aspNetUserId, string[] roles )
+        public bool DeleteRoleFromUser( AppUser entity, int roleId, ref string statusMessage )
+        {
+            bool isValid = true;
+
+            if ( entity == null || entity.Id == 0 || roleId == 0 )
+            {
+                statusMessage = "Error - please provide a value user identifier and application role identifier.";
+                return false;
+            }
+
+            using ( var context = new DataEntities() )
+            {
+                try
+                {
+                    var efEntity = context.ApplicationUserRole
+                            .SingleOrDefault( s => s.UserId == entity.Id && s.RoleId == roleId);
+
+                    if ( efEntity != null && efEntity.UserId > 0 )
+                    {
+                        context.ApplicationUserRole.Remove( efEntity );
+                        int count = context.SaveChanges();
+                        if ( count > 0 )
+                        {
+                            isValid = true;
+                            //TODO - add logging here or in the services
+                        }
+                    }
+                    else
+                    {
+                        statusMessage = "Error - delete failed, as record was not found.";
+                    }
+                }
+                catch ( Exception ex )
+                {
+                    LoggingHelper.LogError( ex, thisClassName + string.Format( ".Account_DeleteRole(), Email: {0}", entity.Email ) );
+                    statusMessage = ex.Message;
+                    isValid = false;
+                }
+            }
+
+            return isValid;
+        }
+
+        public void UpdateRolesForUser( int userId, List<int> roles )
 		{
 			using ( var db = new DataEntities() )
 			{
 				try
 				{
-					var existRoles = db.AspNetUserRoles.Where( x => x.UserId == aspNetUserId.ToString() );
+					var existRoles = db.ApplicationUserRole.Where( x => x.UserId == userId );
 					var oldRoles = existRoles.Select( x => x.RoleId ).ToArray();
 
 					if ( roles == null )
-						roles = new string[] { };
+						roles = new List<int>();
 
 					//Add New Roles Selected
 					roles.Except( oldRoles ).ToList().ForEach( x =>
 					{
-						var userRole = new EM.AspNetUserRoles { UserId = aspNetUserId, RoleId = x, Created = DateTime.Now };
+						var userRole = new EM.ApplicationUserRole { UserId = userId, RoleId = x, Created = DateTime.Now };
 						db.Entry( userRole ).State = System.Data.Entity.EntityState.Added;
 					} );
 
@@ -1090,142 +1140,180 @@ namespace Factories
 				}
 				catch ( Exception ex )
 				{
-					LoggingHelper.LogError( ex, thisClassName + string.Format( ".UpdateRoles(), aspNetUserId: {0}", aspNetUserId ) );
+					LoggingHelper.LogError( ex, thisClassName + string.Format( ".UpdateRoles(), UserId: {0}", userId ) );
 					//statusMessage = ex.Message;
 
 				}
 			}
 		}
+        public void UpdateRolesOld( string aspNetUserId, string[] roles )
+        {
+            using ( var db = new DataEntities() )
+            {
+                try
+                {
+                    var existRoles = db.AspNetUserRoles.Where( x => x.UserId == aspNetUserId.ToString() );
+                    var oldRoles = existRoles.Select( x => x.RoleId ).ToArray();
 
-		public static List<EM.AspNetRoles> GetRoles()
+                    if ( roles == null )
+                        roles = new string[] { };
+
+                    //Add New Roles Selected
+                    roles.Except( oldRoles ).ToList().ForEach( x =>
+                    {
+                        var userRole = new EM.AspNetUserRoles { UserId = aspNetUserId, RoleId = x, Created = DateTime.Now };
+                        db.Entry( userRole ).State = System.Data.Entity.EntityState.Added;
+                    } );
+
+                    //Delete existing Roles unselected
+                    existRoles.Where( x => !roles.Contains( x.RoleId ) ).ToList().ForEach( x =>
+                    {
+                        db.Entry( x ).State = System.Data.Entity.EntityState.Deleted;
+                    } );
+
+                    db.SaveChanges();
+                }
+                catch ( Exception ex )
+                {
+                    LoggingHelper.LogError( ex, thisClassName + string.Format( ".UpdateRoles(), aspNetUserId: {0}", aspNetUserId ) );
+                    //statusMessage = ex.Message;
+
+                }
+            }
+        }
+
+        public static List<EM.AspNetRoles> GetRolesOld()
 		{
 			using ( var context = new DataEntities() )
 			{
 				return context.AspNetRoles.Where( s => s.IsActive == true ).ToList();
 			}
 		}
-		/// <summary>
-		/// Get Application User Roles
-		/// 22-09-22 - changed to use ApplicationRole rather than AspNetRoles
-		/// </summary>
-		/// <returns></returns>
-		public static List<UserRole> GetUserRoles()
-		{
-			var output = new List<UserRole>();
-			using ( var context = new DataEntities() )
-			{
-				var list = context.ApplicationRole.Where( s => s.IsActive == true ).ToList();
-				foreach ( var item in list )
-                {
-					var role = new UserRole()
-					{
-						Id = item.Id,
-						Name = item.Name,
-					};
-					role.HasApplicationFunctionIds = GetApplicationFunctionIds( item.Id );
-					output.Add( role );
+        #endregion
 
-				}
-			}
-			return output;
-		}
-		public static bool SaveApplicationRolePermissions( UserRole input, ref string statusMessage  )
-		{
-			//check for a new user role
-			if ( input.Id == 0 )
-			{
+        #region Roles - New - moved to ApplicationManager
+  //      /// <summary>
+  //      /// Get Application User Roles
+  //      /// 22-09-22 - changed to use ApplicationRole rather than AspNetRoles
+  //      /// </summary>
+  //      /// <returns></returns>
+  //      public static List<UserRole> GetAllApplicationRoles()
+		//{
+		//	var output = new List<UserRole>();
+		//	using ( var context = new DataEntities() )
+		//	{
+		//		var list = context.ApplicationRole.Where( s => s.IsActive == true ).ToList();
+		//		foreach ( var item in list )
+  //              {
+		//			var role = new UserRole()
+		//			{
+		//				Id = item.Id,
+		//				Name = item.Name,
+		//			};
+		//			role.HasApplicationFunctionIds = ApplicationManager.GetApplicationFunctionIds( item.Id );
+		//			output.Add( role );
 
-			}
+		//		}
+		//	}
+		//	return output;
+		//}
+        //public bool SaveApplicationRolePermissions( UserRole input, ref string statusMessage  )
+        //{
+        //	//check for a new user role
+        //	if ( input.Id == 0 )
+        //	{
 
-			using ( var db = new DataEntities() )
-			{
-				try
-				{
-					var existRoles = db.AppFunctionPermission.Where( m => m.RoleId == input.Id ).ToList();
-					var oldRoles = existRoles.Select( x => x.ApplicationFunctionId).ToArray();
+        //	}
 
-					if ( input.HasApplicationFunctionIds == null )
-						input.HasApplicationFunctionIds = new List<int>();
+        //	using ( var db = new DataEntities() )
+        //	{
+        //		try
+        //		{
+        //			var existRoles = db.AppFunctionPermission.Where( m => m.RoleId == input.Id ).ToList();
+        //			var oldRoles = existRoles.Select( x => x.ApplicationFunctionId).ToArray();
 
-					//Add New Roles Selected
-					input.HasApplicationFunctionIds.Except( oldRoles ).ToList().ForEach( x =>
-					{
-						//TBD - is presence enough, or will we want sublevel (CRUD) options
-						var userRole = new EM.AppFunctionPermission { ApplicationFunctionId = x, RoleId = input.Id };
-						db.Entry( userRole ).State = System.Data.Entity.EntityState.Added;
-					} );
+        //			if ( input.HasApplicationFunctionIds == null )
+        //				input.HasApplicationFunctionIds = new List<int>();
 
-					//Delete existing Roles unselected
-					existRoles.Where( x => !input.HasApplicationFunctionIds.Contains( x.ApplicationFunctionId ) ).ToList().ForEach( x =>
-					{
-						db.Entry( x ).State = System.Data.Entity.EntityState.Deleted;
-					} );
+        //			//Add New Roles Selected
+        //			input.HasApplicationFunctionIds.Except( oldRoles ).ToList().ForEach( x =>
+        //			{
+        //				//TBD - is presence enough, or will we want sublevel (CRUD) options
+        //				var userRole = new EM.AppFunctionPermission { ApplicationFunctionId = x, RoleId = input.Id };
+        //				db.Entry( userRole ).State = System.Data.Entity.EntityState.Added;
+        //			} );
 
-					db.SaveChanges();
-					return true;
-				}
-				catch ( Exception ex )
-				{
-					LoggingHelper.LogError( ex, thisClassName + string.Format( ".SaveApplicationRolePermissions(), UserRole: {0}", input.Name ) );
-					statusMessage = ex.Message;
-					return false;
-				}
-			}
-		}
-		public static List<int> GetApplicationFunctionIds( int roleId )
-		{
-			using ( var context = new DataEntities() )
-			{
-				var list = context.AppFunctionPermission.Where( m => m.RoleId == roleId ).ToList();
-				return list.Select( m => m.ApplicationFunctionId ).ToList();
-			}
-		}
+        //			//Delete existing Roles unselected
+        //			existRoles.Where( x => !input.HasApplicationFunctionIds.Contains( x.ApplicationFunctionId ) ).ToList().ForEach( x =>
+        //			{
+        //				db.Entry( x ).State = System.Data.Entity.EntityState.Deleted;
+        //			} );
 
-		public static List<ApplicationFunction> GetApplicationFunctions()
-		{
-			var output = new List<ApplicationFunction>();
-			using ( var context = new DataEntities() )
-			{
-				var list = context.ApplicationFunction.ToList();
-				foreach (var item in list)
-                {
-					output.Add( new ApplicationFunction()
-					{
-						Id = item.Id,
-						Name = item.Name,
-						CodedNotation = item.CodedNotation,
-						Description = item.Description,
-					} );
-                }
-			}
+        //			db.SaveChanges();
+        //			return true;
+        //		}
+        //		catch ( Exception ex )
+        //		{
+        //			LoggingHelper.LogError( ex, thisClassName + string.Format( ".SaveApplicationRolePermissions(), UserRole: {0}", input.Name ) );
+        //			statusMessage = ex.Message;
+        //			return false;
+        //		}
+        //	}
+        //}
+        //public static List<int> GetApplicationFunctionIds( int roleId )
+        //{
+        //	using ( var context = new DataEntities() )
+        //	{
+        //		var list = context.AppFunctionPermission.Where( m => m.RoleId == roleId ).ToList();
+        //		return list.Select( m => m.ApplicationFunctionId ).ToList();
+        //	}
+        //}
 
-			return output;
-		}
+        //public static List<ApplicationFunction> GetApplicationFunctions()
+        //{
+        //	var output = new List<ApplicationFunction>();
+        //	using ( var context = new DataEntities() )
+        //	{
+        //		var list = context.ApplicationFunction.ToList();
+        //		foreach (var item in list)
+        //              {
+        //			output.Add( new ApplicationFunction()
+        //			{
+        //				Id = item.Id,
+        //				Name = item.Name,
+        //				CodedNotation = item.CodedNotation,
+        //				Description = item.Description,
+        //			} );
+        //              }
+        //	}
 
-		public static List<ApplicationFunctionPermission> GetApplicationFunctionPermissions( int roleId )
-		{
-			var output = new List<ApplicationFunctionPermission>();
-			using ( var context = new DataEntities() )
-			{
-				var list = context.AppFunctionPermission.Where( m => m.RoleId == roleId ).ToList();
-				foreach ( var item in list )
-				{
-					output.Add( new ApplicationFunctionPermission()
-					{
-						ApplicationFunctionId= item.ApplicationFunctionId,
-						RoleId= item.RoleId,
-						CanCreate= item.CanCreate,
-						CanDelete= item.CanDelete,
-						CanRead= item.CanRead,
-						CanUpdate= item.CanUpdate,
-					} );
-				}
-			}
+        //	return output;
+        //}
 
-			return output;
-		}
+        //public static List<ApplicationFunctionPermission> GetApplicationFunctionPermissions( int roleId )
+        //{
+        //	var output = new List<ApplicationFunctionPermission>();
+        //	using ( var context = new DataEntities() )
+        //	{
+        //		var list = context.AppFunctionPermission.Where( m => m.RoleId == roleId ).ToList();
+        //		foreach ( var item in list )
+        //		{
+        //			output.Add( new ApplicationFunctionPermission()
+        //			{
+        //				ApplicationFunctionId= item.ApplicationFunctionId,
+        //				RoleId= item.RoleId,
+        //				CanCreate= item.CanCreate,
+        //				CanDelete= item.CanDelete,
+        //				CanRead= item.CanRead,
+        //				CanUpdate= item.CanUpdate,
+        //			} );
+        //		}
+        //	}
 
+        //	return output;
+        //}
 
-		#endregion
-	}
+        #endregion
+        #endregion
+    }
 }

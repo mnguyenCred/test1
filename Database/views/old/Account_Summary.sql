@@ -1,7 +1,4 @@
-Use NavyRRL
-go
-
-USE [Navy_RRL_V2]
+USE NavyRRL
 GO
 
 /****** Object:  View [dbo].[Account_Summary]    Script Date: 3/28/2016 11:01:58 AM ******/
@@ -13,27 +10,19 @@ GO
 
 /*
 
-USE [Navy_RRL_V2]
-GO
-
 SELECT [Id]
-      ,[UserName]
-      ,[FirstName]
-      ,[LastName]
-      ,[FullName]
-      ,[SortName]
+      --,[UserName]
+      ,[FirstName]      ,[LastName]
+     -- ,[FullName]      ,[SortName]
       ,[Email]
-      ,[IsActive]
-      ,[Created]
-      ,[LastUpdated]
-      ,[LastUpdatedById]
-      ,[ExternalAccountIdentifier]
-      ,[RowId]
-      ,[AspNetId]
-      ,[Roles]
-      ,[lastLogon]
+			    ,[Roles]
+			, OrgMbrs
+			,convert(varchar(10),lastLogon,120) As LastLoginDate
+   --   ,[IsActive]
+   --   ,[Created]      ,[LastUpdated],LastUpdatedById
+	  --,[AspNetId]
+  
   FROM [dbo].[Account_Summary]
-
 order by sortName
 
 
@@ -81,10 +70,10 @@ CROSS APPLY (
 	SELECT 
 		convert(varchar,ar.Name) + ', '
 	-- '''' + convert(varchar,ar.Name) + ''', '
-	FROM dbo.ApplicationRole ar
-	INNER JOIN dbo.ApplicationUserRole aur ON ar.Id = aur.RoleId  
+	FROM dbo.AspNetRoles ar
+	INNER JOIN dbo.AspNetUserRoles aur ON ar.Id = aur.RoleId  
 	WHERE (base.IsActive = 1) 
-	AND base.Id = aur.UserId
+	AND base.[AspNetId] = aur.UserId
 	FOR XML Path('') 
 ) D (Roles)
 

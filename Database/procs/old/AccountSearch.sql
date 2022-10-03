@@ -1,7 +1,4 @@
-Use NavyRRL
-go
-
-USE [Navy_RRL_V2]
+USE NavyRRL
 GO
 
 /****** Object:  StoredProcedure [dbo].[AccountSearch]    Script Date: 1/21/2022 11:21:33 PM ******/

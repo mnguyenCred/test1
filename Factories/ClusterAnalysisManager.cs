@@ -319,7 +319,7 @@ namespace Factories
         //TODO - Sigh, now a list
         //ratingContext -> clusterAnalysisId -> clusterAnalysis
         //ratingTask -> ratingContext.RatingTaskId -> ratingContext -> clusterAnalysisId -> clusterAnalysis
-        public static AppEntity GetForUpload( Guid rowRatingTaskRowId )
+        public static AppEntity GetForUploadByRatingTask( Guid rowRatingTaskRowId )
         {
             var entity = new AppEntity();
 

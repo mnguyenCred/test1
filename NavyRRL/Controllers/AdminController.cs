@@ -50,7 +50,7 @@ namespace NavyRRL.Controllers
 		{
             var output = new List<UserRole>();
             //Temporary/test data to be replaced with database call
-            var roles = AccountServices.GetUserApplicationRoles();
+            var roles = AccountServices.GetAllApplicationRoles();
             //foreach( var item in roles2)
             //{
             //    var role = new UserRole()
@@ -103,11 +103,17 @@ namespace NavyRRL.Controllers
             return BaseController.JsonResponse( null, isValid );
 		}
 
+        /// <summary>
+        /// Called from ManageRolePermissions.cshtml
+        /// </summary>
+        /// <param name="role"></param>
+        /// <returns></returns>
 		[HttpPost]
 		public ActionResult DeleteUserRole( UserRole role )
 		{
-			//Delete the user role (probably should see if anything uses it first)
-
+            var status = "";
+            //Delete the ApplicationRole (probably should see if anything uses it first)
+            var result = new AccountServices().DeleteApplicationRole( role, ref status );
 			//Return response
 			return BaseController.JsonResponse( null, false, new List<string>() { "Error - That role is still assigned to one or more users." } );
 		}
@@ -338,17 +344,15 @@ namespace NavyRRL.Controllers
             if ( account != null )
             {
                 var model = new AccountViewModel { UserId = account.Id, Email = account.Email, FirstName = account.FirstName, LastName = account.LastName };
-                var roles = AccountServices.GetRoles();
-                model.SelectedRoles = roles.Where( x => account.UserRoles.Contains( x.Name ) ).Select( x => x.Id ).ToArray();
-                model.Roles = roles.Select( x => new SelectListItem { Text = x.Name, Value = x.Id, Selected = account.UserRoles.Contains( x.Name ) } ).ToList();
+                //var roles2 = AccountServices.GetRoles();
 
-                //model.SelectedOrgs = account.Organizations.Select( x => x.Id ).ToArray();
+                //model.SelectedRoles = roles.Where( x => account.UserRoles.Contains( x.Name ) ).Select( x => x.Id ).ToArray();
+                //model.Roles = roles.Select( x => new SelectListItem { Text = x.Name, Value = x.Id, Selected = account.UserRoles.Contains( x.Name ) } ).ToList();
 
-                //If Organizations not found, get top 3 Organizations to show
-                //if (!account.Organizations.Any())
-                //    account.Organizations = AccountServices.GetOrganizations(string.Empty).OrderBy(x => x.Name).Take(3).Select(x => new CodeItem { Id = x.Id, Name = x.Name }).ToList();
+                var roles = AccountServices.GetAllApplicationRoles();
+                model.SelectedRoles = roles.Where( x => account.UserRoles.Contains( x.Name ) ).Select( x => x.Id.ToString() ).ToArray();
+                model.Roles = roles.Select( x => new SelectListItem { Text = x.Name, Value = x.Id.ToString(), Selected = account.UserRoles.Contains( x.Name ) } ).ToList();
 
-                //model.Organizations = account.Organizations.Select( x => new SelectListItem { Text = x.Name, Value = x.Id.ToString(), Selected = true } ).ToList();
                 return PartialView( model );
             }
 
@@ -376,7 +380,10 @@ namespace NavyRRL.Controllers
                         //if null, should there be a check to delete all??
                         //if (model.SelectedRoles != null)
                         //Bulk Add/Remove Roles
-                        new AccountServices().UpdateRoles( account.AspNetUserId, model.SelectedRoles );
+                        //new AccountServices().UpdateRolesForUserOld( account.AspNetUserId, model.SelectedRoles );
+                        //convert to int
+                        var inputRoles = model.SelectedRoles.Select( Int32.Parse )?.ToList();
+                        new AccountServices().UpdateRolesForUser( account.Id, inputRoles );
 
                         //if null, should there be a check to delete all??
                         //Bulk Add/Remove Organizations
@@ -392,12 +399,14 @@ namespace NavyRRL.Controllers
                     ModelState.AddModelError( "", string.Join( Environment.NewLine, ModelState.Values.SelectMany( x => x.Errors ).Select( x => x.ErrorMessage ) ) );
                 }
 
-                var roles = AccountServices.GetRoles();
-                model.SelectedRoles = roles.Where( x => account.UserRoles.Contains( x.Name ) ).Select( x => x.Id ).ToArray();
-                model.Roles = roles.Select( x => new SelectListItem { Text = x.Name, Value = x.Id, Selected = account.UserRoles.Contains( x.Name ) } ).ToList();
+                //var roles = AccountServices.GetRoles();
+                //model.SelectedRoles = roles.Where( x => account.UserRoles.Contains( x.Name ) ).Select( x => x.Id ).ToArray();
+                //model.Roles = roles.Select( x => new SelectListItem { Text = x.Name, Value = x.Id, Selected = account.UserRoles.Contains( x.Name ) } ).ToList();
 
-                //model.SelectedOrgs = account.Organizations.Select( x => x.Id ).ToArray();
-                //model.Organizations = account.Organizations.Select( x => new SelectListItem { Text = x.Name, Value = x.Id.ToString(), Selected = true } ).ToList();
+                //new 
+                var roles = AccountServices.GetAllApplicationRoles();
+                model.SelectedRoles = roles.Where( x => account.UserRoles.Contains( x.Name ) ).Select( x => x.Id.ToString() ).ToArray();
+                model.Roles = roles.Select( x => new SelectListItem { Text = x.Name, Value = x.Id.ToString(), Selected = account.UserRoles.Contains( x.Name ) } ).ToList();
             }
             return PartialView( model );
         }

@@ -8,25 +8,29 @@ using Models.Search;
 
 using Navy.Utilities;
 
-using AppRole = Models.Application.ApplicationRole;
+using AppUserRole = Models.Application.UserRole;
 using AppFunction = Models.Application.ApplicationFunction;
 using DataEntities = Data.Tables.NavyRRLEntities;
+using EM = Data.Tables;
 using DBEntity = Data.Tables.ApplicationRole;
 using DBFunctionEntity = Data.Tables.ApplicationFunction;
+using Data.Tables;
+using System.Web.Security;
 
 namespace Factories
 {
     public class ApplicationManager : BaseFactory
     {
         public static new string thisClassName = "ApplicationManager";
-        #region ApplicationRole - persistance ==================
+        #region ApplicationRole ==================
+        #region Persistance ==================
         /// <summary>
         /// Update a ApplicationRole
         /// </summary>
         /// <param name="entity"></param>
         /// <param name="status"></param>
         /// <returns></returns>
-        public bool Save( AppRole entity, ref ChangeSummary status )
+        public bool Save( AppUserRole entity, ref ChangeSummary status )
         {
             bool isValid = true;
             int count = 0;
@@ -41,7 +45,8 @@ namespace Factories
                     if ( entity.Id == 0 )
                     {
                         //names must be unique, check if exists. Probably should be an error
-                        var record = GetExisting( entity );
+                        //OR what if changing the role name? - then id should be present
+                        var record = GetExisting( entity.Name );
                         if ( record.Id > 0 )
                         {
                             entity.Id = record.Id;
@@ -140,7 +145,7 @@ namespace Factories
         /// <param name="entity"></param>
         /// <param name="status"></param>
         /// <returns></returns>
-        private int ApplicationRoleAdd( AppRole entity, ref ChangeSummary status )
+        private int ApplicationRoleAdd( AppUserRole entity, ref ChangeSummary status )
         {
             DBEntity efEntity = new DBEntity();
             status.HasSectionErrors = false;
@@ -149,6 +154,7 @@ namespace Factories
                 try
                 {
                     MapToDB( entity, efEntity, status );
+                    efEntity.IsActive = true;
                     context.ApplicationRole.Add( efEntity );
 
                     // submit the change to database
@@ -196,7 +202,44 @@ namespace Factories
             return efEntity.Id;
         }
 
-        public static bool ValidateProfile( AppRole entity, ref ChangeSummary status )
+        public bool ApplicationRoleDelete( UserRole role, ref string statusMessage )
+        {
+            var isValid = true;
+            using ( var context = new DataEntities() )
+            {
+                //need to check if in use
+                try
+                {
+                    var efEntity = context.ApplicationRole
+                            .SingleOrDefault( s => s.Id == role.Id);
+                    if ( efEntity != null && efEntity.Id > 0 )
+                    {
+                        context.ApplicationRole.Remove( efEntity );
+                        int count = context.SaveChanges();
+                        if ( count > 0 )
+                        {
+                            isValid = true;
+                            //TODO - add logging here or in the services
+                        }
+                    }
+                    else
+                    {
+                        statusMessage= "Error - delete failed, as record was not found.";
+                        isValid = false;
+                    }
+                }
+                catch ( Exception ex )
+                {
+                    //LoggingHelper.LogError( ex, thisClassName + string.Format( ".Account_DeleteRole(), Email: {0}", entity.Email ) );
+                    statusMessage = ex.Message;
+                    isValid = false;
+                }
+            }
+
+            return isValid;
+        }
+
+        public static bool ValidateProfile( AppUserRole entity, ref ChangeSummary status )
         {
             var isValid = true;
             if ( entity == null )
@@ -215,17 +258,15 @@ namespace Factories
         /// <summary>
         /// Need to avoid duplicate roles
         /// </summary>
-        /// <param name="entity"></param>
+        /// <param name="roleName"></param>
         /// <returns></returns>
-        public static AppRole GetExisting( AppRole entity )
+        public static AppUserRole GetExisting( string roleName )
         {
-            //just by rating task id for now
-            var existing = new AppRole();
-
+            var existing = new AppUserRole();
             using ( var context = new DataEntities() )
             {
                 var item = context.ApplicationRole
-                            .FirstOrDefault( s => s.Name.ToLower() == entity.Name.ToLower() );
+                            .FirstOrDefault( s => s.Name.ToLower() == roleName.ToLower() );
 
                 if ( item != null && item.Id > 0 )
                 {
@@ -235,9 +276,9 @@ namespace Factories
             return existing;
         }
 
-        public static AppRole Get( int id )
+        public static AppUserRole Get( int id )
         {
-            var entity = new AppRole();
+            var entity = new AppUserRole();
             if ( id < 1 )
                 return entity;
 
@@ -258,10 +299,10 @@ namespace Factories
         /// Get all 
         /// </summary>
         /// <returns></returns>
-        public static List<AppRole> GetAll()
+        public static List<AppUserRole> GetAll()
         {
-            var entity = new AppRole();
-            var list = new List<AppRole>();
+            var entity = new AppUserRole();
+            var list = new List<AppUserRole>();
 
             using ( var context = new DataEntities() )
             {
@@ -274,7 +315,7 @@ namespace Factories
                     {
                         if ( item != null && item.Id > 0 )
                         {
-                            entity = new AppRole();
+                            entity = new AppUserRole();
                             MapFromDB( item, entity );
                             list.Add( ( entity ) );
                         }
@@ -284,7 +325,27 @@ namespace Factories
             }
             return list;
         }
-        public static void MapToDB( AppRole input, DBEntity output, ChangeSummary status )
+        public static List<AppUserRole> GetAllApplicationRoles()
+        {
+            var output = new List<AppUserRole>();
+            using ( var context = new DataEntities() )
+            {
+                var list = context.ApplicationRole.Where( s => s.IsActive == true ).ToList();
+                foreach ( var item in list )
+                {
+                    var role = new AppUserRole()
+                    {
+                        Id = item.Id,
+                        Name = item.Name,
+                    };
+                    role.HasApplicationFunctionIds = ApplicationManager.GetApplicationFunctionIds( item.Id );
+                    output.Add( role );
+
+                }
+            }
+            return output;
+        }
+        public static void MapToDB( AppUserRole input, DBEntity output, ChangeSummary status )
         {
             status.HasSectionErrors = false;
             //watch for missing properties like rowId
@@ -293,7 +354,7 @@ namespace Factories
             BaseFactory.AutoMap( input, output, errors );
             //validate
         }
-        public static void MapFromDB( DBEntity input, AppRole output, bool formatForSearch = false )
+        public static void MapFromDB( DBEntity input, AppUserRole output, bool formatForSearch = false )
         {
             //should include list of concepts
             List<string> errors = new List<string>();
@@ -301,9 +362,9 @@ namespace Factories
             //validate
 
         }
-        public static AppRole MapFromDB( DBEntity input, bool formatForSearch = false )
+        public static AppUserRole MapFromDB( DBEntity input, bool formatForSearch = false )
         {
-            AppRole output = new AppRole();
+            AppUserRole output = new AppUserRole();
             //should include list of concepts
             List<string> errors = new List<string>();
             BaseFactory.AutoMap( input, output, errors );
@@ -321,7 +382,7 @@ namespace Factories
         /// </summary>
         /// <param name="input"></param>
         /// <param name="status"></param>
-        public void UpdateParts( AppRole input, ChangeSummary status )
+        public void UpdateParts( AppUserRole input, ChangeSummary status )
         {
             try
             {
@@ -335,8 +396,158 @@ namespace Factories
                 LoggingHelper.LogError( ex, thisClassName + "UpdateParts" );
             }
         }
+        #endregion
 
 
+        #region Application Function ==================
+        #region Persistance ==================
+
+        #endregion
+        #region Retrieval
+
+        /// <summary>
+        /// Need to avoid duplicate Function name
+        /// </summary>
+        /// <param name="name">Function name</param>
+        /// <returns></returns>
+        public static AppFunction GetExistingAppFunction( string name )
+        {
+            var existing = new AppFunction();
+            using ( var context = new DataEntities() )
+            {
+                var item = context.ApplicationFunction
+                            .FirstOrDefault( s => s.Name.ToLower() == name.ToLower() );
+
+                if ( item != null && item.Id > 0 )
+                {
+                    MapFromDB( item, existing );
+                }
+            }
+            return existing;
+        }
+
+        public static AppFunction GetApplicationFunction( int id )
+        {
+            var entity = new AppFunction();
+            if ( id < 1 )
+                return entity;
+
+            using ( var context = new DataEntities() )
+            {
+                var item = context.ApplicationFunction
+                            .SingleOrDefault( s => s.Id == id );
+
+                if ( item != null && item.Id > 0 )
+                {
+                    MapFromDB( item, entity );
+                }
+            }
+
+            return entity;
+        }
+        public static List<AppFunction> GetApplicationFunctions()
+        {
+            var output = new List<AppFunction>();
+            using ( var context = new DataEntities() )
+            {
+                var list = context.ApplicationFunction.ToList();
+                foreach ( var item in list )
+                {
+                    output.Add( new AppFunction()
+                    {
+                        Id = item.Id,
+                        Name = item.Name,
+                        CodedNotation = item.CodedNotation,
+                        Description = item.Description,
+                    } );
+                }
+            }
+
+            return output;
+        }
+
+
+        public static void MapToDB( AppFunction input, DBFunctionEntity output, ChangeSummary status )
+        {
+            status.HasSectionErrors = false;
+            //watch for missing properties like rowId
+            List<string> errors = new List<string>();
+            //
+            BaseFactory.AutoMap( input, output, errors );
+            //validate
+        }
+        public static void MapFromDB( DBFunctionEntity input, AppFunction output )
+        {
+            //should include list of concepts
+            List<string> errors = new List<string>();
+            BaseFactory.AutoMap( input, output, errors );
+            //validate
+
+        }
+
+        #endregion
+        #endregion
+
+
+        #region Application Role Permissions  ==================
+        #region Persistance ==================
+        public bool SaveApplicationRolePermissions( UserRole input, ref string statusMessage )
+        {
+            //check for a new user role
+            if ( input.Id == 0 )
+            {
+                ChangeSummary status = new ChangeSummary();
+                input.Id = ApplicationRoleAdd( input, ref status );
+            }
+
+            using ( var db = new DataEntities() )
+            {
+                try
+                {
+                    var existRoles = db.AppFunctionPermission.Where( m => m.RoleId == input.Id ).ToList();
+                    var oldRoles = existRoles.Select( x => x.ApplicationFunctionId ).ToArray();
+
+                    if ( input.HasApplicationFunctionIds == null )
+                        input.HasApplicationFunctionIds = new List<int>();
+
+                    //Add New Roles Selected
+                    input.HasApplicationFunctionIds.Except( oldRoles ).ToList().ForEach( x =>
+                    {
+                        //TBD - is presence enough, or will we want sublevel (CRUD) options
+                        var userRole = new EM.AppFunctionPermission { ApplicationFunctionId = x, RoleId = input.Id };
+                        db.Entry( userRole ).State = System.Data.Entity.EntityState.Added;
+                    } );
+
+                    //Delete existing Roles unselected
+                    existRoles.Where( x => !input.HasApplicationFunctionIds.Contains( x.ApplicationFunctionId ) ).ToList().ForEach( x =>
+                    {
+                        db.Entry( x ).State = System.Data.Entity.EntityState.Deleted;
+                    } );
+
+                    db.SaveChanges();
+                    return true;
+                }
+                catch ( Exception ex )
+                {
+                    LoggingHelper.LogError( ex, thisClassName + string.Format( ".SaveApplicationRolePermissions(), UserRole: {0}", input.Name ) );
+                    statusMessage = ex.Message;
+                    return false;
+                }
+            }
+        }
+        #endregion
+        #region Retrieval
+        public static List<int> GetApplicationFunctionIds( int roleId )
+        {
+            using ( var context = new DataEntities() )
+            {
+                var list = context.AppFunctionPermission.Where( m => m.RoleId == roleId ).ToList();
+                return list.Select( m => m.ApplicationFunctionId ).ToList();
+            }
+        }
+        #endregion
+
+        #endregion
     }
 
 }

@@ -15,6 +15,9 @@ using Navy.Utilities;
 
 using Services;
 using System.Collections.Generic;
+using Factories;
+using Models.Schema;
+using Data.Tables;
 
 namespace NavyRRL.Controllers
 {
@@ -62,10 +65,11 @@ namespace NavyRRL.Controllers
         public ActionResult AddUser()
         {
             var model = new RegisterViewModel();
-            var roles = AccountServices.GetRoles();
+            //var roles = AccountServices.GetRoles();
+            var roles = AccountServices.GetAllApplicationRoles();
             //model.SelectedRoles = new List<string>() { "20" }.ToArray();
             //model.Roles = roles.Select( x => new SelectListItem { Text = x.Name, Value = x.Id, Selected = model.SelectedRoles.Contains( x.Name ) } ).ToList();
-            model.Roles = roles.Select( x => new SelectListItem { Text = x.Name, Value = x.Id, Selected = false } ).ToList();
+            model.Roles = roles.Select( x => new SelectListItem { Text = x.Name, Value = x.Id.ToString(), Selected = false } ).ToList();
             //TODO - could set password to a default.
             var rand = new Random();
             var pw= System.Web.Security.Membership.GeneratePassword( 12, 2 ) + rand.Next(12,99).ToString();
@@ -80,7 +84,8 @@ namespace NavyRRL.Controllers
         public async Task<ActionResult> AddUser( RegisterViewModel model )
         {
             int currentUserId = AccountServices.GetCurrentUserId();
-            var roles = AccountServices.GetRoles();
+            //var roles = AccountServices.GetRoles();
+            var roles = AccountServices.GetAllApplicationRoles();
             if ( ModelState.IsValid )
             {
                 //check if user email aleady exists
@@ -123,8 +128,9 @@ namespace NavyRRL.Controllers
                         //check for a default role
                         if (model.SelectedRoles?.Count() > 0)
                         {
-                            new AccountServices().UpdateRoles( account.AspNetUserId, model.SelectedRoles );
-
+                            //new AccountServices().UpdateRoles( account.AspNetUserId, model.SelectedRoles );
+                            var inputRoles = model.SelectedRoles.Select( Int32.Parse )?.ToList();
+                            new AccountServices().UpdateRolesForUser( account.Id, inputRoles );
                         }
                         //check if user is to be notified. 
                         if (model.NotifyUser)
@@ -141,7 +147,7 @@ namespace NavyRRL.Controllers
                         ConsoleMessageHelper.SetConsoleSuccessMessage( string.Format( msg, user.FirstName ) );
                         //return View( "ConfirmationRequired" );
                         ModelState.Clear();
-                        model.Roles = roles.Select( x => new SelectListItem { Text = x.Name, Value = x.Id, Selected = false } ).ToList();
+                        model.Roles = roles.Select( x => new SelectListItem { Text = x.Name, Value = x.Id.ToString(), Selected = false } ).ToList();
                         return View( model );
                     }
                     else
@@ -167,7 +173,7 @@ namespace NavyRRL.Controllers
             }
 
             // If we got this far, something failed, redisplay form
-            model.Roles = roles.Select( x => new SelectListItem { Text = x.Name, Value = x.Id, Selected = false } ).ToList();
+            model.Roles = roles.Select( x => new SelectListItem { Text = x.Name, Value = x.Id.ToString(), Selected = false } ).ToList();
             return View( model );
         }
         #endregion

@@ -10,6 +10,7 @@ using Factories;
 using Models.Application;
 
 using Navy.Utilities;
+using System.Web.Security;
 
 
 namespace Services
@@ -549,12 +550,18 @@ namespace Services
 			}
 
 		}
+        #endregion
 
-		public bool AddRole( int userId, int roleId, int createdByUserId, ref string statusMessage )
+        #region Roles
+        public bool AddRole( int userId, int roleId, int createdByUserId, ref string statusMessage )
 		{
-			return new AccountManager().AddRole( userId, roleId, createdByUserId, ref statusMessage );
+			return new AccountManager().AddRoleOld( userId, roleId, createdByUserId, ref statusMessage );
 		}
-		public bool DeleteRole( int userId, int roleId, int updatedByUserId, ref string statusMessage )
+        public bool DeleteApplicationRole( UserRole role, ref string statusMessage )
+		{
+            return new ApplicationManager().ApplicationRoleDelete( role, ref statusMessage );
+        }
+        public bool DeleteRoleFromUser( int userId,	int roleId, ref string statusMessage )
 		{
 			AppUser user = AccountManager.AppUser_Get( userId );
 			if ( user == null || user.Id < 1 )
@@ -563,104 +570,109 @@ namespace Services
 				return false;
 			}
 
-			bool isValid = new AccountManager().DeleteRole( user, roleId, updatedByUserId, ref statusMessage );
-			//TODO - add logging here or in the services
-			return isValid;
+            //bool isValid = new AccountManager().DeleteRoleFromUserOld( user, roleId, ref statusMessage );
+            bool isValid = new AccountManager().DeleteRoleFromUser( user, roleId, ref statusMessage );
+            //TODO - add logging here or in the services
+            return isValid;
 		}
-		#endregion
-		public void UpdateRoles( string aspNetUserId, string[] roles )
+        public void UpdateRolesForUserOld( string aspNetUserId, string[] roles )
+        {
+            AppUser user = GetCurrentUser();
+            new AccountManager().UpdateRolesOld( aspNetUserId, roles );
+        }
+        public void UpdateRolesForUser( int userId, List<int> roles )
 		{
 			AppUser user = GetCurrentUser();
-			new AccountManager().UpdateRoles( aspNetUserId, roles );
+			new AccountManager().UpdateRolesForUser( userId, roles );
 		}
+        #endregion
+        #region importing users
+        //public static List<AppUser> ImportUsers_GetAll( int maxRecords )
+        //{
+        //	List<AppUser> users = AccountManager.ImportUsers_GetAll( maxRecords );
 
-		#region importing users
-		//public static List<AppUser> ImportUsers_GetAll( int maxRecords )
-		//{
-		//	List<AppUser> users = AccountManager.ImportUsers_GetAll( maxRecords );
+        //	return users;
 
-		//	return users;
+        //}
+        //public void ImportUsers_SetCompleted( int importId, int userId, string initialPassword )
+        //{
+        //	string statusMessage = "";
+        //	//set complete, including confirming the email address
+        //	bool isOk = new AccountManager().ImportUsers_Update( importId, userId, initialPassword, ref statusMessage );
+        //}
 
-		//}
-		//public void ImportUsers_SetCompleted( int importId, int userId, string initialPassword )
-		//{
-		//	string statusMessage = "";
-		//	//set complete, including confirming the email address
-		//	bool isOk = new AccountManager().ImportUsers_Update( importId, userId, initialPassword, ref statusMessage );
-		//}
+        ///// <summary>
+        ///// Add account for imported user
+        ///// </summary>
+        ///// <param name="email"></param>
+        ///// <param name="firstName"></param>
+        ///// <param name="lastName"></param>
+        ///// <param name="userName"></param>
+        ///// <param name="userKey"></param>
+        ///// <param name="password"></param>
+        ///// <param name="doingEmailConfirmation"></param>
+        ///// <param name="importedBy"></param>
+        ///// <param name="statusMessage"></param>
+        ///// <returns></returns>
+        //public int Import( string email, string firstName, string lastName, string userName, string userKey, string password,
+        //	bool doingEmailConfirmation, string importedBy,
+        //	ref string statusMessage )
+        //{
+        //	int id = 0;
+        //	statusMessage = "";
+        //	//this password, as stored in the account table, is not actually used
+        //	string encryptedPassword = "";
+        //	if ( !string.IsNullOrWhiteSpace( password ) )
+        //		encryptedPassword = UtilityManager.Encrypt( password );
 
-		///// <summary>
-		///// Add account for imported user
-		///// </summary>
-		///// <param name="email"></param>
-		///// <param name="firstName"></param>
-		///// <param name="lastName"></param>
-		///// <param name="userName"></param>
-		///// <param name="userKey"></param>
-		///// <param name="password"></param>
-		///// <param name="doingEmailConfirmation"></param>
-		///// <param name="importedBy"></param>
-		///// <param name="statusMessage"></param>
-		///// <returns></returns>
-		//public int Import( string email, string firstName, string lastName, string userName, string userKey, string password,
-		//	bool doingEmailConfirmation, string importedBy,
-		//	ref string statusMessage )
-		//{
-		//	int id = 0;
-		//	statusMessage = "";
-		//	//this password, as stored in the account table, is not actually used
-		//	string encryptedPassword = "";
-		//	if ( !string.IsNullOrWhiteSpace( password ) )
-		//		encryptedPassword = UtilityManager.Encrypt( password );
+        //	AppUser user = new AppUser()
+        //	{
+        //		Email = email,
+        //		UserName = email,
+        //		FirstName = firstName,
+        //		LastName = lastName,
+        //		IsActive = !doingEmailConfirmation,
+        //		AspNetUserId = userKey,
+        //		Password = encryptedPassword
+        //	};
+        //	id = new AccountManager().Add( user, ref statusMessage );
+        //	if ( id > 0 )
+        //	{
+        //		if ( !doingEmailConfirmation )
+        //		{
+        //			//not necessary will be done as part of ImportUsers_SetCompleted
+        //			//new AccountServices().SetUserEmailConfirmedByEmail( user.Email );
+        //		}
+        //		string envType = UtilityManager.GetAppKeyValue( "environment" );
+        //		ActivityServices.UserRegistration( user, "User Import", "imported by: " + importedBy );
+        //		string template = EmailManager.GetEmailText( "NewAdvisoryBoardMember" );
+        //		string msg2 = string.Format( template, firstName, email,  password, "Import" );
 
-		//	AppUser user = new AppUser()
-		//	{
-		//		Email = email,
-		//		UserName = email,
-		//		FirstName = firstName,
-		//		LastName = lastName,
-		//		IsActive = !doingEmailConfirmation,
-		//		AspNetUserId = userKey,
-		//		Password = encryptedPassword
-		//	};
-		//	id = new AccountManager().Add( user, ref statusMessage );
-		//	if ( id > 0 )
-		//	{
-		//		if ( !doingEmailConfirmation )
-		//		{
-		//			//not necessary will be done as part of ImportUsers_SetCompleted
-		//			//new AccountServices().SetUserEmailConfirmedByEmail( user.Email );
-		//		}
-		//		string envType = UtilityManager.GetAppKeyValue( "environment" );
-		//		ActivityServices.UserRegistration( user, "User Import", "imported by: " + importedBy );
-		//		string template = EmailManager.GetEmailText( "NewAdvisoryBoardMember" );
-		//		string msg2 = string.Format( template, firstName, email,  password, "Import" );
+        //		string msg = string.Format( "New user registration. <br/>Email: {0}, <br/>Name: {1}<br/>PW: {2}<br/>Type: {3}", email, firstName + " " + lastName, password, "Import" );
+        //		string suffix = "";
+        //		if( envType != "production" )
+        //			suffix += string.Format( " ***[{0}]***", envType );
 
-		//		string msg = string.Format( "New user registration. <br/>Email: {0}, <br/>Name: {1}<br/>PW: {2}<br/>Type: {3}", email, firstName + " " + lastName, password, "Import" );
-		//		string suffix = "";
-		//		if( envType != "production" )
-		//			suffix += string.Format( " ***[{0}]***", envType );
+        //		//if (UtilityManager.GetAppKeyValue( "notifyingUserOnImport", false ))
+        //		//	//EmailServices.SendEmail( email, "New Credential Publisher Registration" + suffix, msg2 );
+        //		//else
+        //		//	EmailServices.SendSiteEmail( "New Credential Publisher Registration via Import" + suffix, msg2 );
 
-		//		//if (UtilityManager.GetAppKeyValue( "notifyingUserOnImport", false ))
-		//		//	//EmailServices.SendEmail( email, "New Credential Publisher Registration" + suffix, msg2 );
-		//		//else
-		//		//	EmailServices.SendSiteEmail( "New Credential Publisher Registration via Import" + suffix, msg2 );
+        //	}
 
-		//	}
-
-		//	return id;
-		//} //
+        //	return id;
+        //} //
         #endregion
 
 
-		#region Owin email methods
-		/// <summary>
-		/// Send reset password email
-		/// </summary>
-		/// <param name="subject"></param>
-		/// <param name="toEmail"></param>
-		/// <param name="url">Will be a formatted callback url</param>
-		public static void SendEmail_ResetPassword( string toEmail, string url )
+        #region Owin email methods
+        /// <summary>
+        /// Send reset password email
+        /// </summary>
+        /// <param name="subject"></param>
+        /// <param name="toEmail"></param>
+        /// <param name="url">Will be a formatted callback url</param>
+        public static void SendEmail_ResetPassword( string toEmail, string url )
 		{
 			//should have a valid email at this point (if from identityConfig)
 			AppUser user = GetUserByEmail( toEmail );
@@ -1038,28 +1050,29 @@ namespace Services
 
 		public static List<DT.AspNetRoles> GetRoles()
 		{
-			return AccountManager.GetRoles();
+			return AccountManager.GetRolesOld();
 		}
-		public static List<UserRole> GetUserApplicationRoles()
+		public static List<UserRole> GetAllApplicationRoles()
 		{
-			return AccountManager.GetUserRoles();
+			return ApplicationManager.GetAllApplicationRoles();
 		}
 		public bool SaveApplicationRolePermissions( UserRole role, ref string statusMessage )
 		{
-			return AccountManager.SaveApplicationRolePermissions( role, ref statusMessage );
-		}
+			//return AccountManager.SaveApplicationRolePermissions( role, ref statusMessage );
+            return new ApplicationManager().SaveApplicationRolePermissions( role, ref statusMessage );
+        }
 		public static List<ApplicationFunction> GetApplicationFunctions()
 		{
-			return AccountManager.GetApplicationFunctions();
+			return ApplicationManager.GetApplicationFunctions();
 		}
 
-		#endregion
-		#region Session methods
-		/// <summary>
-		/// Determine if current user is a logged in (authenticated) user 
-		/// </summary>
-		/// <returns></returns>
-		public static bool IsUserAuthenticated()
+        #endregion
+        #region Session methods
+        /// <summary>
+        /// Determine if current user is a logged in (authenticated) user 
+        /// </summary>
+        /// <returns></returns>
+        public static bool IsUserAuthenticated()
 		{
 			bool isUserAuthenticated = false;
 			try
