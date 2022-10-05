@@ -14,12 +14,6 @@ namespace Data.Tables
     
     public partial class RatingContext
     {
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2214:DoNotCallOverridableMethodsInConstructors")]
-        public RatingContext()
-        {
-            this.RatingContext_WorkRole = new HashSet<RatingContext_WorkRole>();
-        }
-    
         public int Id { get; set; }
         public System.Guid RowId { get; set; }
         public int RatingId { get; set; }
@@ -38,6 +32,7 @@ namespace Data.Tables
         public Nullable<int> CreatedById { get; set; }
         public System.DateTime LastUpdated { get; set; }
         public Nullable<int> LastUpdatedById { get; set; }
+        public Nullable<int> WorkRoleId { get; set; }
     
         public virtual ClusterAnalysis ClusterAnalysis { get; set; }
         public virtual ConceptScheme_Concept ConceptScheme_Rank { get; set; }
@@ -47,7 +42,6 @@ namespace Data.Tables
         public virtual Rating Rating { get; set; }
         public virtual RatingTask RatingTask { get; set; }
         public virtual TrainingTask TrainingTask { get; set; }
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<RatingContext_WorkRole> RatingContext_WorkRole { get; set; }
+        public virtual WorkRole WorkRole { get; set; }
     }
 }

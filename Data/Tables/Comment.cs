@@ -12,16 +12,19 @@ namespace Data.Tables
     using System;
     using System.Collections.Generic;
     
-    public partial class RatingContext_WorkRole
+    public partial class Comment
     {
         public int Id { get; set; }
         public System.Guid RowId { get; set; }
-        public int RatingContextId { get; set; }
-        public int WorkRoleId { get; set; }
+        public Nullable<int> RmtlProjectId { get; set; }
+        public System.Guid AppliesTo { get; set; }
+        public string Description { get; set; }
+        public Nullable<int> StatusTypeId { get; set; }
         public System.DateTime Created { get; set; }
         public Nullable<int> CreatedById { get; set; }
+        public System.DateTime LastUpdated { get; set; }
+        public Nullable<int> LastUpdatedById { get; set; }
     
-        public virtual RatingContext RatingContext { get; set; }
-        public virtual WorkRole WorkRole { get; set; }
+        public virtual RMTLProject RMTLProject { get; set; }
     }
 }

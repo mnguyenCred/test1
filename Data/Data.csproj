@@ -104,6 +104,9 @@
     <Compile Include="Tables\ClusterAnalysis_HasCandidatePlatform.cs">
       <DependentUpon>NavyRRLTables.tt</DependentUpon>
     </Compile>
+    <Compile Include="Tables\Comment.cs">
+      <DependentUpon>NavyRRLTables.tt</DependentUpon>
+    </Compile>
     <Compile Include="Tables\ConceptScheme.cs">
       <DependentUpon>NavyRRLTables.tt</DependentUpon>
     </Compile>
@@ -120,9 +123,6 @@
       <DependentUpon>NavyRRLTables.tt</DependentUpon>
     </Compile>
     <Compile Include="Tables\Course_CourseType.cs">
-      <DependentUpon>NavyRRLTables.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Tables\Entity.cs">
       <DependentUpon>NavyRRLTables.tt</DependentUpon>
     </Compile>
     <Compile Include="Tables\ImportRMTL.cs">
@@ -153,12 +153,6 @@
       <DependentUpon>NavyRRLTables.tt</DependentUpon>
     </Compile>
     <Compile Include="Tables\RatingContext.cs">
-      <DependentUpon>NavyRRLTables.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Tables\RatingContextV2.cs">
-      <DependentUpon>NavyRRLTables.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Tables\RatingContext_WorkRole.cs">
       <DependentUpon>NavyRRLTables.tt</DependentUpon>
     </Compile>
     <Compile Include="Tables\RatingTask.cs">

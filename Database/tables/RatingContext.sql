@@ -1,7 +1,7 @@
 USE [Navy_RRL_V2]
 GO
 
-/****** Object:  Table [dbo].[RatingContext]    Script Date: 10/2/2022 1:47:19 PM ******/
+/****** Object:  Table [dbo].[RatingContext]    Script Date: 10/5/2022 6:28:25 PM ******/
 SET ANSI_NULLS ON
 GO
 
@@ -19,6 +19,7 @@ CREATE TABLE [dbo].[RatingContext](
 	[FormalTrainingGapId] [int] NULL,
 	[TrainingTaskId] [int] NULL,
 	[ClusterAnalysisId] [int] NULL,
+	[WorkRoleId] [int] NULL,
 	[TaskStatusId] [int] NULL,
 	[CodedNotation] [varchar](100) NULL,
 	[Notes] [nvarchar](max) NULL,
@@ -115,4 +116,10 @@ GO
 ALTER TABLE [dbo].[RatingContext] CHECK CONSTRAINT [FK_RatingContext_TrainingTask]
 GO
 
+ALTER TABLE [dbo].[RatingContext]  WITH CHECK ADD  CONSTRAINT [FK_RatingContext_WorkRole] FOREIGN KEY([WorkRoleId])
+REFERENCES [dbo].[WorkRole] ([Id])
+GO
+
+ALTER TABLE [dbo].[RatingContext] CHECK CONSTRAINT [FK_RatingContext_WorkRole]
+GO
 

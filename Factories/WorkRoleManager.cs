@@ -441,15 +441,15 @@ namespace Factories
                         //So get the work roles that do match first, then negate (or not). 
                         //There's probably a better way to do this.
                         //TODO - this would now use RatingContextId, so ratingTaskFilter would need to include the latter!!!
-                        var matchingWorkRoleIDs = context.RatingContext_WorkRole.Where( s => ratingTaskFilter.ItemIds.Contains( s.RatingContextId ) ).Select( m => m.WorkRoleId ).Distinct().ToList();
-						if ( ratingTaskFilter.IsNegation )
-						{
-							list = list.Where( s => !matchingWorkRoleIDs.Contains( s.Id ) );
-						}
-						else
-						{
-							list = list.Where( s => matchingWorkRoleIDs.Contains( s.Id ) );
-						}
+                        // var matchingWorkRoleIDs = context.WorkRole.Where( s => ratingTaskFilter.ItemIds.Contains( s.RatingContextId ) ).Select( m => m.WorkRoleId ).Distinct().ToList();
+						//if ( ratingTaskFilter.IsNegation )
+						//{
+						//	list = list.Where( s => !matchingWorkRoleIDs.Contains( s.Id ) );
+						//}
+						//else
+						//{
+						//	list = list.Where( s => matchingWorkRoleIDs.Contains( s.Id ) );
+						//}
 
 					}
 

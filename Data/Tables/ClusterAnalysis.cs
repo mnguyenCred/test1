@@ -39,13 +39,13 @@ namespace Data.Tables
         public System.DateTime LastUpdated { get; set; }
         public Nullable<int> LastUpdatedById { get; set; }
     
-        public virtual ConceptScheme_Concept ConceptScheme_Concept { get; set; }
         public virtual ClusterAnalysisTitle ClusterAnalysisTitle { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<ClusterAnalysis_HasCandidatePlatform> ClusterAnalysis_HasCandidatePlatform { get; set; }
+        public virtual ConceptScheme_Concept ConceptScheme_Concept { get; set; }
         public virtual ConceptScheme_Concept ConceptScheme_Concept1 { get; set; }
         public virtual ConceptScheme_Concept ConceptScheme_Concept2 { get; set; }
         public virtual ConceptScheme_Concept ConceptScheme_Concept3 { get; set; }
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<ClusterAnalysis_HasCandidatePlatform> ClusterAnalysis_HasCandidatePlatform { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<RatingContext> RatingContext { get; set; }
     }
