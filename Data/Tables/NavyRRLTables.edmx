@@ -395,6 +395,7 @@
           <Property Name="FormalTrainingGapId" Type="int" />
           <Property Name="TrainingTaskId" Type="int" />
           <Property Name="ClusterAnalysisId" Type="int" />
+          <Property Name="WorkRoleId" Type="int" />
           <Property Name="TaskStatusId" Type="int" />
           <Property Name="CodedNotation" Type="varchar" MaxLength="100" />
           <Property Name="Notes" Type="nvarchar(max)" />
@@ -403,7 +404,6 @@
           <Property Name="CreatedById" Type="int" />
           <Property Name="LastUpdated" Type="datetime" Nullable="false" />
           <Property Name="LastUpdatedById" Type="int" />
-          <Property Name="WorkRoleId" Type="int" />
         </EntityType>
         <EntityType Name="RatingTask">
           <Key>
@@ -887,9 +887,7 @@
           </ReferentialConstraint>
         </Association>
         <Association Name="FK_RatingContext_BilletTitle">
-          <End Role="Job" Type="Self.Job" Multiplicity="0..1">
-            <OnDelete Action="Cascade" />
-          </End>
+          <End Role="Job" Type="Self.Job" Multiplicity="0..1" />
           <End Role="RatingContext" Type="Self.RatingContext" Multiplicity="*" />
           <ReferentialConstraint>
             <Principal Role="Job">
@@ -901,9 +899,7 @@
           </ReferentialConstraint>
         </Association>
         <Association Name="FK_RatingContext_ClusterAnalysis">
-          <End Role="ClusterAnalysis" Type="Self.ClusterAnalysis" Multiplicity="0..1">
-            <OnDelete Action="Cascade" />
-          </End>
+          <End Role="ClusterAnalysis" Type="Self.ClusterAnalysis" Multiplicity="0..1" />
           <End Role="RatingContext" Type="Self.RatingContext" Multiplicity="*" />
           <ReferentialConstraint>
             <Principal Role="ClusterAnalysis">
@@ -915,9 +911,7 @@
           </ReferentialConstraint>
         </Association>
         <Association Name="FK_RatingContext_Rank">
-          <End Role="ConceptScheme_Concept" Type="Self.ConceptScheme_Concept" Multiplicity="1">
-            <OnDelete Action="Cascade" />
-          </End>
+          <End Role="ConceptScheme_Concept" Type="Self.ConceptScheme_Concept" Multiplicity="1" />
           <End Role="RatingContext" Type="Self.RatingContext" Multiplicity="*" />
           <ReferentialConstraint>
             <Principal Role="ConceptScheme_Concept">
@@ -929,9 +923,7 @@
           </ReferentialConstraint>
         </Association>
         <Association Name="FK_RatingContext_Rating">
-          <End Role="Rating" Type="Self.Rating" Multiplicity="1">
-            <OnDelete Action="Cascade" />
-          </End>
+          <End Role="Rating" Type="Self.Rating" Multiplicity="1" />
           <End Role="RatingContext" Type="Self.RatingContext" Multiplicity="*" />
           <ReferentialConstraint>
             <Principal Role="Rating">
@@ -943,9 +935,7 @@
           </ReferentialConstraint>
         </Association>
         <Association Name="FK_RatingContext_RatingTask">
-          <End Role="RatingTask" Type="Self.RatingTask" Multiplicity="1">
-            <OnDelete Action="Cascade" />
-          </End>
+          <End Role="RatingTask" Type="Self.RatingTask" Multiplicity="1" />
           <End Role="RatingContext" Type="Self.RatingContext" Multiplicity="*" />
           <ReferentialConstraint>
             <Principal Role="RatingTask">
@@ -981,9 +971,7 @@
           </ReferentialConstraint>
         </Association>
         <Association Name="FK_RatingContext_TrainingTask">
-          <End Role="TrainingTask" Type="Self.TrainingTask" Multiplicity="0..1">
-            <OnDelete Action="Cascade" />
-          </End>
+          <End Role="TrainingTask" Type="Self.TrainingTask" Multiplicity="0..1" />
           <End Role="RatingContext" Type="Self.RatingContext" Multiplicity="*" />
           <ReferentialConstraint>
             <Principal Role="TrainingTask">

@@ -38,6 +38,7 @@ namespace Data.Tables
         public virtual ConceptScheme_Concept ConceptScheme_Rank { get; set; }
         public virtual ConceptScheme_Concept ConceptScheme_TaskApplicability { get; set; }
         public virtual ConceptScheme_Concept ConceptScheme_TrainingGap { get; set; }
+
         public virtual Job Job { get; set; }
         public virtual Rating Rating { get; set; }
         public virtual RatingTask RatingTask { get; set; }

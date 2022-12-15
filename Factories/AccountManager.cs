@@ -757,14 +757,27 @@ namespace Factories
 			output.LastUpdatedById = input.LastUpdatedById == null ? 0 : ( int ) input.LastUpdatedById;
 
 			output.UserRoles = new List<string>();
-			if ( input.AspNetUsers != null )
+			//using applicationRoles
+			if ( UtilityManager.GetAppKeyValue( "usingNewApplicationRoles", true ) )
 			{
-				foreach ( EM.AspNetUserRoles role in input.AspNetUsers.AspNetUserRoles )
+				if ( input.ApplicationUserRole != null )
 				{
-					output.UserRoles.Add( role.AspNetRoles.Name );
+					foreach ( var role in input.ApplicationUserRole )
+					{
+						output.UserRoles.Add( role.ApplicationRole.Name );
+					}
 				}
 			}
-
+			else
+			{
+				if ( input.AspNetUsers != null )
+				{
+					foreach ( EM.AspNetUserRoles role in input.AspNetUsers.AspNetUserRoles )
+					{
+						output.UserRoles.Add( role.AspNetRoles.Name );
+					}
+				}
+			}
 
 
 		} //

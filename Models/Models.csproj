@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <TargetFramework>net48</TargetFramework>
-    <Configurations>Debug;Release;Sandbox</Configurations>
+    <Configurations>Debug;Release;Sandbox;NavyDevSecOps</Configurations>
   </PropertyGroup>
 
   <ItemGroup>

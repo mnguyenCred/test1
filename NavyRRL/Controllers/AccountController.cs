@@ -93,6 +93,7 @@ namespace NavyRRL.Controllers
                 if ( exists?.Id > 0 )
                 {
                     ConsoleMessageHelper.SetConsoleErrorMessage( "Error - An account with the entered email address already exists." );
+                    model.Roles = roles.Select( x => new SelectListItem { Text = x.Name, Value = x.Id.ToString(), Selected = false } ).ToList();
                     return View( model );
                 }
                 //create
@@ -135,10 +136,25 @@ namespace NavyRRL.Controllers
                         //check if user is to be notified. 
                         if (model.NotifyUser)
                         {
-                            //would use forgot password, but need custom email, or confirm email
-                            string code = await UserManager.GenerateEmailConfirmationTokenAsync( user.Id );
+                            string code = "";
+                            bool usingForgotPasswordRoute = true;
+                            if ( usingForgotPasswordRoute )
+                            {
+                                //or maybe we need to use this:
+                                code = await UserManager.GeneratePasswordResetTokenAsync( user.Id );
+                                //and set confirmed 
+                                new AccountServices().SetUserEmailConfirmed( user.Id );
+                            } else
+                            {
+                                //would use forgot password, but need custom email, or confirm email
+                                code = await UserManager.GenerateEmailConfirmationTokenAsync( user.Id );
+                            }                            
+                           
+                            
+                            //22-11-02 This is not actually used by the forgot password process, or more the reset password process
                             new AccountServices().Proxies_StoreProxyCode( code, user.Email, "ConfirmEmail" );
                             //var callbackUrl = Url.Action( "ConfirmEmail", "Account", new { userId = user.Id, code = code }, protocol: Request.Url.Scheme );
+                            //22-11-02 may want to set the account confirmed, and then  use the forgot password method. The latter checks if the user has confirmed. Of course then we lose the purpose of confirm email address. 
                             var callbackUrl = Url.Action( "ResetPassword", "Account", new { userId = user.Id, code = code }, protocol: Request.Url.Scheme );
                             //NEED to be able to set password, so do need forgot password variation
                             AccountServices.SendEmail_ConfirmAccount( user.Email, callbackUrl );
@@ -153,6 +169,7 @@ namespace NavyRRL.Controllers
                     else
                     {
                         ConsoleMessageHelper.SetConsoleErrorMessage( "Error - " + statusMessage );
+                        model.Roles = roles.Select( x => new SelectListItem { Text = x.Name, Value = x.Id.ToString(), Selected = false } ).ToList();
                         return View( model );
                     }
                 }

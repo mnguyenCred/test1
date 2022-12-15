@@ -6,6 +6,9 @@
 Use Navy_RRL_V2
 go
 
+Use NavyRRL
+go
+
 ---- 
 /*
 
@@ -14,12 +17,13 @@ go
 
 ----==============================================
 /****** clear obsolete ******/
-DROP TABLE [dbo].[Course.AssessmentType]
+
 
 --
 
 /*
 --first remove all FKs
+DROP TABLE [dbo].[Course.AssessmentType]
 DROP TABLE [dbo].[Course.Task]
 DROP TABLE [dbo].[CourseTask.AssessmentType]
 
@@ -96,72 +100,79 @@ DROP TABLE [dbo].[RmtlProject.BilletTask]
 */
 ----==============================================
 --TBD - do we want to retain some event like for accounts?
-truncate table Navy_RRL_V2.dbo.ActivityLog
---DELETE FROM Navy_RRL_V2.dbo.ActivityLog
+truncate table NavyRRL.dbo.ActivityLog
+--DELETE FROM NavyRRL.dbo.ActivityLog
 --where ActivityType <> 'Account'
 
-truncate table Navy_RRL_V2.dbo.[ClusterAnalysis.HasCandidatePlatform] 
-DELETE FROM Navy_RRL_V2.dbo.ClusterAnalysis
---truncate table Navy_RRL_V2.dbo.ClusterAnalysis 
+truncate table NavyRRL.dbo.[ClusterAnalysis.HasCandidatePlatform] 
+DELETE FROM NavyRRL.dbo.ClusterAnalysis
+DELETE FROM NavyRRL.dbo.ClusterAnalysisTitle 
 ----------------------------------------------------
-truncate table Navy_RRL_V2.dbo.Comment 
+truncate table NavyRRL.dbo.Comment 
 
 --GENERALLY DO NOT CLEAR CONCEPTS
---DELETE FROM Navy_RRL_V2.dbo.[ConceptScheme.Concept] 
---DELETE FROM Navy_RRL_V2.dbo.ConceptScheme   
+--DELETE FROM NavyRRL.dbo.[ConceptScheme.Concept] 
+--DELETE FROM NavyRRL.dbo.ConceptScheme   
 --
 --must be done after RatingTask
---DELETE FROM Navy_RRL_V2.dbo.Course
+--DELETE FROM NavyRRL.dbo.Course
 
 --========================================================================
-DELETE FROM Navy_RRL_V2.dbo.Entity
+DELETE FROM NavyRRL.dbo.Entity
 --========================================================================
 
 ----
---DELETE FROM Navy_RRL_V2.dbo.ImportHistory
-DELETE FROM Navy_RRL_V2.dbo.[Import.RMTLStaging]
-DELETE FROM Navy_RRL_V2.dbo.ImportRMTL
+DELETE FROM NavyRRL.dbo.ImportHistory
+DELETE FROM NavyRRL.dbo.[Import.RMTLStaging]
+DELETE FROM NavyRRL.dbo.ImportRMTL
 --========================================================================
 --	GENERALLY DO CLEAR RATING ********************
---DELETE FROM Navy_RRL_V2.dbo.Rating
-DELETE FROM Navy_RRL_V2.dbo.RatingTask   
+--DELETE FROM NavyRRL.dbo.Rating
+DELETE FROM NavyRRL.dbo.RatingTask   
 --these two will be deleted due to RI from RatingTask
---DELETE FROM Navy_RRL_V2.dbo.[RatingTask.HasJob]
---DELETE FROM Navy_RRL_V2.dbo.[RatingTask.HasRating]  
+--DELETE FROM NavyRRL.dbo.[RatingTask.HasJob]
+--DELETE FROM NavyRRL.dbo.[RatingTask.HasRating]  
 --
-DELETE FROM Navy_RRL_V2.dbo.CourseContext
-DELETE FROM Navy_RRL_V2.dbo.Course
+--New
+DELETE FROM NavyRRL.dbo.CourseContext
 
-DELETE FROM Navy_RRL_V2.dbo.TrainingTask   
---DELETE FROM Navy_RRL_V2.dbo.[CourseContext.AssessmentType]   
+DELETE FROM NavyRRL.dbo.Course
+--was missing RI, so doing manually
+DELETE FROM [dbo].[Course.AssessmentType]
+--New
+DELETE FROM NavyRRL.dbo.TrainingTask   
+--DELETE FROM NavyRRL.dbo.[CourseContext.AssessmentType]   
 
+DELETE FROM NavyRRL.[dbo].[System.ProxyCodes]
 --must be done after RatingTask
-DELETE FROM Navy_RRL_V2.dbo.Job
+DELETE FROM NavyRRL.dbo.Job
 --should be unnecesary, deleting Job will clear this
---DELETE FROM Navy_RRL_V2.dbo.[Job.HasRatingTask]
+--DELETE FROM NavyRRL.dbo.[Job.HasRatingTask]
 --
 --must be done after RatingTask
 --NO LONGER CLEAR HAS HAVE ADDED ADDITIONAL DATA
---DELETE FROM Navy_RRL_V2.dbo.Organization
+--DELETE FROM NavyRRL.dbo.Organization
 --
-DELETE FROM Navy_RRL_V2.dbo.ReferenceResource   
---DELETE FROM Navy_RRL_V2.dbo.[ReferenceResource.ReferenceType]   
+DELETE FROM NavyRRL.dbo.ReferenceResource   
+--DELETE FROM NavyRRL.dbo.[ReferenceResource.ReferenceType]   
 
-DELETE FROM Navy_RRL_V2.dbo.RMTLProject   
---DELETE FROM Navy_RRL_V2.dbo.[RmtlProject.Billet]   
---DELETE FROM Navy_RRL_V2.dbo.[RmtlProjectBilletTask]   
+DELETE FROM NavyRRL.dbo.RMTLProject   
+--DELETE FROM NavyRRL.dbo.[RmtlProject.Billet]   
+--DELETE FROM NavyRRL.dbo.[RmtlProjectBilletTask]   
 
 
 --========================================================================
---DELETE FROM Navy_RRL_V2.dbo.Source
+--DELETE FROM NavyRRL.dbo.Source
 --
---DELETE FROM Navy_RRL_V2.dbo.WorkElementType
-DELETE FROM Navy_RRL_V2.dbo.WorkRole
+--DELETE FROM NavyRRL.dbo.WorkElementType
+DELETE FROM NavyRRL.dbo.WorkRole
 
 -- ================================
 --reset identity ids to 0
 DBCC CHECKIDENT ('[ActivityLog]', RESEED, 0);
 DBCC CHECKIDENT ('[ClusterAnalysis]', RESEED, 0);
+DBCC CHECKIDENT ('[ClusterAnalysisTitle]', RESEED, 0);
+
 DBCC CHECKIDENT ('[ClusterAnalysis.HasCandidatePlatform]', RESEED, 0);
 --DBCC CHECKIDENT ('[ClusterAnalysisTitle]', RESEED, 0);
 DBCC CHECKIDENT ('[Comment]', RESEED, 0);
@@ -200,18 +211,14 @@ DBCC CHECKIDENT ('[WorkRole]', RESEED, 0);
 
 
 
---NOTE - no identity column
----DBCC CHECKIDENT ('[Entity_Cache]', RESEED, 0);
 
-GO
-
+exec aspAllDatabaseTableCounts 'NavyRRL', 'base table', 10
+go
 
 exec aspAllDatabaseTableCounts 'Navy_RRL_V2', 'base table', 10
 go
 
 --Now shrink the database
 
---exec aspAllDatabaseTableCounts 'credFinderSandbox', 'base table', 10
---go
-     
+
 
