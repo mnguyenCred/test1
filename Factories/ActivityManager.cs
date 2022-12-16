@@ -642,8 +642,6 @@ namespace Factories
 					item = new SiteActivity();
 					item.Id = GetRowColumn( dr, "Id", 0 );
 					item.CreatedDate = GetRowColumn( dr, "CreatedDate", DateTime.Now );
-					item.Application = GetRowColumn( dr, "Application", "Publisher" );
-					item.ShortApplication = GetRowColumn( dr, "ShortApplication", "P" );
 					item.ActivityType = GetRowColumn( dr, "ActivityType", "ActivityType" );
 					item.Activity = GetRowColumn( dr, "Activity", "" );
 					item.Event = GetRowColumn( dr, "Event", "" );
@@ -653,17 +651,9 @@ namespace Factories
                     item.Referrer = GetRowColumn( dr, "Referrer", "" );
 
 					item.ActivityObjectId = GetRowColumn( dr, "ActivityObjectId", 0 );
-					item.ActivityObjectCTID = GetRowColumn( dr, "ActivityObjectCTID", "" );
+					//item.ActivityObjectCTID = GetRowColumn( dr, "ActivityObjectCTID", "" );
 					item.IPAddress = GetRowColumn( dr, "IPAddress", "" );
 
-                    //item.ParentObject = GetRowColumn( dr, "ParentObject", "" );
-                    //item.ParentEntityTypeId = GetRowColumn( dr, "ParentEntityTypeId", 0 );
-                    //item.ParentRecordId = GetRowColumn( dr, "ParentRecordId", 0 );
-					//
-					//item.OwningOrgId = GetRowColumn( dr, "OwningOrgId", 0 );
-					//item.Organization = GetRowColumn( dr, "Organization", "" );
-					//item.DataOwnerCTID = GetRowColumn( dr, "OrganizationCTID", "" );
-					//item.OrganizationUID = GetRowColumn( dr, "OrganizationUID", "" );
 					//
 					//var uId = GetRowColumn( dr, "ActivityObjectParentEntityUid", "" );
 					//if (IsValidGuid(uId))
