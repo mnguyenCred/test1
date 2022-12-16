@@ -24,12 +24,11 @@ namespace Data.Tables
         public int Id { get; set; }
         public System.Guid RowId { get; set; }
         public Nullable<int> TrainingSolutionTypeId { get; set; }
-        public Nullable<int> ClusterAnalysisTitleId { get; set; }
-        public Nullable<int> RecommendedModalityId { get; set; }
-        public Nullable<int> DevelopmentSpecificationId { get; set; }
-        public Nullable<int> CFMPlacementId { get; set; }
+        public Nullable<int> HasClusterAnalysisTitleId { get; set; }
+        public Nullable<int> RecommendedModalityTypeId { get; set; }
+        public Nullable<int> DevelopmentSpecificationTypeId { get; set; }
+        public Nullable<int> CFMPlacementTypeId { get; set; }
         public Nullable<int> PriorityPlacement { get; set; }
-        public string DevelopmentRatio { get; set; }
         public Nullable<decimal> EstimatedInstructionalTime { get; set; }
         public Nullable<decimal> DevelopmentTime { get; set; }
         public string CTID { get; set; }
@@ -38,14 +37,24 @@ namespace Data.Tables
         public Nullable<int> CreatedById { get; set; }
         public System.DateTime LastUpdated { get; set; }
         public Nullable<int> LastUpdatedById { get; set; }
+        public Nullable<int> HasRatingTaskId { get; set; }
+        public Nullable<int> HasRatingId { get; set; }
+        public Nullable<int> DevelopmentRatioTypeId { get; set; }
+        public Nullable<int> BilletTitleId { get; set; }
+        public Nullable<int> WorkRoleId { get; set; }
     
+        public virtual ConceptScheme_Concept ConceptScheme_Concept_CFMPlacementType { get; set; }
         public virtual ClusterAnalysisTitle ClusterAnalysisTitle { get; set; }
+        public virtual ConceptScheme_Concept ConceptScheme_Concept_DevelopmentRatioType { get; set; }
+        public virtual ConceptScheme_Concept ConceptScheme_Concept_DevelopmentSpecificationType { get; set; }
+        public virtual Job Job { get; set; }
+        public virtual Rating Rating { get; set; }
+        public virtual RatingTask RatingTask { get; set; }
+        public virtual ConceptScheme_Concept ConceptScheme_Concept_RecommendedModalityType { get; set; }
+        public virtual ConceptScheme_Concept ConceptScheme_Concept_TrainingSolutionType { get; set; }
+        public virtual WorkRole WorkRole { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<ClusterAnalysis_HasCandidatePlatform> ClusterAnalysis_HasCandidatePlatform { get; set; }
-        public virtual ConceptScheme_Concept ConceptScheme_Concept { get; set; }
-        public virtual ConceptScheme_Concept ConceptScheme_Concept1 { get; set; }
-        public virtual ConceptScheme_Concept ConceptScheme_Concept2 { get; set; }
-        public virtual ConceptScheme_Concept ConceptScheme_Concept3 { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<RatingContext> RatingContext { get; set; }
     }

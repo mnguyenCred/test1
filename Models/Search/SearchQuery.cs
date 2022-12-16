@@ -14,8 +14,8 @@ namespace Models.Search
 		{
 			Filters = new List<SearchFilter>();
 			SearchType = "ratingtask";
-			PageNumber = 1;
-			PageSize = 50;
+			Skip = 0;
+			Take = 50;
 			Keywords = "";
 			SortOrder = new List<SortOrderItem>();
 		}
@@ -29,16 +29,8 @@ namespace Models.Search
 		/// For the main RatingTask search, there will be different keyword types. Including here for future localized searches (course, or training task, etc.)
 		/// </summary>
 		public string Keywords { get; set; }
-		//
-		public int PageNumber { get; set; }
-
-		public int PageSize { get; set; }
-
-		public int TotalResults { get; set; }
-		public bool GetAllData { get; set; }
-		/// <summary>
-		/// TBD
-		/// </summary>
+		public int Skip { get; set; }
+		public int Take { get; set; }
 		public List<SortOrderItem> SortOrder { get; set; }
 
 		/// <summary>
@@ -139,10 +131,16 @@ namespace Models.Search
 		public SearchResultSet()
 		{
 			Results = new List<T>();
+			RelatedResources = new List<JObject>();
+			Debug = new JObject();
+			ExtraData = new JObject();
 		}
 		public string SearchType { get; set; }
 		public int TotalResults { get; set; }
+		public JObject ExtraData { get; set; }
 		public List<T> Results { get; set; }
+		public List<JObject> RelatedResources { get; set; }
+		public JObject Debug { get; set; }
 	}
 	//
 

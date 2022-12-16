@@ -22,15 +22,31 @@ namespace Factories
     {
         public static new string thisClassName = "RatingManager";
 
-        #region Rating - persistance - NOT Likely? ==================
-        /// <summary>
-        /// Update a Rating
-        /// At this time all we will have is the code
-        /// </summary>
-        /// <param name="entity"></param>
-        /// <param name="status"></param>
-        /// <returns></returns>
-        public bool Save( AppEntity entity, ref ChangeSummary status )
+		#region Rating - persistance - NOT Likely? ==================
+		public static void SaveFromEditor( AppEntity entity, int userID, List<string> errors )
+		{
+			SaveCore( entity, userID, "Edit", errors.Add );
+		}
+		//
+
+		private static void SaveCore( AppEntity entity, int userID, string saveType, Action<string> AddErrorMethod )
+		{
+			using ( var context = new DataEntities() )
+			{
+				BasicSaveCore( context, entity, context.Rating, userID, ( ent, dbEnt ) => { }, ( ent, dbEnt ) => { }, saveType, AddErrorMethod );
+			}
+		}
+		//
+
+
+		/// <summary>
+		/// Update a Rating
+		/// At this time all we will have is the code
+		/// </summary>
+		/// <param name="entity"></param>
+		/// <param name="status"></param>
+		/// <returns></returns>
+		public bool Save( AppEntity entity, ref ChangeSummary status )
         {
             bool isValid = true;
             int count = 0;
@@ -42,7 +58,7 @@ namespace Factories
                     if ( entity.Id == 0 )
                     {
                         //this needs to check by name or codedNotation
-                        var record = Get( entity.Name );
+                        var record = GetByName( entity.Name );
                         if ( record?.Id > 0 )
                         {
                             //currently no description, so can just return
@@ -218,162 +234,79 @@ namespace Factories
             BaseFactory.AutoMap( input, output, errors );
 
         }
-        #endregion
+		#endregion
 
-        #region Retrieval
-        public static AppEntity GetByCode( string ratingCode )
-        {
-            var entity = new AppEntity();
-            if ( string.IsNullOrWhiteSpace( ratingCode ) )
-                return null;
-
-            using ( var context = new DataEntities() )
-            {
-                var item = context.Rating
-                            .FirstOrDefault( s => s.CodedNotation.ToLower() == ratingCode.ToLower() );
-
-                if ( item != null && item.Id > 0 )
-                {
-                    MapFromDB( item, entity );
-                }
-            }
-            return entity;
-        }
-        //unlikely?
-        public static AppEntity Get( string name )
-        {
-            var entity = new AppEntity();
-            if ( string.IsNullOrWhiteSpace( name ) )
-                return null;
-
-            using ( var context = new DataEntities() )
-            {
-                var item = context.Rating
-                            .FirstOrDefault( s => s.Name.ToLower() == name.ToLower() );
-
-                if ( item != null && item.Id > 0 )
-                {
-                    MapFromDB( item, entity );
-                }
-            }
-            return entity;
-        }
-
-        public static AppEntity Get( Guid rowId )
-        {
-            var entity = new AppEntity();
-
-            using ( var context = new DataEntities() )
-            {
-                var item = context.Rating
-                            .FirstOrDefault( s => s.RowId == rowId );
-
-                if ( item != null && item.Id > 0 )
-                {
-                    MapFromDB( item, entity );
-                }
-            }
-            return entity;
-        }
-        public static AppEntity Get( int id )
-        {
-            var entity = new AppEntity();
-            if ( id < 1 )
-                return entity;
-
-            using ( var context = new DataEntities() )
-            {
-                var item = context.Rating
-                            .SingleOrDefault( s => s.Id == id );
-
-                if ( item != null && item.Id > 0 )
-                {
-                    MapFromDB( item, entity );
-                }
-            }
-
-            return entity;
-		}
-		public static AppEntity GetByCTIDOrNull( string ctid )
+		#region Retrieval
+		public static AppEntity GetSingleByFilter( Func<DBEntity, bool> FilterMethod, bool returnNullIfNotFound = false )
 		{
-			if ( string.IsNullOrWhiteSpace( ctid ) )
-			{
-				return null;
-			}
+			return GetSingleByFilter<DBEntity, AppEntity>( context => context.Rating, FilterMethod, MapFromDB, returnNullIfNotFound );
+		}
+		//
 
-			using ( var context = new DataEntities() )
-			{
-				var item = context.Rating
-							.SingleOrDefault( s => s.CTID == ctid );
+		public static AppEntity GetByName( string name, bool returnNullIfNotFound = false )
+		{
+			return GetSingleByFilter( m => m.Name?.ToLower() == name?.ToLower(), returnNullIfNotFound );
+		}
+		//
 
-				if ( item != null && item.Id > 0 )
+		public static AppEntity GetByCodedNotation( string codedNotation, bool returnNullIfNotFound = false )
+		{
+			return GetSingleByFilter( m => m.CodedNotation?.ToLower() == codedNotation?.ToLower(), returnNullIfNotFound );
+		}
+		//
+
+		public static AppEntity GetByRowId( Guid rowId, bool returnNullIfNotFound = false )
+		{
+			return GetSingleByFilter( m => m.RowId == rowId, returnNullIfNotFound );
+		}
+		//
+
+		public static AppEntity GetById( int id, bool returnNullIfNotFound = false )
+		{
+			return GetSingleByFilter( m => m.Id == id, returnNullIfNotFound );
+		}
+		//
+
+		public static AppEntity GetByCTID( string ctid, bool returnNullIfNotFound = false )
+		{
+			return GetSingleByFilter( m => m.CTID.ToLower() == ctid?.ToLower(), returnNullIfNotFound );
+		}
+		//
+
+		/// <summary>
+		/// Get All Ratings
+		/// </summary>
+		/// <param name="mustHaveRatingTasks"></param>
+		/// <returns></returns>
+		public static List<AppEntity> GetAll( bool mustHaveRatingTasks = false )
+		{
+			var list = new List<AppEntity>();
+
+			using( var context = new DataEntities() )
+			{
+				var matches = context.Rating.AsQueryable();
+
+				if ( mustHaveRatingTasks )
 				{
-					var entity = new AppEntity();
-					MapFromDB( item, entity );
-					return entity;
+					matches = matches.Where( rating =>
+						context.RatingContext.Where( ratingContext =>
+							ratingContext.Rating.RowId == rating.RowId &&
+							ratingContext.RatingTask != null &&
+							ratingContext.RatingTask.RowId != Guid.Empty
+						).Count() > 0
+					);
+				}
+
+				var matchList = matches.ToList();
+
+				foreach( var match in matchList )
+				{
+					list.Add( MapFromDB( match, context ) );
 				}
 			}
 
-			return null;
+			return list;
 		}
-		/// <summary>
-		/// Get all 
-		/// May need a get all for a rating? Should not matter as this is external data?
-		/// </summary>
-		/// <returns></returns>
-		public static List<AppEntity> GetAll( bool mustHaveRatingTasks = false)
-        {
-            var entity = new AppEntity();
-            var list = new List<AppEntity>();
-
-            using ( var context = new ViewContext() )
-            {
-                var results = context.RatingSummary
-                    .Where ( s => !mustHaveRatingTasks || s.HasRatingTasks > 0 )
-                        .OrderBy( s => s.Name )
-                        .ToList();
-                if ( results?.Count > 0 )
-                {
-                    foreach ( var item in results )
-                    {
-                        if ( item != null && item.Id > 0 )
-                        {
-                            entity = new AppEntity();
-                            MapFromDB( item, entity );
-                            list.Add( ( entity ) );
-                        }
-                    }
-                }
-
-            }
-            return list;
-        }
-        public static List<AppEntity> GetAll2( bool activeOnly = false )
-        {
-            var entity = new AppEntity();
-            var list = new List<AppEntity>();
-
-            using ( var context = new DataEntities() )
-            {
-                List<DBEntity> results = context.Rating
-                        .OrderBy( s => s.Name )
-                        .ToList();
-                if ( results?.Count > 0 )
-                {
-                    foreach ( var item in results )
-                    {
-                        if ( item != null && item.Id > 0 )
-                        {
-                            entity = new AppEntity();
-                            MapFromDB( item, entity );
-                            list.Add( ( entity ) );
-                        }
-                    }
-                }
-
-            }
-            return list;
-        }
 		//
 
 		public static List<AppEntity> GetMultiple( List<Guid> guids )
@@ -389,9 +322,7 @@ namespace Factories
 
 				foreach ( var item in items )
 				{
-					var result = new AppEntity();
-					MapFromDB( item, result );
-					results.Add( result );
+					results.Add( MapFromDB( item, context ) );
 				}
 			}
 
@@ -399,150 +330,56 @@ namespace Factories
 		}
 		//
 
-		public static List<AppEntity> Search( SearchQuery query )
+		public static SearchResultSet<AppEntity> Search( SearchQuery query )
 		{
-			var output = new List<AppEntity>();
-			var skip = ( query.PageNumber - 1 ) * query.PageSize;
-			try
+			return HandleSearch<DBEntity, AppEntity>( query, context =>
 			{
-				using ( var context = new DataEntities() )
+				//Start query
+				var list = context.Rating.AsQueryable();
+				var keywords = GetSanitizedSearchFilterKeywords( query );
+
+				//Handle keywords
+				if ( !string.IsNullOrWhiteSpace( keywords ) )
 				{
-					//Start query
-					var list = context.Rating.AsQueryable();
-
-					//Handle keywords filter
-					var keywordsText = query.GetFilterTextByName( "search:Keyword" )?.ToLower();
-					if ( !string.IsNullOrWhiteSpace( keywordsText ) )
-					{
-						list = list.Where( s =>
-							s.Name.ToLower().Contains(keywordsText) ||
-							s.Description.ToLower().Contains( keywordsText ) ||
-							s.CodedNotation.ToLower().Contains( keywordsText )
-						);
-					}
-
-					//Handle Rating Task Connection
-					var ratingTaskFilter = query.GetFilterByName( "navy:RatingTask" );
-					if ( ratingTaskFilter != null && ratingTaskFilter.ItemIds?.Count() > 0 )
-					{
-						//Need to handle the negation (i.e. ratings that are not associated with this task), but all ratings get returned since there are many rows for each rating, each with a different task ID.
-						//So get the ratings that do match first, then negate (or not). 
-						//There's probably a better way to do this.
-                        //TODO
-						//var matchingRatingIDs = context.RatingTask_HasRating.Where( s => ratingTaskFilter.ItemIds.Contains( s.RatingTaskId ) ).Select( m => m.RatingId ).Distinct().ToList();
-						//if ( ratingTaskFilter.IsNegation )
-						//{
-						//	list = list.Where( s => !matchingRatingIDs.Contains( s.Id ) );
-						//}
-						//else
-						//{
-						//	list = list.Where( s => matchingRatingIDs.Contains( s.Id ) );
-						//}
-
-					}
-
-					//Get total
-					query.TotalResults = list.Count();
-
-					//Sort
-					list = list.OrderBy( p => p.Description );
-
-					//Get page
-					var results = list.Skip( skip ).Take( query.PageSize )
-						.Where( m => m != null ).ToList();
-
-					//Populate
-					foreach ( var item in results )
-					{
-						var entity = new AppEntity();
-						MapFromDB( item, entity );
-						output.Add( entity );
-					}
+					list = list.Where( m =>
+						m.Name.Contains( keywords ) ||
+						m.Description.Contains( keywords ) ||
+						m.CodedNotation.Contains( keywords )
+					);
 				}
 
-				return output;
-			}
-			catch ( Exception ex )
-			{
-				return new List<AppEntity>() { new AppEntity() { Description = "Error: " + ex.Message + " - " + ex.InnerException?.Message } };
-			}
+				//Return ordered list
+				return HandleSort( list, query.SortOrder, m => m.Name, m => m.OrderBy( n => n.Name ) );
+
+			}, MapFromDBForSearch );
 		}
 		//
 
-		/*
-		public static List<AppEntity> Search( SearchQuery query )
+		public static AppEntity MapFromDB( DBEntity input, DataEntities context )
+		{
+			return MapFromDBForSearch( input, context, null );
+		}
+		//
+
+		public static AppEntity MapFromDBForSearch( DBEntity input, DataEntities context, SearchResultSet<AppEntity> resultSet = null )
+		{
+			var output = AutoMap( input, new AppEntity() );
+
+			return output;
+		}
+		//
+
+		public static void MapFromDB( ViewEntity input, AppEntity output )
         {
-            var entity = new AppEntity();
-            var output = new List<AppEntity>();
-            var skip = 0;
-            if ( query.PageNumber > 1 )
-                skip = ( query.PageNumber - 1 ) * query.PageSize;
-            var filter = GetSearchFilterText( query );
-            try
+            //
+            List<string> errors = new List<string>();
+            BaseFactory.AutoMap( input, output, errors );
+            if ( input.RowId != output.RowId )
             {
-                using ( var context = new ViewContext() )
-                {
-                    var list = from Results in context.RatingSummary
-                               select Results;
-                    if ( !string.IsNullOrWhiteSpace( filter ) )
-                    {
-                        list = from Results in list
-                                .Where( s => ( s.Name.ToLower().Contains( filter.ToLower())
-                                    || s.CodedNotation.ToLower() == filter.ToLower() )
-                                )
-                               select Results;
-                    }
-                    query.TotalResults = list.Count();
-                    //sort order not handled
-                    list = list.OrderBy( p => p.Name );
-
-                    //
-                    var results = list.Skip( skip ).Take( query.PageSize )
-                        .ToList();
-                    if ( results?.Count > 0 )
-                    {
-                        foreach ( var item in results )
-                        {
-                            if ( item != null && item.Id > 0 )
-                            {
-                                entity = new AppEntity();
-                                MapFromDB( item, entity );
-                                output.Add( ( entity ) );
-                            }
-                        }
-                    }
-
-                }
+                output.RowId = input.RowId;
             }
-            catch ( Exception ex )
-            {
-
-            }
-            return output;
         }
 		//
-		*/
-
-        public static void MapFromDB( DBEntity input, AppEntity output )
-        {
-            //
-            List<string> errors = new List<string>();
-            BaseFactory.AutoMap( input, output, errors );
-            if ( input.RowId != output.RowId )
-            {
-                output.RowId = input.RowId;
-            }
-        }
-        public static void MapFromDB( ViewEntity input, AppEntity output )
-        {
-            //
-            List<string> errors = new List<string>();
-            BaseFactory.AutoMap( input, output, errors );
-            if ( input.RowId != output.RowId )
-            {
-                output.RowId = input.RowId;
-            }
-        }
 
         #endregion
 

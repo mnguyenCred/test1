@@ -5,7 +5,6 @@ using System.Text;
 using System.Threading.Tasks;
 using Models.Curation;
 using AppEntity = Models.Schema.Course;
-using AppFullEntity = Models.Schema.CourseFull;
 using CourseTask = Models.Schema.TrainingTask;
 using DBEntity = Data.Tables.Course;
 using MSc = Models.Schema;
@@ -22,16 +21,42 @@ namespace Factories
     public class CourseManager : BaseFactory
     {
         public static new string thisClassName = "CourseManager";
-        //public List<MSc.TrainingTask> AllNewtrainingTasks = new List<MSc.TrainingTask>();
-        //public List<MSc.TrainingTask> AllUpdatedtrainingTasks = new List<MSc.TrainingTask>();
-        #region Course - persistance ==================
-        /// <summary>
-        /// Update a Course
-        /// </summary>
-        /// <param name="entity"></param>
-        /// <param name="status"></param>
-        /// <returns></returns>
-        public bool Save( AppEntity entity, ref ChangeSummary status )
+		//public List<MSc.TrainingTask> AllNewtrainingTasks = new List<MSc.TrainingTask>();
+		//public List<MSc.TrainingTask> AllUpdatedtrainingTasks = new List<MSc.TrainingTask>();
+		#region Course - persistance ==================
+		public static void SaveFromUpload( AppEntity entity, int userID, ChangeSummary summary )
+		{
+			SaveCore( entity, userID, "Upload", summary.AddError );
+		}
+		//
+
+		public static void SaveFromEditor( AppEntity entity, int userID, List<string> errors )
+		{
+			SaveCore( entity, userID, "Edit", errors.Add );
+		}
+		//
+
+		private static void SaveCore( AppEntity entity, int userID, string saveType, Action<string> AddErrorMethod )
+		{
+			using ( var context = new DataEntities() )
+			{
+				BasicSaveCore( context, entity, context.Course, userID, ( ent, dbEnt ) => {
+					dbEnt.CurriculumControlAuthorityId = context.Organization.FirstOrDefault( m => m.RowId == ent.CurriculumControlAuthority )?.Id ?? 0;
+					dbEnt.LifeCycleControlDocumentTypeId = context.ConceptScheme_Concept.FirstOrDefault( m => m.RowId == ent.LifeCycleControlDocumentType )?.Id ?? 0;
+				}, ( ent, dbEnt ) => {
+					HandleMultiValueUpdate( context, userID, ent.CourseType, dbEnt, dbEnt.Course_CourseType, context.ConceptScheme_Concept, nameof( Course_CourseType.CourseId ), nameof( Course_CourseType.CourseTypeConceptId ) );
+				}, saveType, AddErrorMethod );
+			}
+		}
+		//
+
+		/// <summary>
+		/// Update a Course
+		/// </summary>
+		/// <param name="entity"></param>
+		/// <param name="status"></param>
+		/// <returns></returns>
+		public bool Save( AppEntity entity, ref ChangeSummary status )
         {
             bool isValid = true;
             int count = 0;
@@ -264,7 +289,7 @@ namespace Factories
             //22-01-24 - Navy confirmed only one!
             if ( input.CurriculumControlAuthority != Guid.Empty )
             {
-				var org = OrganizationManager.Get( input.CurriculumControlAuthority );
+				var org = OrganizationManager.GetByRowId( input.CurriculumControlAuthority );
 				if ( org != null && org.Id > 0 )
 				{
 					//TODO - now using Course.Organization
@@ -298,7 +323,7 @@ namespace Factories
 
             if ( IsValidGuid(input.LifeCycleControlDocumentType) )
             {
-                output.LifeCycleControlDocumentTypeId = ( int ) ConceptSchemeManager.GetConcept( input.LifeCycleControlDocumentType )?.Id;
+                output.LifeCycleControlDocumentTypeId = ( int ) ConceptManager.GetByRowId( input.LifeCycleControlDocumentType )?.Id;
             }
 			else
 			{
@@ -306,144 +331,65 @@ namespace Factories
 			}
 
 		}
-        public static void MapToDB( AppFullEntity input, DBEntity output )
-        {
-            //watch for missing properties like rowId
-            List<string> errors = new List<string>();
-            //this will include the extra props (like LifeCycleControlDocument, etc. for now)
-            BaseFactory.AutoMap( input, output, errors );
-            //
-            if ( !string.IsNullOrWhiteSpace( input.LifeCycleControlDocument ) )
-            {
-                //can this be a concept scheme??
-                output.LifeCycleControlDocumentTypeId = ConceptSchemeManager.GetConcept( input.LifeCycleControlDocument, ConceptSchemeManager.ConceptScheme_LifeCycleControlDocument )?.Id;
-            }
-            //
-
-            //if ( !string.IsNullOrWhiteSpace( input.Curriculum_Control_Authority ) )
-            //{
-            //    var org = OrganizationManager.Get( input.Curriculum_Control_Authority, true );
-            //    if ( org != null && org.Id > 0 )
-            //    {
-            //        output.CurriculumControlAuthorityId = org.Id;
-            //    } else
-            //    {
-            //        ChangeSummary status = new ChangeSummary();
-            //        org = new MSc.Organization()
-            //        {
-            //            Name = input.Curriculum_Control_Authority,
-            //            AlternateName = input.Curriculum_Control_Authority
-            //        };
-            //        var isValid = new OrganizationManager().Save( org, input.LastUpdatedById, ref status );
-            //        if ( isValid )
-            //        {
-            //            output.CurriculumControlAuthorityId = org.Id;
-            //        }
-            //    }
-            //}
-        }
         #endregion
         #region Retrieval
-        //unlikely?
-        public static AppEntity Get( string name, bool includingTrainingTasks = false )
-        {
-            var entity = new AppEntity();
-            if ( string.IsNullOrWhiteSpace( name ) )
-                return null;
-
-            using ( var context = new DataEntities() )
-            {
-                var item = context.Course
-                            .FirstOrDefault( s => s.Name.ToLower() == name.ToLower() );
-
-                if ( item != null && item.Id > 0 )
-                {
-                    MapFromDB( item, entity, includingTrainingTasks );
-                }
-            }
-            return entity;
-        }
-        public static AppEntity GetByCodedNotation( string codedNotation, bool includingTrainingTasks = false )
-        {
-            var entity = new AppEntity();
-            if ( string.IsNullOrWhiteSpace( codedNotation ) )
-                return null;
-            codedNotation = codedNotation.Trim().ToLower();
-            using ( var context = new DataEntities() )
-            {
-                var item = context.Course
-                            .FirstOrDefault( s => s.CodedNotation.ToLower() == codedNotation );
-
-                if ( item != null && item.Id > 0 )
-                {
-                    MapFromDB( item, entity, includingTrainingTasks );
-                }
-            }
-            return entity;
-        }
-        public static AppEntity Get( Guid rowId, bool includingTrainingTasks = false )
-        {
-            var entity = new AppEntity();
-
-            using ( var context = new DataEntities() )
-            {
-                var item = context.Course
-                            .FirstOrDefault( s => s.RowId == rowId );
-
-                if ( item != null && item.Id > 0 )
-                {
-                    MapFromDB( item, entity, includingTrainingTasks );
-                }
-            }
-            return entity;
-        }
-        public static AppEntity Get( int id, bool includingTrainingTasks = false )
-        {
-            var entity = new AppEntity();
-            if ( id < 1 )
-                return entity;
-
-            using ( var context = new DataEntities() )
-            {
-                var item = context.Course
-                            .SingleOrDefault( s => s.Id == id );
-
-                if ( item != null && item.Id > 0 )
-                {
-                    MapFromDB( item, entity, includingTrainingTasks );
-                }
-            }
-
-            return entity;
-		}
-		public static AppEntity GetByCTIDOrNull( string ctid, bool includingTrainingTasks = false )
+		public static AppEntity GetSingleByFilter( Func<DBEntity, bool> FilterMethod, bool returnNullIfNotFound = false )
 		{
-			if ( string.IsNullOrWhiteSpace( ctid ) )
-			{
-				return null;
-			}
+			return GetSingleByFilter<DBEntity, AppEntity>( context => context.Course, FilterMethod, MapFromDB, returnNullIfNotFound );
+		}
+		//
 
+        public static AppEntity GetByCodedNotation( string codedNotation, bool returnNullIfNotFound = false )
+        {
+			return GetSingleByFilter( m => m.CodedNotation?.ToLower() == codedNotation?.ToLower(), returnNullIfNotFound );
+        }
+		//
+
+		public static AppEntity GetByRowId( Guid rowId, bool returnNullIfNotFound = false )
+		{
+			return GetSingleByFilter( m => m.RowId == rowId, returnNullIfNotFound );
+		}
+		//
+
+		public static AppEntity GetById( int id, bool returnNullIfNotFound = false )
+		{
+			return GetSingleByFilter( m => m.Id == id, returnNullIfNotFound );
+		}
+		//
+
+		public static AppEntity GetByCTID( string ctid, bool returnNullIfNotFound = false )
+		{
+			return GetSingleByFilter( m => m.CTID.ToLower() == ctid?.ToLower(), returnNullIfNotFound );
+		}
+		//
+
+		public static AppEntity GetForUploadOrNull( string courseName, string courseCodedNotation, Guid curriculumControlAuthorityRowID, Guid lifeCycleControlDocumentTypeRowId )
+		{
 			using ( var context = new DataEntities() )
 			{
-				var item = context.Course
-							.SingleOrDefault( s => s.CTID == ctid );
+				var match = context.Course.FirstOrDefault( m =>
+					m.Name.ToLower() == courseName.ToLower() &&
+					m.CodedNotation.ToLower() == courseCodedNotation.ToLower() &&
+					context.Organization.FirstOrDefault( n => n.RowId == curriculumControlAuthorityRowID && n.Id == m.CurriculumControlAuthorityId ) != null &&
+					context.ConceptScheme_Concept.FirstOrDefault( n => n.RowId == lifeCycleControlDocumentTypeRowId && n.Id == m.LifeCycleControlDocumentTypeId ) != null
+				);
 
-				if ( item != null && item.Id > 0 )
+				if( match != null )
 				{
-					var entity = new AppEntity();
-					MapFromDB( item, entity, includingTrainingTasks );
-					return entity;
+					return MapFromDB( match, context );
 				}
 			}
 
 			return null;
 		}
+		//
+
 		/// <summary>
 		/// Get all 
 		/// May need a get all for a rating? Should not matter as this is external data?
 		/// </summary>
 		/// <returns></returns>
-		public static List<AppEntity> GetAll( bool includingTrainingTasks = false )
+		public static List<AppEntity> GetAll()
         {
             var entity = new AppEntity();
             var list = new List<AppEntity>();
@@ -453,175 +399,63 @@ namespace Factories
                 var results = context.Course
                         .OrderBy( s => s.Name )
                         .ToList();
-                if ( results?.Count > 0 )
-                {
-                    foreach ( var item in results )
-                    {
-                        if ( item != null && item.Id > 0 )
-                        {
-                            entity = new AppEntity();
-                            MapFromDB( item, entity, includingTrainingTasks );
-                            list.Add( ( entity ) );
-                        }
-                    }
-                }
+
+				foreach(var item in results )
+				{
+					list.Add( MapFromDB( item, context ) );
+				}
 
             }
             return list;
         }
-        public static List<AppEntity> Search( SearchQuery query )
+		//
+
+        public static SearchResultSet<AppEntity> Search( SearchQuery query )
         {
-            var entity = new AppEntity();
-            var output = new List<AppEntity>();
-            var skip = 0;
-            if ( query.PageNumber > 1 )
-                skip = ( query.PageNumber - 1 ) * query.PageSize;
-            var filter = GetSearchFilterText( query );
-           
-            try
-            {
-                using ( var context = new DataEntities() )
-                {
-                    var list = from Results in context.Course
-                               select Results;
-                    if ( !string.IsNullOrWhiteSpace( filter ) )
-                    {
-                        list = from Results in list
-                                .Where( s =>
-                                ( s.Name.ToLower().Contains( filter.ToLower() ) ) ||
-                                ( s.CodedNotation.ToLower() == filter.ToLower() )
-                                )
-                               select Results;
-                    }
-                    query.TotalResults = list.Count();
-                    //sort order not handled
-                    list = list.OrderBy( p => p.Name );
+			return HandleSearch<DBEntity, AppEntity>( query, context =>
+			{
+				//Start query
+				var list = context.Course.AsQueryable();
+				var keywords = GetSanitizedSearchFilterKeywords( query );
 
-                    //
-                    var results = list.Skip( skip ).Take( query.PageSize )
-                        .ToList();
-                    if ( results?.Count > 0 )
-                    {
-                        foreach ( var item in results )
-                        {
-                            if ( item != null && item.Id > 0 )
-                            {
-                                entity = new AppEntity();
-                                MapFromDB( item, entity, false, true );
-                                output.Add( ( entity ) );
-                            }
-                        }
-                    }
+				//Handle keywords
+				if ( !string.IsNullOrWhiteSpace( keywords ) )
+				{
+					list = list.Where( m => 
+						m.Name.Contains( keywords ) ||
+						m.CodedNotation.Contains( keywords )
+					);
+				}
 
-                }
-            }
-            catch ( Exception ex )
-            {
+				//Organization Detail Page
+				AppendIDsFilterIfPresent(query, "> CurriculumControlAuthorityId > Organization", ids =>
+				{
+					list = list.Where( m => ids.Contains( m.CurriculumControlAuthorityId ?? 0 ) );
+				} );
 
-            }
-            return output;
+				//Return ordered list
+				return HandleSort( list, query.SortOrder, m => m.Name, m => m.OrderBy( n => n.Name ) );
+
+			}, MapFromDBForSearch );
         }
-        public static void MapFromDB( DBEntity input, AppEntity output, bool includingTrainingTasks, bool isSearchContext = false )
-        {
-            //should include list of concepts
-            List<string> errors = new List<string>();
-            BaseFactory.AutoMap( input, output, errors );
-            if ( input.RowId != output.RowId )
-            {
-                output.RowId = input.RowId;
-            }
-            //if (input.Course_AssessmentType != null)
-            //{
-            //    foreach (var item in input.Course_AssessmentType )
-            //    {
-            //        if ( item != null && item.ConceptScheme_Concept != null )
-            //        {
-            //            output.AssessmentMethodType.Add( item.ConceptScheme_Concept.RowId );
-            //            output.AssessmentMethods.Add( item.ConceptScheme_Concept.Name );
-            //        }
-            //    }
-            //}
-            //
-            if ( input.Course_CourseType?.Count > 0 )
-            {
-                output.CourseType = new List<Guid>();
-                int cntr = 0;
-                foreach ( var item in input.Course_CourseType )
-                {
-                    cntr++;
-                    if ( item != null && item.ConceptScheme_Concept != null )
-                    {
-                        output.CourseType.Add( item.ConceptScheme_Concept.RowId );
-                        output.CourseTypeList.Add( item.ConceptScheme_Concept.Name );
-                    }
-                }
-            }
-            //
-            if ( input.CurriculumControlAuthorityId != null )
-            {
-                output.CurriculumControlAuthorityId = ( int ) input.CurriculumControlAuthorityId;
-                if ( input.Organization?.Id > 0 )
-                {
-                    output.OrganizationName = input.Organization.Name;
-                    output.Organizations.Add( output.OrganizationName );
-                    output.CurriculumControlAuthority= input.Organization.RowId;
-                }
-            }
-            //
-            if ( input.LifeCycleControlDocumentTypeId != null )
-            {
-                output.LifeCycleControlDocumentTypeId = ( int ) input.LifeCycleControlDocumentTypeId;
-                if ( input.ConceptScheme_Concept?.Id > 0 )
-                {
-                    output.LifeCycleControlDocument = input.ConceptScheme_Concept.Name;
-                    output.LifeCycleControlDocumentType = input.ConceptScheme_Concept.RowId;
-                }
-            }
-            //
-            if ( input.CourseContext != null && input?.CourseContext?.Count > 0 && includingTrainingTasks )
-            {
-                if ( isSearchContext )
-                {
-                    output.Description = ( string.IsNullOrWhiteSpace( output.Description ) ? "" : output.Description + "<br/>" ) + string.Format( "Includes {0} training tasks.", input.CourseContext.Count );
-                }
+		//
 
-                if ( includingTrainingTasks )
-                {
-                    foreach ( var item in input.CourseContext )
-                    {
-                        output.HasTrainingTask.Add( item.TrainingTask.RowId );
-                        //output.AssessmentMethods.Add( item.CourseContext_AssessmentType.Description );
-                        //really only need the text
-                        output.TrainingTasks.Add( TrainingTaskManager.MapFromDB( item.TrainingTask ) );
-                    }
-                    //output.AssessmentMethods = output.AssessmentMethods.OrderBy( s => s ).ToList();
-                    output.TrainingTasks = output.TrainingTasks.OrderBy( s => s.Description ).ToList();
-                }
-            }
-            //
-            //if ( input?.Course_Task?.Count > 0 )
-            //{
-            //    if ( isSearchContext )
-            //    {
-            //        output.Description = (string.IsNullOrWhiteSpace( output.Description) ? "" : output.Description + "<br/>" ) + string.Format( "Includes {0} training tasks.", input.Course_Task.Count );
-            //        //output.Name += String.Format( " (Training Tasks: {0})", input.Course_Task.Count );
-            //    }
+		public static AppEntity MapFromDB( DBEntity input, DataEntities context )
+		{
+			return MapFromDBForSearch( input, context, null );
+		}
+		//
 
+		public static AppEntity MapFromDBForSearch( DBEntity input, DataEntities context, SearchResultSet<AppEntity> resultSet = null )
+		{
+			var output = AutoMap( input, new AppEntity() );
+			output.CurriculumControlAuthority = input.Organization?.RowId ?? Guid.Empty;
+			output.LifeCycleControlDocumentType = input.ConceptScheme_Concept?.RowId ?? Guid.Empty;
+			output.CourseType = input.Course_CourseType?.Select( m => m.ConceptScheme_Concept_CourseType ).Select( m => m.RowId ).ToList() ?? new List<Guid>();
 
-            //    if ( includingTrainingTasks )
-            //    {
-            //        foreach ( var item in input.Course_Task )
-            //        {
-            //            output.HasTrainingTask.Add( item.RowId );
-            //            output.AssessmentMethods.Add( item.Description );
-            //            //really only need the text
-            //            output.TrainingTasks.Add( TrainingTaskManager.MapFromDB( item ) );
-            //        }
-            //        output.AssessmentMethods = output.AssessmentMethods.OrderBy( s => s ).ToList();
-            //        output.TrainingTasks = output.TrainingTasks.OrderBy( s => s.Description ).ToList();
-            //    }
-            //}
-        }
+			return output;
+		}
+		//
 
         #endregion
 
@@ -804,7 +638,7 @@ namespace Factories
                             }
                             if ( doingAdd )
                             {
-                                var concept = ConceptSchemeManager.GetConcept( child );
+                                var concept = ConceptManager.GetByRowId( child );
                                 if ( concept?.Id > 0 )
                                 {
                                     efEntity.CourseId = input.Id;

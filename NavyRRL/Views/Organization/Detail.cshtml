@@ -1,4 +1,5 @@
 ﻿@using Models.Schema;
+@using Models.Search;
 @using Models.DTO;
 @model Organization
 @{
@@ -6,18 +7,70 @@
 }
 
 @Html.Partial( "~/Views/Shared/_DetailShared.cshtml" )
-@Html.Partial( "~/Views/Shared/_DetailBasicInfo.cshtml", new DetailBasicInfoHelper()
+@Html.Partial( "~/Views/Shared/_DetailBasicInfo.cshtml", new DetailBasicInfoHelper( Model )
 {
-	TypeLabel = "Organization",
-	TypeURL = Model.GetType().Name.ToLower(),
-	Id = Model.Id,
-	CTID = Model.CTID,
 	Name = Model.Name,
-	Description = Model.Description,
-	Identifiers = new List<NamedString>()
+	PropertyList = new List<NamedString>()
 	{
-		new NamedString( "System ID", Model.Id.ToString() ),
-		new NamedString( "CTID", Model.CTID ),
-		new NamedString( "Short Name", Model.AlternateName )
+		new NamedString( "Alternate Name", Model.AlternateName ),
+		new NamedString( "Description", Model.Description )
 	}
 } )
+
+@Html.Partial( "~/Views/Search/_ItemListSearch.cshtml" )
+<script type="text/javascript">
+	var ItemListConfigs = {
+		CommonFilters: [],
+		Searches: {
+			Courses: {
+				Header: "Courses",
+				SearchType: "Course",
+				StyleType: "Course",
+				Filters: [
+					{ Name: "> CurriculumControlAuthorityId > Organization", ItemIds: [ @Model.Id ] }
+				],
+				Fields: [
+					{ Label: "Course Code", RenderPath: ["CodedNotation|Course"], AsPlainText: true },
+					{ Label: "Name", RenderPath: ["Name|Course"] }
+				]
+			},
+			RatingTasks: {
+				Header: "Rating Tasks",
+				SearchType: "RatingContext",
+				StyleType: "RatingTask",
+				Filters:[
+					{ Name: "> CourseContextId > CourseContext > HasCourseId > Course > CurriculumControlAuthorityId > Organization", ItemIds: [ @Model.Id ] }
+				],
+				Fields: [
+					{ Label: "Rating", RenderPath: ["HasRating|Rating", "CodedNotation|Rating"] },
+					{ Label: "Description", RenderPath: ["HasRatingTask|RatingTask", "Description|RatingTask"] },
+					{ Label: "Training Gap", RenderPath: ["TrainingGapType|Concept", "Name|Concept"] },
+				]
+			}
+		}
+	};
+	//
+
+	$(document).ready(function () {
+		ItemListSearches.setupItemLists(ItemListConfigs);
+	});
+	//
+</script>
+<style type="text/css">
+	table[data-styletype='Course'] [data-column='Course Code'] { width: 125px; }
+	table[data-styletype='RatingTask'] [data-column='Rating'] { width: 75px; }
+	table[data-styletype='RatingTask'] [data-column='Training Gap'] { width: 100px; margin-left: auto; }
+</style>
+
+<item-list-search name="Courses"></item-list-search>
+
+@Html.Partial( "~/Views/Shared/_RatingTaskCountBySourceTypeTable.cshtml", new List<SearchFilter>()
+{
+	new SearchFilter()
+	{
+		Name = "> CourseContextId > CourseContext > HasCourseId > Course > CurriculumControlAuthorityId > Organization",
+		ItemIds = new List<int>(){ Model.Id }
+	}
+} )
+
+<item-list-search name="RatingTasks"></item-list-search>

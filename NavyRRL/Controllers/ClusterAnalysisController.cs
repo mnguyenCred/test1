@@ -12,7 +12,8 @@ using Models.Curation;
 
 namespace NavyRRL.Controllers
 {
-    public class ClusterAnalysisController : BaseController
+	[SessionState( System.Web.SessionState.SessionStateBehavior.ReadOnly )]
+	public class ClusterAnalysisController : BaseController
     {
 		public ActionResult Search()
 		{
@@ -32,8 +33,25 @@ namespace NavyRRL.Controllers
 		public ActionResult Detail( int id )
 		{
 			AuthenticateOrRedirect( "You must be authenticated and authorized to view Cluster Analysis data." );
-			var data = Factories.ClusterAnalysisManager.Get( id );
+			var data = Factories.ClusterAnalysisManager.GetById( id );
 			return View( data );
+		}
+		//
+
+		public ActionResult GetByRowId( Guid id )
+		{
+			AuthenticateOrRedirect( "You must be authenticated and authorized to view Cluster Analysis data." );
+			var data = Factories.ClusterAnalysisManager.GetByRowId( id, true );
+			return JsonResponse( data, data != null );
+		}
+		//
+
+		public ActionResult JSON( int id )
+		{
+			AuthenticateOrRedirect( "You must be authenticated and authorized to view Cluster Analysis data." );
+			var data = Factories.ClusterAnalysisManager.GetById( id );
+			var converted = RDFServices.GetRDF( data );
+			return RawJSONResponse( converted );
 		}
 		//
 
@@ -42,7 +60,12 @@ namespace NavyRRL.Controllers
 		public ActionResult Edit( int id )
 		{
 			AuthenticateOrRedirect( "You must be authenticated and authorized to edit Cluster Analysis data." );
-			var data = Factories.ClusterAnalysisManager.Get( id ) ?? new ClusterAnalysis();
+			if ( !AccountServices.IsUserSiteStaff() )
+			{
+				RedirectToAction( "NotAuthenticated", "Event" );
+			}
+
+			var data = Factories.ClusterAnalysisManager.GetById( id );
 			return View( data );
 		}
 		//
@@ -55,25 +78,9 @@ namespace NavyRRL.Controllers
 				return JsonResponse( null, false, new List<string>() { "You must be authenticated and authorized to edit Cluster Analysis data." }, null );
 			}
 
-			var user = AccountServices.GetCurrentUser();
-			ChangeSummary status = new ChangeSummary()
-			{
-				Action = "Edit"
-			};
-			data.LastUpdatedById = user.Id;
-			//this type of save will not have a rating context!
-			var results = new Factories.ClusterAnalysisManager().Save( data, ref status );
-			if ( status.HasAnyErrors )
-			{
-				var msg = string.Join( "</br>", status.Messages.Error.ToArray() );
-				ConsoleMessageHelper.SetConsoleErrorMessage( "Saved changes successfully." );
-			}
-			else
-			{
-				//On success
-				ConsoleMessageHelper.SetConsoleSuccessMessage( "Saved changes successfully." );
-			}
-			return JsonResponse( data, true, null, null );
+			var errors = new List<string>();
+			Factories.ClusterAnalysisManager.SaveFromEditor( data, AccountServices.GetCurrentUser().Id, errors );
+			return JsonResponse( data, errors.Count() == 0, errors );
 		}
 		//
 	}

@@ -1,69 +1,35 @@
 ﻿@using Models.Schema;
 @using Models.DTO;
 @using Newtonsoft.Json;
+@using Newtonsoft.Json.Linq;
 @model Concept
 @{
 	var title = Model.Id > 0 ? "Editing Concept" : "New Concept";
+	if( Model.Id == 0 )
+	{
+		Model.IsActive = true;
+		var testGUID = Guid.Empty;
+		Guid.TryParse( Request.Params[ "InScheme" ], out testGUID );
+		Model.InScheme = testGUID;
+	}
+
 	ViewBag.Title = title;
-	var conceptSchemeList = Factories.ConceptSchemeManager.GetAll().Select( m => SimpleItemHelper.GetSimpleItem( m ) ).ToList();
-	var preselectedConceptSchemeRowID = Request.Params[ "InScheme" ];
 }
 
-@Html.Partial( "~/Views/Shared/_FormHelperV1.cshtml" )
-
-<script type="text/javascript">
-	var Data = {
-		//The original resource
-		Source: @Html.Raw( JsonConvert.SerializeObject( Model, Formatting.None ) ),
-		//Mapping used internally for the FormItem stuff
-		Form: {},
-		//Functions to configure FormItem stuff
-		Config: {
-			//Configure Save Button
-			SaveButton: function (Field) {
-				Field.SaveURL = "@Url.Content("~/concept/save/")";
-				Field.RedirectAfterSuccessURL = "@Url.Content("~/concept/detail/")";
-				Field.getDataToSave = function () {
-					return {
-						...Data.Source,
-						...Data.Form.read()
-					};
-				}
-			},
-			//Configure list of Concept Schemes
-			InScheme: function (Field) {
-				Field.Items = @Html.Raw( JsonConvert.SerializeObject( conceptSchemeList, Formatting.None ) );
-				Field.renderItems();
-			},
-			IsActive: function (Field) {
-				Field.Items[0].Name = "This Concept is Enabled"; //Optionally, rename the default "True / False" item
-				Field.renderItems();
-			}
-		}
-	};
-
-	$(document).ready(function () {
-		FormItem.setupFormItems(Data.Form, "Concept", Data.Config);
-		Data.Form.write(Data.Source);
-		@if ( Model.Id == 0 && !string.IsNullOrWhiteSpace( preselectedConceptSchemeRowID ) )
-		{
-			<text>Data.Form.PathMap.InScheme.write("@preselectedConceptSchemeRowID");</text>
-		}
-	});
-	//
-</script>
+@Html.Partial( "~/Views/Shared/_AJAXTools.cshtml" )
+@Html.Partial( "~/Views/Shared/_FormHelperV2.cshtml", new EditFormHelperV2( Model, new JObject() {
+	{ "InSchemeOptions", JArray.FromObject( Factories.ConceptSchemeManager.GetAll().OrderBy( m => m.Name ).Select( m => SimpleItemHelper.GetSimpleItem( m ) ).ToList() ) }
+} ) )
 
 <h2>@title</h2>
-<form-item data-path="Concept.Id" data-ui="display" data-label="ID"></form-item>
-<form-item data-path="Concept.RowId" data-ui="display" data-label="RowID"></form-item>
 
 <h3>Basic Info</h3>
-<form-item data-path="Concept.InScheme" data-ui="select" data-label="Belongs to Concept Scheme" data-config="InScheme"></form-item>
-<form-item data-path="Concept.Name" data-ui="text" data-label="Name"></form-item>
-<form-item data-path="Concept.CodedNotation" data-ui="text" data-label="Code"></form-item>
-<form-item data-path="Concept.Description" data-ui="textarea" data-label="Description"></form-item>
-<form-item data-path="Concept.WorkElementType" data-ui="text" data-label="Work Element Type (If applicable, exact text for the value in the RMTL Spreadsheet that is equivalent to this Concept)"></form-item>
-<form-item data-path="Concept.IsActive" data-ui="boolean" data-label="Is Active" data-config="IsActive"></form-item>
-
-<h3>Save Changes</h3>
-<form-item data-path="Concept.SaveButton" data-ui="savebutton" data-label="Save Changes" data-config="SaveButton"></form-item>
+<div class="field" data-fieldtype="SystemIdentifiers"></div>
+<div class="field" data-fieldtype="Select" data-property="InScheme" data-label="Belongs to Concept Scheme" data-sourceuri="InSchemeOptions"></div>
+<div class="field" data-fieldtype="Text" data-property="Name" data-label="Name"></div>
+<div class="field" data-fieldtype="Text" data-property="CodedNotation" data-label="Code"></div>
+<div class="field" data-fieldtype="TextArea" data-property="Description" data-label="Description"></div>
+<div class="field" data-fieldtype="Text" data-property="WorkElementType" data-label="Work Element Type" data-helptext="Applies only to concepts used in the RMTL Spreadsheet's Work Element Type column. Enter the exact value for that column here."></div>
+<div class="field" data-fieldtype="SuggestionSingle" data-property="BroadMatch" data-label="Broad Match" data-searchtype="@nameof(Concept)" data-helptext="Concept that can be considered a parent of this Concept"></div>
+<div class="field" data-fieldtype="Boolean" data-property="IsActive" data-label="Enabled"></div>
+<div class="field" data-fieldtype="SaveButton"></div>

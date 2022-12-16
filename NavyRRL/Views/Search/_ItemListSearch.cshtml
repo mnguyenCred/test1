@@ -1,4 +1,5 @@
-﻿@Html.Partial( "~/Views/Search/_SearchCoreV1.cshtml" )
+﻿@Html.Partial( "~/Views/Shared/_AJAXTools.cshtml" )
+@Html.Partial( "~/Views/Search/_SearchCoreV1.cshtml" )
 <script type="text/javascript">
 	var ItemListSearches = {};
 	ItemListSearches.setupItemLists = function(ItemListConfigs) {
@@ -10,31 +11,43 @@
 			Config.UI.Box = box;
 			Config.UI.Box.addClass("section itemListSearch");
 			Config.UI.Header = $("<h3 class=\"sectionHeader\">" + Config.Header + "</h3>").appendTo(Config.UI.Box);
-			Config.UI.StatusWrapper = $("<div class=\"itemListSearchStatusWrapper\"></div>").appendTo(Config.UI.Box);
-			Config.UI.StatusBox = $("<div class=\"itemListSearchStatus\"></div>").appendTo(Config.UI.StatusWrapper);
-			Config.UI.Spinner = $("<div class=\"spinner itemListSearchSpinner\"></div>").appendTo(Config.UI.StatusWrapper);
-			Config.UI.ResultsBox = $("<table class=\"itemListSearchResults\" data-type=\"" + Config.Type + "\"><thead><tr></tr></thead><tbody></tbody></table>").appendTo(Config.UI.Box);
+			Config.UI.TopWrapper = $("<div class=\"itemListSearchTopWrapper\"></div>").appendTo(Config.UI.Box);
+			Config.UI.KeywordsBox = $("<input type=\"text\" class=\"keywordsBox\" placeholder=\"Filter...\" />").appendTo(Config.UI.TopWrapper);
+			Config.UI.StatusBox = $("<div class=\"itemListSearchStatus\"></div>").appendTo(Config.UI.TopWrapper);
+			Config.UI.SpinnerWrapper = $("<div class=\"itemListSearchSpinnerWrapper\"></div>").appendTo(Config.UI.TopWrapper);
+			Config.UI.Spinner = $("<div class=\"spinner itemListSearchSpinner\"></div>").appendTo(Config.UI.SpinnerWrapper);
+			Config.UI.Table = $("<table class=\"itemListSearchResults\" data-searchtype=\"" + Config.SearchType + "\" data-styletype=\"" + Config.StyleType + "\"></table>").appendTo(Config.UI.Box);
+			Config.UI.TableHeader = $("<thead><tr>" + (Config.Fields.map(Field => "<th data-column=\"" + Field.Label + "\">" + Field.Label + "</th>").join("")) + "</tr></thead>").appendTo(Config.UI.Table);
+			Config.UI.TableBody = $("<tbody></tbody>").appendTo(Config.UI.Table);
 			Config.UI.PagingBox = $("<div class=\"itemListSearchPaging\"></div>").appendTo(Config.UI.Box);
 
-			//Construct table headers
-			Config.Columns.forEach(column => {
-				Config.UI.ResultsBox.find("thead tr").append("<th data-column=\"" + column + "\">" + column + "</th>");
-			});
-
 			//Create search and apply custom functionality
-			Config.Search = createSearch(Config.Type, "@Url.Content("~/")" + Config.Type.toLowerCase() + "/dosearch", Config.UI.StatusBox, Config.UI.Spinner, Config.UI.ResultsBox.find("tbody"), Config.UI.PagingBox, Config.PageSize || 20, 100);
+			Config.Search = createSearch(Config.SearchType, "@Url.Content("~/")" + Config.SearchType.toLowerCase() + "/dosearch", Config.UI.StatusBox, Config.UI.Spinner, Config.UI.TableBody, Config.UI.PagingBox, Config.PageSize || 20, 800);
+
 			Config.Search.customizeQuery = function () {
 				Config.customizeQuery?.(Config.Search.Query);
 			}
+
 			Config.Search.getFilters = function () {
-				return ItemListConfigs.CommonFilters?.concat(Config.Filters || []);
+				return (ItemListConfigs.CommonFilters || [])
+					.concat(Config.Filters || [])
+					.concat(Config.UI.KeywordsBox.val().trim() ? [{ Name: "search:Keyword", Text: Config.UI.KeywordsBox.val().trim() }] : []);
 			}
+
 			Config.Search.getSortOrder = function () {
 				return Config.SortOrder;
 			}
+
 			Config.Search.renderResult = function (Result, container) {
 				ItemListSearches.renderResult(Result, container, Config);
 			}
+
+			Config.UI.KeywordsBox.on("keyup change", function (event) {
+				if (Config.PreviousKeywords != Config.UI.KeywordsBox.val().trim() || event.keyCode == 13) {
+					Config.PreviousKeywords = Config.UI.KeywordsBox.val().trim();
+					Config.Search.delayThenSearch(true);
+				}
+			});
 
 			Config.Search.doSearch();
 		});
@@ -43,36 +56,46 @@
 
 	ItemListSearches.renderResult = function(Result, container, Config) {
 		var row = $("<tr class=\"itemListSearchResult\"></tr>").appendTo(container);
-		Config.Cells.forEach(cell => {
-			row.append("<td>" + (typeof(cell) == "function" ? cell(Result, row, Config) : Result[cell]) + "</td>");
+		Config.Fields.forEach(Field => {
+			var cell = $("<td data-column=\"" + Field.Label + "\"></td>").appendTo(row);
+			var spinner = $("<div class=\"spinner\"></div>").appendTo(cell);
+			ItemListSearches.renderPath(Result, spinner, Config, [...Field.RenderPath], Field.AsPlainText, Field.OverrideText);
 		});
 	},
+	//
+
+
+	ItemListSearches.renderPath = function (source, spinner, Config, path, asPlainText, overrideText) {
+		var [sourceProperty, referenceToType] = path.shift().split("|");
+		if (path.length == 0) {
+			var text = overrideText || source[sourceProperty];
+			spinner.replaceWith(asPlainText ? text : ItemListSearches.getLink("@Url.Content("~/")" + referenceToType + "/Detail/" + source.Id, text));
+		}
+		else {
+			var guids = !source[sourceProperty] ? [] : (Array.isArray(source[sourceProperty]) ? source[sourceProperty] : [source[sourceProperty]]);
+			guids.forEach(guid => {
+				var newSpinner = $("<div class=\"spinner\"></div>").insertAfter(spinner);
+				Config.Search.getRelatedResourceOrLookup(guid, "@Url.Content("~/")" + referenceToType + "/GetByRowId/" + guid, result => {
+					ItemListSearches.renderPath(result, newSpinner, Config, [...path], asPlainText, overrideText);
+				});
+			});
+			spinner.remove();
+		}
+	}
 	//
 
 	ItemListSearches.getLink = function(url, label) {
 		return "<a href=\"" + url + "\">" + label + "</a>";
 	}
 	//
-
-	ItemListSearches.renderRowIDReferences = function (Result, container, Config, rowIDList, type, display) {
-		Config.Search.getAndRenderReferenceList(
-			rowIDList?.map(guid => { return "@Url.Content( "~/" )" + type + "/GetByRowID/" + guid; }),
-			Resource => {
-				container.find("[data-reference='" + Resource.RowId + "']").html(
-					ItemListSearches.getLink(
-						"@Url.Content("~/")" + type + "/Detail/" + Resource.Id,
-						typeof (display) == "function" ? display(Resource) : Resource[display]
-					)
-				);
-			}
-		);
-		return Result.HasRating?.map(guid => { return "<span data-reference=\"" + guid + "\"><div class=\"spinner\"></div></span>"; }).join("");
-	}
-	//
 </script>
 <style type="text/css">
 	item-list-search { display: block; }
-	.itemListSearchStatusWrapper { display: flex; gap: 10px; padding: 5px; }
+	.itemListSearchTopWrapper { display: flex; gap: 10px; padding: 5px; align-items: baseline; }
+	.itemListSearchTopWrapper .keywordsBox { flex: 1 1 auto; max-width: none; height: 30px; }
+	.itemListSearchTopWrapper .itemListSearchStatus { flex: 0 0 150px; }
+	.itemListSearchTopWrapper .itemListSearchSpinnerWrapper { flex: 0 0 20px; display: flex; align-items: center; }
+	.itemListSearch .itemListSearchResults .itemListSearchResult .spinner { width: 16px; height: 16px; }
 	.itemListSearchPaging { display: flex; gap: 10px; justify-content: center; padding: 5px; }
 	.itemListSearchResult [data-reference]:not(:last-child) { margin-right: 10px; }
 </style>

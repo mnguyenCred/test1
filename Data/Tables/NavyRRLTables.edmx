@@ -128,12 +128,11 @@
           <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
           <Property Name="RowId" Type="uniqueidentifier" Nullable="false" />
           <Property Name="TrainingSolutionTypeId" Type="int" />
-          <Property Name="ClusterAnalysisTitleId" Type="int" />
-          <Property Name="RecommendedModalityId" Type="int" />
-          <Property Name="DevelopmentSpecificationId" Type="int" />
-          <Property Name="CFMPlacementId" Type="int" />
+          <Property Name="HasClusterAnalysisTitleId" Type="int" />
+          <Property Name="RecommendedModalityTypeId" Type="int" />
+          <Property Name="DevelopmentSpecificationTypeId" Type="int" />
+          <Property Name="CFMPlacementTypeId" Type="int" />
           <Property Name="PriorityPlacement" Type="int" />
-          <Property Name="DevelopmentRatio" Type="varchar" MaxLength="500" />
           <Property Name="EstimatedInstructionalTime" Type="decimal" Precision="9" Scale="2" />
           <Property Name="DevelopmentTime" Type="decimal" Precision="9" Scale="2" />
           <Property Name="CTID" Type="varchar" MaxLength="50" />
@@ -142,6 +141,11 @@
           <Property Name="CreatedById" Type="int" />
           <Property Name="LastUpdated" Type="datetime" Nullable="false" />
           <Property Name="LastUpdatedById" Type="int" />
+          <Property Name="HasRatingTaskId" Type="int" />
+          <Property Name="HasRatingId" Type="int" />
+          <Property Name="DevelopmentRatioTypeId" Type="int" />
+          <Property Name="BilletTitleId" Type="int" />
+          <Property Name="WorkRoleId" Type="int" />
         </EntityType>
         <EntityType Name="ClusterAnalysis_HasCandidatePlatform">
           <Key>
@@ -194,7 +198,7 @@
           <Property Name="CTID" Type="varchar" MaxLength="50" />
           <Property Name="SchemaUri" Type="varchar" MaxLength="50" />
           <Property Name="Created" Type="datetime" Nullable="false" />
-          <Property Name="CreatedById" Type="int" Nullable="false" />
+          <Property Name="CreatedById" Type="int" />
           <Property Name="LastUpdated" Type="datetime" Nullable="false" />
           <Property Name="LastUpdatedById" Type="int" />
           <Property Name="LastApproved" Type="datetime" />
@@ -221,6 +225,7 @@
           <Property Name="CreatedById" Type="int" />
           <Property Name="LastUpdated" Type="datetime" Nullable="false" />
           <Property Name="LastUpdatedById" Type="int" />
+          <Property Name="BroadMatchId" Type="int" />
         </EntityType>
         <EntityType Name="Course">
           <Key>
@@ -263,6 +268,7 @@
           <Property Name="CreatedById" Type="int" />
           <Property Name="LastUpdated" Type="datetime" Nullable="false" />
           <Property Name="LastUpdatedById" Type="int" />
+          <Property Name="CTID" Type="varchar" MaxLength="50" />
         </EntityType>
         <EntityType Name="CourseContext_AssessmentType">
           <Key>
@@ -393,7 +399,6 @@
           <Property Name="PayGradeTypeId" Type="int" Nullable="false" />
           <Property Name="TaskApplicabilityId" Type="int" />
           <Property Name="FormalTrainingGapId" Type="int" />
-          <Property Name="TrainingTaskId" Type="int" />
           <Property Name="ClusterAnalysisId" Type="int" />
           <Property Name="TaskStatusId" Type="int" />
           <Property Name="CodedNotation" Type="varchar" MaxLength="100" />
@@ -404,6 +409,8 @@
           <Property Name="LastUpdated" Type="datetime" Nullable="false" />
           <Property Name="LastUpdatedById" Type="int" />
           <Property Name="WorkRoleId" Type="int" />
+          <Property Name="CourseContextId" Type="int" />
+          <Property Name="PayGradeLevelTypeId" Type="int" />
         </EntityType>
         <EntityType Name="RatingTask">
           <Key>
@@ -418,6 +425,7 @@
           <Property Name="CreatedById" Type="int" />
           <Property Name="LastUpdated" Type="datetime" Nullable="false" />
           <Property Name="LastUpdatedById" Type="int" />
+          <Property Name="ReferenceTypeId" Type="int" Nullable="false" />
         </EntityType>
         <EntityType Name="ReferenceResource">
           <Key>
@@ -499,6 +507,7 @@
           <Property Name="CreatedById" Type="int" />
           <Property Name="LastUpdated" Type="datetime" Nullable="false" />
           <Property Name="LastUpdatedById" Type="int" />
+          <Property Name="ReferenceResourceId" Type="int" />
         </EntityType>
         <EntityType Name="WorkRole">
           <Key>
@@ -632,7 +641,7 @@
               <PropertyRef Name="Id" />
             </Principal>
             <Dependent Role="ClusterAnalysis">
-              <PropertyRef Name="CFMPlacementId" />
+              <PropertyRef Name="CFMPlacementTypeId" />
             </Dependent>
           </ReferentialConstraint>
         </Association>
@@ -644,7 +653,19 @@
               <PropertyRef Name="Id" />
             </Principal>
             <Dependent Role="ClusterAnalysis">
-              <PropertyRef Name="ClusterAnalysisTitleId" />
+              <PropertyRef Name="HasClusterAnalysisTitleId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_ClusterAnalysis_DevelopmentRatio_Concept">
+          <End Role="ConceptScheme_Concept" Type="Self.ConceptScheme_Concept" Multiplicity="0..1" />
+          <End Role="ClusterAnalysis" Type="Self.ClusterAnalysis" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="ConceptScheme_Concept">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="ClusterAnalysis">
+              <PropertyRef Name="DevelopmentRatioTypeId" />
             </Dependent>
           </ReferentialConstraint>
         </Association>
@@ -656,7 +677,43 @@
               <PropertyRef Name="Id" />
             </Principal>
             <Dependent Role="ClusterAnalysis">
-              <PropertyRef Name="DevelopmentSpecificationId" />
+              <PropertyRef Name="DevelopmentSpecificationTypeId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_ClusterAnalysis_Job">
+          <End Role="Job" Type="Self.Job" Multiplicity="0..1" />
+          <End Role="ClusterAnalysis" Type="Self.ClusterAnalysis" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Job">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="ClusterAnalysis">
+              <PropertyRef Name="BilletTitleId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_ClusterAnalysis_Rating">
+          <End Role="Rating" Type="Self.Rating" Multiplicity="0..1" />
+          <End Role="ClusterAnalysis" Type="Self.ClusterAnalysis" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Rating">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="ClusterAnalysis">
+              <PropertyRef Name="HasRatingId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_ClusterAnalysis_RatingTask">
+          <End Role="RatingTask" Type="Self.RatingTask" Multiplicity="0..1" />
+          <End Role="ClusterAnalysis" Type="Self.ClusterAnalysis" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="RatingTask">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="ClusterAnalysis">
+              <PropertyRef Name="HasRatingTaskId" />
             </Dependent>
           </ReferentialConstraint>
         </Association>
@@ -668,7 +725,7 @@
               <PropertyRef Name="Id" />
             </Principal>
             <Dependent Role="ClusterAnalysis">
-              <PropertyRef Name="RecommendedModalityId" />
+              <PropertyRef Name="RecommendedModalityTypeId" />
             </Dependent>
           </ReferentialConstraint>
         </Association>
@@ -681,6 +738,18 @@
             </Principal>
             <Dependent Role="ClusterAnalysis">
               <PropertyRef Name="TrainingSolutionTypeId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_ClusterAnalysis_WorkRole">
+          <End Role="WorkRole" Type="Self.WorkRole" Multiplicity="0..1" />
+          <End Role="ClusterAnalysis" Type="Self.ClusterAnalysis" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="WorkRole">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="ClusterAnalysis">
+              <PropertyRef Name="WorkRoleId" />
             </Dependent>
           </ReferentialConstraint>
         </Association>
@@ -712,18 +781,6 @@
             </Dependent>
           </ReferentialConstraint>
         </Association>
-        <Association Name="FK_ConceptScheme__AccountCreatedBy">
-          <End Role="Account" Type="Self.Account" Multiplicity="1" />
-          <End Role="ConceptScheme" Type="Self.ConceptScheme" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="Account">
-              <PropertyRef Name="Id" />
-            </Principal>
-            <Dependent Role="ConceptScheme">
-              <PropertyRef Name="CreatedById" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
         <Association Name="FK_ConceptScheme_AccountApprovedBy">
           <End Role="Account" Type="Self.Account" Multiplicity="0..1" />
           <End Role="ConceptScheme" Type="Self.ConceptScheme" Multiplicity="*" />
@@ -733,6 +790,18 @@
             </Principal>
             <Dependent Role="ConceptScheme">
               <PropertyRef Name="LastApprovedById" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_ConceptScheme_AccountCreatedBy">
+          <End Role="Account" Type="Self.Account" Multiplicity="0..1" />
+          <End Role="ConceptScheme" Type="Self.ConceptScheme" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Account">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="ConceptScheme">
+              <PropertyRef Name="CreatedById" />
             </Dependent>
           </ReferentialConstraint>
         </Association>
@@ -887,9 +956,7 @@
           </ReferentialConstraint>
         </Association>
         <Association Name="FK_RatingContext_BilletTitle">
-          <End Role="Job" Type="Self.Job" Multiplicity="0..1">
-            <OnDelete Action="Cascade" />
-          </End>
+          <End Role="Job" Type="Self.Job" Multiplicity="0..1" />
           <End Role="RatingContext" Type="Self.RatingContext" Multiplicity="*" />
           <ReferentialConstraint>
             <Principal Role="Job">
@@ -901,9 +968,7 @@
           </ReferentialConstraint>
         </Association>
         <Association Name="FK_RatingContext_ClusterAnalysis">
-          <End Role="ClusterAnalysis" Type="Self.ClusterAnalysis" Multiplicity="0..1">
-            <OnDelete Action="Cascade" />
-          </End>
+          <End Role="ClusterAnalysis" Type="Self.ClusterAnalysis" Multiplicity="0..1" />
           <End Role="RatingContext" Type="Self.RatingContext" Multiplicity="*" />
           <ReferentialConstraint>
             <Principal Role="ClusterAnalysis">
@@ -914,10 +979,20 @@
             </Dependent>
           </ReferentialConstraint>
         </Association>
+        <Association Name="FK_RatingContext_CourseContext">
+          <End Role="CourseContext" Type="Self.CourseContext" Multiplicity="0..1" />
+          <End Role="RatingContext" Type="Self.RatingContext" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="CourseContext">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="RatingContext">
+              <PropertyRef Name="CourseContextId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
         <Association Name="FK_RatingContext_Rank">
-          <End Role="ConceptScheme_Concept" Type="Self.ConceptScheme_Concept" Multiplicity="1">
-            <OnDelete Action="Cascade" />
-          </End>
+          <End Role="ConceptScheme_Concept" Type="Self.ConceptScheme_Concept" Multiplicity="1" />
           <End Role="RatingContext" Type="Self.RatingContext" Multiplicity="*" />
           <ReferentialConstraint>
             <Principal Role="ConceptScheme_Concept">
@@ -928,10 +1003,20 @@
             </Dependent>
           </ReferentialConstraint>
         </Association>
+        <Association Name="FK_RatingContext_RankLevel">
+          <End Role="ConceptScheme_Concept" Type="Self.ConceptScheme_Concept" Multiplicity="0..1" />
+          <End Role="RatingContext" Type="Self.RatingContext" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="ConceptScheme_Concept">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="RatingContext">
+              <PropertyRef Name="PayGradeLevelTypeId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
         <Association Name="FK_RatingContext_Rating">
-          <End Role="Rating" Type="Self.Rating" Multiplicity="1">
-            <OnDelete Action="Cascade" />
-          </End>
+          <End Role="Rating" Type="Self.Rating" Multiplicity="1" />
           <End Role="RatingContext" Type="Self.RatingContext" Multiplicity="*" />
           <ReferentialConstraint>
             <Principal Role="Rating">
@@ -943,9 +1028,7 @@
           </ReferentialConstraint>
         </Association>
         <Association Name="FK_RatingContext_RatingTask">
-          <End Role="RatingTask" Type="Self.RatingTask" Multiplicity="1">
-            <OnDelete Action="Cascade" />
-          </End>
+          <End Role="RatingTask" Type="Self.RatingTask" Multiplicity="1" />
           <End Role="RatingContext" Type="Self.RatingContext" Multiplicity="*" />
           <ReferentialConstraint>
             <Principal Role="RatingTask">
@@ -980,29 +1063,15 @@
             </Dependent>
           </ReferentialConstraint>
         </Association>
-        <Association Name="FK_RatingContext_TrainingTask">
-          <End Role="TrainingTask" Type="Self.TrainingTask" Multiplicity="0..1">
-            <OnDelete Action="Cascade" />
-          </End>
-          <End Role="RatingContext" Type="Self.RatingContext" Multiplicity="*" />
+        <Association Name="FK_RatingTask_ReferenceType">
+          <End Role="ConceptScheme_Concept" Type="Self.ConceptScheme_Concept" Multiplicity="1" />
+          <End Role="RatingTask" Type="Self.RatingTask" Multiplicity="*" />
           <ReferentialConstraint>
-            <Principal Role="TrainingTask">
+            <Principal Role="ConceptScheme_Concept">
               <PropertyRef Name="Id" />
             </Principal>
-            <Dependent Role="RatingContext">
-              <PropertyRef Name="TrainingTaskId" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
-        <Association Name="FK_RatingContext_WorkRole">
-          <End Role="WorkRole" Type="Self.WorkRole" Multiplicity="0..1" />
-          <End Role="RatingContext" Type="Self.RatingContext" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="WorkRole">
-              <PropertyRef Name="Id" />
-            </Principal>
-            <Dependent Role="RatingContext">
-              <PropertyRef Name="WorkRoleId" />
+            <Dependent Role="RatingTask">
+              <PropertyRef Name="ReferenceTypeId" />
             </Dependent>
           </ReferentialConstraint>
         </Association>
@@ -1040,6 +1109,18 @@
               <PropertyRef Name="Id" />
             </Principal>
             <Dependent Role="ReferenceResource_ReferenceType">
+              <PropertyRef Name="ReferenceResourceId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_ReferenceResource_TrainingTask">
+          <End Role="ReferenceResource" Type="Self.ReferenceResource" Multiplicity="0..1" />
+          <End Role="TrainingTask" Type="Self.TrainingTask" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="ReferenceResource">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="TrainingTask">
               <PropertyRef Name="ReferenceResourceId" />
             </Dependent>
           </ReferentialConstraint>
@@ -1116,8 +1197,24 @@
             <End Role="ClusterAnalysisTitle" EntitySet="ClusterAnalysisTitle" />
             <End Role="ClusterAnalysis" EntitySet="ClusterAnalysis" />
           </AssociationSet>
+          <AssociationSet Name="FK_ClusterAnalysis_DevelopmentRatio_Concept" Association="Self.FK_ClusterAnalysis_DevelopmentRatio_Concept">
+            <End Role="ConceptScheme_Concept" EntitySet="ConceptScheme_Concept" />
+            <End Role="ClusterAnalysis" EntitySet="ClusterAnalysis" />
+          </AssociationSet>
           <AssociationSet Name="FK_ClusterAnalysis_DevSpecificationConcept" Association="Self.FK_ClusterAnalysis_DevSpecificationConcept">
             <End Role="ConceptScheme_Concept" EntitySet="ConceptScheme_Concept" />
+            <End Role="ClusterAnalysis" EntitySet="ClusterAnalysis" />
+          </AssociationSet>
+          <AssociationSet Name="FK_ClusterAnalysis_Job" Association="Self.FK_ClusterAnalysis_Job">
+            <End Role="Job" EntitySet="Job" />
+            <End Role="ClusterAnalysis" EntitySet="ClusterAnalysis" />
+          </AssociationSet>
+          <AssociationSet Name="FK_ClusterAnalysis_Rating" Association="Self.FK_ClusterAnalysis_Rating">
+            <End Role="Rating" EntitySet="Rating" />
+            <End Role="ClusterAnalysis" EntitySet="ClusterAnalysis" />
+          </AssociationSet>
+          <AssociationSet Name="FK_ClusterAnalysis_RatingTask" Association="Self.FK_ClusterAnalysis_RatingTask">
+            <End Role="RatingTask" EntitySet="RatingTask" />
             <End Role="ClusterAnalysis" EntitySet="ClusterAnalysis" />
           </AssociationSet>
           <AssociationSet Name="FK_ClusterAnalysis_RecommendedModality_Concept" Association="Self.FK_ClusterAnalysis_RecommendedModality_Concept">
@@ -1128,6 +1225,10 @@
             <End Role="ConceptScheme_Concept" EntitySet="ConceptScheme_Concept" />
             <End Role="ClusterAnalysis" EntitySet="ClusterAnalysis" />
           </AssociationSet>
+          <AssociationSet Name="FK_ClusterAnalysis_WorkRole" Association="Self.FK_ClusterAnalysis_WorkRole">
+            <End Role="WorkRole" EntitySet="WorkRole" />
+            <End Role="ClusterAnalysis" EntitySet="ClusterAnalysis" />
+          </AssociationSet>
           <AssociationSet Name="FK_Comment_RMTLProject" Association="Self.FK_Comment_RMTLProject">
             <End Role="RMTLProject" EntitySet="RMTLProject" />
             <End Role="Comment" EntitySet="Comment" />
@@ -1136,11 +1237,11 @@
             <End Role="ConceptScheme" EntitySet="ConceptScheme" />
             <End Role="ConceptScheme_Concept" EntitySet="ConceptScheme_Concept" />
           </AssociationSet>
-          <AssociationSet Name="FK_ConceptScheme__AccountCreatedBy" Association="Self.FK_ConceptScheme__AccountCreatedBy">
+          <AssociationSet Name="FK_ConceptScheme_AccountApprovedBy" Association="Self.FK_ConceptScheme_AccountApprovedBy">
             <End Role="Account" EntitySet="Account" />
             <End Role="ConceptScheme" EntitySet="ConceptScheme" />
           </AssociationSet>
-          <AssociationSet Name="FK_ConceptScheme_AccountApprovedBy" Association="Self.FK_ConceptScheme_AccountApprovedBy">
+          <AssociationSet Name="FK_ConceptScheme_AccountCreatedBy" Association="Self.FK_ConceptScheme_AccountCreatedBy">
             <End Role="Account" EntitySet="Account" />
             <End Role="ConceptScheme" EntitySet="ConceptScheme" />
           </AssociationSet>
@@ -1200,7 +1301,15 @@
             <End Role="ClusterAnalysis" EntitySet="ClusterAnalysis" />
             <End Role="RatingContext" EntitySet="RatingContext" />
           </AssociationSet>
+          <AssociationSet Name="FK_RatingContext_CourseContext" Association="Self.FK_RatingContext_CourseContext">
+            <End Role="CourseContext" EntitySet="CourseContext" />
+            <End Role="RatingContext" EntitySet="RatingContext" />
+          </AssociationSet>
           <AssociationSet Name="FK_RatingContext_Rank" Association="Self.FK_RatingContext_Rank">
+            <End Role="ConceptScheme_Concept" EntitySet="ConceptScheme_Concept" />
+            <End Role="RatingContext" EntitySet="RatingContext" />
+          </AssociationSet>
+          <AssociationSet Name="FK_RatingContext_RankLevel" Association="Self.FK_RatingContext_RankLevel">
             <End Role="ConceptScheme_Concept" EntitySet="ConceptScheme_Concept" />
             <End Role="RatingContext" EntitySet="RatingContext" />
           </AssociationSet>
@@ -1220,13 +1329,9 @@
             <End Role="ConceptScheme_Concept" EntitySet="ConceptScheme_Concept" />
             <End Role="RatingContext" EntitySet="RatingContext" />
           </AssociationSet>
-          <AssociationSet Name="FK_RatingContext_TrainingTask" Association="Self.FK_RatingContext_TrainingTask">
-            <End Role="TrainingTask" EntitySet="TrainingTask" />
-            <End Role="RatingContext" EntitySet="RatingContext" />
-          </AssociationSet>
-          <AssociationSet Name="FK_RatingContext_WorkRole" Association="Self.FK_RatingContext_WorkRole">
-            <End Role="WorkRole" EntitySet="WorkRole" />
-            <End Role="RatingContext" EntitySet="RatingContext" />
+          <AssociationSet Name="FK_RatingTask_ReferenceType" Association="Self.FK_RatingTask_ReferenceType">
+            <End Role="ConceptScheme_Concept" EntitySet="ConceptScheme_Concept" />
+            <End Role="RatingTask" EntitySet="RatingTask" />
           </AssociationSet>
           <AssociationSet Name="FK_RatingTask_to_ReferenceResource" Association="Self.FK_RatingTask_to_ReferenceResource">
             <End Role="ReferenceResource" EntitySet="ReferenceResource" />
@@ -1240,23 +1345,18 @@
             <End Role="ReferenceResource" EntitySet="ReferenceResource" />
             <End Role="ReferenceResource_ReferenceType" EntitySet="ReferenceResource_ReferenceType" />
           </AssociationSet>
+          <AssociationSet Name="FK_ReferenceResource_TrainingTask" Association="Self.FK_ReferenceResource_TrainingTask">
+            <End Role="ReferenceResource" EntitySet="ReferenceResource" />
+            <End Role="TrainingTask" EntitySet="TrainingTask" />
+          </AssociationSet>
         </EntityContainer>
       </Schema></edmx:StorageModels>
     <!-- CSDL content -->
     <edmx:ConceptualModels>
       <Schema Namespace="NavyRRLModel" Alias="Self" annotation:UseStrongSpatialTypes="false" xmlns:annotation="http://schemas.microsoft.com/ado/2009/02/edm/annotation" xmlns:customannotation="http://schemas.microsoft.com/ado/2013/11/edm/customannotation" xmlns="http://schemas.microsoft.com/ado/2009/11/edm">
         <EntityContainer Name="NavyRRLEntities" annotation:LazyLoadingEnabled="true">
-          <EntitySet Name="ClusterAnalysis" EntityType="NavyRRLModel.ClusterAnalysis" />
           <EntitySet Name="ClusterAnalysis_HasCandidatePlatform" EntityType="NavyRRLModel.ClusterAnalysis_HasCandidatePlatform" />
           <EntitySet Name="ClusterAnalysisTitle" EntityType="NavyRRLModel.ClusterAnalysisTitle" />
-          <AssociationSet Name="FK_ClusterAnalysis_ClusterAnalysisTitle" Association="NavyRRLModel.FK_ClusterAnalysis_ClusterAnalysisTitle">
-            <End Role="ClusterAnalysisTitle" EntitySet="ClusterAnalysisTitle" />
-            <End Role="ClusterAnalysis" EntitySet="ClusterAnalysis" />
-          </AssociationSet>
-          <AssociationSet Name="FK_HasCandidatePlatform_ClusterAnalysis" Association="NavyRRLModel.FK_HasCandidatePlatform_ClusterAnalysis">
-            <End Role="ClusterAnalysis" EntitySet="ClusterAnalysis" />
-            <End Role="ClusterAnalysis_HasCandidatePlatform" EntitySet="ClusterAnalysis_HasCandidatePlatform" />
-          </AssociationSet>
           <EntitySet Name="ActivityLog" EntityType="NavyRRLModel.ActivityLog" />
           <EntitySet Name="AppFunctionPermission" EntityType="NavyRRLModel.AppFunctionPermission" />
           <EntitySet Name="ApplicationFunction" EntityType="NavyRRLModel.ApplicationFunction" />
@@ -1265,7 +1365,6 @@
           <EntitySet Name="AspNetRoles" EntityType="NavyRRLModel.AspNetRoles" />
           <EntitySet Name="AspNetUserRoles" EntityType="NavyRRLModel.AspNetUserRoles" />
           <EntitySet Name="AspNetUsers" EntityType="NavyRRLModel.AspNetUsers" />
-          <EntitySet Name="ConceptScheme" EntityType="NavyRRLModel.ConceptScheme" />
           <EntitySet Name="ConceptScheme_Concept" EntityType="NavyRRLModel.ConceptScheme_Concept" />
           <AssociationSet Name="FK_AppFunctionPermission_ApplicationFunction" Association="NavyRRLModel.FK_AppFunctionPermission_ApplicationFunction">
             <End Role="ApplicationFunction" EntitySet="ApplicationFunction" />
@@ -1291,29 +1390,9 @@
             <End Role="AspNetUsers" EntitySet="AspNetUsers" />
             <End Role="AspNetUsers1" EntitySet="AspNetUsers" />
           </AssociationSet>
-          <AssociationSet Name="FK_ClusterAnalysis_CFMPlacement_Concept" Association="NavyRRLModel.FK_ClusterAnalysis_CFMPlacement_Concept">
-            <End Role="ConceptScheme_Concept" EntitySet="ConceptScheme_Concept" />
-            <End Role="ClusterAnalysis" EntitySet="ClusterAnalysis" />
-          </AssociationSet>
-          <AssociationSet Name="FK_ClusterAnalysis_DevSpecificationConcept" Association="NavyRRLModel.FK_ClusterAnalysis_DevSpecificationConcept">
-            <End Role="ConceptScheme_Concept" EntitySet="ConceptScheme_Concept" />
-            <End Role="ClusterAnalysis" EntitySet="ClusterAnalysis" />
-          </AssociationSet>
-          <AssociationSet Name="FK_ClusterAnalysis_RecommendedModality_Concept" Association="NavyRRLModel.FK_ClusterAnalysis_RecommendedModality_Concept">
-            <End Role="ConceptScheme_Concept" EntitySet="ConceptScheme_Concept" />
-            <End Role="ClusterAnalysis" EntitySet="ClusterAnalysis" />
-          </AssociationSet>
-          <AssociationSet Name="FK_ClusterAnalysis_TrainingSolution_Concept" Association="NavyRRLModel.FK_ClusterAnalysis_TrainingSolution_Concept">
-            <End Role="ConceptScheme_Concept" EntitySet="ConceptScheme_Concept" />
-            <End Role="ClusterAnalysis" EntitySet="ClusterAnalysis" />
-          </AssociationSet>
           <AssociationSet Name="FK_HasCandidatePlatform_CandidatePlatform_Concept" Association="NavyRRLModel.FK_HasCandidatePlatform_CandidatePlatform_Concept">
             <End Role="ConceptScheme_Concept" EntitySet="ConceptScheme_Concept" />
             <End Role="ClusterAnalysis_HasCandidatePlatform" EntitySet="ClusterAnalysis_HasCandidatePlatform" />
-          </AssociationSet>
-          <AssociationSet Name="FK_ConceptScheme_Concept_ConceptScheme" Association="NavyRRLModel.FK_ConceptScheme_Concept_ConceptScheme">
-            <End Role="ConceptScheme" EntitySet="ConceptScheme" />
-            <End Role="ConceptScheme_Concept" EntitySet="ConceptScheme_Concept" />
           </AssociationSet>
           <EntitySet Name="Account" EntityType="NavyRRLModel.Account" />
           <EntitySet Name="Comment" EntityType="NavyRRLModel.Comment" />
@@ -1328,22 +1407,6 @@
           <AssociationSet Name="FK_ApplicationUserRole_Account" Association="NavyRRLModel.FK_ApplicationUserRole_Account">
             <End Role="Account" EntitySet="Account" />
             <End Role="ApplicationUserRole" EntitySet="ApplicationUserRole" />
-          </AssociationSet>
-          <AssociationSet Name="FK_ConceptScheme__AccountCreatedBy" Association="NavyRRLModel.FK_ConceptScheme__AccountCreatedBy">
-            <End Role="Account" EntitySet="Account" />
-            <End Role="ConceptScheme" EntitySet="ConceptScheme" />
-          </AssociationSet>
-          <AssociationSet Name="FK_ConceptScheme_AccountApprovedBy" Association="NavyRRLModel.FK_ConceptScheme_AccountApprovedBy">
-            <End Role="Account" EntitySet="Account" />
-            <End Role="ConceptScheme" EntitySet="ConceptScheme" />
-          </AssociationSet>
-          <AssociationSet Name="FK_ConceptScheme_AccountLastUpdatedBy" Association="NavyRRLModel.FK_ConceptScheme_AccountLastUpdatedBy">
-            <End Role="Account" EntitySet="Account" />
-            <End Role="ConceptScheme" EntitySet="ConceptScheme" />
-          </AssociationSet>
-          <AssociationSet Name="FK_ConceptScheme_AccountPublishedBy" Association="NavyRRLModel.FK_ConceptScheme_AccountPublishedBy">
-            <End Role="Account" EntitySet="Account" />
-            <End Role="ConceptScheme" EntitySet="ConceptScheme" />
           </AssociationSet>
           <AssociationSet Name="FK_CourseContext_AssessmentType_Concept" Association="NavyRRLModel.FK_CourseContext_AssessmentType_Concept">
             <End Role="ConceptScheme_Concept" EntitySet="ConceptScheme_Concept" />
@@ -1374,16 +1437,11 @@
           <EntitySet Name="Organization" EntityType="NavyRRLModel.Organization" />
           <EntitySet Name="Rating" EntityType="NavyRRLModel.Rating" />
           <EntitySet Name="RatingContext" EntityType="NavyRRLModel.RatingContext" />
-          <EntitySet Name="RatingTask" EntityType="NavyRRLModel.RatingTask" />
           <EntitySet Name="ReferenceResource" EntityType="NavyRRLModel.ReferenceResource" />
           <EntitySet Name="ReferenceResource_ReferenceType" EntityType="NavyRRLModel.ReferenceResource_ReferenceType" />
           <EntitySet Name="RMTLProject" EntityType="NavyRRLModel.RMTLProject" />
           <EntitySet Name="TrainingTask" EntityType="NavyRRLModel.TrainingTask" />
           <EntitySet Name="WorkRole" EntityType="NavyRRLModel.WorkRole" />
-          <AssociationSet Name="FK_RatingContext_ClusterAnalysis" Association="NavyRRLModel.FK_RatingContext_ClusterAnalysis">
-            <End Role="ClusterAnalysis" EntitySet="ClusterAnalysis" />
-            <End Role="RatingContext" EntitySet="RatingContext" />
-          </AssociationSet>
           <AssociationSet Name="FK_Comment_RMTLProject" Association="NavyRRLModel.FK_Comment_RMTLProject">
             <End Role="RMTLProject" EntitySet="RMTLProject" />
             <End Role="Comment" EntitySet="Comment" />
@@ -1420,57 +1478,111 @@
             <End Role="Rating" EntitySet="Rating" />
             <End Role="RatingContext" EntitySet="RatingContext" />
           </AssociationSet>
-          <AssociationSet Name="FK_RatingContext_RatingTask" Association="NavyRRLModel.FK_RatingContext_RatingTask">
-            <End Role="RatingTask" EntitySet="RatingTask" />
-            <End Role="RatingContext" EntitySet="RatingContext" />
-          </AssociationSet>
-          <AssociationSet Name="FK_RatingContext_TrainingTask" Association="NavyRRLModel.FK_RatingContext_TrainingTask">
-            <End Role="TrainingTask" EntitySet="TrainingTask" />
-            <End Role="RatingContext" EntitySet="RatingContext" />
-          </AssociationSet>
           <AssociationSet Name="FK_RatingContext_WorkRole" Association="NavyRRLModel.FK_RatingContext_WorkRole">
             <End Role="WorkRole" EntitySet="WorkRole" />
             <End Role="RatingContext" EntitySet="RatingContext" />
-          </AssociationSet>
-          <AssociationSet Name="FK_RatingTask_to_ReferenceResource" Association="NavyRRLModel.FK_RatingTask_to_ReferenceResource">
-            <End Role="ReferenceResource" EntitySet="ReferenceResource" />
-            <End Role="RatingTask" EntitySet="RatingTask" />
           </AssociationSet>
           <AssociationSet Name="FK_ReferenceResource_ReferenceType_ReferenceResource" Association="NavyRRLModel.FK_ReferenceResource_ReferenceType_ReferenceResource">
             <End Role="ReferenceResource" EntitySet="ReferenceResource" />
             <End Role="ReferenceResource_ReferenceType" EntitySet="ReferenceResource_ReferenceType" />
           </AssociationSet>
           <EntitySet Name="System_ProxyCodes" EntityType="NavyRRLModel.System_ProxyCodes" />
-        </EntityContainer>
-        <EntityType Name="ClusterAnalysis">
-          <Key>
-            <PropertyRef Name="Id" />
-          </Key>
-          <Property Name="Id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
-          <Property Name="RowId" Type="Guid" Nullable="false" />
-          <Property Name="TrainingSolutionTypeId" Type="Int32" />
-          <Property Name="ClusterAnalysisTitleId" Type="Int32" />
-          <Property Name="RecommendedModalityId" Type="Int32" />
-          <Property Name="DevelopmentSpecificationId" Type="Int32" />
-          <Property Name="CFMPlacementId" Type="Int32" />
-          <Property Name="PriorityPlacement" Type="Int32" />
-          <Property Name="DevelopmentRatio" Type="String" MaxLength="500" FixedLength="false" Unicode="false" />
-          <Property Name="EstimatedInstructionalTime" Type="Decimal" Precision="9" Scale="2" />
-          <Property Name="DevelopmentTime" Type="Decimal" Precision="9" Scale="2" />
-          <Property Name="CTID" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
-          <Property Name="Notes" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
-          <Property Name="Created" Type="DateTime" Nullable="false" Precision="3" />
-          <Property Name="CreatedById" Type="Int32" />
-          <Property Name="LastUpdated" Type="DateTime" Nullable="false" Precision="3" />
-          <Property Name="LastUpdatedById" Type="Int32" />
-          <NavigationProperty Name="ClusterAnalysisTitle" Relationship="NavyRRLModel.FK_ClusterAnalysis_ClusterAnalysisTitle" FromRole="ClusterAnalysis" ToRole="ClusterAnalysisTitle" />
-          <NavigationProperty Name="ClusterAnalysis_HasCandidatePlatform" Relationship="NavyRRLModel.FK_HasCandidatePlatform_ClusterAnalysis" FromRole="ClusterAnalysis" ToRole="ClusterAnalysis_HasCandidatePlatform" />
-          <NavigationProperty Name="ConceptScheme_Concept" Relationship="NavyRRLModel.FK_ClusterAnalysis_CFMPlacement_Concept" FromRole="ClusterAnalysis" ToRole="ConceptScheme_Concept" />
-          <NavigationProperty Name="ConceptScheme_Concept1" Relationship="NavyRRLModel.FK_ClusterAnalysis_DevSpecificationConcept" FromRole="ClusterAnalysis" ToRole="ConceptScheme_Concept" />
-          <NavigationProperty Name="ConceptScheme_Concept2" Relationship="NavyRRLModel.FK_ClusterAnalysis_RecommendedModality_Concept" FromRole="ClusterAnalysis" ToRole="ConceptScheme_Concept" />
-          <NavigationProperty Name="ConceptScheme_Concept3" Relationship="NavyRRLModel.FK_ClusterAnalysis_TrainingSolution_Concept" FromRole="ClusterAnalysis" ToRole="ConceptScheme_Concept" />
-          <NavigationProperty Name="RatingContext" Relationship="NavyRRLModel.FK_RatingContext_ClusterAnalysis" FromRole="ClusterAnalysis" ToRole="RatingContext" />
-        </EntityType>
+          <AssociationSet Name="FK_RatingContext_CourseContext" Association="NavyRRLModel.FK_RatingContext_CourseContext">
+            <End Role="CourseContext" EntitySet="CourseContext" />
+            <End Role="RatingContext" EntitySet="RatingContext" />
+          </AssociationSet>
+          <AssociationSet Name="FK_ReferenceResource_TrainingTask" Association="NavyRRLModel.FK_ReferenceResource_TrainingTask">
+            <End Role="ReferenceResource" EntitySet="ReferenceResource" />
+            <End Role="TrainingTask" EntitySet="TrainingTask" />
+          </AssociationSet>
+          <EntitySet Name="ConceptScheme" EntityType="NavyRRLModel.ConceptScheme" />
+          <AssociationSet Name="FK_ConceptScheme_AccountApprovedBy" Association="NavyRRLModel.FK_ConceptScheme_AccountApprovedBy">
+            <End Role="Account" EntitySet="Account" />
+            <End Role="ConceptScheme" EntitySet="ConceptScheme" />
+          </AssociationSet>
+          <AssociationSet Name="FK_ConceptScheme_AccountCreatedBy" Association="NavyRRLModel.FK_ConceptScheme_AccountCreatedBy">
+            <End Role="Account" EntitySet="Account" />
+            <End Role="ConceptScheme" EntitySet="ConceptScheme" />
+          </AssociationSet>
+          <AssociationSet Name="FK_ConceptScheme_AccountLastUpdatedBy" Association="NavyRRLModel.FK_ConceptScheme_AccountLastUpdatedBy">
+            <End Role="Account" EntitySet="Account" />
+            <End Role="ConceptScheme" EntitySet="ConceptScheme" />
+          </AssociationSet>
+          <AssociationSet Name="FK_ConceptScheme_AccountPublishedBy" Association="NavyRRLModel.FK_ConceptScheme_AccountPublishedBy">
+            <End Role="Account" EntitySet="Account" />
+            <End Role="ConceptScheme" EntitySet="ConceptScheme" />
+          </AssociationSet>
+          <AssociationSet Name="FK_ConceptScheme_Concept_ConceptScheme" Association="NavyRRLModel.FK_ConceptScheme_Concept_ConceptScheme">
+            <End Role="ConceptScheme" EntitySet="ConceptScheme" />
+            <End Role="ConceptScheme_Concept" EntitySet="ConceptScheme_Concept" />
+          </AssociationSet>
+          <AssociationSet Name="FK_RatingContext_RankLevel" Association="NavyRRLModel.FK_RatingContext_RankLevel">
+            <End Role="ConceptScheme_Concept" EntitySet="ConceptScheme_Concept" />
+            <End Role="RatingContext" EntitySet="RatingContext" />
+          </AssociationSet>
+          <EntitySet Name="ClusterAnalysis" EntityType="NavyRRLModel.ClusterAnalysis" />
+          <EntitySet Name="RatingTask" EntityType="NavyRRLModel.RatingTask" />
+          <AssociationSet Name="FK_ClusterAnalysis_CFMPlacement_Concept" Association="NavyRRLModel.FK_ClusterAnalysis_CFMPlacement_Concept">
+            <End Role="ConceptScheme_Concept" EntitySet="ConceptScheme_Concept" />
+            <End Role="ClusterAnalysis" EntitySet="ClusterAnalysis" />
+          </AssociationSet>
+          <AssociationSet Name="FK_ClusterAnalysis_ClusterAnalysisTitle" Association="NavyRRLModel.FK_ClusterAnalysis_ClusterAnalysisTitle">
+            <End Role="ClusterAnalysisTitle" EntitySet="ClusterAnalysisTitle" />
+            <End Role="ClusterAnalysis" EntitySet="ClusterAnalysis" />
+          </AssociationSet>
+          <AssociationSet Name="FK_ClusterAnalysis_DevelopmentRatio_Concept" Association="NavyRRLModel.FK_ClusterAnalysis_DevelopmentRatio_Concept">
+            <End Role="ConceptScheme_Concept" EntitySet="ConceptScheme_Concept" />
+            <End Role="ClusterAnalysis" EntitySet="ClusterAnalysis" />
+          </AssociationSet>
+          <AssociationSet Name="FK_ClusterAnalysis_DevSpecificationConcept" Association="NavyRRLModel.FK_ClusterAnalysis_DevSpecificationConcept">
+            <End Role="ConceptScheme_Concept" EntitySet="ConceptScheme_Concept" />
+            <End Role="ClusterAnalysis" EntitySet="ClusterAnalysis" />
+          </AssociationSet>
+          <AssociationSet Name="FK_ClusterAnalysis_Job" Association="NavyRRLModel.FK_ClusterAnalysis_Job">
+            <End Role="Job" EntitySet="Job" />
+            <End Role="ClusterAnalysis" EntitySet="ClusterAnalysis" />
+          </AssociationSet>
+          <AssociationSet Name="FK_ClusterAnalysis_Rating" Association="NavyRRLModel.FK_ClusterAnalysis_Rating">
+            <End Role="Rating" EntitySet="Rating" />
+            <End Role="ClusterAnalysis" EntitySet="ClusterAnalysis" />
+          </AssociationSet>
+          <AssociationSet Name="FK_ClusterAnalysis_RatingTask" Association="NavyRRLModel.FK_ClusterAnalysis_RatingTask">
+            <End Role="RatingTask" EntitySet="RatingTask" />
+            <End Role="ClusterAnalysis" EntitySet="ClusterAnalysis" />
+          </AssociationSet>
+          <AssociationSet Name="FK_ClusterAnalysis_RecommendedModality_Concept" Association="NavyRRLModel.FK_ClusterAnalysis_RecommendedModality_Concept">
+            <End Role="ConceptScheme_Concept" EntitySet="ConceptScheme_Concept" />
+            <End Role="ClusterAnalysis" EntitySet="ClusterAnalysis" />
+          </AssociationSet>
+          <AssociationSet Name="FK_ClusterAnalysis_TrainingSolution_Concept" Association="NavyRRLModel.FK_ClusterAnalysis_TrainingSolution_Concept">
+            <End Role="ConceptScheme_Concept" EntitySet="ConceptScheme_Concept" />
+            <End Role="ClusterAnalysis" EntitySet="ClusterAnalysis" />
+          </AssociationSet>
+          <AssociationSet Name="FK_ClusterAnalysis_WorkRole" Association="NavyRRLModel.FK_ClusterAnalysis_WorkRole">
+            <End Role="WorkRole" EntitySet="WorkRole" />
+            <End Role="ClusterAnalysis" EntitySet="ClusterAnalysis" />
+          </AssociationSet>
+          <AssociationSet Name="FK_HasCandidatePlatform_ClusterAnalysis" Association="NavyRRLModel.FK_HasCandidatePlatform_ClusterAnalysis">
+            <End Role="ClusterAnalysis" EntitySet="ClusterAnalysis" />
+            <End Role="ClusterAnalysis_HasCandidatePlatform" EntitySet="ClusterAnalysis_HasCandidatePlatform" />
+          </AssociationSet>
+          <AssociationSet Name="FK_RatingContext_ClusterAnalysis" Association="NavyRRLModel.FK_RatingContext_ClusterAnalysis">
+            <End Role="ClusterAnalysis" EntitySet="ClusterAnalysis" />
+            <End Role="RatingContext" EntitySet="RatingContext" />
+          </AssociationSet>
+          <AssociationSet Name="FK_RatingTask_ReferenceType" Association="NavyRRLModel.FK_RatingTask_ReferenceType">
+            <End Role="ConceptScheme_Concept" EntitySet="ConceptScheme_Concept" />
+            <End Role="RatingTask" EntitySet="RatingTask" />
+          </AssociationSet>
+          <AssociationSet Name="FK_RatingContext_RatingTask" Association="NavyRRLModel.FK_RatingContext_RatingTask">
+            <End Role="RatingTask" EntitySet="RatingTask" />
+            <End Role="RatingContext" EntitySet="RatingContext" />
+          </AssociationSet>
+          <AssociationSet Name="FK_RatingTask_to_ReferenceResource" Association="NavyRRLModel.FK_RatingTask_to_ReferenceResource">
+            <End Role="ReferenceResource" EntitySet="ReferenceResource" />
+            <End Role="RatingTask" EntitySet="RatingTask" />
+          </AssociationSet>
+          </EntityContainer>
         <EntityType Name="ClusterAnalysis_HasCandidatePlatform">
           <Key>
             <PropertyRef Name="Id" />
@@ -1481,8 +1593,8 @@
           <Property Name="CandidatePlatformConceptId" Type="Int32" Nullable="false" />
           <Property Name="Created" Type="DateTime" Nullable="false" Precision="3" />
           <Property Name="CreatedById" Type="Int32" />
-          <NavigationProperty Name="ClusterAnalysis" Relationship="NavyRRLModel.FK_HasCandidatePlatform_ClusterAnalysis" FromRole="ClusterAnalysis_HasCandidatePlatform" ToRole="ClusterAnalysis" />
           <NavigationProperty Name="ConceptScheme_Concept" Relationship="NavyRRLModel.FK_HasCandidatePlatform_CandidatePlatform_Concept" FromRole="ClusterAnalysis_HasCandidatePlatform" ToRole="ConceptScheme_Concept" />
+          <NavigationProperty Name="ClusterAnalysis" Relationship="NavyRRLModel.FK_HasCandidatePlatform_ClusterAnalysis" FromRole="ClusterAnalysis_HasCandidatePlatform" ToRole="ClusterAnalysis" />
         </EntityType>
         <EntityType Name="ClusterAnalysisTitle">
           <Key>
@@ -1498,33 +1610,7 @@
           <Property Name="LastUpdated" Type="DateTime" Nullable="false" Precision="3" />
           <Property Name="LastUpdatedById" Type="Int32" />
           <NavigationProperty Name="ClusterAnalysis" Relationship="NavyRRLModel.FK_ClusterAnalysis_ClusterAnalysisTitle" FromRole="ClusterAnalysisTitle" ToRole="ClusterAnalysis" />
-        </EntityType>
-        <Association Name="FK_ClusterAnalysis_ClusterAnalysisTitle">
-          <End Type="NavyRRLModel.ClusterAnalysisTitle" Role="ClusterAnalysisTitle" Multiplicity="0..1" />
-          <End Type="NavyRRLModel.ClusterAnalysis" Role="ClusterAnalysis" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="ClusterAnalysisTitle">
-              <PropertyRef Name="Id" />
-            </Principal>
-            <Dependent Role="ClusterAnalysis">
-              <PropertyRef Name="ClusterAnalysisTitleId" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
-        <Association Name="FK_HasCandidatePlatform_ClusterAnalysis">
-          <End Type="NavyRRLModel.ClusterAnalysis" Role="ClusterAnalysis" Multiplicity="1">
-            <OnDelete Action="Cascade" />
-          </End>
-          <End Type="NavyRRLModel.ClusterAnalysis_HasCandidatePlatform" Role="ClusterAnalysis_HasCandidatePlatform" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="ClusterAnalysis">
-              <PropertyRef Name="Id" />
-            </Principal>
-            <Dependent Role="ClusterAnalysis_HasCandidatePlatform">
-              <PropertyRef Name="ClusterAnalysisId" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
+          </EntityType>
         <EntityType Name="ActivityLog">
           <Key>
             <PropertyRef Name="Id" />
@@ -1638,30 +1724,6 @@
           <NavigationProperty Name="AspNetUsers2" Relationship="NavyRRLModel.FK_AspNetUsers_AspNetUsers" FromRole="AspNetUsers1" ToRole="AspNetUsers" />
           <NavigationProperty Name="Account" Relationship="NavyRRLModel.FK_Account_AspNetUsers" FromRole="AspNetUsers" ToRole="Account" />
         </EntityType>
-        <EntityType Name="ConceptScheme">
-          <Key>
-            <PropertyRef Name="Id" />
-          </Key>
-          <Property Name="Id" Type="Int32" Nullable="false" />
-          <Property Name="Name" Type="String" Nullable="false" MaxLength="400" FixedLength="false" Unicode="true" />
-          <Property Name="Description" Type="String" MaxLength="Max" FixedLength="false" Unicode="false" />
-          <Property Name="RowId" Type="Guid" Nullable="false" />
-          <Property Name="CTID" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
-          <Property Name="SchemaUri" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
-          <Property Name="Created" Type="DateTime" Nullable="false" Precision="3" />
-          <Property Name="CreatedById" Type="Int32" Nullable="false" />
-          <Property Name="LastUpdated" Type="DateTime" Nullable="false" Precision="3" />
-          <Property Name="LastUpdatedById" Type="Int32" />
-          <Property Name="LastApproved" Type="DateTime" Precision="3" />
-          <Property Name="LastApprovedById" Type="Int32" />
-          <Property Name="LastPublished" Type="DateTime" Precision="3" />
-          <Property Name="LastPublishedById" Type="Int32" />
-          <NavigationProperty Name="ConceptScheme_Concept" Relationship="NavyRRLModel.FK_ConceptScheme_Concept_ConceptScheme" FromRole="ConceptScheme" ToRole="ConceptScheme_Concept" />
-          <NavigationProperty Name="Account" Relationship="NavyRRLModel.FK_ConceptScheme__AccountCreatedBy" FromRole="ConceptScheme" ToRole="Account" />
-          <NavigationProperty Name="Account1" Relationship="NavyRRLModel.FK_ConceptScheme_AccountApprovedBy" FromRole="ConceptScheme" ToRole="Account" />
-          <NavigationProperty Name="Account2" Relationship="NavyRRLModel.FK_ConceptScheme_AccountLastUpdatedBy" FromRole="ConceptScheme" ToRole="Account" />
-          <NavigationProperty Name="Account3" Relationship="NavyRRLModel.FK_ConceptScheme_AccountPublishedBy" FromRole="ConceptScheme" ToRole="Account" />
-        </EntityType>
         <EntityType Name="ConceptScheme_Concept">
           <Key>
             <PropertyRef Name="Id" />
@@ -1681,12 +1743,7 @@
           <Property Name="CreatedById" Type="Int32" />
           <Property Name="LastUpdated" Type="DateTime" Nullable="false" Precision="3" />
           <Property Name="LastUpdatedById" Type="Int32" />
-          <NavigationProperty Name="ClusterAnalysis" Relationship="NavyRRLModel.FK_ClusterAnalysis_CFMPlacement_Concept" FromRole="ConceptScheme_Concept" ToRole="ClusterAnalysis" />
-          <NavigationProperty Name="ClusterAnalysis1" Relationship="NavyRRLModel.FK_ClusterAnalysis_DevSpecificationConcept" FromRole="ConceptScheme_Concept" ToRole="ClusterAnalysis" />
-          <NavigationProperty Name="ClusterAnalysis2" Relationship="NavyRRLModel.FK_ClusterAnalysis_RecommendedModality_Concept" FromRole="ConceptScheme_Concept" ToRole="ClusterAnalysis" />
-          <NavigationProperty Name="ClusterAnalysis3" Relationship="NavyRRLModel.FK_ClusterAnalysis_TrainingSolution_Concept" FromRole="ConceptScheme_Concept" ToRole="ClusterAnalysis" />
           <NavigationProperty Name="ClusterAnalysis_HasCandidatePlatform" Relationship="NavyRRLModel.FK_HasCandidatePlatform_CandidatePlatform_Concept" FromRole="ConceptScheme_Concept" ToRole="ClusterAnalysis_HasCandidatePlatform" />
-          <NavigationProperty Name="ConceptScheme" Relationship="NavyRRLModel.FK_ConceptScheme_Concept_ConceptScheme" FromRole="ConceptScheme_Concept" ToRole="ConceptScheme" />
           <NavigationProperty Name="CourseContext_AssessmentType" Relationship="NavyRRLModel.FK_CourseContext_AssessmentType_Concept" FromRole="ConceptScheme_Concept" ToRole="CourseContext_AssessmentType" />
           <NavigationProperty Name="Course_CourseType" Relationship="NavyRRLModel.FK_CourseCourseType_Concept" FromRole="ConceptScheme_Concept" ToRole="Course_CourseType" />
           <NavigationProperty Name="Course" Relationship="NavyRRLModel.FK_CourseLCCD_LCCD_Concept" FromRole="ConceptScheme_Concept" ToRole="Course" />
@@ -1694,7 +1751,16 @@
           <NavigationProperty Name="RatingContext1" Relationship="NavyRRLModel.FK_RatingContext_TaskApplicability" FromRole="ConceptScheme_Concept" ToRole="RatingContext" />
           <NavigationProperty Name="RatingContext2" Relationship="NavyRRLModel.FK_RatingContext_TrainingGap" FromRole="ConceptScheme_Concept" ToRole="RatingContext" />
           <NavigationProperty Name="ReferenceResource_ReferenceType" Relationship="NavyRRLModel.FK_ReferenceResource_ReferenceType_ConceptScheme_Concept" FromRole="ConceptScheme_Concept" ToRole="ReferenceResource_ReferenceType" />
-        </EntityType>
+          <NavigationProperty Name="ConceptScheme" Relationship="NavyRRLModel.FK_ConceptScheme_Concept_ConceptScheme" FromRole="ConceptScheme_Concept" ToRole="ConceptScheme" />
+          <Property Name="BroadMatchId" Type="Int32" />
+          <NavigationProperty Name="RatingContext11" Relationship="NavyRRLModel.FK_RatingContext_RankLevel" FromRole="ConceptScheme_Concept" ToRole="RatingContext" />
+          <NavigationProperty Name="ClusterAnalysis" Relationship="NavyRRLModel.FK_ClusterAnalysis_CFMPlacement_Concept" FromRole="ConceptScheme_Concept" ToRole="ClusterAnalysis" />
+          <NavigationProperty Name="ClusterAnalysis1" Relationship="NavyRRLModel.FK_ClusterAnalysis_DevelopmentRatio_Concept" FromRole="ConceptScheme_Concept" ToRole="ClusterAnalysis" />
+          <NavigationProperty Name="ClusterAnalysis2" Relationship="NavyRRLModel.FK_ClusterAnalysis_DevSpecificationConcept" FromRole="ConceptScheme_Concept" ToRole="ClusterAnalysis" />
+          <NavigationProperty Name="ClusterAnalysis3" Relationship="NavyRRLModel.FK_ClusterAnalysis_RecommendedModality_Concept" FromRole="ConceptScheme_Concept" ToRole="ClusterAnalysis" />
+          <NavigationProperty Name="ClusterAnalysis4" Relationship="NavyRRLModel.FK_ClusterAnalysis_TrainingSolution_Concept" FromRole="ConceptScheme_Concept" ToRole="ClusterAnalysis" />
+          <NavigationProperty Name="RatingTask" Relationship="NavyRRLModel.FK_RatingTask_ReferenceType" FromRole="ConceptScheme_Concept" ToRole="RatingTask" />
+          </EntityType>
         <Association Name="FK_AppFunctionPermission_ApplicationFunction">
           <End Type="NavyRRLModel.ApplicationFunction" Role="ApplicationFunction" Multiplicity="1">
             <OnDelete Action="Cascade" />
@@ -1775,54 +1841,6 @@
             </Dependent>
           </ReferentialConstraint>
         </Association>
-        <Association Name="FK_ClusterAnalysis_CFMPlacement_Concept">
-          <End Type="NavyRRLModel.ConceptScheme_Concept" Role="ConceptScheme_Concept" Multiplicity="0..1" />
-          <End Type="NavyRRLModel.ClusterAnalysis" Role="ClusterAnalysis" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="ConceptScheme_Concept">
-              <PropertyRef Name="Id" />
-            </Principal>
-            <Dependent Role="ClusterAnalysis">
-              <PropertyRef Name="CFMPlacementId" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
-        <Association Name="FK_ClusterAnalysis_DevSpecificationConcept">
-          <End Type="NavyRRLModel.ConceptScheme_Concept" Role="ConceptScheme_Concept" Multiplicity="0..1" />
-          <End Type="NavyRRLModel.ClusterAnalysis" Role="ClusterAnalysis" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="ConceptScheme_Concept">
-              <PropertyRef Name="Id" />
-            </Principal>
-            <Dependent Role="ClusterAnalysis">
-              <PropertyRef Name="DevelopmentSpecificationId" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
-        <Association Name="FK_ClusterAnalysis_RecommendedModality_Concept">
-          <End Type="NavyRRLModel.ConceptScheme_Concept" Role="ConceptScheme_Concept" Multiplicity="0..1" />
-          <End Type="NavyRRLModel.ClusterAnalysis" Role="ClusterAnalysis" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="ConceptScheme_Concept">
-              <PropertyRef Name="Id" />
-            </Principal>
-            <Dependent Role="ClusterAnalysis">
-              <PropertyRef Name="RecommendedModalityId" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
-        <Association Name="FK_ClusterAnalysis_TrainingSolution_Concept">
-          <End Type="NavyRRLModel.ConceptScheme_Concept" Role="ConceptScheme_Concept" Multiplicity="0..1" />
-          <End Type="NavyRRLModel.ClusterAnalysis" Role="ClusterAnalysis" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="ConceptScheme_Concept">
-              <PropertyRef Name="Id" />
-            </Principal>
-            <Dependent Role="ClusterAnalysis">
-              <PropertyRef Name="TrainingSolutionTypeId" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
         <Association Name="FK_HasCandidatePlatform_CandidatePlatform_Concept">
           <End Type="NavyRRLModel.ConceptScheme_Concept" Role="ConceptScheme_Concept" Multiplicity="1" />
           <End Type="NavyRRLModel.ClusterAnalysis_HasCandidatePlatform" Role="ClusterAnalysis_HasCandidatePlatform" Multiplicity="*" />
@@ -1832,20 +1850,6 @@
             </Principal>
             <Dependent Role="ClusterAnalysis_HasCandidatePlatform">
               <PropertyRef Name="CandidatePlatformConceptId" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
-        <Association Name="FK_ConceptScheme_Concept_ConceptScheme">
-          <End Type="NavyRRLModel.ConceptScheme" Role="ConceptScheme" Multiplicity="1">
-            <OnDelete Action="Cascade" />
-          </End>
-          <End Type="NavyRRLModel.ConceptScheme_Concept" Role="ConceptScheme_Concept" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="ConceptScheme">
-              <PropertyRef Name="Id" />
-            </Principal>
-            <Dependent Role="ConceptScheme_Concept">
-              <PropertyRef Name="ConceptSchemeId" />
             </Dependent>
           </ReferentialConstraint>
         </Association>
@@ -1867,11 +1871,11 @@
           <Property Name="ExternalAccountIdentifier" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
           <NavigationProperty Name="AspNetUsers" Relationship="NavyRRLModel.FK_Account_AspNetUsers" FromRole="Account" ToRole="AspNetUsers" />
           <NavigationProperty Name="ApplicationUserRole" Relationship="NavyRRLModel.FK_ApplicationUserRole_Account" FromRole="Account" ToRole="ApplicationUserRole" />
-          <NavigationProperty Name="ConceptScheme" Relationship="NavyRRLModel.FK_ConceptScheme__AccountCreatedBy" FromRole="Account" ToRole="ConceptScheme" />
-          <NavigationProperty Name="ConceptScheme1" Relationship="NavyRRLModel.FK_ConceptScheme_AccountApprovedBy" FromRole="Account" ToRole="ConceptScheme" />
+          <NavigationProperty Name="ConceptScheme" Relationship="NavyRRLModel.FK_ConceptScheme_AccountApprovedBy" FromRole="Account" ToRole="ConceptScheme" />
+          <NavigationProperty Name="ConceptScheme1" Relationship="NavyRRLModel.FK_ConceptScheme_AccountCreatedBy" FromRole="Account" ToRole="ConceptScheme" />
           <NavigationProperty Name="ConceptScheme2" Relationship="NavyRRLModel.FK_ConceptScheme_AccountLastUpdatedBy" FromRole="Account" ToRole="ConceptScheme" />
           <NavigationProperty Name="ConceptScheme3" Relationship="NavyRRLModel.FK_ConceptScheme_AccountPublishedBy" FromRole="Account" ToRole="ConceptScheme" />
-        </EntityType>
+          </EntityType>
         <EntityType Name="Comment">
           <Key>
             <PropertyRef Name="Id" />
@@ -1920,7 +1924,7 @@
           <Property Name="CourseTypeConceptId" Type="Int32" Nullable="false" />
           <Property Name="Created" Type="DateTime" Nullable="false" Precision="3" />
           <Property Name="CreatedById" Type="Int32" />
-          <NavigationProperty Name="ConceptScheme_Concept" Relationship="NavyRRLModel.FK_CourseCourseType_Concept" FromRole="Course_CourseType" ToRole="ConceptScheme_Concept" />
+          <NavigationProperty Name="ConceptScheme_Concept_CourseType" Relationship="NavyRRLModel.FK_CourseCourseType_Concept" FromRole="Course_CourseType" ToRole="ConceptScheme_Concept" />
           <NavigationProperty Name="Course" Relationship="NavyRRLModel.FK_CourseCourseType_Course" FromRole="Course_CourseType" ToRole="Course" />
         </EntityType>
         <EntityType Name="CourseContext">
@@ -1938,6 +1942,8 @@
           <NavigationProperty Name="Course" Relationship="NavyRRLModel.FK_CourseContext_Course" FromRole="CourseContext" ToRole="Course" />
           <NavigationProperty Name="CourseContext_AssessmentType" Relationship="NavyRRLModel.FK_CourseContext_AssessmentType_CourseContext" FromRole="CourseContext" ToRole="CourseContext_AssessmentType" />
           <NavigationProperty Name="TrainingTask" Relationship="NavyRRLModel.FK_CourseContext_TrainingTask" FromRole="CourseContext" ToRole="TrainingTask" />
+          <NavigationProperty Name="RatingContext" Relationship="NavyRRLModel.FK_RatingContext_CourseContext" FromRole="CourseContext" ToRole="RatingContext" />
+          <Property Name="CTID" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
         </EntityType>
         <EntityType Name="CourseContext_AssessmentType">
           <Key>
@@ -1977,54 +1983,6 @@
             </Principal>
             <Dependent Role="ApplicationUserRole">
               <PropertyRef Name="UserId" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
-        <Association Name="FK_ConceptScheme__AccountCreatedBy">
-          <End Type="NavyRRLModel.Account" Role="Account" Multiplicity="1" />
-          <End Type="NavyRRLModel.ConceptScheme" Role="ConceptScheme" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="Account">
-              <PropertyRef Name="Id" />
-            </Principal>
-            <Dependent Role="ConceptScheme">
-              <PropertyRef Name="CreatedById" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
-        <Association Name="FK_ConceptScheme_AccountApprovedBy">
-          <End Type="NavyRRLModel.Account" Role="Account" Multiplicity="0..1" />
-          <End Type="NavyRRLModel.ConceptScheme" Role="ConceptScheme" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="Account">
-              <PropertyRef Name="Id" />
-            </Principal>
-            <Dependent Role="ConceptScheme">
-              <PropertyRef Name="LastApprovedById" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
-        <Association Name="FK_ConceptScheme_AccountLastUpdatedBy">
-          <End Type="NavyRRLModel.Account" Role="Account" Multiplicity="0..1" />
-          <End Type="NavyRRLModel.ConceptScheme" Role="ConceptScheme" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="Account">
-              <PropertyRef Name="Id" />
-            </Principal>
-            <Dependent Role="ConceptScheme">
-              <PropertyRef Name="LastUpdatedById" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
-        <Association Name="FK_ConceptScheme_AccountPublishedBy">
-          <End Type="NavyRRLModel.Account" Role="Account" Multiplicity="0..1" />
-          <End Type="NavyRRLModel.ConceptScheme" Role="ConceptScheme" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="Account">
-              <PropertyRef Name="Id" />
-            </Principal>
-            <Dependent Role="ConceptScheme">
-              <PropertyRef Name="LastPublishedById" />
             </Dependent>
           </ReferentialConstraint>
         </Association>
@@ -2174,6 +2132,7 @@
           <Property Name="LastUpdated" Type="DateTime" Nullable="false" Precision="3" />
           <Property Name="LastUpdatedById" Type="Int32" />
           <NavigationProperty Name="RatingContext" Relationship="NavyRRLModel.FK_RatingContext_BilletTitle" FromRole="Job" ToRole="RatingContext" />
+          <NavigationProperty Name="ClusterAnalysis" Relationship="NavyRRLModel.FK_ClusterAnalysis_Job" FromRole="Job" ToRole="ClusterAnalysis" />
         </EntityType>
         <EntityType Name="Organization">
           <Key>
@@ -2212,6 +2171,7 @@
           <Property Name="LastUpdated" Type="DateTime" Nullable="false" Precision="3" />
           <Property Name="LastUpdatedById" Type="Int32" />
           <NavigationProperty Name="RatingContext" Relationship="NavyRRLModel.FK_RatingContext_Rating" FromRole="Rating" ToRole="RatingContext" />
+          <NavigationProperty Name="ClusterAnalysis" Relationship="NavyRRLModel.FK_ClusterAnalysis_Rating" FromRole="Rating" ToRole="ClusterAnalysis" />
         </EntityType>
         <EntityType Name="RatingContext">
           <Key>
@@ -2225,7 +2185,6 @@
           <Property Name="PayGradeTypeId" Type="Int32" Nullable="false" />
           <Property Name="TaskApplicabilityId" Type="Int32" />
           <Property Name="FormalTrainingGapId" Type="Int32" />
-          <Property Name="TrainingTaskId" Type="Int32" />
           <Property Name="ClusterAnalysisId" Type="Int32" />
           <Property Name="TaskStatusId" Type="Int32" />
           <Property Name="CodedNotation" Type="String" MaxLength="100" FixedLength="false" Unicode="false" />
@@ -2236,31 +2195,18 @@
           <Property Name="LastUpdated" Type="DateTime" Nullable="false" Precision="3" />
           <Property Name="LastUpdatedById" Type="Int32" />
           <Property Name="WorkRoleId" Type="Int32" />
-          <NavigationProperty Name="ClusterAnalysis" Relationship="NavyRRLModel.FK_RatingContext_ClusterAnalysis" FromRole="RatingContext" ToRole="ClusterAnalysis" />
-          <NavigationProperty Name="ConceptScheme_Concept" Relationship="NavyRRLModel.FK_RatingContext_Rank" FromRole="RatingContext" ToRole="ConceptScheme_Concept" />
-          <NavigationProperty Name="ConceptScheme_Concept1" Relationship="NavyRRLModel.FK_RatingContext_TaskApplicability" FromRole="RatingContext" ToRole="ConceptScheme_Concept" />
-          <NavigationProperty Name="ConceptScheme_Concept2" Relationship="NavyRRLModel.FK_RatingContext_TrainingGap" FromRole="RatingContext" ToRole="ConceptScheme_Concept" />
+          <NavigationProperty Name="ConceptScheme_Concept_PayGradeType" Relationship="NavyRRLModel.FK_RatingContext_Rank" FromRole="RatingContext" ToRole="ConceptScheme_Concept" />
+          <NavigationProperty Name="ConceptScheme_Concept_TaskApplicabilityType" Relationship="NavyRRLModel.FK_RatingContext_TaskApplicability" FromRole="RatingContext" ToRole="ConceptScheme_Concept" />
+          <NavigationProperty Name="ConceptScheme_Concept_TrainingGapType" Relationship="NavyRRLModel.FK_RatingContext_TrainingGap" FromRole="RatingContext" ToRole="ConceptScheme_Concept" />
           <NavigationProperty Name="Job" Relationship="NavyRRLModel.FK_RatingContext_BilletTitle" FromRole="RatingContext" ToRole="Job" />
           <NavigationProperty Name="Rating" Relationship="NavyRRLModel.FK_RatingContext_Rating" FromRole="RatingContext" ToRole="Rating" />
-          <NavigationProperty Name="RatingTask" Relationship="NavyRRLModel.FK_RatingContext_RatingTask" FromRole="RatingContext" ToRole="RatingTask" />
-          <NavigationProperty Name="TrainingTask" Relationship="NavyRRLModel.FK_RatingContext_TrainingTask" FromRole="RatingContext" ToRole="TrainingTask" />
           <NavigationProperty Name="WorkRole" Relationship="NavyRRLModel.FK_RatingContext_WorkRole" FromRole="RatingContext" ToRole="WorkRole" />
-        </EntityType>
-        <EntityType Name="RatingTask">
-          <Key>
-            <PropertyRef Name="Id" />
-          </Key>
-          <Property Name="Id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
-          <Property Name="RowId" Type="Guid" Nullable="false" />
-          <Property Name="ReferenceResourceId" Type="Int32" />
-          <Property Name="Description" Type="String" Nullable="false" MaxLength="Max" FixedLength="false" Unicode="true" />
-          <Property Name="CTID" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
-          <Property Name="Created" Type="DateTime" Nullable="false" Precision="3" />
-          <Property Name="CreatedById" Type="Int32" />
-          <Property Name="LastUpdated" Type="DateTime" Nullable="false" Precision="3" />
-          <Property Name="LastUpdatedById" Type="Int32" />
-          <NavigationProperty Name="RatingContext" Relationship="NavyRRLModel.FK_RatingContext_RatingTask" FromRole="RatingTask" ToRole="RatingContext" />
-          <NavigationProperty Name="ReferenceResource" Relationship="NavyRRLModel.FK_RatingTask_to_ReferenceResource" FromRole="RatingTask" ToRole="ReferenceResource" />
+          <Property Name="CourseContextId" Type="Int32" />
+          <NavigationProperty Name="CourseContext" Relationship="NavyRRLModel.FK_RatingContext_CourseContext" FromRole="RatingContext" ToRole="CourseContext" />
+          <Property Name="PayGradeLevelTypeId" Type="Int32" />
+          <NavigationProperty Name="ConceptScheme_Concept_PayGradeLevelType" Relationship="NavyRRLModel.FK_RatingContext_RankLevel" FromRole="RatingContext" ToRole="ConceptScheme_Concept" />
+          <NavigationProperty Name="ClusterAnalysis" Relationship="NavyRRLModel.FK_RatingContext_ClusterAnalysis" FromRole="RatingContext" ToRole="ClusterAnalysis" />
+          <NavigationProperty Name="RatingTask" Relationship="NavyRRLModel.FK_RatingContext_RatingTask" FromRole="RatingContext" ToRole="RatingTask" />
         </EntityType>
         <EntityType Name="ReferenceResource">
           <Key>
@@ -2282,8 +2228,9 @@
           <Property Name="LastUpdatedById" Type="Int32" />
           <Property Name="CTID" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
           <Property Name="ReferenceTypeId" Type="Int32" />
-          <NavigationProperty Name="RatingTask" Relationship="NavyRRLModel.FK_RatingTask_to_ReferenceResource" FromRole="ReferenceResource" ToRole="RatingTask" />
           <NavigationProperty Name="ReferenceResource_ReferenceType" Relationship="NavyRRLModel.FK_ReferenceResource_ReferenceType_ReferenceResource" FromRole="ReferenceResource" ToRole="ReferenceResource_ReferenceType" />
+          <NavigationProperty Name="TrainingTask" Relationship="NavyRRLModel.FK_ReferenceResource_TrainingTask" FromRole="ReferenceResource" ToRole="TrainingTask" />
+          <NavigationProperty Name="RatingTask" Relationship="NavyRRLModel.FK_RatingTask_to_ReferenceResource" FromRole="ReferenceResource" ToRole="RatingTask" />
         </EntityType>
         <EntityType Name="ReferenceResource_ReferenceType">
           <Key>
@@ -2295,7 +2242,7 @@
           <Property Name="ReferenceTypeId" Type="Int32" Nullable="false" />
           <Property Name="Created" Type="DateTime" Nullable="false" Precision="3" />
           <Property Name="CreatedById" Type="Int32" />
-          <NavigationProperty Name="ConceptScheme_Concept" Relationship="NavyRRLModel.FK_ReferenceResource_ReferenceType_ConceptScheme_Concept" FromRole="ReferenceResource_ReferenceType" ToRole="ConceptScheme_Concept" />
+          <NavigationProperty Name="ConceptScheme_Concept_ReferenceType" Relationship="NavyRRLModel.FK_ReferenceResource_ReferenceType_ConceptScheme_Concept" FromRole="ReferenceResource_ReferenceType" ToRole="ConceptScheme_Concept" />
           <NavigationProperty Name="ReferenceResource" Relationship="NavyRRLModel.FK_ReferenceResource_ReferenceType_ReferenceResource" FromRole="ReferenceResource_ReferenceType" ToRole="ReferenceResource" />
         </EntityType>
         <EntityType Name="RMTLProject">
@@ -2334,7 +2281,8 @@
           <Property Name="LastUpdated" Type="DateTime" Nullable="false" Precision="3" />
           <Property Name="LastUpdatedById" Type="Int32" />
           <NavigationProperty Name="CourseContext" Relationship="NavyRRLModel.FK_CourseContext_TrainingTask" FromRole="TrainingTask" ToRole="CourseContext" />
-          <NavigationProperty Name="RatingContext" Relationship="NavyRRLModel.FK_RatingContext_TrainingTask" FromRole="TrainingTask" ToRole="RatingContext" />
+          <Property Name="ReferenceResourceId" Type="Int32" />
+          <NavigationProperty Name="ReferenceResource" Relationship="NavyRRLModel.FK_ReferenceResource_TrainingTask" FromRole="TrainingTask" ToRole="ReferenceResource" />
         </EntityType>
         <EntityType Name="WorkRole">
           <Key>
@@ -2352,21 +2300,8 @@
           <Property Name="LastUpdated" Type="DateTime" Nullable="false" Precision="3" />
           <Property Name="LastUpdatedById" Type="Int32" />
           <NavigationProperty Name="RatingContext" Relationship="NavyRRLModel.FK_RatingContext_WorkRole" FromRole="WorkRole" ToRole="RatingContext" />
+          <NavigationProperty Name="ClusterAnalysis" Relationship="NavyRRLModel.FK_ClusterAnalysis_WorkRole" FromRole="WorkRole" ToRole="ClusterAnalysis" />
         </EntityType>
-        <Association Name="FK_RatingContext_ClusterAnalysis">
-          <End Type="NavyRRLModel.ClusterAnalysis" Role="ClusterAnalysis" Multiplicity="0..1">
-            <OnDelete Action="Cascade" />
-          </End>
-          <End Type="NavyRRLModel.RatingContext" Role="RatingContext" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="ClusterAnalysis">
-              <PropertyRef Name="Id" />
-            </Principal>
-            <Dependent Role="RatingContext">
-              <PropertyRef Name="ClusterAnalysisId" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
         <Association Name="FK_Comment_RMTLProject">
           <End Type="NavyRRLModel.RMTLProject" Role="RMTLProject" Multiplicity="0..1">
             <OnDelete Action="Cascade" />
@@ -2483,34 +2418,6 @@
             </Dependent>
           </ReferentialConstraint>
         </Association>
-        <Association Name="FK_RatingContext_RatingTask">
-          <End Type="NavyRRLModel.RatingTask" Role="RatingTask" Multiplicity="1">
-            <OnDelete Action="Cascade" />
-          </End>
-          <End Type="NavyRRLModel.RatingContext" Role="RatingContext" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="RatingTask">
-              <PropertyRef Name="Id" />
-            </Principal>
-            <Dependent Role="RatingContext">
-              <PropertyRef Name="RatingTaskId" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
-        <Association Name="FK_RatingContext_TrainingTask">
-          <End Type="NavyRRLModel.TrainingTask" Role="TrainingTask" Multiplicity="0..1">
-            <OnDelete Action="Cascade" />
-          </End>
-          <End Type="NavyRRLModel.RatingContext" Role="RatingContext" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="TrainingTask">
-              <PropertyRef Name="Id" />
-            </Principal>
-            <Dependent Role="RatingContext">
-              <PropertyRef Name="TrainingTaskId" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
         <Association Name="FK_RatingContext_WorkRole">
           <End Type="NavyRRLModel.WorkRole" Role="WorkRole" Multiplicity="0..1" />
           <End Type="NavyRRLModel.RatingContext" Role="RatingContext" Multiplicity="*" />
@@ -2520,18 +2427,6 @@
             </Principal>
             <Dependent Role="RatingContext">
               <PropertyRef Name="WorkRoleId" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
-        <Association Name="FK_RatingTask_to_ReferenceResource">
-          <End Type="NavyRRLModel.ReferenceResource" Role="ReferenceResource" Multiplicity="0..1" />
-          <End Type="NavyRRLModel.RatingTask" Role="RatingTask" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="ReferenceResource">
-              <PropertyRef Name="Id" />
-            </Principal>
-            <Dependent Role="RatingTask">
-              <PropertyRef Name="ReferenceResourceId" />
             </Dependent>
           </ReferentialConstraint>
         </Association>
@@ -2563,35 +2458,373 @@
           <Property Name="ExpiryDate" Type="DateTime" Nullable="false" Precision="3" />
           <Property Name="AccessDate" Type="DateTime" Precision="3" />
         </EntityType>
+        <Association Name="FK_RatingContext_CourseContext">
+          <End Type="NavyRRLModel.CourseContext" Role="CourseContext" Multiplicity="0..1" />
+          <End Type="NavyRRLModel.RatingContext" Role="RatingContext" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="CourseContext">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="RatingContext">
+              <PropertyRef Name="CourseContextId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_ReferenceResource_TrainingTask">
+          <End Type="NavyRRLModel.ReferenceResource" Role="ReferenceResource" Multiplicity="0..1" />
+          <End Type="NavyRRLModel.TrainingTask" Role="TrainingTask" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="ReferenceResource">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="TrainingTask">
+              <PropertyRef Name="ReferenceResourceId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <EntityType Name="ConceptScheme">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="Int32" Nullable="false" />
+          <Property Name="Name" Type="String" Nullable="false" MaxLength="400" FixedLength="false" Unicode="true" />
+          <Property Name="Description" Type="String" MaxLength="Max" FixedLength="false" Unicode="false" />
+          <Property Name="RowId" Type="Guid" Nullable="false" />
+          <Property Name="CTID" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+          <Property Name="SchemaUri" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+          <Property Name="Created" Type="DateTime" Nullable="false" Precision="3" />
+          <Property Name="CreatedById" Type="Int32" />
+          <Property Name="LastUpdated" Type="DateTime" Nullable="false" Precision="3" />
+          <Property Name="LastUpdatedById" Type="Int32" />
+          <Property Name="LastApproved" Type="DateTime" Precision="3" />
+          <Property Name="LastApprovedById" Type="Int32" />
+          <Property Name="LastPublished" Type="DateTime" Precision="3" />
+          <Property Name="LastPublishedById" Type="Int32" />
+          <NavigationProperty Name="Account" Relationship="NavyRRLModel.FK_ConceptScheme_AccountApprovedBy" FromRole="ConceptScheme" ToRole="Account" />
+          <NavigationProperty Name="Account1" Relationship="NavyRRLModel.FK_ConceptScheme_AccountCreatedBy" FromRole="ConceptScheme" ToRole="Account" />
+          <NavigationProperty Name="Account2" Relationship="NavyRRLModel.FK_ConceptScheme_AccountLastUpdatedBy" FromRole="ConceptScheme" ToRole="Account" />
+          <NavigationProperty Name="Account3" Relationship="NavyRRLModel.FK_ConceptScheme_AccountPublishedBy" FromRole="ConceptScheme" ToRole="Account" />
+          <NavigationProperty Name="ConceptScheme_Concept" Relationship="NavyRRLModel.FK_ConceptScheme_Concept_ConceptScheme" FromRole="ConceptScheme" ToRole="ConceptScheme_Concept" />
+        </EntityType>
+        <Association Name="FK_ConceptScheme_AccountApprovedBy">
+          <End Type="NavyRRLModel.Account" Role="Account" Multiplicity="0..1" />
+          <End Type="NavyRRLModel.ConceptScheme" Role="ConceptScheme" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Account">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="ConceptScheme">
+              <PropertyRef Name="LastApprovedById" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_ConceptScheme_AccountCreatedBy">
+          <End Type="NavyRRLModel.Account" Role="Account" Multiplicity="0..1" />
+          <End Type="NavyRRLModel.ConceptScheme" Role="ConceptScheme" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Account">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="ConceptScheme">
+              <PropertyRef Name="CreatedById" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_ConceptScheme_AccountLastUpdatedBy">
+          <End Type="NavyRRLModel.Account" Role="Account" Multiplicity="0..1" />
+          <End Type="NavyRRLModel.ConceptScheme" Role="ConceptScheme" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Account">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="ConceptScheme">
+              <PropertyRef Name="LastUpdatedById" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_ConceptScheme_AccountPublishedBy">
+          <End Type="NavyRRLModel.Account" Role="Account" Multiplicity="0..1" />
+          <End Type="NavyRRLModel.ConceptScheme" Role="ConceptScheme" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Account">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="ConceptScheme">
+              <PropertyRef Name="LastPublishedById" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_ConceptScheme_Concept_ConceptScheme">
+          <End Type="NavyRRLModel.ConceptScheme" Role="ConceptScheme" Multiplicity="1">
+            <OnDelete Action="Cascade" />
+          </End>
+          <End Type="NavyRRLModel.ConceptScheme_Concept" Role="ConceptScheme_Concept" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="ConceptScheme">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="ConceptScheme_Concept">
+              <PropertyRef Name="ConceptSchemeId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_RatingContext_RankLevel">
+          <End Type="NavyRRLModel.ConceptScheme_Concept" Role="ConceptScheme_Concept" Multiplicity="0..1" />
+          <End Type="NavyRRLModel.RatingContext" Role="RatingContext" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="ConceptScheme_Concept">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="RatingContext">
+              <PropertyRef Name="PayGradeLevelTypeId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <EntityType Name="ClusterAnalysis">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="RowId" Type="Guid" Nullable="false" />
+          <Property Name="TrainingSolutionTypeId" Type="Int32" />
+          <Property Name="HasClusterAnalysisTitleId" Type="Int32" />
+          <Property Name="RecommendedModalityTypeId" Type="Int32" />
+          <Property Name="DevelopmentSpecificationTypeId" Type="Int32" />
+          <Property Name="CFMPlacementTypeId" Type="Int32" />
+          <Property Name="PriorityPlacement" Type="Int32" />
+          <Property Name="EstimatedInstructionalTime" Type="Decimal" Precision="9" Scale="2" />
+          <Property Name="DevelopmentTime" Type="Decimal" Precision="9" Scale="2" />
+          <Property Name="CTID" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+          <Property Name="Notes" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
+          <Property Name="Created" Type="DateTime" Nullable="false" Precision="3" />
+          <Property Name="CreatedById" Type="Int32" />
+          <Property Name="LastUpdated" Type="DateTime" Nullable="false" Precision="3" />
+          <Property Name="LastUpdatedById" Type="Int32" />
+          <Property Name="HasRatingTaskId" Type="Int32" />
+          <Property Name="HasRatingId" Type="Int32" />
+          <Property Name="DevelopmentRatioTypeId" Type="Int32" />
+          <Property Name="BilletTitleId" Type="Int32" />
+          <Property Name="WorkRoleId" Type="Int32" />
+          <NavigationProperty Name="ConceptScheme_Concept_CFMPlacementType" Relationship="NavyRRLModel.FK_ClusterAnalysis_CFMPlacement_Concept" FromRole="ClusterAnalysis" ToRole="ConceptScheme_Concept" />
+          <NavigationProperty Name="ClusterAnalysisTitle" Relationship="NavyRRLModel.FK_ClusterAnalysis_ClusterAnalysisTitle" FromRole="ClusterAnalysis" ToRole="ClusterAnalysisTitle" />
+          <NavigationProperty Name="ConceptScheme_Concept_DevelopmentRatioType" Relationship="NavyRRLModel.FK_ClusterAnalysis_DevelopmentRatio_Concept" FromRole="ClusterAnalysis" ToRole="ConceptScheme_Concept" />
+          <NavigationProperty Name="ConceptScheme_Concept_DevelopmentSpecificationType" Relationship="NavyRRLModel.FK_ClusterAnalysis_DevSpecificationConcept" FromRole="ClusterAnalysis" ToRole="ConceptScheme_Concept" />
+          <NavigationProperty Name="Job" Relationship="NavyRRLModel.FK_ClusterAnalysis_Job" FromRole="ClusterAnalysis" ToRole="Job" />
+          <NavigationProperty Name="Rating" Relationship="NavyRRLModel.FK_ClusterAnalysis_Rating" FromRole="ClusterAnalysis" ToRole="Rating" />
+          <NavigationProperty Name="RatingTask" Relationship="NavyRRLModel.FK_ClusterAnalysis_RatingTask" FromRole="ClusterAnalysis" ToRole="RatingTask" />
+          <NavigationProperty Name="ConceptScheme_Concept_RecommendedModalityType" Relationship="NavyRRLModel.FK_ClusterAnalysis_RecommendedModality_Concept" FromRole="ClusterAnalysis" ToRole="ConceptScheme_Concept" />
+          <NavigationProperty Name="ConceptScheme_Concept_TrainingSolutionType" Relationship="NavyRRLModel.FK_ClusterAnalysis_TrainingSolution_Concept" FromRole="ClusterAnalysis" ToRole="ConceptScheme_Concept" />
+          <NavigationProperty Name="WorkRole" Relationship="NavyRRLModel.FK_ClusterAnalysis_WorkRole" FromRole="ClusterAnalysis" ToRole="WorkRole" />
+          <NavigationProperty Name="ClusterAnalysis_HasCandidatePlatform" Relationship="NavyRRLModel.FK_HasCandidatePlatform_ClusterAnalysis" FromRole="ClusterAnalysis" ToRole="ClusterAnalysis_HasCandidatePlatform" />
+          <NavigationProperty Name="RatingContext" Relationship="NavyRRLModel.FK_RatingContext_ClusterAnalysis" FromRole="ClusterAnalysis" ToRole="RatingContext" />
+        </EntityType>
+        <EntityType Name="RatingTask">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="RowId" Type="Guid" Nullable="false" />
+          <Property Name="ReferenceResourceId" Type="Int32" />
+          <Property Name="Description" Type="String" Nullable="false" MaxLength="Max" FixedLength="false" Unicode="true" />
+          <Property Name="CTID" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+          <Property Name="Created" Type="DateTime" Nullable="false" Precision="3" />
+          <Property Name="CreatedById" Type="Int32" />
+          <Property Name="LastUpdated" Type="DateTime" Nullable="false" Precision="3" />
+          <Property Name="LastUpdatedById" Type="Int32" />
+          <Property Name="ReferenceTypeId" Type="Int32" Nullable="false" />
+          <NavigationProperty Name="ClusterAnalysis" Relationship="NavyRRLModel.FK_ClusterAnalysis_RatingTask" FromRole="RatingTask" ToRole="ClusterAnalysis" />
+          <NavigationProperty Name="ConceptScheme_Concept_ReferenceType" Relationship="NavyRRLModel.FK_RatingTask_ReferenceType" FromRole="RatingTask" ToRole="ConceptScheme_Concept" />
+          <NavigationProperty Name="RatingContext" Relationship="NavyRRLModel.FK_RatingContext_RatingTask" FromRole="RatingTask" ToRole="RatingContext" />
+          <NavigationProperty Name="ReferenceResource" Relationship="NavyRRLModel.FK_RatingTask_to_ReferenceResource" FromRole="RatingTask" ToRole="ReferenceResource" />
+        </EntityType>
+        <Association Name="FK_ClusterAnalysis_CFMPlacement_Concept">
+          <End Type="NavyRRLModel.ConceptScheme_Concept" Role="ConceptScheme_Concept" Multiplicity="0..1" />
+          <End Type="NavyRRLModel.ClusterAnalysis" Role="ClusterAnalysis" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="ConceptScheme_Concept">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="ClusterAnalysis">
+              <PropertyRef Name="CFMPlacementTypeId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_ClusterAnalysis_ClusterAnalysisTitle">
+          <End Type="NavyRRLModel.ClusterAnalysisTitle" Role="ClusterAnalysisTitle" Multiplicity="0..1" />
+          <End Type="NavyRRLModel.ClusterAnalysis" Role="ClusterAnalysis" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="ClusterAnalysisTitle">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="ClusterAnalysis">
+              <PropertyRef Name="HasClusterAnalysisTitleId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_ClusterAnalysis_DevelopmentRatio_Concept">
+          <End Type="NavyRRLModel.ConceptScheme_Concept" Role="ConceptScheme_Concept" Multiplicity="0..1" />
+          <End Type="NavyRRLModel.ClusterAnalysis" Role="ClusterAnalysis" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="ConceptScheme_Concept">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="ClusterAnalysis">
+              <PropertyRef Name="DevelopmentRatioTypeId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_ClusterAnalysis_DevSpecificationConcept">
+          <End Type="NavyRRLModel.ConceptScheme_Concept" Role="ConceptScheme_Concept" Multiplicity="0..1" />
+          <End Type="NavyRRLModel.ClusterAnalysis" Role="ClusterAnalysis" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="ConceptScheme_Concept">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="ClusterAnalysis">
+              <PropertyRef Name="DevelopmentSpecificationTypeId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_ClusterAnalysis_Job">
+          <End Type="NavyRRLModel.Job" Role="Job" Multiplicity="0..1" />
+          <End Type="NavyRRLModel.ClusterAnalysis" Role="ClusterAnalysis" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Job">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="ClusterAnalysis">
+              <PropertyRef Name="BilletTitleId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_ClusterAnalysis_Rating">
+          <End Type="NavyRRLModel.Rating" Role="Rating" Multiplicity="0..1" />
+          <End Type="NavyRRLModel.ClusterAnalysis" Role="ClusterAnalysis" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Rating">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="ClusterAnalysis">
+              <PropertyRef Name="HasRatingId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_ClusterAnalysis_RatingTask">
+          <End Type="NavyRRLModel.RatingTask" Role="RatingTask" Multiplicity="0..1" />
+          <End Type="NavyRRLModel.ClusterAnalysis" Role="ClusterAnalysis" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="RatingTask">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="ClusterAnalysis">
+              <PropertyRef Name="HasRatingTaskId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_ClusterAnalysis_RecommendedModality_Concept">
+          <End Type="NavyRRLModel.ConceptScheme_Concept" Role="ConceptScheme_Concept" Multiplicity="0..1" />
+          <End Type="NavyRRLModel.ClusterAnalysis" Role="ClusterAnalysis" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="ConceptScheme_Concept">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="ClusterAnalysis">
+              <PropertyRef Name="RecommendedModalityTypeId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_ClusterAnalysis_TrainingSolution_Concept">
+          <End Type="NavyRRLModel.ConceptScheme_Concept" Role="ConceptScheme_Concept" Multiplicity="0..1" />
+          <End Type="NavyRRLModel.ClusterAnalysis" Role="ClusterAnalysis" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="ConceptScheme_Concept">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="ClusterAnalysis">
+              <PropertyRef Name="TrainingSolutionTypeId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_ClusterAnalysis_WorkRole">
+          <End Type="NavyRRLModel.WorkRole" Role="WorkRole" Multiplicity="0..1" />
+          <End Type="NavyRRLModel.ClusterAnalysis" Role="ClusterAnalysis" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="WorkRole">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="ClusterAnalysis">
+              <PropertyRef Name="WorkRoleId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_HasCandidatePlatform_ClusterAnalysis">
+          <End Type="NavyRRLModel.ClusterAnalysis" Role="ClusterAnalysis" Multiplicity="1">
+            <OnDelete Action="Cascade" />
+          </End>
+          <End Type="NavyRRLModel.ClusterAnalysis_HasCandidatePlatform" Role="ClusterAnalysis_HasCandidatePlatform" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="ClusterAnalysis">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="ClusterAnalysis_HasCandidatePlatform">
+              <PropertyRef Name="ClusterAnalysisId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_RatingContext_ClusterAnalysis">
+          <End Type="NavyRRLModel.ClusterAnalysis" Role="ClusterAnalysis" Multiplicity="0..1" />
+          <End Type="NavyRRLModel.RatingContext" Role="RatingContext" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="ClusterAnalysis">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="RatingContext">
+              <PropertyRef Name="ClusterAnalysisId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_RatingTask_ReferenceType">
+          <End Type="NavyRRLModel.ConceptScheme_Concept" Role="ConceptScheme_Concept" Multiplicity="1" />
+          <End Type="NavyRRLModel.RatingTask" Role="RatingTask" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="ConceptScheme_Concept">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="RatingTask">
+              <PropertyRef Name="ReferenceTypeId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_RatingContext_RatingTask">
+          <End Type="NavyRRLModel.RatingTask" Role="RatingTask" Multiplicity="1" />
+          <End Type="NavyRRLModel.RatingContext" Role="RatingContext" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="RatingTask">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="RatingContext">
+              <PropertyRef Name="RatingTaskId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_RatingTask_to_ReferenceResource">
+          <End Type="NavyRRLModel.ReferenceResource" Role="ReferenceResource" Multiplicity="0..1" />
+          <End Type="NavyRRLModel.RatingTask" Role="RatingTask" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="ReferenceResource">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="RatingTask">
+              <PropertyRef Name="ReferenceResourceId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
         </Schema>
     </edmx:ConceptualModels>
     <!-- C-S mapping content -->
     <edmx:Mappings>
       <Mapping Space="C-S" xmlns="http://schemas.microsoft.com/ado/2009/11/mapping/cs">
         <EntityContainerMapping StorageEntityContainer="NavyRRLModelStoreContainer" CdmEntityContainer="NavyRRLEntities">
-          <EntitySetMapping Name="ClusterAnalysis">
-            <EntityTypeMapping TypeName="NavyRRLModel.ClusterAnalysis">
-              <MappingFragment StoreEntitySet="ClusterAnalysis">
-                <ScalarProperty Name="LastUpdatedById" ColumnName="LastUpdatedById" />
-                <ScalarProperty Name="LastUpdated" ColumnName="LastUpdated" />
-                <ScalarProperty Name="CreatedById" ColumnName="CreatedById" />
-                <ScalarProperty Name="Created" ColumnName="Created" />
-                <ScalarProperty Name="Notes" ColumnName="Notes" />
-                <ScalarProperty Name="CTID" ColumnName="CTID" />
-                <ScalarProperty Name="DevelopmentTime" ColumnName="DevelopmentTime" />
-                <ScalarProperty Name="EstimatedInstructionalTime" ColumnName="EstimatedInstructionalTime" />
-                <ScalarProperty Name="DevelopmentRatio" ColumnName="DevelopmentRatio" />
-                <ScalarProperty Name="PriorityPlacement" ColumnName="PriorityPlacement" />
-                <ScalarProperty Name="CFMPlacementId" ColumnName="CFMPlacementId" />
-                <ScalarProperty Name="DevelopmentSpecificationId" ColumnName="DevelopmentSpecificationId" />
-                <ScalarProperty Name="RecommendedModalityId" ColumnName="RecommendedModalityId" />
-                <ScalarProperty Name="ClusterAnalysisTitleId" ColumnName="ClusterAnalysisTitleId" />
-                <ScalarProperty Name="TrainingSolutionTypeId" ColumnName="TrainingSolutionTypeId" />
-                <ScalarProperty Name="RowId" ColumnName="RowId" />
-                <ScalarProperty Name="Id" ColumnName="Id" />
-              </MappingFragment>
-            </EntityTypeMapping>
-          </EntitySetMapping>
           <EntitySetMapping Name="ClusterAnalysis_HasCandidatePlatform">
             <EntityTypeMapping TypeName="NavyRRLModel.ClusterAnalysis_HasCandidatePlatform">
               <MappingFragment StoreEntitySet="ClusterAnalysis_HasCandidatePlatform">
@@ -2723,29 +2956,10 @@
               </MappingFragment>
             </EntityTypeMapping>
           </EntitySetMapping>
-          <EntitySetMapping Name="ConceptScheme">
-            <EntityTypeMapping TypeName="NavyRRLModel.ConceptScheme">
-              <MappingFragment StoreEntitySet="ConceptScheme">
-                <ScalarProperty Name="LastPublishedById" ColumnName="LastPublishedById" />
-                <ScalarProperty Name="LastPublished" ColumnName="LastPublished" />
-                <ScalarProperty Name="LastApprovedById" ColumnName="LastApprovedById" />
-                <ScalarProperty Name="LastApproved" ColumnName="LastApproved" />
-                <ScalarProperty Name="LastUpdatedById" ColumnName="LastUpdatedById" />
-                <ScalarProperty Name="LastUpdated" ColumnName="LastUpdated" />
-                <ScalarProperty Name="CreatedById" ColumnName="CreatedById" />
-                <ScalarProperty Name="Created" ColumnName="Created" />
-                <ScalarProperty Name="SchemaUri" ColumnName="SchemaUri" />
-                <ScalarProperty Name="CTID" ColumnName="CTID" />
-                <ScalarProperty Name="RowId" ColumnName="RowId" />
-                <ScalarProperty Name="Description" ColumnName="Description" />
-                <ScalarProperty Name="Name" ColumnName="Name" />
-                <ScalarProperty Name="Id" ColumnName="Id" />
-              </MappingFragment>
-            </EntityTypeMapping>
-          </EntitySetMapping>
           <EntitySetMapping Name="ConceptScheme_Concept">
             <EntityTypeMapping TypeName="NavyRRLModel.ConceptScheme_Concept">
               <MappingFragment StoreEntitySet="ConceptScheme_Concept">
+                <ScalarProperty Name="BroadMatchId" ColumnName="BroadMatchId" />
                 <ScalarProperty Name="LastUpdatedById" ColumnName="LastUpdatedById" />
                 <ScalarProperty Name="LastUpdated" ColumnName="LastUpdated" />
                 <ScalarProperty Name="CreatedById" ColumnName="CreatedById" />
@@ -2832,6 +3046,7 @@
           <EntitySetMapping Name="CourseContext">
             <EntityTypeMapping TypeName="NavyRRLModel.CourseContext">
               <MappingFragment StoreEntitySet="CourseContext">
+                <ScalarProperty Name="CTID" ColumnName="CTID" />
                 <ScalarProperty Name="LastUpdatedById" ColumnName="LastUpdatedById" />
                 <ScalarProperty Name="LastUpdated" ColumnName="LastUpdated" />
                 <ScalarProperty Name="CreatedById" ColumnName="CreatedById" />
@@ -2968,6 +3183,8 @@
           <EntitySetMapping Name="RatingContext">
             <EntityTypeMapping TypeName="NavyRRLModel.RatingContext">
               <MappingFragment StoreEntitySet="RatingContext">
+                <ScalarProperty Name="PayGradeLevelTypeId" ColumnName="PayGradeLevelTypeId" />
+                <ScalarProperty Name="CourseContextId" ColumnName="CourseContextId" />
                 <ScalarProperty Name="WorkRoleId" ColumnName="WorkRoleId" />
                 <ScalarProperty Name="LastUpdatedById" ColumnName="LastUpdatedById" />
                 <ScalarProperty Name="LastUpdated" ColumnName="LastUpdated" />
@@ -2978,28 +3195,12 @@
                 <ScalarProperty Name="CodedNotation" ColumnName="CodedNotation" />
                 <ScalarProperty Name="TaskStatusId" ColumnName="TaskStatusId" />
                 <ScalarProperty Name="ClusterAnalysisId" ColumnName="ClusterAnalysisId" />
-                <ScalarProperty Name="TrainingTaskId" ColumnName="TrainingTaskId" />
                 <ScalarProperty Name="FormalTrainingGapId" ColumnName="FormalTrainingGapId" />
                 <ScalarProperty Name="TaskApplicabilityId" ColumnName="TaskApplicabilityId" />
                 <ScalarProperty Name="PayGradeTypeId" ColumnName="PayGradeTypeId" />
                 <ScalarProperty Name="BilletTitleId" ColumnName="BilletTitleId" />
                 <ScalarProperty Name="RatingTaskId" ColumnName="RatingTaskId" />
                 <ScalarProperty Name="RatingId" ColumnName="RatingId" />
-                <ScalarProperty Name="RowId" ColumnName="RowId" />
-                <ScalarProperty Name="Id" ColumnName="Id" />
-              </MappingFragment>
-            </EntityTypeMapping>
-          </EntitySetMapping>
-          <EntitySetMapping Name="RatingTask">
-            <EntityTypeMapping TypeName="NavyRRLModel.RatingTask">
-              <MappingFragment StoreEntitySet="RatingTask">
-                <ScalarProperty Name="LastUpdatedById" ColumnName="LastUpdatedById" />
-                <ScalarProperty Name="LastUpdated" ColumnName="LastUpdated" />
-                <ScalarProperty Name="CreatedById" ColumnName="CreatedById" />
-                <ScalarProperty Name="Created" ColumnName="Created" />
-                <ScalarProperty Name="CTID" ColumnName="CTID" />
-                <ScalarProperty Name="Description" ColumnName="Description" />
-                <ScalarProperty Name="ReferenceResourceId" ColumnName="ReferenceResourceId" />
                 <ScalarProperty Name="RowId" ColumnName="RowId" />
                 <ScalarProperty Name="Id" ColumnName="Id" />
               </MappingFragment>
@@ -3065,6 +3266,7 @@
           <EntitySetMapping Name="TrainingTask">
             <EntityTypeMapping TypeName="NavyRRLModel.TrainingTask">
               <MappingFragment StoreEntitySet="TrainingTask">
+                <ScalarProperty Name="ReferenceResourceId" ColumnName="ReferenceResourceId" />
                 <ScalarProperty Name="LastUpdatedById" ColumnName="LastUpdatedById" />
                 <ScalarProperty Name="LastUpdated" ColumnName="LastUpdated" />
                 <ScalarProperty Name="CreatedById" ColumnName="CreatedById" />
@@ -3104,6 +3306,69 @@
                 <ScalarProperty Name="IsIdentityProxy" ColumnName="IsIdentityProxy" />
                 <ScalarProperty Name="UserId" ColumnName="UserId" />
                 <ScalarProperty Name="ProxyCode" ColumnName="ProxyCode" />
+                <ScalarProperty Name="Id" ColumnName="Id" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="ConceptScheme">
+            <EntityTypeMapping TypeName="NavyRRLModel.ConceptScheme">
+              <MappingFragment StoreEntitySet="ConceptScheme">
+                <ScalarProperty Name="LastPublishedById" ColumnName="LastPublishedById" />
+                <ScalarProperty Name="LastPublished" ColumnName="LastPublished" />
+                <ScalarProperty Name="LastApprovedById" ColumnName="LastApprovedById" />
+                <ScalarProperty Name="LastApproved" ColumnName="LastApproved" />
+                <ScalarProperty Name="LastUpdatedById" ColumnName="LastUpdatedById" />
+                <ScalarProperty Name="LastUpdated" ColumnName="LastUpdated" />
+                <ScalarProperty Name="CreatedById" ColumnName="CreatedById" />
+                <ScalarProperty Name="Created" ColumnName="Created" />
+                <ScalarProperty Name="SchemaUri" ColumnName="SchemaUri" />
+                <ScalarProperty Name="CTID" ColumnName="CTID" />
+                <ScalarProperty Name="RowId" ColumnName="RowId" />
+                <ScalarProperty Name="Description" ColumnName="Description" />
+                <ScalarProperty Name="Name" ColumnName="Name" />
+                <ScalarProperty Name="Id" ColumnName="Id" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="ClusterAnalysis">
+            <EntityTypeMapping TypeName="NavyRRLModel.ClusterAnalysis">
+              <MappingFragment StoreEntitySet="ClusterAnalysis">
+                <ScalarProperty Name="WorkRoleId" ColumnName="WorkRoleId" />
+                <ScalarProperty Name="BilletTitleId" ColumnName="BilletTitleId" />
+                <ScalarProperty Name="DevelopmentRatioTypeId" ColumnName="DevelopmentRatioTypeId" />
+                <ScalarProperty Name="HasRatingId" ColumnName="HasRatingId" />
+                <ScalarProperty Name="HasRatingTaskId" ColumnName="HasRatingTaskId" />
+                <ScalarProperty Name="LastUpdatedById" ColumnName="LastUpdatedById" />
+                <ScalarProperty Name="LastUpdated" ColumnName="LastUpdated" />
+                <ScalarProperty Name="CreatedById" ColumnName="CreatedById" />
+                <ScalarProperty Name="Created" ColumnName="Created" />
+                <ScalarProperty Name="Notes" ColumnName="Notes" />
+                <ScalarProperty Name="CTID" ColumnName="CTID" />
+                <ScalarProperty Name="DevelopmentTime" ColumnName="DevelopmentTime" />
+                <ScalarProperty Name="EstimatedInstructionalTime" ColumnName="EstimatedInstructionalTime" />
+                <ScalarProperty Name="PriorityPlacement" ColumnName="PriorityPlacement" />
+                <ScalarProperty Name="CFMPlacementTypeId" ColumnName="CFMPlacementTypeId" />
+                <ScalarProperty Name="DevelopmentSpecificationTypeId" ColumnName="DevelopmentSpecificationTypeId" />
+                <ScalarProperty Name="RecommendedModalityTypeId" ColumnName="RecommendedModalityTypeId" />
+                <ScalarProperty Name="HasClusterAnalysisTitleId" ColumnName="HasClusterAnalysisTitleId" />
+                <ScalarProperty Name="TrainingSolutionTypeId" ColumnName="TrainingSolutionTypeId" />
+                <ScalarProperty Name="RowId" ColumnName="RowId" />
+                <ScalarProperty Name="Id" ColumnName="Id" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="RatingTask">
+            <EntityTypeMapping TypeName="NavyRRLModel.RatingTask">
+              <MappingFragment StoreEntitySet="RatingTask">
+                <ScalarProperty Name="ReferenceTypeId" ColumnName="ReferenceTypeId" />
+                <ScalarProperty Name="LastUpdatedById" ColumnName="LastUpdatedById" />
+                <ScalarProperty Name="LastUpdated" ColumnName="LastUpdated" />
+                <ScalarProperty Name="CreatedById" ColumnName="CreatedById" />
+                <ScalarProperty Name="Created" ColumnName="Created" />
+                <ScalarProperty Name="CTID" ColumnName="CTID" />
+                <ScalarProperty Name="Description" ColumnName="Description" />
+                <ScalarProperty Name="ReferenceResourceId" ColumnName="ReferenceResourceId" />
+                <ScalarProperty Name="RowId" ColumnName="RowId" />
                 <ScalarProperty Name="Id" ColumnName="Id" />
               </MappingFragment>
             </EntityTypeMapping>

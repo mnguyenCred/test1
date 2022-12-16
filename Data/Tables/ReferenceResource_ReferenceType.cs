@@ -21,7 +21,7 @@ namespace Data.Tables
         public System.DateTime Created { get; set; }
         public Nullable<int> CreatedById { get; set; }
     
-        public virtual ConceptScheme_Concept ConceptScheme_Concept { get; set; }
+        public virtual ConceptScheme_Concept ConceptScheme_Concept_ReferenceType { get; set; }
         public virtual ReferenceResource ReferenceResource { get; set; }
     }
 }

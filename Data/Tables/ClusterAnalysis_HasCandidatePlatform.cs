@@ -21,7 +21,7 @@ namespace Data.Tables
         public System.DateTime Created { get; set; }
         public Nullable<int> CreatedById { get; set; }
     
-        public virtual ClusterAnalysis ClusterAnalysis { get; set; }
         public virtual ConceptScheme_Concept ConceptScheme_Concept { get; set; }
+        public virtual ClusterAnalysis ClusterAnalysis { get; set; }
     }
 }

@@ -7,78 +7,12 @@
 	ViewBag.Title = title;
 }
 
-@Html.Partial( "~/Views/Shared/_FormHelperV1.cshtml" )
-
-<script type="text/javascript">
-	var Data = {
-		//The original resource
-		Source: @Html.Raw( JsonConvert.SerializeObject( Model, Formatting.None ) ),
-		//Mapping used internally for the FormItem stuff
-		Form: {},
-		//Functions to configure FormItem stuff
-		Config: {
-			//Configure Save Button
-			SaveButton: function (Field) {
-				Field.SaveURL = "@Url.Content("~/billettitle/save/")";
-				Field.RedirectAfterSuccessURL = "@Url.Content("~/billettitle/detail/")";
-				Field.getDataToSave = function () {
-					return {
-						...Data.Source,
-						...Data.Form.read()
-					};
-				}
-			},
-			//Configure list of ratings
-			HasRating: function (Field) {
-				//Fill in the list of ratings to pick from
-				Field.Items = Data.RatingsList;
-				Field.renderItems();
-			},
-			//Configure two parts:
-			//One, the search to be performed to find Rating Tasks that can be added to this Billet Title
-			//Two, the search to be performed to find Rating Tasks that are already added to this Billet Title
-			HasRatingTask_Add: function (Field) {
-				//Search to add new valid Rating Tasks
-				Field.Search.SearchURL = "@Url.Content( "~/ratingtask/dosearch" )";
-				Field.Search.modifyQuery = function (query) {
-					//Where Rating Tasks are NOT already associated with this Billet Title...
-					query.Filters.push({ Name: "navy:Job", ItemIds: [Data.Source.Id], IsNegation: true });
-				}
-			},
-			HasRatingTask_Remove: function (Field) {
-				//Search to remove already added Rating Tasks
-				Field.Search.SearchURL = "@Url.Content( "~/ratingtask/dosearch" )";
-				Field.Search.modifyQuery = function (query) {
-					//Where Rating Tasks are already associated with this Billet Title...
-					query.Filters.push({ Name: "navy:Job", ItemIds: [Data.Source.Id] });
-				}
-
-				//Show existing items
-				Field.Search.doSearch();
-			}
-		}
-	};
-
-	//General setup
-	$(document).ready(function () {
-		FormItem.setupFormItems(Data.Form, "BilletTitle", Data.Config);
-		Data.Form.write(Data.Source);
-	});
-	//
-
-</script>
+@Html.Partial( "~/Views/Shared/_AJAXTools.cshtml" )
+@Html.Partial( "~/Views/Shared/_FormHelperV2.cshtml", new EditFormHelperV2( Model ) )
 
 <h2>@title</h2>
-<form-item data-path="BilletTitle.Id" data-ui="display" data-label="ID"></form-item>
-<form-item data-path="BilletTitle.RowId" data-ui="display" data-label="RowID"></form-item>
 
 <h3>Basic Info</h3>
-<form-item data-path="BilletTitle.Name" data-ui="text" data-label="Name"></form-item>
-@*<form-item data-path="BilletTitle.Description" data-ui="textarea" data-label="Description"></form-item>*@
-
-<h3>Add/Remove Rating Tasks</h3>
-<form-item data-path="BilletTitle.HasRatingTask_Add" data-ui="searchselectdeferred" data-label="Add Rating Tasks" data-config="HasRatingTask_Add"></form-item>
-<form-item data-path="BilletTitle.HasRatingTask_Remove" data-ui="searchselectdeferred" data-label="Remove Rating Tasks" data-config="HasRatingTask_Remove"></form-item>
-
-<h3>Save Changes</h3>
-<form-item data-path="BilletTitle.SaveButton" data-ui="savebutton" data-label="Save Changes" data-config="SaveButton"></form-item>
+<div class="field" data-fieldtype="SystemIdentifiers"></div>
+<div class="field" data-fieldtype="Text" data-property="Name" data-label="Name"></div>
+<div class="field" data-fieldtype="SaveButton"></div>

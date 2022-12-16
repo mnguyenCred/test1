@@ -18,32 +18,23 @@ using System.IO;
 
 namespace NavyRRL.Controllers
 {
-    public class UploadController : BaseController
+	[SessionState( System.Web.SessionState.SessionStateBehavior.ReadOnly )] //Allows for the polling to happen at the same time as the saving, instead of blocking the thread
+	public class UploadController : BaseController
     {
 		// GET: Upload
 		[CustomAttributes.NavyAuthorize( "Upload", Roles = Admin_SiteManager_RMTLDeveloper )]
 		public ActionResult Index()
         {
-			if ( !AccountServices.IsUserAuthenticated() )
-			{
-				AM.SiteMessage siteMessage = new AM.SiteMessage()
-				{
-					Title = "Invalid Request",
-					Message = "You must be authenticated and authorized to use this feature"
-				};
-				ConsoleMessageHelper.SetConsoleErrorMessage( "You must be logged in and authorized to perform this action." );
-				return RedirectToAction( AccountServices.EVENT_AUTHENTICATED, "event" );
-
-			}
-
-			return View( "~/views/upload/uploadv3.cshtml" );
+			AuthenticateOrRedirect( "You must be authenticated and authorized to use this feature." );
+			return View( "~/views/upload/uploadv4.cshtml" );
         }
 		//
 
-		[HttpGet, Route("uploadv4")]
-		public ActionResult IndexV4()
+		[HttpGet, Route("uploadv3")]
+		public ActionResult IndexV3()
 		{
-			return View( "~/views/upload/uploadv4.cshtml" );
+			AuthenticateOrRedirect( "You must be authenticated and authorized to use this feature." );
+			return View( "~/views/upload/uploadv3.cshtml" );
 		}
 		//
 
@@ -89,7 +80,7 @@ namespace NavyRRL.Controllers
 			//Do something with the raw CSV
 			if ( rawCSV?.Length > 0 )
 			{
-				var currentRating = Factories.RatingManager.Get( ratingRowID );
+				var currentRating = Factories.RatingManager.GetByRowId( ratingRowID );
 				if ( currentRating?.Id == 0 )
 				{
 					summary.Messages.Error.Add( "Error: Could not save input file: Unable to find Rating for identifier: " + ratingRowID );
@@ -155,44 +146,100 @@ namespace NavyRRL.Controllers
 		}
 		//
 
+		[CustomAttributes.NavyAuthorize( "Upload", Roles = Admin_SiteManager_RMTLDeveloper )]
 		public ActionResult ConfirmChangesV3( Guid transactionGUID )
 		{
-			//Reject if user does not have permission to save data
-
+			//Authenticate
+			AuthenticateOrRedirect( "You must be authenticated and authorized to use this feature." );
 
 			//Get the summary
 			var summary = BulkUploadServices.GetCachedChangeSummary( transactionGUID );
-			if(summary == null )
+			if( summary == null )
 			{
 				return JsonResponse( null, false, new List<string>() { "Unable to find cached change summary. Please upload the data again." } );
 			}
 
+			//If saving the data was canceled previously, don't allow trying to save it again, in order to prevent damaging the data any further
+			if( !summary.ContinueSavingData )
+			{
+				return JsonResponse( null, false, new List<string>() { "Saving data for this upload was previously canceled. In order to minimize errors, you must start over." } );
+			}
+
+			//Otherwise, process the summary
 			try
             {
-				//Process the summary
-				Services.BulkUploadServices.ApplyChangeSummary( summary );
-
-			} catch (Exception ex)
+				Services.BulkUploadServices.ApplyChangeSummaryV2( summary );
+			} 
+			catch ( Exception ex )
             {
 				LoggingHelper.LogError( ex, "UploadController.ConfirmChangesV3" );
             }
+
 			//Status isn't used, so read messages from summary instead
 			//Don't need to send back the entire summary
-
-			//Temp - simulate processing
-			//System.Threading.Thread.Sleep( 5000 );
-			//summary.Messages.Error.Add( "Test Error 1" );
-			//summary.Messages.Error.Add( "Test Error 2" );
-			//summary.Messages.Create.Add( "Test Create" );
-			//summary.Messages.Warning.Add( "Test Warning" );
-			
 			var confirmation = new JObject()
 			{
 				{ "Messages", JObject.FromObject( summary.Messages ) }
 			};
+
 			return JsonResponse( confirmation, true );
 		}
 		//
 
-    }
+		public ActionResult GetSavingStatus( Guid transactionGUID, bool continueSavingData = true )
+		{
+			//Get the summary
+			var summary = BulkUploadServices.GetCachedChangeSummary( transactionGUID );
+			if ( summary == null )
+			{
+				return JsonResponse( null, false, new List<string>() { "Unable to find cached change summary. Please upload the data again." } );
+			}
+
+			//Flag to stop processing, if the cancel button was clicked
+			summary.ContinueSavingData = continueSavingData;
+
+			//Setup the response
+			var response = new UploadV4SavePollingResponse()
+			{
+				TotalItems = summary.TotalItemsToSaveForClientMonitoring,
+				TotalProcessed = summary.TotalItemsSavedForClientMonitoring,
+				Messages = new List<UploadV4SaveMessage>()
+			};
+
+			//Parse out the messages that have been added since the last check
+			ExtractSaveMessages( "Error", summary.Messages.Error, response.Messages );
+			ExtractSaveMessages( "Warning", summary.Messages.Warning, response.Messages );
+			ExtractSaveMessages( "Duplicate", summary.Messages.Duplicate, response.Messages );
+			ExtractSaveMessages( "Miscellaneous", summary.Messages.Note, response.Messages );
+
+			//Return the total counts and messages
+			return JsonResponse( response, true );
+		}
+		private static void ExtractSaveMessages( string type, List<string> messagesSource, List<UploadV4SaveMessage> messagesDestination )
+		{
+			//Carefully extract the messages so as not to miss any due to multiple threads accessing the summary at the same time
+			while( messagesSource.Count() > 0 )
+			{
+				messagesDestination.Add( new UploadV4SaveMessage() { Type = type, Message = messagesSource.FirstOrDefault() } );
+				messagesSource.RemoveAt( 0 );
+			}
+		}
+		public class UploadV4SavePollingResponse
+		{
+			public UploadV4SavePollingResponse()
+			{
+				Messages = new List<UploadV4SaveMessage>();
+			}
+
+			public int TotalItems { get; set; }
+			public int TotalProcessed { get; set; }
+			public List<UploadV4SaveMessage> Messages { get; set; }
+		}
+		public class UploadV4SaveMessage
+		{
+			public string Type { get; set; }
+			public string Message { get; set; }
+		}
+		//
+	}
 }

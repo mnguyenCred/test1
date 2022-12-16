@@ -1,50 +1,21 @@
 ﻿@using Models.Schema;
 @using Newtonsoft.Json;
+@using Newtonsoft.Json.Linq;
+@using Models.DTO;
 @model Rating
 @{
 	var title = Model.Id > 0 ? "Editing Rating" : "New Rating";
 	ViewBag.Title = title;
 }
 
-@Html.Partial( "~/Views/Shared/_FormHelperV1.cshtml" )
-
-<script type="text/javascript">
-	var Data = {
-		//The original resource
-		Source: @Html.Raw( JsonConvert.SerializeObject( Model, Formatting.None ) ),
-		//Mapping used internally for the FormItem stuff
-		Form: {},
-		//Functions to configure FormItem stuff
-		Config: {
-			//Configure Save Button
-			SaveButton: function (Field) {
-				Field.SaveURL = "@Url.Content("~/rating/save/")";
-				Field.RedirectAfterSuccessURL = "@Url.Content("~/rating/detail/")";
-				Field.getDataToSave = function () {
-					return {
-						...Data.Source,
-						...Data.Form.read()
-					};
-				}
-			}
-		}
-	};
-
-	$(document).ready(function () {
-		FormItem.setupFormItems(Data.Form, "Rating", Data.Config);
-		Data.Form.write(Data.Source);
-	});
-	//
-</script>
+@Html.Partial( "~/Views/Shared/_AJAXTools.cshtml" )
+@Html.Partial( "~/Views/Shared/_FormHelperV2.cshtml", new EditFormHelperV2( Model ) )
 
 <h2>@title</h2>
-<form-item data-path="Rating.Id" data-ui="display" data-label="ID"></form-item>
-<form-item data-path="Rating.RowId" data-ui="display" data-label="RowID"></form-item>
 
 <h3>Basic Info</h3>
-<form-item data-path="Rating.Name" data-ui="text" data-label="Name"></form-item>
-<form-item data-path="Rating.CodedNotation" data-ui="text" data-label="Code"></form-item>
-@*<form-item data-path="Rating.Description" data-ui="textarea" data-label="Description"></form-item>*@
-
-<h3>Save Changes</h3>
-<form-item data-path="Rating.SaveButton" data-ui="savebutton" data-label="Save Changes" data-config="SaveButton"></form-item>
+<div class="field" data-fieldtype="SystemIdentifiers"></div>
+<div class="field" data-fieldtype="Text" data-property="Name" data-label="Name"></div>
+<div class="field" data-fieldtype="Text" data-property="CodedNotation" data-label="Code"></div>
+<div class="field" data-fieldtype="TextArea" data-property="Description" data-label="Description"></div>
+<div class="field" data-fieldtype="SaveButton"></div>

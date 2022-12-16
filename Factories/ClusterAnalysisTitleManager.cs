@@ -23,6 +23,28 @@ namespace Factories
 
 		#region === Persistance ==================
 
+		public static void SaveFromUpload( AppEntity entity, int userID, ChangeSummary summary )
+		{
+			SaveCore( entity, userID, "Upload", summary.AddError );
+		}
+		//
+
+		public static void SaveFromEditor( AppEntity entity, int userID, List<string> errors )
+		{
+			SaveCore( entity, userID, "Edit", errors.Add );
+		}
+		//
+
+		private static void SaveCore( AppEntity entity, int userID, string saveType, Action<string> AddErrorMethod )
+		{
+			using ( var context = new DataEntities() )
+			{
+				BasicSaveCore( context, entity, context.ClusterAnalysisTitle, userID, ( ent, dbEnt ) => { }, ( ent, dbEnt ) => { }, saveType, AddErrorMethod );
+			}
+		}
+		//
+
+
 		/// <summary>
 		/// Save a ClusterAnalysisTitle
 		/// </summary>
@@ -41,7 +63,7 @@ namespace Factories
 					//look up if no id
 					if ( entity.Id == 0 )
 					{
-						var record = Get( entity.Name );
+						var record = GetByName( entity.Name );
 						if ( record?.Id > 0 )
 						{
 							//currently no description, so can just return
@@ -218,121 +240,52 @@ namespace Factories
 		#endregion
 
 		#region Retrieval
-		public static AppEntity Get( string name )
+		public static AppEntity GetSingleByFilter( Func<DBEntity, bool> FilterMethod, bool returnNullIfNotFound = false )
 		{
-			var entity = new AppEntity();
-
-			using ( var context = new DataEntities() )
-			{
-                var item = context.ClusterAnalysisTitle
-                            .FirstOrDefault( s => s.Name == name );
-
-                if ( item != null && item.Id > 0 )
-                {
-                    MapFromDB( item, entity );
-                }
-		
-			}
-			return entity;
+			return GetSingleByFilter<DBEntity, AppEntity>( context => context.ClusterAnalysisTitle, FilterMethod, MapFromDB, returnNullIfNotFound );
 		}
 		//
-		public static AppEntity Get( Guid rowId )
-        {
-            var entity = new AppEntity();
 
-            using ( var context = new DataEntities() )
-            {
-
-                var item = context.ClusterAnalysisTitle
-                            .FirstOrDefault( s => s.RowId == rowId );
-
-                if ( item != null && item.Id > 0 )
-                {
-                    MapFromDB( item, entity );
-                }				
-            }
-            return entity;
-        }
-		//
-
-        public static AppEntity Get( int id )
-        {
-            var entity = new AppEntity();
-            if ( id < 1 )
-                return entity;
-
-            using ( var context = new DataEntities() )
-            {
-                var item = context.ClusterAnalysisTitle
-							.SingleOrDefault( s => s.Id == id );
-
-                if ( item != null && item.Id > 0 )
-                {
-                    MapFromDB( item, entity );
-                }			
-            }
-
-            return entity;
-        }
-		//
-
-		public static AppEntity GetByCTIDOrNull( string ctid )
+		public static AppEntity GetByName( string name, bool returnNullIfNotFound = false )
 		{
-			if ( string.IsNullOrWhiteSpace( ctid ) )
+			return GetSingleByFilter( m => m.Name?.ToLower() == name?.ToLower(), returnNullIfNotFound );
+		}
+		//
+
+		public static AppEntity GetByRowId( Guid rowId, bool returnNullIfNotFound = false )
+		{
+			return GetSingleByFilter( m => m.RowId == rowId, returnNullIfNotFound );
+		}
+		//
+
+		public static AppEntity GetById( int id, bool returnNullIfNotFound = false )
+		{
+			return GetSingleByFilter( m => m.Id == id, returnNullIfNotFound );
+		}
+		//
+
+		public static AppEntity GetByCTID( string ctid, bool returnNullIfNotFound = false )
+		{
+			return GetSingleByFilter( m => m.CTID.ToLower() == ctid?.ToLower(), returnNullIfNotFound );
+		}
+		//
+
+		public static AppEntity GetForUploadOrNull( string clusterAnalysisTitleName )
+		{
+			using(var context = new DataEntities() )
 			{
-				return null;
-			}
+				var match = context.ClusterAnalysisTitle.FirstOrDefault( m =>
+					m.Name.ToLower() == clusterAnalysisTitleName.ToLower()
+				);
 
-			using ( var context = new DataEntities() )
-			{		
-				var item = context.ClusterAnalysisTitle
-							.SingleOrDefault( s => s.CTID == ctid );
-
-				if ( item != null && item.Id > 0 )
+				if ( match != null )
 				{
-					var entity = new AppEntity();
-					MapFromDB( item, entity );
-					return entity;
-				}		
+					return MapFromDB( match, context );
+				}
 			}
 
 			return null;
 		}
-		//
-
-		/// <summary>
-		/// Get All 
-		/// </summary>
-		/// <returns></returns>
-		public static List<AppEntity> GetAll()
-        {
-            var entity = new AppEntity();
-            var list = new List<AppEntity>();
-
-            list = new List<AppEntity>();
-            using ( var context = new DataEntities() )
-            {
-				/*	*/
-                var results = context.ClusterAnalysisTitle
-                        .OrderBy( s => s.Name )
-                        .ToList();
-                if ( results?.Count > 0 )
-                {
-                    foreach ( var item in results )
-                    {
-                        if ( item != null && item.Id > 0 )
-                        {
-                            entity = new AppEntity();
-                            MapFromDB( item, entity );
-                            list.Add( ( entity ) );
-                        }
-                    }
-                    AddToCache( list );
-                }
-			
-            }
-            return list;
-        }
 		//
 
 		public static List<AppEntity> GetMultiple( List<Guid> guids )
@@ -348,9 +301,7 @@ namespace Factories
 
 				foreach ( var item in items )
 				{
-					var result = new AppEntity();
-					MapFromDB( item, result );
-					results.Add( result );
+					results.Add( MapFromDB( item, context ) );
 				}
 			
 			}
@@ -359,52 +310,24 @@ namespace Factories
 		}
 		//
 
-		public static List<AppEntity> Search( SearchQuery query )
+		public static SearchResultSet<AppEntity> Search( SearchQuery query )
 		{
-			var output = new List<AppEntity>();
-			var skip = ( query.PageNumber - 1 ) * query.PageSize;
-			try
+			return HandleSearch<DBEntity, AppEntity>( query, context =>
 			{
-				using ( var context = new DataEntities() )
+				//Start query
+				var list = context.ClusterAnalysisTitle.AsQueryable();
+				var keywords = GetSanitizedSearchFilterKeywords( query );
+
+				//Handle keywords
+				if ( !string.IsNullOrWhiteSpace( keywords ) )
 				{
-					//Start query
-					var list = context.ClusterAnalysisTitle.AsQueryable();
-
-					//Handle keywords filter
-					var keywordsText = query.GetFilterTextByName( "search:Keyword" )?.ToLower();
-					if ( !string.IsNullOrWhiteSpace( keywordsText ) )
-					{
-						list = list.Where( s =>
-							s.Name.ToLower().Contains( keywordsText )
-						);
-					}
-
-					//Get total
-					query.TotalResults = list.Count();
-
-					//Sort
-					list = list.OrderBy( p => p.Description );
-
-					//Get page
-					var results = list.Skip( skip ).Take( query.PageSize )
-						.Where( m => m != null ).ToList();
-
-					//Populate
-					foreach ( var item in results )
-					{
-						var entity = new AppEntity();
-						MapFromDB( item, entity );
-						output.Add( entity );
-					}
-				
+					list = list.Where( m => m.Name.Contains( keywords ) );
 				}
 
-				return output;
-			}
-			catch ( Exception ex )
-			{
-				return new List<AppEntity>() { new AppEntity() { Name = "Error: " + ex.Message + " - " + ex.InnerException?.Message } };
-			}
+				//Return ordered list
+				return HandleSort( list, query.SortOrder, m => m.Name, m => m.OrderBy( n => n.Name ) );
+
+			}, MapFromDBForSearch );
 		}
 		//
 
@@ -461,14 +384,17 @@ namespace Factories
 		}
 		//
 
-		public static void MapFromDB( DBEntity input, AppEntity output )
+		public static AppEntity MapFromDB( DBEntity input, DataEntities context )
 		{
-			List<string> errors = new List<string>();
-			BaseFactory.AutoMap( input, output, errors );
-			if ( input.RowId != output.RowId )
-			{
-				output.RowId = input.RowId;
-			}
+			return MapFromDBForSearch( input, context, null );
+		}
+		//
+
+		public static AppEntity MapFromDBForSearch( DBEntity input, DataEntities context, SearchResultSet<AppEntity> resultSet = null )
+		{
+			var output = AutoMap( input, new AppEntity() );
+
+			return output;
 		}
 		//
 

@@ -1,0 +1,1052 @@
+﻿@using Models.Schema;
+@using Newtonsoft.Json;
+@using Models.DTO;
+@{
+	ViewBag.Title = "RMTL Search";
+	var conceptSchemeMap = Factories.ConceptSchemeManager.GetConceptSchemeMap( true );
+	var allConceptSchemes = conceptSchemeMap.AllConceptSchemes.Select( scheme => new SimpleFilter()
+	{
+		URI = scheme.SchemaUri,
+		RowId = scheme.RowId,
+		Id = scheme.Id,
+		Name = scheme.Name,
+		Items = scheme.Concepts.Select( concept => new SimpleFilterItem()
+		{
+			RowId = concept.RowId,
+			Id = concept.Id,
+			Label = string.Join( " - ", new List<string>() { concept.CodedNotation, concept.Name }.Where( m => !string.IsNullOrWhiteSpace( m ) ).ToList() ),
+			Name = concept.Name,
+			CodedNotation = concept.CodedNotation,
+			WorkElementType = concept.WorkElementType
+		} ).ToList()
+	} ).ToList();
+
+	var preselectedRating = new Rating();
+	if ( !string.IsNullOrWhiteSpace( Request.Params[ "RatingRowID" ] ) )
+	{
+		try
+		{
+			preselectedRating = Factories.RatingManager.GetByRowId( Guid.Parse( Request.Params[ "RatingRowID" ] ) );
+		}
+		catch { }
+	}
+}
+@functions {
+	public class SimpleFilter
+	{
+		public string URI { get; set; }
+		public Guid RowId { get; set; }
+		public int Id { get; set; }
+		public string Name { get; set; }
+		public List<SimpleFilterItem> Items { get; set; }
+	}
+
+	public class SimpleFilterItem
+	{
+		public Guid RowId { get; set; }
+		public int Id { get; set; }
+		public string Label { get; set; }
+		//public Guid IsChildOf { get; set; }
+		public string Name { get; set; }
+		public string CodedNotation { get; set; }
+		public string WorkElementType { get; set; }
+	}
+}
+
+@Html.Partial( "~/Views/Shared/_AJAXTools.cshtml" )
+@Html.Partial( "~/Views/Search/_SearchCoreV1.cshtml" )
+
+<script type="text/javascript">
+	var UI = {};
+	var ConceptSchemes = @Html.Raw( JsonConvert.SerializeObject( allConceptSchemes ) );
+	var RMTL = {
+		Columns: [
+			//{ Label: "Unique Identifier", ResultMap: "Row_CodedNotation", Path: "CodedNotation", Part: "PART I" },
+			{ Label: "Rating Context UUID", Path: "> RowId", Part: "PART I", MinWidth: 100, IsMetaColumn: true },
+			{ Label: "Rating", Path: "> HasRating > Rating > CodedNotation", Part: "PART I", MinWidth: 100 },
+			{ Label: "Rank", Path: "> PayGradeType > Concept > CodedNotation", Part: "PART I", MinWidth: 100 },
+			{ Label: "Level (A/J/M)", Path: "> PayGradeLevelType > Concept > CodedNotation", Part: "PART I", MinWidth: 100 },
+			{ Label: "Billet Title", Path: "> HasBilletTitle > BilletTitle > Name", Part: "PART I", MinWidth: 300 },
+			{ Label: "Functional Area", Path: "> HasWorkRole > WorkRole > Name", Part: "PART I", MinWidth: 200 },
+			{ Label: "Source", Path: "> HasRatingTask > RatingTask > HasReferenceResource > ReferenceResource > Name", Part: "PART I", MinWidth: 200 },
+			{ Label: "Date of Source", Path: "> HasRatingTask > RatingTask > HasReferenceResource > ReferenceResource > PublicationDate", AsPlainText: true, Part: "PART I", MinWidth: 100 },
+			{ Label: "Work Element Type", Path: "> HasRatingTask > RatingTask > ReferenceType > Concept > WorkElementType", Part: "PART I", MinWidth: 200 },
+			{ Label: "Work Element (Task)", Path: "> HasRatingTask > RatingTask > Description", Part: "PART I", MinWidth: 500 },
+			{ Label: "Task Applicability", Path: "> ApplicabilityType > Concept > Name", Part: "PART I", MinWidth: 150 },
+			{ Label: "Formal Training Gap", Path: "> TrainingGapType > Concept > Name", Part: "PART II", MinWidth: 100 },
+			{ Label: "Course Context UUID", Path: "> HasCourseContext > CourseContext > RowId", Part: "PART II", MinWidth: 100, IsMetaColumn: true },
+			{ Label: "CIN", Path: "> HasCourseContext > CourseContext > HasCourse > Course > CodedNotation", AsPlainText: true, Part: "PART II", MinWidth: 100 },
+			{ Label: "Course Name", Path: "> HasCourseContext > CourseContext > HasCourse > Course > Name", Part: "PART II", MinWidth: 300 },
+			{ Label: "Course Type (A/C/G/F/T)", Path: "> HasCourseContext > CourseContext > HasCourse > Course > CourseType > Concept > Name", Part: "PART II", MinWidth: 200 },
+			{ Label: "Curriculum Control Authority (CCA)", Path: "> HasCourseContext > CourseContext > HasCourse > Course > CurriculumControlAuthority > Organization > Name", MinWidth: 200, Part: "PART II" },
+			{ Label: "Life-Cycle Control Document", Path: "> HasCourseContext > CourseContext > HasCourse > Course > LifeCycleControlDocumentType > Concept > Name", Part: "PART II", MinWidth: 100 },
+			{ Label: "CTTL/PPP/TCCD Statement", Path: "> HasCourseContext > CourseContext > HasTrainingTask > TrainingTask > Description", Part: "PART II", MinWidth: 500 },
+			{ Label: "Current Assessment Approach", Path: "> HasCourseContext > CourseContext > AssessmentMethodType > Concept > Name", Part: "PART II", MinWidth: 300 },
+			{ Label: "Training Solution Type", Path: "> HasClusterAnalysis > ClusterAnalysis > TrainingSolutionType > Concept > Name", Part: "PART III", MinWidth: 100 },
+			{ Label: "Cluster Analysis UUID", Path: "> HasClusterAnalysis > ClusterAnalysis > RowId", Part: "PART III", MinWidth: 100, IsMetaColumn: true },
+			{ Label: "Cluster Analysis Title", Path: "> HasClusterAnalysis > ClusterAnalysis > HasClusterAnalysisTitle > ClusterAnalysisTitle > Name", Part: "PART III", MinWidth: 300 },
+			{ Label: "Recommended Modality", Path: "> HasClusterAnalysis > ClusterAnalysis > RecommendedModalityType > Concept > Name", Part: "PART III", MinWidth: 100 },
+			{ Label: "Development Specification", Path: "> HasClusterAnalysis > ClusterAnalysis > DevelopmentSpecificationType > Concept > Name", Part: "PART III", MinWidth: 150 },
+			{ Label: "Candidate Platform", Path: "> HasClusterAnalysis > ClusterAnalysis > CandidatePlatformType > Concept > CodedNotation", Part: "PART III", MinWidth: 200 },
+			{ Label: "CFM Placement", Path: "> HasClusterAnalysis > ClusterAnalysis > CFMPlacementType > Concept > Name", Part: "PART III", MinWidth: 150 },
+			{ Label: "Priority Placement", Path: "> HasClusterAnalysis > ClusterAnalysis > PriorityPlacement", Part: "PART III", MinWidth: 100 },
+			{ Label: "Development Ratio", Path: "> HasClusterAnalysis > ClusterAnalysis > DevelopmentRatioType > Concept > Name", Part: "PART III", MinWidth: 100 },
+			{ Label: "Estimated Instructional Time", Path: "> HasClusterAnalysis > ClusterAnalysis > EstimatedInstructionalTime", Part: "PART III", MinWidth: 100 },
+			{ Label: "Development Time (duration in hours)", Path: "> HasClusterAnalysis > ClusterAnalysis > DevelopmentTime", Part: "PART III", Part: "PART III", MinWidth: 100 },
+			{ Label: "Notes", Path: "> Notes", AsPlainText: true, Part: "PART III", MinWidth: 200 }
+		]
+	};
+	var Statistics = {
+		AllTasksTotal: 0,
+		ReferenceResourceConcepts: @Html.Raw( JsonConvert.SerializeObject( conceptSchemeMap.ReferenceResourceCategory.Concepts.Select( m => SimpleItemHelper.GetSimpleItem( m ) ).ToList() ) ),
+		TrainingGapConcepts: @Html.Raw( JsonConvert.SerializeObject( conceptSchemeMap.TrainingGapCategory.Concepts.Select( m => SimpleItemHelper.GetSimpleItem( m ) ).ToList() ) ),
+		BySourceColumns: [
+			{ Label: "Source Type" },
+			{ Label: "Tasks" },
+			{ Label: "Gaps" },
+			{ Label: "Coverage %" },
+			{ Label: "Gaps %" },
+			{ Label: "% of Tasks in Results" },
+			{ Label: "Coverage in Results" },
+			{ Label: "% of All Tasks" },
+			{ Label: "Coverage Across All Tasks" }
+		]
+	};
+	var MainSearch = {};
+	//
+
+	$(document).ready(function () {
+		setupUI();
+		setupMainSearch();
+		setupExport();
+		preCacheResources();
+		handlePreselectedRating();
+	});
+	//
+
+	function handlePreselectedRating() {
+		var Rating = @Html.Raw( JsonConvert.SerializeObject( preselectedRating, Formatting.None ) );
+		if (Rating?.Id) {
+			MainSearch.Filters.ByName["> RatingId > Rating"].addSelectedItem(Rating);
+		}
+	}
+	//
+
+	function preCacheResources() {
+		ConceptSchemes.forEach(ConceptScheme => {
+			MainSearch.addResourceToCache("@Url.Content("~/ConceptScheme/GetById/")" + ConceptScheme.Id, ConceptScheme);
+			MainSearch.addResourceToCache("@Url.Content("~/ConceptScheme/GetByRowId/")" + ConceptScheme.RowId, ConceptScheme);
+			ConceptScheme.Items.forEach(Concept => {
+				MainSearch.addResourceToCache("@Url.Content("~/Concept/GetById/")" + Concept.Id, Concept);
+				MainSearch.addResourceToCache("@Url.Content("~/Concept/GetByRowId/")" + Concept.RowId, Concept);
+			});
+		});
+	}
+	//
+
+	function setupUI() {
+		//Parts
+		UI.MainHeader = $(".mainHeader");
+		UI.Status = {
+			StatusBox: $(".mainSearchStatusBox"),
+			Spinner: $(".mainSearchSpinner"),
+			FilterEchoBox: $(".mainSearchFilterEchoBox")
+		};
+		UI.ExportResultsProgressBarBox = $(".exportProgressBarBox");
+		UI.ExportResultsProgressBar = $(".exportProgressBar");
+		UI.MainFilters = {
+			Box: $(".mainSearchFiltersBox")
+		};
+		UI.RMTL = {
+			Box: $(".rmtlBox"),
+			TableWrapper: $(".rmtlTableWrapper"),
+			Table: $(".rtmlTable"),
+			TableHeader: $(".rmtlTableHeader"),
+			TableBody: $(".rmtlTableBody"),
+			Footer: $(".rmtlFooter"),
+			PagingBox: $(".rmtlPagingBox"),
+			StyleBox: $(".rmtlStyleBox")
+		};
+		UI.Statistics = {
+			Box: $(".statisticsBox"),
+			BySourceTable: $(".ratingTasksBySourceTypeTable"),
+			BySourceTableHeader: $(".ratingTasksBySourceTypeTableHeader"),
+			BySourceTableBody: $(".ratingTasksBySourceTypeTableBody"),
+			BySourceTableFooter: $(".ratingTasksBySourceTypeTableFooter")
+		};
+
+		//Buttons
+		UI.ExportResultsButton = $("[data-action='ExportMainSearchResults']");
+
+		//Initialization
+		UI.MainTabs = setupTabs($(".mainTabButtons"), $(".mainTab"));
+		UI.MainTabs.TabsByName["RMTL Spreadsheet"].resetScroll = function () {
+			UI.RMTL.TableWrapper[0].scrollTo(0, 0);
+		}
+
+		RMTL.Columns.forEach(Column => {
+			Column.THead = $("<th data-column=\"" + Column.Label + "\" data-part=\"" + Column.Part + "\" style=\"min-width: " + (Column.MinWidth) + "px\">" + Column.Label + "</th>").appendTo(UI.RMTL.TableHeader);
+		});
+
+		UI.ExportResultsProgressBarBox.hide();
+
+		var sourceTableHeaderTR = $("<tr></tr>").appendTo(UI.Statistics.BySourceTableHeader);
+		Statistics.BySourceColumns.forEach(Column => {
+			Column.TableHeader = $("<th data-column=\"" + Column.Label + "\">" + Column.Label + "</th>").appendTo(sourceTableHeaderTR);
+		});
+	}
+	//
+
+	function setupTabs(jqTabButtonsBox, jqTabs) {
+		//Container
+		var TabSet = {
+			Tabs: [],
+			TabsByName: {},
+			CurrentTab: null
+		};
+
+		//Show Tab
+		TabSet.showTab = function (Tab) {
+			TabSet.CurrentTab = Tab;
+
+			TabSet.Tabs.forEach(OtherTab => {
+				OtherTab.Box.removeClass("selected");
+				OtherTab.Button.removeClass("selected greenButton");
+			});
+
+			Tab.Box.addClass("selected");
+			Tab.Button.addClass("selected greenButton");
+
+			if (Tab.ResetScroll) {
+				Tab.ResetScroll = false;
+				Tab.resetScroll();
+			}
+		};
+
+		//Setup individual tabs
+		jqTabs.each(function () {
+			var box = $(this);
+			var Tab = {
+				Box: box,
+				Name: box.attr("data-tab"),
+				Button: $("<button>" + box.attr("data-tab") + "</button>").appendTo(jqTabButtonsBox),
+				ResetScroll: false
+			};
+
+			Tab.Button.on("click", function () {
+				TabSet.showTab(Tab);
+			});
+
+			Tab.resetScroll = function () { }; //Override this
+
+			TabSet.Tabs.push(Tab);
+			TabSet.TabsByName[Tab.Name] = Tab;
+		});
+
+		//Hidden elements can't be scrolled, so defer it
+		TabSet.resetScrollForOtherTabs = function () {
+			TabSet.Tabs.filter(Tab => Tab != TabSet.CurrentTab).forEach(Tab => Tab.ResetScroll = true);
+		}
+
+		//Show the first tab
+		TabSet.Tabs[0]?.Button.trigger("click");
+
+		//Tracking
+		return TabSet;
+	}
+	//
+
+	function setupMainSearch() {
+		//Create the Search and Setup the Filters
+		MainSearch = createSearch("RMTL", "@Url.Content("~/RMTL/DoSearch")", UI.Status.StatusBox, UI.Status.Spinner, UI.RMTL.TableBody, UI.RMTL.PagingBox, 250, 1000); //Page size here must not exceed max page size server-side!
+		MainSearch.Filters = setupFilters(UI.MainFilters.Box.find(".filter"));
+		MainSearch.Enabled = true;
+
+		//Override the appropriate functions
+		MainSearch.getFilters = function () {
+			return MainSearch.Filters.List.filter(Filter => !Filter.IsMetaFilter).map(Filter => Filter.read()).filter(value => value);
+		};
+
+		MainSearch.getSortOrder = function () {
+			return MainSearch.Filters.ByName.SortOrder.read();
+		};
+
+		MainSearch.beforeRenderAll = function () {
+			UI.RMTL.TableWrapper[0].scrollTo(0, 0);
+		};
+
+		MainSearch.afterRenderAll = function () {
+			getAndRenderStatistics();
+		};
+
+		MainSearch.renderResult = function (Result, container, index) {
+			var row = $("<tr></tr>").appendTo(container);
+			RMTL.Columns.forEach(Column => {
+				var cell = $("<td><div class=\"spinner\"></div></td>").appendTo(row);
+				setTimeout(function () {
+					//Column.render(Result, cell);
+					renderPathToData(Column, Result, cell);
+				}, index);
+			});
+		};
+	}
+	//
+
+	function setupFilters(jqFilters) {
+		//Container
+		var Filters = {
+			List: [],
+			ByName: {}
+		}
+
+		//For each Filter...
+		jqFilters.each(function () {
+			var box = $(this);
+			var Filter = {
+				Box: box,
+				Name: box.attr("data-filter"),
+				Type: box.attr("data-filtertype"),
+				SearchType: box.attr("data-searchtype"),
+				Source: ConceptSchemes.find(scheme => scheme.URI == box.attr("data-sourceuri"))
+			};
+
+			Filter.Label = box.attr("data-label") || Filter.Source?.Name || Filter.Name;
+			Filter.LabelBox = $("<div class=\"filterLabel\">" + Filter.Label + "</div>").appendTo(Filter.Box);
+			Filter.ContentBox = $("<div class=\"filterContent\"></div>").appendTo(Filter.Box);
+
+			window["setupFilter_" + Filter.Type]?.(Filter);
+
+			Filters.List.push(Filter);
+			Filters.ByName[Filter.Name] = Filter;
+		});
+
+		//Tracking
+		return Filters;
+	}
+	//
+
+	function renderPathToData(Column, Result, cell, onFinish) {
+		//Get the path parts
+		var path = Column.Path.replace(/>/g, "").split(" ").map(m => m.trim()).filter(m => m);
+		//Do the referencing
+		referenceViaPath(Column, path, Result, "RatingContext", cell, false, onFinish);
+	}
+	function referenceViaPath(Column, path, CurrentData, currentType, container, replaceContainer, onFinish, overrideRenderType, overrideRenderID) {
+		//Get the property and type data
+		var nextProperty = path.shift();
+		var nextType = path.shift();
+		//If the path continues, crawl it
+		if (nextType) {
+			var value = CurrentData[nextProperty];
+			if (value) {
+				//Handle array values
+				if (Array.isArray(value)) {
+					//Handle empty arrays
+					if (value.length == 0) {
+						writeValue(container, "N/A", replaceContainer, onFinish);
+					}
+					else {
+						//Clear the container and handle rendering separators
+						container.html("");
+						var addSeparator = false;
+						var finished = value.map(m => { return false });
+						//For each value...
+						value.forEach((item, index) => {
+							//Inject a separator and a placeholder
+							addSeparator ? container.append(Column.Separator || " | ") : (addSeparator = true);
+							var placeholder = $("<div class=\"spinner\"></div>").appendTo(container);
+							//Get the value and continue the process
+							if (item == "@Guid.Empty") {
+								writeValue(placeholder, "N/A", true, onFinish);
+							}
+							else {
+								MainSearch.getRelatedResourceOrLookup(item, "@Url.Content("~/")" + nextType + "/GetByRowId/" + item, NextData => {
+									referenceViaPath(Column, [...path], NextData, nextType, placeholder, true, function () {
+										finished[index] = true;
+										if (finished.every(m => m == true)) {
+											onFinish?.();
+										}
+									}, overrideRenderType, overrideRenderID);
+								}, Error => {
+									writeValue(placeholder, "Error loading data for UUID: " + item, replaceContainer, onFinish);
+								});
+							}
+						});
+					}
+				}
+				//Handle single values
+				else {
+					if (value == "@Guid.Empty") {
+						writeValue(container, "N/A", replaceContainer, onFinish);
+					}
+					else {
+						MainSearch.getRelatedResourceOrLookup(value, "@Url.Content("~/")" + nextType + "/GetByRowId/" + value, NextData => {
+							referenceViaPath(Column, path, NextData, nextType, container, false, onFinish, overrideRenderType, overrideRenderID);
+						}, Error => {
+							writeValue(container, "Error loading data for UUID: " + item, replaceContainer, onFinish);
+						});
+					}
+				}
+			}
+			else {
+				writeValue(container, "N/A", replaceContainer, onFinish);
+			}
+		}
+		//Otherwise, render the value
+		else {
+			if (CurrentData[nextProperty]) {
+				var content = Column.AsPlainText ? CurrentData[nextProperty] : $("<a href=\"@Url.Content("~/")" + (overrideRenderType || currentType) + "/Detail/" + (overrideRenderID || CurrentData.Id) + "\" target=\"_blank\">" + CurrentData[nextProperty] + "</a>");
+				writeValue(container, content, replaceContainer, onFinish);
+			}
+			else {
+				writeValue(container, "N/A", replaceContainer, onFinish);
+			}
+		}
+	}
+
+	//Helper function
+	function writeValue(container, value, replaceContainer, onFinish) {
+		replaceContainer ? container.replaceWith(value) : container.html(value);
+		onFinish?.();
+	}
+	//
+
+	//Export handling
+	function setupExport() {
+		UI.ExportResultsButton.on("click", function () {
+			if (MainSearch.TotalPages > 0) {
+				exportResults();
+			}
+			else {
+				alert("Error: the current query returns 0 results.");
+			}
+		});
+	}
+	//
+
+	function exportResults() {
+		UI.ExportResultsButton.prop("disabled", true).html("Processing");
+		MainSearch.Enabled = false;
+		UI.ExportResultsProgressBarBox.show();
+		UI.ExportResultsProgressBar.html("Processing...");
+		UI.Status.Spinner.show();
+		setTimeout(function () {
+			var allResults = [];
+			exportResultsPage(1, allResults, 0);
+		}, 1500);
+	}
+	//
+
+	function exportResultsPage(pageNumber, allResults, totalHandled) {
+		//Set the page number and prepare the search
+		MainSearch.PageNumber = pageNumber;
+		MainSearch.prepareToSearch(false, false);
+
+		//Do the search
+		MainSearch.doPOSTRequest(MainSearch.SearchURL, MainSearch.Query, response => {
+			//If valid...
+			if (response.Valid) {
+				//Set the related resources array so that the rendering code will find them
+				MainSearch.RelatedResources = response.Data.RelatedResources || [];
+				//Create an array of flags, one for each Result
+				var resultsFlags = response.Data.Results.map(m => { return false; });
+				//For each result...
+				response.Data.Results.forEach((Result, resultIndex) => {
+					//Create a work row and an output row. Append the output row immediately to ensure the rows remain in the correct order
+					var workRow = [];
+					var outputRow = [];
+					allResults.push(outputRow);
+					//For each column...
+					RMTL.Columns.filter(Column => Column.Visible).forEach(Column => {
+						//Create a fake table cell to hold the value and reuse the rendering code
+						var item = {
+							cell: $("<div></div>"),
+							finished: false
+						};
+						workRow.push(item);
+						//Render the data for the fake cell. Include callback that sets the item's value to "finished" when it's done
+						//Column.render(Result, item.cell, function () {
+						renderPathToData(Column, Result, item.cell, function () {
+							item.finished = true;
+							//If all of the items for the current workRow are finished...
+							if (workRow.every(m => m.finished)) {
+								//Get the .text() for each cell and append it to the outputRow
+								workRow.forEach(workRowItem => {
+									outputRow.push(workRowItem.cell.text());
+								});
+								//Flag this result as being finished
+								resultsFlags[resultIndex] = true;
+								totalHandled++;
+								UI.ExportResultsProgressBar.css("width", (100 * ( totalHandled / (response.Data.TotalResults || 1) )) + "%").html(totalHandled + " of " + response.Data.TotalResults);
+								//If every Result for the current page is finished...
+								if (resultsFlags.every(m => m == true)) {
+									//If there are more results to get, get them
+									if (pageNumber < MainSearch.TotalPages) {
+										exportResultsPage(pageNumber + 1, allResults, totalHandled);
+									}
+									//Otherwise finish and write the CSV data
+									else {
+										UI.ExportResultsProgressBar.css("width", "100%").html("Generating CSV File...");
+										console.log("Writing CSV File");
+										writeCSV(allResults, finishExport);
+									}
+								}
+							}
+						});
+					});
+				});
+			}
+			else {
+				console.log("Export error: " + response);
+				MainSearch.setStatus("Error: " + response.Status.join(", "));
+				finishExport();
+			}
+		}, error => {
+			console.log("Error", error);
+			MainSearch.setStatus("Error: " + (error?.status || "Unknown Error"));
+			finishExport();
+		});
+	}
+	//
+
+	function writeCSV(allResults, afterWrite) {
+		var currentPart = "";
+		var csv = [];
+		var topRow = [];
+		var VisibleColumns = RMTL.Columns.filter(Column => Column.Visible);
+		VisibleColumns.forEach(Column => {
+			topRow.push(currentPart == Column.Part ? "" : Column.Part);
+			currentPart = Column.Part;
+		});
+		csv.push(topRow.join(","));
+		csv.push(VisibleColumns.map(Column => Column.Label).join(","));
+
+		allResults.forEach(rowData => {
+			csv.push(rowData.map(cell => {
+				return cell.match(/["\r\n,]/) ? '"' + cell.replace(/"/g, '""') + '"' : cell;
+			}).join(","));
+		});
+		var csvText = csv.join("\n");
+		console.log("CSV", csvText);
+
+		var tempLink = $("<a></a>").appendTo(document.body);
+		tempLink.attr("download", "RMTL Export.csv");
+		tempLink.attr("href", URL.createObjectURL(new Blob([csvText], { type: "text/csv" })));
+		tempLink[0].click();
+
+		setTimeout(function () {
+			tempLink.remove();
+			afterWrite?.();
+		}, 500);
+	}
+	//
+
+	function finishExport() {
+		UI.ExportResultsButton.prop("disabled", false).html("Export Results");
+		MainSearch.Enabled = true;
+		UI.ExportResultsProgressBarBox.hide();
+		UI.ExportResultsProgressBar.html("");
+		UI.Status.Spinner.hide();
+	}
+	//
+</script>
+<script type="text/javascript">
+	//Statistics functions
+	function getAndRenderStatistics() {
+		MainSearch.doPOSTRequest(MainSearch.SearchURL, { ...MainSearch.Query, Filters: [], Skip: 0, Take: 0, SortOrder: [{ Column: "sortOrder:Unsorted" }] }, success => {
+			Statistics.AllTasksTotal = success.Data.TotalResults;
+			getAndRenderStatisticsBySourceTable();
+		}, error => {
+			console.log("Error getting Grand Total", error);
+		});
+	}
+	//
+
+	function getAndRenderStatisticsBySourceTable() {
+		UI.Statistics.BySourceTableBody.html("<tr><td colspan=\"" + Statistics.BySourceColumns.length + "\"><div class=\"spinner\"></div></td></tr>");
+		UI.Statistics.BySourceTableFooter.html("");
+		var CalculatedStats = Statistics.ReferenceResourceConcepts.map(Source => { return { Source: Source, ResultsTotal: 0, GapTotal: 0, Error: "", Finished: false } });
+		CalculatedStats.forEach(Stat => {
+			var alteredQuery = {
+				...MainSearch.Query,
+				Filters: [...MainSearch.Query.Filters, { Name: "> RatingTaskId > RatingTask > ReferenceResourceTypeId > Concept", ItemIds: [Stat.Source.Id] }],
+				Skip: 0,
+				Take: 0,
+				SortOrder: [{ Column: "sortOrder:Unsorted" }]
+			};
+			MainSearch.doPOSTRequest(MainSearch.SearchURL, alteredQuery, resultsSuccess => {
+				Stat.ResultsTotal = resultsSuccess.Data.ExtraData.RatingTaskCount;
+				if (Stat.ResultsTotal > 0) {
+					alteredQuery.Filters.push({ Name: "> FormalTrainingGapId > Concept", ItemIds: Statistics.TrainingGapConcepts.filter(m => m.Name.toLowerCase() != "no").map(m => m.Id) });
+					MainSearch.doPOSTRequest(MainSearch.SearchURL, alteredQuery, gapSuccess => {
+						Stat.GapTotal = gapSuccess.Data.ExtraData.RatingTaskCount;
+						handleFinished(Stat);
+					}, error => {
+						Stat.GapTotal = -99;
+						Stat.Error = "Error loading gap data";
+						handleFinished(Stat);
+					});
+				}
+				else {
+					handleFinished(Stat);
+				}
+			}, error => {
+				Stat.ResultsTotal = -99;
+				Stat.Error = "Error loading task data";
+				handleFinished(Stat);
+			});
+		});
+
+		function handleFinished(Stat) {
+			Stat.Finished = true;
+			if (CalculatedStats.every(OtherStat => OtherStat.Finished)) {
+				CalculatedStats = CalculatedStats.sort((a, b) => { return a.ResultsTotal > b.ResultsTotal ? -1 : 1 });
+				UI.Statistics.BySourceTableBody.html("");
+				var resultsTotal = CalculatedStats.reduce((total, Stat) => { return total + Stat.ResultsTotal; }, 0);
+				var resultsAllTasksPercent = getPercent(resultsTotal, Statistics.AllTasksTotal);
+				var gapTotal = CalculatedStats.reduce((total, Stat) => { return total + Stat.GapTotal }, 0);
+				var gapPercent = getPercent(gapTotal, resultsTotal, false);
+				var coveragePercent = resultsTotal <= 0 ? 0 : Math.round(100 * (100 - gapPercent)) / 100;
+				CalculatedStats.forEach(Stat => {
+					var statGapPercent = getPercent(Stat.GapTotal, Stat.ResultsTotal);
+					var statCoveragePercent = Math.round(100 * (100 - statGapPercent)) / 100; //Prevents weird javascript floating point errors like 100 - 19.54 resulting in 80.46000000000001
+					var statResultsTaskPercent = getPercent(Stat.ResultsTotal, resultsTotal);
+					var statAllTasksTaskPercent = getPercent(Stat.ResultsTotal, Statistics.AllTasksTotal);
+					UI.Statistics.BySourceTableBody.append("<tr>" + [
+						"<a href=\"@Url.Content("~/Concept/Detail/")" + Stat.Source.Id + "\" target=\"_blank\">" + Stat.Source.Name + "</a>",
+						Stat.ResultsTotal == -99 ? Stat.Error : Stat.ResultsTotal,
+						Stat.GapTotal == -99 ? Stat.Error : Stat.GapTotal,
+						statCoveragePercent + "%",
+						statGapPercent + "%",
+						statResultsTaskPercent + "%",
+						renderStatBarWrapper(statResultsTaskPercent, statCoveragePercent),
+						statAllTasksTaskPercent + "%",
+						renderStatBarWrapper(statAllTasksTaskPercent, statCoveragePercent)
+					].map((m, i) => "<td data-column=\"" + Statistics.BySourceColumns[i].Label + "\">" + m + "</td>").join("") + "</tr>");
+				});
+				UI.Statistics.BySourceTableFooter.html("<tr>" +
+					["Total from All Sources", resultsTotal, gapTotal, coveragePercent + "%", gapPercent + "%", "100%", renderStatBarWrapper(100, coveragePercent), resultsAllTasksPercent + "%", renderStatBarWrapper(resultsAllTasksPercent, coveragePercent)]
+					.map((m, i) => "<th data-column=\"" + Statistics.BySourceColumns[i].Label + "\">" + m + "</th>").join("") +
+				"</tr>");
+			}
+		}
+	}
+	//
+
+	function getPercent(x, y, includePercentSign) {
+		return (y == 0 ? 0 : Math.round(10000 * x / y) / 100) + (includePercentSign ? "%" : 0);
+	}
+	//
+
+	function renderStatBarWrapper(mainBarPercent, subBarPercent) {
+		return "<div class=\"statBarWrapper\"><div class=\"statBarAll\" style=\"width:" + mainBarPercent + "%\"><div class=\"statBarCoverage\" style=\"width:" + subBarPercent + "%\"></div></div></div>";
+	}
+	//
+</script>
+<script type="text/javascript">
+	//Filter Setup Functions
+	//Utility Function
+	function delayThenTriggerSearchIfAvailable(resetPaging) {
+		if (MainSearch.Enabled) {
+			UI.MainTabs.resetScrollForOtherTabs();
+			MainSearch.delayThenSearch(resetPaging, true);
+		}
+	}
+
+	//Setup Text Filter
+	function setupFilter_Text(Filter) {
+		Filter.Input = $("<input type=\"text\" placeholder=\"Enter keyword(s)...\" />").appendTo(Filter.ContentBox);
+
+		Filter.Input.on("keyup", function () {
+			delayThenTriggerSearchIfAvailable(true);
+		});
+
+		Filter.read = function () {
+			var value = Filter.Input.val().trim();
+			return value ? { Name: Filter.Name, Text: value } : null;
+		}
+	}
+	//
+
+	//Setup Suggestion Filter
+	function setupFilter_Suggestion(Filter) {
+		setupFilter_Suggestion_Core(Filter);
+		Filter.Timeout = 0;
+
+		Filter.Input.on("focus keyup", function () {
+			clearTimeout(Filter.Timeout);
+			Filter.Timeout = setTimeout(function () {
+				MainSearch.doPOSTRequest("@Url.Content("~/")" + Filter.SearchType + "/DoSearch", {
+					Filters: [
+						{ Name: "search:Keyword", Text: Filter.Input.val().trim() },
+						{ Name: "search:Exclude", ItemIds: Filter.SelectedItems.map(SelectedItem => SelectedItem.Data.Id) }
+					],
+					Take: 20
+				}, (success) => {
+					Filter.Suggestions = success.Data.Results;
+					Filter.renderSuggestions();
+				});
+			}, 500);
+		});
+
+		Filter.read = function () {
+			var ids = Filter.SelectedItems.map(SelectedItem => SelectedItem.Data.Id);
+			return ids.length == 0 ? null : { Name: Filter.Name, ItemIds: ids };
+		}
+	}
+	//
+
+	//Setup Sort Order Filter
+	function setupFilter_SortOrder(Filter) {
+		setupFilter_Suggestion_Core(Filter);
+		Filter.Options = RMTL.Columns.map(Column => { return { Label: Column.Label, Column: Column.Path, Ascending: true }; })
+			.concat(RMTL.Columns.map(Column => { return { Label: Column.Label + " (Reverse)", Column: Column.Path, Ascending: false }; }));
+
+		Filter.Input.on("focus keyup", function () {
+			setTimeout(function () {
+				var text = Filter.Input.val().trim().toLowerCase();
+				Filter.Suggestions = Filter.Options.filter(Option => !Filter.SelectedItems.map(SelectedItem => SelectedItem.Data).includes(Option) && Option.Label.toLowerCase().includes(text));
+				Filter.renderSuggestions();
+			}, 0);
+		});
+
+		Filter.IsMetaFilter = true;
+
+		Filter.read = function () {
+			return [{ Column: "sortOrder:RMTLSearchSortHandler" }].concat(Filter.SelectedItems.map(SelectedItem => SelectedItem.Data));
+		}
+	}
+	//
+
+	//Core Suggestion Filter
+	function setupFilter_Suggestion_Core(Filter) {
+		Filter.Suggestions = [];
+		Filter.SelectedItems = [];
+
+		Filter.Input = $("<input type=\"text\" placeholder=\"Find Item(s)...\" />").appendTo(Filter.ContentBox);
+		Filter.SuggestionsBox = $("<div class=\"suggestionBox\"></div>").appendTo(Filter.ContentBox);
+		Filter.SelectedItemsBox = $("<div class=\"selectedItemsBox\"></div>").appendTo(Filter.ContentBox);
+
+		Filter.addSelectedItem = function (Data) {
+			var SelectedItem = {
+				Data: Data
+			};
+
+			Filter.SelectedItems.push(SelectedItem);
+			Filter.renderSelectedItems();
+			Filter.onSelectedItemsChange?.();
+			delayThenTriggerSearchIfAvailable(true);
+		}
+
+		Filter.removeSelectedItem = function (SelectedItem) {
+			Filter.SelectedItems = Filter.SelectedItems.filter(OtherSelectedItem => OtherSelectedItem != SelectedItem);
+			Filter.renderSelectedItems();
+			Filter.onSelectedItemsChange?.();
+			delayThenTriggerSearchIfAvailable(true);
+		}
+
+		Filter.renderSelectedItems = function () {
+			Filter.SelectedItemsBox.html("");
+			Filter.SelectedItems.forEach(SelectedItem => {
+				SelectedItem.Box = $("<div class=\"selectedItem\"></div>").appendTo(Filter.SelectedItemsBox);
+				SelectedItem.Box.append("<span>" + Filter.getLabel(SelectedItem.Data) + "</span>");
+				SelectedItem.RemoveButton = $("<button class=\"redButton\" title=\"Remove\">X</button>").appendTo(SelectedItem.Box);
+				SelectedItem.RemoveButton.on("click", function () {
+					Filter.removeSelectedItem(SelectedItem);
+				});
+			});
+		}
+
+		Filter.renderSuggestions = function () {
+			Filter.SuggestionsBox.html("");
+			Filter.Suggestions.forEach(Suggestion => {
+				var button = $("<button class=\"suggestion\">" + Filter.getLabel(Suggestion) + "</div>").appendTo(Filter.SuggestionsBox);
+				button.on("click", function () {
+					Filter.addSelectedItem(Suggestion);
+					Filter.Input.val("");
+					Filter.Suggestions = [];
+					Filter.renderSuggestions();
+				});
+			});
+			Filter.Suggestions.length == 0 ? Filter.SuggestionsBox.hide() : Filter.SuggestionsBox.show();
+		}
+
+		Filter.getLabel = function (Data) {
+			return Data.Label || [Data.CodedNotation, Data.Name || Data.Description || Data.Id || "Unknown Item"].filter(m => m).join(" - ");
+		}
+
+		Filter.Input.on("focus", function () {
+			Filter.SuggestionsBox.show();
+		});
+
+		Filter.Input.on("blur", function () {
+			setTimeout(function () {
+				if (!Filter.SuggestionsBox.is(":hover") && Filter.SuggestionsBox.find("button:focus").length == 0) {
+					Filter.SuggestionsBox.hide();
+				}
+			}, 10);
+		});
+
+		Filter.onSelectedItemsChange = function () {
+			delayThenTriggerSearchIfAvailable(true);
+		}
+
+		Filter.SuggestionsBox.hide();
+	}
+	//
+
+	//Checkbox List Filter
+	function setupFilter_CheckBoxList(Filter) {
+		setupFilter_CheckBoxList_Core(Filter, Filter.Source.Items, "Toggle All", function () {
+			delayThenTriggerSearchIfAvailable(true);
+		});
+
+		Filter.read = function () {
+			var ids = Filter.CheckBoxes.filter(CheckBox => CheckBox.Input.prop("checked")).map(CheckBox => CheckBox.Data.Id);
+			return ids.length == 0 ? null : { Name: Filter.Name, ItemIds: ids };
+		}
+	}
+	//
+
+	//Show/Hide Columns Filter
+	function setupFilter_ShowHideColumns(Filter) {
+		setupFilter_CheckBoxList_Core(Filter, RMTL.Columns, "Show/Hide All", function () {
+			Filter.refreshStyles();
+		});
+
+		Filter.refreshStyles = function () {
+			UI.RMTL.StyleBox.html("");
+			Filter.CheckBoxes.forEach((CheckBox, index) => {
+				RMTL.Columns[index].Visible = CheckBox.Input.prop("checked");
+				if (CheckBox.Input.prop("checked") == false) {
+					UI.RMTL.StyleBox.append(".rmtlBox .rmtlTableWrapper .rmtlTable .rmtlTableHeader th:nth-child(" + (index + 1) + ") { display: none; }");
+					UI.RMTL.StyleBox.append(".rmtlBox .rmtlTableWrapper .rmtlTable .rmtlTableBody td:nth-child(" + (index + 1) + ") { display: none; }");
+				}
+			});
+		}
+
+		Filter.IsMetaFilter = true;
+
+		Filter.read = function () {
+			return null;
+		}
+
+		//Initialize
+		Filter.CheckBoxes.forEach((CheckBox, index) => {
+			CheckBox.Input.prop("checked", !RMTL.Columns[index].IsMetaColumn);
+		});
+		RMTL.Columns.filter(Column => !Column.IsMetaColumn).forEach(Column => {
+			Column.Visible = true;
+		});
+		Filter.refreshStyles();
+	}
+	//
+
+	//Core Checkbox Filter
+	function setupFilter_CheckBoxList_Core(Filter, ItemList, toggleAllButtonLabel, onUpdate) {
+		Filter.CheckBoxes = [];
+
+		ItemList.forEach(Item => {
+			var CheckBox = {
+				Box: $("<label><input type=\"checkbox\"><span>" + Item.Label + "</span></label>").appendTo(Filter.ContentBox),
+				Data: Item
+			};
+
+			CheckBox.Input = CheckBox.Box.find("input");
+			CheckBox.Input.on("change", function () {
+				onUpdate();
+			});
+
+			Filter.CheckBoxes.push(CheckBox);
+		});
+
+		Filter.ToggleButton = $("<button>" + toggleAllButtonLabel + "</button>").appendTo(Filter.LabelBox);
+		Filter.ToggleButton.on("click", function () {
+			var checked = Filter.CheckBoxes.every(CheckBox => CheckBox.Input.prop("checked"));
+			Filter.CheckBoxes.forEach(CheckBox => CheckBox.Input.prop("checked", !checked));
+			onUpdate();
+		});
+	}
+	//
+</script>
+<style type="text/css">
+	body { padding: 0 0 0 0; }
+	.navbar { position: static; margin: 0 0 0 0; }
+	.navbar .container { width: 1170px; }
+	.container { width: 100%; }
+	.body-content { padding: 0 0 0 0; margin: 0 0 0 0; }
+	
+	.mainWrapper { display: flex; flex-direction: column; position: relative; }
+	.mainWrapper .mainHeader { display: flex; gap: 10px; align-items: center; position: sticky; top: 0; z-index: 100; background-color: #EEE; padding: 5px 10px; }
+	.mainWrapper .mainHeader .mainTabButtons { display: flex; gap: 1px; }
+	.mainWrapper .mainHeader .mainTabButtons button { border-radius: 0; border: 1px solid #AAA; padding: 5px; }
+	.mainWrapper .mainHeader .mainTabButtons button:first-child { border-radius: 5px 0 0 5px; }
+	.mainWrapper .mainHeader .mainTabButtons button:last-child { border-radius: 0 5px 5px 0; }
+	.mainWrapper .mainHeader .mainSearchStatusBox { font-weight: bold; }
+	.mainWrapper .mainHeader .exportBox { display: flex; gap: 10px; align-items: center; margin-left: auto; }
+	.mainWrapper .mainHeader .exportBox .exportProgressBarBox { background-color: #555; padding: 1px; height: 26px; width: 200px; border-radius: 3px; }
+	.mainWrapper .mainHeader .exportBox .exportProgressBarBox .exportProgressBar { background-color: #3A3; color: #FFF; padding: 2px; transition: width 0.2s; height: 100%; width: 0%; text-align: right; white-space: nowrap; }
+	.mainWrapper .mainTabsBox {  }
+	.mainWrapper .mainTabsBox .mainTab { display: flex; flex-direction: column; height: calc(100vh - 51px - 42px); }
+	.mainWrapper .mainTabsBox .mainTab:not(.selected) { display: none; }
+	
+	.mainSearchFiltersBox { padding: 0 20px; overflow-y: auto; }
+	.mainSearchFiltersBox .filterGroup { padding: 20px 0; border-top: 1px solid #CCC; }
+	.mainSearchFiltersBox .filterGroup:first-child { padding-top: 0; border-top: none; }
+	.mainSearchFiltersBox .filterGroup .filterGroupHeader {  }
+	.mainSearchFiltersBox .filterGroup .filterGroupContent { display: flex; gap: 20px; }
+	.mainSearchFiltersBox .filterGroup .filterGroupContent .filterSet {  }
+	.mainSearchFiltersBox .filterGroup .filterGroupContent .textFilterSet { flex: 0 0 300px; }
+	.mainSearchFiltersBox .filterGroup .filterGroupContent .textFilterSet .filter {  }
+	.mainSearchFiltersBox .filterGroup .filterGroupContent .filterLabel { font-weight: bold; }
+	.mainSearchFiltersBox .filterGroup .filterGroupContent input[type='text'] { max-width: none; width: 100%; height: 30px; }
+	.mainSearchFiltersBox .filterGroup .filterGroupContent label { display: flex; gap: 10px; align-items: baseline; font-weight: normal; width: 100%; padding: 0 5px; }
+	.mainSearchFiltersBox .filterGroup .filterGroupContent label:is(:hover, :focus) { cursor: pointer; background-color: #EEE; }
+	.mainSearchFiltersBox .filterGroup .filterGroupContent .textFilterSet .filter { margin-bottom: 10px; }
+	.mainSearchFiltersBox .filterGroup .filterGroupContent .checkBoxListFilterSet { display: flex; gap: 10px; flex-wrap: wrap; width: 100%; }
+	.mainSearchFiltersBox .filterGroup .filterGroupContent .checkBoxListFilterSet .filter { flex: 0 0 350px; }
+	.mainSearchFiltersBox .filterGroup .filterGroupContent .checkBoxListFilterSet .filter .filterLabel { display: flex; gap: 10px; align-items: center; border-bottom: 1px solid #CCC; }
+	.mainSearchFiltersBox .filterGroup .filterGroupContent .checkBoxListFilterSet .filter .filterLabel button { padding: 0 5px; margin-left: auto; font-weight: normal; }
+	.mainSearchFiltersBox .filterGroup .filterGroupContent .textFilterSet .filter .filterContent { position: relative; }
+	.mainSearchFiltersBox .filterGroup .filterGroupContent .textFilterSet .filter .filterContent .suggestionBox { position: absolute; top: 30px; margin-bottom: 20px; background-color: #FFF; max-height: 50vh; overflow-y: scroll; border: 1px solid #CCC; width: 100%; z-index: 10; }
+	.mainSearchFiltersBox .filterGroup .filterGroupContent .textFilterSet .filter .filterContent .suggestionBox .suggestion { background-color: #FFF; border: none; padding: 5px; display: block; width: 100%; text-align: left; }
+	.mainSearchFiltersBox .filterGroup .filterGroupContent .textFilterSet .filter .filterContent .suggestionBox .suggestion:is(:hover, :focus) { background-color: #EEE; }
+	.mainSearchFiltersBox .filterGroup .filterGroupContent .textFilterSet .filter .filterContent .selectedItemsBox { }
+	.mainSearchFiltersBox .filterGroup .filterGroupContent .textFilterSet .filter .filterContent .selectedItemsBox .selectedItem { display: flex; align-items: baseline; gap: 10px; padding: 5px; }
+	.mainSearchFiltersBox .filterGroup .filterGroupContent .textFilterSet .filter .filterContent .selectedItemsBox .selectedItem:not(:first-child) { border-top: 1px dashed #CCC; }
+	.mainSearchFiltersBox .filterGroup .filterGroupContent .textFilterSet .filter .filterContent .selectedItemsBox .selectedItem button { margin-left: auto; }
+
+	.rmtlBox { display: flex; flex-direction: column; height: 100%; }
+	.rmtlBox .rmtlTableWrapper { flex: 1 1 auto; position: relative; overflow: scroll; }
+	.rmtlBox .rmtlTableWrapper .rmtlTable { font-size: 12px; }
+	.rmtlBox .rmtlTableWrapper .rmtlTable .rmtlTableHeader { position: sticky; top: 0; z-index: 10; }
+	.rmtlBox .rmtlTableWrapper .rmtlTable .rmtlTableHeader th { padding: 5px 10px; min-width: 100px; border-right: 1px solid #CCC; }
+	.rmtlBox .rmtlTableWrapper .rmtlTable .rmtlTableHeader th[data-part='PART I'] { background-color: #FC5; }
+	.rmtlBox .rmtlTableWrapper .rmtlTable .rmtlTableHeader th[data-part='PART II'] { background-color: #FEA; }
+	.rmtlBox .rmtlTableWrapper .rmtlTable .rmtlTableHeader th[data-part='PART III'] { background-color: #ACD; }
+	.rmtlBox .rmtlTableWrapper .rmtlTable .rmtlTableBody {  }
+	.rmtlBox .rmtlTableWrapper .rmtlTable .rmtlTableBody td { padding: 5px 10px; border: 1px solid #CCC; }
+	.rmtlBox .rmtlFooter { height: 40px; background-color: #EEE; }
+	.rmtlBox .rmtlFooter .rmtlPagingBox { display: flex; gap: 5px; justify-content: center; align-items: center; padding: 5px 10px; }
+
+	.statisticsBox { padding: 0 20px; }
+	.statisticsBox .ratingTasksBySourceTypeTable { width: 1500px; }
+	.statisticsBox .ratingTasksBySourceTypeTable [data-column='Source Type'] { text-align: left; }
+	.statisticsBox .ratingTasksBySourceTypeTable thead tr th { padding: 0 10px; min-width: 50px; text-align: right; }
+	.statisticsBox .ratingTasksBySourceTypeTable tbody tr td { border-top: 1px solid #CCC; text-align: right; padding: 5px; }
+	.statisticsBox .ratingTasksBySourceTypeTable tfoot tr th { border-top: 1px solid #CCC; text-align: right; padding: 5px; }
+	.statisticsBox .ratingTasksBySourceTypeTable .statBarWrapper { background-color: #DDD; height: 18px; padding: 1px 2px; }
+	.statisticsBox .ratingTasksBySourceTypeTable .statBarWrapper .statBarAll { background-color: #D83; height: 100%; }
+	.statisticsBox .ratingTasksBySourceTypeTable .statBarWrapper .statBarAll .statBarCoverage { background-color: #0C3; height: 100%; }
+</style>
+<style type="text/css" class="rmtlStyleBox"></style>
+
+<div class="mainWrapper">
+	<div class="mainHeader">
+		<div class="mainTabButtons"></div>
+		<div class="mainSearchStatusBox"></div>
+		<div class="mainSearchSpinner spinner"></div>
+		<div class="mainSearchFilterEchoBox"></div>
+		<div class="exportBox">
+			<div class="exportProgressBarBox">
+				<div class="exportProgressBar"></div>
+			</div>
+			<button data-action="ExportMainSearchResults">Export Results</button>
+		</div>
+	</div>
+	<div class="mainTabsBox">
+		<div class="mainTab" data-tab="Search and Filter">
+			<div class="mainSearchFiltersBox">
+				<div class="filterGroup part1Filters">
+					<h4 class="filterGroupHeader">Part I Filters</h4>
+					<div class="filterGroupContent">
+						<div class="filterSet textFilterSet">
+							<div class="filter" data-filter="> RatingId > Rating" data-filtertype="Suggestion" data-searchtype="Rating" data-label="Rating"></div>
+							<div class="filter" data-filter="> BilletTitleId > Job" data-filtertype="Suggestion" data-searchtype="BilletTitle" data-label="Billet Title"></div>
+							<div class="filter" data-filter="> WorkRoleId > WorkRole" data-filtertype="Suggestion" data-searchtype="WorkRole" data-label="Functional Area"></div>
+							<div class="filter" data-filter="> RatingTaskId > RatingTask > ReferenceResourceId > ReferenceResource" data-filtertype="Suggestion" data-searchtype="ReferenceResource" data-label="Source"></div>
+							<div class="filter" data-filter="> RatingTaskId > RatingTask.TextFields" data-filtertype="Text" data-label="Rating Task"></div>
+						</div>
+						<div class="filterSet checkBoxListFilterSet">
+							<div class="filter" data-filter="> RatingTaskId > RatingTask > ReferenceResourceTypeId > Concept" data-filtertype="CheckBoxList" data-sourceuri="@Factories.ConceptSchemeManager.ConceptScheme_ReferenceResource"></div>
+							<div class="filter" data-filter="> PayGradeTypeId > Concept" data-filtertype="CheckBoxList" data-sourceuri="@Factories.ConceptSchemeManager.ConceptScheme_Pay_Grade"></div>
+							<div class="filter" data-filter="> PayGradeLevelTypeId > Concept" data-filtertype="CheckBoxList" data-sourceuri="@Factories.ConceptSchemeManager.ConceptScheme_PayGradeLevel"></div>
+							<div class="filter" data-filter="> FormalTrainingGapId > Concept" data-filtertype="CheckBoxList" data-sourceuri="@Factories.ConceptSchemeManager.ConceptScheme_TrainingGap"></div>
+							<div class="filter" data-filter="> TaskApplicabilityId > Concept" data-filtertype="CheckBoxList" data-sourceuri="@Factories.ConceptSchemeManager.ConceptScheme_TaskApplicability"></div>
+						</div>
+					</div>
+				</div>
+				<div class="filterGroup part2Filters">
+					<h4 class="filterGroupHeader">Part II Filters</h4>
+					<div class="filterGroupContent">
+						<div class="filterSet textFilterSet">
+							<div class="filter" data-filter="> CourseContextId > CourseContext > HasCourseId > Course" data-filtertype="Suggestion" data-searchtype="Course" data-label="Course"></div>
+							<div class="filter" data-filter="> CourseContextId > CourseContext > HasTrainingTaskId > TrainingTask.TextFields" data-filtertype="Text" data-label="Training Task"></div>
+							<div class="filter" data-filter="> CourseContextId > CourseContext > HasCourseId > Course > CurriculumControlAuthorityId > Organization" data-filtertype="Suggestion" data-searchtype="Organization" data-label="Curriculum Control Authority"></div>
+						</div>
+						<div class="filterSet checkBoxListFilterSet">
+							<div class="filter" data-filter="> CourseContextId > CourseContext > AssessmentMethodConceptId > Concept" data-filtertype="CheckBoxList" data-sourceuri="@Factories.ConceptSchemeManager.ConceptScheme_CurrentAssessmentApproach"></div>
+							<div class="filter" data-filter="> CourseContextId > CourseContext > HasCourseId > Course > CourseTypeConceptId > Concept" data-filtertype="CheckBoxList" data-sourceuri="@Factories.ConceptSchemeManager.ConceptScheme_CourseType"></div>
+							<div class="filter" data-filter="> CourseContextId > CourseContext > HasCourseId > Course > LifeCycleControlDocumentTypeId > Concept" data-filtertype="CheckBoxList" data-sourceuri="@Factories.ConceptSchemeManager.ConceptScheme_LifeCycleControlDocument"></div>
+						</div>
+					</div>
+				</div>
+				<div class="filterGroup part3Filters">
+					<h4 class="filterGroupHeader">Part III Filters</h4>
+					<div class="filterGroupContent">
+						<div class="filterSet textFilterSet">
+							<div class="filter" data-filter="> ClusterAnalysisId > ClusterAnalysis > HasClusterAnalysisTitleId > ClusterAnalysisTitle" data-filtertype="Suggestion" data-searchtype="ClusterAnalysisTitle" data-label="Cluster Analysis Title"></div>
+							<div class="filter" data-filter="> ClusterAnalysisId > ClusterAnalysis.PriorityPlacement" data-filtertype="Text" data-label="Priority Placement"></div>
+							<div class="filter" data-filter="> ClusterAnalysisId > ClusterAnalysis.EstimatedInstructionalTime" data-filtertype="Text" data-label="Estimated Instructional Time"></div>
+							<div class="filter" data-filter="> ClusterAnalysisId > ClusterAnalysis.DevelopmentTime" data-filtertype="Text" data-label="Development Time"></div>
+						</div>
+						<div class="filterSet checkBoxListFilterSet">
+							<div class="filter" data-filter="> ClusterAnalysisId > ClusterAnalysis > TrainingSolutionTypeId > Concept" data-filtertype="CheckBoxList" data-sourceuri="@Factories.ConceptSchemeManager.ConceptScheme_TrainingSolutionType"></div>
+							<div class="filter" data-filter="> ClusterAnalysisId > ClusterAnalysis > RecommendedModalityTypeId > Concept" data-filtertype="CheckBoxList" data-sourceuri="@Factories.ConceptSchemeManager.ConceptScheme_RecommendedModality"></div>
+							<div class="filter" data-filter="> ClusterAnalysisId > ClusterAnalysis > DevelopmentSpecificationTypeId > Concept" data-filtertype="CheckBoxList" data-sourceuri="@Factories.ConceptSchemeManager.ConceptScheme_DevelopmentSpecification"></div>
+							<div class="filter" data-filter="> ClusterAnalysisId > ClusterAnalysis > CandidatePlatformConceptId > Concept" data-filtertype="CheckBoxList" data-sourceuri="@Factories.ConceptSchemeManager.ConceptScheme_CandidatePlatformType"></div>
+							<div class="filter" data-filter="> ClusterAnalysisId > ClusterAnalysis > DevelopmentRatioTypeId > Concept" data-filtertype="CheckBoxList" data-sourceuri="@Factories.ConceptSchemeManager.ConceptScheme_DevelopmentRatio"></div>
+							<div class="filter" data-filter="> ClusterAnalysisId > ClusterAnalysis > CFMPlacementTypeId > Concept" data-filtertype="CheckBoxList" data-sourceuri="@Factories.ConceptSchemeManager.ConceptScheme_CFMPlacement"></div>
+						</div>
+					</div>
+				</div>
+				<div class="filterGroup metaFilters">
+					<h4 class="filterGroupHeader">System Filters and Configuration</h4>
+					<div class="filterGroupContent">
+						<div class="filterSet textFilterSet">
+							<div class="filter" data-filter="SortOrder" data-filtertype="SortOrder" data-label="Sort Order"></div>
+							<div class="filter" data-filter="Notes" data-filtertype="Text" data-label="Notes"></div>
+						</div>
+						<div class="filterSet checkBoxListFilterSet">
+							<div class="filter" data-filter="ShowHideColumns" data-filtertype="ShowHideColumns" data-label="Show/Hide Columns"></div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+		<div class="mainTab" data-tab="RMTL Spreadsheet">
+			<div class="rmtlBox">
+				<div class="rmtlTableWrapper">
+					<table class="rmtlTable">
+						<thead class="rmtlTableHeader"></thead>
+						<tbody class="rmtlTableBody"></tbody>
+					</table>
+				</div>
+				<div class="rmtlFooter">
+					<div class="rmtlPagingBox"></div>
+				</div>
+			</div>
+		</div>
+		<div class="mainTab" data-tab="Summary">
+			<div class="statisticsBox">
+				<h4>Rating Tasks by Source Type for the Current Search Results</h4>
+				<table class="ratingTasksBySourceTypeTable">
+					<thead class="ratingTasksBySourceTypeTableHeader"></thead>
+					<tbody class="ratingTasksBySourceTypeTableBody"></tbody>
+					<tfoot class="ratingTasksBySourceTypeTableFooter"></tfoot>
+				</table>
+			</div>
+		</div>
+	</div>
+</div>
+

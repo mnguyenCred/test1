@@ -12,7 +12,8 @@ using Models.Curation;
 
 namespace NavyRRL.Controllers
 {
-    public class OrganizationController : BaseController
+	[SessionState( System.Web.SessionState.SessionStateBehavior.ReadOnly )]
+	public class OrganizationController : BaseController
     {
 		public ActionResult Search()
 		{
@@ -32,15 +33,24 @@ namespace NavyRRL.Controllers
 		public ActionResult Detail( int id )
 		{
 			AuthenticateOrRedirect( "You must be authenticated and authorized to view Organization data." );
-			var data = Factories.OrganizationManager.Get( id );
+			var data = Factories.OrganizationManager.GetById( id );
 			return View( data );
+		}
+		//
+
+		[CustomAttributes.NavyAuthorize( "Organization View", Roles = SiteReader )]
+		public ActionResult GetByRowId( Guid id )
+		{
+			AuthenticateOrRedirect( "You must be authenticated and authorized to view Organization data." );
+			var data = Factories.OrganizationManager.GetByRowId( id, true );
+			return JsonResponse( data, data != null );
 		}
 		//
 
 		public ActionResult JSON( int id )
 		{
 			AuthenticateOrRedirect( "You must be authenticated and authorized to view Organization data." );
-			var data = Factories.OrganizationManager.Get( id );
+			var data = Factories.OrganizationManager.GetById( id );
 			var converted = RDFServices.GetRDF( data );
 			return RawJSONResponse( converted );
 		}
@@ -50,11 +60,12 @@ namespace NavyRRL.Controllers
 		public ActionResult Edit( int id )
 		{
 			AuthenticateOrRedirect( "You must be authenticated and authorized to edit Organization data." );
-			var data = new Organization();
-			if ( id > 0 )
+			if ( !AccountServices.IsUserSiteStaff() )
 			{
-				data = Factories.OrganizationManager.Get( id );
+				RedirectToAction( "NotAuthenticated", "Event" );
 			}
+
+			var data = Factories.OrganizationManager.GetById( id );
 			return View( data );
 		}
 		//
@@ -67,24 +78,9 @@ namespace NavyRRL.Controllers
 				return JsonResponse( null, false, new List<string>() { "You must be authenticated and authorized to edit Organization data." }, null );
 			}
 
-			var user = AccountServices.GetCurrentUser();
-			ChangeSummary status = new ChangeSummary()
-			{
-				Action = "Edit"
-			};
-			data.LastUpdatedById = user.Id;
-			var results = new Factories.OrganizationManager().Save( data, user.Id, ref status );
-			if ( status.HasAnyErrors )
-			{
-				var msg = string.Join( "</br>", status.Messages.Error.ToArray() );
-				ConsoleMessageHelper.SetConsoleErrorMessage( "Saved changes successfully." );
-			}
-			else
-			{
-				//On success
-				ConsoleMessageHelper.SetConsoleSuccessMessage( "Saved changes successfully." );
-			}
-			return JsonResponse( data, true, null, null );
+			var errors = new List<string>();
+			Factories.OrganizationManager.SaveFromEditor( data, AccountServices.GetCurrentUser().Id, errors );
+			return JsonResponse( data, errors.Count() == 0, errors );
 		}
 		//
 	}

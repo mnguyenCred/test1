@@ -1,110 +1,527 @@
-﻿using System;
+﻿using Data.Tables;
+using LumenWorks.Framework.IO.Csv;
+using Models.Curation;
+using Models.Search;
+using Navy.Utilities;
+using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Entity;
 using System.Data.SqlClient;
 using System.Globalization;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Reflection;
+using System.Runtime.Caching;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Web;
 using System.Web.Configuration;
-using System.Runtime.Caching;
-
 using DataEntities = Data.Tables.NavyRRLEntities;
-using Data.Tables;
-using MSc= Models.Schema;
-using Navy.Utilities;
-using LumenWorks.Framework.IO.Csv;
-
-using Newtonsoft.Json;
-using System.Reflection;
-using System.Collections.Specialized;
-using Models.Search;
-using Models.Curation;
-using System.IO;
+using MSc = Models.Schema;
+using Newtonsoft.Json.Linq;
 
 namespace Factories
 {
-    /// <summary>
+	/// <summary>
 	/// 
 	/// </summary>
-    public class BaseFactory
-    {
-        public static string thisClassName = "BaseFactory";
-        public List<string> warnings = new List<string>();
+	public class BaseFactory
+	{
+		public static string thisClassName = "BaseFactory";
+		public List<string> warnings = new List<string>();
 
-        public static string commonStatusMessage = "";
+		public static string commonStatusMessage = "";
 
-        public static int RELATIONSHIP_TYPE_HAS_PART = 1;
-        public static int RELATIONSHIP_TYPE_IS_PART_OF = 2;
+		public static int RELATIONSHIP_TYPE_HAS_PART = 1;
+		public static int RELATIONSHIP_TYPE_IS_PART_OF = 2;
 
 
-        public static bool IsDevEnv()
-        {
-            if ( UtilityManager.GetAppKeyValue( "environment", "no" ) == "development" )
-                return true;
-            else
-                return false;
-        }
-        public static bool IsProduction()
-        {
+		public static bool IsDevEnv()
+		{
+			if ( UtilityManager.GetAppKeyValue( "environment", "no" ) == "development" )
+				return true;
+			else
+				return false;
+		}
+		public static bool IsProduction()
+		{
 
-            if ( UtilityManager.GetAppKeyValue( "environment", "no" ) == "production" )
-                return true;
-            else
-                return false;
-        }
-        #region Entity frameworks helpers
-        public static bool HasStateChanged( DataEntities context )
-        {
-            if ( context.ChangeTracker.Entries().Any( e =>
-                    e.State == EntityState.Added ||
-                    e.State == EntityState.Modified ||
-                    e.State == EntityState.Deleted ) == true )
-                return true;
-            else
-                return false;
-        }
-        //public static bool HasStateChanged( DataEntities context )
-        //{
-        //    if ( context.ChangeTracker.Entries().Any( e =>
-        //            e.State == EntityState.Added ||
-        //            e.State == EntityState.Modified ||
-        //            e.State == EntityState.Deleted ) == true )
-        //        return true;
-        //    else
-        //        return false;
-        //}
+			if ( UtilityManager.GetAppKeyValue( "environment", "no" ) == "production" )
+				return true;
+			else
+				return false;
+		}
+		#region Entity frameworks helpers
+		public static bool HasStateChanged( DataEntities context )
+		{
+			if ( context.ChangeTracker.Entries().Any( e =>
+					e.State == EntityState.Added ||
+					e.State == EntityState.Modified ||
+					e.State == EntityState.Deleted ) == true )
+				return true;
+			else
+				return false;
+		}
+		//
 
-        //public static string SetLastActionBy( int accountId, Data.Account accountModifier )
-        //{
-        //    string lastActionBy = "";
-        //    if ( accountModifier != null )
-        //    {
-        //        lastActionBy = accountModifier.FirstName + " " + accountModifier.LastName;
-        //    }
-        //    else
-        //    {
-        //        if ( accountId > 0 )
-        //        {
-        //            AppUser user = AccountManager.AppUser_Get( accountId );
-        //            lastActionBy = user.FullName();
-        //        }
-        //    }
-        //    return lastActionBy;
-        //}
+		public static void BasicSaveCore<T1, T2>( DataEntities context, T1 entity, DbSet<T2> contextDBEntityList, int userID, Action<T1, T2> UpdateBeforeInitialSaveMethod, Action<T1, T2> UpdateBeforeSecondSaveMethod, string eventAction, Action<string> AddErrorMethod ) where T1 : Models.Schema.BaseObject where T2 : class, DBEntityBaseObject, new()
+		{
+			var entityType = typeof( T1 );
+			try
+			{
+				//Null check
+				if ( entity == null )
+				{
+					AddErrorMethod( "Error - Attempted to save a null entity." );
+					return;
+				}
 
-        #endregion
-        #region Database connections
-        /// <summary>
-        /// Get the read only connection string for the main database
-        /// </summary>
-        /// <returns></returns>
-        public static string DBConnectionRO()
+				//Setup action tracking
+				var eventType = "";
+				var eventComment = "";
+
+				//Save/update the entity
+				//This method runs inside of the using() statement initiated by whatever method called this method, so the context is already setup
+				var dbEntity = contextDBEntityList.FirstOrDefault( m => m.RowId == entity.RowId );
+
+				//Handle new entity
+				if ( dbEntity == null || dbEntity.Id == 0 )
+				{
+					//Logging
+					eventType = "Add";
+					eventComment = entityType.Name + " was added via " + eventAction + ". RowID: " + entity.RowId;
+
+					//Create identifiers and other tracking if not already present
+					//Do these on the incoming entity before mapping to ensure that both entities have the same info after this method is finished
+					entity.RowId = entity.RowId == Guid.Empty ? Guid.NewGuid() : entity.RowId; //Should already have been set by the import process, but just in case
+					entity.CTID = string.IsNullOrWhiteSpace( entity.CTID ) ? "ce-" + entity.RowId.ToString().ToLower() : entity.CTID; //Also should already have been set by the import process, but just in case
+					entity.Created = DateTime.Now;
+					entity.CreatedById = userID;
+
+					//Add the new item
+					dbEntity = new T2();
+					AutoMap( entity, dbEntity );
+					dbEntity.CreatedById = userID; //Ensure this is set
+					contextDBEntityList.Add( dbEntity );
+				}
+				//Handle updated entity
+				else
+				{
+					//Logging
+					eventType = "Save";
+					eventComment = entityType.Name + " was updated via " + eventAction + ". RowID: " + entity.RowId;
+
+					//Update the entity
+					AutoMap( entity, dbEntity );
+				}
+
+				//Handle any related references to single-value entities (multi-value entity references require this object to be saved first, so those should be handled after calling the BasicSaveFromUpload method)
+				UpdateBeforeInitialSaveMethod( entity, dbEntity );
+
+				//If anything changed, save it
+				if ( HasStateChanged( context ) )
+				{
+					//Ensure both objects get these properties updated
+					entity.LastUpdated = DateTime.Now;
+					entity.LastUpdatedById = userID;
+					dbEntity.LastUpdated = entity.LastUpdated;
+					dbEntity.LastUpdatedById = entity.LastUpdatedById;
+
+					//Save the changes
+					var count = context.SaveChanges();
+					if ( count > 0 )
+					{
+						//Track the changes
+						entity.Id = dbEntity.Id; //Used by lookups later on in the import process
+						new ActivityManager().SiteActivityAdd( new Models.Application.SiteActivity()
+						{
+							ActivityType = eventType,
+							Activity = eventAction,
+							Event = eventType,
+							Comment = eventComment,
+							ActionByUserId = userID,
+							ActivityObjectId = entity.Id
+						} );
+					}
+					else
+					{
+						var message = entityType.Name + string.Format( " Save Failed", "Attempted to {0} a(n) {1}. The process appeared to not work, but was not an exception, so we have no message, or no clue. {1}: {2}, CTID: {3}",
+							eventType.ToLower(), entityType.Name, entity.RowId.ToString(), entity.CTID );
+						AddErrorMethod( "Error - saving the " + entityType.Name + " was not successful. " + message );
+						EmailManager.NotifyAdmin( eventType.ToLower() + " Save Failed", message );
+					}
+				}
+
+				//Handle any related references involving entities that require the parent entity to be saved above first (e.g. join tables for multi-value fields)
+				UpdateBeforeSecondSaveMethod( entity, dbEntity );
+				if ( HasStateChanged( context ) )
+				{
+					context.SaveChanges();
+				}
+			}
+			catch ( System.Data.Entity.Validation.DbEntityValidationException dbex )
+			{
+				var message = new BaseFactory().HandleDBValidationError( dbex, entityType.Name + string.Format( " Save Failed. ID: {0}, RowID: {1}", entity.Id, entity.RowId ), entityType.Name );
+				AddErrorMethod( entityType.Name + " Save Failed. Error - the save was not successful. " + message );
+			}
+			catch ( Exception ex )
+			{
+				var message = FormatExceptions( ex );
+				LoggingHelper.LogError( ex, entityType.Name + string.Format( " Save Failed. ID: {0}, RowID: {1}", entity.Id, entity.RowId ), true );
+				AddErrorMethod( entityType.Name + " Save Failed. Error - the save was not successful. " + message );
+			}
+		}
+		//
+
+		public static void HandleMultiValueUpdate<T1, T2, T3>(
+			DataEntities context,
+			int userID,
+			List<Guid> entityValues,
+			T1 dbEntity,
+			ICollection<T2> joinTableRowsForDBEntity,
+			DbSet<T3> destinationTable,
+			string joinTablePropertyNameForDBEntity,
+			string joinTablePropertyNameForDestination
+		) where T1 : DBEntityBaseObject where T2 : DBEntityJoinTableItem, new() where T3 : class, DBEntityBaseObject
+		{
+			//Get the properties that are unique to this join table (e.g., SomethingId and SomethingConceptId)
+			var joinTablePropertyForDBEntity = typeof( T2 ).GetProperty( joinTablePropertyNameForDBEntity );
+			var joinTablePropertyForDestination = typeof( T2 ).GetProperty( joinTablePropertyNameForDestination );
+
+			//Get the integer IDs of the referenced objects (e.g., referenced concepts) by looking them up via their GUIDs
+			var updatedIDs = destinationTable.Where( referencedItem => entityValues.Contains( referencedItem.RowId ) ).Select( referencedItem => referencedItem.Id ).ToList();
+
+			//Get the join table rows (attached to the DB entity) that are no longer relevant to the list of updated IDs
+			var removals = joinTableRowsForDBEntity.Where( joinTableRow => !updatedIDs.Contains( ( int ) joinTablePropertyForDestination.GetValue( joinTableRow ) ) ).ToList();
+
+			//Get the updated IDs that aren't already referenced by an existing join table row attached to the DB entity
+			var additions = updatedIDs.Where( updatedID => !joinTableRowsForDBEntity.Select( joinTableRow => ( int ) joinTablePropertyForDestination.GetValue( joinTableRow ) ).Contains( updatedID ) ).ToList();
+
+			//Remove the old rows where no longer needed
+			foreach ( var removal in removals )
+			{
+				joinTableRowsForDBEntity.Remove( removal );
+				context.Entry( removal ).State = EntityState.Deleted;
+			}
+
+			//Create new rows where needed
+			foreach ( var addition in additions )
+			{
+				//Create the item
+				var newJoinTableRow = new T2()
+				{
+					RowId = Guid.NewGuid(),
+					Created = DateTime.Now,
+					CreatedById = userID
+				};
+
+				//Set the properties that are unique to each join table
+				joinTablePropertyForDBEntity.SetValue( newJoinTableRow, dbEntity.Id );
+				joinTablePropertyForDestination.SetValue( newJoinTableRow, addition );
+
+				//Add the item to the dbEntity's values
+				joinTableRowsForDBEntity.Add( newJoinTableRow );
+			}
+		}
+		//
+
+		/*
+		public static List<Guid> GetRowIDListFromIntIDList<T1, T2>(
+			ICollection<T1> joinTableRowsForDBEntity,
+			DbSet<T2> destinationTable,
+			string joinTablePropertyNameForDestination
+		) where T1 : DBEntityJoinTableItem where T2 : class, DBEntityBaseObject
+		{
+			//Get the property that is unique to this join table (e.g., SomethingConceptId)
+			var joinTableProperty = typeof( T1 ).GetProperty( joinTablePropertyNameForDestination );
+
+			//Extract the int ID values for those items (e.g. the concept IDs)
+			var intIDValues = joinTableRowsForDBEntity.Select( m => ( int ) joinTableProperty.GetValue( m ) ).ToList();
+
+			//Lookup the items and extract their RowIDs, then return them
+			return destinationTable.Where( m => intIDValues.Contains( m.Id ) ).Select( m => m.RowId ).ToList();
+		}
+		//
+		*/
+
+		public static SearchResultSet<T2> HandleSearch<T1, T2>(
+			SearchQuery query,
+			Func<DataEntities, IEnumerable<T1>> SearchMethodWithOrderedResultSet,
+			Func<T1, DataEntities, SearchResultSet<T2>, T2> MappingMethod
+		) where T1 : class, DBEntityBaseObject where T2 : Models.Schema.BaseObject, new()
+		{
+			var appEntityResults = new SearchResultSet<T2>();
+
+			try
+			{
+				using ( var context = new DataEntities() )
+				{
+					var orderedAllDBResults = SearchMethodWithOrderedResultSet( context );
+					appEntityResults.TotalResults = orderedAllDBResults.Count();
+					var dbPageResults = orderedAllDBResults.Skip( query.Skip ).Take( query.Take ).ToList();
+
+					foreach ( var dbResult in dbPageResults )
+					{
+						appEntityResults.Results.Add( MappingMethod( dbResult, context, appEntityResults ) );
+					}
+				}
+			}
+			catch ( Exception ex )
+			{
+				appEntityResults.Debug?.Add( "Exception", ex.Message );
+				appEntityResults.Debug?.Add( "Inner Exception", ex.InnerException?.Message );
+			}
+
+			return appEntityResults;
+		}
+		//
+
+		public static IOrderedEnumerable<T> HandleSort<T>( IEnumerable<T> unsortedList, List<SortOrderItem> sortOrder, Func<T, object> GetAlphaPropertyMethod, Func<IEnumerable<T>, IOrderedEnumerable<T>> DefaultSortMethod ) where T : DBEntityBaseObject
+		{
+			//If no sort order is specified, use the default handler
+			if ( sortOrder == null || sortOrder.Count() == 0 || sortOrder.FirstOrDefault( m => m.Column == "sortOrder:DefaultMethod" ) != null )
+			{
+				return DefaultSortMethod( unsortedList );
+			}
+
+			//Enable skipping the sorting to avoid a performance hit
+			if ( sortOrder.FirstOrDefault( m => m.Column == "sortOrder:Unsorted" ) != null ) 
+			{
+				return unsortedList.OrderBy( m => m != null );
+			}
+
+			//Otherwise, convert to IOrderedEnumerable
+			var sorted = unsortedList.OrderBy( m => m != null );
+
+			//For each SortItem...
+			foreach( var sortItem in sortOrder )
+			{
+				//Get the column that matches, if available
+				var column = typeof( T ).GetProperty( sortItem.Column );
+				//The GetterMethod will be one of:
+				var GetterMethod =
+					//Getting the property specified by the Column, or
+					column != null ? ( T m ) => { return column.GetValue( m ); } :
+					//Getting the property specified by the GetAlphaPropertyMethod, or
+					sortItem.Column == "sortOrder:DefaultAlphaSort" ? GetAlphaPropertyMethod :
+					//Getting the Id for the object (fallback/default)
+					( T m ) => { return m.Id; };
+
+				//Apply the sort based on whether or not the SortItem indicates it should be Ascending
+				sorted = sortItem.Ascending ? sorted.ThenBy( m => GetterMethod( m ) ) : sorted.ThenByDescending( m => GetterMethod( m ) );
+			}
+
+			return sorted;
+		}
+		//
+
+		public static T2 GetSingleItem<T1, T2>(
+			Func<DataEntities, T1> GetMethod,
+			Func<T1, DataEntities, T2> MappingMethod,
+			bool returnNullIfNotFound = false
+		) where T1 : class, DBEntityBaseObject where T2 : Models.Schema.BaseObject, new()
+		{
+			using ( var context = new DataEntities() )
+			{
+				var item = GetMethod( context );
+				return MapDBToResult( context, item, MappingMethod, returnNullIfNotFound );
+			}
+		}
+		//
+
+		public static List<T2> GetItemList<T1, T2>(
+			Func<DataEntities, IEnumerable<T1>> GetMethod,
+			Func<T1, DataEntities, T2> MappingMethod,
+			bool returnNullIfEmpty = false
+		) where T1 : class, DBEntityBaseObject where T2 : Models.Schema.BaseObject, new()
+		{
+			var output = new List<T2>();
+
+			using ( var context = new DataEntities() )
+			{
+				var list = GetMethod( context ).ToList();
+				foreach( var item in list )
+				{
+					output.Add( MapDBToResult( context, item, MappingMethod, false ) );
+				}
+			}
+
+			return returnNullIfEmpty && output.Count() == 0 ? null : output;
+		}
+		//
+
+		public static T2 GetSingleByFilter<T1, T2>(
+			Func<DataEntities, DbSet<T1>> GetDBEntityListMethod,
+			Func<T1, bool> FilterMethod,
+			Func<T1, DataEntities, T2> MappingMethod,
+			bool returnNullIfNotFound = false
+		) where T1 : class, DBEntityBaseObject where T2 : Models.Schema.BaseObject, new()
+		{
+			using ( var context = new DataEntities() )
+			{
+				var dbEntityList = GetDBEntityListMethod( context );
+				var value = dbEntityList.FirstOrDefault( FilterMethod );
+				return MapDBToResult( context, value, MappingMethod, returnNullIfNotFound );
+			}
+		}
+		//
+
+		public static List<T2> GetMultipleByFilter<T1, T2, T3>(
+			Func<DataEntities, DbSet<T1>> GetDBEntityListMethod,
+			Func<T1, bool> FilterMethod,
+			Func<T1, T3> SortMethod,
+			bool orderByDescending,
+			Func<T1, DataEntities, T2> MappingMethod,
+			bool returnNullIfEmpty = false
+		) where T1 : class, DBEntityBaseObject where T2 : Models.Schema.BaseObject, new()
+		{
+			var results = new List<T2>();
+			using ( var context = new DataEntities() )
+			{
+				var dbEntityList = GetDBEntityListMethod( context );
+				var query = dbEntityList.Where( FilterMethod );
+				if( SortMethod != null )
+				{
+					query = orderByDescending ? query.OrderByDescending( SortMethod ) : query.OrderBy( SortMethod );
+				}
+				var values = query.ToList();
+				
+				foreach( var value in values )
+				{
+					results.Add( MapDBToResult( context, value, MappingMethod, false ) );
+				}
+			}
+			return returnNullIfEmpty && results.Count() == 0 ? null : results;
+		}
+		//
+
+		public static T2 GetByIdentifier<T1, T2>( 
+			string identifier,
+			Func<DataEntities, DbSet<T1>> GetDBEntityListMethod,
+			Func<DbSet<T1>, T1> ExtraGetMethod,
+			Func<T1, DataEntities, T2> MappingMethod,
+			bool returnNullIfNotFound = false
+		) where T1 : class, DBEntityBaseObject where T2 : Models.Schema.BaseObject, new()
+		{
+			var testIntId = TryConvert( identifier, int.Parse, 0 );
+			var testRowId = TryConvert( identifier, Guid.Parse, Guid.Empty );
+			var testCTID = identifier.ToLower();
+
+			return GetSingleItem( context =>
+			 {
+				 var dbEntityList = GetDBEntityListMethod( context );
+				 var value =
+					 testIntId > 0 ? dbEntityList.FirstOrDefault( m => m.Id == testIntId ) :
+					 testRowId != Guid.Empty ? dbEntityList.FirstOrDefault( m => m.RowId == testRowId ) :
+					 !string.IsNullOrWhiteSpace( testCTID ) ? dbEntityList.FirstOrDefault( m => m.CTID.ToLower() == testCTID ) :
+					 null;
+
+				 if ( value == null )
+				 {
+					 value = ExtraGetMethod( dbEntityList );
+				 }
+
+				 return value;
+			 }, MappingMethod, returnNullIfNotFound );
+		}
+		//
+
+		public static void AppendIDsFilterIfPresent( SearchQuery query, string filterName, Action<List<int>> AppendFilterMethod )
+		{
+			//Need to do it this way to handle the edge case on the RMTL search where the summary looks for one source type but the user's query has another. This should result in a logical AND-ing of the two filters.
+			foreach( var filter in query.Filters.Where(m => m.Name.ToLower() == filterName.ToLower() ) )
+			{
+				if ( filter.ItemIds.Count() > 0 ) {
+					AppendFilterMethod( filter.ItemIds );
+				}
+			}
+			/*
+			var ids = query.GetFilterIDsByName( filterName );
+			if ( ids?.Count() > 0 )
+			{
+				AppendFilterMethod( ids );
+			}
+			*/
+		}
+		//
+
+		public static void AppendTextFilterIfPresent( SearchQuery query, string filterName, Action<string> AppendFilterMethod )
+		{
+			var text = query.GetFilterTextByName( filterName );
+			if ( !string.IsNullOrWhiteSpace( text ) )
+			{
+				AppendFilterMethod( text );
+			}
+		}
+		//
+
+		public static void AppendNotNullFilterIfPresent( SearchQuery query, string filterName, Action AppendFilterMethod )
+		{
+			var filter = query.GetFilterByName( filterName );
+			if( filter != null )
+			{
+				AppendFilterMethod();
+			}
+		}
+		//
+
+		public static T TryConvert<T>( string input, Func<string, T> ConvertMethod, T fallback )
+		{
+			try
+			{
+				return ConvertMethod( input );
+			}
+			catch
+			{
+				return fallback;
+			}
+		}
+		//
+
+		public static T2 MapDBToResult<T1, T2>(
+			DataEntities context,
+			T1 dbEntity,
+			Func<T1, DataEntities, T2> MappingMethod,
+			bool returnNullIfNotFound = false
+		) where T1 : class, DBEntityBaseObject where T2 : Models.Schema.BaseObject, new()
+		{
+			if( dbEntity != null )
+			{
+				return MappingMethod( dbEntity, context );
+			}
+
+			return returnNullIfNotFound ? null : new T2();
+		}
+		//
+
+		public static void MapAndAppendResourceIfNotNull<T1, T2, T3>( T1 input, DataEntities context, Func<T1, DataEntities, T2> MappingMethod, SearchResultSet<T3> resultSet ) 
+			where T1 : class, DBEntityBaseObject
+			where T2 : Models.Schema.BaseObject, new()
+			where T3 : Models.Schema.BaseObject, new()
+		{
+			if ( input != null && resultSet.RelatedResources.FirstOrDefault( m => m[ "RowId" ]?.ToString() == input.RowId.ToString() ) == null )
+			{
+				var mapped = MappingMethod( input, context );
+				if( mapped != null )
+				{
+					resultSet.RelatedResources.Add( JObject.FromObject( mapped ) );
+				}
+			}
+		}
+		//
+
+		#endregion
+		#region Database connections
+		/// <summary>
+		/// Get the read only connection string for the main database
+		/// </summary>
+		/// <returns></returns>
+		public static string DBConnectionRO()
         {
 
             string conn = WebConfigurationManager.ConnectionStrings["navy_RO"].ConnectionString;
@@ -483,13 +900,14 @@ namespace Factories
 
         #endregion
         //Automatic mapping based on property name + type
-        public static bool AutoMap<T1, T2> ( T1 source, T2 destination, List<string> errors = null, List<string> skipProperties = null, int maxDepth = 10 )
+        public static T2 AutoMap<T1, T2> ( T1 source, T2 destination, List<string> errors = null, List<string> skipProperties = null, int maxDepth = 10 ) where T2: class
 		{
 			//Ensure source and destination are not null
+			errors = errors ?? new List<string>();
 			if( source == null || destination == null )
 			{
 				errors.Add( "Error: Source and Destination must not be null" );
-				return false;
+				return null;
 			}
 
 			//Get a list of properties for the source and destination
@@ -499,7 +917,6 @@ namespace Factories
 			//Setup helpers
 			skipProperties = skipProperties ?? new List<string>();
 			errors = errors ?? new List<string>();
-			var mappingWasSuccessful = true;
 
 			//For each property in the destination object...
 			foreach( var destinationProperty in destinationProperties.Where( m => !skipProperties.Contains( m.Name ) ).ToList() )
@@ -507,11 +924,15 @@ namespace Factories
 				try
 				{
 					//Find a matching property (based on name and type) in the source object
-					var matchingSourceProperty = sourceProperties.FirstOrDefault( m => m.Name.ToLower() == destinationProperty.Name.ToLower() && m.PropertyType == destinationProperty.PropertyType );
+					var matchingSourceProperty = sourceProperties.FirstOrDefault( sourceProperty =>
+						sourceProperty.Name.ToLower() == destinationProperty.Name.ToLower() &&
+						( Nullable.GetUnderlyingType( sourceProperty.PropertyType ) ?? sourceProperty.PropertyType ) == ( Nullable.GetUnderlyingType( destinationProperty.PropertyType ) ?? destinationProperty.PropertyType )
+					);
 					if( matchingSourceProperty != null )
 					{
 						//Update the destination property's value to match the source property's value
 						//Caution: For non-value types (including List<>s), this will set the value to reference the same object in RAM. It does not create a separate copy.
+						//Note that .SetValue() will use the appropriate default value for the type in cases where the source value is nullable and the destination value is not (i.e., a nullable int with a null value will be translated to a 0)
 						destinationProperty.SetValue( destination, matchingSourceProperty.GetValue( source ) );
 					}
 				}
@@ -520,12 +941,11 @@ namespace Factories
 					//If there are any errors, add them to the errors list
 					//The errors list is a List<string> passed by reference so no need to make it a "ref" or "out" parameter
 					errors.Add( "Error mapping property: " + destinationProperty.Name + ": " + ex.Message + ( ex.InnerException != null ? "; Inner exception: " + ex.InnerException.Message : "" ) );
-					mappingWasSuccessful = false;
 				}
 			}
 
-			//Return true if there were no errrors
-			return mappingWasSuccessful;
+			//Return the mapped resource
+			return destination;
 		}
 		//
 
@@ -556,26 +976,12 @@ namespace Factories
 
 
         #region data retrieval     
-        public static string GetSearchFilterText( SearchQuery query )
+        public static string GetSanitizedSearchFilterKeywords( SearchQuery query )
         {
-            if ( query == null || query.Filters?.Count == 0 )
-                return "";
-            var output = "";
-
-            foreach ( var item in query.Filters )
-            {
-                //
-                if ( item.Name == "search:Keyword" && !string.IsNullOrWhiteSpace( item.Text ) )
-                {
-                    var keyword = HandleApostrophes( item.Text ).TrimEnd();
-                    //just take first one for now
-                    return keyword;
-                }
-            }
-
-
-            return output;
-        } //
+			var keywords = query.GetFilterTextByName( "search:Keyword", "" );
+			return HandleApostrophes( keywords ).Trim();
+        } 
+		//
 
         public static List<Guid> GetFunctionalAreas( string property, ref string workRoleList )
         {
@@ -603,7 +1009,9 @@ namespace Factories
             }
 
             return output;
-        } //
+        }
+		//
+
         public static Guid GetGuidType( DataRow dr, string property )
         {
             string guid2 = GetRowColumn( dr, property );
@@ -613,7 +1021,9 @@ namespace Factories
                 return new Guid( guid );
             else
                 return new Guid();
-        } //
+        }
+		//
+
         /// <summary>
         /// Get guids for a list of ratings
         /// Using a cache as needed
@@ -635,7 +1045,9 @@ namespace Factories
             }
 
             return output;
-        } //
+        }
+		//
+
         public static MSc.Rating GetRatingFromCache( string rating )
         {
             var cache = new CachedRatings();  
@@ -692,6 +1104,7 @@ namespace Factories
             return output;
         }
         //
+
         public static List<Guid> GetBilletTitleGuids( string property )
         {
             if ( string.IsNullOrEmpty( property ) )
@@ -707,67 +1120,9 @@ namespace Factories
             }
 
             return output;
-        } //
-        public static MSc.BilletTitle GetBilletTitleFromCache( string billetTitle )
-        {
-            var output = JobManager.GetByName(billetTitle);
-            return output;
-        } //
-        //public static List<MSc.BilletTitle> GetAllBilletsFromCache( string billetTitle )
-        //{
-        //    var cache = new CachedBillets();
-        //    var output = new MSc.BilletTitle();
-        //    var list = new List<MSc.BilletTitle>();
-        //    string key = "BilletsCache";
-        //    int cacheHours = 8;
-        //    DateTime maxTime = DateTime.Now.AddHours( cacheHours * -1 );
-        //    if ( MemoryCache.Default.Get( key ) != null && cacheHours > 0 )
-        //    {
-        //        cache = ( CachedBillets ) MemoryCache.Default.Get( key );
-        //        try
-        //        {
-        //            if ( cache.LastUpdated > maxTime )
-        //            {
-        //                LoggingHelper.DoTrace( 6, string.Format( thisClassName + ".GetBilletsFromCache. Using cached version of BilletTitle" ) );
-        //                //**** change to Billets
-        //                list = cache.Billets;
-        //                output = list.FirstOrDefault( s => s.Name.ToLower() == billetTitle.ToLower());
-        //                //what if not found? Probably need to log and get?
-        //                return output;
-        //            }
-        //        }
-        //        catch ( Exception ex )
-        //        {
-        //            LoggingHelper.DoTrace( 5, thisClassName + ".GetBilletsFromCache === exception " + ex.Message );
-        //            //just fall thru and retrieve
-        //        }
-        //    }
-        //    //get
-        //    list = JobManager.GetAll();
-     
-        //    output = list.FirstOrDefault( s => s.Name.ToLower() == billetTitle.ToLower() );
-        //    //
-        //    //add to cache
-        //    if ( key.Length > 0 && cacheHours > 0 )
-        //    {
-        //        var newCache = new CachedBillets()
-        //        {
-        //            Billets = list,
-        //            LastUpdated = DateTime.Now
-        //        };
-        //        if ( MemoryCache.Default.Get( key ) != null )
-        //        {
-        //            MemoryCache.Default.Remove( key );
-        //        }
-                
-        //        //
-        //        MemoryCache.Default.Add( key, newCache, new DateTimeOffset( DateTime.Now.AddHours( cacheHours ) ) );
-        //        LoggingHelper.DoTrace( 5, thisClassName + ".GetBilletsFromCache $$$ Updating cached version " );
+        } 
+		//
 
-        //    }
-        //    //
-        //    return output;
-        //}
         public static string GetRowColumn( DataRow row, string column, string defaultValue = "" )
         {
             string colValue = "";

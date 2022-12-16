@@ -9,63 +9,48 @@
         <AssociationConnector Association="NavyRRLModel.FK_Course_Concept_ConceptScheme_Concept" />
         <AssociationConnector Association="NavyRRLModel.FK_Course_Concept_Course" />
         <AssociationConnector Association="NavyRRLModel.FK_RatingTask_ReferenceResource" />
-        <EntityTypeShape EntityType="NavyRRLModel.ClusterAnalysis" Width="1.5" PointX="27.25" PointY="10.375" />
-        <EntityTypeShape EntityType="NavyRRLModel.ClusterAnalysis_HasCandidatePlatform" Width="3.25" PointX="22.625" PointY="14.625" />
-        <EntityTypeShape EntityType="NavyRRLModel.ClusterAnalysisTitle" Width="3" PointX="26.875" PointY="6.5" />
-        <AssociationConnector Association="NavyRRLModel.FK_ClusterAnalysis_ClusterAnalysisTitle" />
-        <AssociationConnector Association="NavyRRLModel.FK_HasCandidatePlatform_ClusterAnalysis" />
-        <EntityTypeShape EntityType="NavyRRLModel.ActivityLog" Width="1.5" PointX="22.125" PointY="0.625" />
-        <EntityTypeShape EntityType="NavyRRLModel.AppFunctionPermission" Width="1.5" PointX="12.375" PointY="0.5" />
-        <EntityTypeShape EntityType="NavyRRLModel.ApplicationFunction" Width="2" PointX="15" PointY="0.5" />
-        <EntityTypeShape EntityType="NavyRRLModel.ApplicationRole" Width="1.5" PointX="10" PointY="0.75" />
-        <EntityTypeShape EntityType="NavyRRLModel.ApplicationUserRole" Width="1.5" PointX="7.25" PointY="1.125" />
-        <EntityTypeShape EntityType="NavyRRLModel.AspNetRoles" Width="1.5" PointX="0.5" PointY="4.625" />
-        <EntityTypeShape EntityType="NavyRRLModel.AspNetUserRoles" Width="1.5" PointX="1.75" PointY="0.75" />
-        <EntityTypeShape EntityType="NavyRRLModel.AspNetUsers" Width="1.5" PointX="4" PointY="3" />
-        <EntityTypeShape EntityType="NavyRRLModel.ConceptScheme" Width="1.5" PointX="12.25" PointY="10.75" />
-        <EntityTypeShape EntityType="NavyRRLModel.ConceptScheme_Concept" Width="2.25" PointX="16.75" PointY="9.875" />
+        <EntityTypeShape EntityType="NavyRRLModel.ClusterAnalysis_HasCandidatePlatform" Width="3.25" PointX="13.5" PointY="18.875" />
+        <EntityTypeShape EntityType="NavyRRLModel.ClusterAnalysisTitle" Width="3" PointX="4.5" PointY="24.625" />
+        <EntityTypeShape EntityType="NavyRRLModel.ActivityLog" Width="1.5" PointX="5.75" PointY="6.75" />
+        <EntityTypeShape EntityType="NavyRRLModel.AppFunctionPermission" Width="1.5" PointX="9" PointY="25.125" />
+        <EntityTypeShape EntityType="NavyRRLModel.ApplicationFunction" Width="2" PointX="6.25" PointY="28.375" />
+        <EntityTypeShape EntityType="NavyRRLModel.ApplicationRole" Width="1.5" PointX="0.75" PointY="20.375" />
+        <EntityTypeShape EntityType="NavyRRLModel.ApplicationUserRole" Width="1.5" PointX="3" PointY="14.375" />
+        <EntityTypeShape EntityType="NavyRRLModel.AspNetRoles" Width="1.5" PointX="0.75" PointY="1" />
+        <EntityTypeShape EntityType="NavyRRLModel.AspNetUserRoles" Width="1.5" PointX="3.75" PointY="5.875" />
+        <EntityTypeShape EntityType="NavyRRLModel.AspNetUsers" Width="1.5" PointX="1.5" PointY="8" />
+        <EntityTypeShape EntityType="NavyRRLModel.ConceptScheme_Concept" Width="2.25" PointX="5.25" PointY="16.375" />
         <AssociationConnector Association="NavyRRLModel.FK_AppFunctionPermission_ApplicationFunction" />
         <AssociationConnector Association="NavyRRLModel.FK_AppFunctionPermission_ApplicationRole" />
         <AssociationConnector Association="NavyRRLModel.FK_ApplicationUserRole_ApplicationRole" />
         <AssociationConnector Association="NavyRRLModel.FK_AspNetUserRoles_AspNetRoles" />
         <AssociationConnector Association="NavyRRLModel.FK_AspNetUserRoles_AspNetUsers" />
         <AssociationConnector Association="NavyRRLModel.FK_AspNetUsers_AspNetUsers" />
-        <AssociationConnector Association="NavyRRLModel.FK_ClusterAnalysis_CFMPlacement_Concept" />
-        <AssociationConnector Association="NavyRRLModel.FK_ClusterAnalysis_DevSpecificationConcept" />
-        <AssociationConnector Association="NavyRRLModel.FK_ClusterAnalysis_RecommendedModality_Concept" />
-        <AssociationConnector Association="NavyRRLModel.FK_ClusterAnalysis_TrainingSolution_Concept" />
         <AssociationConnector Association="NavyRRLModel.FK_HasCandidatePlatform_CandidatePlatform_Concept" />
-        <AssociationConnector Association="NavyRRLModel.FK_ConceptScheme_Concept_ConceptScheme" />
-        <EntityTypeShape EntityType="NavyRRLModel.Account" Width="1.5" PointX="6.625" PointY="8" />
-        <EntityTypeShape EntityType="NavyRRLModel.Comment" Width="1.5" PointX="20.375" PointY="1.25" />
-        <EntityTypeShape EntityType="NavyRRLModel.Course" Width="1.5" PointX="27" PointY="16.875" />
-        <EntityTypeShape EntityType="NavyRRLModel.Course_CourseType" Width="1.5" PointX="29.25" PointY="9.5" />
-        <EntityTypeShape EntityType="NavyRRLModel.CourseContext" Width="1.5" PointX="29.25" PointY="17.5" />
-        <EntityTypeShape EntityType="NavyRRLModel.CourseContext_AssessmentType" Width="1.5" PointX="34.5" PointY="15.125" />
+        <EntityTypeShape EntityType="NavyRRLModel.Account" Width="1.5" PointX="0.75" PointY="15.125" />
+        <EntityTypeShape EntityType="NavyRRLModel.Comment" Width="1.5" PointX="8" PointY="1.75" />
+        <EntityTypeShape EntityType="NavyRRLModel.Course" Width="1.5" PointX="14.25" PointY="13" />
+        <EntityTypeShape EntityType="NavyRRLModel.Course_CourseType" Width="1.5" PointX="11.25" PointY="18.875" />
+        <EntityTypeShape EntityType="NavyRRLModel.CourseContext" Width="1.5" PointX="16.5" PointY="13.375" />
+        <EntityTypeShape EntityType="NavyRRLModel.CourseContext_AssessmentType" Width="1.5" PointX="11.25" PointY="22.875" />
         <AssociationConnector Association="NavyRRLModel.FK_Account_AspNetUsers" />
         <AssociationConnector Association="NavyRRLModel.FK_ApplicationUserRole_Account" />
-        <AssociationConnector Association="NavyRRLModel.FK_ConceptScheme__AccountCreatedBy" />
-        <AssociationConnector Association="NavyRRLModel.FK_ConceptScheme_AccountApprovedBy" />
-        <AssociationConnector Association="NavyRRLModel.FK_ConceptScheme_AccountLastUpdatedBy" />
-        <AssociationConnector Association="NavyRRLModel.FK_ConceptScheme_AccountPublishedBy" />
         <AssociationConnector Association="NavyRRLModel.FK_CourseContext_AssessmentType_Concept" />
         <AssociationConnector Association="NavyRRLModel.FK_CourseCourseType_Concept" />
         <AssociationConnector Association="NavyRRLModel.FK_CourseLCCD_LCCD_Concept" />
         <AssociationConnector Association="NavyRRLModel.FK_CourseContext_Course" />
         <AssociationConnector Association="NavyRRLModel.FK_CourseCourseType_Course" />
         <AssociationConnector Association="NavyRRLModel.FK_CourseContext_AssessmentType_CourseContext" />
-        <EntityTypeShape EntityType="NavyRRLModel.ImportRMTL" Width="1.5" PointX="2.75" PointY="8.75" />
-        <EntityTypeShape EntityType="NavyRRLModel.Job" Width="1.5" PointX="29.625" PointY="26.25" />
-        <EntityTypeShape EntityType="NavyRRLModel.Organization" Width="1.5" PointX="25.125" PointY="18.375" />
-        <EntityTypeShape EntityType="NavyRRLModel.Rating" Width="1.5" PointX="29.625" PointY="1.25" />
-        <EntityTypeShape EntityType="NavyRRLModel.RatingContext" Width="1.5" PointX="31.875" PointY="14.5" />
-        <EntityTypeShape EntityType="NavyRRLModel.RatingTask" Width="1.5" PointX="3" PointY="20.875" />
-        <EntityTypeShape EntityType="NavyRRLModel.ReferenceResource" Width="1.5" PointX="0.75" PointY="16.875" />
-        <EntityTypeShape EntityType="NavyRRLModel.ReferenceResource_ReferenceType" Width="1.5" PointX="20.125" PointY="14.375" />
-        <EntityTypeShape EntityType="NavyRRLModel.RMTLProject" Width="1.5" PointX="18.5" PointY="4" />
-        <EntityTypeShape EntityType="NavyRRLModel.TrainingTask" Width="1.5" PointX="27.375" PointY="22.625" />
-        <EntityTypeShape EntityType="NavyRRLModel.WorkRole" Width="1.5" PointX="29.625" PointY="22" />
-        <AssociationConnector Association="NavyRRLModel.FK_RatingContext_ClusterAnalysis" />
+        <EntityTypeShape EntityType="NavyRRLModel.ImportRMTL" Width="1.5" PointX="7.75" PointY="5.75" />
+        <EntityTypeShape EntityType="NavyRRLModel.Job" Width="1.5" PointX="16.5" PointY="30.375" />
+        <EntityTypeShape EntityType="NavyRRLModel.Organization" Width="1.5" PointX="12" PointY="10.5" />
+        <EntityTypeShape EntityType="NavyRRLModel.Rating" Width="1.5" PointX="16.5" PointY="8.125" />
+        <EntityTypeShape EntityType="NavyRRLModel.RatingContext" Width="1.5" PointX="18.75" PointY="15.125" />
+        <EntityTypeShape EntityType="NavyRRLModel.ReferenceResource" Width="1.5" PointX="12" PointY="4.75" />
+        <EntityTypeShape EntityType="NavyRRLModel.ReferenceResource_ReferenceType" Width="1.5" PointX="11.25" PointY="14.875" />
+        <EntityTypeShape EntityType="NavyRRLModel.RMTLProject" Width="1.5" PointX="5.75" PointY="1" />
+        <EntityTypeShape EntityType="NavyRRLModel.TrainingTask" Width="1.5" PointX="14.25" PointY="5.5" />
+        <EntityTypeShape EntityType="NavyRRLModel.WorkRole" Width="1.5" PointX="16.5" PointY="26.25" />
         <AssociationConnector Association="NavyRRLModel.FK_Comment_RMTLProject" />
         <AssociationConnector Association="NavyRRLModel.FK_RatingContext_Rank" />
         <AssociationConnector Association="NavyRRLModel.FK_RatingContext_TaskApplicability" />
@@ -75,12 +60,35 @@
         <AssociationConnector Association="NavyRRLModel.FK_CourseContext_TrainingTask" />
         <AssociationConnector Association="NavyRRLModel.FK_RatingContext_BilletTitle" />
         <AssociationConnector Association="NavyRRLModel.FK_RatingContext_Rating" />
-        <AssociationConnector Association="NavyRRLModel.FK_RatingContext_RatingTask" />
-        <AssociationConnector Association="NavyRRLModel.FK_RatingContext_TrainingTask" />
         <AssociationConnector Association="NavyRRLModel.FK_RatingContext_WorkRole" />
-        <AssociationConnector Association="NavyRRLModel.FK_RatingTask_to_ReferenceResource" />
         <AssociationConnector Association="NavyRRLModel.FK_ReferenceResource_ReferenceType_ReferenceResource" />
-        <EntityTypeShape EntityType="NavyRRLModel.System_ProxyCodes" Width="1.5" PointX="9.375" PointY="3.75" />
+        <EntityTypeShape EntityType="NavyRRLModel.System_ProxyCodes" Width="1.5" PointX="2.75" PointY="0.75" />
+        <AssociationConnector Association="NavyRRLModel.FK_RatingContext_CourseContext" />
+        <AssociationConnector Association="NavyRRLModel.FK_ReferenceResource_TrainingTask" />
+        <EntityTypeShape EntityType="NavyRRLModel.ConceptScheme" Width="1.5" PointX="3" PointY="17.75" />
+        <AssociationConnector Association="NavyRRLModel.FK_ConceptScheme_AccountApprovedBy" />
+        <AssociationConnector Association="NavyRRLModel.FK_ConceptScheme_AccountCreatedBy" />
+        <AssociationConnector Association="NavyRRLModel.FK_ConceptScheme_AccountLastUpdatedBy" />
+        <AssociationConnector Association="NavyRRLModel.FK_ConceptScheme_AccountPublishedBy" />
+        <AssociationConnector Association="NavyRRLModel.FK_ConceptScheme_Concept_ConceptScheme" />
+        <AssociationConnector Association="NavyRRLModel.FK_RatingContext_RankLevel" />
+        <EntityTypeShape EntityType="NavyRRLModel.ClusterAnalysis" Width="1.5" PointX="21.5" PointY="17.625" />
+        <EntityTypeShape EntityType="NavyRRLModel.RatingTask" Width="1.5" PointX="19.25" PointY="10.25" />
+        <AssociationConnector Association="NavyRRLModel.FK_ClusterAnalysis_CFMPlacement_Concept" />
+        <AssociationConnector Association="NavyRRLModel.FK_ClusterAnalysis_ClusterAnalysisTitle" />
+        <AssociationConnector Association="NavyRRLModel.FK_ClusterAnalysis_DevelopmentRatio_Concept" />
+        <AssociationConnector Association="NavyRRLModel.FK_ClusterAnalysis_DevSpecificationConcept" />
+        <AssociationConnector Association="NavyRRLModel.FK_ClusterAnalysis_Job" />
+        <AssociationConnector Association="NavyRRLModel.FK_ClusterAnalysis_Rating" />
+        <AssociationConnector Association="NavyRRLModel.FK_ClusterAnalysis_RatingTask" />
+        <AssociationConnector Association="NavyRRLModel.FK_ClusterAnalysis_RecommendedModality_Concept" />
+        <AssociationConnector Association="NavyRRLModel.FK_ClusterAnalysis_TrainingSolution_Concept" />
+        <AssociationConnector Association="NavyRRLModel.FK_ClusterAnalysis_WorkRole" />
+        <AssociationConnector Association="NavyRRLModel.FK_HasCandidatePlatform_ClusterAnalysis" />
+        <AssociationConnector Association="NavyRRLModel.FK_RatingContext_ClusterAnalysis" />
+        <AssociationConnector Association="NavyRRLModel.FK_RatingTask_ReferenceType" />
+        <AssociationConnector Association="NavyRRLModel.FK_RatingContext_RatingTask" />
+        <AssociationConnector Association="NavyRRLModel.FK_RatingTask_to_ReferenceResource" />
         </Diagram>
     </edmx:Diagrams>
   </edmx:Designer>

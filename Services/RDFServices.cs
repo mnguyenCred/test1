@@ -129,16 +129,20 @@ namespace Services
 		{
 			//All of these need to return null if not found!
 			var data =
-				( object ) Factories.JobManager.GetByCTIDOrNull( ctid ) ??
-				( object ) Factories.CourseManager.GetByCTIDOrNull( ctid, true ) ??
-				( object ) Factories.OrganizationManager.GetByCTIDOrNull( ctid ) ??
-				( object ) Factories.RatingManager.GetByCTIDOrNull( ctid ) ??
-				( object ) Factories.RatingTaskManager.GetByCTIDOrNull( ctid ) ??
-				( object ) Factories.ReferenceResourceManager.GetByCTIDOrNull( ctid ) ??
-				( object ) Factories.TrainingTaskManager.GetByCTIDOrNull( ctid ) ??
-				( object ) Factories.WorkRoleManager.GetByCTIDOrNull( ctid ) ??
-				( object ) Factories.ConceptSchemeManager.GetByCTIDOrNull( ctid ) ??
-				( object ) Factories.ConceptSchemeManager.GetConceptByCTIDOrNull( ctid );
+				( object ) Factories.JobManager.GetByCTID( ctid, true ) ??
+				( object ) Factories.CourseManager.GetByCTID( ctid, true ) ??
+				( object ) Factories.OrganizationManager.GetByCTID( ctid, true ) ??
+				( object ) Factories.RatingManager.GetByCTID( ctid, true ) ??
+				( object ) Factories.RatingTaskManager.GetByCTID( ctid, true ) ??
+				( object ) Factories.ReferenceResourceManager.GetByCTID( ctid, true ) ??
+				( object ) Factories.TrainingTaskManager.GetByCTID( ctid, true ) ??
+				( object ) Factories.WorkRoleManager.GetByCTID( ctid, true ) ??
+				( object ) Factories.ConceptSchemeManager.GetByCTID( ctid, true ) ??
+				( object ) Factories.ConceptSchemeManager.GetByCTID( ctid, true ) ??
+				( object ) Factories.ClusterAnalysisManager.GetByCTID( ctid, true ) ??
+				( object ) Factories.ClusterAnalysisTitleManager.GetByCTID( ctid, true ) ??
+				( object ) Factories.RatingContextManager.GetByCTID( ctid, true ) ??
+				( object ) Factories.CourseContextManager.GetByCTID( ctid, true );
 				//May also return null. This is intentional and necessary for subsequent steps to work properly.
 
 			return data;
@@ -157,16 +161,20 @@ namespace Services
 			var extraGraphObjects = new List<JObject>();
 			switch ( resource.GetType().Name )
 			{
-				case nameof( BilletTitle ):			primaryResource = GetRDF( ( BilletTitle ) resource ); break;
-				case nameof( Course ):				primaryResource = GetRDF( ( Course ) resource ); break;
-				case nameof( Organization ):		primaryResource = GetRDF( ( Organization ) resource ); break;
-				case nameof( Rating ):				primaryResource = GetRDF( ( Rating ) resource ); break;
-				case nameof( RatingTask ):			primaryResource = GetRDF( ( RatingTask ) resource ); break;
-				case nameof( ReferenceResource ):	primaryResource = GetRDF( ( ReferenceResource ) resource ); break;
-				case nameof( TrainingTask ):		primaryResource = GetRDF( ( TrainingTask ) resource ); break;
-				case nameof( WorkRole ):			primaryResource = GetRDF( ( WorkRole ) resource ); break;
-				case nameof( ConceptScheme ):		primaryResource = GetRDF( ( ConceptScheme ) resource, includeSecuredTerms, extraGraphObjects ); break;
-				case nameof( Concept ):				primaryResource = GetRDF( ( Concept ) resource, includeSecuredTerms ); break;
+				case nameof( BilletTitle ):				primaryResource = GetRDF( ( BilletTitle ) resource ); break;
+				case nameof( Course ):					primaryResource = GetRDF( ( Course ) resource ); break;
+				case nameof( Organization ):			primaryResource = GetRDF( ( Organization ) resource ); break;
+				case nameof( Rating ):					primaryResource = GetRDF( ( Rating ) resource ); break;
+				case nameof( RatingTask ):				primaryResource = GetRDF( ( RatingTask ) resource ); break;
+				case nameof( ReferenceResource ):		primaryResource = GetRDF( ( ReferenceResource ) resource ); break;
+				case nameof( TrainingTask ):			primaryResource = GetRDF( ( TrainingTask ) resource ); break;
+				case nameof( WorkRole ):				primaryResource = GetRDF( ( WorkRole ) resource ); break;
+				case nameof( ConceptScheme ):			primaryResource = GetRDF( ( ConceptScheme ) resource, includeSecuredTerms, extraGraphObjects ); break;
+				case nameof( Concept ):					primaryResource = GetRDF( ( Concept ) resource, includeSecuredTerms ); break;
+				case nameof( RatingContext ):			primaryResource = GetRDF( ( RatingContext ) resource ); break;
+				case nameof( CourseContext ):			primaryResource = GetRDF( ( CourseContext ) resource ); break;
+				case nameof( ClusterAnalysis ):			primaryResource = GetRDF( ( ClusterAnalysis ) resource ); break;
+				case nameof( ClusterAnalysisTitle ):	primaryResource = GetRDF( ( ClusterAnalysisTitle ) resource ); break;
 				default: break;
 			}
 
@@ -203,16 +211,28 @@ namespace Services
 
 			AppendValue( result, "ceterms:name", source.Name, true );
 			AppendValue( result, "ceterms:codedNotation", source.CodedNotation, false );
-			AppendLookupValue( result, "navy:lifeCycleControlDocumentType", source.LifeCycleControlDocumentType, Factories.ConceptSchemeManager.GetConcept );
-			AppendLookupValue( result, "navy:courseType", source.CourseType, Factories.ConceptSchemeManager.GetMultipleConcepts );
-			AppendLookupValue( result, "ceterms:ownedBy", source.CurriculumControlAuthority, Factories.OrganizationManager.Get );
-			AppendLookupValue( result, "ceterms:hasTrainingTask", source.HasTrainingTask, Factories.TrainingTaskManager.GetMultiple );
+			AppendLookupValue( result, "navy:lifeCycleControlDocumentType", source.LifeCycleControlDocumentType, Factories.ConceptManager.GetByRowId );
+			AppendLookupValue( result, "navy:courseType", source.CourseType, Factories.ConceptManager.GetMultiple );
+			AppendLookupValue( result, "ceterms:ownedBy", source.CurriculumControlAuthority, Factories.OrganizationManager.GetByRowId );
+			AppendLookupValue( result, "navy:hasTrainingTask", source.HasTrainingTask, Factories.TrainingTaskManager.GetMultiple );
 
 			//In the Registry, ceterms:ownedBy is multi-value
 			if ( result[ "ceterms:ownedBy" ] != null && result[ "ceterms:ownedBy" ].Type != JTokenType.Array )
 			{
 				result[ "ceterms:ownedBy" ] = new JArray() { result[ "ceterms:ownedBy" ] };
 			}
+
+			return result;
+		}
+		//
+
+		public static JObject GetRDF( CourseContext source )
+		{
+			var result = GetStarterResult( "navy:CourseContext", source );
+
+			AppendLookupValue( result, "navy:hasCourse", source.HasCourse, Factories.CourseManager.GetByRowId );
+			AppendLookupValue( result, "navy:hasTrainingTask", source.HasTrainingTask, Factories.TrainingTaskManager.GetByRowId );
+			AppendLookupValue( result, "ceterms:assessmentMethodType", source.AssessmentMethodType, Factories.ConceptManager.GetMultiple );
 
 			return result;
 		}
@@ -245,6 +265,8 @@ namespace Services
 			var result = GetStarterResult( "navy:RatingTask", source );
 
 			AppendValue( result, "ceterms:description", source.Description, true );
+			AppendLookupValue( result, "navy:hasReferenceResource", source.HasReferenceResource, Factories.ReferenceResourceManager.GetByRowId );
+			/*
 			AppendValue( result, "ceterms:codedNotation", source.CodedNotation, false );
 			AppendValue( result, "ceasn:comment", source.Note, true );
 			AppendLookupValue( result, "navy:payGradeType", source.PayGradeType, Factories.ConceptSchemeManager.GetConcept );
@@ -254,6 +276,7 @@ namespace Services
 			AppendLookupValue( result, "ceterms:hasJob", source.HasBilletTitle, Factories.JobManager.GetMultiple );
 			AppendLookupValue( result, "ceterms:hasWorkRole", source.HasWorkRole, Factories.WorkRoleManager.GetMultiple );
 			AppendLookupValue( result, "navy:hasTrainingTask", source.HasTrainingTask, Factories.TrainingTaskManager.GetMultiple );
+			*/
 
 			return result;
 		}
@@ -265,14 +288,14 @@ namespace Services
 
 			AppendValue( result, "ceterms:codedNotation", source.CodedNotation, true );
 			AppendValue( result, "ceasn:comment", source.Note, true );
-			AppendLookupValue( result, "ceterms:hasOccupation", source.HasRating, Factories.RatingManager.Get );
-			AppendLookupValue( result, "navy:hasRatingTask", source.HasRatingTask, ( rowID ) => { return Factories.RatingTaskManager.Get( rowID ); } );
-			AppendLookupValue( result, "ceterms:hasJob", source.HasBilletTitle, Factories.JobManager.Get );
-			AppendLookupValue( result, "ceterms:hasWorkRole", source.HasWorkRole, Factories.WorkRoleManager.Get );
-			AppendLookupValue( result, "navy:hasTrainingTask", source.HasTrainingTask, Factories.TrainingTaskManager.Get );
-			AppendLookupValue( result, "navy:payGradeType", source.PayGradeType, Factories.ConceptSchemeManager.GetConcept );
-			AppendLookupValue( result, "navy:applicabilityType", source.ApplicabilityType, Factories.ConceptSchemeManager.GetConcept );
-			AppendLookupValue( result, "navy:trainingGapType", source.TrainingGapType, Factories.ConceptSchemeManager.GetConcept );
+			AppendLookupValue( result, "navy:payGradeType", source.PayGradeType, Factories.ConceptManager.GetByRowId );
+			AppendLookupValue( result, "navy:applicabilityType", source.ApplicabilityType, Factories.ConceptManager.GetByRowId );
+			AppendLookupValue( result, "navy:trainingGapType", source.TrainingGapType, Factories.ConceptManager.GetByRowId );
+			AppendLookupValue( result, "ceterms:hasOccupation", source.HasRating, Factories.RatingManager.GetByRowId );
+			AppendLookupValue( result, "navy:hasRatingTask", source.HasRatingTask, ( rowID ) => { return Factories.RatingTaskManager.GetByRowId( rowID ); } );
+			AppendLookupValue( result, "ceterms:hasJob", source.HasBilletTitle, Factories.JobManager.GetByRowId );
+			AppendLookupValue( result, "ceterms:hasWorkRole", source.HasWorkRole, Factories.WorkRoleManager.GetByRowId );
+			AppendLookupValue( result, "navy:hasCourseContext", source.HasCourseContext, Factories.CourseContextManager.GetByRowId );
 
 			return result;
 		}
@@ -285,7 +308,7 @@ namespace Services
 			AppendValue( result, "ceterms:name", source.Name, true );
 			AppendValue( result, "ceterms:description", source.Description, true );
 			AppendValue( result, "ceterms:codedNotation", source.PublicationDate, true ); //Should probably just use CodedNotation instead of Publication Date system-wide
-			AppendLookupValue( result, "navy:referenceType", source.ReferenceType, Factories.ConceptSchemeManager.GetMultipleConcepts );
+			AppendLookupValue( result, "navy:referenceType", source.ReferenceType, Factories.ConceptManager.GetMultiple );
 
 			return result;
 		}
@@ -296,7 +319,7 @@ namespace Services
 			var result = GetStarterResult( "navy:TrainingTask", source );
 
 			AppendValue( result, "ceterms:description", source.Description, true );
-			AppendLookupValue( result, "ceterms:assessmentMethodType", source.AssessmentMethodType, Factories.ConceptSchemeManager.GetMultipleConcepts );
+			AppendLookupValue( result, "ceterms:assessmentMethodType", source.AssessmentMethodType, Factories.ConceptManager.GetMultiple );
 			AppendLookupValue( result, "ceterms:hasOccupation", source.HasRating, Factories.RatingManager.GetMultiple );
 
 			return result;
@@ -322,7 +345,7 @@ namespace Services
 			AppendValue( result, "ceasn:description", source.Description, true );
 			if ( includeSecuredTerms )
 			{
-				var allConcepts = Factories.ConceptSchemeManager.GetAllConceptsForScheme( source.SchemaUri, true );
+				var allConcepts = Factories.ConceptManager.GetAllConceptsForScheme( source.SchemaUri, true );
 				AppendValue( result, "skos:hasTopConcept", allConcepts.Select( m => GetRegistryURL( m.CTID ) ).ToList(), false );
 				foreach( var concept in allConcepts )
 				{
@@ -348,7 +371,7 @@ namespace Services
 			AppendValue( result, "skos:prefLabel", source.Name, true );
 			AppendValue( result, "skos:notation", source.CodedNotation, false );
 			AppendValue( result, "skos:definition", source.Description, true );
-			AppendLookupValue( result, "skos:inScheme", source.InScheme, ( rowID ) => { return Factories.ConceptSchemeManager.Get( rowID, false ); } );
+			AppendLookupValue( result, "skos:inScheme", source.InScheme, ( rowID ) => { return Factories.ConceptSchemeManager.GetByRowId( rowID ); } );
 
 			return result;
 		}
@@ -359,15 +382,15 @@ namespace Services
 			var result = GetStarterResult( "navy:ClusterAnalysis", source );
 
 			AppendValue( result, "navy:priorityPlacement", source.PriorityPlacement.ToString(), false );
-			AppendValue( result, "navy:estimatedInstructionalTime", source.EstimatedInstructionalTime != null && source.EstimatedInstructionalTime > 0 ? "PT" + (source.EstimatedInstructionalTime?.ToString() ?? "0") + "H" : null, false );
+			AppendValue( result, "navy:estimatedInstructionalTime", source.EstimatedInstructionalTime > 0 ? "PT" + (source.EstimatedInstructionalTime.ToString() ?? "0") + "H" : null, false );
 			AppendValue( result, "navy:developmentTime", source.DevelopmentTime > 0 ? "PT" + source.DevelopmentTime + "H" : null, false );
-			AppendLookupValue( result, "navy:hasClusterAnalysisTitle", source.HasClusterAnalysisTitle, Factories.ClusterAnalysisTitleManager.Get );
-			AppendLookupValue( result, "navy:trainingSolutionType", source.TrainingSolutionType, Factories.ConceptSchemeManager.GetConcept );
-			AppendLookupValue( result, "navy:recommendedModalityType", source.RecommendedModalityType, Factories.ConceptSchemeManager.GetConcept );
-			AppendLookupValue( result, "navy:developmentSpecificationType", source.DevelopmentSpecificationType, Factories.ConceptSchemeManager.GetConcept );
-			AppendLookupValue( result, "navy:candidatePlatformType", source.CandidatePlatformType, Factories.ConceptSchemeManager.GetMultipleConcepts );
-			AppendLookupValue( result, "navy:developmentRatioType", source.DevelopmentRatioType, Factories.ConceptSchemeManager.GetConcept );
-			AppendLookupValue( result, "navy:cfmPlacementType", source.CFMPlacementType, Factories.ConceptSchemeManager.GetConcept );
+			AppendLookupValue( result, "navy:hasClusterAnalysisTitle", source.HasClusterAnalysisTitle, Factories.ClusterAnalysisTitleManager.GetByRowId );
+			AppendLookupValue( result, "navy:trainingSolutionType", source.TrainingSolutionType, Factories.ConceptManager.GetByRowId );
+			AppendLookupValue( result, "navy:recommendedModalityType", source.RecommendedModalityType, Factories.ConceptManager.GetByRowId );
+			AppendLookupValue( result, "navy:developmentSpecificationType", source.DevelopmentSpecificationType, Factories.ConceptManager.GetByRowId );
+			AppendLookupValue( result, "navy:candidatePlatformType", source.CandidatePlatformType, Factories.ConceptManager.GetMultiple );
+			AppendLookupValue( result, "navy:developmentRatioType", source.DevelopmentRatioType, Factories.ConceptManager.GetByRowId );
+			AppendLookupValue( result, "navy:cfmPlacementType", source.CFMPlacementType, Factories.ConceptManager.GetByRowId );
 
 			return result;
 		}
@@ -445,7 +468,21 @@ namespace Services
 			if ( value != Guid.Empty )
 			{
 				var item = GetSingleByGUIDMethod( value );
-				if( item != null && item.Id > 0 )
+				if ( item != null && item.Id > 0 )
+				{
+					container[ property ] = GetRegistryURL( item.CTID );
+				}
+			}
+		}
+		//
+
+		public static void AppendLookupValue<T>( JObject container, string property, Guid value, Func<Guid, bool, T> GetSingleByGUIDMethod ) where T : BaseObject
+		{
+			var applicationURL = GetApplicationURL();
+			if ( value != Guid.Empty )
+			{
+				var item = GetSingleByGUIDMethod( value, true );
+				if ( item != null && item.Id > 0 )
 				{
 					container[ property ] = GetRegistryURL( item.CTID );
 				}

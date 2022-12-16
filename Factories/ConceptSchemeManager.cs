@@ -29,7 +29,7 @@ namespace Factories
         public static string ConceptScheme_LifeCycleControlDocument = "navy:LifeCycleControlDocument";
         public static string ConceptScheme_Pay_Grade = "navy:Paygrade";
         public static string ConceptScheme_ProjectStatus = "navy:ProjectStatus";
-        public static string ConceptScheme_RatingLevel = "navy:RatingLevel";
+        public static string ConceptScheme_PayGradeLevel = "navy:PayGradeLevel";
         public static string ConceptScheme_ReferenceResource = "navy:ReferenceResource";
         public static string ConceptScheme_TaskApplicability = "navy:TaskApplicability";
         public static string ConceptScheme_TrainingGap = "navy:TrainingGap";
@@ -37,13 +37,31 @@ namespace Factories
         public static string ConceptScheme_TrainingSolutionType = "navy:TrainingSolutionType";
         public static string ConceptScheme_RecommendedModality = "navy:RecommendedModality";
         public static string ConceptScheme_DevelopmentSpecification = "navy:DevelopmentSpecification";
-        public static string ConceptScheme_CFMPlacement = "navy:CFMPlacement"; //??
+        public static string ConceptScheme_CFMPlacement = "navy:CFMPlacement";
+		public static string ConceptScheme_CandidatePlatformType = "navy:CandidatePlatformType";
+		public static string ConceptScheme_DevelopmentRatio = "navy:DevelopmentRatio"; //??
 
 
-        #region ConceptScheme
-        #region ConceptScheme - Persistance
-        //unlikely
-        public bool Save( AppEntity entity, ref ChangeSummary status )
+		#region ConceptScheme
+		#region ConceptScheme - Persistance
+		public static void SaveFromEditor( AppEntity entity, int userID, List<string> errors )
+		{
+			SaveCore( entity, userID, "Edit", errors.Add );
+		}
+		//
+
+		private static void SaveCore( AppEntity entity, int userID, string saveType, Action<string> AddErrorMethod )
+		{
+			using ( var context = new DataEntities() )
+			{
+				BasicSaveCore( context, entity, context.ConceptScheme, userID, ( ent, dbEnt ) => { }, ( ent, dbEnt ) => { }, saveType, AddErrorMethod );
+			}
+		}
+		//
+
+
+		//unlikely
+		public bool Save( AppEntity entity, ref ChangeSummary status )
         {
             bool isValid = true;
             int count = 0;
@@ -75,7 +93,7 @@ namespace Factories
                         //fill in fields that may not be in entity
                         entity.RowId = efEntity.RowId;
                         entity.Created = efEntity.Created;
-                        entity.CreatedById = efEntity.CreatedById;
+                        entity.CreatedById = efEntity.CreatedById ?? 0;
                         entity.Id = efEntity.Id;
 
                         MapToDB( entity, efEntity );
@@ -142,189 +160,64 @@ namespace Factories
             return 0;
         }
         #endregion
-        public static AppEntity GetByName( string name )
+
+
+		public static AppEntity GetByIdentifier( string identifier, bool returnNullIfEmpty = false )
+		{
+			return GetByIdentifier<DBEntity, AppEntity>( identifier, context => context.ConceptScheme, list => { 
+				return list.FirstOrDefault( 
+					item => item.Name.ToLower() == identifier.ToLower() || 
+					item.SchemaUri.ToLower() == identifier.ToLower() 
+				); 
+			}, MapFromDB, returnNullIfEmpty );
+		}
+		//
+
+		public static AppEntity GetSingleByFilter( Func<DBEntity, bool> FilterMethod, bool returnNullIfNotFound = false )
+		{
+			return GetSingleByFilter<DBEntity, AppEntity>( context => context.ConceptScheme, FilterMethod, MapFromDB, returnNullIfNotFound );
+		}
+		//
+
+		public static AppEntity GetByRowId( Guid rowId, bool returnNullIfNotFound = false )
         {
-            var entity = new AppEntity();
-            if ( string.IsNullOrWhiteSpace(name))
-                return null;
-
-            using ( var context = new DataEntities() )
-            {
-                var item = context.ConceptScheme
-                            .FirstOrDefault( s => s.Name.ToLower() == name.ToLower() );
-
-                if ( item != null && item.Id > 0 )
-                {
-                    MapFromDB( item, entity, false );
-                }
-            }
-            return entity;
+			return GetSingleByFilter( m => m.RowId == rowId, returnNullIfNotFound );
         }
+		//
+
+        public static AppEntity GetById( int id, bool returnNullIfNotFound = false )
+        {
+			return GetSingleByFilter( m => m.Id == id, returnNullIfNotFound );
+		}
+		//
+
+		public static AppEntity GetByCTID( string ctid, bool returnNullIfNotFound = false )
+		{
+			return GetSingleByFilter( m => m.CTID.ToLower() == ctid?.ToLower(), returnNullIfNotFound );
+		}
+		//
+
+        public static AppEntity GetByName( string name, bool returnNullIfNotFound = false )
+        {
+			return GetSingleByFilter( m => m.Name?.ToLower() == name?.ToLower(), returnNullIfNotFound );
+        }
+		//
 
 		/// <summary>
 		/// Use this with the static strings at the top of this class beginning with "ConceptScheme_"
 		/// </summary>
 		/// <param name="shortURI"></param>
 		/// <returns></returns>
-		public static AppEntity GetbyShortUri( string shortURI, bool usingWorkElementTypeForName = false )
+		public static AppEntity GetbyShortUri( string shortURI, bool returnNullIfNotFound = false )
 		{
-			var entity = new AppEntity();
-			if ( string.IsNullOrWhiteSpace( shortURI ) )
-				return null;
-
-			using ( var context = new DataEntities() )
-			{
-				var item = context.ConceptScheme
-							.FirstOrDefault( s => s.SchemaUri.ToLower() == shortURI.ToLower() );
-
-				if ( item != null && item.Id > 0 )
-				{
-					MapFromDB( item, entity, true, usingWorkElementTypeForName );
-				}
-			}
-			return entity;
-		}
-
-		public static AppEntity Get( Guid rowId, bool includingConcepts = false )
-        {
-            var entity = new AppEntity();
-
-            using ( var context = new DataEntities() )
-            {
-                var item = context.ConceptScheme
-                            .FirstOrDefault( s => s.RowId == rowId );
-
-                if ( item != null && item.Id > 0 )
-                {
-                    MapFromDB( item, entity, includingConcepts );
-                }
-            }
-            return entity;
-        }
-        public static AppEntity Get( int id, bool forDetailView = false )
-        {
-            var entity = new AppEntity();
-            if ( id < 1 )
-                return entity;
-
-            using ( var context = new DataEntities() )
-            {
-                var item = context.ConceptScheme
-                            .SingleOrDefault( s => s.Id == id );
-
-                if ( item != null && item.Id > 0 )
-                {
-                    MapFromDB( item, entity, forDetailView );
-                }
-            }
-
-            return entity;
-		}
-		public static AppEntity GetByCTIDOrNull( string ctid )
-		{
-			if ( string.IsNullOrWhiteSpace( ctid ) )
-			{
-				return null;
-			}
-
-			using ( var context = new DataEntities() )
-			{
-				var item = context.ConceptScheme
-							.SingleOrDefault( s => s.CTID == ctid );
-
-				if ( item != null && item.Id > 0 )
-				{
-					var entity = new AppEntity();
-					MapFromDB( item, entity, true );
-					return entity;
-				}
-			}
-
-			return null;
-		}
-		public static Concept GetConceptByCTIDOrNull( string ctid )
-		{
-			if ( string.IsNullOrWhiteSpace( ctid ) )
-			{
-				return null;
-			}
-
-			using ( var context = new DataEntities() )
-			{
-				var item = context.ConceptScheme_Concept
-							.SingleOrDefault( s => s.CTID == ctid );
-
-				if ( item != null && item.Id > 0 )
-				{
-					var entity = new Concept();
-					MapFromDB( item, entity );
-					return entity;
-				}
-			}
-
-			return null;
-		}
-		//
-		public static List<Concept> GetAllConceptsForScheme( string schemaURI, bool onlyActiveConcepts = true )
-		{
-			var result = new List<Concept>();
-
-			using ( var context = new DataEntities() )
-			{
-				var matches = context.ConceptScheme_Concept
-					.Where( m => m.ConceptScheme.SchemaUri == schemaURI );
-
-				if ( onlyActiveConcepts )
-				{
-					matches = matches.Where( m => m.IsActive );
-				}
-				var dbConcepts = matches.ToList();
-
-				foreach ( var dbConcept in dbConcepts )
-				{
-					var concept = new Concept();
-					MapFromDB( dbConcept, concept );
-					result.Add( concept );
-				}
-			}
-
-			return result;
+			return GetSingleByFilter( m => m.SchemaUri?.ToLower() == shortURI?.ToLower(), returnNullIfNotFound );
 		}
 		//
 
-        /// <summary>
-        /// Get all concept schemes
-        /// May want to actually limit what all will return 
-        /// We could set some to be 'inactive'?
-        /// </summary>
-        /// <returns></returns>
-        public static List<AppEntity> GetAll( bool includingConcepts = false )
-        {
-            var entity = new AppEntity();
-            var list = new List<AppEntity>();
-
-            using ( var context = new DataEntities() )
-            {
-                var results = context.ConceptScheme
-                    .Where( s => s.SchemaUri != null )
-                        .OrderBy( s => s.Name )
-                        .ToList();
-                if (results?.Count > 0)
-                {
-                    foreach ( var item in results)
-                    {
-                        if ( item != null && item.Id > 0 )
-                        {
-                            entity = new AppEntity();
-                            MapFromDB( item, entity, includingConcepts );
-                            list.Add( ( entity ) );
-                        }
-                    }
-                }
-                
-            }
-            return list;
-        }
+		public static List<AppEntity> GetAll( bool includeConcepts = true )
+		{
+			return GetItemList<DBEntity, AppEntity>( m => m.ConceptScheme.Where( n => n.SchemaUri != null ), MapFromDB );
+		}
 		//
 
 		/// <summary>
@@ -333,26 +226,28 @@ namespace Factories
 		/// </summary>
 		/// <param name="includingConcepts"></param>
 		/// <returns></returns>
-		public static Models.Schema.ConceptSchemeMap GetConceptSchemeMap( bool includingConcepts = false )
+		public static Models.Schema.ConceptSchemeMap GetConceptSchemeMap( bool includingConcepts = true )
 		{
 			var schemes = GetAll( includingConcepts );
 			var result = new Models.Schema.ConceptSchemeMap()
 			{
+				AllConceptSchemes = schemes,
 				CommentStatusCategory = schemes.FirstOrDefault( scheme => scheme.SchemaUri == ConceptScheme_CommentStatus ),
 				CourseCategory = schemes.FirstOrDefault( scheme => scheme.SchemaUri == ConceptScheme_CourseType ),
-				CurrentAssessmentApproachCategory = schemes.FirstOrDefault( scheme => scheme.SchemaUri == ConceptScheme_CurrentAssessmentApproach ),
+				AssessmentMethodCategory = schemes.FirstOrDefault( scheme => scheme.SchemaUri == ConceptScheme_CurrentAssessmentApproach ),
 				LifeCycleControlDocumentCategory = schemes.FirstOrDefault( scheme => scheme.SchemaUri == ConceptScheme_LifeCycleControlDocument ),
 				PayGradeCategory = schemes.FirstOrDefault( scheme => scheme.SchemaUri == ConceptScheme_Pay_Grade ),
 				ProjectStatusCategory = schemes.FirstOrDefault( scheme => scheme.SchemaUri == ConceptScheme_ProjectStatus ),
-				RatingLevelCategory = schemes.FirstOrDefault( scheme => scheme.SchemaUri == ConceptScheme_RatingLevel ),
+				PayGradeLevelCategory = schemes.FirstOrDefault( scheme => scheme.SchemaUri == ConceptScheme_PayGradeLevel ),
 				ReferenceResourceCategory = schemes.FirstOrDefault( scheme => scheme.SchemaUri == ConceptScheme_ReferenceResource ),
 				TaskApplicabilityCategory = schemes.FirstOrDefault( scheme => scheme.SchemaUri == ConceptScheme_TaskApplicability ),
 				TrainingGapCategory = schemes.FirstOrDefault( scheme => scheme.SchemaUri == ConceptScheme_TrainingGap ),
 				TrainingSolutionCategory = schemes.FirstOrDefault( scheme => scheme.SchemaUri == ConceptScheme_TrainingSolutionType ),
 				RecommendedModalityCategory = schemes.FirstOrDefault( scheme => scheme.SchemaUri == ConceptScheme_RecommendedModality ),
-				DevelopmentSpecificationCategory = schemes.FirstOrDefault( scheme => scheme.SchemaUri == ConceptScheme_DevelopmentSpecification )//,
-				//CandidatePlatformCategory = schemes.FirstOrDefault( scheme => scheme.SchemaUri == ConceptScheme_CandidatePlatform ),
-				//DevelopmentRatioCategory = schemes.FirstOrDefault( scheme => scheme.SchemaUri == ConceptScheme_DevelopmentRatio )
+				DevelopmentSpecificationCategory = schemes.FirstOrDefault( scheme => scheme.SchemaUri == ConceptScheme_DevelopmentSpecification ),
+				CandidatePlatformCategory = schemes.FirstOrDefault( scheme => scheme.SchemaUri == ConceptScheme_CandidatePlatformType ),
+				DevelopmentRatioCategory = schemes.FirstOrDefault( scheme => scheme.SchemaUri == ConceptScheme_DevelopmentRatio ),
+				CFMPlacementCategory = schemes.FirstOrDefault( scheme => scheme.SchemaUri == ConceptScheme_CFMPlacement )
 			};
 
 			return result;
@@ -372,10 +267,7 @@ namespace Factories
 
 				foreach ( var item in items )
 				{
-					var result = new AppEntity();
-                    //TBD
-					MapFromDB( item, result, false );
-					results.Add( result );
+					results.Add( MapFromDB( item, context ) );
 				}
 			}
 
@@ -383,111 +275,46 @@ namespace Factories
 		}
 		//
 
-		public static List<Concept> GetMultipleConcepts( List<Guid> guids )
-		{
-			var results = new List<Concept>();
-
-			using ( var context = new DataEntities() )
+		public static SearchResultSet<AppEntity> Search( SearchQuery query )
+        {
+			return HandleSearch<DBEntity, AppEntity>( query, context =>
 			{
-				var items = context.ConceptScheme_Concept
-					.Where( m => guids.Contains( m.RowId ) )
-					.OrderBy( m => m.Description )
-					.ToList();
+				//Start query
+				var list = context.ConceptScheme.AsQueryable();
+				var keywords = GetSanitizedSearchFilterKeywords( query );
 
-				foreach ( var item in items )
+				//Handle keywords
+				if ( !string.IsNullOrWhiteSpace( keywords ) )
 				{
-					var result = new Concept();
-					MapFromDB( item, result );
-					results.Add( result );
+					list = list.Where( m => m.Name.Contains( keywords )	);
 				}
-			}
 
-			return results;
+				//Return ordered list
+				return HandleSort( list, query.SortOrder, m => m.Name, m => m.OrderBy( n => n.Name ) );
+
+			}, MapFromDBForSearch );
+        }
+		//
+
+		public static AppEntity MapFromDB( DBEntity input, DataEntities context )
+		{
+			return MapFromDBForSearch( input, context, null );
 		}
 		//
 
+		public static AppEntity MapFromDBForSearch( DBEntity input, DataEntities context, SearchResultSet<AppEntity> resultSet = null )
+		{
+			var output = AutoMap( input, new AppEntity() );
 
-		public static List<AppEntity> Search( SearchQuery query )
-        {
-            var entity = new AppEntity();
-            var output = new List<AppEntity>();
-            var skip = 0;
-            if ( query.PageNumber > 1 )
-                skip = ( query.PageNumber - 1 ) * query.PageSize;
-            var filter = GetSearchFilterText( query );
+			foreach ( var item in input.ConceptScheme_Concept.Where( m => m.IsActive ).OrderBy( m => m.ListId ).ThenBy( m => m.Name ).ToList() )
+			{
+				output.Concepts.Add( ConceptManager.MapFromDB( item, context ) );
+			}
 
-            try
-            {
-                using ( var context = new DataEntities() )
-                {
-                    var list = from Results in context.ConceptScheme
-                               select Results;
-                    if ( !string.IsNullOrWhiteSpace( filter ) )
-                    {
-                        list = from Results in list
-                                .Where( s =>
-                                ( s.Name.ToLower().Contains( filter.ToLower() ) )
-                                )
-                               select Results;
-                    }
-                    query.TotalResults = list.Count();
-                    //sort order not handled
-                    list = list.OrderBy( p => p.Name );
-
-                    //
-                    var results = list.Skip( skip ).Take( query.PageSize )
-                        .ToList();
-                    if ( results?.Count > 0 )
-                    {
-                        foreach ( var item in results )
-                        {
-                            if ( item != null && item.Id > 0 )
-                            {
-                                entity = new AppEntity();
-                                MapFromDB( item, entity, false );
-                                output.Add( ( entity ) );
-                            }
-                        }
-                    }
-
-                }
-            }
-            catch ( Exception ex )
-            {
-
-            }
-            return output;
+			return output;
         }
-        public static void MapFromDB( DBEntity input, AppEntity output, bool includingConcepts, bool usingWorkElementTypeForName = false )
-        {
-            //should include list of concepts
-            List<string> errors = new List<string>();
-            BaseFactory.AutoMap( input, output, errors );
-            if (input.RowId != output.RowId)
-            {
-                output.RowId = input.RowId;
-            }
-            //
-            if (input.ConceptScheme_Concept?.Count > 0)
-            {
-                foreach( var item  in input.ConceptScheme_Concept )
-                {
-                    if ( item.IsActive )
-                    {
-                        var concept = new Concept();
-                        MapFromDB( item, concept, usingWorkElementTypeForName );
-                        output.Concepts.Add( concept );
-                    } else
-                    {
+		//
 
-                    }
-                }
-                //consider best sort order now
-                output.Concepts = output.Concepts.OrderBy( m => m.ListId ).ThenBy(m => m.Name ).ToList();
-            }
-            //
-
-        }
         public static void MapToDB( AppEntity input, DBEntity output )
         {
             //watch for missing properties like rowId
@@ -495,457 +322,8 @@ namespace Factories
             BaseFactory.AutoMap( input, output, errors );
             //
         }
-        #endregion
+		//
 
-
-        #region Concept
-        #region Concept - Persistance
-        //need alternate to handle workElementType
-        public int SaveConcept( int conceptSchemeId, string conceptName, ref ChangeSummary status )
-        {
-            //check if exists
-            var concept = GetConcept( conceptSchemeId, conceptName );
-            if ( concept?.Id > 0 )
-                return concept.Id;
-            //
-            concept = new Concept()
-            {
-                ConceptSchemeId = conceptSchemeId,
-                Name = conceptName,
-                CodedNotation = conceptName
-            };
-            if ( SaveConcept( concept, ref status ) )
-            {
-                return concept.Id;
-            }
-            else
-            {
-                //caller needs to handle errors
-                return 0;
-            }
-
-        }
-        public bool SaveConcept( Concept entity, ref ChangeSummary status )
-        {
-            //must include conceptSchemeId
-            //check inscheme
-            if ( IsValidGuid( entity.InScheme ) ) //Editor uses GUID field, so check this first
-            {
-                var cs = Get( entity.InScheme );
-                entity.ConceptSchemeId = cs.Id;
-            }
-			else if( entity.ConceptSchemeId > 0 )
-			{
-				//Do nothing
-			}
-            else
-            {
-                status.AddError( "Error - A concept scheme Id or InScheme GUID must be provided with the Concept, and is missing. Please select an entry from the 'Belongs To Concept Scheme ' dropdown list." );
-                return false;
-            }
-
-            bool isValid = true;
-            int count = 0;
-            //check if exists
-            var concept = GetConcept( entity.ConceptSchemeId, entity.Name );
-            if ( concept?.Id > 0 )
-            {
-                //or set and fall thru - not clear if any updates at this time! Might depend on type
-                entity.Id = concept.Id;
-                //return true;    
-            }
-            
-            try
-            {
-                using ( var context = new DataEntities() )
-                {
-                    //look up if no id
-                    if ( entity.Id == 0 )
-                    {
-                        //add
-                        int newId = AddConcept( entity, ref status );
-                        if ( newId == 0 || status.HasSectionErrors )
-                            isValid = false;
-                        else 
-                            entity.Id = newId;
-                        return isValid;
-
-                    }
-                    //update
-                    //TODO - consider if necessary, or interferes with anything
-                    //      - don't really want to include all training tasks
-                    context.Configuration.LazyLoadingEnabled = false;
-                    var efEntity = context.ConceptScheme_Concept
-                            .SingleOrDefault( s => s.Id == entity.Id );
-
-                    if ( efEntity != null && efEntity.Id > 0 )
-                    {
-                        //fill in fields that may not be in entity
-                        entity.RowId = efEntity.RowId;
-                        entity.Created = efEntity.Created;
-                        entity.CreatedById = ( efEntity.CreatedById ?? 0 );
-                        entity.Id = efEntity.Id;
-
-                        MapToDB( entity, efEntity );
-
-                        if ( HasStateChanged( context ) )
-                        {
-                            efEntity.LastUpdated = DateTime.Now;
-                            efEntity.LastUpdatedById = entity.LastUpdatedById;
-                            count = context.SaveChanges();
-                            //can be zero if no data changed
-                            if ( count >= 0 )
-                            {
-                                entity.LastUpdated = ( DateTime ) efEntity.LastUpdated;
-                                isValid = true;
-                                SiteActivity sa = new SiteActivity()
-                                {
-                                    ActivityType = "ConceptScheme",
-                                    Activity = status.Action,
-                                    Event = "Update",
-                                    Comment = string.Format( "ConceptScheme was updated. Name: {0}", entity.Name ),
-                                    ActionByUserId = entity.LastUpdatedById,
-                                    ActivityObjectId = entity.Id
-                                };
-                                new ActivityManager().SiteActivityAdd( sa );
-                            }
-                            else
-                            {
-                                //?no info on error
-
-                                isValid = false;
-                                string message = string.Format( thisClassName + ".Save Failed", "Attempted to update a Course. The process appeared to not work, but was not an exception, so we have no message, or no clue. Course: {0}, Id: {1}", entity.Name, entity.Id );
-                                status.AddError( "Error - the update was not successful. " + message );
-                                EmailManager.NotifyAdmin( thisClassName + ".Save Failed Failed", message );
-                            }
-
-                        }
-
-                      
-                    }
-                    else
-                    {
-                        status.AddError( "Error - update failed, as record was not found." );
-                    }
-
-
-                }
-            }
-            catch ( System.Data.Entity.Validation.DbEntityValidationException dbex )
-            {
-                string message = HandleDBValidationError( dbex, thisClassName + string.Format( ".Save. id: {0}, Name: {1}", entity.Id, entity.Name ), "Course" );
-                status.AddError( thisClassName + ".Save(). Error - the save was not successful. " + message );
-            }
-            catch ( Exception ex )
-            {
-                string message = FormatExceptions( ex );
-                LoggingHelper.LogError( ex, thisClassName + string.Format( ".Save. id: {0}, Name: {1}", entity.Id, entity.Name ), true );
-                status.AddError( thisClassName + ".Save(). Error - the save was not successful. " + message );
-                isValid = false;
-            }
-
-
-            return isValid;
-        }
-        private int AddConcept( Concept entity, ref ChangeSummary status )
-        {
-            var efEntity = new Data.Tables.ConceptScheme_Concept();
-            status.HasSectionErrors = false;
-            int conceptId = 0;
-            //assume lookup has been done
-            using ( var context = new DataEntities() )
-            {
-                try
-                {
-                    if ( entity.ConceptSchemeId == 0)
-                    {
-                        status.AddError( "Error - A concept scheme Id must be provided with the Concept. Please select an entry from the 'Belongs To Concept Scheme ' dropdown list. " );
-                        return 0;
-                    }
-                    efEntity.ConceptSchemeId = entity.ConceptSchemeId;
-                    //require caller to set the codedNotation as needed
-                    MapToDB( entity, efEntity );
-                    efEntity.RowId = Guid.NewGuid();
-                    efEntity.CTID = "ce-" + efEntity.RowId.ToString().ToLower();
-                    efEntity.Created = efEntity.LastUpdated = DateTime.Now;
-                    efEntity.CreatedById = efEntity.LastUpdatedById = entity.LastUpdatedById;
-
-                    context.ConceptScheme_Concept.Add( efEntity );
-
-                    // submit the change to database
-                    int count = context.SaveChanges();
-                    if ( count > 0 )
-                    {
-                        //
-                        //add log entry
-                        SiteActivity sa = new SiteActivity()
-                        {
-                            ActivityType = "ConceptScheme",
-                            Activity = status.Action,
-                            Event = "Add Concept",
-                            Comment = string.Format( "Concept was added. Name: {0}", entity.Name ),
-                            ActionByUserId = entity.LastUpdatedById,
-                            ActivityObjectId = entity.Id
-                        };
-                        new ActivityManager().SiteActivityAdd( sa );
-
-
-                        return efEntity.Id;
-                    }
-                    else
-                    {
-                        //?no info on error
-
-                        string message = thisClassName + string.Format( ". Add Failed", "Attempted to add a Course. The process appeared to not work, but was not an exception, so we have no message, or no clue. Course: {0}, ctid: {1}", entity.Name, entity.CTID );
-                        status.AddError( thisClassName + ". Error - the add was not successful. " + message );
-                        EmailManager.NotifyAdmin( thisClassName + ". Add Failed", message );
-                    }
-                }
-                catch ( System.Data.Entity.Validation.DbEntityValidationException dbex )
-                {
-                    string message = HandleDBValidationError( dbex, thisClassName + ".Add() ", "Course" );
-                    status.AddError( thisClassName + ".Add(). Error - the save was not successful. " + message );
-
-                    LoggingHelper.LogError( message, true );
-                }
-                catch ( Exception ex )
-                {
-                    string message = FormatExceptions( ex );
-                    LoggingHelper.LogError( ex, thisClassName + string.Format( ".Add(), Name: {0}, CTID: {1}", efEntity.Name, efEntity.CTID ) );
-                    status.AddError( thisClassName + ".Add(). Error - the save was not successful. \r\n" + message );
-                }
-            }
-            return 0;
-        }
-        public static void MapToDB( Concept input, ConceptScheme_Concept output )
-        {
-            //watch for missing properties like rowId
-            List<string> errors = new List<string>();
-            BaseFactory.AutoMap( input, output, errors );
-            //
-        }
-        #endregion
-
-        //Get all Concepts in one request
-        public static List<Concept> GetAllConcepts( bool onlyActiveConcepts = true )
-        {
-            var result = new List<Concept>();
-
-            using ( var context = new DataEntities() )
-            {
-                var matches = context.ConceptScheme_Concept.AsQueryable();
-                if ( onlyActiveConcepts )
-                {
-                    matches = matches.Where( m => m.IsActive );
-                }
-                var dbConcepts = matches.ToList();
-
-                foreach ( var dbConcept in dbConcepts )
-                {
-                    var concept = new Concept();
-                    AutoMap( dbConcept, concept );
-                    concept.SchemeUri = dbConcept.ConceptScheme.SchemaUri;
-                    result.Add( concept );
-                }
-            }
-
-            return result;
-        }
-        //
-        /// <summary>
-        /// Get a concept using the ConceptSchemaURI and concept Name or concept coded notation
-        /// </summary>
-        /// <param name="conceptSchemeUri"></param>
-        /// <param name="concept"></param>
-        /// <returns></returns>
-        public static Concept GetConcept( string conceptSchemeUri, string concept )
-        {
-            var entity = new Concept();
-            if ( string.IsNullOrWhiteSpace( conceptSchemeUri ) ||
-                string.IsNullOrWhiteSpace( concept ) )
-                return entity;
-            concept = concept.Trim();
-            using ( var context = new DataEntities() )
-            {
-                var item = context.ConceptScheme_Concept
-                            .FirstOrDefault( s => s.ConceptScheme.SchemaUri.ToLower() == conceptSchemeUri.ToLower()
-                            && ( s.Name.ToLower() == concept.ToLower() || s.CodedNotation.ToLower() == concept.ToLower() )
-                            );
-
-                if ( item != null && item.Id > 0 )
-                {
-                    MapFromDB( item, entity );
-                }
-            }
-
-            return entity;
-        }
-        /// <summary>
-        /// Get a concept using the ConceptSchema Id and concept Name or concept coded notation
-        /// </summary>
-        /// <param name="conceptSchemeId"></param>
-        /// <param name="concept"></param>
-        /// <returns></returns>
-        public static Concept GetConcept( int conceptSchemeId, string concept )
-        {
-            var entity = new Concept();
-            if ( conceptSchemeId == 0 || string.IsNullOrWhiteSpace( concept ) )
-                return entity;
-            concept = concept.Trim();
-            using ( var context = new DataEntities() )
-            {
-                var item = context.ConceptScheme_Concept
-                            .FirstOrDefault( s => s.ConceptScheme.Id == conceptSchemeId
-                            && ( s.Name.ToLower() == concept.ToLower() )
-                                || s.CodedNotation.ToLower() == concept.ToLower() );
-
-                if ( item != null && item.Id > 0 )
-                {
-                    MapFromDB( item, entity );
-                }
-            }
-
-            return entity;
-
-        }
-        public static Concept GetConcept( Guid id )
-        {
-            var entity = new Concept();
-
-            using ( var context = new DataEntities() )
-            {
-                var item = context.ConceptScheme_Concept
-                            .SingleOrDefault( s => s.RowId == id );
-
-                if ( item != null && item.Id > 0 )
-                {
-                    MapFromDB( item, entity );
-                }
-            }
-
-            return entity;
-        }
-        public static Concept GetConcept( int id )
-        {
-            var entity = new Concept();
-            if ( id < 1 )
-                return entity;
-
-            using ( var context = new DataEntities() )
-            {
-                var item = context.ConceptScheme_Concept
-                            .SingleOrDefault( s => s.Id == id );
-
-                if ( item != null && item.Id > 0 )
-                {
-                    MapFromDB( item, entity );
-                }
-            }
-
-            return entity;
-        }
-		public static List<Concept> SearchConcept( SearchQuery query )
-        {
-            var entity = new Concept();
-            var output = new List<Concept>();
-            var skip = 0;
-            if ( query.PageNumber > 1 )
-                skip = ( query.PageNumber - 1 ) * query.PageSize;
-            var filter = GetSearchFilterText( query );
-
-            try
-            {
-                using ( var context = new DataEntities() )
-                {
-                    var list = from Results in context.ConceptScheme_Concept.Where( m => m.IsActive == true && m.ConceptScheme.SchemaUri != null)
-                               select Results;
-                    if ( !string.IsNullOrWhiteSpace( filter ) )
-                    {
-                        list = from Results in list
-                                .Where( s =>
-                                ( s.Name.ToLower().Contains( filter.ToLower() ) ) ||
-                                ( s.CodedNotation.ToLower().Contains( filter.ToLower() ) ) ||
-                                ( s.WorkElementType.ToLower().Contains( filter.ToLower() ) ) ||
-                                ( s.ConceptScheme.Name.ToLower().Contains( filter.ToLower() ) )
-                                )
-                               select Results;
-                    }
-                    query.TotalResults = list.Count();
-                    //sort order not handled
-                    list = list.OrderBy( p => p.ConceptSchemeId ).ThenBy( s => s.Name);
-
-                    //
-                    var results = list.Skip( skip ).Take( query.PageSize )
-                        .ToList();
-                    if ( results?.Count > 0 )
-                    {
-                        foreach ( var item in results )
-                        {
-                            if ( item != null && item.Id > 0 )
-                            {
-                                entity = new Concept();
-                                MapFromDB( item, entity, false, true );
-                                output.Add( ( entity ) );
-                            }
-                        }
-                    }
-
-                }
-            }
-            catch ( Exception ex )
-            {
-
-            }
-            return output;
-        }
-        public static void MapFromDB( ConceptScheme_Concept input, Concept output, bool usingWorkElementTypeForName = false, bool forSearchResults = false )
-        {
-            List<string> errors = new List<string>();
-            BaseFactory.AutoMap( input, output, errors );
-            if ( usingWorkElementTypeForName )
-            {
-                //output.Name = string.IsNullOrWhiteSpace(input.WorkElementType) ? output.Name : input.WorkElementType; 
-            }
-            if ( input.RowId != output.RowId )
-            {
-                output.RowId = input.RowId;
-            }
-            output.ConceptSchemeId = (int)input.ConceptScheme?.Id;
-			output.InScheme = input.ConceptScheme != null ? input.ConceptScheme.RowId : Guid.Empty;
-			output.SchemeUri = input.ConceptScheme?.SchemaUri;
-            if (forSearchResults)
-            {
-                output.Name = (!string.IsNullOrWhiteSpace(input.ConceptScheme?.Name) ? "(" + input.ConceptScheme?.Name + ") " : "") + output.Name;
-            }
-            //if ( input != null && input.Id > 0 )
-            //{
-            //    output.Id = input.Id;
-            //    output.RowId = input.RowId;
-            //    output.Label = input.Label;
-            //    output.Description = input.Description;
-            //    output.CTID = input.CTID;
-            //}
-            //
-
-        }
-
-        public static Concept MapConcept( ConceptScheme_Concept input )
-        {
-            var output = new Concept();
-            List<string> errors = new List<string>();
-            BaseFactory.AutoMap( input, output, errors );
-
-            //if ( input != null && input.Id > 0 )
-            //{
-            //    output.Id = input.Id;
-            //    output.RowId = input.RowId;
-            //    output.Label = input.Label;
-            //    output.Description = input.Description;
-            //    output.CTID = input.CTID;
-            //}
-
-            return output;
-        }
         #endregion
 
     }

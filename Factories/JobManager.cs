@@ -20,14 +20,35 @@ namespace Factories
         public static new string thisClassName = "JobManager";
         public static string cacheKey = "JobCache";
 
-        #region === persistance ==================
-        /// <summary>
-        /// Update a Job
-        /// </summary>
-        /// <param name="entity"></param>
-        /// <param name="status"></param>
-        /// <returns></returns>
-        public bool Save( AppEntity entity, ref ChangeSummary status )
+		#region === persistance ==================
+		public static void SaveFromUpload( AppEntity entity, int userID, ChangeSummary summary )
+		{
+			SaveCore( entity, userID, "Upload", summary.AddError );
+		}
+		//
+
+		public static void SaveFromEditor( AppEntity entity, int userID, List<string> errors )
+		{
+			SaveCore( entity, userID, "Edit", errors.Add );
+		}
+		//
+
+		private static void SaveCore( AppEntity entity, int userID, string saveType, Action<string> AddErrorMethod )
+		{
+			using ( var context = new DataEntities() )
+			{
+				BasicSaveCore( context, entity, context.Job, userID, ( ent, dbEnt ) => { }, ( ent, dbEnt ) => { }, saveType, AddErrorMethod );
+			}
+		}
+		//
+
+		/// <summary>
+		/// Update a Job
+		/// </summary>
+		/// <param name="entity"></param>
+		/// <param name="status"></param>
+		/// <returns></returns>
+		public bool Save( AppEntity entity, ref ChangeSummary status )
         {
             bool isValid = true;
             int count = 0;
@@ -39,7 +60,7 @@ namespace Factories
                     //look up if no id
                     if ( entity.Id == 0 )
                     {
-                        var record = Get( entity.Name );
+                        var record = GetByName( entity.Name );
                         if ( record?.Id > 0 )
                         {
                             //currently no description, so can just return
@@ -209,347 +230,106 @@ namespace Factories
 
         public static void MapToDB( AppEntity input, DBEntity output )
         {
-            //watch for missing properties like rowId
             List<string> errors = new List<string>();
             BaseFactory.AutoMap( input, output, errors );
-
         }
+		//
+
         #endregion
 
         #region Retrieval
-        //unlikely?
-        public static AppEntity Get( string name )
-        {
-            var entity = new AppEntity();
-            if ( string.IsNullOrWhiteSpace( name ) )
-                return null;
-
-            using ( var context = new DataEntities() )
-            {
-                var item = context.Job
-                            .FirstOrDefault( s => s.Name.ToLower() == name.ToLower() );
-
-                if ( item != null && item.Id > 0 )
-                {
-                    MapFromDB( item, entity );
-                }
-            }
-            return entity;
-        }
-        public static AppEntity GetByName( string billetTitle )
-        {
-            var output = new AppEntity();
-            var list = GetAll();
-            output = list.FirstOrDefault( s => s.Name.ToLower() == billetTitle?.ToLower() );
-            return output;
-        } //
-        public static AppEntity Get( Guid rowId )
-        {
-            var entity = new AppEntity();
-
-            using ( var context = new DataEntities() )
-            {
-                var item = context.Job
-                            .FirstOrDefault( s => s.RowId == rowId );
-
-                if ( item != null && item.Id > 0 )
-                {
-                    MapFromDB( item, entity );
-                }
-            }
-            return entity;
-        }
-        public static AppEntity Get( int id )
-        {
-            var entity = new AppEntity();
-            if ( id < 1 )
-                return entity;
-
-            using ( var context = new DataEntities() )
-            {
-                var item = context.Job
-                            .SingleOrDefault( s => s.Id == id );
-
-                if ( item != null && item.Id > 0 )
-                {
-                    MapFromDB( item, entity );
-                }
-            }
-
-            return entity;
-        }
-		public static AppEntity GetByCTIDOrNull( string ctid )
+		public static AppEntity GetSingleByFilter( Func<DBEntity, bool> FilterMethod, bool returnNullIfNotFound = false )
 		{
-			if ( string.IsNullOrWhiteSpace( ctid ) )
-			{
-				return null;
-			}
-
-			using ( var context = new DataEntities() )
-			{
-				var item = context.Job
-							.SingleOrDefault( s => s.CTID == ctid );
-
-				if ( item != null && item.Id > 0 )
-				{
-					var entity = new AppEntity();
-					MapFromDB( item, entity );
-					return entity;
-				}
-			}
-
-			return null;
+			return GetSingleByFilter<DBEntity, AppEntity>( context => context.Job, FilterMethod, MapFromDB, returnNullIfNotFound );
 		}
-		/// <summary>
-		/// Get all 
-		/// May need a get all for a rating? Should not matter as this is external data?
-		/// </summary>
-		/// <returns></returns>
+		//
+
+        //unlikely?
+        public static AppEntity GetByName( string name, bool returnNullIfNotFound = false )
+        {
+			return GetSingleByFilter( m => m.Name?.ToLower() == name?.ToLower(), returnNullIfNotFound );
+        }
+		//
+
+		public static AppEntity GetByRowId( Guid rowId, bool returnNullIfNotFound = false )
+		{
+			return GetSingleByFilter( m => m.RowId == rowId, returnNullIfNotFound );
+		}
+		//
+
+		public static AppEntity GetById( int id, bool returnNullIfNotFound = false )
+		{
+			return GetSingleByFilter( m => m.Id == id, returnNullIfNotFound );
+		}
+		//
+
+		public static AppEntity GetByCTID( string ctid, bool returnNullIfNotFound = false )
+		{
+			return GetSingleByFilter( m => m.CTID.ToLower() == ctid?.ToLower(), returnNullIfNotFound );
+		}
+		//
+
 		public static List<AppEntity> GetAll()
         {
-            var entity = new AppEntity();
-            var list = new List<AppEntity>();
-            //need to watch this as an upload could occurs after cached
-            //skip for job
-            //list = CheckCache();
-            //if (list?.Count > 0)
-            //    return list;
-
-            list = new List<AppEntity>();
-            using ( var context = new DataEntities() )
-            {
-                var results = context.Job
-                        .OrderBy( s => s.Name )
-                        .ToList();
-                if ( results?.Count > 0 )
-                {
-                    foreach ( var item in results )
-                    {
-                        if ( item != null && item.Id > 0 )
-                        {
-                            entity = new AppEntity();
-                            MapFromDB( item, entity );
-                            list.Add( ( entity ) );
-                        }
-                    }
-                    AddToCache( list );
-                }
-               
-            }
-            return list;
+			return GetItemList<DBEntity, AppEntity>( context =>
+			{
+				return context.Job.OrderBy( m => m.Name );
+			}, MapFromDB );
         }
 		//
 
 		public static List<AppEntity> GetMultiple( List<Guid> guids )
 		{
-			var results = new List<AppEntity>();
-
-			using ( var context = new DataEntities() )
+			return GetItemList<DBEntity, AppEntity>( context =>
 			{
-				var items = context.Job
+				return context.Job
 					.Where( m => guids.Contains( m.RowId ) )
-					.OrderBy( m => m.Description )
-					.ToList();
-
-				foreach ( var item in items )
-				{
-					var result = new AppEntity();
-					MapFromDB( item, result );
-					results.Add( result );
-				}
-			}
-
-			return results;
+					.OrderBy( m => m.Description );
+			}, MapFromDB );
 		}
 		//
 
-
-		public static List<AppEntity> Search( SearchQuery query )
+		public static SearchResultSet<AppEntity> Search( SearchQuery query )
 		{
-			var output = new List<AppEntity>();
-			var skip = ( query.PageNumber - 1 ) * query.PageSize;
-			try
+			return HandleSearch<DBEntity, AppEntity>( query, context =>
 			{
-				using ( var context = new DataEntities() )
+				//Start query
+				var keywords = GetSanitizedSearchFilterKeywords( query );
+				var list = context.Job.AsQueryable();
+
+				//Handle keywords
+				if ( !string.IsNullOrWhiteSpace( keywords ) )
 				{
-					//Start query
-					var list = context.Job.AsQueryable();
-
-					//Handle keywords filter
-					var keywordsText = query.GetFilterTextByName( "search:Keyword" )?.ToLower();
-					if ( !string.IsNullOrWhiteSpace( keywordsText ) )
-					{
-						list = list.Where( s =>
-							s.Name.ToLower().Contains( keywordsText ) ||
-							s.Description.ToLower().Contains( keywordsText ) ||
-							s.CodedNotation.ToLower().Contains( keywordsText )
-						);
-					}
-
-					//Handle Rating Task Connection
-					var ratingTaskFilter = query.GetFilterByName( "navy:RatingTask" );
-					if ( ratingTaskFilter != null && ratingTaskFilter.ItemIds?.Count() > 0 )
-					{
-						//Need to handle the negation (i.e. billet titles that are not associated with this task), but all billet titles get returned since there are many rows for each rating, each with a different task ID.
-						//So get the billet titles that do match first, then negate (or not). 
-						//There's probably a better way to do this.
-                        //TODO
-						//var matchingBilletTitleIDs = context.RatingTask_HasJob.Where( s => ratingTaskFilter.ItemIds.Contains( s.RatingTaskId ) ).Select( m => m.JobId ).Distinct().ToList();
-						//if ( ratingTaskFilter.IsNegation )
-						//{
-						//	list = list.Where( s => !matchingBilletTitleIDs.Contains( s.Id ) );
-						//}
-						//else
-						//{
-						//	list = list.Where( s => matchingBilletTitleIDs.Contains( s.Id ) );
-						//}
-
-					}
-
-					//Get total
-					query.TotalResults = list.Count();
-
-					//Sort
-					list = list.OrderBy( p => p.Description );
-
-					//Get page
-					var results = list.Skip( skip ).Take( query.PageSize )
-						.Where( m => m != null ).ToList();
-
-					//Populate
-					foreach ( var item in results )
-					{
-						var entity = new AppEntity();
-						MapFromDB( item, entity );
-						output.Add( entity );
-					}
+					list = list.Where( s =>
+						s.Name.Contains( keywords ) ||
+						s.Description.Contains( keywords ) ||
+						s.CodedNotation.Contains( keywords )
+					);
 				}
 
-				return output;
-			}
-			catch ( Exception ex )
-			{
-				return new List<AppEntity>() { new AppEntity() { Description = "Error: " + ex.Message + " - " + ex.InnerException?.Message } };
-			}
+				//Return ordered list
+				return HandleSort( list, query.SortOrder, m => m.Name, m => m.OrderBy( n => n.Name ) );
+
+			}, MapFromDBForSearch );
 		}
 		//
 
-		/*
-        public static List<AppEntity> Search( SearchQuery query )
-        {
-            var entity = new AppEntity();
-            var output = new List<AppEntity>();
-            var skip = 0;
-            if ( query.PageNumber > 1 )
-                skip = ( query.PageNumber - 1 ) * query.PageSize;
-            var filter = GetSearchFilterText( query );
-            try
-            {
-                using ( var context = new DataEntities() )
-                {
-                    var list = from Results in context.Job
-                               select Results;
-                    if ( !string.IsNullOrWhiteSpace( filter ) )
-                    {
-                        list = from Results in list
-                                .Where( s => ( s.Name.ToLower().Contains( filter.ToLower() )
-                                ) )
-                               select Results;
-                    }
-                    query.TotalResults = list.Count();
-                    //sort order not handled
-                    list = list.OrderBy( p => p.Name );
-
-                    //
-                    var results = list.Skip( skip ).Take( query.PageSize )
-                        .ToList();
-                    if ( results?.Count > 0 )
-                    {
-                        foreach ( var item in results )
-                        {
-                            if ( item != null && item.Id > 0 )
-                            {
-                                entity = new AppEntity();
-                                MapFromDB( item, entity );
-                                output.Add( ( entity ) );
-                            }
-                        }
-                    }
-
-                }
-            }
-            catch ( Exception ex )
-            {
-
-            }
-            return output;
-        }
+		public static AppEntity MapFromDB( DBEntity input, DataEntities context )
+		{
+			return MapFromDBForSearch( input, context, null );
+		}
 		//
-		*/
 
-		public static List<AppEntity> CheckCache()
-        {
-            var cache = new CachedEntity();
-            var list = new List<AppEntity>();
-            int cacheHours = 1;
-            DateTime maxTime = DateTime.Now.AddHours( cacheHours * -1 );
-            if ( MemoryCache.Default.Get( cacheKey ) != null && cacheHours > 0 )
-            {
-                cache = ( CachedEntity ) MemoryCache.Default.Get( cacheKey );
-                try
-                {
-                    if ( cache.LastUpdated > maxTime )
-                    {
-                        LoggingHelper.DoTrace( 6, string.Format( thisClassName + ".CheckCache. Using cached version of BilletTitle" ) );
-                        list = cache.Billets;
-                        return list;
-                    }
-                }
-                catch ( Exception ex )
-                {
-                    LoggingHelper.DoTrace( 5, thisClassName + ".CheckCache === exception " + ex.Message );
-                }
-            }
-            //get
-            return null;
+		public static AppEntity MapFromDBForSearch( DBEntity input, DataEntities context, SearchResultSet<AppEntity> resultSet = null )
+		{
+			var output = AutoMap( input, new AppEntity() );
 
-        }
-        public static void AddToCache( List<AppEntity> input)
-        {
-            int cacheHours = 8;
-            //add to cache
-            if ( cacheKey.Length > 0 && cacheHours > 0 )
-            {
-                var newCache = new CachedEntity()
-                {
-                    Billets = input,
-                    LastUpdated = DateTime.Now
-                };
-                if ( MemoryCache.Default.Get( cacheKey ) != null )
-                {
-                    MemoryCache.Default.Remove( cacheKey );
-                }
-                //
-                MemoryCache.Default.Add( cacheKey, newCache, new DateTimeOffset( DateTime.Now.AddHours( cacheHours ) ) );
-                LoggingHelper.DoTrace( 7, thisClassName + ".AddToCache $$$ Updating cached version " );
-
-            }
-        }
-        public static void MapFromDB( DBEntity input, AppEntity output )
-        {
-            //
-            List<string> errors = new List<string>();
-            BaseFactory.AutoMap( input, output, errors );
-            if ( input.RowId != output.RowId )
-            {
-                output.RowId = input.RowId;
-            }
-            //
-
-        }
+			return output;
+		}
+		//
 
 
-        #endregion
+		#endregion
 
-    }
+	}
 }

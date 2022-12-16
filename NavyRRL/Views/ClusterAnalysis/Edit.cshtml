@@ -1,123 +1,41 @@
 ﻿@using Models.Schema;
 @using Models.DTO;
 @using Newtonsoft.Json;
+@using Newtonsoft.Json.Linq;
 @model ClusterAnalysis
 @{
 	var title = Model.Id > 0 ? "Editing Cluster Analysis" : "New Cluster Analysis";
 	ViewBag.Title = title;
 
-	var trainingSolutionTypeList = Factories.ConceptSchemeManager.GetbyShortUri( Factories.ConceptSchemeManager.ConceptScheme_TrainingSolutionType ).Concepts.Select( m => SimpleItemHelper.GetSimpleItem( m ) ).ToList();
-	var recommendedModalityList = Factories.ConceptSchemeManager.GetbyShortUri( Factories.ConceptSchemeManager.ConceptScheme_RecommendedModality ).Concepts.Select( m => SimpleItemHelper.GetSimpleItem( m ) ).ToList();
-	var devSpecList = Factories.ConceptSchemeManager.GetbyShortUri( Factories.ConceptSchemeManager.ConceptScheme_DevelopmentSpecification ).Concepts.Select( m => SimpleItemHelper.GetSimpleItem( m ) ).ToList();
-
+	var conceptMap = Factories.ConceptSchemeManager.GetConceptSchemeMap( true );
 }
 
-@Html.Partial( "~/Views/Shared/_FormHelperV1.cshtml" )
-
-<script type="text/javascript">
-	var Data = {
-		//The original resource
-		Source: @Html.Raw( JsonConvert.SerializeObject( Model, Formatting.None ) ),
-		//Mapping used internally for the FormItem stuff
-		Form: {},
-		//Functions to configure FormItem stuff
-		Config: {
-			//Configure Save Button
-			SaveButton: function (Field) {
-				Field.SaveURL = "@Url.Content("~/ClusterAnalysis/save/")";
-				Field.RedirectAfterSuccessURL = "@Url.Content("~/ClusterAnalysis/detail/")";
-				Field.getDataToSave = function () {
-					return {
-						...Data.Source,
-						...Data.Form.read()
-					};
-				}
-			},
-			TrainingSolutionType: function (Field) {
-				Field.Items = @Html.Raw( JsonConvert.SerializeObject( trainingSolutionTypeList, Formatting.None ) );
-				Field.renderItems();
-			},
-			RecommendedModalityType: function (Field) {
-				Field.Items = @Html.Raw( JsonConvert.SerializeObject( recommendedModalityList, Formatting.None ) );
-				Field.renderItems();
-			},
-			DevelopmentSpecificationType: function (Field) {
-				Field.Items = @Html.Raw( JsonConvert.SerializeObject( devSpecList, Formatting.None ) );
-				Field.renderItems();
-			},
-
-
-			@*
-			HasTrainingTask: function (Field) {
-				Field.SelectedItems = [@Html.Raw( currentTrainingTask == null ? "" : JsonConvert.SerializeObject( currentTrainingTask, Formatting.None ) )];
-				Field.Search.SearchURL = "@Url.Content( "~/trainingtask/dosearch" )";
-				Field.Search.modifyQuery = function (query) {
-					//Where Training Tasks are NOT already associated with this Cluster Analysis...
-					query.Filters.push({ Name: "navy:ClusterAnalysis", ItemIds: [Data.Source.Id], IsNegation: true });
-				}
-				//Force single selection
-				Field.addItem = function (Item) {
-					Field.SelectedItems = [Item];
-					Field.refresh();
-				}
-				//Return the first item or null
-				Field.read = function () {
-					return Field.SelectedItems[0]?.RowId || null;
-				}
-				//Use "Remove" instead of "Cancel" for the button text
-				Field.Selected.renderResultWrapper = function (container, Result) {
-					var button = $("<button>Remove</button>");
-					Field.renderWrappedResult(container, Result, Field.Selected.renderResult, button, Field.removeItem);
-				};
-				//Show the current item
-				Field.Selected.doSearch();
-			}*@
-
-		}
-	};
-
-	$(document).ready(function () {
-		FormItem.setupFormItems(Data.Form, "ClusterAnalysis", Data.Config);
-		Data.Form.write(Data.Source);
-		handleFormInteractions();
-	});
-	//
-
-	function handleFormInteractions() {
-		//Limit the Reference Type selections based on the selected source
-		var ReferenceResourceSelector = Data.Form.PathMap.HasReferenceResource;
-		var ReferenceResourceTypeSelector = Data.Form.PathMap.ReferenceType;
-		ReferenceResourceSelector.UI.on("change", function () {
-			var source = Data.ReferenceResourceList.filter(m => m.RowId == ReferenceResourceSelector.read())[0];
-			ReferenceResourceTypeSelector.Items = Data.ReferenceTypeList.filter(m => source.ReferenceType.includes(m.RowId));
-			ReferenceResourceTypeSelector.renderItems();
-			ReferenceResourceTypeSelector.write(ReferenceResourceTypeSelector.Items.length == 1 ? ReferenceResourceTypeSelector.Items[0].RowId : null);
-		});
-	}
-	//
-</script>
-
-<style type="text/css">
-	[data-path='ClusterAnalysis.HasRating_Add'] .description { display: none; }
-	[data-path='ClusterAnalysis.HasRating_Remove'] .description { display: none; }
-</style>
+@Html.Partial( "~/Views/Shared/_AJAXTools.cshtml" )
+@Html.Partial( "~/Views/Shared/_FormHelperV2.cshtml", new EditFormHelperV2( Model, new JObject() {
+	{ conceptMap.TrainingSolutionCategory.SchemaUri, JArray.FromObject( conceptMap.TrainingSolutionCategory.Concepts.Select( m => SimpleItemHelper.GetSimpleItem( m ) ).ToList() ) },
+	{ conceptMap.RecommendedModalityCategory.SchemaUri, JArray.FromObject( conceptMap.RecommendedModalityCategory.Concepts.Select( m => SimpleItemHelper.GetSimpleItem( m ) ).ToList() ) },
+	{ conceptMap.DevelopmentSpecificationCategory.SchemaUri, JArray.FromObject( conceptMap.DevelopmentSpecificationCategory.Concepts.Select( m => SimpleItemHelper.GetSimpleItem( m ) ).ToList() ) },
+	{ conceptMap.CandidatePlatformCategory.SchemaUri, JArray.FromObject( conceptMap.CandidatePlatformCategory.Concepts.Select( m => SimpleItemHelper.GetSimpleItem( m ) ).ToList() ) },
+	{ conceptMap.DevelopmentRatioCategory.SchemaUri, JArray.FromObject( conceptMap.DevelopmentRatioCategory.Concepts.Select( m => SimpleItemHelper.GetSimpleItem( m ) ).ToList() ) },
+	{ conceptMap.CFMPlacementCategory.SchemaUri, JArray.FromObject( conceptMap.CFMPlacementCategory.Concepts.Select( m => SimpleItemHelper.GetSimpleItem( m ) ).ToList() ) }
+} ) )
 
 <h2>@title</h2>
 
-<form-item data-path="ClusterAnalysis.Id" data-ui="display" data-label="ID"></form-item>
-<form-item data-path="ClusterAnalysis.RowId" data-ui="display" data-label="RowID"></form-item>
-<form-item data-path="ClusterAnalysis.TrainingSolutionTypeId" data-ui="select" data-label="Training Solution Type" data-config="TrainingSolutionType"></form-item>
-<form-item data-path="ClusterAnalysis.TrainingSolutionType" data-ui="text" data-label="Training Solution Type"></form-item>
-<form-item data-path="ClusterAnalysis.ClusterAnalysisTitle" data-ui="text" data-label="Cluster Analysis Title (Obsolete)"></form-item>
-<form-item data-path="ClusterAnalysis.RecommendedModalityId" data-ui="select" data-label="Recommended Modality" data-config="RecommendedModalityType"></form-item>
-<form-item data-path="ClusterAnalysis.DevelopmentSpecificationId" data-ui="select" data-label="Development Specification Type" data-config="DevelopmentSpecificationType"></form-item>
-
-<form-item data-path="ClusterAnalysis.CandidatePlatform" data-ui="text" data-label="Candidate Platform"></form-item>
-<form-item data-path="ClusterAnalysis.CFMPlacement" data-ui="text" data-label="CFM Placement"></form-item>
-<form-item data-path="ClusterAnalysis.PriorityPlacement" data-ui="text" data-label="Priority Placement"></form-item>
-<form-item data-path="ClusterAnalysis.DevelopmentTime" data-ui="text" data-label="Development Time"></form-item>
-
-<form-item data-path="ClusterAnalysis.EstimatedInstructionalTime" data-ui="text" data-label="Estimated InstructionalTime"></form-item>
-<form-item data-path="ClusterAnalysis.DevelopmentRatio" data-ui="text" data-label="Development Ratio"></form-item>
-
-<form-item data-path="ClusterAnalysis.SaveButton" data-ui="savebutton" data-label="Save Changes" data-config="SaveButton"></form-item>
+<h3>Basic Info</h3>
+<div class="field" data-fieldtype="SystemIdentifiers"></div>
+<div class="field" data-fieldtype="SuggestionSingle" data-property="HasClusterAnalysisTitle" data-label="Cluster Analysis Title" data-searchtype="@nameof(ClusterAnalysisTitle)"></div>
+<div class="field" data-fieldtype="SuggestionSingle" data-property="HasRating" data-label="Related Rating" data-searchtype="@nameof(Rating)"></div>
+<div class="field" data-fieldtype="SuggestionSingle" data-property="HasRatingTask" data-label="Related Rating Task" data-searchtype="@nameof(RatingTask)"></div>
+<div class="field" data-fieldtype="SuggestionSingle" data-property="HasBilletTitle" data-label="Related Billet Title" data-searchtype="@nameof(BilletTitle)"></div>
+<div class="field" data-fieldtype="SuggestionSingle" data-property="HasWorkRole" data-label="Related Functional Area" data-searchtype="@nameof(WorkRole)"></div>
+<div class="field" data-fieldtype="Text" data-property="PriorityPlacement" data-label="Priority Placement"></div>
+<div class="field" data-fieldtype="Text" data-property="DevelopmentTime" data-label="Development Time"></div>
+<div class="field" data-fieldtype="Text" data-property="EstimatedInstructionalTime" data-label="Estimated Instructional Time"></div>
+<div class="field" data-fieldtype="Select" data-property="TrainingSolutionType" data-label="Training Solution Type" data-sourceuri="@conceptMap.TrainingSolutionCategory.SchemaUri"></div>
+<div class="field" data-fieldtype="Select" data-property="RecommendedModalityType" data-label="Recommended Modality Type" data-sourceuri="@conceptMap.RecommendedModalityCategory.SchemaUri"></div>
+<div class="field" data-fieldtype="Select" data-property="DevelopmentSpecificationType" data-label="Development Specification Type" data-sourceuri="@conceptMap.DevelopmentSpecificationCategory.SchemaUri"></div>
+<div class="field" data-fieldtype="Select" data-property="DevelopmentRatioType" data-label="Development Ratio Type" data-sourceuri="@conceptMap.DevelopmentRatioCategory.SchemaUri"></div>
+<div class="field" data-fieldtype="Select" data-property="CFMPlacementType" data-label="CFM Placement Type" data-sourceuri="@conceptMap.CFMPlacementCategory.SchemaUri"></div>
+<div class="field" data-fieldtype="CheckBoxList" data-property="CandidatePlatformType" data-label="Candidate Platform Type" data-sourceuri="@conceptMap.CandidatePlatformCategory.SchemaUri"></div>
+<div class="field" data-fieldtype="SaveButton"></div>

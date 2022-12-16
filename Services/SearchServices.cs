@@ -96,7 +96,7 @@ namespace Services
 		}
 		//
 
-		public static SearchResultSet<T> GeneralSearch<T>( SearchQuery query, Func<SearchQuery, List<T>> searchMethod, JObject debug = null )
+		public static SearchResultSet<T> GeneralSearch<T>( SearchQuery query, Func<SearchQuery, SearchResultSet<T>> searchMethod, JObject debug = null )
 		{
 			//Setup logging
 			debug = debug ?? new JObject();
@@ -110,11 +110,8 @@ namespace Services
 			LoggingHelper.DoTrace( 7, thisClassName + "." + searchType + "Search. Calling: " + query.SearchType );
 			var results = searchMethod( query );
 
-			//Convert the results
-			var output = new SearchResultSet<T>() { Results = results, TotalResults = query.TotalResults, SearchType = searchType };
-
 			//Return the results
-			return output;
+			return results;
 		}
 
 		//Billet Title
@@ -127,7 +124,7 @@ namespace Services
 		//Concept
 		public static SearchResultSet<Concept> ConceptSearch( SearchQuery query, JObject debug = null )
 		{
-			return GeneralSearch( query, Factories.ConceptSchemeManager.SearchConcept, debug );
+			return GeneralSearch( query, Factories.ConceptManager.Search, debug );
 		}
 		//
 
@@ -142,6 +139,13 @@ namespace Services
 		public static SearchResultSet<Course> CourseSearch( SearchQuery query, JObject debug = null )
 		{
 			return GeneralSearch( query, Factories.CourseManager.Search, debug );
+		}
+		//
+
+		//CourseContext
+		public static SearchResultSet<CourseContext> CourseContextSearch( SearchQuery query, JObject debug = null )
+		{
+			return GeneralSearch( query, Factories.CourseContextManager.Search, debug );
 		}
 		//
 
@@ -232,8 +236,7 @@ namespace Services
 			}
 
 			//Sanitize Page Size
-			//Need a way to get all (use -1)
-			query.PageSize = query.PageSize < -1 ? -1 : query.PageSize > 250 ? 250 : query.PageSize;
+			query.Take = query.Take < -1 ? -1 : query.Take > 250 ? 250 : query.Take; //Max page size must not be smaller than the page size the RMTL search is looking for client-side!
 
 			//Override search type
 			query.SearchType = searchType ?? query.SearchType ?? "Unknown";

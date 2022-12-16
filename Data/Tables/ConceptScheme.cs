@@ -27,7 +27,7 @@ namespace Data.Tables
         public string CTID { get; set; }
         public string SchemaUri { get; set; }
         public System.DateTime Created { get; set; }
-        public int CreatedById { get; set; }
+        public Nullable<int> CreatedById { get; set; }
         public System.DateTime LastUpdated { get; set; }
         public Nullable<int> LastUpdatedById { get; set; }
         public Nullable<System.DateTime> LastApproved { get; set; }
@@ -35,11 +35,11 @@ namespace Data.Tables
         public Nullable<System.DateTime> LastPublished { get; set; }
         public Nullable<int> LastPublishedById { get; set; }
     
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<ConceptScheme_Concept> ConceptScheme_Concept { get; set; }
         public virtual Account Account { get; set; }
         public virtual Account Account1 { get; set; }
         public virtual Account Account2 { get; set; }
         public virtual Account Account3 { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<ConceptScheme_Concept> ConceptScheme_Concept { get; set; }
     }
 }

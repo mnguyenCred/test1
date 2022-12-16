@@ -17,30 +17,38 @@
 			Timeout: 0,
 			Query: {},
 			Results: [],
+			RelatedResources: [], //Not to be confused with ResourceCache, as this one gets reset every time a result comes back
 			TotalResults: 0,
-			TotalPages: 1,
-			PagingButtonThreshold: 5
+			TotalPages: 0,
+			PagingButtonThreshold: 5,
+			AppendResults: false
 		};
 		//
 
-		Search.delayThenSearch = function (resetPaging) {
+		Search.delayThenSearch = function (resetPaging, clearRequestQueue) {
 			clearTimeout(Search.Timeout);
 			Search.Timeout = setTimeout(() => {
-				Search.doSearch(resetPaging);
+				Search.doSearch(resetPaging, clearRequestQueue);
 			}, Search.Delay);
 		};
 		//
 
-		Search.doSearch = function (resetPaging) {
+		Search.prepareToSearch = function (resetPaging, clearRequestQueue) {
 			Search.PageNumber = resetPaging ? 1 : Search.PageNumber;
+			clearRequestQueue && (AJAX.RequestQueue = []);
 			Search.Query = {
 				SearchType: Search.SearchType,
 				Filters: Search.getFilters(),
-				PageSize: Search.PageSize,
-				PageNumber: Search.PageNumber,
+				Skip: (Search.PageNumber - 1) * Search.PageSize,
+				Take: Search.PageSize,
 				SortOrder: Search.getSortOrder()
 			};
 			Search.customizeQuery();
+		}
+		//
+
+		Search.doSearch = function (resetPaging, clearRequestQueue) {
+			Search.prepareToSearch(resetPaging, clearRequestQueue);
 			Search.setStatus("Searching...", true);
 			Search.doPOSTRequest(Search.SearchURL, Search.Query, Search.handleResponse, Search.handleError);
 		};
@@ -61,9 +69,19 @@
 		};
 		//
 
+		Search.beforeRenderAll = function () {
+			//Intended for use/overriding by other code
+		};
+		//
+
 		Search.afterRenderAll = function () {
 			//Intended for use/overriding by other code
 		};
+		//
+
+		Search.onPageChange = function () {
+			//Intended for use/overriding by other code
+		}
 		//
 
 		Search.renderTotalResultsStatus = function () {
@@ -80,7 +98,35 @@
 		}
 		//
 
+		Search.addResourceToCache = function (url, data) {
+			AJAX.appendToCache(url, data);
+			@*
+			var Resource = { URL: url, Data: data, SuccessHandlers: [], ErrorHandlers: [] };
+			ResourceCache.push(Resource);
+			return Resource;
+			*@
+		}
+		//
+
+		Search.getRelatedResourceOrLookup = function(rowID, url, handleSuccess, handleError){
+			setTimeout(function () {
+				var match = Search.RelatedResources.find(m => m.RowId == rowID);
+				if (match) {
+					handleSuccess?.(match);
+				}
+				else if (url) {
+					Search.getResource(url, handleSuccess, handleError);
+				}
+				else {
+					handleError?.({Message: "Resource not found in Related Resources list."});
+				}
+			}, 0);
+		}
+		//
+
 		Search.getResource = function (url, handleSuccess, handleError) {
+			AJAX.getResource(url, handleSuccess, handleError);
+			@*
 			//If the Resource was already queued or loaded, just process it (force asynchronous handling to ensure all of them work the same way)
 			var Resource = ResourceCache.find(item => item.URL == url);
 			if (Resource && Resource.Data) {
@@ -95,8 +141,10 @@
 			}
 			//Otherwise, fetch the resource
 			else {
-				var Resource = { URL: url, SuccessHandlers: [handleSuccess], ErrorHandlers: [handleError] };
-				ResourceCache.push(Resource);
+				var Resource = Search.addResourceToCache(url);
+				Resource.SuccessHandlers.push(handleSuccess);
+				Resource.ErrorHandlers.push(handleError);
+
 				Search.doGETRequest(url, (response) => {
 					Resource.Data = response.Data;
 					processHandlers(Resource);
@@ -121,50 +169,83 @@
 				Resource.SuccessHandlers = [];
 				Resource.ErrorHandlers = [];
 			}
+			*@
 		}
 		//
 
 		Search.doGETRequest = function (url, handleSuccess, handleError) {
-			Search.doAJAX(url, handleSuccess, handleError);
+			AJAX.doGETRequest(url, handleSuccess, handleError);
+			@*Search.doAJAX(url, handleSuccess, handleError);*@
 		}
 		//
 
 		Search.doPOSTRequest = function (url, data, handleSuccess, handleError) {
+			AJAX.doPOSTRequest(url, data, handleSuccess, handleError);
+			@*
 			Search.doAJAX(url, handleSuccess, handleError, {
 				method: "POST",
 				headers: { 'Accept': 'application/json', 'Content-Type': 'application/json' },
 				body: JSON.stringify(data)
 			});
+			*@
 		};
 		//
 
 		Search.doAJAX = function (url, handleSuccess, handleError, params) {
-			fetch(url, params)
-				.then(response => {
-					if (response.ok) {
-						return response.text();
+			AJAX.doFetch(url, handleSuccess, handleError, params);
+			@*
+			var Request = {};
+			Request.Status = "waiting";
+			Request.run = function () {
+				fetch(url, params)
+					.then(response => {
+						if (response.ok) {
+							return response.text();
+						}
+						else {
+							throw response;
+						}
+					})
+					.then(text => {
+						var response = JSON.parse(text);
+						handleSuccess?.(response);
+						processRequestQueue(Request);
+					})
+					.catch(error => {
+						console.log("Error", error);
+						handleError?.(error);
+						processRequestQueue(Request);
+					});
+			};
+			RequestQueue.push(Request);
+			processRequestQueue();
+
+			//Helper function
+			function processRequestQueue(Request) {
+				setTimeout(function () {
+					if (Request) {
+						RequestQueue = RequestQueue.filter(OtherRequest => OtherRequest != Request);
 					}
-					else {
-						throw response;
+					for (var i = 0; i < 50; i++) {
+						if (RequestQueue[i]?.Status == "waiting") {
+							RequestQueue[i].Status = "running";
+							RequestQueue[i].run();
+						}
 					}
-				})
-				.then(text => {
-					var response = JSON.parse(text);
-					handleSuccess?.(response);
-				})
-				.catch(error => {
-					console.log("Error", error);
-					handleError?.(error);
-				});
+				}, 0);
+			}
+			*@
 		};
 		//
 
 		Search.handleResponse = function (response) {
 			if (response.Valid) {
-				Search.Results = response.Data.Results;
+				Search.Results = response.Data.Results || [];
 				Search.TotalResults = response.Data.TotalResults || 0;
+				Search.RelatedResources = response.Data.RelatedResources || [];
 				//Search.setStatus("Found " + Search.TotalResults + " Results");
 				Search.renderTotalResultsStatus();
+				Search.beforeRenderAll();
 				Search.renderResults();
 				Search.renderPaging();
 				Search.afterRenderAll();
@@ -182,9 +263,11 @@
 		//
 
 		Search.renderResults = function () {
-			Search.ResultsBox.html("");
-			Search.Results.forEach(Result => {
-				Search.renderResult(Result, Search.ResultsBox);
+			if (!Search.AppendResults) {
+				Search.ResultsBox.html("");
+			}
+			Search.Results.forEach((Result, index) => {
+				Search.renderResult(Result, Search.ResultsBox, index);
 			});
 		}
 		//
@@ -195,26 +278,9 @@
 		//
 
 		Search.renderPaging = function () {
-			Search.PagingBox.html("");
+			Search.PagingBox.html("Page ");
 			Search.TotalPages = Math.ceil(Search.TotalResults / Search.PageSize);
-			Search.pagingRenderer();
-		}
-		//
 
-		Search.renderSelectPaging = function () {
-			var select = $("<select></select>").appendTo(Search.PagingBox);
-			for (var i = 1; i <= Search.TotalPages; i++) {
-				select.append("<option value=\"" + i + "\">Page " + i + "</option>");
-			}
-			select.on("change", function () {
-				Search.PageNumber = parseInt(select.val());
-				Search.doSearch();
-			});
-			select.val(Search.PageNumber);
-		}
-		//
-
-		Search.renderButtonPaging = function () {
 			for (var i = 1; i <= Search.TotalPages; i++) {
 				if (i == 1 || i == Search.TotalPages || ((i - Search.PagingButtonThreshold) <= Search.PageNumber && Search.PageNumber <= (i + Search.PagingButtonThreshold))) {
 					createPagingButton(i);
@@ -222,10 +288,11 @@
 			}
 
 			function createPagingButton(page) {
-				var button = $("<button class=\"pagingButton " + (Search.PageNumber == i ? "currentPage" : "") + "\" " + (Search.PageNumber == i ? "disabled=\"disabled\"" : "") + ">" + i + "</button>").appendTo(Search.PagingBox);
+				var button = $("<button class=\"pagingButton " + (Search.PageNumber == i ? "currentPage greenButton" : "") + "\" " + (Search.PageNumber == i ? "disabled=\"disabled\"" : "") + ">" + i + "</button>").appendTo(Search.PagingBox);
 				button.on("click", function () {
 					Search.PageNumber = page;
-					Search.doSearch();
+					Search.doSearch(false, true);
+					Search.onPageChange();
 				});
 			}
 		}
@@ -238,7 +305,6 @@
 		//
 
 		//Initialize and track
-		Search.pagingRenderer = Search.renderButtonPaging;
 		Search.Spinner.hide();
 		Searches.push(Search);
 
@@ -252,5 +318,5 @@
 	.spinner { display: inline-block; box-shadow: inset 4px 0 0 5px; border-radius: 50%; height: 20px; width: 20px; animation: spin 1s linear infinite; }
 	@@keyframes spin { 100% { transform: rotate(360deg); } }
 
-	.pagingButton { min-width: 50px; }
+	.pagingButton { min-width: 30px; }
 </style>

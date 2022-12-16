@@ -12,7 +12,8 @@ using Models.Curation;
 
 namespace NavyRRL.Controllers
 {
-    public class ConceptSchemeController : BaseController
+	[SessionState( System.Web.SessionState.SessionStateBehavior.ReadOnly )]
+	public class ConceptSchemeController : BaseController
     {
 		public ActionResult Search()
 		{
@@ -27,12 +28,13 @@ namespace NavyRRL.Controllers
 			return JsonResponse( results, true );
 		}
 		//
+
 		//SiteReader should just be everyone, so do we need this?
 		[CustomAttributes.NavyAuthorize( "Concept Scheme View", Roles = SiteReader )]
 		public ActionResult Detail( int id )
 		{
 			AuthenticateOrRedirect( "You must be authenticated and authorized to view Concept Scheme data." );
-			var data = Factories.ConceptSchemeManager.Get( id, true );
+			var data = Factories.ConceptSchemeManager.GetById( id );
 			return View( data );
 		}
 		//
@@ -40,9 +42,25 @@ namespace NavyRRL.Controllers
 		public ActionResult JSON( int id )
 		{
 			AuthenticateOrRedirect( "You must be authenticated and authorized to view Concept Scheme data." );
-			var data = Factories.ConceptSchemeManager.Get( id );
+			var data = Factories.ConceptSchemeManager.GetById( id );
 			var converted = RDFServices.GetRDF( data );
 			return RawJSONResponse( converted );
+		}
+		//
+
+		public ActionResult GetById( int id )
+		{
+			AuthenticateOrRedirect( "You must be authenticated and authorized to view Concept Scheme data." );
+			var data = Factories.ConceptSchemeManager.GetById( id, true );
+			return JsonResponse( data, data != null );
+		}
+		//
+
+		public ActionResult GetByRowId( Guid id )
+		{
+			AuthenticateOrRedirect( "You must be authenticated and authorized to view Concept Scheme data." );
+			var data = Factories.ConceptSchemeManager.GetByRowId( id, true );
+			return JsonResponse( data, data != null );
 		}
 		//
 
@@ -50,7 +68,12 @@ namespace NavyRRL.Controllers
 		public ActionResult Edit( int id )
 		{
 			AuthenticateOrRedirect( "You must be authenticated and authorized to edit Concept Scheme data." );
-			var data = Factories.ConceptSchemeManager.Get( id ) ?? new ConceptScheme();
+			if ( !AccountServices.IsUserSiteStaff() )
+			{
+				RedirectToAction( "NotAuthenticated", "Event" );
+			}
+
+			var data = Factories.ConceptSchemeManager.GetById( id ) ?? new ConceptScheme();
 			return View( data );
 		}
 		//
@@ -63,24 +86,9 @@ namespace NavyRRL.Controllers
 				return JsonResponse( null, false, new List<string>() { "You must be authenticated and authorized to edit Concept Scheme data." }, null );
 			}
 
-			var user = AccountServices.GetCurrentUser();
-			ChangeSummary status = new ChangeSummary()
-			{
-				Action = "Edit"
-			};
-			data.LastUpdatedById = user.Id;
-			var results = new Factories.ConceptSchemeManager().Save( data, ref status );
-			if ( status.HasAnyErrors )
-			{
-				var msg = string.Join( "</br>", status.Messages.Error.ToArray() );
-				ConsoleMessageHelper.SetConsoleErrorMessage( "Saved changes successfully." );
-			}
-			else
-			{
-				//On success
-				ConsoleMessageHelper.SetConsoleSuccessMessage( "Saved changes successfully." );
-			}
-			return JsonResponse( data, true, null, null );
+			var errors = new List<string>();
+			Factories.ConceptSchemeManager.SaveFromEditor( data, AccountServices.GetCurrentUser().Id, errors );
+			return JsonResponse( data, errors.Count() == 0, errors );
 		}
 		//
 	}

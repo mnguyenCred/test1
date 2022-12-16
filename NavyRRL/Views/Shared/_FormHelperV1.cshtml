@@ -353,6 +353,30 @@
 	}
 	//
 
+	//Search and Select (Single)
+	//Same as SearchSelectDeferred but only keeps/saves a single value
+	FormItem.setupUI_searchselectdeferredsingle = function (Field) {
+		FormItem.setupUI_searchselectdeferred(Field);
+
+		//Force single selection
+		Field.addItem = function (Item) {
+			Field.SelectedItems = [Item];
+			Field.refresh();
+		};
+
+		//Return the first item on read
+		Field.read = function () {
+			return Field.SelectedItems[0]?.RowId || null;
+		};
+
+		//Use "Remove" instead of "Cancel" for button text
+		Field.Selected.renderResultWrapper = function (container, Result) {
+			var button = $("<button>Remove</button>");
+			Field.renderWrappedResult(container, Result, Field.Selected.renderResult, button, Field.removeItem);
+		};
+	}
+	//
+
 	//Search and Select
 	//Stores selected items locally, then sends their RowIds to the server on Save
 	FormItem.setupUI_searchselectdeferred = function (Field) {

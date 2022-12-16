@@ -4,6 +4,8 @@ using System.Text;
 
 using System.Linq;
 
+using Models.Schema;
+
 namespace Models.Curation
 {
 	[Serializable]
@@ -22,6 +24,7 @@ namespace Models.Curation
 			PossibleDuplicates = new List<PossibleDuplicateSet>();
 			ItemsLoadedFromDatabase = new List<Guid>();
 			FinalizedChanges = new UploadableData();
+			DuplicateCheckHelper_RatingContext = new List<string>();
 		}
 		public string Action { get; set; } = "Upload";
 		public string RatingCodedNotation { get; set; }
@@ -91,6 +94,31 @@ namespace Models.Curation
 		/// </summary>
 		public List<object> LookupGraph { get; set; }
 
+		/// <summary>
+		/// Makes it easier to work with Concept Schemes throughout the curation process
+		/// </summary>
+		public ConceptSchemeMap ConceptSchemeMap { get; set; }
+
+		/// <summary>
+		/// Makes it easer to work with Ratings throughout the curation process
+		/// </summary>
+		public List<Rating> AllRatings { get; set; }
+
+		/// <summary>
+		/// Makes it easier to work with Organizations throughout the curation process
+		/// </summary>
+		public List<Organization> AllOrganizations { get; set; }
+
+		/// <summary>
+		/// Makes it easier to check for duplicate RatingContext objects
+		/// </summary>
+		public List<string> DuplicateCheckHelper_RatingContext { get; set; }
+
+		/// <summary>
+		/// Flag set client-side during the save step. If false, stop saving the data.
+		/// </summary>
+		public bool ContinueSavingData { get; set; }
+
 		public List<PossibleDuplicateSet> PossibleDuplicates { get; set; }
 
 		public bool HasAnyErrors
@@ -127,6 +155,9 @@ namespace Models.Curation
 		/// Reset HasSectionErrors to false at the start of a new section of validation. Then check at the end of the section for any errors in the section
 		/// </summary>
 		public bool HasSectionErrors { get; set; }
+
+		public int TotalItemsToSaveForClientMonitoring { get; set; }
+		public int TotalItemsSavedForClientMonitoring { get; set; }
 
 		//Helper Methods
 		public List<T> GetAll<T>()

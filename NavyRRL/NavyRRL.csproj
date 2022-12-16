@@ -180,6 +180,7 @@
     <Compile Include="Controllers\ClusterAnalysisTitleController.cs" />
     <Compile Include="Controllers\ConceptController.cs" />
     <Compile Include="Controllers\ConceptSchemeController.cs" />
+    <Compile Include="Controllers\CourseContextController.cs" />
     <Compile Include="Controllers\CourseController.cs" />
     <Compile Include="Controllers\DataController.cs" />
     <Compile Include="Controllers\EventController.cs" />
@@ -645,6 +646,10 @@
     <Content Include="Views\Admin\ManageRolePermissions.cshtml" />
     <Content Include="Views\ClusterAnalysisTitle\Detail.cshtml" />
     <Content Include="Views\ClusterAnalysisTitle\Edit.cshtml" />
+    <Content Include="Views\CourseContext\Detail.cshtml" />
+    <Content Include="Views\CourseContext\Edit.cshtml" />
+    <Content Include="Views\RMTL\RMTLSearchV3.cshtml" />
+    <Content Include="Views\Shared\_FormHelperV2.cshtml" />
     <None Include="Web.Sandbox.config">
       <DependentUpon>Web.config</DependentUpon>
     </None>

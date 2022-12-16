@@ -23,18 +23,12 @@
 }
 
 @Html.Partial( "~/Views/Shared/_DetailShared.cshtml" )
-@Html.Partial( "~/Views/Shared/_DetailBasicInfo.cshtml", new DetailBasicInfoHelper()
+@Html.Partial( "~/Views/Shared/_DetailBasicInfo.cshtml", new DetailBasicInfoHelper( Model )
 {
-	TypeLabel = "Rating",
-	TypeURL = Model.GetType().Name.ToLower(),
-	Id = Model.Id,
-	CTID = Model.CTID,
 	Name = Model.Name,
-	Description = Model.Description, //Should hide this?
-	Identifiers = new List<NamedString>()
+	PropertyList = new List<NamedString>()
 	{
-		new NamedString( "System ID", Model.Id.ToString( )),
-		new NamedString( "CTID", Model.CTID ),
+		new NamedString( "Description", Model.Description ),
 		new NamedString( "Code", Model.CodedNotation )
 	}
 } )
@@ -43,7 +37,40 @@
 {
 	new SearchFilter()
 	{
-		Name = "navy:Rating",
+		Name = "> RatingId > Rating",
 		ItemIds = new List<int>(){ Model.Id }
 	}
 } )
+
+@Html.Partial( "~/Views/Search/_ItemListSearch.cshtml" )
+<script type="text/javascript">
+	var ItemListConfigs = {
+		CommonFilters: [
+			{ Name: "> RatingId > Rating", ItemIds: [ @Model.Id ] }
+		],
+		Searches: {
+			RatingTasks: {
+				Header: "Rating Tasks",
+				SearchType: "RatingContext",
+				StyleType: "RatingTask",
+				Fields: [
+					{ Label: "Rating", RenderPath: ["HasRating|Rating", "CodedNotation|Rating"] },
+					{ Label: "Description", RenderPath: ["HasRatingTask|RatingTask", "Description|RatingTask"] },
+					{ Label: "Training Gap", RenderPath: ["TrainingGapType|Concept", "Name|Concept"] },
+				]
+			}
+		}
+	};
+	//
+
+	$(document).ready(function () {
+		ItemListSearches.setupItemLists(ItemListConfigs);
+	});
+	//
+</script>
+<style type="text/css">
+	table[data-styletype='RatingTask'] [data-column='Rating'] { width: 75px; }
+	table[data-styletype='RatingTask'] [data-column='Training Gap'] { width: 100px; margin-left: auto; }
+</style>
+
+<item-list-search name="RatingTasks"></item-list-search>

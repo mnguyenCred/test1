@@ -20,14 +20,35 @@ namespace Factories
     {
         public static new string thisClassName = "WorkRoleManager";
 
-        #region === persistance ==================
-        /// <summary>
-        /// Update a WorkRole
-        /// </summary>
-        /// <param name="entity"></param>
-        /// <param name="status"></param>
-        /// <returns></returns>
-        public bool Save( AppEntity entity, ref ChangeSummary status )
+		#region === persistance ==================
+		public static void SaveFromUpload( AppEntity entity, int userID, ChangeSummary summary )
+		{
+			SaveCore( entity, userID, "Upload", summary.AddError );
+		}
+		//
+
+		public static void SaveFromEditor( AppEntity entity, int userID, List<string> errors )
+		{
+			SaveCore( entity, userID, "Edit", errors.Add );
+		}
+		//
+
+		private static void SaveCore( AppEntity entity, int userID, string saveType, Action<string> AddErrorMethod )
+		{
+			using ( var context = new DataEntities() )
+			{
+				BasicSaveCore( context, entity, context.WorkRole, userID, ( ent, dbEnt ) => { }, ( ent, dbEnt ) => { }, saveType, AddErrorMethod );
+			}
+		}
+		//
+
+		/// <summary>
+		/// Update a WorkRole
+		/// </summary>
+		/// <param name="entity"></param>
+		/// <param name="status"></param>
+		/// <returns></returns>
+		public bool Save( AppEntity entity, ref ChangeSummary status )
         {
             bool isValid = true;
             int count = 0;
@@ -48,7 +69,7 @@ namespace Factories
                     //look up if no id
                     if ( entity.Id == 0 )
                     {
-                        var record = Get( entity.Name );
+                        var record = GetByName( entity.Name );
                         if ( record?.Id > 0 )
                         {
                             //currently no description, so can just return
@@ -270,83 +291,37 @@ namespace Factories
         #endregion
 
         #region Retrieval
-        //unlikely?
-        public static AppEntity Get( string name )
-        {
-            var entity = new AppEntity();
-            if ( string.IsNullOrWhiteSpace( name ) )
-                return null;
-
-            using ( var context = new DataEntities() )
-            {
-                var item = context.WorkRole
-                            .FirstOrDefault( s => s.Name.ToLower() == name.ToLower() );
-
-                if ( item != null && item.Id > 0 )
-                {
-                    MapFromDB( item, entity );
-                }
-            }
-            return entity;
-        }
-
-        public static AppEntity Get( Guid rowId )
-        {
-            var entity = new AppEntity();
-
-            using ( var context = new DataEntities() )
-            {
-                var item = context.WorkRole
-                            .FirstOrDefault( s => s.RowId == rowId );
-
-                if ( item != null && item.Id > 0 )
-                {
-                    MapFromDB( item, entity );
-                }
-            }
-            return entity;
-        }
-        public static AppEntity Get( int id )
-        {
-            var entity = new AppEntity();
-            if ( id < 1 )
-                return entity;
-
-            using ( var context = new DataEntities() )
-            {
-                var item = context.WorkRole
-                            .SingleOrDefault( s => s.Id == id );
-
-                if ( item != null && item.Id > 0 )
-                {
-                    MapFromDB( item, entity );
-                }
-            }
-
-            return entity;
-		}
-		public static AppEntity GetByCTIDOrNull( string ctid )
+		public static AppEntity GetSingleByFilter( Func<DBEntity, bool> FilterMethod, bool returnNullIfNotFound = false )
 		{
-			if ( string.IsNullOrWhiteSpace( ctid ) )
-			{
-				return null;
-			}
-
-			using ( var context = new DataEntities() )
-			{
-				var item = context.WorkRole
-							.SingleOrDefault( s => s.CTID == ctid );
-
-				if ( item != null && item.Id > 0 )
-				{
-					var entity = new AppEntity();
-					MapFromDB( item, entity );
-					return entity;
-				}
-			}
-
-			return null;
+			return GetSingleByFilter<DBEntity, AppEntity>( context => context.WorkRole, FilterMethod, MapFromDB, returnNullIfNotFound );
 		}
+		//
+
+        //unlikely?
+        public static AppEntity GetByName( string name, bool returnNullIfNotFound = false )
+        {
+			return GetSingleByFilter( m => m.Name?.ToLower() == name?.ToLower(), returnNullIfNotFound );
+        }
+		//
+
+		public static AppEntity GetByRowId( Guid rowId, bool returnNullIfNotFound = false )
+		{
+			return GetSingleByFilter( m => m.RowId == rowId, returnNullIfNotFound );
+		}
+		//
+
+		public static AppEntity GetById( int id, bool returnNullIfNotFound = false )
+		{
+			return GetSingleByFilter( m => m.Id == id, returnNullIfNotFound );
+		}
+		//
+
+		public static AppEntity GetByCTID( string ctid, bool returnNullIfNotFound = false )
+		{
+			return GetSingleByFilter( m => m.CTID.ToLower() == ctid?.ToLower(), returnNullIfNotFound );
+		}
+		//
+
 		/// <summary>
 		/// Get all 
 		/// May need a get all for a rating? Should not matter as this is external data?
@@ -354,7 +329,6 @@ namespace Factories
 		/// <returns></returns>
 		public static List<AppEntity> GetAll( bool includeOnlyIfHasTasks = true)
         {
-            var entity = new AppEntity();
             var list = new List<AppEntity>();
 
             try
@@ -371,9 +345,9 @@ namespace Factories
                         {
                             if ( item != null && item.Id > 0 )
                             {
-                                entity = new AppEntity();
+                                var entity = new AppEntity();
                                 MapFromDB( item, entity );
-                                list.Add( ( entity ) );
+                                list.Add( entity );
                             }
                         }
                     }
@@ -400,9 +374,7 @@ namespace Factories
 
 				foreach ( var item in items )
 				{
-					var result = new AppEntity();
-					MapFromDB( item, result );
-					results.Add( result );
+					results.Add( MapFromDB( item, context ) );
 				}
 			}
 
@@ -410,155 +382,58 @@ namespace Factories
 		}
 		//
 
-
-		public static List<AppEntity> Search( SearchQuery query )
+		public static SearchResultSet<AppEntity> Search( SearchQuery query )
 		{
-			var output = new List<AppEntity>();
-			var skip = ( query.PageNumber - 1 ) * query.PageSize;
-			try
+			return HandleSearch<DBEntity, AppEntity>( query, context =>
 			{
-				using ( var context = new DataEntities() )
+				//Start query
+				var list = context.WorkRole.AsQueryable();
+				var keywords = GetSanitizedSearchFilterKeywords( query );
+
+				//Handle keywords
+				if ( !string.IsNullOrWhiteSpace( keywords ) )
 				{
-					//Start query
-					var list = context.WorkRole.AsQueryable();
-
-					//Handle keywords filter
-					var keywordsText = query.GetFilterTextByName( "search:Keyword" )?.ToLower();
-					if ( !string.IsNullOrWhiteSpace( keywordsText ) )
-					{
-						list = list.Where( s =>
-							s.Name.ToLower().Contains( keywordsText ) ||
-							s.Description.ToLower().Contains( keywordsText ) ||
-							s.CodedNotation.ToLower().Contains( keywordsText )
-						);
-					}
-
-					//Handle Rating Task Connection
-					var ratingTaskFilter = query.GetFilterByName( "navy:RatingTask" );
-					if ( ratingTaskFilter != null && ratingTaskFilter.ItemIds?.Count() > 0 )
-					{
-                        //Need to handle the negation (i.e. work roles that are not associated with this task), but all work roles get returned since there are many rows for each rating, each with a different task ID.
-                        //So get the work roles that do match first, then negate (or not). 
-                        //There's probably a better way to do this.
-                        //TODO - this would now use RatingContextId, so ratingTaskFilter would need to include the latter!!!
-                        // var matchingWorkRoleIDs = context.WorkRole.Where( s => ratingTaskFilter.ItemIds.Contains( s.RatingContextId ) ).Select( m => m.WorkRoleId ).Distinct().ToList();
-						//if ( ratingTaskFilter.IsNegation )
-						//{
-						//	list = list.Where( s => !matchingWorkRoleIDs.Contains( s.Id ) );
-						//}
-						//else
-						//{
-						//	list = list.Where( s => matchingWorkRoleIDs.Contains( s.Id ) );
-						//}
-
-					}
-
-					//Get total
-					query.TotalResults = list.Count();
-
-					//Sort
-					list = list.OrderBy( p => p.Description );
-
-					//Get page
-					var results = list.Skip( skip ).Take( query.PageSize )
-						.Where( m => m != null ).ToList();
-
-					//Populate
-					foreach ( var item in results )
-					{
-						var entity = new AppEntity();
-						MapFromDB( item, entity );
-						output.Add( entity );
-					}
+					list = list.Where( m =>
+						m.Name.Contains( keywords ) ||
+						m.Description.Contains( keywords ) ||
+						m.CodedNotation.Contains( keywords )
+					);
 				}
 
-				return output;
-			}
-			catch ( Exception ex )
-			{
-				return new List<AppEntity>() { new AppEntity() { Description = "Error: " + ex.Message + " - " + ex.InnerException?.Message } };
-			}
+				//Return ordered list
+				return HandleSort( list, query.SortOrder, m => m.Name, m => m.OrderBy( n => n.Name ) );
+
+			}, MapFromDBForSearch );
 		}
 		//
 
-		/*
-        public static List<AppEntity> Search ( SearchQuery query )
+		public static AppEntity MapFromDB( DBEntity input, DataEntities context )
+		{
+			return MapFromDBForSearch( input, context, null );
+		}
+		//
+
+		public static AppEntity MapFromDBForSearch( DBEntity input, DataEntities context, SearchResultSet<AppEntity> resultSet = null )
+		{
+			var output = AutoMap( input, new AppEntity() );
+
+			return output;
+		}
+		//
+
+		public static void MapFromDB( ViewEntity input, AppEntity output )
         {
-            var entity = new AppEntity();
-            var output = new List<AppEntity>();
-            var skip = 0;
-            if ( query.PageNumber > 1 )
-                skip = ( query.PageNumber - 1 ) * query.PageSize;
-            var filter = GetSearchFilterText( query );
-            try
+            //
+            List<string> errors = new List<string>();
+            BaseFactory.AutoMap( input, output, errors );
+            if ( input.RowId != output.RowId )
             {
-                using ( var context = new ViewEntities() )
-                {
-                    var list = from Results in context.WorkRoleSummary
-                                select Results;
-                    if ( !string.IsNullOrWhiteSpace( filter ) )
-                    {
-                        list = from Results in list
-                                .Where( s => ( s.Name.ToLower().Contains( filter.ToLower() )
-                                ) )
-                                select Results;
-                    }
-                    query.TotalResults = list.Count();
-                    //sort order not handled
-                    list = list.OrderBy( p => p.Name );
-
-                    //
-                    var results = list.Skip( skip ).Take( query.PageSize )
-                        .ToList();
-                    if ( results?.Count > 0 )
-                    {
-                        foreach ( var item in results )
-                        {
-                            if ( item != null && item.Id > 0 )
-                            {
-                                entity = new AppEntity();
-                                MapFromDB( item, entity );
-                                output.Add( ( entity ) );
-                            }
-                        }
-                    }
-
-                }
+                output.RowId = input.RowId;
             }
-            catch ( Exception ex )
-            {
+            //
 
-            }
-            return output;
         }
 		//
-		*/
-
-		public static void MapFromDB( DBEntity input, AppEntity output )
-        {
-            //
-            List<string> errors = new List<string>();
-            BaseFactory.AutoMap( input, output, errors );
-            if ( input.RowId != output.RowId )
-            {
-                output.RowId = input.RowId;
-            }
-            //
-
-        }
-
-        public static void MapFromDB( ViewEntity input, AppEntity output )
-        {
-            //
-            List<string> errors = new List<string>();
-            BaseFactory.AutoMap( input, output, errors );
-            if ( input.RowId != output.RowId )
-            {
-                output.RowId = input.RowId;
-            }
-            //
-
-        }
 
 
         #endregion

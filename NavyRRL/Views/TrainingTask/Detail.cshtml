@@ -1,4 +1,5 @@
 ﻿@using Models.Schema;
+@using Models.Search;
 @using Models.DTO;
 @model TrainingTask
 @{
@@ -6,25 +7,58 @@
 	var courseUrl = "~/Course/Detail/" + Model.CourseCodedNotation;
 	var courseTitle = "Course: " + Model.CourseCodedNotation;
 	var course = Model.CourseId;
-	var methods = Factories.ConceptSchemeManager.GetMultipleConcepts( Model.AssessmentMethodType );
+	var methods = Factories.ConceptManager.GetMultiple( Model.AssessmentMethodType );
 }
 
 @Html.Partial( "~/Views/Shared/_DetailShared.cshtml" )
-@Html.Partial( "~/Views/Shared/_DetailBasicInfo.cshtml", new DetailBasicInfoHelper()
+@Html.Partial( "~/Views/Shared/_DetailBasicInfo.cshtml", new DetailBasicInfoHelper( Model )
 {
 	TypeLabel = "Training Task",
-	TypeURL = Model.GetType().Name.ToLower(),
-	Id = Model.Id,
-	CTID = Model.CTID,
 	Name = "Training Task",
-	Description = Model.Description,
-	Identifiers = new List<NamedString>()
+	PropertyList = new List<NamedString>()
 	{
-		new NamedString( "System ID", Model.Id.ToString() ),
-		new NamedString( "Course", "<a href=\"" + Url.Content( "~/Course/Detail/" + Model.CourseId ) + "\">" + Model.CourseName + "</a>" ),
-		new NamedString( "Course CIN", Model.CourseCodedNotation ),
-		new NamedString( "Assessment Methods", String.Join(", ", methods.Select( m => "<a href=\"" + Url.Content( "~/Concept/Detail/" + m.Id ) + "\">" + m.Name + "</a>" ).ToList()) ),
-		new NamedString( "CTID", Model.CTID ),
-		new NamedValue( "Last Updated ", Model.LastUpdated.ToString("yyyy-MM-dd hh:mm") )
+		new NamedString( "Description", Model.Description )
 	}
 } )
+
+@Html.Partial( "~/Views/Shared/_RatingTaskCountBySourceTypeTable.cshtml", new List<SearchFilter>()
+{
+	new SearchFilter()
+	{
+		Name = "> CourseContextId > CourseContext > HasTrainingTaskId > TrainingTask",
+		ItemIds = new List<int>(){ Model.Id }
+	}
+} )
+
+@Html.Partial( "~/Views/Search/_ItemListSearch.cshtml" )
+<script type="text/javascript">
+	var ItemListConfigs = {
+		CommonFilters: [
+			{ Name: "> CourseContextId > CourseContext > HasTrainingTaskId > TrainingTask", ItemIds: [ @Model.Id ] }
+		],
+		Searches: {
+			RatingTasks: {
+				Header: "Rating Tasks",
+				SearchType: "RatingContext",
+				StyleType: "RatingTask",
+				Fields: [
+					{ Label: "Rating", RenderPath: ["HasRating|Rating", "CodedNotation|Rating"] },
+					{ Label: "Description", RenderPath: ["HasRatingTask|RatingTask", "Description|RatingTask"] },
+					{ Label: "Training Gap", RenderPath: ["TrainingGapType|Concept", "Name|Concept"] },
+				]
+			}
+		}
+	};
+	//
+
+	$(document).ready(function () {
+		ItemListSearches.setupItemLists(ItemListConfigs);
+	});
+	//
+</script>
+<style type="text/css">
+	table[data-styletype='RatingTask'] [data-column='Rating'] { width: 75px; }
+	table[data-styletype='RatingTask'] [data-column='Training Gap'] { width: 100px; margin-left: auto; }
+</style>
+
+<item-list-search name="RatingTasks"></item-list-search>

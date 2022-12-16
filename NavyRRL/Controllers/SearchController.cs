@@ -10,7 +10,8 @@ using Models.Schema;
 
 namespace NavyRRL.Controllers
 {
-    public class SearchController : BaseController
+	[SessionState( System.Web.SessionState.SessionStateBehavior.ReadOnly )]
+	public class SearchController : BaseController
     {
 		[CustomAttributes.NavyAuthorize( "Search", Roles = SiteReader )]
 		public ActionResult Index( string searchType )

@@ -12,7 +12,8 @@ using Models.Curation;
 
 namespace NavyRRL.Controllers
 {
-    public class ConceptController : BaseController
+	[SessionState( System.Web.SessionState.SessionStateBehavior.ReadOnly )]
+	public class ConceptController : BaseController
     {
 		public ActionResult Search()
 		{
@@ -32,25 +33,43 @@ namespace NavyRRL.Controllers
 		public ActionResult Detail( int id )
 		{
 			AuthenticateOrRedirect( "You must be authenticated and authorized to view Concept data." );
-			var data = Factories.ConceptSchemeManager.GetConcept( id );
+			var data = Factories.ConceptManager.GetById( id );
 			return View( data );
 		}
 		//
 
+		[CustomAttributes.NavyAuthorize( "Concept View", Roles = SiteReader )]
+		public ActionResult GetById( int id )
+		{
+			AuthenticateOrRedirect( "You must be authenticated and authorized to view Concept data." );
+			var data = Factories.ConceptManager.GetById( id );
+			return JsonResponse( data, data != null );
+		}
+		//
+
+		[CustomAttributes.NavyAuthorize( "Concept View", Roles = SiteReader )]
+		public ActionResult GetByRowId( Guid id )
+		{
+			AuthenticateOrRedirect( "You must be authenticated and authorized to view Concept data." );
+			var data = Factories.ConceptManager.GetByRowId( id, true );
+			return JsonResponse( data, data != null );
+		}
+		//
 
 		public ActionResult JSON( int id )
 		{
 			AuthenticateOrRedirect( "You must be authenticated and authorized to view Concept data." );
-			var data = Factories.ConceptSchemeManager.GetConcept( id );
+			var data = Factories.ConceptManager.GetById( id );
 			var converted = RDFServices.GetRDF( data );
 			return RawJSONResponse( converted );
 		}
 		//
+
 		[CustomAttributes.NavyAuthorize( "Concept Edit", Roles = Admin_SiteManager )]
 		public ActionResult Edit( int id )
 		{
 			AuthenticateOrRedirect( "You must be authenticated and authorized to edit Concept data." );
-			var data = Factories.ConceptSchemeManager.GetConcept( id ) ?? new Concept();
+			var data = Factories.ConceptManager.GetById( id ) ?? new Concept();
 			return View( data );
 		}
 		//
@@ -62,26 +81,10 @@ namespace NavyRRL.Controllers
 			{
 				return JsonResponse( null, false, new List<string>() { "You must be authenticated and authorized to edit Concept data." }, null );
 			}
-			var user = AccountServices.GetCurrentUser();
-			ChangeSummary status = new ChangeSummary()
-			{
-				Action = "Edit"
-			};
-			data.LastUpdatedById = user.Id;
-			var results = new Factories.ConceptSchemeManager().SaveConcept( data, ref status );
-			if ( status.HasAnyErrors )
-			{
-				var msg = string.Join( "</br>", status.Messages.Error.ToArray() );
-				ConsoleMessageHelper.SetConsoleErrorMessage( msg );
-				return JsonResponse( data, false, status.Messages.Error, null );
-			}
-			else
-			{
-				//On success
-				ConsoleMessageHelper.SetConsoleSuccessMessage( "Saved changes successfully." );
-				return JsonResponse( data, true, null, null );
-			}
-			
+
+			var errors = new List<string>();
+			Factories.ConceptManager.SaveFromEditor( data, AccountServices.GetCurrentUser().Id, errors );
+			return JsonResponse( data, errors.Count() == 0, errors );
 		}
 		//
 	}

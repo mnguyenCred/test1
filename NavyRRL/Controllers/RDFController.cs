@@ -11,7 +11,8 @@ using Models.Schema;
 
 namespace NavyRRL.Controllers
 {
-    public class RDFController : BaseController
+	[SessionState( System.Web.SessionState.SessionStateBehavior.ReadOnly )]
+	public class RDFController : BaseController
     {
 		[Route("rdf/context/json")]
         public ActionResult ContextJSON()

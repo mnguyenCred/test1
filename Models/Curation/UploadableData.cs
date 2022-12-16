@@ -13,15 +13,20 @@ namespace Models.Curation
 	{
 		public UploadableData()
 		{
+			RatingContext = new List<SM.RatingContext>();
 			BilletTitle = new List<SM.BilletTitle>();
 			Course = new List<SM.Course>();
 			Organization = new List<SM.Organization>();
 			RatingTask = new List<SM.RatingTask>();
 			ReferenceResource = new List<SM.ReferenceResource>();
 			TrainingTask = new List<SM.TrainingTask>();
+			CourseContext = new List<SM.CourseContext>();
 			WorkRole = new List<SM.WorkRole>();
+			ClusterAnalysis = new List<SM.ClusterAnalysis>();
+			ClusterAnalysisTitle = new List<SM.ClusterAnalysisTitle>();
 		}
 
+		public List<SM.RatingContext> RatingContext { get; set; }
 		public List<SM.BilletTitle> BilletTitle { get; set; }
 		public List<SM.Course> Course { get; set; }
 		public List<SM.Organization> Organization { get; set; }
@@ -29,9 +34,11 @@ namespace Models.Curation
 		//source
 		public List<SM.ReferenceResource> ReferenceResource { get; set; }
 		public List<SM.TrainingTask> TrainingTask { get; set; }
+		public List<SM.CourseContext> CourseContext { get; set; }
 		public List<SM.WorkRole> WorkRole { get; set; }
 		//NOTE this may just be embedded in rating task
-		public List<SM.ClusterAnalysis> ClusterAnalysis { get; set; } = new List<SM.ClusterAnalysis>();
+		public List<SM.ClusterAnalysis> ClusterAnalysis { get; set; }
+		public List<SM.ClusterAnalysisTitle> ClusterAnalysisTitle { get; set; }
 	}
 	//
 

@@ -1,0 +1,23 @@
+﻿@using Models.Schema;
+@using Models.DTO;
+@using Newtonsoft.Json;
+@using Newtonsoft.Json.Linq;
+@model CourseContext
+@{
+	var title = Model.Id > 0 ? "Editing Course Context" : "New Course Context";
+	ViewBag.Title = title;
+}
+
+@Html.Partial( "~/Views/Shared/_AJAXTools.cshtml" )
+@Html.Partial( "~/Views/Shared/_FormHelperV2.cshtml", new EditFormHelperV2( Model, new JObject() {
+	{ Factories.ConceptSchemeManager.ConceptScheme_CurrentAssessmentApproach, JArray.FromObject( Factories.ConceptManager.GetAllConceptsForScheme( Factories.ConceptSchemeManager.ConceptScheme_CurrentAssessmentApproach ).Select( m => SimpleItemHelper.GetSimpleItem( m ) ).ToList() ) }
+} ) )
+
+<h2>@title</h2>
+
+<h3>Basic Info</h3>
+<div class="field" data-fieldtype="SystemIdentifiers"></div>
+<div class="field" data-fieldtype="CheckBoxList" data-property="AssessmentMethodType" data-label="Assessment Method Type" data-sourceuri="@Factories.ConceptSchemeManager.ConceptScheme_CurrentAssessmentApproach"></div>
+<div class="field" data-fieldtype="SuggestionSingle" data-property="HasCourse" data-label="Related Course" data-searchtype="@nameof(Course)"></div>
+<div class="field" data-fieldtype="SuggestionSingle" data-property="HasTrainingTask" data-label="Related Training Task" data-searchtype="@nameof(TrainingTask)"></div>
+<div class="field" data-fieldtype="SaveButton"></div>

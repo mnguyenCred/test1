@@ -23,9 +23,6 @@ namespace AppTestProject
             var workRole = Factories.WorkRoleManager.GetAll();
             //training task - really all?
             var trainingTask = Factories.TrainingTaskManager.GetAll();
-
-                int totalRows = 0;
-            var ratingTask = Factories.RatingTaskManager.GetAllForRating( "q", true, ref totalRows );
         }
       
         [TestMethod]
@@ -45,8 +42,8 @@ namespace AppTestProject
             var recordId = 1;
             try
             {
-                var record = RatingTaskManager.Get( recordId, true );
-                record = RatingTaskManager.Get( 10, true );
+                var record = RatingTaskManager.GetById( recordId );
+                record = RatingTaskManager.GetById( 10 );
             } catch ( Exception ex )
             {
                 Assert.Fail( ex.Message );
@@ -60,9 +57,7 @@ namespace AppTestProject
             var totalRows = 0;
             try
             {
-                var results = RatingTaskManager.GetAllForRating( "qm", true, ref totalRows );
-
-                results = RatingTaskManager.GetAll( "abf", false, 1, 200, ref totalRows );
+				var results = RatingTaskManager.GetAll();
             }
             catch ( Exception ex )
             {
@@ -87,18 +82,6 @@ namespace AppTestProject
                 filter = "base.id in (select a.[RatingTaskId] from [RatingTask.HasRating] a inner join Rating b on a.ratingId = b.Id where b.CodedNotation = 'qm' )";
                var results = RatingTaskManager.RMTLSearch( filter, orderBy, pageNumber, pageSize, userId, ref pTotalRows );
                 if (results?.Count > 0)
-                {
-
-                }
-
-                results = RatingTaskManager.SearchForRating( "Aviation Boatswain's Mate (Fuels)", orderBy, pageNumber, pageSize, userId, ref pTotalRows );
-                if ( results?.Count > 0 )
-                {
-
-                }
-
-                results = RatingTaskManager.SearchForRating( "Quartermaster", orderBy, pageNumber, pageSize, userId, ref pTotalRows );
-                if ( results?.Count > 0 )
                 {
 
                 }
@@ -136,8 +119,8 @@ namespace AppTestProject
             var recordId = 1;
             try
             {
-                var record = ReferenceResourceManager.Get( recordId );
-                record = ReferenceResourceManager.Get( 119 );
+                var record = ReferenceResourceManager.GetById( recordId );
+                record = ReferenceResourceManager.GetById( 119 );
             }
             catch ( Exception ex )
             {
@@ -171,13 +154,13 @@ namespace AppTestProject
             var recordId = 11;
             try
             {
-                var record = ConceptSchemeManager.Get( recordId );
+                var record = ConceptSchemeManager.GetById( recordId );
 
 
                 record = ConceptSchemeManager.GetByName( "Paygrade" );
 
                 var rowId = new Guid( "B70C175E-B486-42C3-A647-2D964769C0CA" );
-                record = ConceptSchemeManager.Get( rowId );
+                record = ConceptSchemeManager.GetByRowId( rowId );
             }
             catch ( Exception ex )
             {

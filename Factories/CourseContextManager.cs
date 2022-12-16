@@ -22,14 +22,40 @@ namespace Factories
     public class CourseContextManager : BaseFactory
     {
         public static new string thisClassName = "CourseContextManager";
-        #region CourseContext - persistance ==================
-        /// <summary>
-        /// Update a CourseContext
-        /// </summary>
-        /// <param name="entity"></param>
-        /// <param name="status"></param>
-        /// <returns></returns>
-        public bool Save( AppEntity entity, ref ChangeSummary status )
+		#region CourseContext - persistance ==================
+		public static void SaveFromUpload( AppEntity entity, int userID, ChangeSummary summary )
+		{
+			SaveCore( entity, userID, "Upload", summary.AddError );
+		}
+		//
+
+		public static void SaveFromEditor( AppEntity entity, int userID, List<string> errors )
+		{
+			SaveCore( entity, userID, "Edit", errors.Add );
+		}
+		//
+
+		private static void SaveCore( AppEntity entity, int userID, string saveType, Action<string> AddErrorMethod )
+		{
+			using ( var context = new DataEntities() )
+			{
+				BasicSaveCore( context, entity, context.CourseContext, userID, ( ent, dbEnt ) => {
+					dbEnt.HasTrainingTaskId = context.TrainingTask.FirstOrDefault( m => m.RowId == ent.HasTrainingTask )?.Id ?? 0;
+					dbEnt.HasCourseId = context.Course.FirstOrDefault( m => m.RowId == ent.HasCourse )?.Id ?? 0;
+				}, ( ent, dbEnt ) => {
+					HandleMultiValueUpdate( context, userID, ent.AssessmentMethodType, dbEnt, dbEnt.CourseContext_AssessmentType, context.ConceptScheme_Concept, nameof( CourseContext_AssessmentType.CourseContextId ), nameof( CourseContext_AssessmentType.AssessmentMethodConceptId ) );
+				}, saveType, AddErrorMethod );
+			}
+		}
+		//
+
+		/// <summary>
+		/// Update a CourseContext
+		/// </summary>
+		/// <param name="entity"></param>
+		/// <param name="status"></param>
+		/// <returns></returns>
+		public bool Save( AppEntity entity, ref ChangeSummary status )
         {
             bool isValid = true;
             int count = 0;
@@ -43,7 +69,7 @@ namespace Factories
                     //look up if no id
                     if ( entity.Id == 0 )
                     {
-                        var record = Get( entity.HasCourseId, entity.HasTrainingTaskId );
+                        var record = GetByCourseIdAndTrainingTaskId( entity.HasCourseId, entity.HasTrainingTaskId );
                         if ( record?.Id > 0 )
                         {
                             entity.Id = record.Id;
@@ -226,100 +252,101 @@ namespace Factories
            
 
 		}
-        public static void MapToDB( AppFullEntity input, DBEntity output )
-        {
-            //watch for missing properties like rowId
-            List<string> errors = new List<string>();
-            //NOTE - NEED TO CHG FOR USE OF Has....
-            BaseFactory.AutoMap( input, output, errors );
-            
-        }
+		//
+
         #endregion
+
         #region Retrieval
-        //unlikely?
-        public static AppEntity Get( int courseId, int trainingTaskId )
-        {
-            var entity = new AppEntity();
-            using ( var context = new DataEntities() )
-            {
-                var item = context.CourseContext
-                            .FirstOrDefault( s => s.HasCourseId ==  courseId && s.HasTrainingTaskId == trainingTaskId);
-
-                if ( item != null && item.Id > 0 )
-                {
-                    MapFromDB( item, entity );
-                }
-            }
-            return entity;
-        }
-
-        public static AppEntity Get( Guid rowId )
-        {
-            var entity = new AppEntity();
-
-            using ( var context = new DataEntities() )
-            {
-                var item = context.CourseContext
-                            .FirstOrDefault( s => s.RowId == rowId );
-
-                if ( item != null && item.Id > 0 )
-                {
-                    MapFromDB( item, entity );
-                }
-            }
-            return entity;
-        }
-        public static AppEntity Get( int id )
-        {
-            var entity = new AppEntity();
-            if ( id < 1 )
-                return entity;
-
-            using ( var context = new DataEntities() )
-            {
-                var item = context.CourseContext
-                            .SingleOrDefault( s => s.Id == id );
-
-                if ( item != null && item.Id > 0 )
-                {
-                    MapFromDB( item, entity );
-                }
-            }
-
-            return entity;
+		public static AppEntity GetSingleByFilter( Func<DBEntity, bool> FilterMethod, bool returnNullIfNotFound = false )
+		{
+			return GetSingleByFilter<DBEntity, AppEntity>( context => context.CourseContext, FilterMethod, MapFromDB, returnNullIfNotFound );
 		}
-        public static void MapFromDB( DBEntity input, AppEntity output )
-        {
-            //should include list of concepts
-            List<string> errors = new List<string>();
-            BaseFactory.AutoMap( input, output, errors );
-            if ( input.RowId != output.RowId )
-            {
-                output.RowId = input.RowId;
-            }
-            if ( input.CourseContext_AssessmentType != null )
-            {
-                foreach ( var item in input.CourseContext_AssessmentType )
-                {
-                    if ( item != null && item.ConceptScheme_Concept != null )
-                    {
-                        output.AssessmentMethodTypes.Add( item.ConceptScheme_Concept.RowId );
-                    //    output.AssessmentMethods.Add( item.ConceptScheme_Concept.Name );
-                    }
-                }
-            }
-            //
-            if ( input.Course != null)
-            {
-               //??
-            }
-            //
-            if ( input.TrainingTask != null )
-            {
-                //??
-            }
+		//
 
+        public static AppEntity GetByCourseIdAndTrainingTaskId( int courseId, int trainingTaskId, bool returnNullIfNotFound = false )
+        {
+			return GetSingleByFilter( m => m.HasCourseId == courseId && m.HasTrainingTaskId == trainingTaskId, returnNullIfNotFound );
         }
+		//
+
+		public static AppEntity GetByRowId( Guid rowId, bool returnNullIfNotFound = false )
+		{
+			return GetSingleByFilter( m => m.RowId == rowId, returnNullIfNotFound );
+		}
+		//
+
+		public static AppEntity GetById( int id, bool returnNullIfNotFound = false )
+		{
+			return GetSingleByFilter( m => m.Id == id, returnNullIfNotFound );
+		}
+		//
+
+		public static AppEntity GetByCTID( string ctid, bool returnNullIfNotFound = false )
+		{
+			return GetSingleByFilter( m => m.CTID.ToLower() == ctid?.ToLower(), returnNullIfNotFound );
+		}
+		//
+
+		public static SearchResultSet<AppEntity> Search( SearchQuery query )
+		{
+			return HandleSearch<DBEntity, AppEntity>( query, context =>
+			{
+				//Start query
+				var list = context.CourseContext.AsQueryable();
+				var keywords = GetSanitizedSearchFilterKeywords( query );
+
+				//Handle keywords
+				if ( !string.IsNullOrWhiteSpace( keywords ) )
+				{
+					list = list.Where( m =>
+						m.Course.CodedNotation.Contains( keywords ) ||
+						m.Course.Name.Contains( keywords ) ||
+						m.TrainingTask.Description.Contains( keywords )
+					);
+				}
+
+				//Return ordered list
+				return HandleSort( list, query.SortOrder, m => m.Course.Name, m => m.OrderBy( n => n.Course.Name ) );
+
+			}, MapFromDBForSearch );
+		}
+		//
+
+		//Should only ever be one Course Context that has a specific combination of coded notation and training task text
+		public static AppEntity GetForUploadOrNull( Guid courseRowID, Guid trainingTaskRowID )
+		{
+			using ( var context = new DataEntities() )
+			{
+				var match = context.CourseContext.FirstOrDefault( m =>
+					m.Course.RowId == courseRowID &&
+					m.TrainingTask.RowId == trainingTaskRowID
+				);
+
+				if ( match != null )
+				{
+					return MapFromDB( match, context );
+				}
+			}
+
+			return null;
+		}
+		//
+
+		public static AppEntity MapFromDB( DBEntity input, DataEntities context )
+		{
+			return MapFromDBForSearch( input, context, null );
+		}
+		//
+
+		public static AppEntity MapFromDBForSearch( DBEntity input, DataEntities context, SearchResultSet<AppEntity> resultSet = null )
+        {
+            var output = AutoMap( input, new AppEntity() );
+			output.HasTrainingTask = input.TrainingTask?.RowId ?? Guid.Empty;
+			output.HasCourse = input.Course?.RowId ?? Guid.Empty;
+			output.AssessmentMethodType = input.CourseContext_AssessmentType?.Select( m => m.ConceptScheme_Concept ).Select( m => m.RowId ).ToList() ?? new List<Guid>();
+
+			return output;
+		}
 
         #endregion
 
@@ -400,7 +427,7 @@ namespace Factories
                             }
                             if ( doingAdd )
                             {
-                                var concept = ConceptSchemeManager.GetConcept( child );
+                                var concept = ConceptManager.GetByRowId( child );
                                 if ( concept?.Id > 0 )
                                 {
                                     efEntity.CourseContextId = entity.Id;

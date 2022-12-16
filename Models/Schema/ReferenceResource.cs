@@ -47,7 +47,7 @@ namespace Models.Schema
 
 		/// <summary>
 		/// Publication Date for this Reference Resource<br />
-		/// From Column: Date of Source
+		/// From Column: Date of Source<br />
 		/// 22-03-23 mparsons - no longer convert to date format, retain original
 		/// </summary>
 		public string PublicationDate { get; set; }
@@ -65,16 +65,26 @@ namespace Models.Schema
 		public List<Guid> ReferenceType { get; set; }
 
 		/// <summary>
-		/// GUID for the Concept for the Status Type for this Reference Resource<br />
-		/// From Column: TBD
+		/// List of IDs for the Concepts for the Reference Types for this Reference Resource<br />
+		/// From Column: Work Element Type
 		/// </summary>
+		public List<int> ReferenceTypeId { get; set; }
+
+		/// <summary>
+		/// GUID for the Concept for the Status Type for this Reference Resource<br />
+		/// From Column: TBD<br />
+		/// Obsolete: Does not appear to be necessary(?)
+		/// </summary>
+		[Obsolete]
 		public Guid StatusType { get; set; }
 
-
-		//maybe needed for import
-		//Derived
+		/// <summary>
+		/// Maybe needed for import<br />
+		/// Derived<br />
+		/// Obsolete: Does not appear to be necessary(?)
+		/// </summary>
+		[Obsolete]
 		public string StatusTypeId { get; set; }
-		//will not be used later as ReferenceType is a list. Using for initial playing.
-		public string ReferenceTypeId { get; set; }
+
 	}
 }
