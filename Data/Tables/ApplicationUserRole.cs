@@ -18,7 +18,7 @@ namespace Data.Tables
         public int RoleId { get; set; }
         public Nullable<System.DateTime> Created { get; set; }
     
-        public virtual ApplicationRole ApplicationRole { get; set; }
         public virtual Account Account { get; set; }
+        public virtual ApplicationRole ApplicationRole { get; set; }
     }
 }

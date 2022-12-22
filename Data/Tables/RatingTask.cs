@@ -17,6 +17,7 @@ namespace Data.Tables
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2214:DoNotCallOverridableMethodsInConstructors")]
         public RatingTask()
         {
+            this.ClusterAnalysis = new HashSet<ClusterAnalysis>();
             this.RatingContext = new HashSet<RatingContext>();
         }
     
@@ -29,7 +30,11 @@ namespace Data.Tables
         public Nullable<int> CreatedById { get; set; }
         public System.DateTime LastUpdated { get; set; }
         public Nullable<int> LastUpdatedById { get; set; }
+        public int ReferenceTypeId { get; set; }
     
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<ClusterAnalysis> ClusterAnalysis { get; set; }
+        public virtual ConceptScheme_Concept ConceptScheme_Concept { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<RatingContext> RatingContext { get; set; }
         public virtual ReferenceResource ReferenceResource { get; set; }

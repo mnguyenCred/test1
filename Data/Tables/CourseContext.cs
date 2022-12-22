@@ -18,6 +18,7 @@ namespace Data.Tables
         public CourseContext()
         {
             this.CourseContext_AssessmentType = new HashSet<CourseContext_AssessmentType>();
+            this.RatingContext = new HashSet<RatingContext>();
         }
     
         public int Id { get; set; }
@@ -28,10 +29,13 @@ namespace Data.Tables
         public Nullable<int> CreatedById { get; set; }
         public System.DateTime LastUpdated { get; set; }
         public Nullable<int> LastUpdatedById { get; set; }
+        public string CTID { get; set; }
     
         public virtual Course Course { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<CourseContext_AssessmentType> CourseContext_AssessmentType { get; set; }
         public virtual TrainingTask TrainingTask { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<RatingContext> RatingContext { get; set; }
     }
 }

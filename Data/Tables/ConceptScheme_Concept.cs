@@ -21,6 +21,7 @@ namespace Data.Tables
             this.ClusterAnalysis1 = new HashSet<ClusterAnalysis>();
             this.ClusterAnalysis2 = new HashSet<ClusterAnalysis>();
             this.ClusterAnalysis3 = new HashSet<ClusterAnalysis>();
+            this.ClusterAnalysis4 = new HashSet<ClusterAnalysis>();
             this.ClusterAnalysis_HasCandidatePlatform = new HashSet<ClusterAnalysis_HasCandidatePlatform>();
             this.CourseContext_AssessmentType = new HashSet<CourseContext_AssessmentType>();
             this.Course_CourseType = new HashSet<Course_CourseType>();
@@ -28,6 +29,8 @@ namespace Data.Tables
             this.RatingContext = new HashSet<RatingContext>();
             this.RatingContext1 = new HashSet<RatingContext>();
             this.RatingContext2 = new HashSet<RatingContext>();
+            this.RatingContext3 = new HashSet<RatingContext>();
+            this.RatingTask = new HashSet<RatingTask>();
             this.ReferenceResource_ReferenceType = new HashSet<ReferenceResource_ReferenceType>();
         }
     
@@ -46,6 +49,7 @@ namespace Data.Tables
         public Nullable<int> CreatedById { get; set; }
         public System.DateTime LastUpdated { get; set; }
         public Nullable<int> LastUpdatedById { get; set; }
+        public Nullable<int> BroadMatchId { get; set; }
     
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<ClusterAnalysis> ClusterAnalysis { get; set; }
@@ -55,6 +59,8 @@ namespace Data.Tables
         public virtual ICollection<ClusterAnalysis> ClusterAnalysis2 { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<ClusterAnalysis> ClusterAnalysis3 { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<ClusterAnalysis> ClusterAnalysis4 { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<ClusterAnalysis_HasCandidatePlatform> ClusterAnalysis_HasCandidatePlatform { get; set; }
         public virtual ConceptScheme ConceptScheme { get; set; }
@@ -70,6 +76,10 @@ namespace Data.Tables
         public virtual ICollection<RatingContext> RatingContext1 { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<RatingContext> RatingContext2 { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<RatingContext> RatingContext3 { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<RatingTask> RatingTask { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<ReferenceResource_ReferenceType> ReferenceResource_ReferenceType { get; set; }
     }

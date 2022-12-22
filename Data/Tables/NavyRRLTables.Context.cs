@@ -25,9 +25,7 @@ namespace Data.Tables
             throw new UnintentionalCodeFirstException();
         }
     
-        public virtual DbSet<ClusterAnalysis> ClusterAnalysis { get; set; }
-        public virtual DbSet<ClusterAnalysis_HasCandidatePlatform> ClusterAnalysis_HasCandidatePlatform { get; set; }
-        public virtual DbSet<ClusterAnalysisTitle> ClusterAnalysisTitle { get; set; }
+        public virtual DbSet<Account> Account { get; set; }
         public virtual DbSet<ActivityLog> ActivityLog { get; set; }
         public virtual DbSet<AppFunctionPermission> AppFunctionPermission { get; set; }
         public virtual DbSet<ApplicationFunction> ApplicationFunction { get; set; }
@@ -36,10 +34,11 @@ namespace Data.Tables
         public virtual DbSet<AspNetRoles> AspNetRoles { get; set; }
         public virtual DbSet<AspNetUserRoles> AspNetUserRoles { get; set; }
         public virtual DbSet<AspNetUsers> AspNetUsers { get; set; }
+        public virtual DbSet<ClusterAnalysis> ClusterAnalysis { get; set; }
+        public virtual DbSet<ClusterAnalysis_HasCandidatePlatform> ClusterAnalysis_HasCandidatePlatform { get; set; }
+        public virtual DbSet<ClusterAnalysisTitle> ClusterAnalysisTitle { get; set; }
         public virtual DbSet<ConceptScheme> ConceptScheme { get; set; }
         public virtual DbSet<ConceptScheme_Concept> ConceptScheme_Concept { get; set; }
-        public virtual DbSet<Account> Account { get; set; }
-        public virtual DbSet<Comment> Comment { get; set; }
         public virtual DbSet<Course> Course { get; set; }
         public virtual DbSet<Course_CourseType> Course_CourseType { get; set; }
         public virtual DbSet<CourseContext> CourseContext { get; set; }
@@ -48,6 +47,7 @@ namespace Data.Tables
         public virtual DbSet<Job> Job { get; set; }
         public virtual DbSet<Organization> Organization { get; set; }
         public virtual DbSet<Rating> Rating { get; set; }
+        public virtual DbSet<Comment> Comment { get; set; }
         public virtual DbSet<RatingContext> RatingContext { get; set; }
         public virtual DbSet<RatingTask> RatingTask { get; set; }
         public virtual DbSet<ReferenceResource> ReferenceResource { get; set; }
