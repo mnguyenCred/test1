@@ -36,10 +36,10 @@ namespace Data.Tables
         public byte[] RowVersion { get; set; }
     
         public virtual ConceptScheme_Concept ConceptScheme_Concept { get; set; }
-        public virtual Organization Organization { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<CourseContext> CourseContext { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<Course_CourseType> Course_CourseType { get; set; }
+        public virtual Organization Organization { get; set; }
     }
 }

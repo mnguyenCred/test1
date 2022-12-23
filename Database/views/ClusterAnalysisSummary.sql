@@ -1,5 +1,4 @@
-USE [NavyRRL]
-GO
+
 USE Navy_RRL_V2
 GO
 /****** Object:  View [dbo].[ClusterAnalysisSummary]    Script Date: 4/9/2022 11:24:13 AM ******/
@@ -11,24 +10,26 @@ GO
 
 
 /*
-USE [NavyRRL]
+USE [Navy_RRL_V2]
 GO
 
 SELECT [Id]
       ,[RowId]
+      ,[RatingContextId]
       ,[RatingTaskId]
       ,[TrainingSolutionTypeId]
       ,[TrainingSolutionType]
       ,[ClusterAnalysisTitle]
-      ,[RecommendedModalityId]
-      ,[RecommentedModality]
+      ,[RecommendedModalityTypeId]
+      ,[RecommendedModality]
       ,[RecommentedModalityCodedNotation]
-      ,[DevelopmentSpecificationId]
+      ,[DevelopmentSpecificationTypeId]
       ,[DevelopmentSpecification]
-      ,[tempDevelopmentSpecification]
       ,[CandidatePlatform]
+      ,[CFMPlacementTypeId]
       ,[CFMPlacement]
       ,[PriorityPlacement]
+      ,[DevelopmentRatioTypeId]
       ,[DevelopmentRatio]
       ,[EstimatedInstructionalTime]
       ,[DevelopmentTime]
@@ -38,9 +39,10 @@ SELECT [Id]
       ,[LastUpdated]
       ,[LastUpdatedById]
   FROM [dbo].[ClusterAnalysisSummary]
-  order by TrainingSolutionType
-  ,ClusterAnalysisTitle
+
 GO
+
+
 
 
 
@@ -61,12 +63,12 @@ SELECT  base.[Id]
       
       ,cat.Name as [ClusterAnalysisTitle]
 
-      ,base.[RecommendedModalityId]
+      ,base.RecommendedModalityTypeId
 	  ,rm.Name as RecommendedModality
 	  ,rm.CodedNotation as RecommentedModalityCodedNotation
 	--	,base.[RecommendedModality]	 as tempRecommendedModality
       
-      ,base.[DevelopmentSpecificationId]
+      ,base.DevelopmentSpecificationTypeId
 	  ,devSpc.Name as DevelopmentSpecification
 
       --,base.[CandidatePlatform]
@@ -75,10 +77,15 @@ SELECT  base.[Id]
 		WHEN len(CandidatePlatformTypes) = 0 THEN ''
 		ELSE left(CandidatePlatformTypes,len(CandidatePlatformTypes)-1)
 		END AS CandidatePlatform
-      ,base.[CFMPlacementId]
+
+      ,base.CFMPlacementTypeId
 	  ,cfmSpc.Name as[CFMPlacement]
+
 	  ,base.[PriorityPlacement]
-      ,base.[DevelopmentRatio]
+
+      ,base.DevelopmentRatioTypeId
+	  ,devRatio.Name as DevelopmentRatio
+
       ,base.[EstimatedInstructionalTime]
       ,base.[DevelopmentTime]
 
@@ -90,11 +97,13 @@ SELECT  base.[Id]
 
   FROM [dbo].[ClusterAnalysis] base 
   inner join RatingContext rc on base.Id = rc.ClusterAnalysisId
-  inner join ClusterAnalysisTitle cat on base.ClusterAnalysisTitleId = cat.Id
+  inner join ClusterAnalysisTitle cat on base.HasClusterAnalysisTitleId = cat.Id
 Left join [ConceptScheme.Concept] tst on base.[TrainingSolutionTypeId] = tst.Id
-Left join [ConceptScheme.Concept] rm on base.[RecommendedModalityId] = rm.Id
-Left join [ConceptScheme.Concept] devSpc on base.[DevelopmentSpecificationId] = devSpc.Id
-Left join [ConceptScheme.Concept] cfmSpc on base.CFMPlacementId = cfmSpc.Id
+Left join [ConceptScheme.Concept] rm on base.RecommendedModalityTypeId = rm.Id
+Left join [ConceptScheme.Concept] devSpc on base.DevelopmentSpecificationTypeId = devSpc.Id
+Left join [ConceptScheme.Concept] cfmSpc on base.CFMPlacementTypeId = cfmSpc.Id
+Left join [ConceptScheme.Concept] devRatio on base.DevelopmentRatioTypeId = devRatio.Id
+
 
     CROSS APPLY (
     SELECT distinct d.Name + '/'

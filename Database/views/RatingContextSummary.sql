@@ -162,13 +162,9 @@ SELECT
 	--,a.[FunctionalAreaId]
 	--, isnull(b.name,'missing') As FunctionalArea
 	--,b.RowId as FunctionalAreaUID
-	,CASE
-		WHEN WorkRoles IS NULL THEN ''
-		WHEN len(WorkRoles) = 0 THEN ''
-		ELSE left(WorkRoles,len(WorkRoles)-1)
-		END AS FunctionalArea
-	--		SOURCE
-	--,a.[SourceId]
+	,a.WorkRoleId
+	,workRole.RowId as FunctionalArea
+
 
 	,c.PublicationDate as SourceDate
 	,c.RowId as HasReferenceResource
@@ -212,24 +208,32 @@ SELECT
 		,h.LifeCycleControlDocument
 		*/
 	--or used the view
-		,g.CourseId, g.CourseUID
-		,g.CodedNotation as CIN
-		,g.CourseName
+		,ccs.[HasCourseId]
+		,ccs.CourseRowId
+		,ccs.CIN		
+		,ccs.Course
+
+		,ccs.LifeCycleControlDocumentTypeId
+		,ccs.LifeCycleControlDocument
+		,ccs.LifeCycleControlDocumentUID
+		--
+		,ccs.CurriculumControlAuthority
+		,ccs.CurriculumControlAuthorityId
+		,ccs.CurriculumControlAuthorityUID
+
+		,ccs.OrganizationCTID
+
 		--can be multiple
-		,g.CourseTypes
-		,a.TrainingTaskId
-		--,a.TrainingTaskId
-		,g.TrainingTask
-		,g.TrainingTaskUID as HasTrainingTask
+		,ccs.CourseTypes
+		,ccs.HasTrainingTaskId
+
+		,ccs.TrainingTask
+		,ccs.TrainingTaskRowId
 		--can be multiple
-		,g.CurrentAssessmentApproach
-		,g.CurrentAssessmentApproach as AssessmentMethodTypes
-		--22-01-24-yes single 
-		,g.CurriculumControlAuthority
-		,g.CurriculumControlAuthorityId
-		,g.CurriculumControlAuthorityUID
-		--comfirm if can be multiple
-		,g.LifeCycleControlDocument
+		,ccs.AssessmentMethodTypes
+
+
+
 
 	,a.Notes
 	--====================== Part III ====================== 
@@ -238,16 +242,18 @@ SELECT
       
 	,cas.[ClusterAnalysisTitle]
 
-	,cas.[RecommendedModalityId]
-	,cas.RecommendedModality RecommendedModality
+	,cas.RecommendedModalityTypeId
+	,cas.RecommendedModality
 	,cas.RecommentedModalityCodedNotation
       
-	,cas.[DevelopmentSpecificationId]
+	,cas.DevelopmentSpecificationTypeId
 	,cas.DevelopmentSpecification
 
 	,cas.[CandidatePlatform]
+	,cas.CFMPlacementTypeId
 	,cas.[CFMPlacement]
 	,cas.[PriorityPlacement]
+	,cas.DevelopmentRatioTypeId
 	,cas.[DevelopmentRatio]
 	,cas.[EstimatedInstructionalTime]
 	,cas.[DevelopmentTime]
@@ -272,19 +278,17 @@ SELECT
 	left join [ConceptScheme.Concept]	c1 on a.PayGradeTypeId = c1.Id
 	--Level ?TBD
 	--left join [ConceptScheme.Concept]	c2 on a.[LevelId] = c2.Id
---left join WorkRole					b on a.FunctionalAreaId = b.Id
---left join FunctionalArea			b on a.FunctionalAreaId = b.Id
-left join ReferenceResource			c on rt.ReferenceResourceId = c.Id
---WorkElementType	
-  inner join  [ReferenceResource.ReferenceType] wet on c.id = wet.ReferenceResourceId
-  inner join [ConceptScheme.Concept] wetc on wet.ReferenceTypeId = wetc.id 
+	left join WorkRole					workRole on a.WorkRoleId = workRole.Id
+
+	left join ReferenceResource			c on rt.ReferenceResourceId = c.Id
+	--WorkElementType	
+	inner join  [ReferenceResource.ReferenceType] wet on c.id = wet.ReferenceResourceId
+	inner join [ConceptScheme.Concept] wetc on wet.ReferenceTypeId = wetc.id 
 
 
 left join [ConceptScheme.Concept]	e on a.TaskApplicabilityId = e.Id
 left join [ConceptScheme.Concept]	f on a.FormalTrainingGapId = f.Id
---TrainingTask. 22-03-28 - can now (even eventually) be multiple
-Left Join [TrainingTask] htt on a.TrainingTaskId = htt.Id
-Left Join TrainingTaskSummary		g on a.TrainingTaskId = g.TrainingTaskId
+left join CourseContextSummary	ccs on a.CourseContextId = ccs.Id
 
 ---=========================================
   Left Join Account_Summary ac on a.CreatedById = ac.Id
@@ -292,14 +296,15 @@ Left Join TrainingTaskSummary		g on a.TrainingTaskId = g.TrainingTaskId
   --
   left Join [ClusterAnalysisSummary] cas on a.Id = cas.ratingTaskId
 
-    CROSS APPLY (
-	SELECT distinct d.Name + ' |'
-    FROM dbo.RatingContext  rt
-		Inner join [dbo].[RatingContext.WorkRole]	rcwr on rt.Id = rcwr.RatingContextId
-		inner join WorkRole d on rcwr.WorkRoleId = d.Id 
-    WHERE  a.Id = rt.Id
-    FOR XML Path('') 
-) WR (WorkRoles)
+  --apparantly single again
+--    CROSS APPLY (
+--	SELECT distinct d.Name + ' |'
+--    FROM dbo.RatingContext  rt
+--		Inner join [dbo].[RatingContext.WorkRole]	rcwr on rt.Id = rcwr.RatingContextId
+--		inner join WorkRole d on rcwr.WorkRoleId = d.Id 
+--    WHERE  a.Id = rt.Id
+--    FOR XML Path('') 
+--) WR (WorkRoles)
 go
 
 grant select on RatingContextSummary to public

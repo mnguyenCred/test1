@@ -24,8 +24,6 @@ namespace Data.Tables
             this.RatingContext = new HashSet<RatingContext>();
             this.RatingContext1 = new HashSet<RatingContext>();
             this.RatingContext2 = new HashSet<RatingContext>();
-            this.RatingContext3 = new HashSet<RatingContext>();
-            this.RatingTask = new HashSet<RatingTask>();
             this.ReferenceResource_ReferenceType = new HashSet<ReferenceResource_ReferenceType>();
             this.RatingContext11 = new HashSet<RatingContext>();
             this.ClusterAnalysis = new HashSet<ClusterAnalysis>();
@@ -67,10 +65,6 @@ namespace Data.Tables
         public virtual ICollection<RatingContext> RatingContext1 { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<RatingContext> RatingContext2 { get; set; }
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<RatingContext> RatingContext3 { get; set; }
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<RatingTask> RatingTask { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<ReferenceResource_ReferenceType> ReferenceResource_ReferenceType { get; set; }
         public virtual ConceptScheme ConceptScheme { get; set; }

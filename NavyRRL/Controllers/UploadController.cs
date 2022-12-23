@@ -115,7 +115,7 @@ namespace NavyRRL.Controllers
 
 					if ( rawCSV.Length > 300000 )
 					{
-						new Factories.BaseFactory().BulkLoadRMTL( currentRating.CodedNotation, rawCSV );
+						//new Factories.BaseFactory().BulkLoadRMTL( currentRating.CodedNotation, rawCSV );
 					}
 				}
 			}
