@@ -1,0 +1,81 @@
+﻿@using Models.Schema;
+@using Models.Search;
+@using Models.DTO;
+@model CourseContext
+@{ 
+	ViewBag.Title = "Course Context: " + Model.CTID;
+	//var trainingTaskData = Factories.TrainingTaskManager.GetByRowId( Model.HasTrainingTask, false );
+}
+
+@Html.Partial( "~/Views/Shared/_DetailShared.cshtml" )
+@Html.Partial( "~/Views/Shared/_DetailBasicInfo.cshtml", new DetailBasicInfoHelper( Model )
+{
+	TypeLabel = "Course Context",
+	Name = "Course Context",
+	PropertyList = new List<NamedString>()
+	{
+		new NamedString( "Related Course", LinkHelper.GetDetailPageLink( Factories.CourseManager.GetByRowId( Model.HasCourse ), Url.Content, m => m.Name + " (" + m.CodedNotation + ")" ) ),
+		//new NamedString( "Related Training Task", trainingTaskData.Description + " " + LinkHelper.GetDetailPageLink( Factories.TrainingTaskManager.GetByRowId( Model.HasTrainingTask ), Url.Content, m => "(Details)" ) ),
+		new NamedString( "Related Training Task", LinkHelper.GetDetailPageLink( Factories.TrainingTaskManager.GetByRowId( Model.HasTrainingTask, false ), Url.Content, m => m.Description ) ),
+		new NamedString( "Assessment Method Type(s)", LinkHelper.GetDetailPageLinkList( Factories.ConceptManager.GetMultiple( Model.AssessmentMethodType ), Url.Content, m => m.Name, "<ul><li>", "</li><li>", "</li></ul>" ) )
+	}
+} )
+
+@* //Probably not useful
+@Html.Partial( "~/Views/Search/_ItemListSearch.cshtml" )
+<script type="text/javascript">
+	var ItemListConfigs = {
+		CommonFilters: [
+			{ Name: "> CourseContextId > CourseContext", ItemIds: [ @Model.Id ] }
+		],
+		Searches: {
+			TrainingTasks: {
+				Header: "Training Tasks",
+				SearchType: "RatingContext",
+				StyleType: "TrainingTask",
+				Fields: [
+					{ Label: "Rating", RenderPath: ["HasRating|Rating", "CodedNotation|Rating"] },
+					{ Label: "CTTL/PPP/TCCD Statement", RenderPath: [ "HasCourseContext|CourseContext", "HasTrainingTask|TrainingTask", "Description|TrainingTask" ] },
+					{ Label: "Assessment Approach", RenderPath: [ "HasCourseContext|CourseContext", "AssessmentMethodType|Concept", "Name|Concept" ] },
+				]
+			},
+			RatingTasks: {
+				Header: "Rating Tasks",
+				SearchType: "RatingContext",
+				StyleType: "RatingTask",
+				Fields: [
+					{ Label: "Rating", RenderPath: ["HasRating|Rating", "CodedNotation|Rating"] },
+					{ Label: "Description", RenderPath: ["HasRatingTask|RatingTask", "Description|RatingTask"] },
+					{ Label: "Training Gap Type", RenderPath: ["TrainingGapType|Concept", "Name|Concept"] },
+				]
+			}
+		}
+	};
+	//
+
+	$(document).ready(function () {
+		ItemListSearches.setupItemLists(ItemListConfigs);
+	});
+	//
+</script>
+<style type="text/css">
+	table[data-styletype='TrainingTask'] [data-column='Rating'] { width: 75px; }
+	table[data-styletype='TrainingTask'] [data-column='Assessment Approach'] { width: 200px; }
+	table[data-styletype='TrainingTask'] [data-column='Assessment Approach'] a { display: block; }
+	table[data-styletype='RatingTask'] [data-column='Rating'] { width: 75px; }
+	table[data-styletype='RatingTask'] [data-column='Training Gap Type'] { width: 150px; }
+</style>
+
+<item-list-search name="TrainingTasks"></item-list-search>
+
+@Html.Partial( "~/Views/Shared/_RatingTaskCountBySourceTypeTable.cshtml", new List<SearchFilter>()
+{
+	new SearchFilter()
+	{
+		Name = "> CourseContextId > CourseContext",
+		ItemIds = new List<int>(){ Model.Id }
+	}
+} )
+
+<item-list-search name="RatingTasks"></item-list-search>
+*@

@@ -1,6 +1,8 @@
 ﻿<script type="text/javascript">
 	//Namespace
 	var AJAX = {
+		RequestQueueMaxLength: 25,
+		RequestQueue: [],
 		Cache: []
 	};
 
@@ -22,27 +24,51 @@
 
 	//Do a generic Fetch and process the results
 	AJAX.doFetch = function (url, onSuccess, onError, options) {
-		fetch(url, options).then(response => {
-			response.text().then(value => {
-				if (response.ok) {
-					try {
-						onSuccess(JSON.parse(value));
+		//Enable queueing requests so as not to overload the server
+		var Request = {};
+		Request.Status = "waiting";
+		Request.run = function () {
+			fetch(url, options).then(response => {
+				response.text().then(value => {
+					if (response.ok) {
+						try {
+							onSuccess(JSON.parse(value));
+						}
+						catch (e) {
+							onError?.(buildError("JSON Parse Error", "Error parsing JSON", value, onSuccess, e));
+						}
 					}
-					catch (e) {
-						onError?.(buildError("JSON Parse Error", "Error parsing JSON", value, onSuccess, e));
+					else {
+						onError?.(buildError("Fetch Error", "Error Code " + response.status + (response.statusText ? ": " + response.statusText : ""), value, onSuccess, null));
 					}
-				}
-				else {
-					onError?.(buildError("Fetch Error", "Error Code " + response.status + (response.statusText ? ": " + response.statusText : ""), value, onSuccess, null));
-				}
+					processRequestQueue(Request);
+				});
+			}).catch(networkError => {
+				onError?.(buildError("Network Error", "Failed to call resource: " + url, null, onSuccess, networkError));
+				processRequestQueue();
 			});
-		}).catch(networkError => {
-			onError?.(buildError("Network Error", "Failed to call resource: " + url, null, onSuccess, networkError));
-		});
+		};
+		AJAX.RequestQueue.push(Request);
+		processRequestQueue();
 
 		//Helper function
 		function buildError(type, message, rawData, successFunction, jsError) {
 			return { Type: type, Message: message, RawData: rawData, SuccessFunction: successFunction, JSError: jsError };
+		}
+
+		//Helper function
+		function processRequestQueue(Request) {
+			setTimeout(function () {
+				if (Request) {
+					AJAX.RequestQueue = AJAX.RequestQueue.filter(OtherRequest => OtherRequest != Request);
+				}
+				for (var i = 0; i < AJAX.RequestQueueMaxLength; i++) {
+					if (AJAX.RequestQueue[i]?.Status == "waiting") {
+						AJAX.RequestQueue[i].Status = "running";
+						AJAX.RequestQueue[i].run();
+					}
+				}
+			}, 0);
 		}
 	}
 	//
@@ -67,20 +93,24 @@
 		//If there's no request at all, create/inject one and do the AJAX request. When the request finishes, run the handlers it has accumulated by that point, and clear them out.
 		else {
 			Request = AJAX.appendToCache(url);
-			AJAX.doGETRequest(url, data => {
-				processHandlers(Request, data, "Data", "SuccessHandlers");
-			}, error => {
-				processHandlers(Request, error, "Error", "ErrorHandlers");
+			Request.SuccessHandlers.push(onSuccess);
+			Request.ErrorHandlers.push(onError);
+			AJAX.doGETRequest(url, response => {
+				Request.Data = response.Data;
+				processHandlers(Request, Request.Data, Request.SuccessHandlers);
+			}, Error => {
+				Request.Error = Error;
+				processHandlers(Request, Request.Error, Request.ErrorHandlers);
 			});
 		}
 
 		//Helper function to process handlers
-		function processHandlers(Request, dataOrError, holderName, handlerListName) {
-			Request[holderName] = dataOrError;
-			Request[handlerListName].forEach(handler => {
-				handler?.(dataOrError);
+		function processHandlers(Request, DataOrError, Handlers) {
+			Handlers.forEach(handler => {
+				handler?.(DataOrError);
 			});
-			Request[handlerListName] = [];
+			Request.SuccessHandlers = [];
+			Request.ErrorHandlers = [];
 		}
 
 		//Helper function to simulate the async nature of requests, so that they are consistently run asynchronously

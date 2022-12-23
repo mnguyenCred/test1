@@ -12,6 +12,7 @@ using Models.Curation;
 
 namespace NavyRRL.Controllers
 {
+	[SessionState( System.Web.SessionState.SessionStateBehavior.ReadOnly )]
 	public class RatingContextController : BaseController
 	{
 		public ActionResult Search()
@@ -32,16 +33,25 @@ namespace NavyRRL.Controllers
 		public ActionResult Detail( int id )
 		{
 			AuthenticateOrRedirect( "You must be authenticated and authorized to view Rating Context data." );
-			var data = Factories.RatingContextManager.Get( id, true );
+			var data = Factories.RatingContextManager.GetById( id );
 
 			return View( data );
+		}
+		//
+
+		[CustomAttributes.NavyAuthorize( "Rating Context View", Roles = SiteReader )]
+		public ActionResult GetByRowId( Guid id )
+		{
+			AuthenticateOrRedirect( "You must be authenticated and authorized to view Rating Context data." );
+			var data = Factories.RatingContextManager.GetByRowId( id, true );
+			return JsonResponse( data, data != null );
 		}
 		//
 
 		public ActionResult JSON( int id )
 		{
 			AuthenticateOrRedirect( "You must be authenticated and authorized to view Rating Context data." );
-			var data = Factories.RatingContextManager.Get( id, true );
+			var data = Factories.RatingContextManager.GetById( id );
 			var converted = RDFServices.GetRDF( data );
 
 			return RawJSONResponse( converted );
@@ -57,12 +67,7 @@ namespace NavyRRL.Controllers
 				RedirectToAction( "NotAuthenticated", "Event" );
 			}
 
-			var data = new RatingContext(); //Should get by ID or default to new (to enable new rating contexts to be created)
-			if ( id > 0 )
-			{
-				data = Factories.RatingContextManager.Get( id, true );
-			}
-
+			var data = Factories.RatingContextManager.GetById( id );
 			return View( data );
 		}
 		//
@@ -75,25 +80,9 @@ namespace NavyRRL.Controllers
 				return JsonResponse( null, false, new List<string>() { "You must be authenticated and authorized to edit Rating Context data." }, null );
 			}
 
-			var user = AccountServices.GetCurrentUser();
-			ChangeSummary status = new ChangeSummary()
-			{
-				Action = "Edit"
-			};
-			data.LastUpdatedById = user.Id;
-			var results = new Factories.RatingContextManager().Save( data, ref status, false );
-			if ( status.HasAnyErrors )
-			{
-				var msg = string.Join( "</br>", status.Messages.Error.ToArray() );
-				ConsoleMessageHelper.SetConsoleErrorMessage( "Saved changes successfully." );
-			}
-			else
-			{
-				//On success
-				ConsoleMessageHelper.SetConsoleSuccessMessage( "Saved changes successfully." );
-			}
-
-			return JsonResponse( data, true, null, null );
+			var errors = new List<string>();
+			Factories.RatingContextManager.SaveFromEditor( data, AccountServices.GetCurrentUser().Id, errors );
+			return JsonResponse( data, errors.Count() == 0, errors );
 		}
 		//
 

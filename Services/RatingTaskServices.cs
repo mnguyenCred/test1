@@ -266,8 +266,8 @@ namespace Services
 			var sortOrder = string.Join( ", ", data.SortOrder.Select( m => "base.[" + m.Column + "]" + ( m.Ascending ? "" : " DESC" ) ).ToList() );
 
 			//Do the search
-            List<EntitySummary> list = RatingTaskManager.RMTLSearch( where, sortOrder, data.PageNumber, data.PageSize, userId , ref totalRows);
-            data.TotalResults = totalRows;
+            List<EntitySummary> list = RatingTaskManager.RMTLSearch( where, sortOrder, (data.Skip + 1) * data.Take, data.Take, userId , ref totalRows);
+            //data.TotalResults = totalRows;
 
             //stopwatch.Stop();
             //timeDifference = start.Subtract( DateTime.Now );

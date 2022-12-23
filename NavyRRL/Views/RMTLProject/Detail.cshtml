@@ -6,17 +6,14 @@
 }
 
 @Html.Partial( "~/Views/Shared/_DetailShared.cshtml" )
-@Html.Partial( "~/Views/Shared/_DetailBasicInfo.cshtml", new DetailBasicInfoHelper()
+@Html.Partial( "~/Views/Shared/_DetailBasicInfo.cshtml", new DetailBasicInfoHelper( Model )
 {
 	TypeLabel = "RMTL Project",
-	TypeURL = Model.GetType().Name.ToLower(),
-	Id = Model.Id,
-	CTID = Model.CTID,
 	Name = Model.Name,
-	Description = Model.Description,
-	Identifiers = new List<NamedString>()
+	PropertyList = new List<NamedString>()
 	{
 		new NamedString( "System ID", Model.Id.ToString() ),
-		new NamedString( "CTID", Model.CTID )
+		new NamedString( "Description", Model.Description )
 	}
 } )
+

@@ -1,55 +1,44 @@
 ﻿@using Models.Schema;
+@using Models.Search;
 @using Models.DTO;
 @model ClusterAnalysis
 @{
 	ViewBag.Title = "Cluster Analysis: " + Model.ClusterAnalysisTitle;
-	var ratingTask = Factories.RatingTaskManager.Get( Model.RatingTaskId, false );
+	//var ratingTask = Factories.RatingTaskManager.GetByRowId( Model.HasRatingTask, false );
+}
+@functions {
+	string GetConceptLink( Guid conceptRowID )
+	{
+		return LinkHelper.GetDetailPageLink( Factories.ConceptManager.GetByRowId( conceptRowID ), Url.Content, concept => concept.Name );
+	}
+	string GetConceptLinkList( List<Guid> conceptRowIDs )
+	{
+		return LinkHelper.GetDetailPageLinkList( Factories.ConceptManager.GetMultiple( conceptRowIDs ), Url.Content, concept => concept.Name, "<ul><li>", "</li><li>", "</li></ul>" );
+	}
 }
 
 @Html.Partial( "~/Views/Shared/_DetailShared.cshtml" )
-@Html.Partial( "~/Views/Shared/_DetailBasicInfo.cshtml", new DetailBasicInfoHelper()
+@Html.Partial( "~/Views/Shared/_DetailBasicInfo.cshtml", new DetailBasicInfoHelper( Model )
 {
 	TypeLabel = "Cluster Analysis",
-	TypeURL = Model.GetType().Name.ToLower(),
-	Id = Model.Id,
-	CTID = Model.CTID,
-	Name = Model.ClusterAnalysisTitle,
-	Description = Model.RecommendedModality,
-	Identifiers = new List<NamedString>()
+	Name = "Cluster Analysis",
+	PropertyList = new List<NamedString>()
 	{
-		new NamedString( "System ID", Model.Id.ToString() ),
-		new NamedString( "CTID", Model.CTID ),
-		new NamedString( "Training Solution Type", "<a href=\"" + Url.Content( "~/Concept/Detail/" + Model.TrainingSolutionTypeId ) + "\">" + Model.TrainingSolution + "</a>" ),
-		new NamedString( "Recommended Modality", "<a href=\"" + Url.Content( "~/Concept/Detail/" + Model.RecommendedModalityTypeId ) + "\">" + Model.RecommendedModality + "</a>" ),
-		new NamedString( "Development Specification", "<a href=\"" + Url.Content( "~/Concept/Detail/" + Model.DevelopmentSpecificationTypeId ) + "\">" + Model.DevelopmentSpecification + "</a>" ),
-		new NamedString( "Candidate Platform", Model.CandidatePlatform ),
-		new NamedString( "CFM Placement", Model.CFMPlacement ),
-		new NamedString( "Priority Placement", Model.PriorityPlacement.ToString() ),
+		new NamedString( "Cluster Analysis Title", LinkHelper.GetDetailPageLink( Factories.ClusterAnalysisTitleManager.GetByRowId(Model.HasClusterAnalysisTitle), Url.Content, m => m.Name ) ),
+		new NamedString( "Rating", LinkHelper.GetDetailPageLink( Factories.RatingManager.GetByRowId( Model.HasRating ), Url.Content, m => m.Name + " (" + m.CodedNotation + ")" ) ),
+		//new NamedString( "Rating Task", ratingTask.Description + " " + LinkHelper.GetDetailPageLink( ratingTask, Url.Content, m => "(Details)" ) ),
+		new NamedString( "Rating Task", LinkHelper.GetDetailPageLink( Factories.RatingTaskManager.GetByRowId( Model.HasRatingTask, false ), Url.Content, m => m.Description ) ),
+		new NamedString( "Billet Title", LinkHelper.GetDetailPageLink( Factories.JobManager.GetByRowId( Model.HasBilletTitle, false ), Url.Content, m => m.Name ) ),
+		new NamedString( "Work Role", LinkHelper.GetDetailPageLink( Factories.WorkRoleManager.GetByRowId( Model.HasWorkRole, false ), Url.Content, m => m.Name ) ),
+		new NamedString( "Training Solution Type", GetConceptLink( Model.TrainingSolutionType ) ),
+		new NamedString( "Recommended Modality Type", GetConceptLink( Model.RecommendedModalityType ) ),
+		new NamedString( "Development Specification Type", GetConceptLink( Model.DevelopmentSpecificationType ) ),
+		new NamedString( "Candidate Platform Type(s)", GetConceptLinkList( Model.CandidatePlatformType ) ),
+		new NamedString( "CFM Placement Type", GetConceptLink( Model.CFMPlacementType ) ),
 		new NamedString( "Development Ratio", Model.DevelopmentRatio ),
-		new NamedString( "Estimated Instructional Time", Model.EstimatedInstructionalTime?.ToString() ),
+		new NamedString( "Estimated Instructional Time", Model.EstimatedInstructionalTime.ToString() ),
 		new NamedString( "Development Time", Model.DevelopmentTime.ToString() ),
-		new NamedString( "Last Updated ", Model.LastUpdated.ToString("yyyy-MM-dd hh:mm") )
+		new NamedString( "Priority Placement", Model.PriorityPlacement.ToString() ),
 	}
 } )
 
-@if( ratingTask != null )
-{
-	<div class="section ratingTask">
-		<h3 class="sectionHeader">Associated Rating Tasks</h3>
-		<table>
-			<thead>
-				<tr>
-					<th>Description</th>
-				</tr>
-			</thead>
-			<tbody>
-				@foreach( var item in new List<RatingTask>() { ratingTask } ) //This will probably end up being a list someday
-				{
-					<tr>
-						<td><a href="@Url.Content( "~/RatingTask/Detail/" + item.Id )">@item.Description</a></td>
-					</tr>
-				}
-			</tbody>
-		</table>
-	</div>
-}

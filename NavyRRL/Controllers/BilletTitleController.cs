@@ -12,7 +12,8 @@ using Models.Curation;
 
 namespace NavyRRL.Controllers
 {
-    public class BilletTitleController : BaseController
+	[SessionState( System.Web.SessionState.SessionStateBehavior.ReadOnly )]
+	public class BilletTitleController : BaseController
     {
 		public ActionResult Search()
 		{
@@ -32,15 +33,23 @@ namespace NavyRRL.Controllers
 		public ActionResult Detail( int id )
 		{
 			AuthenticateOrRedirect( "You must be authenticated and authorized to view Billet Title data." );
-			var data = Factories.JobManager.Get( id );
+			var data = Factories.JobManager.GetById( id );
 			return View( data );
+		}
+		//
+
+		public ActionResult GetByRowId( Guid id )
+		{
+			AuthenticateOrRedirect( "You must be authenticated and authorized to view Billet Title data." );
+			var data = Factories.JobManager.GetByRowId( id, true );
+			return JsonResponse( data, data != null );
 		}
 		//
 
 		public ActionResult JSON( int id )
 		{
 			AuthenticateOrRedirect( "You must be authenticated and authorized to view Billet Title data." );
-			var data = Factories.JobManager.Get( id );
+			var data = Factories.JobManager.GetById( id );
 			var converted = RDFServices.GetRDF( data );
 			return RawJSONResponse( converted );
 		}
@@ -50,20 +59,17 @@ namespace NavyRRL.Controllers
 		public ActionResult Edit( int id )
 		{
 			AuthenticateOrRedirect( "You must be authenticated and authorized to edit Billet Title data." );
-			if (!AccountServices.IsUserSiteStaff() )
+			if ( !AccountServices.IsUserSiteStaff() )
             {
 				RedirectToAction( "NotAuthenticated", "Event" );
 			}
-			var data = new BilletTitle(); //Should get by ID or default to new (to enable new billet titles to be created)
-			if (id > 0)
-            {
-				data = Factories.JobManager.Get( id );
-			}
+
+			var data = Factories.JobManager.GetById( id );
 			return View( data );
 		}
 		//
 
-		public ActionResult Save( BilletTitleDTO data )
+		public ActionResult Save( BilletTitle data )
 		{
 			//Validate the request
 			if ( !AuthenticateOrFail() )
@@ -71,24 +77,9 @@ namespace NavyRRL.Controllers
 				return JsonResponse( null, false, new List<string>() { "You must be authenticated and authorized to edit Billet Title data." }, null );
 			}
 
-			var user = AccountServices.GetCurrentUser();
-			ChangeSummary status = new ChangeSummary()
-			{
-				Action = "Edit"
-			};
-			data.LastUpdatedById = user.Id;
-			var results = new Factories.JobManager().Save( data, ref status );
-			if ( status.HasAnyErrors )
-			{
-				var msg = string.Join( "</br>", status.Messages.Error.ToArray() );
-				ConsoleMessageHelper.SetConsoleErrorMessage( "Saved changes successfully." );
-			}
-			else
-			{
-				//On success
-				ConsoleMessageHelper.SetConsoleSuccessMessage( "Saved changes successfully." );
-			}
-			return JsonResponse( data, true, null, null );
+			var errors = new List<string>();
+			Factories.JobManager.SaveFromEditor( data, AccountServices.GetCurrentUser().Id, errors );
+			return JsonResponse( data, errors.Count() == 0, errors );
 		}
 		//
 	}

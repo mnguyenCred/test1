@@ -4,43 +4,59 @@
 @model Concept
 @{
 	ViewBag.Title = "Concept: " + Model.Name;
-	var scheme = Factories.ConceptSchemeManager.Get( Model.InScheme );
-	var taskFilter = new List<NamedString>()
-	{
-		new NamedString( Factories.ConceptSchemeManager.ConceptScheme_ReferenceResource, "dummy:DummyFilter" ), //The partial already filters by this scheme, but this item needs to be included here
-		new NamedString( Factories.ConceptSchemeManager.ConceptScheme_TrainingGap, "dummy:DummyFilter" ), //This is already part of the querying, so use a dummy filter here too
-		new NamedString( Factories.ConceptSchemeManager.ConceptScheme_TaskApplicability, "navy:ApplicabilityCategory" ),
-		new NamedString( Factories.ConceptSchemeManager.ConceptScheme_Pay_Grade, "navy:PayGradeCategory" )
-	}.FirstOrDefault( m => m.Key == scheme.SchemaUri );
 }
 
 @Html.Partial( "~/Views/Shared/_DetailShared.cshtml" )
-@Html.Partial( "~/Views/Shared/_DetailBasicInfo.cshtml", new DetailBasicInfoHelper()
+@Html.Partial( "~/Views/Shared/_DetailBasicInfo.cshtml", new DetailBasicInfoHelper( Model )
 {
-	TypeLabel = "Concept",
-	TypeURL = Model.GetType().Name.ToLower(),
-	Id = Model.Id,
-	CTID = Model.CTID,
 	Name = Model.Name,
-	Description = Model.Description,
-	Identifiers = new List<NamedString>()
+	PropertyList = new List<NamedString>()
 	{
-		new NamedString( "System ID", Model.Id.ToString() ),
-		new NamedString( "CTID", Model.CTID ),
+		new NamedString( "In Scheme", LinkHelper.GetDetailPageLink( Factories.ConceptSchemeManager.GetByRowId( Model.InScheme ), Url.Content, m => m.Name ) ),
+		new NamedString( "Description", Model.Description ),
 		new NamedString( "Work Element Type", Model.WorkElementType ),
-		new NamedString( "Code", Model.CodedNotation ),
-		new NamedString( "In Scheme", "<a href=\"" + Url.Content( "~/ConceptScheme/Detail/" + scheme.Id ) + "\">" + scheme.Name + "</a>" )
+		new NamedString( "Code", Model.CodedNotation )
 	}
 } )
 
-@if( taskFilter != null )
+@Html.Partial( "~/Views/Shared/_RatingTaskCountBySourceTypeTable.cshtml", new List<SearchFilter>()
 {
-	@Html.Partial( "~/Views/Shared/_RatingTaskCountBySourceTypeTable.cshtml", new List<SearchFilter>()
+	new SearchFilter()
 	{
-		new SearchFilter()
-		{
-			Name = taskFilter.Value,
-			ItemIds = new List<int>(){ Model.Id }
+		Name = "search:AllConceptPaths",
+		ItemIds = new List<int>(){ Model.Id }
+	}
+} )
+
+@Html.Partial( "~/Views/Search/_ItemListSearch.cshtml" )
+<script type="text/javascript">
+	var ItemListConfigs = {
+		CommonFilters: [
+			{ Name: "search:AllConceptPaths", ItemIds: [ @Model.Id ] }
+		],
+		Searches: {
+			RatingTasks: {
+				Header: "Rating Tasks",
+				SearchType: "RatingContext",
+				StyleType: "RatingTask",
+				Fields: [
+					{ Label: "Rating", RenderPath: ["HasRating|Rating", "CodedNotation|Rating"] },
+					{ Label: "Description", RenderPath: ["HasRatingTask|RatingTask", "Description|RatingTask"] },
+					{ Label: "Training Gap", RenderPath: ["TrainingGapType|Concept", "Name|Concept"] },
+				]
+			}
 		}
-	} )
-}
+	};
+	//
+
+	$(document).ready(function () {
+		ItemListSearches.setupItemLists(ItemListConfigs);
+	});
+	//
+</script>
+<style type="text/css">
+	table[data-styletype='RatingTask'] [data-column='Rating'] { width: 75px; }
+	table[data-styletype='RatingTask'] [data-column='Training Gap'] { width: 100px; margin-left: auto; }
+</style>
+
+<item-list-search name="RatingTasks"></item-list-search>

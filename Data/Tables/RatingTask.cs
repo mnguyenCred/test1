@@ -34,7 +34,7 @@ namespace Data.Tables
     
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<ClusterAnalysis> ClusterAnalysis { get; set; }
-        public virtual ConceptScheme_Concept ConceptScheme_Concept { get; set; }
+        public virtual ConceptScheme_Concept ConceptScheme_Concept_ReferenceType { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<RatingContext> RatingContext { get; set; }
         public virtual ReferenceResource ReferenceResource { get; set; }

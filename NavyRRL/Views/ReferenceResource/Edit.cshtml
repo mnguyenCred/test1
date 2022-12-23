@@ -1,61 +1,25 @@
 ﻿@using Models.Schema;
 @using Models.DTO;
 @using Newtonsoft.Json;
+@using Newtonsoft.Json.Linq;
 @model ReferenceResource
 @{
 	var title = Model.Id > 0 ? "Editing Reference Resource" : "New Reference Resource";
 	ViewBag.Title = title;
-	var referenceResourceTypeList = Factories.ConceptSchemeManager.GetbyShortUri( Factories.ConceptSchemeManager.ConceptScheme_ReferenceResource ).Concepts.Select( m => SimpleItemHelper.GetSimpleItem( m ) ).ToList();
 }
 
-@Html.Partial( "~/Views/Shared/_FormHelperV1.cshtml" )
-
-<script type="text/javascript">
-	var Data = {
-		//The original resource
-		Source: @Html.Raw( JsonConvert.SerializeObject( Model, Formatting.None ) ),
-		//Mapping used internally for the FormItem stuff
-		Form: {},
-		//Functions to configure FormItem stuff
-		Config: {
-			//Configure Save Button
-			SaveButton: function (Field) {
-				Field.SaveURL = "@Url.Content("~/referenceresource/save/")";
-				Field.RedirectAfterSuccessURL = "@Url.Content("~/referenceresource/detail/")";
-				Field.getDataToSave = function () {
-					return {
-						...Data.Source,
-						...Data.Form.read()
-					};
-				}
-			},
-			ReferenceType: function (Field) {
-				Field.Items = @Html.Raw( JsonConvert.SerializeObject( referenceResourceTypeList, Formatting.None ) );
-				Field.renderItems();
-			}
-		}
-	};
-
-	$(document).ready(function () {
-		FormItem.setupFormItems(Data.Form, "ReferenceResource", Data.Config);
-		Data.Form.write(Data.Source);
-	});
-	//
-</script>
+@Html.Partial( "~/Views/Shared/_AJAXTools.cshtml" )
+@Html.Partial( "~/Views/Shared/_FormHelperV2.cshtml", new EditFormHelperV2( Model, new JObject() {
+	{ Factories.ConceptSchemeManager.ConceptScheme_ReferenceResource, JArray.FromObject( Factories.ConceptManager.GetAllConceptsForScheme( Factories.ConceptSchemeManager.ConceptScheme_ReferenceResource ).Select(m => SimpleItemHelper.GetSimpleItem( m ) ).ToList() ) }
+} ) )
 
 <h2>@title</h2>
-<form-item data-path="ReferenceResource.Id" data-ui="display" data-label="ID"></form-item>
-<form-item data-path="ReferenceResource.RowId" data-ui="display" data-label="RowID"></form-item>
 
 <h3>Basic Info</h3>
-<form-item data-path="ReferenceResource.Name" data-ui="text" data-label="Name"></form-item>
-<form-item data-path="ReferenceResource.PublicationDate" data-ui="text" data-label="Date of Source"></form-item>
-<form-item data-path="ReferenceResource.CodedNotation" data-ui="text" data-label="Code"></form-item>
-<form-item data-path="ReferenceResource.Description" data-ui="textarea" data-label="Description"></form-item>
-<form-item data-path="ReferenceResource.Note" data-ui="text" data-label="Note"></form-item>
-<form-item data-path="ReferenceResource.VersionIdentifier" data-ui="text" data-label="Version Identifier"></form-item>
-@*<form-item data-path="ReferenceResource.SubjectWebpage" data-ui="textmulti" data-label="Webpages"></form-item>*@
-<form-item data-path="ReferenceResource.ReferenceType" data-ui="checkboxlist" data-label="Reference Type" data-config="ReferenceType"></form-item>
-
-<h3>Save Changes</h3>
-<form-item data-path="ReferenceResource.SaveButton" data-ui="savebutton" data-label="Save Changes" data-config="SaveButton"></form-item>
+<div class="field" data-fieldtype="SystemIdentifiers"></div>
+<div class="field" data-fieldtype="Text" data-property="Name" data-label="Name"></div>
+<div class="field" data-fieldtype="Text" data-property="PublicationDate" data-label="Publication Date"></div>
+<div class="field" data-fieldtype="Text" data-property="CodedNotation" data-label="Code"></div>
+<div class="field" data-fieldtype="TextArea" data-property="Description" data-label="Description"></div>
+<div class="field" data-fieldtype="CheckBoxList" data-property="ReferenceType" data-label="Reference Type" data-sourceuri="@Factories.ConceptSchemeManager.ConceptScheme_ReferenceResource"></div>
+<div class="field" data-fieldtype="SaveButton"></div>

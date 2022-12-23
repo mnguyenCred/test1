@@ -21,27 +21,35 @@ namespace Models.Schema
 
 		/// <summary>
 		/// May or may not end up being available in the source data<br />
-		/// From Column: TBD
+		/// From Column: TBD<br />
+		/// Obsolete: Use RatingContext.CodedNotation instead
 		/// </summary>
+		[Obsolete]
 		public string CodedNotation { get; set; }
 
 		/// <summary>
 		/// May or may not belong on Rating Task (might belong in RMTL Project data instead?)<br />
-		/// From Column: Notes
+		/// From Column: Notes<br />
+		/// Obsolete: Use RatingContext.Notes instead
 		/// </summary>
+		[Obsolete]
 		public string Note { get; set; }
 
 		/// <summary>
 		/// List of GUIDs for the Ratings that this Rating Task is associated with<br />
 		/// From Column: Rating<br />
-		/// DB-Table: RatingTask.HasRating
+		/// DB-Table: RatingTask.HasRating<br />
+		/// Obsolete: Use RatingContext.HasRating instead
 		/// </summary>
+		[Obsolete]
 		public List<Guid> HasRating { get; set; }
 
 		/// <summary>
 		/// List of GUIDs for the Training Task(s) for this Rating Task<br />
-		/// From Column: CTTL/PPP/TCCD Statement
+		/// From Column: CTTL/PPP/TCCD Statement<br />
+		/// Obsolete: Use RatingContext.HasTrainingTask instead
 		/// </summary>
+		[Obsolete]
 		public List<Guid> HasTrainingTask { get; set; }
 
 		/// <summary>
@@ -56,41 +64,58 @@ namespace Models.Schema
 		/// List of GUIDs for the Work Role(s) (aka Functional Area(s)) for this Rating Task<br />
 		/// From Column: Functional Area<br />
 		/// DB-Table: RatingTask.WorkRole<br />
-		/// OBSOLETE: FunctionalAreaId
+		/// OBSOLETE: FunctionalAreaId<br />
+		/// Obsolete: Use RatingContext.HasWorkRole instead
 		/// </summary>
+		[Obsolete]
 		public List<Guid> HasWorkRole { get; set; }
 
 		/// <summary>
 		/// GUID for the Concept for the Reference Type for this Rating Task (e.g. a reference to "300 Series PQS Watch Station")<br />
 		/// From Column: Work Element Type<br />
 		/// DB: WorkElementTypeId<br />
-		/// FK to table ConceptScheme.Concept
+		/// FK to table ConceptScheme.Concept<br />
 		/// </summary>
 		public Guid ReferenceType { get; set; }
 
 		/// <summary>
+		/// Id for the Concept for the Reference Type for this Rating Task
+		/// </summary>
+		public int ReferenceTypeId { get; set; }
+
+		/// <summary>
 		/// GUID for the Concept for the Pay Grade Type (aka Rank) for this Rating Task<br />
 		/// From Column: Rank<br />
-		/// DB: RankId
+		/// DB: RankId<br />
+		/// Obsolete: Use RatingContext.PayGradeType instead
 		/// </summary>
+		[Obsolete]
 		public Guid PayGradeType { get; set; }
 
 		/// <summary>
 		/// GUID for the Concept for the Applicability Type for this Rating Task<br />
 		/// From Column: Task Applicability<br />
-		/// DB: TaskApplicabilityId
+		/// DB: TaskApplicabilityId<br />
+		/// Obsolete: Use RatingContext.ApplicabilityType instead
 		/// </summary>
+		[Obsolete]
 		public Guid ApplicabilityType { get; set; }
 
 		/// <summary>
 		/// GUID for the Concept for the Training Gap Type for this Rating Task<br />
 		/// From Column: Formal Training Gap<br />
-		/// DB: FormalTrainingGapId
+		/// DB: FormalTrainingGapId<br />
+		/// Obsolete: Use RatingContext.TrainingGapType instead
 		/// </summary>
+		[Obsolete]
 		public Guid TrainingGapType { get; set; }
 
-		//What is this used for? It shows up in a test method but nowhere else
+		/// <summary>
+		/// Obsolete: Does not appear to be necessary(?)
+		/// </summary>
+		[Obsolete]
 		public string Identifier { get; set; }
+
 		//Upload
 		//What is this used for?
 		public string CurrentRatingCode { get; set; } = "";
@@ -100,81 +125,9 @@ namespace Models.Schema
 		public string BilletTitle { get; set; }
 		public List<string> FunctionalArea { get; set; } = new List<string>();
 		public List<string> RatingTitles { get; set; } = new List<string>();
+		[Obsolete]
 		public List<Guid> HasBilletTitle { get; set; } = new List<Guid>();
-		public List<string> BilletTitles { get; set; } = new List<string>();
-		public Concept TaskPayGrade { get; set; } = new Concept();
-		public ReferenceResource ReferenceResource { get; set; } = new ReferenceResource();
-		public Concept TaskApplicabilityType { get; set; } = new Concept();
 		public Concept TaskTrainingGap { get; set; } = new Concept();
-		public Concept TaskReferenceType { get; set; } = new Concept();
-		public List<TrainingTask> TrainingTasks { get; set; } = new List<TrainingTask>();
-
-		public List<string> TrainingTask { get; set; } = new List<string>();
-		//TBD - at least for upload
-		public ClusterAnalysis ClusterAnalysis { get; set; } = new ClusterAnalysis();
-	}
-	//
-
-	///// <summary>
-	///// The internal properties should always have a single type. 
-	///// The spreadsheet is always single (now)
-	///// A future function while editing a rating task should have a separate function to just add/update/delete per ratingContext?
-	///// </summary>
-	//public class RatingContext 
-	//{
-	//	/// <summary>
-	//	/// List of GUIDs for the Ratings that this Rating Task is associated with<br />
-	//	/// From Column: Rating
-	//	/// DB-Table: RatingTask.HasRating
-	//	/// </summary>
-	//	public List<Guid> HasRating { get; set; }
-
-	//	/// <summary>
-	//	/// GUID for the Concept for the Training Gap Type for this Rating Task<br />
-	//	/// From Column: Formal Training Gap
-	//	/// DB: FormalTrainingGapId
-	//	/// </summary>
-	//	public Guid TrainingGapType { get; set; }
-
-	//	/// <summary>
-	//	/// List of GUIDs for the Training Task(s) for this Rating Task<br />
-	//	/// From Column: CTTL/PPP/TCCD Statement
-	//	/// </summary>
-	//	public List<Guid> HasTrainingTask { get; set; }
-	//}
-	//
-
-	public class RatingTaskDTO : RatingTask
-	{
-		/// <summary>
-		/// List of Rating RowIds to add to this Rating Task
-		/// </summary>
-		public List<Guid> HasRating_Add { get; set; } = new List<Guid>();
-
-		/// <summary>
-		/// List of Rating RowIds to remove from this Rating Task
-		/// </summary>
-		public List<Guid> HasRating_Remove { get; set; } = new List<Guid>();
-
-		/// <summary>
-		/// List of Billet Title RowIds to add to this Rating Task
-		/// </summary>
-		public List<Guid> HasBilletTitle_Add { get; set; } = new List<Guid>();
-
-		/// <summary>
-		/// List of Billet Title RowIds to remove from this Rating Task
-		/// </summary>
-		public List<Guid> HasBilletTitle_Remove { get; set; } = new List<Guid>();
-
-		/// <summary>
-		/// List of Work Role RowIds to add to this Rating Task
-		/// </summary>
-		public List<Guid> HasWorkRole_Add { get; set; } = new List<Guid>();
-
-		/// <summary>
-		/// List of Work Role RowIds to remove from this Rating Task
-		/// </summary>
-		public List<Guid> HasWorkRole_Remove { get; set; } = new List<Guid>();
 	}
 	//
 
@@ -193,13 +146,6 @@ namespace Models.Schema
 		/// From Column: Notes
 		/// </summary>
 		public string Note { get; set; }
-		/// <summary>
-		/// GUID for the Concept for the Reference Type for this Rating Task (e.g. a reference to "300 Series PQS Watch Station")<br />
-		/// From Column: Work Element Type<br />
-		/// DB: WorkElementTypeId<br />
-		/// FK to table ConceptScheme.Concept
-		/// </summary>
-		public Guid ReferenceType { get; set; }
 
 		/// <summary>
 		/// GUID for the Concept for the Pay Grade Type (aka Rank) for this Rating Task<br />

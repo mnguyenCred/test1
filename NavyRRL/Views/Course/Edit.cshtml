@@ -1,115 +1,26 @@
 ﻿@using Models.Schema;
 @using Models.DTO;
 @using Newtonsoft.Json;
+@using Newtonsoft.Json.Linq;
 @model Course
 @{
 	var title = Model.Id > 0 ? "Editing Course" : "New Course";
 	ViewBag.Title = title;
-	var courseTypeList = Factories.ConceptSchemeManager.GetbyShortUri( Factories.ConceptSchemeManager.ConceptScheme_CourseType ).Concepts.Select( m => SimpleItemHelper.GetSimpleItem( m ) ).ToList();
-	//var assessmentMethodTypeList = Factories.ConceptSchemeManager.GetbyShortUri( Factories.ConceptSchemeManager.ConceptScheme_CurrentAssessmentApproach ).Concepts.Select( m => SimpleItemHelper.GetSimpleItem( m ) ).ToList();
-	var ccaList = Factories.OrganizationManager.GetAll().Select( m => SimpleItemHelper.GetSimpleItem( m ) ).ToList();
-	//var referenceResourceList = Factories.ReferenceResourceManager.GetAll().Select( m => SimpleItemHelper.GetSimpleItem( m ) ).ToList();
-	//do not append
-	var lccdList = Factories.ConceptSchemeManager.GetbyShortUri( Factories.ConceptSchemeManager.ConceptScheme_LifeCycleControlDocument ).Concepts.Select( m => SimpleItemHelper.GetSimpleItem( m ) ).ToList();
 }
 
-@Html.Partial( "~/Views/Shared/_FormHelperV1.cshtml" )
-
-<script type="text/javascript">
-	var Data = {
-		//The original resource
-		Source: @Html.Raw( JsonConvert.SerializeObject( Model, Formatting.None ) ),
-		//Mapping used internally for the FormItem stuff
-		Form: {},
-		//Functions to configure FormItem stuff
-		Config: {
-			//Configure Save Button
-			SaveButton: function (Field) {
-				Field.SaveURL = "@Url.Content("~/course/save/")";
-				Field.RedirectAfterSuccessURL = "@Url.Content("~/course/detail/")";
-				Field.getDataToSave = function () {
-					return {
-						...Data.Source,
-						...Data.Form.read()
-					};
-				}
-			},
-			@*
-			HasReferenceResource: function (Field) {
-				Field.Items = @Html.Raw( JsonConvert.SerializeObject( referenceResourceList, Formatting.None ) );
-				Field.renderItems();
-			},
-			*@
-			CourseType: function (Field) {
-				Field.Items = @Html.Raw( JsonConvert.SerializeObject( courseTypeList, Formatting.None ) );
-				Field.renderItems();
-			},
-			LifeCycleControlDocumentType: function (Field) {
-				Field.Items = @Html.Raw( JsonConvert.SerializeObject( lccdList, Formatting.None ) );
-				Field.renderItems();
-			},
-			LifeCycleControlDocumentTypeId: function (Field) {
-				Field.getItemValue = function (Item) { return Item.Id; };
-				Field.Items = @Html.Raw( JsonConvert.SerializeObject( lccdList, Formatting.None ) );
-				Field.renderItems();
-			},
-			@*
-			AssessmentMethodType: function (Field) {
-				Field.Items = @Html.Raw( JsonConvert.SerializeObject( assessmentMethodTypeList, Formatting.None ) );
-				Field.renderItems();
-			},
-			*@
-			CurriculumControlAuthority: function (Field) {
-				Field.Items = @Html.Raw( JsonConvert.SerializeObject( ccaList, Formatting.None ) );
-				Field.renderItems();
-			},
-			HasTrainingTask_Add: function (Field) {
-				//Search to add new valid Training Tasks
-				Field.Search.SearchURL = "@Url.Content( "~/trainingtask/dosearch" )";
-				Field.Search.modifyQuery = function (query) {
-					//And where Training Tasks are NOT already associated with this Course...
-					query.Filters.push({ Name: "ceterms:Course", ItemIds: [Data.Source.Id], IsNegation: true });
-				}
-			},
-			HasTrainingTask_Remove: function (Field) {
-				//Search to remove already added Training Tasks
-				Field.Search.SearchURL = "@Url.Content( "~/trainingtask/dosearch" )";
-				Field.Search.modifyQuery = function (query) {
-					//Where Training Tasks are already associated with this Course...
-					query.Filters.push({ Name: "ceterms:Course", ItemIds: [Data.Source.Id] });
-				}
-
-				//Show existing items
-				Field.Search.doSearch();
-			}
-		}
-	};
-
-	$(document).ready(function () {
-		FormItem.setupFormItems(Data.Form, "Course", Data.Config);
-		Data.Form.write(Data.Source);
-	});
-	//
-</script>
+@Html.Partial( "~/Views/Shared/_AJAXTools.cshtml" )
+@Html.Partial( "~/Views/Shared/_FormHelperV2.cshtml", new EditFormHelperV2( Model, new JObject() {
+	{ Factories.ConceptSchemeManager.ConceptScheme_CourseType, JArray.FromObject( Factories.ConceptManager.GetAllConceptsForScheme( Factories.ConceptSchemeManager.ConceptScheme_CourseType ).Select( m => SimpleItemHelper.GetSimpleItem( m ) ).OrderBy( m => m.Name ).ToList() ) },
+	{ Factories.ConceptSchemeManager.ConceptScheme_LifeCycleControlDocument, JArray.FromObject( Factories.ConceptManager.GetAllConceptsForScheme( Factories.ConceptSchemeManager.ConceptScheme_LifeCycleControlDocument ).Select( m => SimpleItemHelper.GetSimpleItem( m ) ).OrderBy( m => m.Name ).ToList() ) }
+} ) )
 
 <h2>@title</h2>
-<form-item data-path="Course.Id" data-ui="display" data-label="ID"></form-item>
-<form-item data-path="Course.RowId" data-ui="display" data-label="RowID"></form-item>
 
 <h3>Basic Info</h3>
-<form-item data-path="Course.Name" data-ui="text" data-label="Name"></form-item>
-<form-item data-path="Course.Description" data-ui="textarea" data-label="Description"></form-item>
-<form-item data-path="Course.CodedNotation" data-ui="text" data-label="Code"></form-item>
-<form-item data-path="Course.LifeCycleControlDocumentType" data-ui="select" data-label="Life-Cycle Control Document Type" data-config="LifeCycleControlDocumentType"></form-item>
-@*//Not needed, saving via GUID confirmed to work <form-item data-path="Course.LifeCycleControlDocumentTypeId" data-ui="select" data-label="Life-Cycle Control Document Type" data-config="LifeCycleControlDocumentTypeId"></form-item>*@
-<form-item data-path="Course.CourseType" data-ui="checkboxlist" data-label="Course Type" data-config="CourseType"></form-item>
-<form-item data-path="Course.CurriculumControlAuthority" data-ui="select" data-label="Curriculum Control Authority" data-config="CurriculumControlAuthority"></form-item>
-
-<h3>Add/Remove Training Tasks</h3>
-<form-item data-path="Course.HasTrainingTask_Add" data-ui="searchselectdeferred" data-label="Add Training Tasks" data-config="HasTrainingTask_Add"></form-item>
-<form-item data-path="Course.HasTrainingTask_Remove" data-ui="searchselectdeferred" data-label="Remove Training Tasks" data-config="HasTrainingTask_Remove"></form-item>
-
-<h3>Save Changes</h3>
-<form-item data-path="Course.SaveButton" data-ui="savebutton" data-label="Save Changes" data-config="SaveButton"></form-item>
-@*<form-item data-path="Course.HasReferenceResource" data-ui="select" data-label="Source" data-config="HasReferenceResource"></form-item>*@
-@*<form-item data-path="Course.AssessmentMethodType" data-ui="checkboxlist" data-label="Assessment Method Type" data-config="AssessmentMethodType"></form-item>*@
+<div class="field" data-fieldtype="SystemIdentifiers"></div>
+<div class="field" data-fieldtype="Text" data-property="Name" data-label="Name"></div>
+<div class="field" data-fieldtype="Text" data-property="CodedNotation" data-label="Course Code"></div>
+<div class="field" data-fieldtype="Select" data-property="LifeCycleControlDocumentType" data-label="Life Cycle Control Document Type" data-sourceuri="@Factories.ConceptSchemeManager.ConceptScheme_LifeCycleControlDocument"></div>
+<div class="field" data-fieldtype="SuggestionSingle" data-property="CurriculumControlAuthority" data-label="Curriculum Control Authority" data-searchtype="@nameof(Organization)"></div>
+<div class="field" data-fieldtype="CheckBoxList" data-property="CourseType" data-label="Course Type" data-sourceuri="@Factories.ConceptSchemeManager.ConceptScheme_CourseType"></div>
+<div class="field" data-fieldtype="SaveButton"></div>

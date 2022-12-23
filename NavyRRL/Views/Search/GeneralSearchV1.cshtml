@@ -8,6 +8,7 @@
 }
 
 @Html.Partial( "~/Views/Help/_GeneralSearch.cshtml" )
+@Html.Partial( "~/Views/Shared/_AJAXTools.cshtml" )
 @Html.Partial( "~/Views/Search/_SearchCoreV1.cshtml" )
 
 <script type="text/javascript">
@@ -15,19 +16,55 @@
 	var SearchData = {
 		Active: {},
 		Types: [
-			{ Name: "Rating", LabelSingle: "Rating", LabelMulti: "Ratings" },
 			{ Name: "BilletTitle", LabelSingle: "Billet Title", LabelMulti: "Billet Titles" },
-			{ Name: "WorkRole", LabelSingle: "Functional Area", LabelMulti: "Functional Areas" },
-			{ Name: "ReferenceResource", LabelSingle: "Source", LabelMulti: "Sources" },
-			{ Name: "RatingTask", LabelSingle: "Rating Task", LabelMulti: "Rating Tasks" },
-			{ Name: "RatingContext", LabelSingle: "Rating Context", LabelMulti: "Rating Contexts" },
-			{ Name: "Course", LabelSingle: "Course", LabelMulti: "Courses" },
-			{ Name: "TrainingTask", LabelSingle: "Training Task", LabelMulti: "Training Tasks" },
-			{ Name: "Organization", LabelSingle: "Organization (CCA)", LabelMulti: "Organizations (CCAs)" },
+			{ Name: "ClusterAnalysis", LabelSingle: "Cluster Analysis", LabelMulti: "Cluster Analyses", customRenderResult: function (Result, container) {
+				container.find(".codedNotation, .name, .description").html("<div class=\"spinner\"></div>");
+				this.Search.getRelatedResourceOrLookup(Result.HasRating, "@Url.Content("~/Rating/GetByRowId/")" + Result.HasRating, (data) => {
+					container.find(".codedNotation").html(data.CodedNotation);
+				});
+				this.Search.getRelatedResourceOrLookup(Result.HasClusterAnalysisTitle, "@Url.Content("~/ClusterAnalysisTitle/GetByRowId/")" + Result.HasClusterAnalysisTitle, (data) => {
+					container.find(".name").html(data.Name);
+				});
+				this.Search.getRelatedResourceOrLookup(Result.HasRatingTask, "@Url.Content("~/RatingTask/GetByRowId/")" + Result.HasRatingTask, (data) => {
+					container.find(".description").html(data.Description);
+				});
+			} },
+			{ Name: "ClusterAnalysisTitle", LabelSingle: "Cluster Analysis Title", LabelMulti: "Cluster Analysis Titles" },
+			{ Name: "Concept", LabelSingle: "Concept", LabelMulti: "Concepts", customRenderResult: function (Result, container) {
+				container.find(".inScheme").html("<div class=\"spinner\"></div>");
+				this.Search.getRelatedResourceOrLookup(Result.InScheme, "@Url.Content("~/ConceptScheme/GetByRowId/")" + Result.InScheme, (data) => {
+					container.find(".inScheme").html(data.Name);
+				});
+			} },
 			{ Name: "ConceptScheme", LabelSingle: "Concept Scheme", LabelMulti: "Concept Schemes" },
-			{ Name: "Concept", LabelSingle: "Concept", LabelMulti: "Concepts" },
-			{ Name: "ClusterAnalysis", LabelSingle: "ClusterAnalysis", LabelMulti: "ClusterAnalysis" },
-			{ Name: "RMTLProject", LabelSingle: "RMTL Project", LabelMulti: "RMTL Projects" }
+			{ Name: "Course", LabelSingle: "Course", LabelMulti: "Courses" },
+			{ Name: "CourseContext", LabelSingle: "Course Context", LabelMulti: "Course Contexts", customRenderResult: function (Result, container) {
+				container.find(".codedNotation, .name, .description").html("<div class=\"spinner\"></div>");
+				this.Search.getRelatedResourceOrLookup(Result.HasCourse, "@Url.Content("~/Course/GetByRowId/")" + Result.HasCourse, (data) => {
+					container.find(".codedNotation").html(data.CodedNotation);
+					container.find(".name").html(data.Name);
+				});
+				this.Search.getRelatedResourceOrLookup(Result.HasTrainingTask, "@Url.Content("~/TrainingTask/GetByRowId/")" + Result.HasTrainingTask, (data) => {
+					container.find(".description").html(data.Description);
+				});
+			} },
+			{ Name: "WorkRole", LabelSingle: "Functional Area", LabelMulti: "Functional Areas" },
+			{ Name: "Organization", LabelSingle: "Organization (CCA)", LabelMulti: "Organizations (CCAs)" },
+			{ Name: "Rating", LabelSingle: "Rating", LabelMulti: "Ratings" },
+			{ Name: "RatingContext", LabelSingle: "Rating Context", LabelMulti: "Rating Contexts", customRenderResult: function (Result, container) {
+				container.find(".codedNotation, .name, .description").html("<div class=\"spinner\"></div>");
+				this.Search.getRelatedResourceOrLookup(Result.HasRating, "@Url.Content("~/Rating/GetByRowId/")" + Result.HasRating, (data) => {
+					container.find(".codedNotation").html(data.CodedNotation);
+					container.find(".name").html(data.Name);
+				});
+				this.Search.getRelatedResourceOrLookup(Result.HasRatingTask, "@Url.Content("~/RatingTask/GetByRowId/")" + Result.HasRatingTask, (data) => {
+					container.find(".description").html(data.Description);
+				});
+			} },
+			{ Name: "RatingTask", LabelSingle: "Rating Task", LabelMulti: "Rating Tasks" },
+			{ Name: "ReferenceResource", LabelSingle: "Reference Resource", LabelMulti: "Reference Resources" },
+			{ Name: "RMTLProject", LabelSingle: "RMTL Project", LabelMulti: "RMTL Projects" },
+			{ Name: "TrainingTask", LabelSingle: "Training Task", LabelMulti: "Training Tasks" }
 		]
 	};
 	//
@@ -54,7 +91,7 @@
 	function setupSearches() {
 		//Create individual searches
 		SearchData.Types.forEach(Type => {
-			Type.Search = createSearch(Type.Name, "@Url.Content("~/")" + Type.Name.toLowerCase() + "/dosearch", UI.StatusText, UI.Spinner, UI.ResultsBox, UI.PagingBox, 50, 800);
+			Type.Search = createSearch(Type.Name, "@Url.Content("~/")" + Type.Name.toLowerCase() + "/dosearch", UI.StatusText, UI.Spinner, UI.ResultsBox, UI.PagingBox, 25, 800);
 			UI.SearchTypeSelect.append("<option value=\"" + Type.Name + "\">" + Type.LabelSingle + "</option>");
 			Type.IsActive = false;
 
@@ -67,12 +104,16 @@
 
 			//Assign method to get sort order
 			Type.Search.getSortOrder = function () {
-				return UI.SortOrderSelect.val();
+				var selected = UI.SortOrderSelect.find(":selected");
+				return [{ Column: selected.attr("data-column"), Ascending: selected.attr("data-ascending") == "true" }];
 			}
 
 			//Assign method to render a search result
-			Type.Search.renderResult = function (Result, container) {
-				renderResult(Result, container, Type);
+			Type.Search.renderResult = function (Result, container, index) {
+				var resultBox = renderResult(Result, container, Type);
+				setTimeout(function () {
+					Type.customRenderResult?.(Result, resultBox);
+				}, index);
 			};
 
 			//Scroll to top after everything is rendered
@@ -82,7 +123,8 @@
 		});
 
 		//When the search type changes, swap out the active search and trigger its doSearch method
-		UI.SearchTypeSelect.on("change", function() {
+		UI.SearchTypeSelect.on("change", function () {
+			UI.KeywordsText.val("");
 			setSearchType(UI.SearchTypeSelect.val());
 		});
 
@@ -91,12 +133,12 @@
 
 		//When the keywords change, do a search
 		UI.KeywordsText.on("keyup change", function () {
-			SearchData.Active.Search.delayThenSearch(true);
+			SearchData.Active.Search.delayThenSearch(true, true);
 		});
 
 		//When the sort order changes, do a search
 		UI.SortOrderSelect.on("change", function () {
-			SearchData.Active.Search.delayThenSearch();
+			SearchData.Active.Search.delayThenSearch(true, true);
 		});
 	}
 	//
@@ -104,7 +146,7 @@
 	function setSearchType(searchType) {
 		SearchData.Types.map(m => m.IsActive = m.Name == searchType);
 		SearchData.Active = SearchData.Types.filter(m => m.Name == searchType)[0];
-		SearchData.Active.Search.delayThenSearch(true);
+		SearchData.Active.Search.delayThenSearch(true, true);
 		UI.NewItemLink.attr("href", "@Url.Content("~/")" + SearchData.Active.Name + "/edit/0");
 		UI.NewItemLink.html("Create New " + SearchData.Active.LabelSingle);
 	}
@@ -113,24 +155,23 @@
 	function renderResult(Result, container, Type) {
 		var box = $("<div class=\"searchResult\"></div>").appendTo(container);
 		var text = $("<div class=\"resultText\"></div>").appendTo(box);
+		renderProperty(Result.InScheme, text, "inScheme");
 		var label = $("<div class=\"resultLabel\"></div>").appendTo(text);
-		renderProperty(Result, "CodedNotation", label, "codedNotation");
-		renderProperty(Result, "Name", label, "name");
-		renderProperty(Result, "Description", text, "description");
+		renderProperty(Result.CodedNotation, label, "codedNotation");
+		renderProperty(Result.Name, label, "name");
+		renderProperty(Result.AlternateName ? "(" + Result.AlternateName + ")" : "", label, "alternateName");
+		renderProperty(Result.Description, text, "description");
+
 		var linksBox = $("<div class=\"resultLinks\"></div>").appendTo(box);
 		linksBox.append("<a href=\"@Url.Content("~/")" + Type.Name + "/detail/" + Result.Id + "\" target=\"_blank\">Details</a>");
-		@if ( isAdmin )
-		{ }
-			linksBox.append( "<a href=\"@Url.Content("~/ ")" + Type.Name + "/edit/" + Result.Id + "\" target=\"_blank\">Edit</a>" );
+		linksBox.append( "<a href=\"@Url.Content("~/ ")" + Type.Name + "/edit/" + Result.Id + "\" target=\"_blank\">Edit</a>" );
 	
-		Type.customRender?.(Result, container, box);
+		return box;
 	}
 	//
 
-	function renderProperty(source, property, container, cssClass) {
-		if (source[property]) {
-			container.append("<div class=\"" + cssClass + "\">" + source[property] + "</div>");
-		}
+	function renderProperty(value, container, cssClass) {
+		container.append("<div class=\"resultField " + cssClass + "\">" + (value || "") + "</div>");
 	}
 	//
 </script>
@@ -151,11 +192,13 @@
 
 	.searchResultsBox { }
 	.searchResultsBox .searchResult { display: flex; padding: 10px; border-top: 1px solid #CCC; }
-	.searchResultsBox .searchResult:first-child { border-top: none; }
 	.searchResultsBox .searchResult .resultText {  }
-	.searchResultsBox .searchResult .resultText .resultLabel { display: flex; align-items: baseline; }
-	.searchResultsBox .searchResult .resultText .resultLabel .codedNotation { padding: 2.5px 5px; background-color: #EEE; border-radius: 5px; margin-right: 10px; }
+	.searchResultsBox .searchResult .resultText .resultField:empty { display: none; }
+	.searchResultsBox .searchResult .resultText .inScheme { font-style: italic; margin-bottom: 5px; }
+	.searchResultsBox .searchResult .resultText .resultLabel { display: flex; align-items: baseline; gap: 10px; }
+	.searchResultsBox .searchResult .resultText .resultLabel .codedNotation { padding: 2.5px 5px; background-color: #EEE; border-radius: 5px; }
 	.searchResultsBox .searchResult .resultText .resultLabel .name { font-weight: bold; }
+	.searchResultsBox .searchResult .resultText .resultLabel .alternateName { font-weight: bold; }
 	.searchResultsBox .searchResult .resultText .description { padding: 5px 10px; }
 	.searchResultsBox .searchResult .resultLinks { display: flex; margin-left: auto; }
 	.searchResultsBox .searchResult .resultLinks a { padding: 0 10px; border-left: 1px solid #CCC; }
@@ -184,15 +227,16 @@
 				<div class="searchHeaderLabel">Keywords</div>
 				<input type="text" data-property="search:Keyword" placeholder="Search..." />
 			</div>
-			
-			@*<div class="searchMainInput sortOrderBox">
+			<div class="searchMainInput sortOrderBox">
 				<div class="searchHeaderLabel">Sort Order</div>
 				<select data-property="search:SortOrder">
-					<option value="sortOrder:AtoZ">A to Z</option>
-					<option value="sortOrder:Newest">Newest</option>
+					<option data-column="sortOrder:DefaultMethod">Default</option>
+					<option data-column="Id" data-ascending="false">Newest</option>
+					<option data-column="Id" data-ascending="true">Oldest</option>
+					<option data-column="sortOrder:DefaultAlphaSort" data-ascending="true">A to Z</option>
+					<option data-column="sortOrder:DefaultAlphaSort" data-ascending="false">Z to A</option>
 				</select>
-			</div>*@
-			
+			</div>
 		</div>
 		<div class="searchFiltersBox"></div>
 		<div class="searchStatusWrapper">

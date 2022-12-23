@@ -1,0 +1,409 @@
+﻿@using Newtonsoft.Json;
+@model Models.DTO.EditFormHelperV2
+<script type="text/javascript">
+	var FormHelper = {};
+	var Form = {
+		FieldsList: [],
+		FieldsByName: {},
+		DataType: "@Model.DataType",
+		Values: @Html.Raw( Model.Values?.ToString( Formatting.None ) ?? "{}" ),
+		MainData: @Html.Raw( Model.MainData?.ToString( Formatting.None ) ?? "{}" )
+	};
+
+	$(document).ready(function () {
+		setupForm();
+		Form.setData(Form.MainData);
+	});
+	//
+
+	function setupForm() {
+		Form.setData = function (data) {
+			Form.FieldsList.filter(Field => !Field.SkipSet).forEach(Field => {
+				Field.setData(data?.[Field.Property] || null);
+			});
+		};
+
+		Form.getData = function () {
+			var Result = {...Form.MainData};
+			Form.FieldsList.filter(Field => !Field.SkipGet).forEach(Field => {
+				Result[Field.Property] = Field.getData();
+			});
+
+			return Result;
+		};
+
+		$(".field").each(function () {
+			var box = $(this);
+			var Field = {
+				Box: box,
+				Type: box.attr("data-fieldtype"), //Display, Text, Select, CheckBoxList, SuggestionSingle, SuggestionMulti, SaveButton
+				Property: box.attr("data-property"),
+				SearchType: box.attr("data-searchtype"),
+				Label: box.attr("data-label"),
+				SearchPath: box.attr("data-searchpath"),
+				SourceURI: box.attr("data-sourceuri"),
+				HelpText: box.attr("data-helptext")
+			};
+
+			Field.LabelBox = $("<div class=\"fieldLabel\">" + Field.Label + ":</div>").appendTo(Field.Box);
+			Field.ContentBox = $("<div class=\"fieldContent\"></div>").appendTo(Field.Box);
+
+			window["setupField_" + Field.Type](Field);
+
+			Form.FieldsList.push(Field);
+			Form.FieldsByName[Field.Property] = Field;
+		});
+	}
+	//
+
+	//Display Fields
+	function setupField_Display(Field) {
+		Field.SkipGet = true;
+
+		Field.getData = function () { return null; }
+
+		Field.setData = function (data) {
+			Field.Value = data;
+			Field.render();
+		}
+
+		Field.render = function () {
+			Field.ContentBox.html(Field.Value);
+		}
+
+		Field.render();
+	}
+	//
+
+	//Display for default properties (ID, UUID, CTID)
+	function setupField_SystemIdentifiers(Field) {
+		setupField_Display(Field);
+		Field.Property = Field.Property || "SystemIdentifiers";
+
+		Field.ContentBox.addClass("systemIdentifierList");
+		Field.LabelBox.html("System Identifiers:");
+
+		Field.render = function () {
+			if (Form.MainData.Id) {
+				Field.ContentBox.html(["Id", "RowId", "CTID"].map(m => "<div class=\"systemIdentifier\"><b>" + m + ":</b><span>" + Form.MainData[m] + "</span></div>").join(""));
+			}
+			else {
+				Field.ContentBox.html("Not available. Will be set when the object is saved.")
+			}
+		}
+	}
+	//
+
+	//Text Fields
+	function setupField_Text(Field) {
+		setupField_TextCore(Field, false);
+	}
+	//
+
+	function setupField_TextArea(Field) {
+		setupField_TextCore(Field, true);
+	}
+	//
+
+	function setupField_TextCore(Field, asTextArea) {
+		Field.Input = $(asTextArea ? "<textarea></textarea>" : "<input type=\"text\" />").appendTo(Field.ContentBox);
+		Field.HelpTextBox = $("<div class=\"helpText\">" + (Field.HelpText || "") + "</div>").appendTo(Field.ContentBox);
+
+		Field.getData = function () {
+			return Field.Input.val().trim();
+		}
+
+		Field.setData = function (data) {
+			Field.Input.val(data);
+		}
+	}
+	//
+
+	//Select Fields
+	function setupField_Select(Field) {
+		Field.Options = Form.Values[Field.SourceURI];
+		Field.OptionBoxes = [];
+		Field.Select = $("<select></select>").appendTo(Field.ContentBox);
+
+		Field.getData = function () {
+			return Field.Select.val();
+		}
+
+		Field.setData = function (data) {
+			Field.Select.val(data);
+		}
+
+		Field.render = function () {
+			Field.Select.html("");
+			Field.Options.forEach(Option => {
+				var OptionBox = {};
+				OptionBox.Option = Option;
+				OptionBox.Box = $("<option value=\"" + Field.getOptionValue(Option) + "\">" + Field.getOptionLabel(Option) + "</option>").appendTo(Field.Select);
+				Field.OptionBoxes.push(OptionBox);
+			});
+		}
+
+		Field.getOptionValue = function (Option) {
+			return Option?.RowId;
+		}
+
+		Field.getOptionLabel = function (Option) {
+			return (Option.CodedNotation && Option.Name) ? (Option.CodedNotation + " - " + Option.Name) : (Option.Name || Option.CodedNotation || Option.Description || Option.RowId || "");
+		}
+
+		Field.render();
+	}
+	//
+
+	//Checkbox List Fields
+	function setupField_CheckBoxList(Field) {
+		Field.Options = Form.Values[Field.SourceURI] || [];
+		Field.CheckBoxes = [];
+		Field.ContentBox.addClass("checkBoxList");
+
+		Field.getData = function () {
+			return Field.CheckBoxes.filter(CheckBox => CheckBox.Input.prop("checked")).map(CheckBox => Field.getOptionValue(CheckBox.Option));
+		}
+
+		Field.setData = function (data) {
+			Field.CheckBoxes.forEach(CheckBox => {
+				CheckBox.Input.prop("checked", data.includes(Field.getOptionValue(CheckBox.Option)));
+			});
+		}
+
+		Field.render = function () {
+			Field.ContentBox.html("");
+			Field.Options.forEach(Option => {
+				var CheckBox = {};
+				CheckBox.Option = Option;
+				CheckBox.Box = $("<label></label>").appendTo(Field.ContentBox);
+				CheckBox.Input = $("<input type=\"checkbox\" data-value=\"" + Field.getOptionValue(Option) + "\" />").appendTo(CheckBox.Box);
+				CheckBox.Text = $("<span>" + Field.getOptionLabel(Option) + "</span>").appendTo(CheckBox.Box);
+				Field.CheckBoxes.push(CheckBox);
+			});
+		}
+
+		Field.getOptionValue = function (Option) {
+			return Option?.RowId;
+		}
+
+		Field.getOptionLabel = function (Option) {
+			return (Option.CodedNotation && Option.Name) ? (Option.CodedNotation + " - " + Option.Name) : (Option.Name || Option.CodedNotation || Option.Description || Option.RowId || "");
+		}
+
+		Field.render();
+	}
+	//
+
+	//Boolean Fields
+	function setupField_Boolean(Field) {
+		setupField_CheckBoxList(Field);
+		Field.Options = [{ Name: "Enabled" }];
+
+		Field.getData = function () {
+			return Field.CheckBoxes[0].Input.prop("checked");
+		}
+
+		Field.setData = function (data) {
+			Field.CheckBoxes[0].Input.prop("checked", data);
+		}
+
+		Field.render();
+	}
+	//
+
+	//Suggestion Fields
+	function setupField_SuggestionSingle(Field) {
+		setupField_SuggestionMulti(Field);
+		Field.IsMultiValue = false;
+	}
+	//
+
+	function setupField_SuggestionMulti(Field) {
+		Field.Suggestions = [];
+		Field.SelectedItems = [];
+		Field.Timeout = 0;
+		Field.IsMultiValue = true;
+
+		Field.ContentBox.addClass("suggestionBox " + (Field.IsMultiValue ? "suggestionMulti" : "suggestionSingle"));
+		Field.SelectedItemsBox = $("<div class=\"selectedItemList\"></div>").appendTo(Field.ContentBox);
+		Field.SuggestionSearchWrapper = $("<div class=\"suggestionSearchWrapper\"></div>").appendTo(Field.ContentBox);
+		Field.Input = $("<input type=\"text\" placeholder=\"Find...\" />").appendTo(Field.SuggestionSearchWrapper);
+		Field.SuggestionsBox = $("<div class=\"suggestionList\"></div>").appendTo(Field.SuggestionSearchWrapper);
+
+		Field.getData = function () {
+			var result = Field.SelectedItems.map(SelectedItem => SelectedItem.Data.RowId);
+			return Field.IsMultiValue ? result : result[0];
+		}
+
+		Field.setData = function (data) {
+			var values = !data ? [] : (Field.IsMultiValue ? data : [data]);
+			Field.SelectedItems = values.filter(value => value && value != "@Guid.Empty.ToString()").map(value => { return { Data: { RowId: value } } });
+			Field.renderSelectedItems();
+		}
+
+		Field.renderSuggestions = function () {
+			Field.SuggestionsBox.html("");
+			Field.Suggestions.forEach(Suggestion => {
+				var button = $("<button class=\"suggestion\">" + Field.getOptionLabel(Suggestion) + "</div>").appendTo(Field.SuggestionsBox);
+				button.on("click", function () {
+					Field.addSelectedItem(Suggestion);
+					Field.Input.val("");
+					Field.Suggestions = [];
+					Field.renderSuggestions();
+				});
+			});
+			if (Field.Suggestions.length > 0) {
+				var cancelButton = $("<button class=\"cancelButton\">Cancel</button>").appendTo(Field.SuggestionsBox);
+				cancelButton.on("click", function () {
+					Field.Suggestions = [];
+					Field.Input.val("");
+					Field.renderSuggestions();
+				});
+			}
+		}
+
+		Field.renderSelectedItems = function () {
+			Field.SelectedItemsBox.html(Field.SelectedItems.length == 0 ? "<div class=\"noItemSelected\">No Item Selected</div>" : "");
+			Field.SelectedItems.forEach(SelectedItem => {
+				SelectedItem.Box = $("<div class=\"selectedItem\"></div>").appendTo(Field.SelectedItemsBox);
+				SelectedItem.Label = $("<span><div class=\"spinner\"></div></span>").appendTo(SelectedItem.Box);
+				SelectedItem.RemoveButton = $("<button class=\"redButton\" title=\"Remove\">X</button>").appendTo(SelectedItem.Box);
+				SelectedItem.RemoveButton.on("click", function () {
+					Field.removeSelectedItem(SelectedItem);
+				});
+
+				AJAX.getResource("@Url.Content("~/")" + Field.SearchType + "/GetByRowId/" + SelectedItem.Data.RowId, success => {
+					SelectedItem.Data = success;
+					SelectedItem.Label.html(Field.getOptionLabel(SelectedItem.Data));
+				}, error => {
+					SelectedItem.Label.html("Error loading data for Resource: " + SelectedItem.Data.RowId);
+				});
+			});
+		}
+
+		Field.addSelectedItem = function (Item) {
+			//Duplicate check
+			if (Field.SelectedItems.find(SelectedItem => SelectedItem.Data.RowId == Item.RowId)) {
+				return;
+			}
+
+			AJAX.appendToCache("@Url.Content("~/")" + Field.SearchType + "/GetByRowId/" + Item.RowId, Item);
+			var SelectedItem = {
+				Data: Item
+			};
+			Field.IsMultiValue ? Field.SelectedItems.push(SelectedItem) : Field.SelectedItems = [SelectedItem];
+			Field.renderSelectedItems();
+			Field.onSelectedItemsChange?.();
+		}
+
+		Field.removeSelectedItem = function (SelectedItem) {
+			Field.SelectedItems = Field.SelectedItems.filter(OtherSelectedItem => OtherSelectedItem != SelectedItem);
+			Field.renderSelectedItems();
+			Field.onSelectedItemsChange?.();
+		}
+
+		Field.Input.on("keyup", function () {
+			clearTimeout(Field.Timeout);
+			Field.Timeout = setTimeout(function () {
+				AJAX.doPOSTRequest("@Url.Content("~/")" + Field.SearchType + "/DoSearch", {
+					Filters: [
+						{ Name: "search:Keyword", Text: Field.Input.val().trim() },
+						{ Name: "search:Exclude", ItemIds: Field.SelectedItems.map(SelectedItem => SelectedItem.Data.Id) }
+					],
+					Take: 20
+				}, success => {
+					Field.Suggestions = success.Data.Results;
+					Field.renderSuggestions();
+				}, error => { });
+			}, 500);
+		});
+
+		Field.getOptionLabel = function (Option) {
+			return (Option.CodedNotation && Option.Name) ? (Option.CodedNotation + " - " + Option.Name) : (Option.Name || Option.CodedNotation || Option.Description || Option.RowId || "");
+		}
+	}
+	//
+
+	//Save Button
+	function setupField_SaveButton(Field) {
+		Field.Property = Field.Property || "SaveButton";
+		Field.Button = $("<button class=\"greenButton saveButton\">Save Changes</button>").appendTo(Field.ContentBox);
+		Field.Status = $("<div class=\"saveStatus\"></div>").appendTo(Field.ContentBox);
+		Field.LabelBox.html("");
+		Field.SkipGet = true;
+		Field.SkipSet = true;
+
+		Field.getData = function () { return null; }
+
+		Field.setData = function (data) { }
+
+		Field.Button.on("click", function () {
+			var data = Form.getData();
+			console.log("Saving Data", data);
+			Field.Button.prop("disabled", true);
+			Field.Status.html("<div class=\"saveSpinner\">Saving... <div class=\"spinner\"></div></div>");
+
+			AJAX.doPOSTRequest("@Url.Content( "~/" + Model.DataType + "/Save" )", data, success => {
+				if (success.Valid) {
+					Form.MainData = success.Data;
+					Form.setData(Form.MainData);
+					Field.Status.html("Saved successfully. Redirecting...");
+					setTimeout(function () {
+						window.location.href = "@Url.Content("~/" + Model.DataType + "/Detail/")" + success.Data.Id;
+					}, 3000);
+				}
+				else {
+					Field.Status.html("Error saving data: " + success.Status.join("<br />"));
+					Field.Button.prop("disabled", false);
+				}
+			}, error => {
+				Field.Status.html("Error saving data: " + error.Message + "<br />" + error.RawData);
+				Field.Button.prop("disabled", false);
+			});
+		});
+	}
+	//
+</script>
+<style type="text/css">
+	.spinner { display: inline-block; box-shadow: inset 4px 0 0 5px; border-radius: 50%; height: 20px; width: 20px; animation: spin 1s linear infinite; }
+	@@keyframes spin { 100% { transform: rotate(360deg); } }
+
+	.field { display: flex; gap: 10px; align-items: baseline; padding: 5px 0; }
+	.field .fieldLabel { flex: 0 0 250px; font-weight: bold; text-align: right; }
+	.field .fieldContent { flex: 1 1 auto; }
+	.field .fieldContent :is(input[type='text'], select) { width: 100%; max-width: none; height: 30px; }
+	.field .fieldContent input[type='text'] { padding: 0 5px; }
+	.field .fieldContent select { padding: 0 2px; }
+	.field .fieldContent textarea { display: block; width: 100%; resize: vertical; min-height: 200px; max-height: 50vh; max-width: none; padding: 3px 6px; }
+	.field .helpText { padding: 0 5px; font-style: italic; }
+
+	.field .systemIdentifierList { display: flex; gap: 10px; }
+	.field .systemIdentifierList .systemIdentifier { display: flex; gap: 5px; flex: 1 1 auto; }
+
+
+	.field .checkBoxList { }
+	.field .checkBoxList label { display: flex; gap: 10px; align-items: baseline; width: 100%; font-weight: normal; padding: 5px; margin: 0; }
+	.field .checkBoxList label:is(:hover, :focus) { cursor: pointer; background-color: #EEE; }
+	.field .checkBoxList label input[type='checkbox'] { }
+	.field .checkBoxList label span { }
+
+	.field .suggestionBox { display: flex; gap: 10px; align-items: baseline; }
+	.field .suggestionBox .selectedItemList { flex: 0 0 calc(50% - 5px); }
+	.field .suggestionBox .selectedItemList .noItemSelected { text-align: center; }
+	.field .suggestionBox .selectedItemList .selectedItem { display: flex; gap: 10px; align-items: center; border: 1px solid #CCC; padding: 2px; border-radius: 3px; }
+	.field .suggestionBox .selectedItemList .selectedItem span { display: flex; gap: 10px; align-items: center; padding: 0 3px; }
+	.field .suggestionBox .selectedItemList .selectedItem:not(:first-child) { border-top: 1px dashed #CCC; }
+	.field .suggestionBox .selectedItemList .selectedItem .redButton { margin-left: auto; }
+	.field .suggestionBox .selectedItemList .selectedItem .spinner { height: 10px; width: 10px; box-shadow: inset 2px 0 0 3px; }
+	.field .suggestionBox .suggestionSearchWrapper { flex: 0 0 calc(50% - 5px); position: relative; }
+	.field .suggestionBox .suggestionList { position: absolute; z-index: 10; width: 100%; }
+	.field .suggestionBox .suggestionList .suggestion { display: flex; gap: 10px; padding: 5px; width: 100%; background-color: #FFF; border: 1px solid #CCC; text-align: left; }
+	.field .suggestionBox .suggestionList .suggestion:is(:hover, :focus) { background-color: #EEE; }
+	.field .suggestionBox .suggestionSearchWrapper .suggestionList .cancelButton { display: block; width: 100%; }
+
+	.field[data-fieldtype='SaveButton'] { margin-top: 25px; }
+	.field .saveButton { display: block; width: 100%; padding: 5px; }
+	.field .saveStatus { padding: 5px; }
+	.field .saveStatus .saveSpinner { display: flex; gap: 10px; align-items: center; }
+</style>

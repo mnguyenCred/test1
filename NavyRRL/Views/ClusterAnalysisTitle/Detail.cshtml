@@ -7,19 +7,50 @@
 }
 
 @Html.Partial( "~/Views/Shared/_DetailShared.cshtml" )
-@Html.Partial( "~/Views/Shared/_DetailBasicInfo.cshtml", new DetailBasicInfoHelper()
+@Html.Partial( "~/Views/Shared/_DetailBasicInfo.cshtml", new DetailBasicInfoHelper( Model )
 {
 	TypeLabel = "Cluster Analysis Title",
-	TypeURL = Model.GetType().Name.ToLower(),
-	Id = Model.Id,
-	CTID = Model.CTID,
-	Name = Model.Name,
-	Description = "",
-	Identifiers = new List<NamedString>()
+	Name = Model.Name
+} )
+
+@Html.Partial( "~/Views/Shared/_RatingTaskCountBySourceTypeTable.cshtml", new List<SearchFilter>()
+{
+	new SearchFilter()
 	{
-		new NamedString( "System ID", Model.Id.ToString() ),
-		new NamedString( "CTID", Model.CTID )
+		Name = "> ClusterAnalysisId > ClusterAnalysis > HasClusterAnalysisTitleId > ClusterAnalysisTitle",
+		ItemIds = new List<int>(){ Model.Id }
 	}
 } )
 
-@* //TODO: Add searches for relevant stuff *@
+@Html.Partial( "~/Views/Search/_ItemListSearch.cshtml" )
+<script type="text/javascript">
+	var ItemListConfigs = {
+		CommonFilters: [
+			{ Name: "> ClusterAnalysisId > ClusterAnalysis > HasClusterAnalysisTitleId > ClusterAnalysisTitle", ItemIds: [ @Model.Id ] }
+		],
+		Searches: {
+			RatingTasks: {
+				Header: "Rating Tasks",
+				SearchType: "RatingContext",
+				StyleType: "RatingTask",
+				Fields: [
+					{ Label: "Rating", RenderPath: ["HasRating|Rating", "CodedNotation|Rating"] },
+					{ Label: "Description", RenderPath: ["HasRatingTask|RatingTask", "Description|RatingTask"] },
+					{ Label: "Training Gap", RenderPath: ["TrainingGapType|Concept", "Name|Concept"] },
+				]
+			}
+		}
+	};
+	//
+
+	$(document).ready(function () {
+		ItemListSearches.setupItemLists(ItemListConfigs);
+	});
+	//
+</script>
+<style type="text/css">
+	table[data-styletype='RatingTask'] [data-column='Rating'] { width: 75px; }
+	table[data-styletype='RatingTask'] [data-column='Training Gap'] { width: 100px; margin-left: auto; }
+</style>
+
+<item-list-search name="RatingTasks"></item-list-search>

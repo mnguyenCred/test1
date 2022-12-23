@@ -7,42 +7,12 @@
 	ViewBag.Title = title;
 }
 
-@Html.Partial( "~/Views/Shared/_FormHelperV1.cshtml" )
-
-<script type="text/javascript">
-	var Data = {
-		//The original resource
-		Source: @Html.Raw( JsonConvert.SerializeObject( Model, Formatting.None ) ),
-		//Mapping used internally for the FormItem stuff
-		Form: {},
-		//Functions to configure FormItem stuff
-		Config: {
-			//Configure Save Button
-			SaveButton: function (Field) {
-				Field.SaveURL = "@Url.Content("~/clusteranalysistitle/save/")";
-				Field.RedirectAfterSuccessURL = "@Url.Content("~/clusteranalysistitle/detail/")";
-				Field.getDataToSave = function () {
-					return {
-						...Data.Source,
-						...Data.Form.read()
-					};
-				}
-			}
-		}
-	};
-
-	$(document).ready(function () {
-		FormItem.setupFormItems(Data.Form, "ClusterAnalysisTitle", Data.Config);
-		Data.Form.write(Data.Source);
-	});
-	//
-</script>
-
+@Html.Partial( "~/Views/Shared/_AJAXTools.cshtml" )
+@Html.Partial( "~/Views/Shared/_FormHelperV2.cshtml", new EditFormHelperV2( Model ) )
 
 <h2>@title</h2>
 
-<form-item data-path="ClusterAnalysisTitle.Id" data-ui="display" data-label="ID"></form-item>
-<form-item data-path="ClusterAnalysisTitle.RowId" data-ui="display" data-label="RowID"></form-item>
-<form-item data-path="ClusterAnalysisTitle.Name" data-ui="text" data-label="Name"></form-item>
-
-<form-item data-path="ClusterAnalysisTitle.SaveButton" data-ui="savebutton" data-label="Save Changes" data-config="SaveButton"></form-item>
+<h3>Basic Info</h3>
+<div class="field" data-fieldtype="SystemIdentifiers"></div>
+<div class="field" data-fieldtype="Text" data-property="Name" data-label="Name"></div>
+<div class="field" data-fieldtype="SaveButton"></div>

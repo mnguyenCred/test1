@@ -12,6 +12,7 @@ using Models.Curation;
 
 namespace NavyRRL.Controllers
 {
+	[SessionState( System.Web.SessionState.SessionStateBehavior.ReadOnly )]
 	[CustomAttributes.NavyAuthorize( "Edit", Roles = "Administrator, RMTL Developer, Site Staff" )]
 
 	public class TrainingTaskController : BaseController
@@ -34,7 +35,7 @@ namespace NavyRRL.Controllers
 		public ActionResult Detail( int id )
 		{
 			AuthenticateOrRedirect( "You must be authenticated and authorized to view Training Task data." );
-			var data = Factories.TrainingTaskManager.Get( id );
+			var data = Factories.TrainingTaskManager.GetById( id );
 			return View( data );
 		}
 		//
@@ -42,9 +43,17 @@ namespace NavyRRL.Controllers
 		public ActionResult JSON( int id )
 		{
 			AuthenticateOrRedirect( "You must be authenticated and authorized to view Training Task data." );
-			var data = Factories.TrainingTaskManager.Get( id );
+			var data = Factories.TrainingTaskManager.GetById( id );
 			var converted = RDFServices.GetRDF( data );
 			return RawJSONResponse( converted );
+		}
+		//
+
+		public ActionResult GetByRowId( Guid id )
+		{
+			AuthenticateOrRedirect( "You must be authenticated and authorized to view Training Task data." );
+			var data = Factories.TrainingTaskManager.GetByRowId( id, true );
+			return JsonResponse( data, data != null );
 		}
 		//
 
@@ -52,7 +61,12 @@ namespace NavyRRL.Controllers
 		public ActionResult Edit( int id )
 		{
 			AuthenticateOrRedirect( "You must be authenticated and authorized to edit Training Task data." );
-			var data = Factories.TrainingTaskManager.Get( id ) ?? new TrainingTask();
+			if ( !AccountServices.IsUserSiteStaff() )
+			{
+				RedirectToAction( "NotAuthenticated", "Event" );
+			}
+
+			var data = Factories.TrainingTaskManager.GetById( id ) ?? new TrainingTask();
 			return View( data );
 		}
 		//
@@ -65,25 +79,9 @@ namespace NavyRRL.Controllers
 				return JsonResponse( null, false, new List<string>() { "You must be authenticated and authorized to edit Training Task data." }, null );
 			}
 
-
-			var user = AccountServices.GetCurrentUser();
-			ChangeSummary status = new ChangeSummary()
-			{
-				Action = "Edit"
-			};
-			data.LastUpdatedById = user.Id;
-			var results = new Factories.TrainingTaskManager().Save( data, ref status );
-			if ( status.HasAnyErrors )
-			{
-				var msg = string.Join( "</br>", status.Messages.Error.ToArray() );
-				ConsoleMessageHelper.SetConsoleErrorMessage( "Saved changes successfully." );
-			}
-			else
-			{
-				//On success
-				ConsoleMessageHelper.SetConsoleSuccessMessage( "Saved changes successfully." );
-			}
-			return JsonResponse( data, true, null, null );
+			var errors = new List<string>();
+			Factories.TrainingTaskManager.SaveFromEditor( data, AccountServices.GetCurrentUser().Id, errors );
+			return JsonResponse( data, errors.Count() == 0, errors );
 		}
 		//
 	}

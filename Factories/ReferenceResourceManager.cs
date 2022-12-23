@@ -22,14 +22,37 @@ namespace Factories
     {
         public static new string thisClassName = "ReferenceResourceManager";
 
-        #region ===  Persistance ==================
-        /// <summary>
-        /// Update a ReferenceResource
-        /// </summary>
-        /// <param name="entity"></param>
-        /// <param name="status"></param>
-        /// <returns></returns>
-        public bool Save( AppEntity entity, ref ChangeSummary status )
+		#region ===  Persistance ==================
+		public static void SaveFromUpload( AppEntity entity, int userID, ChangeSummary summary )
+		{
+			SaveCore( entity, userID, "Upload", summary.AddError );
+		}
+		//
+
+		public static void SaveFromEditor( AppEntity entity, int userID, List<string> errors )
+		{
+			SaveCore( entity, userID, "Edit", errors.Add );
+		}
+		//
+
+		private static void SaveCore( AppEntity entity, int userID, string saveType, Action<string> AddErrorMethod )
+		{
+			using ( var context = new DataEntities() )
+			{
+				BasicSaveCore( context, entity, context.ReferenceResource, userID, ( ent, dbEnt ) => { }, ( ent, dbEnt ) => {
+					HandleMultiValueUpdate( context, userID, ent.ReferenceType, dbEnt, dbEnt.ReferenceResource_ReferenceType, context.ConceptScheme_Concept, nameof( ReferenceResource_ReferenceType.ReferenceResourceId ), nameof( ReferenceResource_ReferenceType.ReferenceTypeId ) );
+				}, saveType, AddErrorMethod );
+			}
+		}
+		//
+
+		/// <summary>
+		/// Update a ReferenceResource
+		/// </summary>
+		/// <param name="entity"></param>
+		/// <param name="status"></param>
+		/// <returns></returns>
+		public bool Save( AppEntity entity, ref ChangeSummary status )
         {
             bool isValid = true;
             int count = 0;
@@ -44,7 +67,7 @@ namespace Factories
                     {
                         //look up by name primarily for now, may need the resource type at some point 
                         //22-04-17 mp - now including publication date as can have multiple dates for the same reference
-                        var record = Get( entity.Name, entity.PublicationDate );
+                        var record = GetByNameAndPublicationDate( entity.Name, entity.PublicationDate );
                         if ( record?.Id > 0 )
                         {
                             //HOWEVER - if found now and not earlier, the rowId will be wrong for any related data that refers to it
@@ -260,7 +283,7 @@ namespace Factories
                         //if exists not in input, delete it
                         foreach(var e in existing)
                         {
-                            var key = e?.ConceptScheme_Concept?.RowId; 
+                            var key = e?.ConceptScheme_Concept_ReferenceType?.RowId; 
                             if (IsValidGuid(key))
                             {
                                 if (!input.ReferenceType.Contains( (Guid)key ))
@@ -278,10 +301,10 @@ namespace Factories
                         foreach ( var child in input.ReferenceType )
                         {
                             //if not in existing, then add
-                            var isfound = existing.Select( s => s.ConceptScheme_Concept.RowId == child ).ToList();
+                            var isfound = existing.Select( s => s.ConceptScheme_Concept_ReferenceType.RowId == child ).ToList();
                             if ( !isfound.Any() )
                             {
-                                var concept = ConceptSchemeManager.GetConcept( child );
+                                var concept = ConceptManager.GetByRowId( child );
                                 if ( concept?.Id > 0 )
                                 {
                                     //ReferenceConceptAdd( input, concept.Id, input.LastUpdatedById, ref status );
@@ -318,7 +341,13 @@ namespace Factories
 
         #endregion
         #region Retrieval
-        public static AppEntity Get( string name, string publicationDate = null )
+		public static AppEntity GetSingleByFilter( Func<DBEntity, bool> FilterMethod, bool returnNullIfNotFound = false )
+		{
+			return GetSingleByFilter<DBEntity, AppEntity>( context => context.ReferenceResource, FilterMethod, MapFromDB, returnNullIfNotFound );
+		}
+		//
+
+        public static AppEntity GetByNameAndPublicationDate( string name, string publicationDate = null, bool returnNullIfNotFound = false )
         {
             var entity = new AppEntity();
             if ( string.IsNullOrWhiteSpace( name ) )
@@ -341,68 +370,50 @@ namespace Factories
 				var item = matches.FirstOrDefault();
                 if ( item != null && item.Id > 0 )
                 {
-                    MapFromDB( item, entity );
+                    return MapFromDB( item, context );
                 }
             }
             return entity;
         }
-        public static AppEntity Get( Guid rowId )
-        {
-            var entity = new AppEntity();
+		//
 
-            using ( var context = new DataEntities() )
-            {
-                var item = context.ReferenceResource
-                            .FirstOrDefault( s => s.RowId == rowId );
-
-                if ( item != null && item.Id > 0 )
-                {
-                    MapFromDB( item, entity );
-                }
-            }
-            return entity;
-        }
-        public static AppEntity Get( int id )
-        {
-            var entity = new AppEntity();
-            if ( id < 1 )
-                return entity;
-
-            using ( var context = new DataEntities() )
-            {
-                var item = context.ReferenceResource
-                            .SingleOrDefault( s => s.Id == id );
-
-                if ( item != null && item.Id > 0 )
-                {
-                    MapFromDB( item, entity );
-                }
-            }
-
-            return entity;
-		}
-		public static AppEntity GetByCTIDOrNull( string ctid )
+		public static AppEntity GetByRowId( Guid rowId, bool returnNullIfNotFound = false )
 		{
-			if ( string.IsNullOrWhiteSpace( ctid ) )
-			{
-				return null;
-			}
+			return GetSingleByFilter( m => m.RowId == rowId, returnNullIfNotFound );
+		}
+		//
 
+		public static AppEntity GetById( int id, bool returnNullIfNotFound = false )
+		{
+			return GetSingleByFilter( m => m.Id == id, returnNullIfNotFound );
+		}
+		//
+
+		public static AppEntity GetByCTID( string ctid, bool returnNullIfNotFound = false )
+		{
+			return GetSingleByFilter( m => m.CTID.ToLower() == ctid?.ToLower(), returnNullIfNotFound );
+		}
+		//
+
+		public static AppEntity GetForUploadOrNull( string name, string publicationDate )
+		{
 			using ( var context = new DataEntities() )
 			{
-				var item = context.ReferenceResource
-							.SingleOrDefault( s => s.CTID == ctid );
+				var match = context.ReferenceResource.FirstOrDefault( m =>
+					m.Name.ToLower() == name.ToLower() &&
+					m.PublicationDate.ToLower() == publicationDate.ToLower()
+				);
 
-				if ( item != null && item.Id > 0 )
+				if( match != null )
 				{
-					var entity = new AppEntity();
-					MapFromDB( item, entity );
-					return entity;
+					return MapFromDB( match, context );
 				}
 			}
 
 			return null;
 		}
+		//
+
 		/// <summary>
 		/// Get all 
 		/// May need a get all for a rating? Should not matter as this is external data?
@@ -424,9 +435,7 @@ namespace Factories
                     {
                         if ( item != null && item.Id > 0 )
                         {
-                            entity = new AppEntity();
-                            MapFromDB( item, entity );
-                            list.Add( ( entity ) );
+                            list.Add( MapFromDB( item, context ) );
                         }
                     }
                 }
@@ -434,110 +443,55 @@ namespace Factories
             }
             return list;
         }
-        public static List<AppEntity> Search( SearchQuery query )
+		//
+
+        public static SearchResultSet<AppEntity> Search( SearchQuery query )
         {
-            var entity = new AppEntity();
-            var output = new List<AppEntity>();
-            var skip = 0;
-            if ( query.PageNumber > 1 )
-                skip = ( query.PageNumber - 1 ) * query.PageSize;
-            var filter = GetSearchFilterText( query );
+			return HandleSearch<DBEntity, AppEntity>( query, context =>
+			{
+				//Start query
+				var list = context.ReferenceResource.AsQueryable();
+				var keywords = GetSanitizedSearchFilterKeywords( query );
 
-            try
-            {
-                using ( var context = new DataEntities() )
-                {
-                    var list = from Results in context.ReferenceResource
-                               select Results;
-                    if ( !string.IsNullOrWhiteSpace( filter ) )
-                    {
-                        list = from Results in list
-                                .Where( s =>
-                                ( s.Name.ToLower().Contains( filter.ToLower() ) ) ||
-                                ( s.CodedNotation.ToLower() == filter.ToLower() )
-                                )
-                               select Results;
-                    }
-                    query.TotalResults = list.Count();
-                    //sort order not handled
-                    list = list.OrderBy( p => p.Name );
+				//Handle keywords
+				if ( !string.IsNullOrWhiteSpace( keywords ) )
+				{
+					list = list.Where( m =>
+						m.Name.Contains( keywords ) ||
+						m.CodedNotation.Contains( keywords ) ||
+						m.Description.Contains( keywords )
+					);
+				}
 
-                    //
-                    var results = list.Skip( skip ).Take( query.PageSize )
-                        .ToList();
-                    if ( results?.Count > 0 )
-                    {
-                        foreach ( var item in results )
-                        {
-                            if ( item != null && item.Id > 0 )
-                            {
-                                entity = new AppEntity();
-                                MapFromDB( item, entity, true );
-                                output.Add( ( entity ) );
-                            }
-                        }
-                    }
+				//Return ordered list
+				return HandleSort( list, query.SortOrder, m => m.Name, m => m.OrderBy( n => n.Name ).ThenBy( n => n.PublicationDate ) );
 
-                }
-            }
-            catch ( Exception ex )
-            {
-
-            }
-            return output;
+			}, MapFromDBForSearch );
         }
+		//
+
         public static void MapToDB( AppEntity input, DBEntity output )
         {
             //watch for missing properties like rowId
             List<string> errors = new List<string>();
             BaseFactory.AutoMap( input, output, errors );
-            output.Name = output.Name?.Trim();
-            if ( string.IsNullOrWhiteSpace( output.PublicationDate ) )
-            {
-                output.PublicationDate = null;
-            }
-            //the publication date format can be inconsistant
-            else if ( IsValidDate( output.PublicationDate ) )
-            {
-                output.PublicationDate = DateTime.Parse( output.PublicationDate ).ToString( "MM/dd/yyyy" );
-            }
         }
-        public static void MapFromDB( DBEntity input, AppEntity output, bool appendingPublicationDate = false )
-        {
-            //should include list of concepts
-            List<string> errors = new List<string>();
-            BaseFactory.AutoMap( input, output, errors );
-            //the publication date format can be inconsistant
-            if ( IsValidDate( output.PublicationDate ) )
-            {
-                //should be in the proper format, but maybe useful if there is a change in the default
-                output.PublicationDate = DateTime.Parse( output.PublicationDate ).ToString( "MM/dd/yyyy" );
-            }
+		//
 
-            if ( appendingPublicationDate && !string.IsNullOrWhiteSpace( output.PublicationDate) )
-            {
-                output.Name += " (" + output.PublicationDate + ")";
-            }
-            //related
-            if ( (input.StatusTypeId ?? 0) > 0 )
-            {
-                foreach ( var item in input.ReferenceResource_ReferenceType )
-                {
-                    if ( item.ConceptScheme_Concept?.Id > 0 )
-                        output.ReferenceType.Add( item.ConceptScheme_Concept.RowId );
-                }
-            }
-            if (input.ReferenceResource_ReferenceType?.Count > 0)
-            {
-                foreach( var item in input.ReferenceResource_ReferenceType)
-                {
-                    if ( item.ConceptScheme_Concept?.Id > 0 )
-                        output.ReferenceType.Add( item.ConceptScheme_Concept.RowId );
-                }
-            }
-            //
+		public static AppEntity MapFromDB( DBEntity input, DataEntities context )
+		{
+			return MapFromDBForSearch( input, context, null );
+		}
+		//
 
-        }
+		public static AppEntity MapFromDBForSearch( DBEntity input, DataEntities context, SearchResultSet<AppEntity> resultSet = null )
+		{
+			var output = AutoMap( input, new AppEntity() );
+			output.ReferenceType = input.ReferenceResource_ReferenceType?.Select( m => m.ConceptScheme_Concept_ReferenceType ).Select( m => m.RowId ).ToList() ?? new List<Guid>();
+
+			return output;
+		}
+		//
 
         #endregion
     }

@@ -4,61 +4,75 @@
 @{
 	var isAdmin = Services.AccountServices.IsUserSiteManager();
 }
+@helper RenderRow( string label, string value ) {
+	if ( !string.IsNullOrWhiteSpace( value ) )
+	{
+		<tr><td>@label</td><td>@value</td></tr>
+	}
+}
+@helper RenderRow(string label, DateTime value ) { 
+	<tr><td>@label</td><td>@( value != null && value > DateTime.MinValue ? value.ToString( "yyyy-MM-dd" ) : "Unknown" )</td></tr>
+}
 
 <style type="text/css">
-	.banner { background-color: #DFDFDF; padding: 20px; margin-bottom: 10px; }
-	.banner .subtitle { display: flex; align-items: baseline; }
-	.banner .subtitle > * { padding: 0 10px; border-right: 1px solid #555; }
-	.banner .subtitle > *:last-child { border: none; }
+	.banner { display: flex; align-items: center; gap: 10px; background-color: #EEE; padding: 20px; margin-bottom: 10px; }
+	.banner .bannerText { flex: 1 1 auto; font-size: 12px; }
+	.banner .bannerIdentifiers { flex: 0 0 400px; }
+	.banner .bannerText .subtitle { display: flex; align-items: baseline; }
+	.banner .bannerText .subtitle > * { padding: 0 10px; border-right: 1px solid #555; }
+	.banner .bannerText .subtitle > *:last-child { border: none; }
 	
-	.topSection { display: flex; margin-bottom: 10px; }
-	.topSection .description { flex: 1 0 55%; min-width: 400px; padding: 10px; white-space: pre-wrap; }
-	.topSection .identifiers { flex: 0 0 45%; min-width: 400px; padding: 10px; }
-	.topSection > div { border-right: 1px solid #CCC; }
-	.topSection > div:last-child { border: none; }
-	.topSection .identifiers { padding: 10px; }
-	.topSection .identifiers .identifierTable { width: 100%; }
-	.topSection .identifiers .identifierTable tr { border-bottom: 1px solid #CCC; }
-	.topSection .identifiers .identifierTable tr:last-child { border: none; }
-	.topSection .identifiers .identifierTable tr td { padding: 5px; vertical-align: top; }
-	.topSection .identifiers .identifierTable tr td:first-child { font-weight: bold; text-align: right; min-width: 100px; }
-	.topSection .identifiers .identifierTable tr td:last-child { min-width: 200px; }
+	.banner .bannerIdentifiers { padding-left: 10px; border-left: 1px solid #CCC; font-size: 12px; }
+	.banner .bannerIdentifiers table { width: 100%; }
+	.banner .bannerIdentifiers table tr { border-bottom: 1px solid #CCC; }
+	.banner .bannerIdentifiers table tr:last-child { border: none; }
+	.banner .bannerIdentifiers table tr td { padding: 5px; vertical-align: top; }
+	.banner .bannerIdentifiers table tr td:first-child { font-weight: bold; text-align: right; min-width: 100px; }
+	.banner .bannerIdentifiers table tr td:last-child { min-width: 200px; }
 
-	@@media(max-width: 1200px) {
-		.topSection { flex-direction: column; }
-		.topSection .description { order: 2; }
-		.topSection .identifiers { order: 1; }
-		.topSection > div { border: none; }
+	.properties { }
+	.properties .property { margin-bottom: 20px; }
+	.properties .property div { padding: 0 10px; }
+	.properties .property div :is(ul, ol) { padding: 0 15px; }
+
+	@@media(max-width: 1000px) {
+		.banner { display: block; }
+		.banner .bannerText { text-align: center; }
+		.banner .bannerText .subtitle { justify-content: center; }
+		.banner .bannerIdentifiers { padding: 5px 0 0 0; margin-top: 5px; border-left: none; border-top: 1px solid #CCC; }
 	}
 </style>
 <div class="banner">
-	<h1>@Model.Name</h1>
-	<div class="subtitle">
-		<div class="typeLabel">@Model.TypeLabel</div>
-		<a class="jsonLink" href="@Url.Content("~/" + Model.TypeURL + "/json/" + Model.Id)" target="_blank">JSON-LD (ID-Based)</a>
-		<a class="jsonLink" href="@Url.Content("~/rdf/resources/" + Model.CTID)" target="_blank">JSON-LD (CTID-Based)</a>
-		@if ( isAdmin )
-		{
-			<a class="editLink" href="@Url.Content( "~/" + Model.TypeURL + "/edit/" + Model.Id )">Edit Data</a>
-		}
+	<div class="bannerText">
+		<h1>@Model.Name</h1>
+		<div class="subtitle">
+			<div class="typeLabel">@Model.TypeLabel</div>
+			<a class="jsonLink" href="@Url.Content( "~/" + Model.TypeURL + "/json/" + Model.Id )" target="_blank">JSON-LD (ID-Based)</a>
+			<a class="jsonLink" href="@Url.Content( "~/rdf/resources/" + Model.CTID )" target="_blank">JSON-LD (CTID-Based)</a>
+			@if ( isAdmin )
+			{
+				<a class="editLink" href="@Url.Content( "~/" + Model.TypeURL + "/edit/" + Model.Id )">Edit Data</a>
+			}
+		</div>
 	</div>
+	<div class="bannerIdentifiers">
+		<table>
+			<tbody>
+				@RenderRow( "System ID", Model.Id.ToString() )
+				@RenderRow( "CTID", Model.CTID )
+				@RenderRow( "Record Created", Model.Created )
+				@RenderRow( "Record Updated", Model.LastUpdated )
+			</tbody>
+		</table>
+	</div>
+
 </div>
-<div class="topSection">
-	<div class="description">@Html.Raw( string.IsNullOrWhiteSpace( Model.Description ) ? "No Description" : Model.Description )</div>
-	@if(Model.Identifiers != null && Model.Identifiers.Count() > 0 )
+<div class="properties">
+	@foreach( var item in Model.PropertyList.Where( m => !string.IsNullOrWhiteSpace( m.Value ) ).ToList() )
 	{
-		<div class="identifiers">
-			<table class="identifierTable">
-				<tbody>
-					@foreach ( var item in Model.Identifiers.Where( m => !string.IsNullOrWhiteSpace( m.Value ) ).ToList() )
-					{
-						<tr>
-							<td>@Html.Raw( item.Key )</td>
-							<td>@Html.Raw( item.Value )</td>
-						</tr>
-					}
-				</tbody>
-			</table>
+		<div class="property">
+			<h4>@Html.Raw( item.Key )</h4>
+			<div>@Html.Raw( item.Value )</div>
 		</div>
 	}
 </div>

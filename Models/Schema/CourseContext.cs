@@ -8,23 +8,34 @@ namespace Models.Schema
 {
 	public class CourseContext : BaseObject
 	{
-		public Guid HasTrainingTask { get; set; }
-		public Guid HasCourse { get; set; }
-		public Guid AssessmentMethodType { get; set; }
-		public List<Guid> AssessmentMethodTypes { get; set; } = new List<Guid>();
+		public CourseContext()
+		{
+			AssessmentMethodType = new List<Guid>();
+			AssessmentMethodTypeId = new List<int>();
+		}
 
+		public Guid HasTrainingTask { get; set; }
         public int HasTrainingTaskId { get; set; }
+
+		public Guid HasCourse { get; set; }
 		public int HasCourseId { get; set; }
-		//TODO - can this be a list - used to be
-		public int AssessmentMethodTypeId { get; set; }
+
+		public List<Guid> AssessmentMethodType { get; set; }
+		public List<int> AssessmentMethodTypeId { get; set; }
+
 	}
 	//
 
 	public class PopulatedCourseContext : CourseContext
 	{
+		public PopulatedCourseContext()
+		{
+			AssessmentMethodTypeData = new List<Concept>();
+		}
+
 		public TrainingTask HasTrainingTaskData { get; set; }
 		public Course HasCourseData { get; set; }
-		public Concept AssessmentMethodTypeData { get; set; }
+		public List<Concept> AssessmentMethodTypeData { get; set; }
 	}
 	//
 }

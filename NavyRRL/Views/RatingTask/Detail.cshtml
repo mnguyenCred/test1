@@ -1,34 +1,21 @@
 ﻿@using Models.Schema;
+@using Models.Search;
 @using Models.DTO;
 @model RatingTask
 @{
 	ViewBag.Title = "Rating Task: " + Model.Description;
-	var billetTitles = Model.HasBilletTitle.Select( m => Factories.JobManager.Get( m ) ).ToList();
-	var workRoles = Model.HasWorkRole.Select( m => Factories.WorkRoleManager.Get( m ) ).ToList();
-	var ratings = Model.HasRating.Select( m => Factories.RatingManager.Get( m ) ).ToList();
 }
 
 @Html.Partial( "~/Views/Shared/_DetailShared.cshtml" )
-@Html.Partial( "~/Views/Shared/_DetailBasicInfo.cshtml", new DetailBasicInfoHelper()
+@Html.Partial( "~/Views/Shared/_DetailBasicInfo.cshtml", new DetailBasicInfoHelper( Model )
 {
 	TypeLabel = "Rating Task",
-	TypeURL = Model.GetType().Name.ToLower(),
-	Id = Model.Id,
-	CTID = Model.CTID,
 	Name = "Rating Task",
-	Description = Model.Description,
-	Identifiers = new List<NamedString>()
+	PropertyList = new List<NamedString>()
 	{
-		new NamedString( "System ID", Model.Id.ToString() ),
-		new NamedString( "CTID", Model.CTID ),
-		new NamedString( "Code", Model.CodedNotation ),
-		new NamedString( "Rank", "<a href=\"" + Url.Content( "~/Concept/Detail/" + Model.TaskPayGrade.Id ) + "\">" + Model.TaskPayGrade.CodedNotation + " - " + Model.TaskPayGrade.Name + "</a>" ),
-		new NamedString( "Source", "<a href=\"" + Url.Content( "~/ReferenceResource/Detail/" + Model.ReferenceResource.Id ) + "\">" + Model.ReferenceResource.Name + "</a>" ),
-		new NamedString( "Date of Source", Model.ReferenceResource.PublicationDate ),
-		new NamedString( "Work Element Type", "<a href=\"" + Url.Content( "~/Concept/Detail/" + Model.TaskReferenceType.Id ) + "\">" + Model.TaskReferenceType.WorkElementType + "</a>" ),
-		new NamedString( "Task Applicability", "<a href=\"" + Url.Content( "~/Concept/Detail/" + Model.TaskApplicabilityType.Id ) + "\">" + Model.TaskApplicabilityType.Name + "</a>" ),
-		new NamedString( "Formal Training Gap", "<a href=\"" + Url.Content( "~/Concept/Detail/" + Model.TaskTrainingGap.Id ) + "\">" + Model.TaskTrainingGap.Name + "</a>" ),
-		new NamedString( "Last Updated ", Model.LastUpdated.ToString("yyyy-MM-dd hh:mm") )
+		new NamedString( "Description", Model.Description ),
+		new NamedString( "Source", LinkHelper.GetDetailPageLink( Factories.ReferenceResourceManager.GetByRowId(Model.HasReferenceResource), Url.Content, m => m.Name + " (" + m.PublicationDate + ")" ) ),
+		new NamedString("Reference Type", LinkHelper.GetDetailPageLink( Factories.ConceptManager.GetByRowId( Model.ReferenceType ), Url.Content, m => m.Name ) )
 	}
 } )
 
@@ -36,26 +23,73 @@
 <script type="text/javascript">
 	var ItemListConfigs = {
 		CommonFilters: [
-			{ Name: "navy:RatingTask", ItemIds: [ @Model.Id ] }
+			{ Name: "> RatingTaskId > RatingTask", ItemIds: [ @Model.Id ] }
 		],
 		Searches: {
 			Ratings: {
-				Header: "Associated Ratings",
-				Type: "Rating",
-				Columns: ["Code", "Name"],
-				Cells: ["CodedNotation", (Result) => { return ItemListSearches.getLink("@Url.Content("~/Rating/Detail/")" + Result.Id, Result.Name) }]
+				Header: "Ratings",
+				SearchType: "RatingContext",
+				StyleType: "Rating",
+				Fields: [
+					{ Label: "Rating", RenderPath: ["HasRating|Rating", "CodedNotation|Rating"] },
+					{ Label: "Rating Name", RenderPath: ["HasRating|Rating", "Name|Rating"], AsPlainText: true },
+					{ Label: "Training Gap", RenderPath: ["TrainingGapType|Concept", "Name|Concept"] }
+				]
 			},
 			BilletTitles: {
 				Header: "Billet Titles",
-				Type: "BilletTitle",
-				Columns: ["Name"],
-				Cells: [(Result) => { return ItemListSearches.getLink("@Url.Content("~/BilletTitle/Detail/")" + Result.Id, Result.Name) }]
+				SearchType: "RatingContext",
+				StyleType: "BilletTitle",
+				Fields: [
+					{ Label: "Rating", RenderPath: ["HasRating|Rating", "CodedNotation|Rating"] },
+					{ Label: "Billet Title", RenderPath: ["HasBilletTitle|BilletTitle", "Name|BilletTitle"] },
+					{ Label: "Training Gap", RenderPath: ["TrainingGapType|Concept", "Name|Concept"] }
+				]
 			},
 			WorkRoles: {
 				Header: "Functional Areas",
-				Type: "WorkRole",
-				Columns: ["Name"],
-				Cells: [(Result) => { return ItemListSearches.getLink("@Url.Content("~/WorkRole/Detail/")" + Result.Id, Result.Name) }]
+				SearchType: "RatingContext",
+				StyleType: "WorkRole",
+				Fields: [
+					{ Label: "Rating", RenderPath: ["HasRating|Rating", "CodedNotation|Rating"] },
+					{ Label: "Functional Area", RenderPath: ["HasWorkRole|WorkRole", "Name|WorkRole"] },
+					{ Label: "Training Gap", RenderPath: ["TrainingGapType|Concept", "Name|Concept"] }
+				]
+			},
+			TrainingTasks: {
+				Header: "Training Tasks",
+				SearchType: "RatingContext",
+				StyleType: "TrainingTask",
+				Filters: [
+					{ Name: "> CourseContextId > CourseContext:NotNull" }
+				],
+				Fields: [
+					{ Label: "Rating", RenderPath: ["HasRating|Rating", "CodedNotation|Rating"] },
+					{ Label: "Course Code", RenderPath: ["HasCourseContext|CourseContext", "HasCourse|Course", "CodedNotation|Course"] },
+					{ Label: "Training Task", RenderPath: ["HasCourseContext|CourseContext", "HasTrainingTask|TrainingTask", "Description|TrainingTask"] },
+				]
+			},
+			ClusterAnalyses: {
+				Header: "Cluster Analyses",
+				SearchType: "RatingContext",
+				StyleType: "ClusterAnalysis",
+				Filters: [
+					{ Name: "> ClusterAnalysisId > ClusterAnalysis:NotNull" }
+				],
+				Fields: [
+					{ Label: "Rating", RenderPath: ["HasRating|Rating", "CodedNotation|Rating"] },
+					{ Label: "Cluster Analysis Title", RenderPath: ["HasClusterAnalysis|ClusterAnalysis", "HasClusterAnalysisTitle|ClusterAnalysisTitle", "Name|ClusterAnalysisTitle"] },
+					{ Label: "Cluster Analysis Details", RenderPath: ["HasClusterAnalysis|ClusterAnalysis", "Id|ClusterAnalysis"], OverrideText: "Cluster Analysis Details" },
+					{ Label: "Training Solution Type", RenderPath: ["HasClusterAnalysis|ClusterAnalysis", "TrainingSolutionType|Concept", "Name|Concept"] },
+					//{ Label: "Recommended Modality Type", RenderPath: ["HasClusterAnalysis|ClusterAnalysis", "RecommendedModalityType|Concept", "Name|Concept"] },
+					//{ Label: "Development Specification Type", RenderPath: ["HasClusterAnalysis|ClusterAnalysis", "DevelopmentSpecificationType|Concept", "Name|Concept"] },
+					{ Label: "Candidate Platform Type", RenderPath: ["HasClusterAnalysis|ClusterAnalysis", "CandidatePlatformType|Concept", "Name|Concept"] },
+					//{ Label: "CFM Placement Type", RenderPath: ["HasClusterAnalysis|ClusterAnalysis", "CFMPlacementType|Concept", "Name|Concept"] },
+					//{ Label: "Development Ratio Type", RenderPath: ["HasClusterAnalysis|ClusterAnalysis", "DevelopmentRatioType|Concept", "Name|Concept"] },
+					//{ Label: "Priority Placement", RenderPath: ["HasClusterAnalysis|ClusterAnalysis", "PriorityPlacement|ClusterAnalysis"], AsPlainText: true },
+					//{ Label: "Development Time", RenderPath: ["HasClusterAnalysis|ClusterAnalysis", "DevelopmentTime|ClusterAnalysis"], AsPlainText: true },
+					//{ Label: "Estimated Instructional Time", RenderPath: ["HasClusterAnalysis|ClusterAnalysis", "EstimatedInstructionalTime|ClusterAnalysis"], AsPlainText: true },
+				]
 			}
 		}
 	};
@@ -67,161 +101,19 @@
 	//
 </script>
 <style type="text/css">
-	table[data-type='Rating'] [data-column='Code'] { width: 50px; }
+	table [data-column='Rating'] { width: 75px; }
+	table [data-column='Training Gap'] { width: 100px; margin-left: auto; }
+	table[data-styletype='TrainingTask'] [data-column='Course Code'] { width: 125px; }
+	table[data-styletype='ClusterAnalysis'] [data-column='Cluster Analysis Details'] { width: 175px; }
+	table[data-styletype='ClusterAnalysis'] [data-column='Candidate Platform Type'] { width: 300px; }
+	table[data-styletype='ClusterAnalysis'] [data-column='Priority Placement'] { width: 75px; }
+	table[data-styletype='ClusterAnalysis'] [data-column='Development Time'] { width: 75px; }
+	table[data-styletype='ClusterAnalysis'] [data-column='Estimated Instructional Time'] { width: 100px; }
+	table[data-styletype='ClusterAnalysis'] a { display: block; }
 </style>
 
 <item-list-search name="Ratings"></item-list-search>
 <item-list-search name="BilletTitles"></item-list-search>
 <item-list-search name="WorkRoles"></item-list-search>
-
-@*
-@if( ratings.Count() > 0 )
-{
-	<div class="section rating">
-		<h3 class="sectionHeader">Associated Ratings</h3>
-		<table>
-			<thead>
-				<tr>
-					<th style="width: 50px;">Code</th>
-					<th>Name</th>
-				</tr>
-			</thead>
-			<tbody>
-				@foreach( var item in ratings )
-				{
-					<tr>
-						<td>@item.CodedNotation</td>
-						<td><a href="@Url.Content( "~/Rating/Detail/" + item.Id )">@item.Name</a></td>
-					</tr>
-				}
-			</tbody>
-		</table>
-	</div>
-}
-
-@if( billetTitles.Count() > 0 )
-{
-	<div class="section billetTitle">
-		<h3 class="sectionHeader">Billet Titles</h3>
-		<table>
-			<thead>
-				<tr>
-					<th>Name</th>
-				</tr>
-			</thead>
-			<tbody>
-				@foreach( var item in billetTitles )
-				{
-					<tr>
-						<td><a href="@Url.Content( "~/BilletTitle/Detail/" + item.Id )">@item.Name</a></td>
-					</tr>
-				}
-			</tbody>
-		</table>
-	</div>
-}
-
-@if( workRoles.Count() > 0 )
-{
-	<div class="section workRole">
-		<h3 class="sectionHeader">Functional Areas</h3>
-		<table>
-			<thead>
-				<tr>
-					<th>Name</th>
-				</tr>
-			</thead>
-			<tbody>
-				@foreach( var item in workRoles )
-				{
-					<tr>
-						<td><a href="@Url.Content( "~/WorkRole/Detail/" + item.Id )">@item.Name</a></td>
-					</tr>
-				}
-			</tbody>
-		</table>
-	</div>
-}
-*@
-
-@if ( Model.TrainingTasks != null && Model.TrainingTasks.Count() > 0 )
-{
-
-	<div class="section trainingTasks">
-		<h3 class="sectionHeader">Training Tasks</h3>
-		<table>
-			<thead>
-				<tr>
-					<th style="width:125px;">CIN</th>
-					<th style="width:25%;">Course</th>
-					<th>Training Task</th>
-				</tr>
-			</thead>
-			<tbody>
-				@foreach ( var item in Model.TrainingTasks.ToList() )
-				{
-					<tr>
-						<td>@item.CourseCodedNotation</td>
-						<td><a href="@Url.Content( "~/Course/Detail/" + item.CourseId )">@item.CourseName</a></td>
-						<td><a href="@Url.Content( "~/TrainingTask/Detail/" + item.Id )">@item.Description</a></td>
-					</tr>
-				}
-			</tbody>
-		</table>
-	</div>
-
-}
-
-@if ( Model.ClusterAnalysis != null && !string.IsNullOrWhiteSpace( Model.ClusterAnalysis.ClusterAnalysisTitle ) )
-{
-	<style type="text/css">
-		.clusterAnalysis table tbody tr td:first-child { font-weight: bold; width: 225px; }
-	</style>
-	<div class="section clusterAnalysis">
-		<h3 class="sectionHeader">Cluster Analysis</h3>
-		<table>
-			<tbody>
-				<tr>
-					<td>Cluster Analysis Title</td>
-					<td><a href="@Url.Content( "~/ClusterAnalysis/Detail/" + Model.ClusterAnalysis.Id )">@Model.ClusterAnalysis.ClusterAnalysisTitle</a></td>
-				</tr>
-				<tr>
-					<td>Training Solution Type</td>
-					<td><a href="@Url.Content( "~/Concept/Detail/" + Model.ClusterAnalysis.TrainingSolutionTypeId )">@Model.ClusterAnalysis.TrainingSolution</a></td>
-				</tr>
-				<tr>
-					<td>Recommended Modality</td>
-					<td><a href="@Url.Content( "~/Concept/Detail/" + Model.ClusterAnalysis.RecommendedModalityId )">@Model.ClusterAnalysis.RecommendedModality</a></td>
-				</tr>
-				<tr>
-					<td>Development Specification</td>
-					<td><a href="@Url.Content( "~/Concept/Detail/" + Model.ClusterAnalysis.DevelopmentSpecificationId )">@Model.ClusterAnalysis.DevelopmentSpecification</a></td>
-				</tr>
-				<tr>
-					<td>Candidate Platform</td>
-					<td>@Model.ClusterAnalysis.CandidatePlatform</td>
-				</tr>
-				<tr>
-					<td>CFM Placement</td>
-					<td>@Model.ClusterAnalysis.CFMPlacement</td>
-				</tr>
-				<tr>
-					<td>Priority Placement</td>
-					<td>@Model.ClusterAnalysis.PriorityPlacement</td>
-				</tr>
-				<tr>
-					<td>Development Ratio</td>
-					<td>@Model.ClusterAnalysis.DevelopmentRatio</td>
-				</tr>
-				<tr>
-					<td>Estimated Instructional Time</td>
-					<td>@Model.ClusterAnalysis.EstimatedInstructionalTime</td>
-				</tr>
-				<tr>
-					<td>Development Time</td>
-					<td>@Model.ClusterAnalysis.DevelopmentTime</td>
-				</tr>
-			</tbody>
-		</table>
-	</div>
-}
+<item-list-search name="TrainingTasks"></item-list-search>
+<item-list-search name="ClusterAnalyses"></item-list-search>

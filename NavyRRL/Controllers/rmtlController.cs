@@ -13,10 +13,19 @@ using Models.Search;
 
 namespace NavyRRL.Controllers
 {
-    public class RMTLController : BaseController
+	[SessionState( System.Web.SessionState.SessionStateBehavior.ReadOnly )]
+	public class RMTLController : BaseController
     {
 		[CustomAttributes.NavyAuthorize( "RMTL Search", Roles = SiteReader )]
 		public ActionResult Search()
+		{
+			AuthenticateOrRedirect( "You must be authenticated and authorized to use the RMTL Search." );
+			return View( "~/Views/RMTL/RMTLSearchV3.cshtml" );
+		}
+		//
+
+		[CustomAttributes.NavyAuthorize( "RMTL Search", Roles = SiteReader )]
+		public ActionResult SearchV2()
 		{
 			AuthenticateOrRedirect( "You must be authenticated and authorized to use the RMTL Search." );
 			return View( "~/Views/RMTL/RMTLSearchV2.cshtml" );
@@ -28,7 +37,8 @@ namespace NavyRRL.Controllers
 		{
 			bool valid = true;
 			string status = "";
-			var results = new SearchServices().RMTLSearch( query, ref valid, ref status );
+			//var results = new SearchServices().RMTLSearch( query, ref valid, ref status );
+			var results = SearchServices.RatingContextSearch( query );
 
 			return JsonResponse( results, valid, new List<string>() { status }, null );
 		}

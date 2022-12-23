@@ -30,66 +30,20 @@ namespace Models.Schema
 	}
 	//
 
-	public class Concept : BaseObject
-	{
-		public int ConceptSchemeId { get; set; }
-		/// <summary>
-		/// Preferred Label for this Concept<br />
-		/// AKA skos:prefLabel
-		/// </summary>
-		public string Name { get; set; }
-
-		/// <summary>
-		/// Description for this Concept<br />
-		/// AKA skos:definition
-		/// </summary>
-		public string Description { get; set; }
-
-		/// <summary>
-		/// Notation for this Concept<br />
-		/// AKA skos:notation
-		/// </summary>
-		public string CodedNotation { get; set; }
-
-		/// <summary>
-		/// Guid for the Concept Scheme in which this Concept is a member<br />
-		/// AKA skos:inScheme
-		/// </summary>
-		public Guid InScheme { get; set; }
-
-		/// <summary>
-		/// URI for the Concept Scheme in which this Concept is a member
-		/// </summary>
-		public string SchemeUri { get; set; }
-
-		public bool IsActive { get; set; }
-		/// <summary>
-		/// used for sort order.
-		/// Most concepts will default to the same value(25). 
-		/// Order by ListId, then name. Where concepts need to be order by other (essentially) name, use ListId to group. 
-		/// </summary>
-		public int ListId { get; set; }
-
-		/// <summary>
-		/// Helps figure out which value from the spreadsheet this Concept aligns to
-		/// </summary>
-		public string WorkElementType { get; set; }
-	}
-	//
-
 	/// <summary>
 	/// Helper class used to make working with Concept Schemes easier.<br />
 	/// Will need to be updated if/when new Concept Schemes are added (but then, so will the rest of the code).
 	/// </summary>
 	public class ConceptSchemeMap
 	{
+		public List<ConceptScheme> AllConceptSchemes { get; set; }
 		public ConceptScheme CommentStatusCategory { get; set; }
 		public ConceptScheme CourseCategory { get; set; }
-		public ConceptScheme CurrentAssessmentApproachCategory { get; set; }
+		public ConceptScheme AssessmentMethodCategory { get; set; }
 		public ConceptScheme LifeCycleControlDocumentCategory { get; set; }
 		public ConceptScheme PayGradeCategory { get; set; }
 		public ConceptScheme ProjectStatusCategory { get; set; }
-		public ConceptScheme RatingLevelCategory { get; set; }
+		public ConceptScheme PayGradeLevelCategory { get; set; }
 		public ConceptScheme ReferenceResourceCategory { get; set; }
 		public ConceptScheme TaskApplicabilityCategory { get; set; }
 		public ConceptScheme TrainingGapCategory { get; set; }
@@ -98,6 +52,7 @@ namespace Models.Schema
 		public ConceptScheme DevelopmentSpecificationCategory { get; set; }
 		public ConceptScheme CandidatePlatformCategory { get; set; }
 		public ConceptScheme DevelopmentRatioCategory { get; set; }
+		public ConceptScheme CFMPlacementCategory { get; set; }
 	}
 	//
 }

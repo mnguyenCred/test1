@@ -35,14 +35,15 @@ namespace Data.Tables
         public Nullable<int> CourseContextId { get; set; }
         public Nullable<int> PayGradeLevelTypeId { get; set; }
     
-        public virtual ClusterAnalysis ClusterAnalysis { get; set; }
-        public virtual ConceptScheme_Concept ConceptScheme_Concept { get; set; }
-        public virtual ConceptScheme_Concept ConceptScheme_Concept1 { get; set; }
-        public virtual ConceptScheme_Concept ConceptScheme_Concept2 { get; set; }
-        public virtual ConceptScheme_Concept ConceptScheme_Concept3 { get; set; }
-        public virtual CourseContext CourseContext { get; set; }
+        public virtual ConceptScheme_Concept ConceptScheme_Concept_PayGradeType { get; set; }
+        public virtual ConceptScheme_Concept ConceptScheme_Concept_TaskApplicabilityType { get; set; }
+        public virtual ConceptScheme_Concept ConceptScheme_Concept_TrainingGapType { get; set; }
         public virtual Job Job { get; set; }
         public virtual Rating Rating { get; set; }
+        public virtual WorkRole WorkRole { get; set; }
+        public virtual CourseContext CourseContext { get; set; }
+        public virtual ConceptScheme_Concept ConceptScheme_Concept_PayGradeLevelType { get; set; }
+        public virtual ClusterAnalysis ClusterAnalysis { get; set; }
         public virtual RatingTask RatingTask { get; set; }
     }
 }

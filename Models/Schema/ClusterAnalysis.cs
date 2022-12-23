@@ -20,16 +20,16 @@ namespace Models.Schema
         public int PriorityPlacement { get; set; }
 
 		/// <summary>
-		/// Included with STG V1, but not later one
+		/// Included with STG V1, but not later one<br />
 		/// possibly a decimal
 		/// </summary>
-		public decimal? EstimatedInstructionalTime { get; set; }
+		public decimal EstimatedInstructionalTime { get; set; }
 
 		/// <summary>
 		/// Development Time<br />
 		/// Duration in hours
 		/// </summary>
-		public decimal? DevelopmentTime { get; set; }
+		public decimal DevelopmentTime { get; set; }
 
 		/// <summary>
 		/// GUID reference to an instance of the Cluster Analysis Title class<br />
@@ -107,26 +107,62 @@ namespace Models.Schema
 		/// </summary>
 		public int CFMPlacementTypeId { get; set; }
 
+		/// <summary>
+		/// RowID for the Rating Task this Cluster Analysis relates to.<br />
+		/// Necessary to have this to narrow down Cluster Analyses to just a single instance when the RatingContext object has not yet been determined (e.g., during upload).
+		/// </summary>
+		public Guid HasRatingTask { get; set; }
+
+		/// <summary>
+		/// Integer ID for the Rating Task this Cluster Analysis relates to.
+		/// </summary>
+		public int HasRatingTaskId { get; set; }
+
+		/// <summary>
+		/// RowID for the Rating this Cluster Analysis is contextualized by.<br />
+		/// Necessary to have this to narrow down Cluster Analyses to just a single instance when the RatingContext object has not yet been determined (e.g., during upload).
+		/// </summary>
+		public Guid HasRating { get; set; }
+
+		/// <summary>
+		/// Integer ID for the Rating this Cluster Analysis relates to.
+		/// </summary>
+		public int HasRatingId { get; set; }
+
+		/// <summary>
+		/// RowID for the Billet Title this Cluster Analysis is contextualized by.<br />
+		/// Necessary to have this to narrow down Cluster Analyses to just a single instance when the RatingContext object has not yet been determined (e.g., during upload).
+		/// </summary>
+		public Guid HasBilletTitle { get; set; }
+
+		/// <summary>
+		/// Integer ID for the Billet Title this Cluster Analysis relates to.
+		/// </summary>
+		public int BilletTitleId { get; set; }
+
+		/// <summary>
+		/// RowID for the Work Role this Cluster Analysis is contextualized by.<br />
+		/// Necessary to have this to narrow down Cluster Analyses to just a single instance when the RatingContext object has not yet been determined (e.g., during upload).
+		/// </summary>
+		public Guid HasWorkRole { get; set; }
+
+		/// <summary>
+		/// Integer ID for the Work Role this Cluster Analysis relates to.
+		/// </summary>
+		public int WorkRoleId { get; set; }
 
 		//Obsolete properties
 		//or for display purposes
 
-        /// <summary>
-        /// Used for general search. A label for the key properties to distinguish ?
-		/// Obsolete: Use Cluster Analysis Title (the class) to provide the "name"
-        /// </summary>
-		[Obsolete]
-        public string Label { get; set; }
-
 		/// <summary>
-		/// Obsolete: Use Cluster Analysis Title (the class) to provide this
+		/// Obsolete: Use Cluster Analysis Title (the class) to provide this<br />
 		/// MP - still need something to reference for messages/issues other than a Guid
 		/// </summary>
 		[Obsolete]
         public string ClusterAnalysisTitle { get; set; }
 
 		/// <summary>
-		/// Used from view
+		/// Used from view<br />
 		/// Obsolete: Use TrainingSolutionType/TrainingSolutionTypeId instead
 		/// </summary>
 		[Obsolete]
@@ -147,70 +183,10 @@ namespace Models.Schema
 		public string DevelopmentSpecification { get; set; }
 
 		/// <summary>
-		/// Obsolete: Belongs on RatingContext
-		/// </summary>
-		[Obsolete]
-        public string Notes { get; set; }
-
-		/// <summary>
-		/// Obsolete: Rating Context should reference Cluster Analysis
-		/// </summary>
-		[Obsolete]
-		public int RatingTaskId { get; set; }
-
-		/// <summary>
-		/// Obsolete: Rating Context should reference Cluster Analysis
-		/// </summary>
-		[Obsolete]
-		public Guid RatingTaskRowId { get; set; }
-
-		/// <summary>
-		/// Obsolete: Use CandidatePlatformType/CandidatePlatformTypeId instead
-		/// </summary>
-		[Obsolete]
-		public string CandidatePlatform { get; set; }
-
-		/// <summary>
-		/// Obsolete: Use CFMPlacementType/CFMPlacementTypeId instead
-		/// </summary>
-		[Obsolete]
-		public string CFMPlacement { get; set; }
-
-
-     
-		/// <summary>
-		/// Development Cost (ROM)<br />
-		/// Ratio time $100<br />
-		/// If the latter is consistent, then no need to store the info?<br />
-		/// Included with STG V1, but not later one<br />
-		/// Obsolete: Not used. This was probably included with the wrong column name in an early spreadsheet.
-		/// </summary>
-		[Obsolete]
-		public int DevelopmentCost { get; set; }
-
-		/// <summary>
 		/// Obsolete: Use DevelopmentRatioType/DevelopmentRatioTypeId instead
 		/// </summary>
 		[Obsolete]
 		public string DevelopmentRatio { get; set; }
-
-		/// <summary>
-		/// Obsolete: Does not seem to be needed(?)
-		/// </summary>
-		[Obsolete]
-		public string PriorityPlacementLabel { get; set; } //Where is this used?
-
-		/// <summary>
-		/// Obsolete: Does not seem to be needed(?)
-		/// </summary>
-		[Obsolete]
-		public string DevelopmentTimeLabel { get; set; } //Where is this used?
-
-		/// <summary>
-		/// Obsolete: Does not seem to be needed(?)
-		/// </summary>
-		[Obsolete]
-		public string EstimatedInstructionalTimeLabel { get; set; } //Where is this used?
 
 	}
 }

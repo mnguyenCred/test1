@@ -23,15 +23,30 @@ namespace Factories
     {
         public static new string thisClassName = "RMTLProjectManager";
 
-        #region RMTLProject - persistance - NOT Likely? ==================
-        /// <summary>
-        /// Update a RMTLProject
-        /// At this time all we will have is the code
-        /// </summary>
-        /// <param name="entity"></param>
-        /// <param name="status"></param>
-        /// <returns></returns>
-        public bool Save( AppEntity entity, ref ChangeSummary status )
+		#region RMTLProject - persistance - NOT Likely? ==================
+		public static void SaveFromEditor( AppEntity entity, int userID, List<string> errors )
+		{
+			SaveCore( entity, userID, "Edit", errors.Add );
+		}
+		//
+
+		private static void SaveCore( AppEntity entity, int userID, string saveType, Action<string> AddErrorMethod )
+		{
+			using ( var context = new DataEntities() )
+			{
+				BasicSaveCore( context, entity, context.RMTLProject, userID, ( ent, dbEnt ) => { }, ( ent, dbEnt ) => { }, saveType, AddErrorMethod );
+			}
+		}
+		//
+
+		/// <summary>
+		/// Update a RMTLProject
+		/// At this time all we will have is the code
+		/// </summary>
+		/// <param name="entity"></param>
+		/// <param name="status"></param>
+		/// <returns></returns>
+		public bool Save( AppEntity entity, ref ChangeSummary status )
         {
             bool isValid = true;
             int count = 0;
@@ -45,9 +60,9 @@ namespace Factories
                         //this needs to check by the ratingId
                         SM.Rating rating = new SM.Rating();   
                         if  ( IsValidGuid( entity.HasRating ) )
-                            rating = RatingManager.Get( entity.HasRating );
+                            rating = RatingManager.GetByRowId( entity.HasRating );
                         else if ( IsValidGuid( entity.HasRating ) )
-                            rating = RatingManager.Get( entity.HasRating );
+                            rating = RatingManager.GetByRowId( entity.HasRating );
 
                         if ( rating?.Id > 0 )
                         {
@@ -224,51 +239,39 @@ namespace Factories
             BaseFactory.AutoMap( input, output, errors );
 
         }
-        #endregion
+		#endregion
 
-        #region Retrieval
+		#region Retrieval
+		public static AppEntity GetSingleByFilter( Func<DBEntity, bool> FilterMethod, bool returnNullIfNotFound = false )
+		{
+			return GetSingleByFilter<DBEntity, AppEntity>( context => context.RMTLProject, FilterMethod, MapFromDB, returnNullIfNotFound );
+		}
+		//
 
-        public static AppEntity Get( Guid rowId )
-        {
-            var entity = new AppEntity();
+		public static AppEntity GetByRowId( Guid rowId, bool returnNullIfNotFound = false )
+		{
+			return GetSingleByFilter( m => m.RowId == rowId, returnNullIfNotFound );
+		}
+		//
 
-            using ( var context = new DataEntities() )
-            {
-                var item = context.RMTLProject
-                            .FirstOrDefault( s => s.RowId == rowId );
+		public static AppEntity GetById( int id, bool returnNullIfNotFound = false )
+		{
+			return GetSingleByFilter( m => m.Id == id, returnNullIfNotFound );
+		}
+		//
 
-                if ( item != null && item.Id > 0 )
-                {
-                    MapFromDB( item, entity );
-                }
-            }
-            return entity;
-        }
-        public static AppEntity Get( int id )
-        {
-            var entity = new AppEntity();
-            if ( id < 1 )
-                return entity;
+		public static AppEntity GetByCTID( string ctid, bool returnNullIfNotFound = false )
+		{
+			return GetSingleByFilter( m => m.CTID.ToLower() == ctid?.ToLower(), returnNullIfNotFound );
+		}
+		//
 
-            using ( var context = new DataEntities() )
-            {
-                var item = context.RMTLProject
-                            .SingleOrDefault( s => s.Id == id );
-
-                if ( item != null && item.Id > 0 )
-                {
-                    MapFromDB( item, entity );
-                }
-            }
-
-            return entity;
-        }
-        /// <summary>
-        /// Get all 
-        /// May need a get all for a rating? Should not matter as this is external data?
-        /// </summary>
-        /// <returns></returns>
-        public static List<AppEntity> GetAllSummary()
+		/// <summary>
+		/// Get all 
+		/// May need a get all for a rating? Should not matter as this is external data?
+		/// </summary>
+		/// <returns></returns>
+		public static List<AppEntity> GetAllSummary()
         {
             var entity = new AppEntity();
             var list = new List<AppEntity>();
@@ -304,48 +307,64 @@ namespace Factories
                 List<DBEntity> results = context.RMTLProject
                         .OrderBy( s => s.Name )
                         .ToList();
-                if ( results?.Count > 0 )
-                {
-                    foreach ( var item in results )
-                    {
-                        if ( item != null && item.Id > 0 )
-                        {
-                            entity = new AppEntity();
-                            MapFromDB( item, entity );
-                            list.Add( ( entity ) );
-                        }
-                    }
-                }
 
+				foreach( var item in results )
+				{
+					list.Add( MapFromDB( item, context ) );
+				}
             }
             return list;
         }
-        public static List<AppEntity> Search( SearchQuery query )
+		//
+
+		public static SearchResultSet<AppEntity> Search( SearchQuery query )
+		{
+			return HandleSearch<DBEntity, AppEntity>( query, context =>
+			{
+				//Start query
+				var list = context.RMTLProject.AsQueryable();
+				var keywords = GetSanitizedSearchFilterKeywords( query );
+
+				//Handle keywords
+				if ( !string.IsNullOrWhiteSpace( keywords ) )
+				{
+					list = list.Where( m =>
+						m.Name.Contains( keywords ) ||
+						m.Description.Contains( keywords )
+					);
+				}
+
+				//Return ordered list
+				return HandleSort( list, query.SortOrder, m => m.Name, m => m.OrderBy( n => n.Name ) );
+
+			}, MapFromDBForSearch );
+		}
+		//
+
+		public static List<AppEntity> SearchByView( SearchQuery query )
         {
-            var entity = new AppEntity();
             var output = new List<AppEntity>();
-            var skip = 0;
-            if ( query.PageNumber > 1 )
-                skip = ( query.PageNumber - 1 ) * query.PageSize;
-            var filter = GetSearchFilterText( query );
+            var keywords = GetSanitizedSearchFilterKeywords( query );
+
             try
             {
                 using ( var context = new ViewContext() )
                 {
                     var list = from Results in context.RMTLProjectSummary
                                select Results;
-                    if ( !string.IsNullOrWhiteSpace( filter ) )
+                    if ( !string.IsNullOrWhiteSpace( keywords ) )
                     {
                         list = from Results in list
-                                .Where( s => ( s.Name.ToLower().Contains( filter.ToLower() )))
+                                .Where( s => ( s.Name.ToLower().Contains( keywords.ToLower() )))
                                select Results;
                     }
-                    query.TotalResults = list.Count();
+
+					//query.TotalResults = list.Count();
                     //sort order not handled
                     list = list.OrderBy( p => p.Name );
 
                     //
-                    var results = list.Skip( skip ).Take( query.PageSize )
+                    var results = list.Skip( query.Skip ).Take( query.Take )
                         .ToList();
                     if ( results?.Count > 0 )
                     {
@@ -353,9 +372,9 @@ namespace Factories
                         {
                             if ( item != null && item.Id > 0 )
                             {
-                                entity = new AppEntity();
+                                var entity = new AppEntity();
                                 MapFromDB( item, entity );
-                                output.Add( ( entity ) );
+                                output.Add( entity );
                             }
                         }
                     }
@@ -368,8 +387,24 @@ namespace Factories
             }
             return output;
         }
+		//
 
-        public static void MapFromDB( DBEntity input, AppEntity output )
+		public static AppEntity MapFromDB( DBEntity input, DataEntities context )
+		{
+			return MapFromDBForSearch( input, context, null );
+		}
+		//
+
+		public static AppEntity MapFromDBForSearch( DBEntity input, DataEntities context, SearchResultSet<AppEntity> resultSet = null )
+		{
+			var output = AutoMap( input, new AppEntity() );
+			output.HasRating = context.Rating.FirstOrDefault( m => m.Id == output.RatingId )?.RowId ?? Guid.Empty;
+
+			return output;
+		}
+		//
+
+		public static void MapFromDB( ViewEntity input, AppEntity output )
         {
             //
             List<string> errors = new List<string>();
@@ -379,16 +414,7 @@ namespace Factories
                 output.RowId = input.RowId;
             }
         }
-        public static void MapFromDB( ViewEntity input, AppEntity output )
-        {
-            //
-            List<string> errors = new List<string>();
-            BaseFactory.AutoMap( input, output, errors );
-            if ( input.RowId != output.RowId )
-            {
-                output.RowId = input.RowId;
-            }
-        }
+		//
 
         #endregion
 

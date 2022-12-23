@@ -20,7 +20,8 @@ namespace Models.Schema
 		public Guid ApplicabilityType { get; set; }
 		public Guid TrainingGapType { get; set; }
 		public Guid PayGradeType { get; set; }
-		public Guid HasTrainingTask { get; set; }
+		public Guid PayGradeLevelType { get; set; }
+		public Guid HasCourseContext { get; set; }
 		public Guid HasClusterAnalysis { get; set; }
 
 		//IDs referencing other entities
@@ -31,7 +32,8 @@ namespace Models.Schema
 		public int ApplicabilityTypeId { get; set; }
 		public int TrainingGapTypeId { get; set; }
 		public int PayGradeTypeId { get; set; }
-		public int HasTrainingTaskId { get; set; }
+		public int PayGradeLevelTypeId { get; set; }
+		public int HasCourseContextId { get; set; }
 		public int HasClusterAnalysisId { get; set; }
 	}
 	//
@@ -46,7 +48,7 @@ namespace Models.Schema
 		public Concept ApplicabilityTypeData { get; set; }
 		public Concept TrainingGapTypeData { get; set; }
 		public Concept PayGradeTypeData { get; set; }
-		public Concept HasTrainingTaskData { get; set; }
+		public CourseContext HasCourseContextData { get; set; }
 		public ClusterAnalysis HasClusterAnalysisData { get; set; }
 	}
     //

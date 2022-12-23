@@ -13,6 +13,7 @@ using Services;
 
 namespace NavyRRL.Controllers
 {
+	[SessionState( System.Web.SessionState.SessionStateBehavior.ReadOnly )]
 	[CustomAttributes.NavyAuthorize( "Edit", Roles = "Administrator, RMTL Developer, Site Staff" )]
 	public class RMTLProjectController : BaseController
     {
@@ -34,16 +35,30 @@ namespace NavyRRL.Controllers
 		{
 			AuthenticateOrRedirect( "You must be authenticated and authorized to view RMTL Project data." );
 			//var data = new RMTLProject() { Name = "Temp Name", Description = "Temp Description" };
-			var data = Factories.RMTLProjectManager.Get( id ) ?? new RMTLProject();
+			var data = Factories.RMTLProjectManager.GetById( id ) ?? new RMTLProject();
 			return View( data );
 		}
 		//
 
-		[CustomAttributes.NavyAuthorize( "Reference Resource Edit", Roles = Admin_SiteManager_RMTLDeveloper )]
+		[CustomAttributes.NavyAuthorize( "RMTL Project View", Roles = SiteReader )]
+		public ActionResult GetByRowId( Guid id )
+		{
+			AuthenticateOrRedirect( "You must be authenticated and authorized to edit RMTL Project data." );
+			var data = Factories.RMTLProjectManager.GetByRowId( id, true );
+			return JsonResponse( data, data != null );
+		}
+		//
+
+		[CustomAttributes.NavyAuthorize( "RMTL Project Edit", Roles = Admin_SiteManager_RMTLDeveloper )]
 		public ActionResult Edit( int id )
 		{
 			AuthenticateOrRedirect( "You must be authenticated and authorized to edit RMTL Project data." );
-			var data = Factories.RMTLProjectManager.Get( id ) ?? new RMTLProject();
+			if ( !AccountServices.IsUserSiteStaff() )
+			{
+				RedirectToAction( "NotAuthenticated", "Event" );
+			}
+
+			var data = Factories.RMTLProjectManager.GetById( id ) ?? new RMTLProject();
 			return View( data );
 		}
 		//
@@ -55,24 +70,10 @@ namespace NavyRRL.Controllers
 			{
 				return JsonResponse( null, false, new List<string>() { "You must be authenticated and authorized to edit RMTL Project data." }, null );
 			}
-			var user = AccountServices.GetCurrentUser();
-			ChangeSummary status = new ChangeSummary()
-			{
-				Action = "Edit"
-			};
-			data.LastUpdatedById = user.Id;
-			var results = new Factories.RMTLProjectManager().Save( data, ref status );
-			if ( status.HasAnyErrors )
-			{
-				var msg = string.Join( "</br>", status.Messages.Error.ToArray() );
-				ConsoleMessageHelper.SetConsoleErrorMessage( "Saved changes successfully." );
-			}
-			else
-			{
-				//On success
-				ConsoleMessageHelper.SetConsoleSuccessMessage( "Saved changes successfully." );
-			}
-			return JsonResponse( data, true, null, null );
+
+			var errors = new List<string>();
+			Factories.RMTLProjectManager.SaveFromEditor( data, AccountServices.GetCurrentUser().Id, errors );
+			return JsonResponse( data, errors.Count() == 0, errors );
 		}
 		//
 	}

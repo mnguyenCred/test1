@@ -12,7 +12,8 @@ using Models.Curation;
 
 namespace NavyRRL.Controllers
 {
-    public class ClusterAnalysisTitleController : BaseController
+	[SessionState( System.Web.SessionState.SessionStateBehavior.ReadOnly )]
+	public class ClusterAnalysisTitleController : BaseController
     {
 		public ActionResult Search()
 		{
@@ -32,7 +33,7 @@ namespace NavyRRL.Controllers
 		public ActionResult Detail( int id )
 		{
 			AuthenticateOrRedirect( "You must be authenticated and authorized to view Cluster Analysis Title data." );
-			var data = Factories.ClusterAnalysisTitleManager.Get( id );
+			var data = Factories.ClusterAnalysisTitleManager.GetById( id );
 			return View( data );
 		}
 		//
@@ -40,9 +41,22 @@ namespace NavyRRL.Controllers
 		public ActionResult JSON( int id )
 		{
 			AuthenticateOrRedirect( "You must be authenticated and authorized to view Cluster Analysis Title data." );
-			var data = Factories.ClusterAnalysisTitleManager.Get( id );
+			var data = Factories.ClusterAnalysisTitleManager.GetById( id );
 			var converted = RDFServices.GetRDF( data );
 			return RawJSONResponse( converted );
+		}
+		//
+
+		public ActionResult GetByRowId( Guid id )
+		{
+			AuthenticateOrRedirect( "You must be authenticated and authorized to view Cluster Analysis Title data." );
+			if ( !AccountServices.IsUserSiteStaff() )
+			{
+				RedirectToAction( "NotAuthenticated", "Event" );
+			}
+
+			var data = Factories.ClusterAnalysisTitleManager.GetByRowId( id, true );
+			return JsonResponse( data, data != null );
 		}
 		//
 
@@ -50,15 +64,8 @@ namespace NavyRRL.Controllers
 		public ActionResult Edit( int id )
 		{
 			AuthenticateOrRedirect( "You must be authenticated and authorized to edit Cluster Analysis Title data." );
-			if ( !AccountServices.IsUserSiteStaff() )
-			{
-				RedirectToAction( "NotAuthenticated", "Event" );
-			}
-			var data = new ClusterAnalysisTitle(); //Should get by ID or default to new (to enable new Cluster Analysis Titles to be created)
-			if ( id > 0 )
-			{
-				data = Factories.ClusterAnalysisTitleManager.Get( id );
-			}
+
+			var data = Factories.ClusterAnalysisTitleManager.GetById( id );
 			return View( data );
 		}
 		//
@@ -71,24 +78,9 @@ namespace NavyRRL.Controllers
 				return JsonResponse( null, false, new List<string>() { "You must be authenticated and authorized to edit Cluster Analysis Title data." }, null );
 			}
 
-			var user = AccountServices.GetCurrentUser();
-			ChangeSummary status = new ChangeSummary()
-			{
-				Action = "Edit"
-			};
-			data.LastUpdatedById = user.Id;
-			var results = new Factories.ClusterAnalysisTitleManager().Save( data, ref status );
-			if ( status.HasAnyErrors )
-			{
-				var msg = string.Join( "</br>", status.Messages.Error.ToArray() );
-				ConsoleMessageHelper.SetConsoleErrorMessage( "Saved changes successfully." );
-			}
-			else
-			{
-				//On success
-				ConsoleMessageHelper.SetConsoleSuccessMessage( "Saved changes successfully." );
-			}
-			return JsonResponse( data, true, null, null );
+			var errors = new List<string>();
+			Factories.ClusterAnalysisTitleManager.SaveFromEditor( data, AccountServices.GetCurrentUser().Id, errors );
+			return JsonResponse( data, errors.Count() == 0, errors );
 		}
 		//
 	}

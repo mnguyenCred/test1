@@ -11,24 +11,61 @@ using Navy.Utilities;
 using AppEntity = Models.Schema.ClusterAnalysis;
 using DataEntities = Data.Tables.NavyRRLEntities;
 using DBEntity = Data.Tables.ClusterAnalysis;
+using Data.Tables;
 
 namespace Factories
 {
     public class ClusterAnalysisManager : BaseFactory
     {
         public static new string thisClassName = "ClusterAnalysisManager";
-        /*
+		/*
 
 
         */
-        #region ClusterAnalysis - persistance ==================
-        /// <summary>
-        /// Update a ClusterAnalysis
-        /// </summary>
-        /// <param name="entity"></param>
-        /// <param name="status"></param>
-        /// <returns></returns>
-        public bool Save( AppEntity entity, ref ChangeSummary status )
+		#region ClusterAnalysis - persistance ==================
+		public static void SaveFromUpload( AppEntity entity, int userID, ChangeSummary summary )
+		{
+			SaveCore( entity, userID, "Upload", summary.AddError );
+		}
+		//
+
+		public static void SaveFromEditor( AppEntity entity, int userID, List<string> errors )
+		{
+			SaveCore( entity, userID, "Edit", errors.Add );
+		}
+		//
+
+		private static void SaveCore( AppEntity entity, int userID, string saveType, Action<string> AddErrorMethod )
+		{
+			using ( var context = new DataEntities() )
+			{
+				BasicSaveCore( context, entity, context.ClusterAnalysis, userID, ( ent, dbEnt ) =>
+				{
+					dbEnt.HasRatingTaskId = context.RatingTask.FirstOrDefault( m => m.RowId == ent.HasRatingTask )?.Id ?? 0;
+					dbEnt.HasRatingId = context.Rating.FirstOrDefault( m => m.RowId == ent.HasRating )?.Id ?? 0;
+					dbEnt.BilletTitleId = context.Job.FirstOrDefault( m => m.RowId == ent.HasBilletTitle )?.Id ?? 0;
+					dbEnt.WorkRoleId = context.WorkRole.FirstOrDefault( m => m.RowId == ent.HasWorkRole )?.Id ?? 0;
+					dbEnt.HasClusterAnalysisTitleId = context.ClusterAnalysisTitle.FirstOrDefault( m => m.RowId == ent.HasClusterAnalysisTitle )?.Id ?? 0;
+					dbEnt.TrainingSolutionTypeId = context.ConceptScheme_Concept.FirstOrDefault( m => m.RowId == ent.TrainingSolutionType )?.Id ?? 0;
+					dbEnt.RecommendedModalityTypeId = context.ConceptScheme_Concept.FirstOrDefault( m => m.RowId == ent.RecommendedModalityType )?.Id ?? 0;
+					dbEnt.DevelopmentSpecificationTypeId = context.ConceptScheme_Concept.FirstOrDefault( m => m.RowId == ent.DevelopmentSpecificationType )?.Id ?? 0;
+					dbEnt.DevelopmentRatioTypeId = context.ConceptScheme_Concept.FirstOrDefault( m => m.RowId == ent.DevelopmentRatioType )?.Id ?? 0;
+					dbEnt.CFMPlacementTypeId = context.ConceptScheme_Concept.FirstOrDefault( m => m.RowId == ent.CFMPlacementType )?.Id ?? 0;
+				}, ( ent, dbEnt ) =>
+				{
+					HandleMultiValueUpdate( context, userID, ent.CandidatePlatformType, dbEnt, dbEnt.ClusterAnalysis_HasCandidatePlatform, context.ConceptScheme_Concept, nameof( ClusterAnalysis_HasCandidatePlatform.ClusterAnalysisId ), nameof( ClusterAnalysis_HasCandidatePlatform.CandidatePlatformConceptId ) );
+				}, saveType, AddErrorMethod );
+			}
+		}
+		//
+
+		/// <summary>
+		/// Update a ClusterAnalysis
+		/// </summary>
+		/// <param name="entity"></param>
+		/// <param name="status"></param>
+		/// <returns></returns>
+		public bool Save( AppEntity entity, ref ChangeSummary status )
         {
             bool isValid = true;
             int count = 0;
@@ -241,10 +278,10 @@ namespace Factories
             //
             BaseFactory.AutoMap( input, output, errors );
             //clean up Development ratio (pair off :00)
-            if ( output.DevelopmentRatio?.Length > 0 && output.DevelopmentRatio.EndsWith( ":00" )) 
-            {
-                output.DevelopmentRatio = output.DevelopmentRatio.Substring(0, output.DevelopmentRatio.Length - 3);
-            }
+            //if ( output.DevelopmentRatio?.Length > 0 && output.DevelopmentRatio.EndsWith( ":00" )) 
+            //{
+            //    output.DevelopmentRatio = output.DevelopmentRatio.Substring(0, output.DevelopmentRatio.Length - 3);
+            //}
             //if ( IsValidGuid( input.TrainingSolutionType ) )
             //{
             //    output.TrainingSolutionTypeId = ( int ) ConceptSchemeManager.GetConcept( input.TrainingSolutionTypeId )?.Id;
@@ -254,28 +291,28 @@ namespace Factories
 
             else if ( !string.IsNullOrWhiteSpace( input.TrainingSolution ) )
             {
-                output.TrainingSolutionTypeId = ( int ) ConceptSchemeManager.GetConcept( ConceptSchemeManager.ConceptScheme_TrainingSolutionType, input.TrainingSolution )?.Id;
+                output.TrainingSolutionTypeId = ( int ) ConceptManager.GetConceptFromScheme( ConceptSchemeManager.ConceptScheme_TrainingSolutionType, input.TrainingSolution )?.Id;
             }
             else
                 output.TrainingSolutionTypeId = null;
 
             if ( input.RecommendedModalityTypeId > 0 )
-                output.RecommendedModalityId = input.RecommendedModalityTypeId;
+                output.RecommendedModalityTypeId = input.RecommendedModalityTypeId;
 
             else if ( !string.IsNullOrWhiteSpace( input.RecommendedModality ) )
             {
                 //
-                output.RecommendedModalityId = ( int ) ConceptSchemeManager.GetConcept( ConceptSchemeManager.ConceptScheme_RecommendedModality, input.RecommendedModality )?.Id;
+                output.RecommendedModalityTypeId = ( int ) ConceptManager.GetConceptFromScheme( ConceptSchemeManager.ConceptScheme_RecommendedModality, input.RecommendedModality )?.Id;
             }
             else
-                output.RecommendedModalityId = null;
+                output.RecommendedModalityTypeId = null;
 
             if ( input.DevelopmentSpecificationTypeId > 0 )
-                output.DevelopmentSpecificationId = input.DevelopmentSpecificationTypeId;
+                output.DevelopmentSpecificationTypeId = input.DevelopmentSpecificationTypeId;
 
             else if ( !string.IsNullOrWhiteSpace( input.DevelopmentSpecification ) )
             {
-                output.DevelopmentSpecificationId = ( int ) ConceptSchemeManager.GetConcept( ConceptSchemeManager.ConceptScheme_DevelopmentSpecification, input.DevelopmentSpecification )?.Id;
+                output.DevelopmentSpecificationTypeId = ( int ) ConceptManager.GetConceptFromScheme( ConceptSchemeManager.ConceptScheme_DevelopmentSpecification, input.DevelopmentSpecification )?.Id;
             }
             //if ( !string.IsNullOrWhiteSpace( input.CFMPlacement ) )
             //{
@@ -289,277 +326,109 @@ namespace Factories
         #endregion
         #region Retrieval
 
-        /// <summary>
-        /// this is more difficult now!
-        /// For updates, the rating context would have a clusterAnalysisId
-        /// May not do this now. would have to check almost all properties
-        /// </summary>
-        /// <param name="entity"></param>
-        /// <returns></returns>
-        public static AppEntity GetExisting( int id )
+		public static AppEntity GetForUploadOrNull( Guid ratingRowID, Guid ratingTaskRowID, Guid billetTitleRowID, Guid workRoleRowID, Guid clusterAnalysisTitleRowID )
+		{
+			using( var context = new DataEntities() )
+			{
+				var match = context.ClusterAnalysis.FirstOrDefault( m =>
+					m.Rating.RowId == ratingRowID &&
+					m.RatingTask.RowId == ratingTaskRowID &&
+					m.Job.RowId == billetTitleRowID &&
+					m.WorkRole.RowId == workRoleRowID &&
+					m.ClusterAnalysisTitle.RowId == clusterAnalysisTitleRowID
+				);
+
+				if( match != null )
+				{
+					return MapFromDB( match, context );
+				}
+			}
+
+			return null;
+		}
+		//
+
+		public static AppEntity GetSingleByFilter( Func<DBEntity, bool> FilterMethod, bool returnNullIfNotFound = false )
+		{
+			return GetSingleByFilter<DBEntity, AppEntity>( context => context.ClusterAnalysis, FilterMethod, MapFromDB, returnNullIfNotFound );
+		}
+		//
+
+		public static AppEntity GetByRowId( Guid rowId, bool returnNullIfNotFound = false )
+		{
+			return GetSingleByFilter( m => m.RowId == rowId, returnNullIfNotFound );
+		}
+		//
+
+		public static AppEntity GetById( int id, bool returnNullIfNotFound = false )
+		{
+			return GetSingleByFilter( m => m.Id == id, returnNullIfNotFound );
+		}
+		//
+
+		public static AppEntity GetByCTID( string ctid, bool returnNullIfNotFound = false )
+		{
+			return GetSingleByFilter( m => m.CTID.ToLower() == ctid?.ToLower(), returnNullIfNotFound );
+		}
+		//
+
+		public static SearchResultSet<AppEntity> Search( SearchQuery query )
         {
-            //just by rating task id for now
-            var existing = new AppEntity();
-            //if ( entity.RatingTaskId == 0 )
-            //    return null;
+			return HandleSearch<DBEntity, AppEntity>( query, context =>
+			{
+				//Start query
+				var keywords = GetSanitizedSearchFilterKeywords( query );
+				var list = context.ClusterAnalysis.AsQueryable();
 
-            using ( var context = new DataEntities() )
-            {
-                var item = context.ClusterAnalysis
-                            .FirstOrDefault( s => s.Id == id );
+				//Handle keywords
+				if ( !string.IsNullOrWhiteSpace( keywords ) )
+				{
+					list = list.Where( m => m.ClusterAnalysisTitle.Name.Contains( keywords ) );
+				}
 
-                if ( item != null && item.Id > 0 )
-                {
-                    MapFromDB( item, existing );
-                }
-            }
-            return existing;
+				//Return ordered list
+				return HandleSort( list, query.SortOrder, m => m.ClusterAnalysisTitle.Name, m => m.OrderBy( n => n.ClusterAnalysisTitle.Name ) );
+
+			}, MapFromDBForSearch );
         }
+		//
 
-        //TODO - Sigh, now a list
-        //ratingContext -> clusterAnalysisId -> clusterAnalysis
-        //ratingTask -> ratingContext.RatingTaskId -> ratingContext -> clusterAnalysisId -> clusterAnalysis
-        public static AppEntity GetForUploadByRatingTask( Guid rowRatingTaskRowId )
-        {
-            var entity = new AppEntity();
+		public static AppEntity MapFromDB( DBEntity input, DataEntities context )
+		{
+			return MapFromDBForSearch( input, context, null );
+		}
+		//
 
-            //using ( var context = new DataEntities() )
-            //{
-            //    var item = context.ClusterAnalysis
-            //                .FirstOrDefault( s => s.RatingContext.RowId == rowRatingTaskRowId );
+		public static AppEntity MapFromDBForSearch( DBEntity input, DataEntities context, SearchResultSet<AppEntity> resultSet = null )
+		{
+			var output = AutoMap( input, new AppEntity() );
+			output.HasRating = input.Rating?.RowId ?? Guid.Empty;
+			output.HasRatingTask = input.RatingTask?.RowId ?? Guid.Empty;
+			output.HasBilletTitle = input.Job?.RowId ?? Guid.Empty;
+			output.HasWorkRole = input.WorkRole?.RowId ?? Guid.Empty;
+			output.HasClusterAnalysisTitle = input.ClusterAnalysisTitle?.RowId ?? Guid.Empty;
+			output.TrainingSolutionType = input.ConceptScheme_Concept_TrainingSolutionType?.RowId ?? Guid.Empty;
+			output.RecommendedModalityType = input.ConceptScheme_Concept_RecommendedModalityType?.RowId ?? Guid.Empty;
+			output.DevelopmentSpecificationType = input.ConceptScheme_Concept_DevelopmentSpecificationType?.RowId ?? Guid.Empty;
+			output.DevelopmentRatioType = input.ConceptScheme_Concept_DevelopmentRatioType?.RowId ?? Guid.Empty;
+			output.CFMPlacementType = input.ConceptScheme_Concept_CFMPlacementType?.RowId ?? Guid.Empty;
+			output.CandidatePlatformType = input.ClusterAnalysis_HasCandidatePlatform?.Select( m => m.ConceptScheme_Concept ).Select( m => m.RowId ).ToList() ?? new List<Guid>();
 
-            //    if ( item != null && item.Id > 0 )
-            //    {
-            //        MapFromDB( item, entity );
-            //    }
-            //}
-            return entity;
-        }
-        public static AppEntity Get( Guid rowId)
-        {
-            var entity = new AppEntity();
+			return output;
+		}
+		//
 
-            using ( var context = new DataEntities() )
-            {
-                var item = context.ClusterAnalysis
-                            .FirstOrDefault( s => s.RowId == rowId );
+		#endregion
 
-                if ( item != null && item.Id > 0 )
-                {
-                    MapFromDB( item, entity );
-                }
-            }
-            return entity;
-        }
-        public static AppEntity Get( int id )
-        {
-            var entity = new AppEntity();
-            if ( id < 1 )
-                return entity;
-
-            using ( var context = new DataEntities() )
-            {
-                var item = context.ClusterAnalysis
-                            .SingleOrDefault( s => s.Id == id );
-
-                if ( item != null && item.Id > 0 )
-                {
-                    MapFromDB( item, entity );
-                }
-            }
-
-            return entity;
-        }
-        /// <summary>
-        /// Get all 
-        /// May need a get all for a rating? Should not matter as this is external data?
-        /// </summary>
-        /// <returns></returns>
-        public static List<AppEntity> GetAll( )
-        {
-            var entity = new AppEntity();
-            var list = new List<AppEntity>();
-
-            using ( var context = new DataEntities() )
-            {
-                var results = context.ClusterAnalysis
-                        .OrderBy( s => s.Id )
-                        .ToList();
-                if ( results?.Count > 0 )
-                {
-                    foreach ( var item in results )
-                    {
-                        if ( item != null && item.Id > 0 )
-                        {
-                            entity = new AppEntity();
-                            MapFromDB( item, entity );
-                            list.Add( ( entity ) );
-                        }
-                    }
-                }
-
-            }
-            return list;
-        }
-        public static List<AppEntity> Search( SearchQuery query )
-        {
-            var entity = new AppEntity();
-            var output = new List<AppEntity>();
-            var skip = 0;
-            if ( query.PageNumber > 1 )
-                skip = ( query.PageNumber - 1 ) * query.PageSize;
-            var filter = GetSearchFilterText( query );
-
-            try
-            {
-                using ( var context = new DataEntities() )
-                {
-                    var list = from Results in context.ClusterAnalysis
-                               select Results;
-                    if ( !string.IsNullOrWhiteSpace( filter ) )
-                    {
-                        //list = from Results in list
-                        //        .Where( s =>
-                        //        ( s.ClusterAnalysisTitle.ToLower().Contains( filter.ToLower() ) )
-                        //            || ( s.ConceptScheme_TrainingSolution!= null && s.ConceptScheme_TrainingSolution.Name.ToLower().Contains(filter.ToLower()) )
-                        //            || ( s.ConceptScheme_RecommendedModality != null && s.ConceptScheme_RecommendedModality.Name.ToLower().Contains(filter.ToLower()) )
-                        //        )
-                        //       select Results;
-                    }
-                    query.TotalResults = list.Count();
-                    //sort order not handled
-                    list = list.OrderBy( p => p.Id );
-
-                    //
-                    var results = list.Skip( skip ).Take( query.PageSize )
-                        .ToList();
-                    if ( results?.Count > 0 )
-                    {
-                        foreach ( var item in results )
-                        {
-                            if ( item != null && item.Id > 0 )
-                            {
-                                entity = new AppEntity();
-                                MapFromDB( item, entity, true );
-                                output.Add( ( entity ) );
-                            }
-                        }
-                    }
-
-                }
-            }
-            catch ( Exception ex )
-            {
-
-            }
-            return output;
-        }
-        public static void MapFromDB( DBEntity input, AppEntity output, bool formatForSearch = false )
-        {
-            //should include list of concepts
-            List<string> errors = new List<string>();
-            BaseFactory.AutoMap( input, output, errors );
-            if ( input.RowId != output.RowId )
-            {
-                output.RowId = input.RowId;
-            }
-
-            //handle nullables
-            if ( input.TrainingSolutionTypeId != null )
-            {
-                output.TrainingSolutionTypeId = ( int ) input.TrainingSolutionTypeId;
-                //if ( input.ConceptScheme_TrainingSolution?.Id > 0 )
-                //{
-                //    output.TrainingSolution = input.ConceptScheme_TrainingSolution.Name;
-                //    output.TrainingSolutionType = input.ConceptScheme_TrainingSolution.RowId;
-                //}
-            }
-            if ( input.DevelopmentSpecificationId != null )
-            {
-                output.DevelopmentSpecificationTypeId = ( int ) input.DevelopmentSpecificationId;
-                //if ( input.ConceptScheme_DevelopementSpec?.Id > 0 )
-                //{
-                //    output.DevelopmentSpecification = input.ConceptScheme_DevelopementSpec.Name;
-                //    output.DevelopmentSpecificationType = input.ConceptScheme_DevelopementSpec.RowId;
-                //}
-            }
-            if ( input.RecommendedModalityId != null )
-            {
-                output.RecommendedModalityTypeId = ( int ) input.RecommendedModalityId;
-                //if ( input.ConceptScheme_RecommendedModality?.Id > 0 )
-                //{
-                //    output.RecommendedModality = input.ConceptScheme_RecommendedModality.Name;
-                //    output.RecommendedModalityType = input.ConceptScheme_RecommendedModality.RowId;
-                //}
-            }
-            if ( input.PriorityPlacement != null )
-            {
-                output.PriorityPlacement = ( int ) input.PriorityPlacement;
-               // output.PriorityPlacementLabel = output.PriorityPlacement.ToString();
-            }
-
-            if ( input.DevelopmentTime != null )
-            {
-                output.DevelopmentTime = input.DevelopmentTime;
-              //  output.DevelopmentTimeLabel = output.DevelopmentTime.ToString();
-            }
-            if ( formatForSearch )
-            {
-                //output.Label = String.Format( "{0} ~ {1} ~ {2} ~ {3}", output.TrainingSolution, output.ClusterAnalysisTitle, output.RecommendedModality, output.DevelopmentSpecification );
-            }
-            /*
-
-            */
-        }
-        public static AppEntity MapFromDB( DBEntity input, bool formatForSearch = false )
-        {
-            AppEntity output = new AppEntity();
-            //should include list of concepts
-            List<string> errors = new List<string>();
-            BaseFactory.AutoMap( input, output, errors );
-            if ( input.RowId != output.RowId )
-            {
-                output.RowId = input.RowId;
-            }
-            if ( formatForSearch )
-            {
-                //output.Label = String.Format( "", output.ClusterAnalysisTitle, output.TrainingSolution, output.RecommendedModality );
-            }
-            //handle nullables
-            if ( input.TrainingSolutionTypeId != null )
-            {
-                output.TrainingSolutionTypeId = ( int ) input.TrainingSolutionTypeId;
-            }
-            if ( input.DevelopmentSpecificationId != null )
-            {
-                output.DevelopmentSpecificationTypeId = ( int ) input.DevelopmentSpecificationId;
-            }
-            if ( input.RecommendedModalityId != null )
-            {
-                output.RecommendedModalityTypeId = ( int ) input.RecommendedModalityId;
-            }
-            if ( input.PriorityPlacement != null )
-            {
-                output.PriorityPlacement = ( int ) input.PriorityPlacement;
-            }
-            if ( input.DevelopmentTime != null )
-            {
-                output.DevelopmentTime = input.DevelopmentTime;
-            }
-
-            return output;
-        }
-        #endregion
-
-        /// <summary>
-        /// Update:
-        /// - training task
-        /// - ClusterAnalysis types
-        /// - CurrentAssessmentApproach
-        /// </summary>
-        /// <param name="input"></param>
-        /// <param name="status"></param>
-        public void UpdateParts( AppEntity input, ChangeSummary status )
+		/// <summary>
+		/// Update:
+		/// - training task
+		/// - ClusterAnalysis types
+		/// - CurrentAssessmentApproach
+		/// </summary>
+		/// <param name="input"></param>
+		/// <param name="status"></param>
+		public void UpdateParts( AppEntity input, ChangeSummary status )
         {
             try
             {

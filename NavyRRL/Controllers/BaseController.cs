@@ -65,7 +65,7 @@ namespace NavyRRL.Controllers
 					new JsonSerializerSettings()
 					{
 						NullValueHandling = NullValueHandling.Ignore,
-						DefaultValueHandling = DefaultValueHandling.Ignore
+						//DefaultValueHandling = DefaultValueHandling.Ignore
 					}
 				),
 				ContentEncoding = Encoding.UTF8,
