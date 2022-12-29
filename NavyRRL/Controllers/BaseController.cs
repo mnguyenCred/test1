@@ -11,6 +11,7 @@ using System.Text;
 using Services;
 using Navy.Utilities;
 using Models.Application;
+using Models.Schema;
 
 
 namespace NavyRRL.Controllers
@@ -38,11 +39,33 @@ namespace NavyRRL.Controllers
 					Response.Redirect( redirectURL );
 				}
 			}
-		}
-		//
+		
+        }
+        //
+        public void AuthenticateOrRedirect( string customMessage, string requestedFunction, bool redirectOnFailure = true, string redirectURL = "~/Event/NotAuthenticated" )
+        {
+            var user = AccountServices.GetCurrentUser();
+            if ( !AccountServices.IsUserAuthenticated( user ) )
+            {
+                ConsoleMessageHelper.SetConsoleErrorMessage( string.IsNullOrWhiteSpace( customMessage ) ? AccountServices.NOT_AUTHENTICATED : customMessage );
 
-		//For requests for AJAX (no redirects)
-		public bool AuthenticateOrFail()
+                if ( redirectOnFailure )
+                {
+                    Response.Redirect( redirectURL );
+                }
+            }
+            else
+            {                
+                if ( !AccountServices.CanUserAccessFunction( user.Id, requestedFunction ) )
+                {
+                    ConsoleMessageHelper.SetConsoleErrorMessage( string.IsNullOrWhiteSpace( customMessage ) ? AccountServices.NOT_AUTHORIZED : customMessage );
+
+                    Response.Redirect( redirectURL );
+                }
+            }
+        }
+        //For requests for AJAX (no redirects)
+        public bool AuthenticateOrFail()
 		{
 			return AccountServices.IsUserAuthenticated();
 		}

@@ -28,10 +28,15 @@ namespace NavyRRL.Controllers
         //public const string Admin_SiteManager = "Administrator, Site Manager";
         // GET: Admin
         //NOTE: Authorize kicks user back to login page. Need a custom option where already logged in 
-        [CustomAttributes.NavyAuthorize( "Admin Home", Roles = Admin_SiteManager )]
+        //[CustomAttributes.NavyAuthorize( "Admin Home", Roles = Admin_SiteManager )]
         public ActionResult Index()
         {
-            return View();
+            if (AccountServices.IsUserAnAdmin())
+                return View();
+            else
+            {
+                return new RedirectResult( "~/event/Notauthorized" );
+            }
         }
 
 		public ActionResult FormHelperV1Demo()

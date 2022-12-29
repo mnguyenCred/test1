@@ -39,5 +39,6 @@ namespace Data.Views
         public virtual DbSet<RMTLProjectSummary> RMTLProjectSummary { get; set; }
         public virtual DbSet<ApplicationRoleSummary> ApplicationRoleSummary { get; set; }
         public virtual DbSet<RatingContextSummary> RatingContextSummary { get; set; }
+        public virtual DbSet<ApplicationUserRoleFunctionSummary> ApplicationUserRoleFunctionSummary { get; set; }
     }
 }

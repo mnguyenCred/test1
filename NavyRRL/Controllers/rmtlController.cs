@@ -16,6 +16,11 @@ namespace NavyRRL.Controllers
 	[SessionState( System.Web.SessionState.SessionStateBehavior.ReadOnly )]
 	public class RMTLController : BaseController
     {
+		/// <summary>
+		/// Anyone can search?
+		/// But shouldn't see non published stuff
+		/// </summary>
+		/// <returns></returns>
 		[CustomAttributes.NavyAuthorize( "RMTL Search", Roles = SiteReader )]
 		public ActionResult Search()
 		{

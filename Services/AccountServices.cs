@@ -1017,36 +1017,6 @@ namespace Services
 
 		}
 
-		/// <summary>
-		/// determine which results a user may view, and eventually edit
-		/// </summary>
-		/// <param name="data"></param>
-		/// <param name="user"></param>
-		/// <param name="where"></param>
-		private static void SetAuthorizationFilter( AppUser user, ref string where )
-		{
-			string AND = "";
-
-			if ( where.Length > 0 )
-				AND = " AND ";
-			if ( user == null || user.Id == 0 )
-			{
-				//public only records
-				where = where + AND + string.Format( " (base.StatusId = {0}) ", 3 );
-				return;
-			}
-
-			if ( AccountServices.IsUserSiteStaff( user )
-			  || AccountServices.CanUserViewAllContent( user ) )
-			{
-				//can view all, edit all
-				return;
-			}
-
-			//can only view where status is published, or associated with the org
-			where = where + AND + string.Format( "((base.StatusId = {0}) OR (base.Id in (SELECT cs.Id FROM [dbo].[Organization.Member] om inner join [Credential_Summary] cs on om.ParentOrgId = cs.ManagingOrgId where userId = {1}) ))", 3, user.Id );
-
-		}
 
 		public static List<DT.AspNetRoles> GetRoles()
 		{
@@ -1066,6 +1036,10 @@ namespace Services
 			return ApplicationManager.GetApplicationFunctions();
 		}
 
+        public static bool CanUserAccessFunction( int userId, string functionCode )
+        {
+			return ApplicationManager.CanUserAccessFunction( userId, functionCode );
+        }
         #endregion
         #region Session methods
         /// <summary>

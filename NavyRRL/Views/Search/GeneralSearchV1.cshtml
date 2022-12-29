@@ -164,10 +164,13 @@
 
 		var linksBox = $("<div class=\"resultLinks\"></div>").appendTo(box);
 		linksBox.append("<a href=\"@Url.Content("~/")" + Type.Name + "/detail/" + Result.Id + "\" target=\"_blank\">Details</a>");
-		linksBox.append( "<a href=\"@Url.Content("~/ ")" + Type.Name + "/edit/" + Result.Id + "\" target=\"_blank\">Edit</a>" );
-	
-		return box;
-	}
+		if ( isAdmin )
+            {
+                linksBox.append( "<a href=\"@Url.Content("~/ ")" + Type.Name + "/edit/" + Result.Id + "\" target=\"_blank\">Edit</a>" );
+            }
+
+            return box;
+        }
 	//
 
 	function renderProperty(value, container, cssClass) {

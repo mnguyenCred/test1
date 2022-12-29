@@ -28,12 +28,17 @@ namespace NavyRRL.Controllers
 			return JsonResponse( results, true );
 		}
 		//
-
-		[CustomAttributes.NavyAuthorize( "Billet Title View", Roles = SiteReader )]
+		/// <summary>
+		/// Probably anyone can see the detail pages
+		/// </summary>
+		/// <param name="id"></param>
+		/// <returns></returns>
+		//[CustomAttributes.NavyAuthorize( "Billet Title View", Roles = SiteReader )]
 		public ActionResult Detail( int id )
 		{
 			AuthenticateOrRedirect( "You must be authenticated and authorized to view Billet Title data." );
 			var data = Factories.JobManager.GetById( id );
+			//but may want to pass state so that an edit/add option is not presented
 			return View( data );
 		}
 		//
