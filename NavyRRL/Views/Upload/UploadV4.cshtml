@@ -217,6 +217,9 @@
 		"Billet Title": {
 			Part: 1
 		},
+        "Billet Title/Job": {
+            Part: 1
+        },
 		"Functional Area": {
 			Part: 1
 		},
@@ -252,6 +255,11 @@
 			Values: @Html.Raw( GetConceptValues( ConceptSchemeMap.CourseCategory, true, false, false ) ), //Name
 			SplitOn: [ ",", ";", "|" ]
 		},
+		"Course Type": {
+			Part: 2,
+			Values: @Html.Raw( GetConceptValues( ConceptSchemeMap.CourseCategory, true, false, false ) ), //Name
+			SplitOn: [ ",", ";", "|" ]
+		},
 		"Curriculum Control Authority (CCA)": {
 			Part: 2,
 			Values: @Html.Raw( JsonConvert.SerializeObject( allValidOrganizationValues, Formatting.None ) )
@@ -260,7 +268,12 @@
 			Part: 2,
 			Values: @Html.Raw( GetConceptValues( ConceptSchemeMap.LifeCycleControlDocumentCategory, true, true, false ) ) //Name or CodedNotation
 		},
-		"CTTL/PPP/TCCD Statement": {
+		"CTTL/PPP/TCCD Statement":
+        {
+            Part: 2
+        },
+		"TCCD/CTTL/PPP Statement":
+		{
 			Part: 2
 		},
 		"Current Assessment Approach": {
@@ -552,7 +565,7 @@
 							rowData[key] = "Error looking up value for " + value;
 						TBox.renderRow(rowData, row);
 					});
-					
+
 				});
 			});
 			TBox.renderRow(rowData, row);
