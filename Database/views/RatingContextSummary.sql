@@ -14,13 +14,10 @@ Unique_Identifier, COUNT(*) as ttl
 from [QM_RMTL_11232021]
 group by Unique_Identifier having count(*) > 1
 go
-
-USE [NavyRRL]
+USE [Navy_RRL_V2]
 GO
 
-
-SELECT top 1000
-[Id]
+SELECT [Id]
       ,[CTID]
       ,[RowId]
       ,[RatingName]
@@ -29,54 +26,59 @@ SELECT top 1000
       ,[ratingId]
       ,[BilletTitles]
       ,[CodedNotation]
-      ,[RankId]
+      ,[PayGradeTypeId]
       ,[Rank]
       ,[RankName]
       ,[PayGradeType]
-      ,[LevelId]
       ,[Level]
+      ,[WorkRoleId]
       ,[FunctionalArea]
-      ,[ReferenceResourceId]
-      ,[ReferenceResource]
       ,[SourceDate]
       ,[HasReferenceResource]
+      ,[RatingTask]
+      ,[ReferenceResourceId]
+      ,[ReferenceResource]
       ,[WorkElementTypeId]
       ,[WorkElementType]
       ,[WorkElementTypeAlternateName]
       ,[WorkElementTypeOrder]
       ,[ReferenceType]
-      ,[RatingTask]
       ,[TaskApplicabilityId]
       ,[TaskApplicability]
       ,[ApplicabilityType]
       ,[FormalTrainingGapId]
       ,[FormalTrainingGap]
       ,[TrainingGapType]
-      ,[CourseId]
-      ,[CourseUID]
+      ,[HasCourseId]
+      ,[CourseRowId]
       ,[CIN]
-      ,[CourseName]
-      ,[CourseTypes]
-      ,[TrainingTaskId]
-      ,[TrainingTask]
-      ,[HasTrainingTask]
-      ,[AssessmentMethodTypes]
+      ,[Course]
+      ,[LifeCycleControlDocumentTypeId]
+      ,[LifeCycleControlDocument]
+      ,[LifeCycleControlDocumentUID]
       ,[CurriculumControlAuthority]
       ,[CurriculumControlAuthorityId]
       ,[CurriculumControlAuthorityUID]
-      ,[LifeCycleControlDocument]
+      ,[OrganizationCTID]
+      ,[CourseTypes]
+      ,[HasTrainingTaskId]
+      ,[TrainingTask]
+      ,[TrainingTaskRowId]
+      ,[AssessmentMethodTypes]
       ,[Notes]
       ,[TrainingSolutionTypeId]
       ,[TrainingSolutionType]
       ,[ClusterAnalysisTitle]
-      ,[RecommendedModalityId]
+      ,[RecommendedModalityTypeId]
       ,[RecommendedModality]
       ,[RecommentedModalityCodedNotation]
-      ,[DevelopmentSpecificationId]
+      ,[DevelopmentSpecificationTypeId]
       ,[DevelopmentSpecification]
       ,[CandidatePlatform]
+      ,[CFMPlacementTypeId]
       ,[CFMPlacement]
       ,[PriorityPlacement]
+      ,[DevelopmentRatioTypeId]
       ,[DevelopmentRatio]
       ,[EstimatedInstructionalTime]
       ,[DevelopmentTime]
@@ -89,21 +91,15 @@ SELECT top 1000
       ,[LastUpdatedById]
       ,[ModifiedBy]
       ,[ModifiedByUID]
-	  ,ClusterAnalysisLastUpdated
+      ,[ClusterAnalysisLastUpdated]
   FROM [dbo].[RatingContextSummary]
+
+
   where 
   --CodedNotation = 'PQ42-005' AND
   ratings = 'Ps'
   order by ClusterAnalysisLastUpdated desc  
 
-  where ( base.id in (select a.[RatingTaskId] from [RatingTask.WorkRole] a inner join WorkRole b on a.WorkRoleId = b.Id where b.Id in (30) )) 
-    where FunctionalArea= ''
-	order by CodedNotation
-	taskApplicabilityId=77
-	and isnull(ratings,'') = ''
-	id in (select a.[RatingTaskId] from [RatingTask.HasRating] a inner join Rating b on a.ratingId = b.Id where b.CodedNotation = 'qm' )
-
-	--[TaskApplicabilityId]= 77
 GO
 
 select base.*
@@ -129,7 +125,7 @@ Modifications
 22-04-04 mp - as for ratings, change billet title processing to result in separate rows where more than one billet per task.
 			- otherwise the export could get messed up.
 22-06-03 mp - temp change to FunctionalArea to not include the Guids 
-
+22-12-23 mp - updated for new table definitions
 */
 Alter  VIEW [dbo].RatingContextSummary
 AS
@@ -172,7 +168,7 @@ SELECT
 
 	-- RatingTask 
 	,rt.Description as RatingTask
-		,rt.ReferenceResourceId
+	,rt.ReferenceResourceId
 	--ReferenceResource/source
 	, isnull(c.name,'') As ReferenceResource
 	--	WorkElementType. Now a concept but related to ReferenceResource
@@ -250,13 +246,19 @@ SELECT
 	,cas.DevelopmentSpecification
 
 	,cas.[CandidatePlatform]
+
 	,cas.CFMPlacementTypeId
 	,cas.[CFMPlacement]
+
 	,cas.[PriorityPlacement]
+
 	,cas.DevelopmentRatioTypeId
 	,cas.[DevelopmentRatio]
+
 	,cas.[EstimatedInstructionalTime]
+
 	,cas.[DevelopmentTime]
+
 	,cas.Notes as ClusterAnalysisNotes
 
 	--

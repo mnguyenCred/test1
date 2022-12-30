@@ -214,9 +214,9 @@
 			Part: 1,
 			Values: @Html.Raw( GetConceptValues( ConceptSchemeMap.PayGradeLevelCategory, false, true, false ) ) //CodedNotation
 		},
-		"Billet Title": {
-			Part: 1
-		},
+		//"Billet Title": {
+		//	Part: 1
+		//},
         "Billet Title/Job": {
             Part: 1
         },
@@ -250,11 +250,11 @@
 		"Course Name": {
 			Part: 2
 		},
-		"Course Type (A/C/G/F/T)": {
+		@*"Course Type (A/C/G/F/T)": {
 			Part: 2,
 			Values: @Html.Raw( GetConceptValues( ConceptSchemeMap.CourseCategory, true, false, false ) ), //Name
 			SplitOn: [ ",", ";", "|" ]
-		},
+		},*@
 		"Course Type": {
 			Part: 2,
 			Values: @Html.Raw( GetConceptValues( ConceptSchemeMap.CourseCategory, true, false, false ) ), //Name
@@ -268,10 +268,6 @@
 			Part: 2,
 			Values: @Html.Raw( GetConceptValues( ConceptSchemeMap.LifeCycleControlDocumentCategory, true, true, false ) ) //Name or CodedNotation
 		},
-		"CTTL/PPP/TCCD Statement":
-        {
-            Part: 2
-        },
 		"TCCD/CTTL/PPP Statement":
 		{
 			Part: 2
@@ -1133,7 +1129,8 @@
 				Rating_CodedNotation: row["Rating"],
 				PayGradeType_CodedNotation: row["Rank"],
 				Level_Name: row["Level (A/J/M)"],
-				BilletTitle_Name: row["Billet Title"],
+				/*BilletTitle_Name: row["Billet Title"],*/
+				BilletTitle_Name: row["Billet Title/Job"],
 				WorkRole_Name: row["Functional Area"],
 				ReferenceResource_Name: row["Source"],
 				ReferenceResource_PublicationDate: row["Date of Source"],
@@ -1143,10 +1140,12 @@
 				RatingTask_TrainingGapType_Name: row["Formal Training Gap"],
 				Course_CodedNotation: row["CIN"],
 				Course_Name: row["Course Name"],
-				Course_CourseType_Name: row["Course Type (A/C/G/F/T)"],
+				/*Course_CourseType_Name: row["Course Type (A/C/G/F/T)"],*/
+				Course_CourseType_Name: row["Course Type"],
 				Course_CurriculumControlAuthority_Name: row["Curriculum Control Authority (CCA)"],
 				Course_LifeCycleControlDocumentType_CodedNotation: row["Life-Cycle Control Document"],
-				TrainingTask_Description: row["CTTL/PPP/TCCD Statement"],
+				/*TrainingTask_Description: row["CTTL/PPP/TCCD Statement"],*/
+				TrainingTask_Description: row["TCCD/CTTL/PPP Statement"],
 				Course_AssessmentMethodType_Name: row["Current Assessment Approach"],
 				Note: row["Notes"], //TBD Part II Notes or leave as is
 				Training_Solution_Type: row["Training Solution Type"],

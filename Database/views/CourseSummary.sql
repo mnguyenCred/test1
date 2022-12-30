@@ -38,7 +38,11 @@ GO
 
 
 */
+/*
+Modifications
+22-12-22 mp - new for V2.
 
+*/
 Alter VIEW CourseSummary
 AS
 

@@ -332,6 +332,7 @@ namespace Factories
 
 		public static SearchResultSet<AppEntity> Search( SearchQuery query )
 		{
+            //TODO - where called for the drop down in the rmtl search should have an additional filter like 'hasRMTL'
 			return HandleSearch<DBEntity, AppEntity>( query, context =>
 			{
 				//Start query
@@ -339,6 +340,7 @@ namespace Factories
 				var keywords = GetSanitizedSearchFilterKeywords( query );
 
 				//Handle keywords
+                //TODO - needs to do some relevence so if a code is entered, it appears first
 				if ( !string.IsNullOrWhiteSpace( keywords ) )
 				{
 					list = list.Where( m =>
