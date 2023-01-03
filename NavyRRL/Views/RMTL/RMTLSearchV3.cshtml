@@ -672,6 +672,13 @@
 	function setupFilter_Suggestion(Filter) {
 		setupFilter_Suggestion_Core(Filter);
 		Filter.Timeout = 0;
+		Filter.Timeout = 0;
+		Filter.SuggestionFilterExtras = [];
+		Filter.HasDataHelper = Filter.Box.attr("data-hasdatahelper");
+
+		if (Filter.HasDataHelper) {
+			Filter.SuggestionFilterExtras.push({ Name: Filter.HasDataHelper });
+		}
 
 		Filter.Input.on("focus keyup", function () {
 			clearTimeout(Filter.Timeout);
@@ -679,7 +686,8 @@
 				MainSearch.doPOSTRequest("@Url.Content("~/")" + Filter.SearchType + "/DoSearch", {
 					Filters: [
 						{ Name: "search:Keyword", Text: Filter.Input.val().trim() },
-						{ Name: "search:Exclude", ItemIds: Filter.SelectedItems.map(SelectedItem => SelectedItem.Data.Id) }
+						{ Name: "search:Exclude", ItemIds: Filter.SelectedItems.map(SelectedItem => SelectedItem.Data.Id) },
+						...Filter.SuggestionFilterExtras
 					],
 					Take: 20
 				}, (success) => {
@@ -874,9 +882,7 @@
 	.navbar { position: static; margin: 0 0 0 0; }
 	.navbar .container { width: 1170px; }
 	.container { width: 100%; }
-/*TBD: not sure if need to comment this
-	.body-content { padding: 0 0 0 0; margin: 0 0 0 0; }
-	.container .body-content{padding-top: 40px;}*/
+	.body-content { padding: 0; margin: 0; }
 
 	.mainWrapper { display: flex; flex-direction: column; position: relative; }
 	.mainWrapper .mainHeader { display: flex; gap: 10px; align-items: center; position: sticky; top: 0; z-index: 100; background-color: #EEE; padding: 5px 10px; }
@@ -889,7 +895,7 @@
 	.mainWrapper .mainHeader .exportBox .exportProgressBarBox { background-color: #555; padding: 1px; height: 26px; width: 200px; border-radius: 3px; }
 	.mainWrapper .mainHeader .exportBox .exportProgressBarBox .exportProgressBar { background-color: #3A3; color: #FFF; padding: 2px; transition: width 0.2s; height: 100%; width: 0%; text-align: right; white-space: nowrap; }
 	.mainWrapper .mainTabsBox {  }
-	.mainWrapper .mainTabsBox .mainTab { display: flex; flex-direction: column; height: calc(100vh - 51px - 42px); }
+	.mainWrapper .mainTabsBox .mainTab { display: flex; flex-direction: column; height: calc(100vh - 25px - 51px - 42px); /* 100vh - CUI banner - site header - main tab set header */ }
 	.mainWrapper .mainTabsBox .mainTab:not(.selected) { display: none; }
 	
 	.mainSearchFiltersBox { padding: 0 20px; overflow-y: auto; }
@@ -963,7 +969,7 @@
 					<h4 class="filterGroupHeader">Part I Filters</h4>
 					<div class="filterGroupContent">
 						<div class="filterSet textFilterSet">
-							<div class="filter" data-filter="> RatingId > Rating" data-filtertype="Suggestion" data-searchtype="Rating" data-label="Rating"></div>
+							<div class="filter" data-filter="> RatingId > Rating" data-filtertype="Suggestion" data-searchtype="Rating" data-label="Rating" data-hasdatahelper="< RatingId < RatingContext:NotNull"></div>
 							<div class="filter" data-filter="> BilletTitleId > Job" data-filtertype="Suggestion" data-searchtype="BilletTitle" data-label="Billet Title"></div>
 							<div class="filter" data-filter="> WorkRoleId > WorkRole" data-filtertype="Suggestion" data-searchtype="WorkRole" data-label="Functional Area"></div>
 							<div class="filter" data-filter="> RatingTaskId > RatingTask > ReferenceResourceId > ReferenceResource" data-filtertype="Suggestion" data-searchtype="ReferenceResource" data-label="Source"></div>
@@ -984,7 +990,7 @@
 						<div class="filterSet textFilterSet">
 							<div class="filter" data-filter="> CourseContextId > CourseContext > HasCourseId > Course" data-filtertype="Suggestion" data-searchtype="Course" data-label="Course"></div>
 							<div class="filter" data-filter="> CourseContextId > CourseContext > HasTrainingTaskId > TrainingTask.TextFields" data-filtertype="Text" data-label="Training Task"></div>
-							<div class="filter" data-filter="> CourseContextId > CourseContext > HasCourseId > Course > CurriculumControlAuthorityId > Organization" data-filtertype="Suggestion" data-searchtype="Organization" data-label="Curriculum Control Authority"></div>
+							<div class="filter" data-filter="> CourseContextId > CourseContext > HasCourseId > Course > CurriculumControlAuthorityId > Organization" data-filtertype="Suggestion" data-searchtype="Organization" data-label="Curriculum Control Authority" data-hasdatahelper="< CurriculumControlAuthorityId < Course < HasCourseId < CourseContext < CourseContextId < RatingContext:NotNull"></div>
 						</div>
 						<div class="filterSet checkBoxListFilterSet">
 							<div class="filter" data-filter="> CourseContextId > CourseContext > AssessmentMethodConceptId > Concept" data-filtertype="CheckBoxList" data-sourceuri="@Factories.ConceptSchemeManager.ConceptScheme_CurrentAssessmentApproach"></div>

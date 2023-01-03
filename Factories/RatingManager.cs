@@ -340,15 +340,19 @@ namespace Factories
 				var keywords = GetSanitizedSearchFilterKeywords( query );
 
 				//Handle keywords
-                //TODO - needs to do some relevence so if a code is entered, it appears first
 				if ( !string.IsNullOrWhiteSpace( keywords ) )
 				{
 					list = list.Where( m =>
 						m.Name.Contains( keywords ) ||
-						m.Description.Contains( keywords ) ||
 						m.CodedNotation.Contains( keywords )
+						//m.Description.Contains( keywords ) //Leads to too many false positive matches
 					);
 				}
+
+				//Enable filtering to just Ratings that have data
+				AppendNotNullFilterIfPresent( query, "< RatingId < RatingContext:NotNull", () => {
+					list = list.Where( m => context.RatingContext.Where( n => n.Rating == m ).Count() > 0 );
+				} );
 
 				//Return ordered list
 				return HandleSort( list, query.SortOrder, m => m.Name, m => m.OrderBy( n => n.Name ) );

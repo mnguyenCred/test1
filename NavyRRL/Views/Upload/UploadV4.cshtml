@@ -1,6 +1,7 @@
 ﻿@using Services;
 @using Newtonsoft.Json;
 @using Models.Schema;
+@using Models.Curation;
 @{
 	ViewBag.Title = "Upload V4";
 	var allRatings = RatingServices.GetAll().OrderByDescending( m => m.CodedNotation.ToLower() == "all" ).ToList();
@@ -203,111 +204,139 @@
 		//	Part: 1
 		//},
 		"Rating": {
-			Part: 1
+			Part: 1,
+			UploadableRowProperty: "@nameof(UploadableRow.Rating_CodedNotation)"
 		},
 		"Rank": {
 			Part: 1,
 			Values: @Html.Raw( GetConceptValues( ConceptSchemeMap.PayGradeCategory, false, true, false ) ), //CodedNotation
-			BroadMatchChecks: @Html.Raw( GetBroadMatchSets( ConceptSchemeMap.PayGradeCategory, ConceptSchemeMap.PayGradeLevelCategory, m => new List<string>() { m.CodedNotation }, m => new List<string>() { m.CodedNotation } ) )
+			BroadMatchChecks: @Html.Raw( GetBroadMatchSets( ConceptSchemeMap.PayGradeCategory, ConceptSchemeMap.PayGradeLevelCategory, m => new List<string>() { m.CodedNotation }, m => new List<string>() { m.CodedNotation } ) ),
+			UploadableRowProperty: "@nameof(UploadableRow.PayGradeType_CodedNotation)"
 		},
 		"Level (A/J/M)": {
 			Part: 1,
-			Values: @Html.Raw( GetConceptValues( ConceptSchemeMap.PayGradeLevelCategory, false, true, false ) ) //CodedNotation
+			Values: @Html.Raw( GetConceptValues( ConceptSchemeMap.PayGradeLevelCategory, false, true, false ) ), //CodedNotation
+			UploadableRowProperty: "@nameof(UploadableRow.Level_Name)"
 		},
 		"Billet Title/Job": {
-			Part: 1
+			Part: 1,
+			UploadableRowProperty: "@nameof(UploadableRow.BilletTitle_Name)"
 		},
 		"Functional Area": {
-			Part: 1
+			Part: 1,
+			UploadableRowProperty: "@nameof(UploadableRow.WorkRole_Name)"
 		},
 		"Source": {
-			Part: 1
+			Part: 1,
+			UploadableRowProperty: "@nameof(UploadableRow.ReferenceResource_Name)"
 		},
 		"Date of Source": {
-			Part: 1
+			Part: 1,
+			UploadableRowProperty: "@nameof(UploadableRow.ReferenceResource_PublicationDate)"
 		},
 		"Work Element Type": {
 			Part: 1,
-			Values: @Html.Raw( GetConceptValues( ConceptSchemeMap.ReferenceResourceCategory, false, false, true ) ) //WorkElementType
+			Values: @Html.Raw( GetConceptValues( ConceptSchemeMap.ReferenceResourceCategory, false, false, true ) ), //WorkElementType
+			UploadableRowProperty: "@nameof(UploadableRow.Shared_ReferenceType)"
 		},
 		"Work Element (Task)": {
-			Part: 1
+			Part: 1,
+			UploadableRowProperty: "@nameof(UploadableRow.RatingTask_Description)"
 		},
 		"Task Applicability": {
 			Part: 1,
-			Values: @Html.Raw( GetConceptValues( ConceptSchemeMap.TaskApplicabilityCategory, true, false, false ) ) //Name
+			Values: @Html.Raw( GetConceptValues( ConceptSchemeMap.TaskApplicabilityCategory, true, false, false ) ), //Name
+			UploadableRowProperty: "@nameof(UploadableRow.RatingTask_ApplicabilityType_Name)"
 		},
 		"Formal Training Gap": {
 			Part: 1,
-			Values: @Html.Raw( GetConceptValues( ConceptSchemeMap.TrainingGapCategory, true, false, false ) ) //Name
+			Values: @Html.Raw( GetConceptValues( ConceptSchemeMap.TrainingGapCategory, true, false, false ) ), //Name
+			UploadableRowProperty: "@nameof(UploadableRow.RatingTask_TrainingGapType_Name)"
 		},
 		"CIN": {
-			Part: 2
+			Part: 2,
+			UploadableRowProperty: "@nameof(UploadableRow.Course_CodedNotation)"
 		},
 		"Course Name": {
-			Part: 2
+			Part: 2,
+			UploadableRowProperty: "@nameof(UploadableRow.Course_Name)"
 		},
 		"Course Type": {
 			Part: 2,
 			Values: @Html.Raw( GetConceptValues( ConceptSchemeMap.CourseCategory, true, false, false ) ), //Name
-			SplitOn: [ ",", ";", "|" ]
+			SplitOn: [ ",", ";", "|" ],
+			UploadableRowProperty: "@nameof(UploadableRow.Course_CourseType_Name)"
 		},
 		"Curriculum Control Authority (CCA)": {
 			Part: 2,
-			Values: @Html.Raw( JsonConvert.SerializeObject( allValidOrganizationValues, Formatting.None ) )
+			Values: @Html.Raw( JsonConvert.SerializeObject( allValidOrganizationValues, Formatting.None ) ),
+			UploadableRowProperty: "@nameof(UploadableRow.Course_CurriculumControlAuthority_Name)"
 		},
 		"Life-Cycle Control Document": {
 			Part: 2,
-			Values: @Html.Raw( GetConceptValues( ConceptSchemeMap.LifeCycleControlDocumentCategory, true, true, false ) ) //Name or CodedNotation
+			Values: @Html.Raw( GetConceptValues( ConceptSchemeMap.LifeCycleControlDocumentCategory, true, true, false ) ), //Name or CodedNotation
+			UploadableRowProperty: "@nameof(UploadableRow.Course_LifeCycleControlDocumentType_CodedNotation)"
 		},
 		"TCCD/CTTL/PPP Statement": {
-			Part: 2
+			Part: 2,
+			UploadableRowProperty: "@nameof(UploadableRow.TrainingTask_Description)"
 		},
 		"Current Assessment Approach": {
 			Part: 2,
 			Values: @Html.Raw( GetConceptValues( ConceptSchemeMap.AssessmentMethodCategory, true, false, false ) ), //Name
-			SplitOn: [ ",", ";", "|" ]
+			SplitOn: [ ",", ";", "|" ],
+			UploadableRowProperty: "@nameof(UploadableRow.Course_AssessmentMethodType_Name)"
 		},
 		"Training Solution Type": {
 			Part: 3,
-			Values: @Html.Raw( GetConceptValues( ConceptSchemeMap.TrainingSolutionCategory, true, false, false ) ) //Name
+			Values: @Html.Raw( GetConceptValues( ConceptSchemeMap.TrainingSolutionCategory, true, false, false ) ), //Name
+			UploadableRowProperty: "@nameof(UploadableRow.Training_Solution_Type)"
 		},
 		"Cluster Analysis Title": {
-			Part: 3
+			Part: 3,
+			UploadableRowProperty: "@nameof(UploadableRow.Cluster_Analysis_Title)"
 		},
 		"Recommended Modality": {
 			Part: 3,
-			Values: @Html.Raw( GetConceptValues( ConceptSchemeMap.RecommendedModalityCategory, true, true, false ) ) //Name or CodedNotation
+			Values: @Html.Raw( GetConceptValues( ConceptSchemeMap.RecommendedModalityCategory, true, true, false ) ), //Name or CodedNotation
+			UploadableRowProperty: "@nameof(UploadableRow.Recommended_Modality)"
 		},
 		"Development Specification": {
 			Part: 3,
-			Values: @Html.Raw( GetConceptValues( ConceptSchemeMap.DevelopmentSpecificationCategory, true, false, false ) ) //Name
-			//SplitOn: [ "/" ]
+			Values: @Html.Raw( GetConceptValues( ConceptSchemeMap.DevelopmentSpecificationCategory, true, false, false ) ), //Name
+			UploadableRowProperty: "@nameof(UploadableRow.Development_Specification)"
 		},
 		"Candidate Platform": {
 			Part: 3,
 			Values: @Html.Raw( GetConceptValues( ConceptSchemeMap.CandidatePlatformCategory, false, true, false ) ), //CodedNotation
-			SplitOn: [ ",", "/" ]
+			SplitOn: [ ",", "/" ],
+			UploadableRowProperty: "@nameof(UploadableRow.Candidate_Platform)"
 		},
 		"CFM Placement": {
 			Part: 3,
 			Values: @Html.Raw( GetConceptValues( ConceptSchemeMap.CFMPlacementCategory, true, true, false ) ), //Name or CodedNotation
+			UploadableRowProperty: "@nameof(UploadableRow.CFM_Placement)"
 		},
 		"Priority Placement": {
-			Part: 3
+			Part: 3,
+			UploadableRowProperty: "@nameof(UploadableRow.Priority_Placement)"
 		},
 		"Development Ratio": {
 			Part: 3,
 			Values: @Html.Raw( GetConceptValues( ConceptSchemeMap.DevelopmentRatioCategory, true, false, false ) ), //Name
+			UploadableRowProperty: "@nameof(UploadableRow.Development_Ratio)"
 		},
 		"Estimated Instructional Time": {
-			Part: 3
+			Part: 3,
+			UploadableRowProperty: "@nameof(UploadableRow.Estimated_Instructional_Time)"
 		},
 		"Development Time (duration in hours)": {
-			Part: 3
+			Part: 3,
+			UploadableRowProperty: "@nameof(UploadableRow.Development_Time)"
 		},
 		"Notes": {
-			Part: 1
+			Part: 1,
+			UploadableRowProperty: "@nameof(UploadableRow.Note)"
 		}
 	}
 
@@ -1113,6 +1142,18 @@
 
 		//Helper function
 		function mapRow(row, index) {
+			var rowData = {
+				Row_Index: index
+			};
+			Object.keys(ColumnData).forEach(key => {
+				rowData[ColumnData[key].UploadableRowProperty] = row[key];
+			});
+
+			return rowData;
+		}
+		//
+
+		@*function mapRow(row, index) {
 			return {
 				Row_Index: index,
 				Row_Identifier: row["Index #"],
@@ -1147,7 +1188,8 @@
 				Estimated_Instructional_Time: row["Estimated Instructional Time"],
 				Development_Time: row["Development Time (duration in hours)"],
 			}
-		}
+		}*@
+		//
 
 		//Helper function
 		function initializeResourceSummaryTables() {

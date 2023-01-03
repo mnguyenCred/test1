@@ -338,7 +338,11 @@ namespace Factories
 					);
 				}
 
-				//Return ordered list
+				//Enable filtering to just Organizations that have data
+				AppendNotNullFilterIfPresent( query, "< CurriculumControlAuthorityId < Course < HasCourseId < CourseContext < CourseContextId < RatingContext:NotNull", () => {
+					list = list.Where( m => context.RatingContext.Where( n => n.CourseContext.Course.Organization == m ).Count() > 0 );
+				} );
+
 				return HandleSort( list, query.SortOrder, m => m.Name, m => m.OrderBy( n => n.Name ) );
 
 			}, MapFromDBForSearch );
