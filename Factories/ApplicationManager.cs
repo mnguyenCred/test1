@@ -11,6 +11,7 @@ using Navy.Utilities;
 using AppUserRole = Models.Application.UserRole;
 using AppFunction = Models.Application.ApplicationFunction;
 using DataEntities = Data.Tables.NavyRRLEntities;
+using ViewEntities = Data.Views.ceNavyViewEntities;
 using EM = Data.Tables;
 using DBEntity = Data.Tables.ApplicationRole;
 using DBFunctionEntity = Data.Tables.ApplicationFunction;
@@ -543,6 +544,16 @@ namespace Factories
             {
                 var list = context.AppFunctionPermission.Where( m => m.RoleId == roleId ).ToList();
                 return list.Select( m => m.ApplicationFunctionId ).ToList();
+            }
+        }
+
+        public static bool CanUserAccessFunction( int userId, string functionCode )
+        {
+            using ( var context = new ViewEntities() )
+            {
+                var list = context.ApplicationUserRoleFunctionSummary.Where( m => m.UserId == userId && m.CodedNotation == functionCode ).ToList();
+
+                return (list != null && list.Any());
             }
         }
         #endregion

@@ -14,13 +14,10 @@ Unique_Identifier, COUNT(*) as ttl
 from [QM_RMTL_11232021]
 group by Unique_Identifier having count(*) > 1
 go
-
-USE [NavyRRL]
+USE [Navy_RRL_V2]
 GO
 
-
-SELECT top 1000
-[Id]
+SELECT [Id]
       ,[CTID]
       ,[RowId]
       ,[RatingName]
@@ -29,54 +26,59 @@ SELECT top 1000
       ,[ratingId]
       ,[BilletTitles]
       ,[CodedNotation]
-      ,[RankId]
+      ,[PayGradeTypeId]
       ,[Rank]
       ,[RankName]
       ,[PayGradeType]
-      ,[LevelId]
       ,[Level]
+      ,[WorkRoleId]
       ,[FunctionalArea]
-      ,[ReferenceResourceId]
-      ,[ReferenceResource]
       ,[SourceDate]
       ,[HasReferenceResource]
+      ,[RatingTask]
+      ,[ReferenceResourceId]
+      ,[ReferenceResource]
       ,[WorkElementTypeId]
       ,[WorkElementType]
       ,[WorkElementTypeAlternateName]
       ,[WorkElementTypeOrder]
       ,[ReferenceType]
-      ,[RatingTask]
       ,[TaskApplicabilityId]
       ,[TaskApplicability]
       ,[ApplicabilityType]
       ,[FormalTrainingGapId]
       ,[FormalTrainingGap]
       ,[TrainingGapType]
-      ,[CourseId]
-      ,[CourseUID]
+      ,[HasCourseId]
+      ,[CourseRowId]
       ,[CIN]
-      ,[CourseName]
-      ,[CourseTypes]
-      ,[TrainingTaskId]
-      ,[TrainingTask]
-      ,[HasTrainingTask]
-      ,[AssessmentMethodTypes]
+      ,[Course]
+      ,[LifeCycleControlDocumentTypeId]
+      ,[LifeCycleControlDocument]
+      ,[LifeCycleControlDocumentUID]
       ,[CurriculumControlAuthority]
       ,[CurriculumControlAuthorityId]
       ,[CurriculumControlAuthorityUID]
-      ,[LifeCycleControlDocument]
+      ,[OrganizationCTID]
+      ,[CourseTypes]
+      ,[HasTrainingTaskId]
+      ,[TrainingTask]
+      ,[TrainingTaskRowId]
+      ,[AssessmentMethodTypes]
       ,[Notes]
       ,[TrainingSolutionTypeId]
       ,[TrainingSolutionType]
       ,[ClusterAnalysisTitle]
-      ,[RecommendedModalityId]
+      ,[RecommendedModalityTypeId]
       ,[RecommendedModality]
       ,[RecommentedModalityCodedNotation]
-      ,[DevelopmentSpecificationId]
+      ,[DevelopmentSpecificationTypeId]
       ,[DevelopmentSpecification]
       ,[CandidatePlatform]
+      ,[CFMPlacementTypeId]
       ,[CFMPlacement]
       ,[PriorityPlacement]
+      ,[DevelopmentRatioTypeId]
       ,[DevelopmentRatio]
       ,[EstimatedInstructionalTime]
       ,[DevelopmentTime]
@@ -89,21 +91,15 @@ SELECT top 1000
       ,[LastUpdatedById]
       ,[ModifiedBy]
       ,[ModifiedByUID]
-	  ,ClusterAnalysisLastUpdated
+      ,[ClusterAnalysisLastUpdated]
   FROM [dbo].[RatingContextSummary]
+
+
   where 
   --CodedNotation = 'PQ42-005' AND
   ratings = 'Ps'
   order by ClusterAnalysisLastUpdated desc  
 
-  where ( base.id in (select a.[RatingTaskId] from [RatingTask.WorkRole] a inner join WorkRole b on a.WorkRoleId = b.Id where b.Id in (30) )) 
-    where FunctionalArea= ''
-	order by CodedNotation
-	taskApplicabilityId=77
-	and isnull(ratings,'') = ''
-	id in (select a.[RatingTaskId] from [RatingTask.HasRating] a inner join Rating b on a.ratingId = b.Id where b.CodedNotation = 'qm' )
-
-	--[TaskApplicabilityId]= 77
 GO
 
 select base.*
@@ -129,7 +125,7 @@ Modifications
 22-04-04 mp - as for ratings, change billet title processing to result in separate rows where more than one billet per task.
 			- otherwise the export could get messed up.
 22-06-03 mp - temp change to FunctionalArea to not include the Guids 
-
+22-12-23 mp - updated for new table definitions
 */
 Alter  VIEW [dbo].RatingContextSummary
 AS
@@ -162,13 +158,9 @@ SELECT
 	--,a.[FunctionalAreaId]
 	--, isnull(b.name,'missing') As FunctionalArea
 	--,b.RowId as FunctionalAreaUID
-	,CASE
-		WHEN WorkRoles IS NULL THEN ''
-		WHEN len(WorkRoles) = 0 THEN ''
-		ELSE left(WorkRoles,len(WorkRoles)-1)
-		END AS FunctionalArea
-	--		SOURCE
-	--,a.[SourceId]
+	,a.WorkRoleId
+	,workRole.RowId as FunctionalArea
+
 
 	,c.PublicationDate as SourceDate
 	,c.RowId as HasReferenceResource
@@ -176,7 +168,7 @@ SELECT
 
 	-- RatingTask 
 	,rt.Description as RatingTask
-		,rt.ReferenceResourceId
+	,rt.ReferenceResourceId
 	--ReferenceResource/source
 	, isnull(c.name,'') As ReferenceResource
 	--	WorkElementType. Now a concept but related to ReferenceResource
@@ -212,24 +204,32 @@ SELECT
 		,h.LifeCycleControlDocument
 		*/
 	--or used the view
-		,g.CourseId, g.CourseUID
-		,g.CodedNotation as CIN
-		,g.CourseName
+		,ccs.[HasCourseId]
+		,ccs.CourseRowId
+		,ccs.CIN		
+		,ccs.Course
+
+		,ccs.LifeCycleControlDocumentTypeId
+		,ccs.LifeCycleControlDocument
+		,ccs.LifeCycleControlDocumentUID
+		--
+		,ccs.CurriculumControlAuthority
+		,ccs.CurriculumControlAuthorityId
+		,ccs.CurriculumControlAuthorityUID
+
+		,ccs.OrganizationCTID
+
 		--can be multiple
-		,g.CourseTypes
-		,a.TrainingTaskId
-		--,a.TrainingTaskId
-		,g.TrainingTask
-		,g.TrainingTaskUID as HasTrainingTask
+		,ccs.CourseTypes
+		,ccs.HasTrainingTaskId
+
+		,ccs.TrainingTask
+		,ccs.TrainingTaskRowId
 		--can be multiple
-		,g.CurrentAssessmentApproach
-		,g.CurrentAssessmentApproach as AssessmentMethodTypes
-		--22-01-24-yes single 
-		,g.CurriculumControlAuthority
-		,g.CurriculumControlAuthorityId
-		,g.CurriculumControlAuthorityUID
-		--comfirm if can be multiple
-		,g.LifeCycleControlDocument
+		,ccs.AssessmentMethodTypes
+
+
+
 
 	,a.Notes
 	--====================== Part III ====================== 
@@ -238,19 +238,27 @@ SELECT
       
 	,cas.[ClusterAnalysisTitle]
 
-	,cas.[RecommendedModalityId]
-	,cas.RecommendedModality RecommendedModality
+	,cas.RecommendedModalityTypeId
+	,cas.RecommendedModality
 	,cas.RecommentedModalityCodedNotation
       
-	,cas.[DevelopmentSpecificationId]
+	,cas.DevelopmentSpecificationTypeId
 	,cas.DevelopmentSpecification
 
 	,cas.[CandidatePlatform]
+
+	,cas.CFMPlacementTypeId
 	,cas.[CFMPlacement]
+
 	,cas.[PriorityPlacement]
+
+	,cas.DevelopmentRatioTypeId
 	,cas.[DevelopmentRatio]
+
 	,cas.[EstimatedInstructionalTime]
+
 	,cas.[DevelopmentTime]
+
 	,cas.Notes as ClusterAnalysisNotes
 
 	--
@@ -272,19 +280,17 @@ SELECT
 	left join [ConceptScheme.Concept]	c1 on a.PayGradeTypeId = c1.Id
 	--Level ?TBD
 	--left join [ConceptScheme.Concept]	c2 on a.[LevelId] = c2.Id
---left join WorkRole					b on a.FunctionalAreaId = b.Id
---left join FunctionalArea			b on a.FunctionalAreaId = b.Id
-left join ReferenceResource			c on rt.ReferenceResourceId = c.Id
---WorkElementType	
-  inner join  [ReferenceResource.ReferenceType] wet on c.id = wet.ReferenceResourceId
-  inner join [ConceptScheme.Concept] wetc on wet.ReferenceTypeId = wetc.id 
+	left join WorkRole					workRole on a.WorkRoleId = workRole.Id
+
+	left join ReferenceResource			c on rt.ReferenceResourceId = c.Id
+	--WorkElementType	
+	inner join  [ReferenceResource.ReferenceType] wet on c.id = wet.ReferenceResourceId
+	inner join [ConceptScheme.Concept] wetc on wet.ReferenceTypeId = wetc.id 
 
 
 left join [ConceptScheme.Concept]	e on a.TaskApplicabilityId = e.Id
 left join [ConceptScheme.Concept]	f on a.FormalTrainingGapId = f.Id
---TrainingTask. 22-03-28 - can now (even eventually) be multiple
-Left Join [TrainingTask] htt on a.TrainingTaskId = htt.Id
-Left Join TrainingTaskSummary		g on a.TrainingTaskId = g.TrainingTaskId
+left join CourseContextSummary	ccs on a.CourseContextId = ccs.Id
 
 ---=========================================
   Left Join Account_Summary ac on a.CreatedById = ac.Id
@@ -292,14 +298,15 @@ Left Join TrainingTaskSummary		g on a.TrainingTaskId = g.TrainingTaskId
   --
   left Join [ClusterAnalysisSummary] cas on a.Id = cas.ratingTaskId
 
-    CROSS APPLY (
-	SELECT distinct d.Name + ' |'
-    FROM dbo.RatingContext  rt
-		Inner join [dbo].[RatingContext.WorkRole]	rcwr on rt.Id = rcwr.RatingContextId
-		inner join WorkRole d on rcwr.WorkRoleId = d.Id 
-    WHERE  a.Id = rt.Id
-    FOR XML Path('') 
-) WR (WorkRoles)
+  --apparantly single again
+--    CROSS APPLY (
+--	SELECT distinct d.Name + ' |'
+--    FROM dbo.RatingContext  rt
+--		Inner join [dbo].[RatingContext.WorkRole]	rcwr on rt.Id = rcwr.RatingContextId
+--		inner join WorkRole d on rcwr.WorkRoleId = d.Id 
+--    WHERE  a.Id = rt.Id
+--    FOR XML Path('') 
+--) WR (WorkRoles)
 go
 
 grant select on RatingContextSummary to public

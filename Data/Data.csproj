@@ -195,6 +195,9 @@
     <Compile Include="Views\ApplicationRoleSummary.cs">
       <DependentUpon>NavyViews.tt</DependentUpon>
     </Compile>
+    <Compile Include="Views\ApplicationUserRoleFunctionSummary.cs">
+      <DependentUpon>NavyViews.tt</DependentUpon>
+    </Compile>
     <Compile Include="Views\AspNetUserRoles_Summary.cs">
       <DependentUpon>NavyViews.tt</DependentUpon>
     </Compile>

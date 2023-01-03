@@ -8,8 +8,7 @@ GO
 
 
 /*
-USE NavyRRL
-GO
+
 
 
 --=====================================================
@@ -208,7 +207,7 @@ if charindex( 'order by', lower(@Filter) ) = 0
   print '@SQL len: '  +  convert(varchar,len(@SQL))
   print @SQL
 -- ================================= 
-set @SQL = '   SELECT count(*) as TotalRows  FROM [dbo].RatingTaskSummary base  '  + @Filter 
+set @SQL = '   SELECT count(*) as TotalRows  FROM [dbo].RatingContextSummary base  '  + @Filter 
 INSERT INTO #tempQueryTotalTable (TotalRows)
 exec (@SQL)
 --select * from #tempQueryTotalTable
@@ -223,10 +222,10 @@ From
 SELECT 
          ROW_NUMBER() OVER(' + @OrderBy + ') as RowNumber,
           base.Id, base.RatingTask
-		from [RatingTaskSummary] base  ' 
+		from [RatingContextSummary] base  ' 
         + @Filter + ' 
    ) as DerivedTable
-       Inner join [dbo].[RatingTaskSummary] base on DerivedTable.Id = base.Id
+       Inner join [dbo].[RatingContextSummary] base on DerivedTable.Id = base.Id
 WHERE RowNumber BETWEEN ' + convert(varchar,@StartPageIndex) + ' AND ' + convert(varchar,@lastRow) + ' '  
 
   print '@SQL len: '  +  convert(varchar,len(@SQL))

@@ -15,8 +15,7 @@ namespace Models.Application
 			UserRoles = new List<string>();
 			Roles = "";
 		}
-		//public int Id { get; set; }
-		//public Guid RowId { get; set; }
+
 		public string UserName { get; set; }
 		public string Password { get; set; }
 		public string Email { get; set; }
@@ -46,9 +45,9 @@ namespace Models.Application
 				return this.FirstName + " " + this.LastName;
 		}
 	}
-	[Serializable]
-	public class UserRoles : UserAppRoles
-	{
+	//[Serializable]
+	//public class UserRoles : UserAppRoles
+	//{
 
-	}
+	//}
 }

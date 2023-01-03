@@ -187,6 +187,7 @@ namespace Factories
 							{
 								statusMessage = "successful";
 								//arbitrarily update AspNetUsers???
+								//soon to be obsolete?
 								AspNetUsers_Update( entity, ref statusMessage );
 
 								return true;
@@ -695,27 +696,27 @@ namespace Factories
 			}
 		}
 		
-		public static void MapFromDB( Views.Account_Summary input, AppUser to )
+		public static void MapFromDB( Views.Account_Summary input, AppUser output )
 		{
-			to.Id = input.Id;
+			output.Id = input.Id;
 			//to.RowId = fromEntity.RowId;
-			to.UserName = input.UserName;
+			output.UserName = input.UserName;
 
-			to.AspNetUserId = input.AspNetId;
+			output.AspNetUserId = input.AspNetId;
 			//to.Password = fromEntity.Password;
-			to.IsActive = input.IsActive == null ? false : ( bool ) input.IsActive;
-			to.FirstName = input.FirstName;
-			to.LastName = input.LastName;
-			to.SortName = input.SortName;
+			output.IsActive = input.IsActive == null ? false : ( bool ) input.IsActive;
+			output.FirstName = input.FirstName;
+			output.LastName = input.LastName;
+			output.SortName = input.SortName;
 
-			to.Email = input.Email;
-			to.ExternalAccountIdentifier = input.ExternalAccountIdentifier;
+			output.Email = input.Email;
+			output.ExternalAccountIdentifier = input.ExternalAccountIdentifier;
 
 			if ( IsValidDate( input.Created ) )
-				to.Created = (DateTime)input.Created;
+				output.Created = (DateTime)input.Created;
 			if ( IsValidDate( input.LastUpdated ) )
-				to.LastUpdated = ( DateTime ) input.LastUpdated;
-			to.LastUpdatedById = input.LastUpdatedById == null ? 0 : ( int ) input.LastUpdatedById;
+				output.LastUpdated = ( DateTime ) input.LastUpdated;
+			output.LastUpdatedById = input.LastUpdatedById == null ? 0 : ( int ) input.LastUpdatedById;
 			//if ( IsValidDate( fromEntity.lastLogon ) )
 			//{
 			//	to.lastLogon = ( ( DateTime ) fromEntity.lastLogon ).ToString( "yyyy-MM-dd" );
@@ -723,13 +724,13 @@ namespace Factories
 			//else
 			//	to.lastLogon = "None";
 
-			to.UserRoles = new List<string>();
+			output.UserRoles = new List<string>();
 			if ( string.IsNullOrWhiteSpace( input.Roles ) == false )
 			{
 				var roles = input.Roles.Split( ',' );
 				foreach ( string role in roles )
 				{
-					to.UserRoles.Add( role );
+					output.UserRoles.Add( role );
 				}
 			}
 

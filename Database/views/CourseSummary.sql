@@ -1,5 +1,3 @@
-Use NavyRRL
-go
 
 USE [Navy_RRL_V2]
 GO
@@ -40,7 +38,11 @@ GO
 
 
 */
+/*
+Modifications
+22-12-22 mp - new for V2.
 
+*/
 Alter VIEW CourseSummary
 AS
 
@@ -92,7 +94,7 @@ SELECT base.[Id]
     CROSS APPLY (
     SELECT distinct d.Name + ' | '
     FROM dbo.[Course]  a
-	Inner join [dbo].[CourseContext]	cc on a.Id = cc.CourseId
+	Inner join [dbo].[CourseContext]	cc on a.Id = cc.HasCourseId
 		Inner join [dbo].[CourseContext.AssessmentType]	c on cc.Id = c.CourseContextId
 		inner join [ConceptScheme.Concept] d on c.AssessmentMethodConceptId = d.Id --and d.ConceptSchemeId=13
     WHERE  base.Id = a.Id

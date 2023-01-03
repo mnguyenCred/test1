@@ -1049,7 +1049,7 @@ namespace Factories
 
 		}
 		//
-
+		[Obsolete]
 		public static List<EntitySummary> RMTLSearch( string pFilter, string pOrderBy, int pageNumber, int pageSize, int userId, ref int pTotalRows, bool autocomplete = false )
 		{
 			string connectionString = DBConnectionRO();

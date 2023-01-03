@@ -15,26 +15,30 @@ using Navy.Utilities;
 using Models.Curation;
 using Services;
 using System.IO;
+using Models.Schema;
 
 namespace NavyRRL.Controllers
 {
 	[SessionState( System.Web.SessionState.SessionStateBehavior.ReadOnly )] //Allows for the polling to happen at the same time as the saving, instead of blocking the thread
 	public class UploadController : BaseController
     {
+		public static string FunctionCode = "rmtl.create";
 		// GET: Upload
-		[CustomAttributes.NavyAuthorize( "Upload", Roles = Admin_SiteManager_RMTLDeveloper )]
+		//[CustomAttributes.NavyAuthorize( "Upload", Roles = Admin_SiteManager_RMTLDeveloper )]
 		public ActionResult Index()
         {
-			AuthenticateOrRedirect( "You must be authenticated and authorized to use this feature." );
-			return View( "~/views/upload/uploadv4.cshtml" );
+			AuthenticateOrRedirect( "You must be authenticated and authorized to use this feature.", FunctionCode );
+			
+
+            return View( "~/views/upload/uploadv4.cshtml" );
         }
 		//
 
 		[HttpGet, Route("uploadv3")]
 		public ActionResult IndexV3()
 		{
-			AuthenticateOrRedirect( "You must be authenticated and authorized to use this feature." );
-			return View( "~/views/upload/uploadv3.cshtml" );
+            AuthenticateOrRedirect( "You must be authenticated and authorized to use this feature.", FunctionCode );
+            return View( "~/views/upload/uploadv3.cshtml" );
 		}
 		//
 
@@ -115,7 +119,7 @@ namespace NavyRRL.Controllers
 
 					if ( rawCSV.Length > 300000 )
 					{
-						new Factories.BaseFactory().BulkLoadRMTL( currentRating.CodedNotation, rawCSV );
+						//new Factories.BaseFactory().BulkLoadRMTL( currentRating.CodedNotation, rawCSV );
 					}
 				}
 			}
@@ -146,14 +150,14 @@ namespace NavyRRL.Controllers
 		}
 		//
 
-		[CustomAttributes.NavyAuthorize( "Upload", Roles = Admin_SiteManager_RMTLDeveloper )]
+		//[CustomAttributes.NavyAuthorize( "Upload", Roles = Admin_SiteManager_RMTLDeveloper )]
 		public ActionResult ConfirmChangesV3( Guid transactionGUID )
 		{
-			//Authenticate
-			AuthenticateOrRedirect( "You must be authenticated and authorized to use this feature." );
+            //Authenticate
+            AuthenticateOrRedirect( "You must be authenticated and authorized to use this feature.", FunctionCode );
 
-			//Get the summary
-			var summary = BulkUploadServices.GetCachedChangeSummary( transactionGUID );
+            //Get the summary
+            var summary = BulkUploadServices.GetCachedChangeSummary( transactionGUID );
 			if( summary == null )
 			{
 				return JsonResponse( null, false, new List<string>() { "Unable to find cached change summary. Please upload the data again." } );

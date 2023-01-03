@@ -5,9 +5,9 @@
     <!-- Diagram content (shape and connector positions) -->
     <edmx:Diagrams>
       <Diagram DiagramId="f0c058a3e8214195a80077f365b68286" Name="Diagram1" ZoomLevel="64">
-        <EntityTypeShape EntityType="ceNavyViewModel.Account_Summary" Width="2.375" PointX="17.5" PointY="1.25" />
-        <EntityTypeShape EntityType="ceNavyViewModel.AspNetUserRoles_Summary" Width="1.5" PointX="15.25" PointY="1" />
-        <EntityTypeShape EntityType="ceNavyViewModel.ConceptSchemeSummary" Width="2.125" PointX="10.375" PointY="14.625" />
+        <EntityTypeShape EntityType="ceNavyViewModel.Account_Summary" Width="2.375" PointX="17.5" PointY="1.25" FillColor="Lime" />
+        <EntityTypeShape EntityType="ceNavyViewModel.AspNetUserRoles_Summary" Width="1.5" PointX="15.25" PointY="1" FillColor="Lime" />
+        <EntityTypeShape EntityType="ceNavyViewModel.ConceptSchemeSummary" Width="2.125" PointX="8.875" PointY="18.375" />
         <EntityTypeShape EntityType="ceNavyViewModel.RmtlSummary" Width="2.75" PointX="3.125" PointY="3" />
         <EntityTypeShape EntityType="ceNavyViewModel.RatingTaskSummary" Width="3.625" PointX="8.625" PointY="2.875" />
         <EntityTypeShape EntityType="ceNavyViewModel.CourseSummary" Width="2.5" PointX="0.625" PointY="8.5" />
@@ -17,8 +17,9 @@
         <EntityTypeShape EntityType="ceNavyViewModel.WorkRoleSummary" Width="2.625" PointX="0.75" PointY="13.75" FillColor="Yellow" />
         <EntityTypeShape EntityType="ceNavyViewModel.Activity_Summary" Width="1.5" PointX="13.375" PointY="4.75" />
         <EntityTypeShape EntityType="ceNavyViewModel.RMTLProjectSummary" Width="2.75" PointX="16.125" PointY="7.5" />
-        <EntityTypeShape EntityType="ceNavyViewModel.ApplicationRoleSummary" Width="1.5" PointX="0.75" PointY="4.75" />
+        <EntityTypeShape EntityType="ceNavyViewModel.ApplicationRoleSummary" Width="1.5" PointX="13.25" PointY="1" FillColor="Lime" />
         <EntityTypeShape EntityType="ceNavyViewModel.RatingContextSummary" Width="1.5" PointX="13.75" PointY="10.75" />
+        <EntityTypeShape EntityType="ceNavyViewModel.ApplicationUserRoleFunctionSummary" Width="2.625" PointX="22" PointY="2" FillColor="Lime" />
       </Diagram>
     </edmx:Diagrams>
   </edmx:Designer>

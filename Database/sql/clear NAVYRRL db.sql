@@ -18,32 +18,23 @@ go
 ----==============================================
 /****** clear obsolete ******/
 
+/****** Object:  Table [dbo].[Entity.Concept]    Script Date: 12/22/2022 9:39:32 AM ******/
+IF  EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[Entity.Concept]') AND type in (N'U'))
+DROP TABLE [dbo].[Entity.Concept]
+GO
+
+
 
 --
 
 /*
---first remove all FKs
-DROP TABLE [dbo].[Course.AssessmentType]
-DROP TABLE [dbo].[Course.Task]
-DROP TABLE [dbo].[CourseTask.AssessmentType]
 
-DROP TABLE [dbo].[Course.Organization]
-DROP TABLE [dbo].[Entity.Concept]
 
 IF  EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[EnlistedClassification]') AND type in (N'U'))
 DROP TABLE [dbo].[EnlistedClassification]
 GO
 
-DROP TABLE [dbo].Import_ABF_RMTL
-DROP TABLE [dbo].ImportHistory
 
-DROP TABLE [dbo].Import_QM_RMTL_11232021
-
-
-DROP TABLE [dbo].ImportRMTL_BK211213
-
-
-DROP TABLE [dbo].ImportRMTL_BK220108
 
 DROP TABLE [dbo].[Prod.ConceptScheme.Concept]
 DROP TABLE [dbo].[RMTLImport-211109]

@@ -1,7 +1,3 @@
-USE [NavyRRL]
-GO
-
-
 Use Navy_RRL_V2
 go
 
@@ -56,7 +52,11 @@ GO
 
 
 */
+/*
+Modifications
+22-12-22 mp - new for V2.
 
+*/
 Alter VIEW TrainingTaskSummary
 AS
 
@@ -100,8 +100,8 @@ SELECT base.[Id] as CourseId
 	,base.[LastUpdated]	,base.[LastUpdatedById]
 
 FROM [dbo].[Course] base
-Left join [CourseContext] cc on base.Id  = cc.CourseId
-Left join [TrainingTask] task on cc.TrainingTaskId = task.Id
+Left join [CourseContext] cc on base.Id  = cc.HasCourseId
+Left join [TrainingTask] task on cc.HasTrainingTaskId = task.Id
 
 Left join Organization b on base.CurriculumControlAuthorityId = b.Id
 --LCCD

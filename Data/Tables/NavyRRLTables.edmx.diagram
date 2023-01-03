@@ -44,7 +44,7 @@
         <EntityTypeShape EntityType="NavyRRLModel.ImportRMTL" Width="1.5" PointX="7.75" PointY="5.75" />
         <EntityTypeShape EntityType="NavyRRLModel.Job" Width="1.5" PointX="16.5" PointY="30.375" />
         <EntityTypeShape EntityType="NavyRRLModel.Organization" Width="1.5" PointX="12" PointY="10.5" />
-        <EntityTypeShape EntityType="NavyRRLModel.Rating" Width="1.5" PointX="16.5" PointY="8.125" />
+        <EntityTypeShape EntityType="NavyRRLModel.Rating" Width="2.625" PointX="16.375" PointY="8.125" />
         <EntityTypeShape EntityType="NavyRRLModel.RatingContext" Width="1.5" PointX="18.75" PointY="15.125" />
         <EntityTypeShape EntityType="NavyRRLModel.ReferenceResource" Width="1.5" PointX="12" PointY="4.75" />
         <EntityTypeShape EntityType="NavyRRLModel.ReferenceResource_ReferenceType" Width="1.5" PointX="11.25" PointY="14.875" />
@@ -73,7 +73,7 @@
         <AssociationConnector Association="NavyRRLModel.FK_ConceptScheme_Concept_ConceptScheme" />
         <AssociationConnector Association="NavyRRLModel.FK_RatingContext_RankLevel" />
         <EntityTypeShape EntityType="NavyRRLModel.ClusterAnalysis" Width="1.5" PointX="21.5" PointY="17.625" />
-        <EntityTypeShape EntityType="NavyRRLModel.RatingTask" Width="1.5" PointX="19.25" PointY="10.25" />
+        <EntityTypeShape EntityType="NavyRRLModel.RatingTask" Width="1.5" PointX="21.25" PointY="9.625" />
         <AssociationConnector Association="NavyRRLModel.FK_ClusterAnalysis_CFMPlacement_Concept" />
         <AssociationConnector Association="NavyRRLModel.FK_ClusterAnalysis_ClusterAnalysisTitle" />
         <AssociationConnector Association="NavyRRLModel.FK_ClusterAnalysis_DevelopmentRatio_Concept" />

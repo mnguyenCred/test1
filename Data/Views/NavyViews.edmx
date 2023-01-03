@@ -82,6 +82,25 @@ warning 6002: The table/view 'Navy_RRL_V2.dbo.ApplicationRoleSummary' does not h
           <Property Name="AspNetId" Type="nvarchar" MaxLength="128" />
         </EntityType>
         <!--Errors Found During Generation:
+warning 6002: The table/view 'Navy_RRL_V2.dbo.ApplicationUserRoleFunctionSummary' does not have a primary key defined. The key has been inferred and the definition was created as a read-only table/view.-->
+        <EntityType Name="ApplicationUserRoleFunctionSummary">
+          <Key>
+            <PropertyRef Name="Email" />
+            <PropertyRef Name="UserName" />
+            <PropertyRef Name="UserId" />
+            <PropertyRef Name="RoleId" />
+            <PropertyRef Name="UserRole" />
+            <PropertyRef Name="ApplicationFunction" />
+          </Key>
+          <Property Name="Email" Type="varchar" MaxLength="100" Nullable="false" />
+          <Property Name="UserName" Type="varchar" MaxLength="100" Nullable="false" />
+          <Property Name="UserId" Type="int" Nullable="false" />
+          <Property Name="RoleId" Type="int" Nullable="false" />
+          <Property Name="UserRole" Type="nvarchar" MaxLength="100" Nullable="false" />
+          <Property Name="ApplicationFunction" Type="varchar" MaxLength="100" Nullable="false" />
+          <Property Name="CodedNotation" Type="varchar" MaxLength="50" />
+        </EntityType>
+        <!--Errors Found During Generation:
 warning 6002: The table/view 'Navy_RRL_V2.dbo.AspNetUserRoles_Summary' does not have a primary key defined. The key has been inferred and the definition was created as a read-only table/view.-->
         <EntityType Name="AspNetUserRoles_Summary">
           <Key>
@@ -585,6 +604,17 @@ warning 6002: The table/view 'Navy_RRL_V2.dbo.WorkRoleSummary' does not have a p
     [ApplicationRoleSummary].[AspNetId] AS [AspNetId]
     FROM [dbo].[ApplicationRoleSummary] AS [ApplicationRoleSummary]</DefiningQuery>
           </EntitySet>
+          <EntitySet Name="ApplicationUserRoleFunctionSummary" EntityType="Self.ApplicationUserRoleFunctionSummary" store:Type="Views" store:Schema="dbo">
+            <DefiningQuery>SELECT 
+    [ApplicationUserRoleFunctionSummary].[Email] AS [Email], 
+    [ApplicationUserRoleFunctionSummary].[UserName] AS [UserName], 
+    [ApplicationUserRoleFunctionSummary].[UserId] AS [UserId], 
+    [ApplicationUserRoleFunctionSummary].[RoleId] AS [RoleId], 
+    [ApplicationUserRoleFunctionSummary].[UserRole] AS [UserRole], 
+    [ApplicationUserRoleFunctionSummary].[ApplicationFunction] AS [ApplicationFunction], 
+    [ApplicationUserRoleFunctionSummary].[CodedNotation] AS [CodedNotation]
+    FROM [dbo].[ApplicationUserRoleFunctionSummary] AS [ApplicationUserRoleFunctionSummary]</DefiningQuery>
+          </EntitySet>
           <EntitySet Name="AspNetUserRoles_Summary" EntityType="Self.AspNetUserRoles_Summary" store:Type="Views" store:Schema="dbo">
             <DefiningQuery>SELECT 
     [AspNetUserRoles_Summary].[Id] AS [Id], 
@@ -923,6 +953,7 @@ warning 6002: The table/view 'Navy_RRL_V2.dbo.WorkRoleSummary' does not have a p
           <EntitySet Name="RMTLProjectSummary" EntityType="ceNavyViewModel.RMTLProjectSummary" />
           <EntitySet Name="ApplicationRoleSummary" EntityType="ceNavyViewModel.ApplicationRoleSummary" />
           <EntitySet Name="RatingContextSummary" EntityType="ceNavyViewModel.RatingContextSummary" />
+          <EntitySet Name="ApplicationUserRoleFunctionSummary" EntityType="ceNavyViewModel.ApplicationUserRoleFunctionSummary" />
         </EntityContainer>
         <EntityType Name="Account_Summary">
           <Key>
@@ -1421,6 +1452,23 @@ warning 6002: The table/view 'Navy_RRL_V2.dbo.WorkRoleSummary' does not have a p
           <Property Name="ModifiedByUID" Type="Guid" />
           <Property Name="ClusterAnalysisLastUpdated" Type="DateTime" Precision="3" />
         </EntityType>
+        <EntityType Name="ApplicationUserRoleFunctionSummary">
+          <Key>
+            <PropertyRef Name="Email" />
+            <PropertyRef Name="UserName" />
+            <PropertyRef Name="UserId" />
+            <PropertyRef Name="RoleId" />
+            <PropertyRef Name="UserRole" />
+            <PropertyRef Name="ApplicationFunction" />
+          </Key>
+          <Property Name="Email" Type="String" Nullable="false" MaxLength="100" FixedLength="false" Unicode="false" />
+          <Property Name="UserName" Type="String" Nullable="false" MaxLength="100" FixedLength="false" Unicode="false" />
+          <Property Name="UserId" Type="Int32" Nullable="false" />
+          <Property Name="RoleId" Type="Int32" Nullable="false" />
+          <Property Name="UserRole" Type="String" Nullable="false" MaxLength="100" FixedLength="false" Unicode="true" />
+          <Property Name="ApplicationFunction" Type="String" Nullable="false" MaxLength="100" FixedLength="false" Unicode="false" />
+          <Property Name="CodedNotation" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+        </EntityType>
       </Schema>
     </edmx:ConceptualModels>
     <!-- C-S mapping content -->
@@ -1822,6 +1870,19 @@ warning 6002: The table/view 'Navy_RRL_V2.dbo.WorkRoleSummary' does not have a p
                 <ScalarProperty Name="RowId" ColumnName="RowId" />
                 <ScalarProperty Name="CTID" ColumnName="CTID" />
                 <ScalarProperty Name="Id" ColumnName="Id" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="ApplicationUserRoleFunctionSummary">
+            <EntityTypeMapping TypeName="ceNavyViewModel.ApplicationUserRoleFunctionSummary">
+              <MappingFragment StoreEntitySet="ApplicationUserRoleFunctionSummary">
+                <ScalarProperty Name="CodedNotation" ColumnName="CodedNotation" />
+                <ScalarProperty Name="ApplicationFunction" ColumnName="ApplicationFunction" />
+                <ScalarProperty Name="UserRole" ColumnName="UserRole" />
+                <ScalarProperty Name="RoleId" ColumnName="RoleId" />
+                <ScalarProperty Name="UserId" ColumnName="UserId" />
+                <ScalarProperty Name="UserName" ColumnName="UserName" />
+                <ScalarProperty Name="Email" ColumnName="Email" />
               </MappingFragment>
             </EntityTypeMapping>
           </EntitySetMapping>
