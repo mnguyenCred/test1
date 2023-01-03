@@ -153,7 +153,7 @@ namespace Models.Schema
 			public static List<RDFClass> GetClasses() {
 				return new List<RDFClass>()
 				{
-					new RDFClass( "ceterms:Job", "Billet Title", "A Billet Title.", null, null, new List<string>(){ "ceterms:name", "ceterms:description" } ),
+					new RDFClass( "ceterms:Job", "Billet Title/Job", "A Billet Title or Job.", null, null, new List<string>(){ "ceterms:name", "ceterms:description" } ),
 					new RDFClass( "ceterms:Course", "Course", "A Course.", null, null, new List<string>(){ "ceterms:name", "ceterms:codedNotation", "ceterms:ownedBy", "navy:courseType", "navy:lifeCycleControlDocumentType" } ),
 					new RDFClass( "ceterms:Organization", "Organization", "An Organization.", null, null, new List<string>(){ "ceterms:name", "ceterms:alternateName", "ceterms:description" } ),
 					new RDFClass( "ceterms:Occupation", "Rating", "A Rating.", null, null, new List<string>(){ "ceterms:name", "ceterms:codedNotation" } ),
