@@ -255,9 +255,10 @@ namespace Services
 				rowPayGradeLevel = summary.ConceptSchemeMap.PayGradeLevelCategory.Concepts.FirstOrDefault( m => m.RowId == ( rowPayGrade?.BroadMatch ?? Guid.Empty ) );
 			}
 
-			//Reference Resource Type (via WorkElementType)
+			//Reference Resource Type (via Work Element Type)
 			var rowSourceType = GetDataOrError( summary.ConceptSchemeMap.ReferenceResourceCategory.Concepts, ( m ) => 
-				m.WorkElementType?.ToLower() == item.Row.Shared_ReferenceType?.ToLower(), 
+				m.WorkElementType?.ToLower() == item.Row.Shared_ReferenceType?.ToLower() ||
+				m.CodedNotation?.ToLower() == item.Row.Shared_ReferenceType?.ToLower(), 
 				result, 
 				"Work Element Type not found in database: \"" + TextOrNA( item.Row.Shared_ReferenceType ) + "\"",
 				item.Row.Shared_ReferenceType
@@ -424,7 +425,8 @@ namespace Services
 
 			//Training Solution Type
 			var rowTrainingSolutionType = GetDataOrError( summary.ConceptSchemeMap.TrainingSolutionCategory.Concepts, ( m ) =>
-				m.Name?.ToLower() == item.Row.Training_Solution_Type?.ToLower() || m.CodedNotation?.ToLower() == item.Row.Training_Solution_Type?.ToLower(), 
+				m.Name?.ToLower() == item.Row.Training_Solution_Type?.ToLower() || 
+				m.CodedNotation?.ToLower() == item.Row.Training_Solution_Type?.ToLower(), 
 				result, 
 				"Training Solution Type not found in database: \"" + TextOrNA( item.Row.Training_Solution_Type ) + "\"", 
 				item.Row.Training_Solution_Type,
@@ -433,7 +435,8 @@ namespace Services
 
 			//Recommended Modality Type
 			var rowRecommendModalityType = GetDataOrError( summary.ConceptSchemeMap.RecommendedModalityCategory.Concepts, ( m ) =>
-				m.Name?.ToLower() == item.Row.Recommended_Modality?.ToLower() || m.CodedNotation?.ToLower() == item.Row.Recommended_Modality?.ToLower(), 
+				m.Name?.ToLower() == item.Row.Recommended_Modality?.ToLower() || 
+				m.CodedNotation?.ToLower() == item.Row.Recommended_Modality?.ToLower(), 
 				result, 
 				"Recommended Modality Type not found in database: \"" + TextOrNA( item.Row.Recommended_Modality ) + "\"", 
 				item.Row.Recommended_Modality,

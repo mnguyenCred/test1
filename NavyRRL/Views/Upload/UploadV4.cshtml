@@ -239,7 +239,7 @@
 		},
 		"Work Element Type": {
 			Part: 1,
-			Values: @Html.Raw( GetConceptValues( ConceptSchemeMap.ReferenceResourceCategory, false, false, true ) ), //WorkElementType
+			Values: @Html.Raw( GetConceptValues( ConceptSchemeMap.ReferenceResourceCategory, false, true, true ) ), //CodedNotation or WorkElementType
 			UploadableRowProperty: "@nameof(UploadableRow.Shared_ReferenceType)",
 			ConceptScheme: @Html.Raw( JsonConvert.SerializeObject( SimpleItemHelper.GetSimpleItem( ConceptSchemeMap.ReferenceResourceCategory  ) ) )
 		},
@@ -299,7 +299,7 @@
 		},
 		"Training Solution Type": {
 			Part: 3,
-			Values: @Html.Raw( GetConceptValues( ConceptSchemeMap.TrainingSolutionCategory, true, false, false ) ), //Name
+			Values: @Html.Raw( GetConceptValues( ConceptSchemeMap.TrainingSolutionCategory, true, true, false ) ), //Name or CodedNotation
 			UploadableRowProperty: "@nameof(UploadableRow.Training_Solution_Type)",
 			ConceptScheme: @Html.Raw( JsonConvert.SerializeObject( SimpleItemHelper.GetSimpleItem( ConceptSchemeMap.TrainingSolutionCategory  ) ) )
 		},
@@ -322,7 +322,7 @@
 		"Candidate Platform": {
 			Part: 3,
 			Values: @Html.Raw( GetConceptValues( ConceptSchemeMap.CandidatePlatformCategory, false, true, false ) ), //CodedNotation
-			SplitOn: [ ",", "/" ],
+			SplitOn: [ ",", "/", "|" ],
 			UploadableRowProperty: "@nameof(UploadableRow.Candidate_Platform)",
 			ConceptScheme: @Html.Raw( JsonConvert.SerializeObject( SimpleItemHelper.GetSimpleItem( ConceptSchemeMap.CandidatePlatformCategory  ) ) )
 		},
@@ -1348,7 +1348,7 @@
 						}
 						isNew ? Manager.NewItemsByType[item["@@type"]].push(item) : Manager.ExistingItemsByType[item["@@type"]].push(item);
 					}
-					AJAX.appendToCache(getURLForRowIDLookup(item.RowId), { Data: item });
+					AJAX.appendToCache(getURLForRowIDLookup(item.RowId), item);
 				});
 			}
 
@@ -1434,11 +1434,20 @@
 			//Update buttons
 			updateStageButtons(false, false, false, true);
 
+			//Log messages
+			if (response?.Data?.Messages) {
+				Object.keys(response.Data.Messages).forEach(key => {
+					response.Data.Messages[key].forEach(message => {
+						UI.TableBoxes.SaveReportTable.appendRow({ Type: key, Message: message });
+					});
+				});
+			}
+
 			//Finish up
 			UI.StatusBars.SaveProgress.setValue(totalItems, totalItems, "items");
 			setTimeout(function () {
 				alert("All items have been processed. Please review the summary for any issues.");
-			}, 10);
+			}, 100);
 
 		}, function (error) {
 			//Stop processing and log errors
@@ -1449,7 +1458,7 @@
 		});
 
 		//Start polling for saved data
-		pollSavingData();
+		setTimeout(pollSavingData, 500);
 
 		//Helper function
 		function pollSavingData() {
@@ -1667,7 +1676,7 @@
 						<h3 class="tabLabel">Pre-Processing Summary</h3>
 						<p>Summary of items encountered while pre-processing the spreadsheet.</p>
 						<div class="tableBox" data-name="PreProcessing_Summary" data-label="Pre-Processing - Summary" data-columnKeys="Total|Errors|Warnings|AutoCorrections" data-columnLabels="Total Rows|Errors|Warnings|Automatic Corrections"></div>
-						<p>The following values (if any) were found in the spreadsheet, but have no matching controlled value in the database.</p>
+						<p>The following values (if any) were found in the spreadsheet, but have no matching controlled value in the database. See the Pre-Processing Errors tab above for details.</p>
 						<div class="tableBox" data-name="PreProcessing_MissingControlledValues_Summary" data-label="Pre-Processing - Missing Controlled Values Summary" data-columnKeys="Total|Column|Type|ConceptScheme|Value" data-columnLabels="Total|Column|Type|Concept Scheme|Value"></div>
 					</div>
 					<div class="tabPanel" data-name="Errors">
