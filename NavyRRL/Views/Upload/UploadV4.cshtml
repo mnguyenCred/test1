@@ -2,6 +2,7 @@
 @using Newtonsoft.Json;
 @using Models.Schema;
 @using Models.Curation;
+@using Models.DTO;
 @{
 	ViewBag.Title = "Upload V4";
 	var allRatings = RatingServices.GetAll().OrderByDescending( m => m.CodedNotation.ToLower() == "all" ).ToList();
@@ -211,12 +212,14 @@
 			Part: 1,
 			Values: @Html.Raw( GetConceptValues( ConceptSchemeMap.PayGradeCategory, false, true, false ) ), //CodedNotation
 			BroadMatchChecks: @Html.Raw( GetBroadMatchSets( ConceptSchemeMap.PayGradeCategory, ConceptSchemeMap.PayGradeLevelCategory, m => new List<string>() { m.CodedNotation }, m => new List<string>() { m.CodedNotation } ) ),
-			UploadableRowProperty: "@nameof(UploadableRow.PayGradeType_CodedNotation)"
+			UploadableRowProperty: "@nameof(UploadableRow.PayGradeType_CodedNotation)",
+			ConceptScheme: @Html.Raw( JsonConvert.SerializeObject( SimpleItemHelper.GetSimpleItem( ConceptSchemeMap.PayGradeCategory  ) ) )
 		},
 		"Level (A/J/M)": {
 			Part: 1,
 			Values: @Html.Raw( GetConceptValues( ConceptSchemeMap.PayGradeLevelCategory, false, true, false ) ), //CodedNotation
-			UploadableRowProperty: "@nameof(UploadableRow.Level_Name)"
+			UploadableRowProperty: "@nameof(UploadableRow.Level_Name)",
+			ConceptScheme: @Html.Raw( JsonConvert.SerializeObject( SimpleItemHelper.GetSimpleItem( ConceptSchemeMap.PayGradeLevelCategory  ) ) )
 		},
 		"Billet Title/Job": {
 			Part: 1,
@@ -237,7 +240,8 @@
 		"Work Element Type": {
 			Part: 1,
 			Values: @Html.Raw( GetConceptValues( ConceptSchemeMap.ReferenceResourceCategory, false, false, true ) ), //WorkElementType
-			UploadableRowProperty: "@nameof(UploadableRow.Shared_ReferenceType)"
+			UploadableRowProperty: "@nameof(UploadableRow.Shared_ReferenceType)",
+			ConceptScheme: @Html.Raw( JsonConvert.SerializeObject( SimpleItemHelper.GetSimpleItem( ConceptSchemeMap.ReferenceResourceCategory  ) ) )
 		},
 		"Work Element (Task)": {
 			Part: 1,
@@ -246,12 +250,14 @@
 		"Task Applicability": {
 			Part: 1,
 			Values: @Html.Raw( GetConceptValues( ConceptSchemeMap.TaskApplicabilityCategory, true, false, false ) ), //Name
-			UploadableRowProperty: "@nameof(UploadableRow.RatingTask_ApplicabilityType_Name)"
+			UploadableRowProperty: "@nameof(UploadableRow.RatingTask_ApplicabilityType_Name)",
+			ConceptScheme: @Html.Raw( JsonConvert.SerializeObject( SimpleItemHelper.GetSimpleItem( ConceptSchemeMap.TaskApplicabilityCategory  ) ) )
 		},
 		"Formal Training Gap": {
 			Part: 1,
 			Values: @Html.Raw( GetConceptValues( ConceptSchemeMap.TrainingGapCategory, true, false, false ) ), //Name
-			UploadableRowProperty: "@nameof(UploadableRow.RatingTask_TrainingGapType_Name)"
+			UploadableRowProperty: "@nameof(UploadableRow.RatingTask_TrainingGapType_Name)",
+			ConceptScheme: @Html.Raw( JsonConvert.SerializeObject( SimpleItemHelper.GetSimpleItem( ConceptSchemeMap.TrainingGapCategory  ) ) )
 		},
 		"CIN": {
 			Part: 2,
@@ -265,17 +271,20 @@
 			Part: 2,
 			Values: @Html.Raw( GetConceptValues( ConceptSchemeMap.CourseCategory, true, false, false ) ), //Name
 			SplitOn: [ ",", ";", "|" ],
-			UploadableRowProperty: "@nameof(UploadableRow.Course_CourseType_Name)"
+			UploadableRowProperty: "@nameof(UploadableRow.Course_CourseType_Name)",
+			ConceptScheme: @Html.Raw( JsonConvert.SerializeObject( SimpleItemHelper.GetSimpleItem( ConceptSchemeMap.CourseCategory  ) ) )
 		},
 		"Curriculum Control Authority (CCA)": {
 			Part: 2,
 			Values: @Html.Raw( JsonConvert.SerializeObject( allValidOrganizationValues, Formatting.None ) ),
-			UploadableRowProperty: "@nameof(UploadableRow.Course_CurriculumControlAuthority_Name)"
+			UploadableRowProperty: "@nameof(UploadableRow.Course_CurriculumControlAuthority_Name)",
+			ValueType: "Organization"
 		},
 		"Life-Cycle Control Document": {
 			Part: 2,
 			Values: @Html.Raw( GetConceptValues( ConceptSchemeMap.LifeCycleControlDocumentCategory, true, true, false ) ), //Name or CodedNotation
-			UploadableRowProperty: "@nameof(UploadableRow.Course_LifeCycleControlDocumentType_CodedNotation)"
+			UploadableRowProperty: "@nameof(UploadableRow.Course_LifeCycleControlDocumentType_CodedNotation)",
+			ConceptScheme: @Html.Raw( JsonConvert.SerializeObject( SimpleItemHelper.GetSimpleItem( ConceptSchemeMap.LifeCycleControlDocumentCategory  ) ) )
 		},
 		"TCCD/CTTL/PPP Statement": {
 			Part: 2,
@@ -285,12 +294,14 @@
 			Part: 2,
 			Values: @Html.Raw( GetConceptValues( ConceptSchemeMap.AssessmentMethodCategory, true, false, false ) ), //Name
 			SplitOn: [ ",", ";", "|" ],
-			UploadableRowProperty: "@nameof(UploadableRow.Course_AssessmentMethodType_Name)"
+			UploadableRowProperty: "@nameof(UploadableRow.Course_AssessmentMethodType_Name)",
+			ConceptScheme: @Html.Raw( JsonConvert.SerializeObject( SimpleItemHelper.GetSimpleItem( ConceptSchemeMap.AssessmentMethodCategory  ) ) )
 		},
 		"Training Solution Type": {
 			Part: 3,
 			Values: @Html.Raw( GetConceptValues( ConceptSchemeMap.TrainingSolutionCategory, true, false, false ) ), //Name
-			UploadableRowProperty: "@nameof(UploadableRow.Training_Solution_Type)"
+			UploadableRowProperty: "@nameof(UploadableRow.Training_Solution_Type)",
+			ConceptScheme: @Html.Raw( JsonConvert.SerializeObject( SimpleItemHelper.GetSimpleItem( ConceptSchemeMap.TrainingSolutionCategory  ) ) )
 		},
 		"Cluster Analysis Title": {
 			Part: 3,
@@ -299,23 +310,27 @@
 		"Recommended Modality": {
 			Part: 3,
 			Values: @Html.Raw( GetConceptValues( ConceptSchemeMap.RecommendedModalityCategory, true, true, false ) ), //Name or CodedNotation
-			UploadableRowProperty: "@nameof(UploadableRow.Recommended_Modality)"
+			UploadableRowProperty: "@nameof(UploadableRow.Recommended_Modality)",
+			ConceptScheme: @Html.Raw( JsonConvert.SerializeObject( SimpleItemHelper.GetSimpleItem( ConceptSchemeMap.RecommendedModalityCategory  ) ) )
 		},
 		"Development Specification": {
 			Part: 3,
 			Values: @Html.Raw( GetConceptValues( ConceptSchemeMap.DevelopmentSpecificationCategory, true, false, false ) ), //Name
-			UploadableRowProperty: "@nameof(UploadableRow.Development_Specification)"
+			UploadableRowProperty: "@nameof(UploadableRow.Development_Specification)",
+			ConceptScheme: @Html.Raw( JsonConvert.SerializeObject( SimpleItemHelper.GetSimpleItem( ConceptSchemeMap.DevelopmentSpecificationCategory  ) ) )
 		},
 		"Candidate Platform": {
 			Part: 3,
 			Values: @Html.Raw( GetConceptValues( ConceptSchemeMap.CandidatePlatformCategory, false, true, false ) ), //CodedNotation
 			SplitOn: [ ",", "/" ],
-			UploadableRowProperty: "@nameof(UploadableRow.Candidate_Platform)"
+			UploadableRowProperty: "@nameof(UploadableRow.Candidate_Platform)",
+			ConceptScheme: @Html.Raw( JsonConvert.SerializeObject( SimpleItemHelper.GetSimpleItem( ConceptSchemeMap.CandidatePlatformCategory  ) ) )
 		},
 		"CFM Placement": {
 			Part: 3,
 			Values: @Html.Raw( GetConceptValues( ConceptSchemeMap.CFMPlacementCategory, true, true, false ) ), //Name or CodedNotation
-			UploadableRowProperty: "@nameof(UploadableRow.CFM_Placement)"
+			UploadableRowProperty: "@nameof(UploadableRow.CFM_Placement)",
+			ConceptScheme: @Html.Raw( JsonConvert.SerializeObject( SimpleItemHelper.GetSimpleItem( ConceptSchemeMap.CFMPlacementCategory  ) ) )
 		},
 		"Priority Placement": {
 			Part: 3,
@@ -324,7 +339,8 @@
 		"Development Ratio": {
 			Part: 3,
 			Values: @Html.Raw( GetConceptValues( ConceptSchemeMap.DevelopmentRatioCategory, true, false, false ) ), //Name
-			UploadableRowProperty: "@nameof(UploadableRow.Development_Ratio)"
+			UploadableRowProperty: "@nameof(UploadableRow.Development_Ratio)",
+			ConceptScheme: @Html.Raw( JsonConvert.SerializeObject( SimpleItemHelper.GetSimpleItem( ConceptSchemeMap.DevelopmentRatioCategory  ) ) )
 		},
 		"Estimated Instructional Time": {
 			Part: 3,
@@ -546,10 +562,10 @@
 			TBox.THead.html("<tr>" + TBox.HeaderLabels.map(label => "<th>" + label + "</th>").join("") + "</tr>");
 		}
 		TBox.renderData = function (rowDataArray) {
-			TBox.Data = rowDataArray || [];
+			TBox.Data = [];
 			TBox.Rows = [];
 			TBox.TBody.html("");
-			TBox.Data.forEach(rowData => {
+			(rowDataArray || []).forEach(rowData => {
 				TBox.appendRow(rowData);
 			});
 			TBox.refreshSaveButton();
@@ -992,8 +1008,18 @@
 										columnValues[valueIndex] = ColumnData[key].Values[fuzzyMatchIndex];
 										valueRequiresUpdate = true;
 									}
+									//Otherwise, flag it as an error and update the controlled value summary table
 									else {
 										UI.TableBoxes.PreProcessing_Errors.appendRow({ RowNumber: rowNumber, Type: "Invalid Value", Column: key, Message: "This column contains a value that was not found in the database.", Value: value });
+										var summaryRow = UI.TableBoxes.PreProcessing_MissingControlledValues_Summary.Data.find(item => item.Column == key && item.Value == value);
+										if (summaryRow) {
+											summaryRow.Total++;
+											UI.TableBoxes.PreProcessing_MissingControlledValues_Summary.renderRow(summaryRow, summaryRow.HTML);
+										}
+										else {
+											var addedRow = UI.TableBoxes.PreProcessing_MissingControlledValues_Summary.appendRow({ Total: 1, Column: key, Type: ColumnData[key].ConceptScheme ? "Concept" : (ColumnData[key].ValueType || "Unknown"), ConceptScheme: ColumnData[key].ConceptScheme?.Name || "", Value: value });
+											addedRow.Data.HTML = addedRow.Row;
+										}
 									}
 								}
 							});
@@ -1151,44 +1177,6 @@
 
 			return rowData;
 		}
-		//
-
-		@*function mapRow(row, index) {
-			return {
-				Row_Index: index,
-				Row_Identifier: row["Index #"],
-				//Row_CodedNotation: [row["Unique Identifier"] || row["Unique ID"] || row["Index #"]].find(m => m && isNaN(m)) || "", //Find the Unique Identifier in one of these three columns, ignoring values that are purely numeric
-				Rating_CodedNotation: row["Rating"],
-				PayGradeType_CodedNotation: row["Rank"],
-				Level_Name: row["Level (A/J/M)"],
-				BilletTitle_Name: row["Billet Title/Job"],
-				WorkRole_Name: row["Functional Area"],
-				ReferenceResource_Name: row["Source"],
-				ReferenceResource_PublicationDate: row["Date of Source"],
-				Shared_ReferenceType: row["Work Element Type"],
-				RatingTask_Description: row["Work Element (Task)"],
-				RatingTask_ApplicabilityType_Name: row["Task Applicability"],
-				RatingTask_TrainingGapType_Name: row["Formal Training Gap"],
-				Course_CodedNotation: row["CIN"],
-				Course_Name: row["Course Name"],
-				Course_CourseType_Name: row["Course Type"],
-				Course_CurriculumControlAuthority_Name: row["Curriculum Control Authority (CCA)"],
-				Course_LifeCycleControlDocumentType_CodedNotation: row["Life-Cycle Control Document"],
-				TrainingTask_Description: row["TCCD/CTTL/PPP Statement"],
-				Course_AssessmentMethodType_Name: row["Current Assessment Approach"],
-				Note: row["Notes"], //TBD Part II Notes or leave as is
-				Training_Solution_Type: row["Training Solution Type"],
-				Cluster_Analysis_Title: row["Cluster Analysis Title"],
-				Recommended_Modality: row["Recommended Modality"],
-				Development_Specification: row["Development Specification"],
-				Candidate_Platform: row["Candidate Platform"],
-				CFM_Placement: row["CFM Placement"],
-				Priority_Placement: row["Priority Placement"],
-				Development_Ratio: row["Development Ratio"],
-				Estimated_Instructional_Time: row["Estimated Instructional Time"],
-				Development_Time: row["Development Time (duration in hours)"],
-			}
-		}*@
 		//
 
 		//Helper function
@@ -1679,6 +1667,8 @@
 						<h3 class="tabLabel">Pre-Processing Summary</h3>
 						<p>Summary of items encountered while pre-processing the spreadsheet.</p>
 						<div class="tableBox" data-name="PreProcessing_Summary" data-label="Pre-Processing - Summary" data-columnKeys="Total|Errors|Warnings|AutoCorrections" data-columnLabels="Total Rows|Errors|Warnings|Automatic Corrections"></div>
+						<p>The following values (if any) were found in the spreadsheet, but have no matching controlled value in the database.</p>
+						<div class="tableBox" data-name="PreProcessing_MissingControlledValues_Summary" data-label="Pre-Processing - Missing Controlled Values Summary" data-columnKeys="Total|Column|Type|ConceptScheme|Value" data-columnLabels="Total|Column|Type|Concept Scheme|Value"></div>
 					</div>
 					<div class="tabPanel" data-name="Errors">
 						<h3 class="tabLabel">Pre-Processing Errors</h3>
