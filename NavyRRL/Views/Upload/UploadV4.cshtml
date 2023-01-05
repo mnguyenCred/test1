@@ -7,6 +7,8 @@
 	ViewBag.Title = "Upload V4";
 	var allRatings = RatingServices.GetAll().OrderByDescending( m => m.CodedNotation.ToLower() == "all" ).ToList();
 	ConceptSchemeMap = Factories.ConceptSchemeManager.GetConceptSchemeMap( true );
+	//Need to sort these for later
+	ConceptSchemeMap.CandidatePlatformCategory.Concepts = ConceptSchemeMap.CandidatePlatformCategory.Concepts.OrderByDescending( m => m.CodedNotation.Contains( "/" ) ).ThenByDescending( m => m.CodedNotation.Length ).ToList();
 	var allOrganizations = Factories.OrganizationManager.GetAll();
 	var allValidOrganizationValues = allOrganizations.Select( org => org.Name ) //Look for name
 		.Concat( allOrganizations.Select( org => org.AlternateName ) ) //Look for abbreviation
@@ -321,10 +323,11 @@
 		},
 		"Candidate Platform": {
 			Part: 3,
-			Values: @Html.Raw( GetConceptValues( ConceptSchemeMap.CandidatePlatformCategory, false, true, false ) ), //CodedNotation
-			SplitOn: [ ",", "/", "|" ],
+			@*Values: @Html.Raw( GetConceptValues( ConceptSchemeMap.CandidatePlatformCategory, false, true, false ) ), //CodedNotation*@
+			@*SplitOn: [ "|" ],*@
 			UploadableRowProperty: "@nameof(UploadableRow.Candidate_Platform)",
-			ConceptScheme: @Html.Raw( JsonConvert.SerializeObject( SimpleItemHelper.GetSimpleItem( ConceptSchemeMap.CandidatePlatformCategory  ) ) )
+			@*ConceptScheme: @Html.Raw( JsonConvert.SerializeObject( SimpleItemHelper.GetSimpleItem( ConceptSchemeMap.CandidatePlatformCategory  ) ) )*@
+			ConceptValues: @Html.Raw( GetConceptValues( ConceptSchemeMap.CandidatePlatformCategory, false, true, false ) )
 		},
 		"CFM Placement": {
 			Part: 3,
@@ -974,6 +977,8 @@
 							row[column] = fixedCell.join("").trim();
 						}
 					});
+
+					//Helper function
 					function checkWhitespace(column, text, label, replaceWith) {
 						var valueRequiresUpdate = false;
 						[...row[column].matchAll(text)].forEach(match => {
@@ -1029,6 +1034,34 @@
 							}
 						}
 					});
+
+					//Custom Handling for the Candidate Platform Type column, because its values may contain slashes, but are also separated by slashes
+					{
+						var candidatePlatformTypes = [];
+						var checkString = (row["Candidate Platform"] || "").replace(/N\/A/gi, "");
+						if (checkString.length > 0) {
+							for( var platformText of ColumnData["Candidate Platform"].ConceptValues) {
+								//Skip the rest if there's nothing left that could match
+								if (checkString.replace(/\//g, "").length == 0) {
+									break;
+								}
+
+								//Try to find a match
+								if (checkString.match(new RegExp("(?:^|/)(" + platformText + ")(?:/|$)"))) {
+									candidatePlatformTypes.push(platformText);
+									checkString = checkString.replace(new RegExp(platformText, "g"), "");
+								}
+							}
+							//Replace all double (or more) slashes with a single slash
+							checkString = checkString.replace(/\/{2,}/g, "/");
+							//Remove leading/trailing slashes
+							checkString = checkString.replace(/(?:^\/*)|(?:\/*$)/g, "").trim();
+							//If there is anything left in the string, then it contains one or more unknown entries that aren't in the database
+							if (checkString.length > 0) {
+								UI.TableBoxes.PreProcessing_Errors.appendRow({ RowNumber: rowNumber, Type: "Invalid Value", Column: "Candidate Platform", Message: "This column contains one or more values that were not found in the database. The value or values are shown to the right. Please ensure the value or values are added to the database and try uploading again.", Value: checkString });
+							}
+						}
+					}
 
 					//Scan for potential duplicates
 					var matches = Manager.CSVJSON.filter(otherJSON => otherJSON != row && otherJSON.CompareText == row.CompareText);

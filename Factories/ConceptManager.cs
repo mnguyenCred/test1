@@ -273,6 +273,29 @@ namespace Factories
 		#endregion
 
 		#region Retrieval
+		public static List<AppEntity> GetAll( bool onlyActiveConcepts = true )
+		{
+			var result = new List<AppEntity>();
+
+			using ( var context = new DataEntities() )
+			{
+				var matches = context.ConceptScheme_Concept.AsQueryable();
+
+				if ( onlyActiveConcepts )
+				{
+					matches = matches.Where( m => m.IsActive );
+				}
+
+				foreach ( var match in matches.ToList() )
+				{
+					result.Add( MapFromDB( match, context ) );
+				}
+			}
+
+			return result;
+		}
+		//
+
 		public static List<AppEntity> GetAllConceptsForScheme( string schemaURI, bool onlyActiveConcepts = true )
 		{
 			var result = new List<AppEntity>();
