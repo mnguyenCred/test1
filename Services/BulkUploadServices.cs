@@ -378,7 +378,7 @@ namespace Services
 				//Store if newly created
 				( newItem ) => { summary.ItemsToBeCreated.RatingTask.Add( newItem ); },
 				//Handle empty/null
-				() => string.IsNullOrWhiteSpace( item.Row.RatingTask_Description ) || item.Row.RatingTask_Description?.ToLower() == "n/a",
+				() => string.IsNullOrWhiteSpace( item.Row.RatingTask_Description ) || item.Row.RatingTask_Description?.ToLower() == "n/a" || rowRatingTaskSource == null || rowSourceType == null,
 				"Rating Task is missing, empty, or N/A."
 			);
 
@@ -455,7 +455,7 @@ namespace Services
 				//Store if newly created
 				( newItem ) => { summary.ItemsToBeCreated.Course.Add( newItem ); },
 				//Handle empty/null
-				() => string.IsNullOrWhiteSpace( item.Row.Course_Name ) || item.Row.Course_Name?.ToLower() == "n/a" || string.IsNullOrWhiteSpace( item.Row.Course_CodedNotation ) || item.Row.Course_CodedNotation?.ToLower() == "n/a",
+				() => string.IsNullOrWhiteSpace( item.Row.Course_Name ) || item.Row.Course_Name?.ToLower() == "n/a" || string.IsNullOrWhiteSpace( item.Row.Course_CodedNotation ) || item.Row.Course_CodedNotation?.ToLower() == "n/a" || rowOrganizationCCA == null || rowCourseLCCDType == null,
 				"Course Name or CIN is missing, empty, or N/A."
 			);
 
@@ -479,7 +479,7 @@ namespace Services
 				//Store if newly created
 				( newItem ) => { summary.ItemsToBeCreated.TrainingTask.Add( newItem ); },
 				//Handle empty/null
-				() => string.IsNullOrWhiteSpace( item.Row.TrainingTask_Description ) || item.Row.TrainingTask_Description?.ToLower() == "n/a",
+				() => string.IsNullOrWhiteSpace( item.Row.TrainingTask_Description ) || item.Row.TrainingTask_Description?.ToLower() == "n/a" || rowRatingTaskSource == null,
 				"Training Task is missing, empty, or N/A."
 			);
 
@@ -780,7 +780,11 @@ namespace Services
 				rowCandidatePlatformTypeList == null || rowCandidatePlatformTypeList.Count() == 0 ||
 				priorityPlacement == 0 ||
 				developmentTime == 0 ||
-				estimatedInstructionalTime == 0
+				estimatedInstructionalTime == 0 ||
+				rowRating == null ||
+				rowRatingTask == null ||
+				rowBilletTitle == null ||
+				rowWorkRole == null
 			);
 
 			//Validate Part III data
