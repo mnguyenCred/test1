@@ -249,6 +249,66 @@ namespace Factories
 		//
 		*/
 
+		public static DeleteResult BasicDeleteCore<T1>( 
+			string entityTypeLabel, 
+			Func<DataEntities, DbSet<T1>> GetDBEntityListMethod, 
+			int entityID, 
+			string searchFilterNameOrNull, 
+			Func<DataEntities, DbSet<T1>, T1, DeleteResult> ReturnDeleteResultOrNullBeforeDeleteIsAttemptedMethod 
+		) where T1: class, DBEntityBaseObject
+		{
+			//If applicable, do a search to see whether other things reference this entity
+			if( !string.IsNullOrWhiteSpace( searchFilterNameOrNull ) )
+			{
+				var totalResults = RatingContextManager.Search( new SearchQuery() { Skip = 0, Take = 0, Filters = new List<SearchFilter>() { new SearchFilter() { Name = searchFilterNameOrNull, ItemIds = new List<int>() { entityID } } } } ).TotalResults;
+				if( totalResults > 0 )
+				{
+					return new DeleteResult( false, "The target " + entityTypeLabel + " is referenced by " + totalResults + " Rating Context objects and cannot be deleted." );
+				}
+			}
+
+			//Otherwise, Continue
+			using( var context = new DataEntities() )
+			{
+				//Get the list
+				var list = GetDBEntityListMethod( context );
+
+				//Ensure the target exists
+				var toBeDeleted = list.FirstOrDefault( m => m.Id == entityID );
+				if ( toBeDeleted == null )
+				{
+					return new DeleteResult( false, "The target " + entityTypeLabel + " does not exist." );
+				}
+
+				//Ensure it is not a protected entity
+				if( toBeDeleted.CreatedById == -999 )
+				{
+					return new DeleteResult( false, "The target " + entityTypeLabel + " is part of the system and cannot be deleted." );
+				}
+
+				//Run any pre-delete checks that are specific to the caller of this method
+				var preemptiveReturn = ReturnDeleteResultOrNullBeforeDeleteIsAttemptedMethod == null ? null : ReturnDeleteResultOrNullBeforeDeleteIsAttemptedMethod( context, list, toBeDeleted );
+				if( preemptiveReturn != null )
+				{
+					return preemptiveReturn;
+				}
+
+				//Try to delete it
+				try
+				{
+					list.Remove( toBeDeleted );
+					context.SaveChanges();
+
+					return new DeleteResult( true, "The target " + entityTypeLabel + " was successfully deleted." );
+				}
+				catch ( Exception ex )
+				{
+					return new DeleteResult( false, "Error deleting the target " + entityTypeLabel + ": " + ex.Message + ( !string.IsNullOrWhiteSpace( ex.InnerException?.Message ) ? "; " + ex.InnerException.Message : "" ), JObject.FromObject( ex ) );
+				}
+			}
+		}
+		//
+
 		public static SearchResultSet<T2> HandleSearch<T1, T2>(
 			SearchQuery query,
 			Func<DataEntities, IEnumerable<T1>> SearchMethodWithOrderedResultSet,

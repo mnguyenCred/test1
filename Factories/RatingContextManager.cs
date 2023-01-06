@@ -725,6 +725,7 @@ namespace Factories
 				} );
 
 				//Concept Detail Page
+				//ConceptManager.DeleteById
 				AppendIDsFilterIfPresent( query, "search:AllConceptPaths", ids => {
 					list = list.Where( m =>
 						m.RatingTask.ReferenceResource.ReferenceResource_ReferenceType.Select( n => n.ReferenceTypeId ).Intersect( ids ).Count() > 0 ||

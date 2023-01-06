@@ -84,5 +84,16 @@ namespace NavyRRL.Controllers
 			return JsonResponse( data, errors.Count() == 0, errors );
 		}
 		//
+
+		public ActionResult Delete( int id )
+		{
+			if ( !AccountServices.IsUserAnAdmin() )
+			{
+				return JsonResponse( null, false, new List<string>() { "Deleting data requires administrator privileges." } );
+			}
+
+			return JsonResponse( null, false, new List<string>() { "This feature is not implemented yet." } );
+		}
+		//
 	}
 }

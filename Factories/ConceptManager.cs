@@ -42,6 +42,7 @@ namespace Factories
 		}
 		//
 
+		/*
 		//need alternate to handle workElementType
 		public int Save( int conceptSchemeId, string conceptName, ref ChangeSummary status )
 		{
@@ -260,6 +261,7 @@ namespace Factories
 			return 0;
 		}
 		//
+		*/
 
 		public static void MapToDB( AppEntity input, ConceptScheme_Concept output )
 		{
@@ -267,6 +269,31 @@ namespace Factories
 			List<string> errors = new List<string>();
 			BaseFactory.AutoMap( input, output, errors );
 			//
+		}
+		//
+
+		public static DeleteResult DeleteById( int id )
+		{
+			/*
+			//Check for references from rating context objects
+			var thingsUsingThisConcept = RatingContextManager.Search( new SearchQuery() { Skip = 0, Take = 0, Filters = new List<SearchFilter>() { new SearchFilter() { Name = "search:AllConceptPaths", ItemIds = new List<int>() { id } } } } );
+			if( thingsUsingThisConcept.TotalResults > 0 )
+			{
+				return new DeleteResult( false, "This Concept is in use by " + thingsUsingThisConcept.TotalResults + " Rating Context objects, so it cannot be deleted." );
+			}
+			*/
+
+			return BasicDeleteCore( "Concept", context => context.ConceptScheme_Concept, id, "search:AllConceptPaths", ( context, list, target ) =>
+			{
+				//Check for references from other concepts
+				var narrowerConceptsCount = context.ConceptScheme_Concept.Where( m => m.BroadMatchId == id ).Count();
+				if ( narrowerConceptsCount > 0 )
+				{
+					return new DeleteResult( false, "This Concept is a broader Concept for " + narrowerConceptsCount + " other Concepts, so it cannot be deleted." );
+				}
+
+				return null;
+			} );
 		}
 		//
 
@@ -317,6 +344,12 @@ namespace Factories
 			}
 
 			return result;
+		}
+		//
+
+		public static List<AppEntity> GetNarrowerConceptsForConcept( int conceptID )
+		{
+			return GetMultipleByFilter( context => context.ConceptScheme_Concept, m => m.BroadMatchId == conceptID, m => m.CodedNotation ?? m.Name, false, MapFromDB );
 		}
 		//
 
