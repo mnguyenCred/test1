@@ -100,8 +100,20 @@
 		AllTasksTotal: 0,
 		ReferenceResourceConcepts: @Html.Raw( JsonConvert.SerializeObject( conceptSchemeMap.ReferenceResourceCategory.Concepts.Select( m => SimpleItemHelper.GetSimpleItem( m ) ).ToList() ) ),
 		TrainingGapConcepts: @Html.Raw( JsonConvert.SerializeObject( conceptSchemeMap.TrainingGapCategory.Concepts.Select( m => SimpleItemHelper.GetSimpleItem( m ) ).ToList() ) ),
+		PayGradeLevelConcepts: @Html.Raw( JsonConvert.SerializeObject( conceptSchemeMap.PayGradeLevelCategory.Concepts.Select( m => SimpleItemHelper.GetSimpleItem( m ) ).ToList() ) ),
 		BySourceColumns: [
 			{ Label: "Source Type" },
+			{ Label: "Tasks" },
+			{ Label: "Gaps" },
+			{ Label: "Coverage %" },
+			{ Label: "Gaps %" },
+			{ Label: "% of Tasks in Results" },
+			{ Label: "Coverage in Results" },
+			{ Label: "% of All Tasks" },
+			{ Label: "Coverage Across All Tasks" }
+		],
+		ByLevelColumns: [
+			{ Label: "Level Type" },
 			{ Label: "Tasks" },
 			{ Label: "Gaps" },
 			{ Label: "Coverage %" },
@@ -172,7 +184,11 @@
 			BySourceTable: $(".ratingTasksBySourceTypeTable"),
 			BySourceTableHeader: $(".ratingTasksBySourceTypeTableHeader"),
 			BySourceTableBody: $(".ratingTasksBySourceTypeTableBody"),
-			BySourceTableFooter: $(".ratingTasksBySourceTypeTableFooter")
+			BySourceTableFooter: $(".ratingTasksBySourceTypeTableFooter"),
+			ByLevelTable: $(".ratingTasksByPayGradeLevelTable"),
+			ByLevelTableHeader: $(".ratingTasksByPayGradeLevelTableHeader"),
+			ByLevelTableBody: $(".ratingTasksByPayGradeLevelTableBody"),
+			ByLevelTableFooter: $(".ratingTasksByPayGradeLevelTableFooter"),
 		};
 
 		//Buttons
@@ -193,6 +209,11 @@
 		var sourceTableHeaderTR = $("<tr></tr>").appendTo(UI.Statistics.BySourceTableHeader);
 		Statistics.BySourceColumns.forEach(Column => {
 			Column.TableHeader = $("<th data-column=\"" + Column.Label + "\">" + Column.Label + "</th>").appendTo(sourceTableHeaderTR);
+		});
+
+		var sourceLevelHeaderTR = $("<tr></tr>").appendTo(UI.Statistics.ByLevelTableHeader);
+		Statistics.ByLevelColumns.forEach(Column => {
+			Column.TableHeader = $("<th data-column=\"" + Column.Label + "\">" + Column.Label + "</th>").appendTo(sourceLevelHeaderTR);
 		});
 	}
 	//
@@ -555,21 +576,22 @@
 	function getAndRenderStatistics() {
 		MainSearch.doPOSTRequest(MainSearch.SearchURL, { ...MainSearch.Query, Filters: [], Skip: 0, Take: 0, SortOrder: [{ Column: "sortOrder:Unsorted" }] }, success => {
 			Statistics.AllTasksTotal = success.Data.TotalResults;
-			getAndRenderStatisticsBySourceTable();
+			getAndRenderStatisticsTable(Statistics.ReferenceResourceConcepts, Statistics.BySourceColumns, UI.Statistics.BySourceTableBody, UI.Statistics.BySourceTableFooter, "> RatingTaskId > RatingTask > ReferenceResourceTypeId > Concept", "Total from All Sources");
+			getAndRenderStatisticsTable(Statistics.PayGradeLevelConcepts, Statistics.ByLevelColumns, UI.Statistics.ByLevelTableBody, UI.Statistics.ByLevelTableFooter, "> PayGradeLevelTypeId > Concept", "Total from All Levels");
 		}, error => {
 			console.log("Error getting Grand Total", error);
 		});
 	}
 	//
 
-	function getAndRenderStatisticsBySourceTable() {
-		UI.Statistics.BySourceTableBody.html("<tr><td colspan=\"" + Statistics.BySourceColumns.length + "\"><div class=\"spinner\"></div></td></tr>");
-		UI.Statistics.BySourceTableFooter.html("");
-		var CalculatedStats = Statistics.ReferenceResourceConcepts.map(Source => { return { Source: Source, ResultsTotal: 0, GapTotal: 0, Error: "", Finished: false } });
+	function getAndRenderStatisticsTable(Concepts, Columns, TableBody, TableFooter, nameFilterPath, totalFromAllText) {
+		TableBody.html("<tr><td colspan=\"" + Columns.length + "\"><div class=\"spinner\"></div></td></tr>");
+		TableFooter.html("");
+		var CalculatedStats = Concepts.map(Concept => { return { Concept: Concept, ResultsTotal: 0, GapTotal: 0, Error: "", Finished: false } });
 		CalculatedStats.forEach(Stat => {
 			var alteredQuery = {
 				...MainSearch.Query,
-				Filters: [...MainSearch.Query.Filters, { Name: "> RatingTaskId > RatingTask > ReferenceResourceTypeId > Concept", ItemIds: [Stat.Source.Id] }],
+				Filters: [...MainSearch.Query.Filters, { Name: nameFilterPath, ItemIds: [Stat.Concept.Id] }],
 				Skip: 0,
 				Take: 0,
 				SortOrder: [{ Column: "sortOrder:Unsorted" }]
@@ -601,7 +623,7 @@
 			Stat.Finished = true;
 			if (CalculatedStats.every(OtherStat => OtherStat.Finished)) {
 				CalculatedStats = CalculatedStats.sort((a, b) => { return a.ResultsTotal > b.ResultsTotal ? -1 : 1 });
-				UI.Statistics.BySourceTableBody.html("");
+				TableBody.html("");
 				var resultsTotal = CalculatedStats.reduce((total, Stat) => { return total + Stat.ResultsTotal; }, 0);
 				var resultsAllTasksPercent = getPercent(resultsTotal, Statistics.AllTasksTotal);
 				var gapTotal = CalculatedStats.reduce((total, Stat) => { return total + Stat.GapTotal }, 0);
@@ -612,8 +634,8 @@
 					var statCoveragePercent = Math.round(100 * (100 - statGapPercent)) / 100; //Prevents weird javascript floating point errors like 100 - 19.54 resulting in 80.46000000000001
 					var statResultsTaskPercent = getPercent(Stat.ResultsTotal, resultsTotal);
 					var statAllTasksTaskPercent = getPercent(Stat.ResultsTotal, Statistics.AllTasksTotal);
-					UI.Statistics.BySourceTableBody.append("<tr>" + [
-						"<a href=\"@Url.Content("~/Concept/Detail/")" + Stat.Source.Id + "\" target=\"_blank\">" + Stat.Source.Name + "</a>",
+					TableBody.append("<tr>" + [
+						"<a href=\"@Url.Content("~/Concept/Detail/")" + Stat.Concept.Id + "\" target=\"_blank\">" + Stat.Concept.Name + "</a>",
 						Stat.ResultsTotal == -99 ? Stat.Error : Stat.ResultsTotal,
 						Stat.GapTotal == -99 ? Stat.Error : Stat.GapTotal,
 						statCoveragePercent + "%",
@@ -622,11 +644,11 @@
 						renderStatBarWrapper(statResultsTaskPercent, statCoveragePercent),
 						statAllTasksTaskPercent + "%",
 						renderStatBarWrapper(statAllTasksTaskPercent, statCoveragePercent)
-					].map((m, i) => "<td data-column=\"" + Statistics.BySourceColumns[i].Label + "\">" + m + "</td>").join("") + "</tr>");
+					].map((m, i) => "<td data-column=\"" + Columns[i].Label + "\">" + m + "</td>").join("") + "</tr>");
 				});
-				UI.Statistics.BySourceTableFooter.html("<tr>" +
-					["Total from All Sources", resultsTotal, gapTotal, coveragePercent + "%", gapPercent + "%", "100%", renderStatBarWrapper(100, coveragePercent), resultsAllTasksPercent + "%", renderStatBarWrapper(resultsAllTasksPercent, coveragePercent)]
-					.map((m, i) => "<th data-column=\"" + Statistics.BySourceColumns[i].Label + "\">" + m + "</th>").join("") +
+				TableFooter.html("<tr>" +
+					[totalFromAllText, resultsTotal, gapTotal, coveragePercent + "%", gapPercent + "%", "100%", renderStatBarWrapper(100, coveragePercent), resultsAllTasksPercent + "%", renderStatBarWrapper(resultsAllTasksPercent, coveragePercent)]
+					.map((m, i) => "<th data-column=\"" + Columns[i].Label + "\">" + m + "</th>").join("") +
 				"</tr>");
 			}
 		}
@@ -938,14 +960,14 @@
 	.rmtlBox .rmtlFooter .rmtlPagingBox { display: flex; gap: 5px; justify-content: center; align-items: center; padding: 5px 10px; }
 
 	.statisticsBox { padding: 0 20px; }
-	.statisticsBox .ratingTasksBySourceTypeTable { width: 1500px; }
-	.statisticsBox .ratingTasksBySourceTypeTable [data-column='Source Type'] { text-align: left; }
-	.statisticsBox .ratingTasksBySourceTypeTable thead tr th { padding: 0 10px; min-width: 50px; text-align: right; }
-	.statisticsBox .ratingTasksBySourceTypeTable tbody tr td { border-top: 1px solid #CCC; text-align: right; padding: 5px; }
-	.statisticsBox .ratingTasksBySourceTypeTable tfoot tr th { border-top: 1px solid #CCC; text-align: right; padding: 5px; }
-	.statisticsBox .ratingTasksBySourceTypeTable .statBarWrapper { background-color: #DDD; height: 18px; padding: 1px 2px; }
-	.statisticsBox .ratingTasksBySourceTypeTable .statBarWrapper .statBarAll { background-color: #D83; height: 100%; }
-	.statisticsBox .ratingTasksBySourceTypeTable .statBarWrapper .statBarAll .statBarCoverage { background-color: #0C3; height: 100%; }
+	.statisticsBox .statisticsTable { width: 1500px; }
+	.statisticsBox .statisticsTable :is([data-column='Source Type'], [data-column='Level Type']) { text-align: left; width: 475px; }
+	.statisticsBox .statisticsTable thead tr th { padding: 0 10px; min-width: 50px; text-align: right; }
+	.statisticsBox .statisticsTable tbody tr td { border-top: 1px solid #CCC; text-align: right; padding: 5px; }
+	.statisticsBox .statisticsTable tfoot tr th { border-top: 1px solid #CCC; text-align: right; padding: 5px; }
+	.statisticsBox .statisticsTable .statBarWrapper { background-color: #DDD; height: 18px; padding: 1px 2px; }
+	.statisticsBox .statisticsTable .statBarWrapper .statBarAll { background-color: #D83; height: 100%; }
+	.statisticsBox .statisticsTable .statBarWrapper .statBarAll .statBarCoverage { background-color: #0C3; height: 100%; }
 </style>
 <style type="text/css" class="rmtlStyleBox"></style>
 
@@ -1048,10 +1070,16 @@
 		<div class="mainTab" data-tab="Summary">
 			<div class="statisticsBox">
 				<h4>Rating Tasks by Source Type for the Current Search Results</h4>
-				<table class="ratingTasksBySourceTypeTable">
+				<table class="statisticsTable ratingTasksBySourceTypeTable">
 					<thead class="ratingTasksBySourceTypeTableHeader"></thead>
 					<tbody class="ratingTasksBySourceTypeTableBody"></tbody>
 					<tfoot class="ratingTasksBySourceTypeTableFooter"></tfoot>
+				</table>
+				<h4>Rating Tasks by Pay Grade Level for the Current Search Results</h4>
+				<table class="statisticsTable ratingTasksByPayGradeLevelTable">
+					<thead class="ratingTasksByPayGradeLevelTableHeader"></thead>
+					<tbody class="ratingTasksByPayGradeLevelTableBody"></tbody>
+					<tfoot class="ratingTasksByPayGradeLevelTableFooter"></tfoot>
 				</table>
 			</div>
 		</div>

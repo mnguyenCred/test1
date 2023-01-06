@@ -99,6 +99,8 @@ namespace Models.Curation
 		/// </summary>
 		public ConceptSchemeMap ConceptSchemeMap { get; set; }
 
+		public List<ConceptRegexHelper> CandidatePlatformRegexHelpers { get; set; }
+
 		/// <summary>
 		/// Makes it easer to work with Ratings throughout the curation process
 		/// </summary>
@@ -233,6 +235,16 @@ namespace Models.Curation
 	{
 		public string Type { get; set; }
 		public List<object> Items { get; set; }
+	}
+	//
+
+
+	[Serializable]
+	public class ConceptRegexHelper
+	{
+		public Concept Concept { get; set; }
+		public string Value { get; set; }
+		public string RegexEscapedValue { get; set; }
 	}
 	//
 

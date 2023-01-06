@@ -169,7 +169,12 @@ namespace Services
 				summary.AllOrganizations = OrganizationManager.GetAll();
 
 				//Sort these concepts for later
-				summary.ConceptSchemeMap.CandidatePlatformCategory.Concepts = summary.ConceptSchemeMap.CandidatePlatformCategory.Concepts.OrderByDescending( m => m.CodedNotation.Contains( "/" ) ).ThenByDescending( m => m.CodedNotation.Length ).ToList();
+				summary.CandidatePlatformRegexHelpers = summary.ConceptSchemeMap.CandidatePlatformCategory.Concepts
+					.SelectMany( m => new List<ConceptRegexHelper>() { new ConceptRegexHelper() { Value = m.Name, Concept = m }, new ConceptRegexHelper() { Value = m.CodedNotation, Concept = m } } )
+					.Where( m => !string.IsNullOrWhiteSpace( m.Value ) )
+					.OrderByDescending( m => m.Value.Contains( "/" ) ).ThenByDescending( m => m.Value.Length ).ToList();
+				summary.CandidatePlatformRegexHelpers.ForEach( m => m.RegexEscapedValue = Regex.Escape( m.Value ) );
+				//summary.ConceptSchemeMap.CandidatePlatformCategory.Concepts = summary.ConceptSchemeMap.CandidatePlatformCategory.Concepts.OrderByDescending( m => m.CodedNotation.Contains( "/" ) ).ThenByDescending( m => m.CodedNotation.Length ).ToList();
 
 				//When the client does a lookup later on (especially for concepts), it will need to be able to find the above items in the summary's lookup graph
 				//The server-side lookup also injects the @type value into the object, which is necessary for some of the client-side stuff
@@ -683,8 +688,8 @@ namespace Services
 			//Custom handling for Candidate Platform Type because entries are separated by slashes, but may also contain slashes
 			//First get the entries that are present in the list
 			var rowCandidatePlatformTypeList = new List<Concept>();
-			var checkString = item.Row.Candidate_Platform ?? "";
-			foreach ( var platform in summary.ConceptSchemeMap.CandidatePlatformCategory.Concepts ) //These concepts are already sorted to include first those with a / in their code, then by those with the longest code
+			var checkString = (item.Row.Candidate_Platform ?? "").ToLower();
+			foreach ( var platform in summary.CandidatePlatformRegexHelpers ) //These concepts are already sorted to include first those with a / in their code, then by those with the longest code
 			{
 				//Skip the rest of the concepts if there's nothing left that could match anything
 				if( checkString.Replace( "/", "" ).Length == 0 )
@@ -693,10 +698,10 @@ namespace Services
 				}
 
 				//Try to find a match
-				if ( Regex.Match( checkString, @"(?:^|/)(" + platform.CodedNotation + @")(?:/|$)", RegexOptions.IgnoreCase ).Success )
+				if ( Regex.Match( checkString, @" *(?:^|/) *(" + platform.RegexEscapedValue + @") *(?:/|$) *", RegexOptions.IgnoreCase ).Success )
 				{
-					rowCandidatePlatformTypeList.Add( platform );
-					checkString = checkString.Replace( platform.CodedNotation, "" ); //Remove the matched term
+					rowCandidatePlatformTypeList.Add( platform.Concept );
+					checkString = checkString.Replace( platform.Value.ToLower(), "" ).Trim(); //Remove the matched term
 				}
 			}
 			//Replace all double (or more) slashes with a single slash

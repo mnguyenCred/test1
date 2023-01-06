@@ -7,8 +7,6 @@
 	ViewBag.Title = "Upload V4";
 	var allRatings = RatingServices.GetAll().OrderByDescending( m => m.CodedNotation.ToLower() == "all" ).ToList();
 	ConceptSchemeMap = Factories.ConceptSchemeManager.GetConceptSchemeMap( true );
-	//Need to sort these for later
-	ConceptSchemeMap.CandidatePlatformCategory.Concepts = ConceptSchemeMap.CandidatePlatformCategory.Concepts.OrderByDescending( m => m.CodedNotation.Contains( "/" ) ).ThenByDescending( m => m.CodedNotation.Length ).ToList();
 	var allOrganizations = Factories.OrganizationManager.GetAll();
 	var allValidOrganizationValues = allOrganizations.Select( org => org.Name ) //Look for name
 		.Concat( allOrganizations.Select( org => org.AlternateName ) ) //Look for abbreviation
@@ -215,13 +213,13 @@
 			Values: @Html.Raw( GetConceptValues( ConceptSchemeMap.PayGradeCategory, false, true, false ) ), //CodedNotation
 			BroadMatchChecks: @Html.Raw( GetBroadMatchSets( ConceptSchemeMap.PayGradeCategory, ConceptSchemeMap.PayGradeLevelCategory, m => new List<string>() { m.CodedNotation }, m => new List<string>() { m.CodedNotation } ) ),
 			UploadableRowProperty: "@nameof(UploadableRow.PayGradeType_CodedNotation)",
-			ConceptScheme: @Html.Raw( JsonConvert.SerializeObject( SimpleItemHelper.GetSimpleItem( ConceptSchemeMap.PayGradeCategory  ) ) )
+			ConceptScheme: @Html.Raw( JsonConvert.SerializeObject( SimpleItemHelper.GetSimpleItem( ConceptSchemeMap.PayGradeCategory ), Formatting.None ) )
 		},
 		"Level (A/J/M)": {
 			Part: 1,
 			Values: @Html.Raw( GetConceptValues( ConceptSchemeMap.PayGradeLevelCategory, false, true, false ) ), //CodedNotation
 			UploadableRowProperty: "@nameof(UploadableRow.Level_Name)",
-			ConceptScheme: @Html.Raw( JsonConvert.SerializeObject( SimpleItemHelper.GetSimpleItem( ConceptSchemeMap.PayGradeLevelCategory  ) ) )
+			ConceptScheme: @Html.Raw( JsonConvert.SerializeObject( SimpleItemHelper.GetSimpleItem( ConceptSchemeMap.PayGradeLevelCategory ), Formatting.None ) )
 		},
 		"Billet Title/Job": {
 			Part: 1,
@@ -243,7 +241,7 @@
 			Part: 1,
 			Values: @Html.Raw( GetConceptValues( ConceptSchemeMap.ReferenceResourceCategory, false, true, true ) ), //CodedNotation or WorkElementType
 			UploadableRowProperty: "@nameof(UploadableRow.Shared_ReferenceType)",
-			ConceptScheme: @Html.Raw( JsonConvert.SerializeObject( SimpleItemHelper.GetSimpleItem( ConceptSchemeMap.ReferenceResourceCategory  ) ) )
+			ConceptScheme: @Html.Raw( JsonConvert.SerializeObject( SimpleItemHelper.GetSimpleItem( ConceptSchemeMap.ReferenceResourceCategory ), Formatting.None ) )
 		},
 		"Work Element (Task)": {
 			Part: 1,
@@ -253,13 +251,13 @@
 			Part: 1,
 			Values: @Html.Raw( GetConceptValues( ConceptSchemeMap.TaskApplicabilityCategory, true, false, false ) ), //Name
 			UploadableRowProperty: "@nameof(UploadableRow.RatingTask_ApplicabilityType_Name)",
-			ConceptScheme: @Html.Raw( JsonConvert.SerializeObject( SimpleItemHelper.GetSimpleItem( ConceptSchemeMap.TaskApplicabilityCategory  ) ) )
+			ConceptScheme: @Html.Raw( JsonConvert.SerializeObject( SimpleItemHelper.GetSimpleItem( ConceptSchemeMap.TaskApplicabilityCategory ), Formatting.None ) )
 		},
 		"Formal Training Gap": {
 			Part: 1,
 			Values: @Html.Raw( GetConceptValues( ConceptSchemeMap.TrainingGapCategory, true, false, false ) ), //Name
 			UploadableRowProperty: "@nameof(UploadableRow.RatingTask_TrainingGapType_Name)",
-			ConceptScheme: @Html.Raw( JsonConvert.SerializeObject( SimpleItemHelper.GetSimpleItem( ConceptSchemeMap.TrainingGapCategory  ) ) )
+			ConceptScheme: @Html.Raw( JsonConvert.SerializeObject( SimpleItemHelper.GetSimpleItem( ConceptSchemeMap.TrainingGapCategory ), Formatting.None ) )
 		},
 		"CIN": {
 			Part: 2,
@@ -274,7 +272,7 @@
 			Values: @Html.Raw( GetConceptValues( ConceptSchemeMap.CourseCategory, true, false, false ) ), //Name
 			SplitOn: [ ",", ";", "|" ],
 			UploadableRowProperty: "@nameof(UploadableRow.Course_CourseType_Name)",
-			ConceptScheme: @Html.Raw( JsonConvert.SerializeObject( SimpleItemHelper.GetSimpleItem( ConceptSchemeMap.CourseCategory  ) ) )
+			ConceptScheme: @Html.Raw( JsonConvert.SerializeObject( SimpleItemHelper.GetSimpleItem( ConceptSchemeMap.CourseCategory ), Formatting.None ) )
 		},
 		"Curriculum Control Authority (CCA)": {
 			Part: 2,
@@ -286,7 +284,7 @@
 			Part: 2,
 			Values: @Html.Raw( GetConceptValues( ConceptSchemeMap.LifeCycleControlDocumentCategory, true, true, false ) ), //Name or CodedNotation
 			UploadableRowProperty: "@nameof(UploadableRow.Course_LifeCycleControlDocumentType_CodedNotation)",
-			ConceptScheme: @Html.Raw( JsonConvert.SerializeObject( SimpleItemHelper.GetSimpleItem( ConceptSchemeMap.LifeCycleControlDocumentCategory  ) ) )
+			ConceptScheme: @Html.Raw( JsonConvert.SerializeObject( SimpleItemHelper.GetSimpleItem( ConceptSchemeMap.LifeCycleControlDocumentCategory ), Formatting.None ) )
 		},
 		"TCCD/CTTL/PPP Statement": {
 			Part: 2,
@@ -297,13 +295,13 @@
 			Values: @Html.Raw( GetConceptValues( ConceptSchemeMap.AssessmentMethodCategory, true, false, false ) ), //Name
 			SplitOn: [ ",", ";", "|" ],
 			UploadableRowProperty: "@nameof(UploadableRow.Course_AssessmentMethodType_Name)",
-			ConceptScheme: @Html.Raw( JsonConvert.SerializeObject( SimpleItemHelper.GetSimpleItem( ConceptSchemeMap.AssessmentMethodCategory  ) ) )
+			ConceptScheme: @Html.Raw( JsonConvert.SerializeObject( SimpleItemHelper.GetSimpleItem( ConceptSchemeMap.AssessmentMethodCategory ), Formatting.None ) )
 		},
 		"Training Solution Type": {
 			Part: 3,
 			Values: @Html.Raw( GetConceptValues( ConceptSchemeMap.TrainingSolutionCategory, true, true, false ) ), //Name or CodedNotation
 			UploadableRowProperty: "@nameof(UploadableRow.Training_Solution_Type)",
-			ConceptScheme: @Html.Raw( JsonConvert.SerializeObject( SimpleItemHelper.GetSimpleItem( ConceptSchemeMap.TrainingSolutionCategory  ) ) )
+			ConceptScheme: @Html.Raw( JsonConvert.SerializeObject( SimpleItemHelper.GetSimpleItem( ConceptSchemeMap.TrainingSolutionCategory ), Formatting.None ) )
 		},
 		"Cluster Analysis Title": {
 			Part: 3,
@@ -313,13 +311,13 @@
 			Part: 3,
 			Values: @Html.Raw( GetConceptValues( ConceptSchemeMap.RecommendedModalityCategory, true, true, false ) ), //Name or CodedNotation
 			UploadableRowProperty: "@nameof(UploadableRow.Recommended_Modality)",
-			ConceptScheme: @Html.Raw( JsonConvert.SerializeObject( SimpleItemHelper.GetSimpleItem( ConceptSchemeMap.RecommendedModalityCategory  ) ) )
+			ConceptScheme: @Html.Raw( JsonConvert.SerializeObject( SimpleItemHelper.GetSimpleItem( ConceptSchemeMap.RecommendedModalityCategory ), Formatting.None ) )
 		},
 		"Development Specification": {
 			Part: 3,
 			Values: @Html.Raw( GetConceptValues( ConceptSchemeMap.DevelopmentSpecificationCategory, true, false, false ) ), //Name
 			UploadableRowProperty: "@nameof(UploadableRow.Development_Specification)",
-			ConceptScheme: @Html.Raw( JsonConvert.SerializeObject( SimpleItemHelper.GetSimpleItem( ConceptSchemeMap.DevelopmentSpecificationCategory  ) ) )
+			ConceptScheme: @Html.Raw( JsonConvert.SerializeObject( SimpleItemHelper.GetSimpleItem( ConceptSchemeMap.DevelopmentSpecificationCategory ), Formatting.None ) )
 		},
 		"Candidate Platform": {
 			Part: 3,
@@ -327,13 +325,13 @@
 			@*SplitOn: [ "|" ],*@
 			UploadableRowProperty: "@nameof(UploadableRow.Candidate_Platform)",
 			@*ConceptScheme: @Html.Raw( JsonConvert.SerializeObject( SimpleItemHelper.GetSimpleItem( ConceptSchemeMap.CandidatePlatformCategory  ) ) )*@
-			ConceptValues: @Html.Raw( GetConceptValues( ConceptSchemeMap.CandidatePlatformCategory, false, true, false ) )
+			ConceptValues: @Html.Raw( JsonConvert.SerializeObject( ConceptSchemeMap.CandidatePlatformCategory.Concepts.SelectMany( m => new List<string>(){ m.Name, m.CodedNotation }).Where( m => !string.IsNullOrWhiteSpace( m ) ).Distinct().OrderByDescending( m => m.Contains( "/" ) ).ThenByDescending( m => m.Length ).ToList(), Formatting.None ) )
 		},
 		"CFM Placement": {
 			Part: 3,
 			Values: @Html.Raw( GetConceptValues( ConceptSchemeMap.CFMPlacementCategory, true, true, false ) ), //Name or CodedNotation
 			UploadableRowProperty: "@nameof(UploadableRow.CFM_Placement)",
-			ConceptScheme: @Html.Raw( JsonConvert.SerializeObject( SimpleItemHelper.GetSimpleItem( ConceptSchemeMap.CFMPlacementCategory  ) ) )
+			ConceptScheme: @Html.Raw( JsonConvert.SerializeObject( SimpleItemHelper.GetSimpleItem( ConceptSchemeMap.CFMPlacementCategory ), Formatting.None ) )
 		},
 		"Priority Placement": {
 			Part: 3,
@@ -343,7 +341,7 @@
 			Part: 3,
 			Values: @Html.Raw( GetConceptValues( ConceptSchemeMap.DevelopmentRatioCategory, true, false, false ) ), //Name
 			UploadableRowProperty: "@nameof(UploadableRow.Development_Ratio)",
-			ConceptScheme: @Html.Raw( JsonConvert.SerializeObject( SimpleItemHelper.GetSimpleItem( ConceptSchemeMap.DevelopmentRatioCategory  ) ) )
+			ConceptScheme: @Html.Raw( JsonConvert.SerializeObject( SimpleItemHelper.GetSimpleItem( ConceptSchemeMap.DevelopmentRatioCategory ), Formatting.None ) )
 		},
 		"Estimated Instructional Time": {
 			Part: 3,
@@ -1040,20 +1038,21 @@
 						var candidatePlatformTypes = [];
 						var checkString = (row["Candidate Platform"] || "").replace(/N\/A/gi, "");
 						if (checkString.length > 0) {
-							for( var platformText of ColumnData["Candidate Platform"].ConceptValues) {
+							for (var platformText of ColumnData["Candidate Platform"].ConceptValues) {
 								//Skip the rest if there's nothing left that could match
 								if (checkString.replace(/\//g, "").length == 0) {
 									break;
 								}
 
 								//Try to find a match
-								if (checkString.match(new RegExp("(?:^|/)(" + platformText + ")(?:/|$)"))) {
+								var escaped = platformText.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+								if (checkString.match(new RegExp(" *(?:^|/) *(" + escaped + ") *(?:/|$) *", "i"))) {
 									candidatePlatformTypes.push(platformText);
-									checkString = checkString.replace(new RegExp(platformText, "g"), "");
+									checkString = checkString.replace(new RegExp(escaped, "gi"), "").trim();
 								}
 							}
 							//Replace all double (or more) slashes with a single slash
-							checkString = checkString.replace(/\/{2,}/g, "/");
+							checkString = checkString.replace(/\/{2,}/g, "/").trim();
 							//Remove leading/trailing slashes
 							checkString = checkString.replace(/(?:^\/*)|(?:\/*$)/g, "").trim();
 							//If there is anything left in the string, then it contains one or more unknown entries that aren't in the database
