@@ -324,7 +324,7 @@
 			@*Values: @Html.Raw( GetConceptValues( ConceptSchemeMap.CandidatePlatformCategory, false, true, false ) ), //CodedNotation*@
 			@*SplitOn: [ "|" ],*@
 			UploadableRowProperty: "@nameof(UploadableRow.Candidate_Platform)",
-			@*ConceptScheme: @Html.Raw( JsonConvert.SerializeObject( SimpleItemHelper.GetSimpleItem( ConceptSchemeMap.CandidatePlatformCategory  ) ) )*@
+			@**@ConceptScheme: @Html.Raw( JsonConvert.SerializeObject( SimpleItemHelper.GetSimpleItem( ConceptSchemeMap.CandidatePlatformCategory  ) ) ),
 			ConceptValues: @Html.Raw( JsonConvert.SerializeObject( ConceptSchemeMap.CandidatePlatformCategory.Concepts.SelectMany( m => new List<string>(){ m.Name, m.CodedNotation }).Where( m => !string.IsNullOrWhiteSpace( m ) ).Distinct().OrderByDescending( m => m.Contains( "/" ) ).ThenByDescending( m => m.Length ).ToList(), Formatting.None ) )
 		},
 		"CFM Placement": {
@@ -1013,6 +1013,8 @@
 									}
 									//Otherwise, flag it as an error and update the controlled value summary table
 									else {
+										updatePreProcessingMissingControlledValuesSummary(key, value);
+										/*
 										UI.TableBoxes.PreProcessing_Errors.appendRow({ RowNumber: rowNumber, Type: "Invalid Value", Column: key, Message: "This column contains a value that was not found in the database.", Value: value });
 										var summaryRow = UI.TableBoxes.PreProcessing_MissingControlledValues_Summary.Data.find(item => item.Column == key && item.Value == value);
 										if (summaryRow) {
@@ -1023,6 +1025,7 @@
 											var addedRow = UI.TableBoxes.PreProcessing_MissingControlledValues_Summary.appendRow({ Total: 1, Column: key, Type: ColumnData[key].ConceptScheme ? "Concept" : (ColumnData[key].ValueType || "Unknown"), ConceptScheme: ColumnData[key].ConceptScheme?.Name || "", Value: value });
 											addedRow.Data.HTML = addedRow.Row;
 										}
+										*/
 									}
 								}
 							});
@@ -1057,7 +1060,8 @@
 							checkString = checkString.replace(/(?:^\/*)|(?:\/*$)/g, "").trim();
 							//If there is anything left in the string, then it contains one or more unknown entries that aren't in the database
 							if (checkString.length > 0) {
-								UI.TableBoxes.PreProcessing_Errors.appendRow({ RowNumber: rowNumber, Type: "Invalid Value", Column: "Candidate Platform", Message: "This column contains one or more values that were not found in the database. The value or values are shown to the right. Please ensure the value or values are added to the database and try uploading again.", Value: checkString });
+								UI.TableBoxes.PreProcessing_Errors.appendRow({ RowNumber: rowNumber, Type: "Invalid Value", Column: "Candidate Platform", Message: "This column contains one or more values that were not found in the database.", Value: checkString });
+								updatePreProcessingMissingControlledValuesSummary("Candidate Platform", checkString);
 							}
 						}
 					}
@@ -1078,6 +1082,19 @@
 					setTimeout(() => {
 						scanRow(index + 1, afterComplete, onCancel);
 					}, 1);
+
+					//Helper function
+					function updatePreProcessingMissingControlledValuesSummary(columnName, value) {
+						var summaryRow = UI.TableBoxes.PreProcessing_MissingControlledValues_Summary.Data.find(item => item.Column == columnName && item.Value == value);
+						if (summaryRow) {
+							summaryRow.Total++;
+							UI.TableBoxes.PreProcessing_MissingControlledValues_Summary.renderRow(summaryRow, summaryRow.HTML);
+						}
+						else {
+							var addedRow = UI.TableBoxes.PreProcessing_MissingControlledValues_Summary.appendRow({ Total: 1, Column: columnName, Type: ColumnData[columnName].ConceptScheme ? "Concept" : (ColumnData[columnName].ValueType || "Unknown"), ConceptScheme: ColumnData[columnName].ConceptScheme?.Name || "", Value: value });
+							addedRow.Data.HTML = addedRow.Row;
+						}
+					}
 				}
 				else {
 					afterComplete?.();

@@ -219,6 +219,7 @@ namespace Services
 			var rowRating = GetDataOrError( summary.AllRatings, ( m ) => 
 				m.CodedNotation?.ToLower() == item.Row.Rating_CodedNotation?.ToLower(), 
 				result, 
+				"Rating indicated by this row is missing, empty, or N/A.",
 				"Rating indicated by this row was not found in database: \"" + TextOrNA( item.Row.Rating_CodedNotation ) + "\"",
 				item.Row.Rating_CodedNotation
 			);
@@ -227,6 +228,7 @@ namespace Services
 			var selectedRating = GetDataOrError( summary.AllRatings, ( m ) => 
 				m.RowId == item.RatingRowID, 
 				result, 
+				"Selected Rating is missing, empty, or N/A.",
 				"Selected Rating not found in database: \"" + item.RatingRowID + "\"",
 				item.RatingRowID.ToString()
 			);
@@ -235,6 +237,7 @@ namespace Services
 			var rowPayGrade = GetDataOrError( summary.ConceptSchemeMap.PayGradeCategory.Concepts, ( m ) => 
 				m.CodedNotation?.ToLower() == item.Row.PayGradeType_CodedNotation?.ToLower(), 
 				result, 
+				"Rank is missing, empty, or N/A.",
 				"Rank not found in database: \"" + TextOrNA( item.Row.PayGradeType_CodedNotation ) + "\"",
 				item.Row.PayGradeType_CodedNotation
 			);
@@ -243,6 +246,7 @@ namespace Services
 			var rowPayGradeLevel = GetDataOrError( summary.ConceptSchemeMap.PayGradeLevelCategory.Concepts, ( m ) =>
 				m.CodedNotation?.ToLower() == item.Row.Level_Name?.ToLower(),
 				result,
+				"Level (A/J/M) is missing, empty, or N/A.",
 				"Level (A/J/M) not found in database: \"" + TextOrNA( item.Row.Level_Name ) + "\"",
 				item.Row.Level_Name
 			);
@@ -258,7 +262,8 @@ namespace Services
 			var rowSourceType = GetDataOrError( summary.ConceptSchemeMap.ReferenceResourceCategory.Concepts, ( m ) => 
 				m.WorkElementType?.ToLower() == item.Row.Shared_ReferenceType?.ToLower() ||
 				m.CodedNotation?.ToLower() == item.Row.Shared_ReferenceType?.ToLower(), 
-				result, 
+				result,
+				"Work Element Type is missing, empty, or N/A.",
 				"Work Element Type not found in database: \"" + TextOrNA( item.Row.Shared_ReferenceType ) + "\"",
 				item.Row.Shared_ReferenceType
 			);
@@ -266,7 +271,8 @@ namespace Services
 			//Task Applicability Type
 			var rowTaskApplicabilityType = GetDataOrError( summary.ConceptSchemeMap.TaskApplicabilityCategory.Concepts, ( m ) => 
 				m.Name?.ToLower() == item.Row.RatingTask_ApplicabilityType_Name?.ToLower(), 
-				result, 
+				result,
+				"Task Applicability Type is missing, empty, or N/A.",
 				"Task Applicability Type not found in database: \"" + TextOrNA( item.Row.RatingTask_ApplicabilityType_Name ) + "\"",
 				item.Row.RatingTask_ApplicabilityType_Name
 			);
@@ -274,7 +280,8 @@ namespace Services
 			//Training Gap Type
 			var rowTrainingGapType = GetDataOrError( summary.ConceptSchemeMap.TrainingGapCategory.Concepts, ( m ) => 
 				m.Name?.ToLower() == item.Row.RatingTask_TrainingGapType_Name?.ToLower(), 
-				result, 
+				result,
+				"Training Gap Type is missing, empty, or N/A.",
 				"Training Gap Type not found in database: \"" + TextOrNA( item.Row.RatingTask_TrainingGapType_Name ) + "\"",
 				item.Row.RatingTask_TrainingGapType_Name
 			);
@@ -282,7 +289,7 @@ namespace Services
 			//If any of the above are null, log an error and skip the rest
 			if ( new List<object>() { rowRating, rowPayGrade, rowTaskApplicabilityType, rowTrainingGapType, selectedRating, rowSourceType }.Where( m => m == null ).Count() > 0 )
 			{
-				result.Errors.Add( "One or more controlled vocabulary values was not found in the database. Processing this row cannot continue." );
+				result.Errors.Add( "One or more controlled vocabulary values was not found in the database, or was missing, empty, or N/A. Processing this row cannot continue." );
 				return result;
 			}
 
@@ -398,12 +405,16 @@ namespace Services
 
 			#region Part II - components check
 			//Course Type
+			var missingCourseTypeList = new List<string>();
 			var rowCourseTypeList = GetDataListOrErrorForEach(
 				summary.ConceptSchemeMap.CourseCategory.Concepts,
-				SplitAndTrim( item.Row.Course_CourseType_Name?.ToLower(), new List<string>() { ",", ";", "|" } ),
+				SplitAndTrim( item.Row.Course_CourseType_Name, new List<string>() { ",", ";", "|" } ),
 				( concept, value ) => value?.ToLower() == concept.Name?.ToLower(),
 				result,
-				( value ) => "Course Type not found in database: " + TextOrNA( value )
+				item.Row.Course_CourseType_Name,
+				"Course Type is missing, empty, or N/A.",
+				( value ) => "Course Type not found in database: \"" + TextOrNA( value ) + "\"",
+				missingCourseTypeList
 			);
 
 			//Curriculum Control Authority (Organization)
@@ -412,6 +423,7 @@ namespace Services
 				( !string.IsNullOrWhiteSpace( m.AlternateName ) && m.AlternateName.ToLower() == item.Row.Course_CurriculumControlAuthority_Name?.ToLower() ) || //Look for abbreviation
 				( !string.IsNullOrWhiteSpace( m.Name ) && !string.IsNullOrWhiteSpace( m.AlternateName ) && ( ( m.Name + " (" + m.AlternateName + ")" ).ToLower() == item.Row.Course_CurriculumControlAuthority_Name?.ToLower()) ), //Look for concatenated form: "Name (Abbreviation)"
 				result,
+				"Curriculum Control Authority is missing, empty, or N/A.",
 				"Curriculum Control Authority not found in database: \"" + TextOrNA( item.Row.Course_CurriculumControlAuthority_Name ) + "\"",
 				item.Row.Course_CurriculumControlAuthority_Name
 			);
@@ -423,17 +435,22 @@ namespace Services
 					( !string.IsNullOrWhiteSpace( m.CodedNotation ) && m.CodedNotation?.ToLower() == item.Row.Course_LifeCycleControlDocumentType_CodedNotation?.ToLower() )
 				),
 				result,
+				"Life-Cycle Control Document Type is missing, empty, or N/A.",
 				"Life-Cycle Control Document Type not found in database: \"" + TextOrNA( item.Row.Course_LifeCycleControlDocumentType_CodedNotation ) + "\"",
 				item.Row.Course_LifeCycleControlDocumentType_CodedNotation
 			);
 
 			//Assessment Method Type
+			var missingAssessmentMethodTypeList = new List<string>();
 			var rowAssessmentMethodTypeList = GetDataListOrErrorForEach(
 				summary.ConceptSchemeMap.AssessmentMethodCategory.Concepts,
-				SplitAndTrim( item.Row.Course_AssessmentMethodType_Name?.ToLower(), new List<string>() { ",", ";", "|" } ),
+				SplitAndTrim( item.Row.Course_AssessmentMethodType_Name, new List<string>() { ",", ";", "|" } ),
 				( concept, value ) => value?.ToLower() == concept.Name?.ToLower(),
 				result,
-				( value ) => "Assessment Method Type not found in database: " + TextOrNA( value )
+				item.Row.Course_AssessmentMethodType_Name,
+				"Assessment Method Type is missing, empty, or N/A.",
+				( value ) => "Assessment Method Type not found in database: \"" + TextOrNA( value ) + "\"",
+				missingAssessmentMethodTypeList
 			);
 
 			//Course
@@ -525,6 +542,8 @@ namespace Services
 				rowTrainingTask = null;
 				rowCourseContext = null;
 				result.Errors = new List<string>();
+				missingCourseTypeList = new List<string>();
+				missingAssessmentMethodTypeList = new List<string>();
 			} );
 
 			//Handle Part II checks being skipped
@@ -543,7 +562,9 @@ namespace Services
 					(rowAssessmentMethodTypeList != null && rowAssessmentMethodTypeList.Count() > 0) ||
 					rowCourse != null ||
 					rowTrainingTask != null ||
-					rowCourseContext != null
+					rowCourseContext != null ||
+					missingCourseTypeList.Count() > 0 ||
+					missingAssessmentMethodTypeList.Count() > 0
 				)
 				{
 					result.Warnings.Add( "One or more pieces of Part II data on this row have values despite the Training Gap Type being \"Yes\". Because the Training Gap Type is \"Yes\", all Part II data for this row will be treated as \"N/A\"." );
@@ -560,10 +581,12 @@ namespace Services
 				rowAssessmentMethodTypeList == null || rowAssessmentMethodTypeList.Count() == 0 ||
 				rowCourse == null ||
 				rowTrainingTask == null ||
-				rowCourseContext == null
+				rowCourseContext == null ||
+				missingCourseTypeList.Count() > 0 ||
+				missingAssessmentMethodTypeList.Count() > 0
 			)
 			{
-				result.Errors.Add( "One or more required pieces of Part II data is missing, empty, or N/A. Processing this row cannot continue." );
+				result.Errors.Add( "One or more required pieces of Part II data is not found in the database, or is missing, empty, or N/A. Processing this row cannot continue." );
 				return result;
 			}
 			//If it survived all of the checks, then flag hasPart2Data as true
@@ -635,7 +658,8 @@ namespace Services
 			var rowTrainingSolutionType = GetDataOrError( summary.ConceptSchemeMap.TrainingSolutionCategory.Concepts, ( m ) =>
 				m.Name?.ToLower() == item.Row.Training_Solution_Type?.ToLower() || 
 				m.CodedNotation?.ToLower() == item.Row.Training_Solution_Type?.ToLower(), 
-				result, 
+				result,
+				"Training Solution Type is missing, empty, or N/A.",
 				"Training Solution Type not found in database: \"" + TextOrNA( item.Row.Training_Solution_Type ) + "\"", 
 				item.Row.Training_Solution_Type
 			);
@@ -644,7 +668,8 @@ namespace Services
 			var rowRecommendModalityType = GetDataOrError( summary.ConceptSchemeMap.RecommendedModalityCategory.Concepts, ( m ) =>
 				m.Name?.ToLower() == item.Row.Recommended_Modality?.ToLower() || 
 				m.CodedNotation?.ToLower() == item.Row.Recommended_Modality?.ToLower(), 
-				result, 
+				result,
+				"Recommended Modality Type is missing, empty, or N/A.",
 				"Recommended Modality Type not found in database: \"" + TextOrNA( item.Row.Recommended_Modality ) + "\"", 
 				item.Row.Recommended_Modality
 			);
@@ -652,7 +677,8 @@ namespace Services
 			//Development Specification Type
 			var rowDevelopmentSpecificationType = GetDataOrError( summary.ConceptSchemeMap.DevelopmentSpecificationCategory.Concepts, ( m ) => 
 				m.Name?.ToLower() == item.Row.Development_Specification?.ToLower(), 
-				result, 
+				result,
+				"Development Specification Type is missing, empty, or N/A.",
 				"Development Specification Type not found in database: \"" + TextOrNA( item.Row.Development_Specification ) + "\"", 
 				item.Row.Development_Specification
 			);
@@ -661,6 +687,7 @@ namespace Services
 			var rowDevelopmentRatioType = GetDataOrError( summary.ConceptSchemeMap.DevelopmentRatioCategory.Concepts, ( m ) =>
 				m.Name?.ToLower() == item.Row.Development_Ratio?.ToLower(),
 				result,
+				"Development Ratio Type is missing, empty, or N/A.",
 				"Development Ratio Type not found in database: \"" + TextOrNA( item.Row.Development_Ratio ) + "\"",
 				item.Row.Development_Ratio
 			);
@@ -670,6 +697,7 @@ namespace Services
 				m.Name?.ToLower() == item.Row.CFM_Placement?.ToLower() || 
 				m.CodedNotation?.ToLower() == item.Row.CFM_Placement.ToLower(),
 				result,
+				"CFM Placement Type is missing, empty, or N/A.",
 				"CFM Placement Type not found in database: \"" + TextOrNA( item.Row.CFM_Placement ) + "\"",
 				item.Row.CFM_Placement
 			);
@@ -711,7 +739,7 @@ namespace Services
 			//If there is anything left in the string, then it contains one or more unknown entries that aren't in the database
 			if ( checkString.Length > 0 )
 			{
-				result.Errors.Add( "Candidate Platform Type contains one or more entries that were not found in the database. The raw entry was \"" + (item.Row.Candidate_Platform ?? "") + "\". The entry or entries that were not found are: \"" + checkString + "\". Please ensure that the entry or entries are added to the database and then try uploading the data again." );
+				result.Errors.Add( "Candidate Platform Type contains one or more entries that were not found in the database: \"" + checkString + "\"." );
 			}
 			//Check for empty list
 			if( rowCandidatePlatformTypeList.Count() == 0 )
@@ -1121,32 +1149,32 @@ namespace Services
 		}
 		//
 
-		public static T GetDataOrError<T>( ChangeSummary summary, Func<T, bool> MatchWith, UploadableItemResult result, string errorMessage, string source, bool addErrorIfNullOrWhiteSpace = true ) where T : BaseObject
+		public static T GetDataOrError<T>( ChangeSummary summary, Func<T, bool> MatchWith, UploadableItemResult result, string emptyOrNAErrorMessage, string notFoundErrorMessage, string source, bool addErrorIfNullOrWhiteSpace = true ) where T : BaseObject
 		{
-			return GetDataOrError( summary.GetAll<T>(), MatchWith, result, errorMessage, source, addErrorIfNullOrWhiteSpace );
+			return GetDataOrError( summary.GetAll<T>(), MatchWith, result, emptyOrNAErrorMessage, notFoundErrorMessage, source, addErrorIfNullOrWhiteSpace );
 		}
 		//
 
-		public static List<T> GetDataListOrError<T>( ChangeSummary summary, Func<T, bool> MatchWith, UploadableItemResult result, string errorMessage, string source, bool addErrorIfNullOrWhiteSpace = true ) where T : BaseObject
+		public static List<T> GetDataListOrError<T>( ChangeSummary summary, Func<T, bool> MatchWith, UploadableItemResult result, string emptyOrNAErrorMessage, string notFoundErrorMessage, string source, bool addErrorIfNullOrWhiteSpace = true ) where T : BaseObject
 		{
-			return GetDataListOrError<T>( summary.GetAll<T>(), MatchWith, result, errorMessage, source, addErrorIfNullOrWhiteSpace );
+			return GetDataListOrError<T>( summary.GetAll<T>(), MatchWith, result, emptyOrNAErrorMessage, notFoundErrorMessage, source, addErrorIfNullOrWhiteSpace );
 		}
 		//
 
-		public static T GetDataOrError<T>( List<T> haystack, Func<T, bool> MatchWith, UploadableItemResult result, string errorMessage, string source, bool addErrorIfNullOrWhiteSpace = true ) where T : BaseObject
+		public static T GetDataOrError<T>( List<T> haystack, Func<T, bool> MatchWith, UploadableItemResult result, string emptyOrNAErrorMessage, string notFoundErrorMessage, string source, bool addErrorIfNullOrWhiteSpace = true ) where T : BaseObject
 		{
-			return GetDataListOrError( haystack, MatchWith, result, errorMessage, source, addErrorIfNullOrWhiteSpace ).FirstOrDefault();
+			return GetDataListOrError( haystack, MatchWith, result, emptyOrNAErrorMessage, notFoundErrorMessage, source, addErrorIfNullOrWhiteSpace ).FirstOrDefault();
 		}
 		//
 
-		public static List<T> GetDataListOrError<T>( List<T> haystack, Func<T, bool> MatchWith, UploadableItemResult result, string errorMessage, string source, bool addErrorIfNullOrWhiteSpace = true) where T : BaseObject
+		public static List<T> GetDataListOrError<T>( List<T> haystack, Func<T, bool> MatchWith, UploadableItemResult result, string emptyOrNAErrorMessage, string notFoundErrorMessage, string source, bool addErrorIfNullOrWhiteSpace = true) where T : BaseObject
 		{
-			//Optional error if empty/null string
-			if ( string.IsNullOrWhiteSpace( source ) )
+			//Handle empty/null/N/A string
+			if ( string.IsNullOrWhiteSpace( source ) || source.ToLower() == "n/a" )
 			{
 				if ( addErrorIfNullOrWhiteSpace )
 				{
-					result.Errors.Add( errorMessage );
+					result.Errors.Add( emptyOrNAErrorMessage );
 				}
 				return new List<T>();
 			}
@@ -1155,15 +1183,22 @@ namespace Services
 			var matches = haystack.Where( m => MatchWith( m ) ).ToList();
 			if( matches.Count() == 0 )
 			{
-				result.Errors.Add( errorMessage );
+				result.Errors.Add( notFoundErrorMessage );
 			}
 
 			return matches;
 		}
 		//
 
-		public static List<T> GetDataListOrErrorForEach<T>( List<T> haystack, List<string> source, Func<T, string, bool> MatchWith, UploadableItemResult result, Func<string, string> CreateErrorMessageSingle ) where T : BaseObject
+		public static List<T> GetDataListOrErrorForEach<T>( List<T> haystack, List<string> source, Func<T, string, bool> MatchWith, UploadableItemResult result, string rawSource, string emptyOrNAErrorMessage, Func<string, string> CreateErrorMessageSingle, List<string> notFoundItemList ) where T : BaseObject
 		{
+			//Handle empty/null/N/A string
+			if( string.IsNullOrWhiteSpace( rawSource ) || rawSource.ToLower() == "n/a" )
+			{
+				result.Errors.Add( emptyOrNAErrorMessage );
+				return new List<T>();
+			}
+
 			//Find and return matches and errors
 			var matches = new List<T>();
 			foreach( var value in source ?? new List<string>() )
@@ -1172,6 +1207,7 @@ namespace Services
 				if( match == null )
 				{
 					result.Errors.Add( CreateErrorMessageSingle( value ) );
+					notFoundItemList.Add( value );
 				}
 				else
 				{
