@@ -888,12 +888,61 @@
 							row[key] = "N/A";
 						});
 					}
+					//Otherwise, look for incomplete Part 2 Data
+					else {
+						var part2ColumnData = scanForEmptyNullNAValues(2);
+						//If there should not be any values, but are...
+						if (row["Formal Training Gap"]?.toLowerCase() == "yes") {
+							part2ColumnData.PopulatedColumnNames.forEach(columnName => {
+								UI.TableBoxes.PreProcessing_Warnings.appendRow({ RowNumber: rowNumber, Type: "Partial Part 2 Data", Column: columnName, Message: "The value for this column is not \"N/A\" despite the Formal Training Gap column being \"Yes\". The value for this column will be treated as if it were \"N/A\" if you continue.", value: row[columnName] });
+							});
+						}
+						//If the part 2 data is present, but incomplete....
+						else if (part2ColumnData.EmptyColumnNames.length > 0 && part2ColumnData.AllColumnNames.length != part2ColumnData.EmptyColumnNames.length) {
+							part2ColumnData.EmptyColumnNames.forEach(columnName => {
+								UI.TableBoxes.PreProcessing_Errors.appendRow({ RowNumber: rowNumber, Type: "Empty, Null, or N/A Part 2 Data", Column: columnName, Message: "The value for this column is empty, null, or N/A.", value: row[columnName] });
+							});
+						}
+					}
 
 					//Skip Part 3 Data, if selected
 					if (Manager.Config.SkipPart3Checks) {
 						Object.keys(ColumnData).filter(key => ColumnData[key].Part == 3).forEach(key => {
 							row[key] = "N/A";
 						});
+					}
+					//Otherwise, look for incomplete Part 3 Data
+					else {
+						var part3ColumnData = scanForEmptyNullNAValues(3);
+						//If the part 3 data is present, but incomplete...
+						if (part3ColumnData.EmptyColumnNames.length > 0 && part3ColumnData.AllColumnNames.length != part3ColumnData.EmptyColumnNames.length) {
+							part3ColumnData.EmptyColumnNames.forEach(columnName => {
+								UI.TableBoxes.PreProcessing_Errors.appendRow({ RowNumber: rowNumber, Type: "Empty, Null, or N/A Part 3 Data", Column: columnName, Message: "The value for this column is empty, null, or N/A.", value: row[columnName] });
+							});
+						}
+					}
+
+					//Helper function
+					function scanForEmptyNullNAValues(partNumber) {
+						var Result = {
+							AllColumnNames: [],
+							EmptyColumnNames: [],
+							PopulatedColumnNames: []
+						};
+
+						Object.keys(ColumnData).forEach(key => {
+							if (ColumnData[key].Part == partNumber) {
+								Result.AllColumnNames.push(key);
+								if (!row[key] || row[key].toLowerCase() == "n/a") {
+									Result.EmptyColumnNames.push(key);
+								}
+								else {
+									Result.PopulatedColumnNames.push(key);
+								}
+							}
+						});
+
+						return Result;
 					}
 
 					//Validate rating matches selected Rating
@@ -1014,18 +1063,6 @@
 									//Otherwise, flag it as an error and update the controlled value summary table
 									else {
 										updatePreProcessingMissingControlledValuesSummary(key, value);
-										/*
-										UI.TableBoxes.PreProcessing_Errors.appendRow({ RowNumber: rowNumber, Type: "Invalid Value", Column: key, Message: "This column contains a value that was not found in the database.", Value: value });
-										var summaryRow = UI.TableBoxes.PreProcessing_MissingControlledValues_Summary.Data.find(item => item.Column == key && item.Value == value);
-										if (summaryRow) {
-											summaryRow.Total++;
-											UI.TableBoxes.PreProcessing_MissingControlledValues_Summary.renderRow(summaryRow, summaryRow.HTML);
-										}
-										else {
-											var addedRow = UI.TableBoxes.PreProcessing_MissingControlledValues_Summary.appendRow({ Total: 1, Column: key, Type: ColumnData[key].ConceptScheme ? "Concept" : (ColumnData[key].ValueType || "Unknown"), ConceptScheme: ColumnData[key].ConceptScheme?.Name || "", Value: value });
-											addedRow.Data.HTML = addedRow.Row;
-										}
-										*/
 									}
 								}
 							});

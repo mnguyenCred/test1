@@ -21,6 +21,27 @@
 		} ).ToList()
 	} ).ToList();
 
+	allConceptSchemes.Add( new SimpleFilter()
+	{
+		URI = "UtilityFilters",
+		Name = "Utility Filters",
+		Items = new List<SimpleFilterItem>()
+		{
+			new SimpleFilterItem()
+			{
+				Label = "Limit results to Rating-level Tasks associated with more than one Pay Grade Level (A/J/M)",
+				Name = "> PayGradeLevelTypeId > Concept.MultipleForRatingTask",
+				Id = 0
+			},
+			new SimpleFilterItem()
+			{
+				Label = "Limit results to Rating-level Tasks associated with more than one Rank (Pay Grade)",
+				Name = "> PayGradeTypeId > Concept.MultipleForRatingTask",
+				Id = 0
+			}
+		}
+	} );
+
 	var preselectedRating = new Rating();
 	if ( !string.IsNullOrWhiteSpace( Request.Params[ "RatingRowID" ] ) )
 	{
@@ -101,19 +122,9 @@
 		ReferenceResourceConcepts: @Html.Raw( JsonConvert.SerializeObject( conceptSchemeMap.ReferenceResourceCategory.Concepts.Select( m => SimpleItemHelper.GetSimpleItem( m ) ).ToList() ) ),
 		TrainingGapConcepts: @Html.Raw( JsonConvert.SerializeObject( conceptSchemeMap.TrainingGapCategory.Concepts.Select( m => SimpleItemHelper.GetSimpleItem( m ) ).ToList() ) ),
 		PayGradeLevelConcepts: @Html.Raw( JsonConvert.SerializeObject( conceptSchemeMap.PayGradeLevelCategory.Concepts.Select( m => SimpleItemHelper.GetSimpleItem( m ) ).ToList() ) ),
-		BySourceColumns: [
-			{ Label: "Source Type" },
-			{ Label: "Tasks" },
-			{ Label: "Gaps" },
-			{ Label: "Coverage %" },
-			{ Label: "Gaps %" },
-			{ Label: "% of Tasks in Results" },
-			{ Label: "Coverage in Results" },
-			{ Label: "% of All Tasks" },
-			{ Label: "Coverage Across All Tasks" }
-		],
-		ByLevelColumns: [
-			{ Label: "Level Type" },
+		PayGradeConcepts: @Html.Raw( JsonConvert.SerializeObject( conceptSchemeMap.PayGradeCategory.Concepts.Select( m => SimpleItemHelper.GetSimpleItem( m ) ).ToList() ) ),
+		StatColumns: [
+			{ getLabel: (table) => table.attr("data-typeheader") },
 			{ Label: "Tasks" },
 			{ Label: "Gaps" },
 			{ Label: "Coverage %" },
@@ -189,6 +200,10 @@
 			ByLevelTableHeader: $(".ratingTasksByPayGradeLevelTableHeader"),
 			ByLevelTableBody: $(".ratingTasksByPayGradeLevelTableBody"),
 			ByLevelTableFooter: $(".ratingTasksByPayGradeLevelTableFooter"),
+			ByPayGradeTable: $(".ratingTasksByPayGradeTable"),
+			ByPayGradeTableHeader: $(".ratingTasksByPayGradeTableHeader"),
+			ByPayGradeTableBody: $(".ratingTasksByPayGradeTableBody"),
+			ByPayGradeTableFooter: $(".ratingTasksByPayGradeTableFooter")
 		};
 
 		//Buttons
@@ -206,15 +221,18 @@
 
 		UI.ExportResultsProgressBarBox.hide();
 
-		var sourceTableHeaderTR = $("<tr></tr>").appendTo(UI.Statistics.BySourceTableHeader);
-		Statistics.BySourceColumns.forEach(Column => {
-			Column.TableHeader = $("<th data-column=\"" + Column.Label + "\">" + Column.Label + "</th>").appendTo(sourceTableHeaderTR);
-		});
+		buildStatTable(UI.Statistics.BySourceTable, UI.Statistics.BySourceTableHeader);
+		buildStatTable(UI.Statistics.ByLevelTable, UI.Statistics.ByLevelTableHeader);
+		buildStatTable(UI.Statistics.ByPayGradeTable, UI.Statistics.ByPayGradeTableHeader);
 
-		var sourceLevelHeaderTR = $("<tr></tr>").appendTo(UI.Statistics.ByLevelTableHeader);
-		Statistics.ByLevelColumns.forEach(Column => {
-			Column.TableHeader = $("<th data-column=\"" + Column.Label + "\">" + Column.Label + "</th>").appendTo(sourceLevelHeaderTR);
-		});
+		//Helper function
+		function buildStatTable(Table, TableHeader) {
+			var tableHeaderTR = $("<tr></tr>").appendTo(TableHeader);
+			Statistics.StatColumns.forEach(Column => {
+				var label = Column.Label || Column.getLabel(Table);
+				$("<th data-column=\"" + label + "\">" + label + "</th>").appendTo(tableHeaderTR);
+			});
+		}
 	}
 	//
 
@@ -285,7 +303,7 @@
 
 		//Override the appropriate functions
 		MainSearch.getFilters = function () {
-			return MainSearch.Filters.List.filter(Filter => !Filter.IsMetaFilter).map(Filter => Filter.read()).filter(value => value);
+			return MainSearch.Filters.List.filter(Filter => !Filter.IsMetaFilter).map(Filter => Filter.read()).flatMap(filterData => filterData).filter(value => value);
 		};
 
 		MainSearch.getSortOrder = function () {
@@ -575,23 +593,30 @@
 	//Statistics functions
 	function getAndRenderStatistics() {
 		MainSearch.doPOSTRequest(MainSearch.SearchURL, { ...MainSearch.Query, Filters: [], Skip: 0, Take: 0, SortOrder: [{ Column: "sortOrder:Unsorted" }] }, success => {
-			Statistics.AllTasksTotal = success.Data.TotalResults;
-			getAndRenderStatisticsTable(Statistics.ReferenceResourceConcepts, Statistics.BySourceColumns, UI.Statistics.BySourceTableBody, UI.Statistics.BySourceTableFooter, "> RatingTaskId > RatingTask > ReferenceResourceTypeId > Concept", "Total from All Sources");
-			getAndRenderStatisticsTable(Statistics.PayGradeLevelConcepts, Statistics.ByLevelColumns, UI.Statistics.ByLevelTableBody, UI.Statistics.ByLevelTableFooter, "> PayGradeLevelTypeId > Concept", "Total from All Levels");
+			Statistics.AllTasksTotal = success.Data.ExtraData.RatingTaskCount;
+			getAndRenderStatisticsTable(Statistics.ReferenceResourceConcepts, Statistics.StatColumns, UI.Statistics.BySourceTableBody, UI.Statistics.BySourceTableFooter, "> RatingTaskId > RatingTask > ReferenceResourceTypeId > Concept", "Total from All Sources", (a, b) => { return a.ResultsTotal > b.ResultsTotal ? -1 : 1 });
+			getAndRenderStatisticsTable([
+				...Statistics.PayGradeLevelConcepts,
+				{ Name: "Tasks Associated with Multiple Levels", Id: 0, OverrideFilterName: "> PayGradeLevelTypeId > Concept.MultipleForRatingTask" },
+			], Statistics.StatColumns, UI.Statistics.ByLevelTableBody, UI.Statistics.ByLevelTableFooter, "> PayGradeLevelTypeId > Concept.ExclusiveToRatingTask", "Total from All Levels");
+			getAndRenderStatisticsTable([
+				...Statistics.PayGradeConcepts.map(m => { m.Label = m.CodedNotation + " - " + m.Name; return m; }),
+				{ Name: "Tasks Associated with Multiple Pay Grades", Id: 0, OverrideFilterName: "> PayGradeTypeId > Concept.MultipleForRatingTask" },
+			], Statistics.StatColumns, UI.Statistics.ByPayGradeTableBody, UI.Statistics.ByPayGradeTableFooter, "> PayGradeTypeId > Concept.ExclusiveToRatingTask", "Total from All Pay Grades");
 		}, error => {
 			console.log("Error getting Grand Total", error);
 		});
 	}
 	//
 
-	function getAndRenderStatisticsTable(Concepts, Columns, TableBody, TableFooter, nameFilterPath, totalFromAllText) {
+	function getAndRenderStatisticsTable(Concepts, Columns, TableBody, TableFooter, nameFilterPath, totalFromAllText, sortFunction) {
 		TableBody.html("<tr><td colspan=\"" + Columns.length + "\"><div class=\"spinner\"></div></td></tr>");
 		TableFooter.html("");
 		var CalculatedStats = Concepts.map(Concept => { return { Concept: Concept, ResultsTotal: 0, GapTotal: 0, Error: "", Finished: false } });
 		CalculatedStats.forEach(Stat => {
 			var alteredQuery = {
 				...MainSearch.Query,
-				Filters: [...MainSearch.Query.Filters, { Name: nameFilterPath, ItemIds: [Stat.Concept.Id] }],
+				Filters: [...MainSearch.Query.Filters, { Name: Stat.Concept.OverrideFilterName || nameFilterPath, ItemIds: [Stat.Concept.Id] }],
 				Skip: 0,
 				Take: 0,
 				SortOrder: [{ Column: "sortOrder:Unsorted" }]
@@ -622,7 +647,7 @@
 		function handleFinished(Stat) {
 			Stat.Finished = true;
 			if (CalculatedStats.every(OtherStat => OtherStat.Finished)) {
-				CalculatedStats = CalculatedStats.sort((a, b) => { return a.ResultsTotal > b.ResultsTotal ? -1 : 1 });
+				sortFunction && (CalculatedStats = CalculatedStats.sort(sortFunction));
 				TableBody.html("");
 				var resultsTotal = CalculatedStats.reduce((total, Stat) => { return total + Stat.ResultsTotal; }, 0);
 				var resultsAllTasksPercent = getPercent(resultsTotal, Statistics.AllTasksTotal);
@@ -635,7 +660,7 @@
 					var statResultsTaskPercent = getPercent(Stat.ResultsTotal, resultsTotal);
 					var statAllTasksTaskPercent = getPercent(Stat.ResultsTotal, Statistics.AllTasksTotal);
 					TableBody.append("<tr>" + [
-						"<a href=\"@Url.Content("~/Concept/Detail/")" + Stat.Concept.Id + "\" target=\"_blank\">" + Stat.Concept.Name + "</a>",
+						Stat.Concept.Id == 0 ? Stat.Concept.Name : "<a href=\"@Url.Content("~/Concept/Detail/")" + Stat.Concept.Id + "\" target=\"_blank\">" + (Stat.Concept.Label || Stat.Concept.Name) + "</a>",
 						Stat.ResultsTotal == -99 ? Stat.Error : Stat.ResultsTotal,
 						Stat.GapTotal == -99 ? Stat.Error : Stat.GapTotal,
 						statCoveragePercent + "%",
@@ -872,6 +897,20 @@
 	}
 	//
 
+	//Checkbox List Individual Items Filter
+	function setupFilter_CheckBoxListIndividualItems(Filter) {
+		setupFilter_CheckBoxList_Core(Filter, Filter.Source.Items, "Toggle All", function () {
+			delayThenTriggerSearchIfAvailable(true);
+		});
+
+		Filter.read = function () {
+			return Filter.CheckBoxes.filter(CheckBox => CheckBox.Input.prop("checked")).map(CheckBox => {
+				return { Name: CheckBox.Data.Name, ItemIds: [CheckBox.Data.Id] }; //Must have an ID (an ID of 0 is fine) or the search process will ignore the filter
+			});
+		}
+	}
+	//
+
 	//Core Checkbox Filter
 	function setupFilter_CheckBoxList_Core(Filter, ItemList, toggleAllButtonLabel, onUpdate) {
 		Filter.CheckBoxes = [];
@@ -960,11 +999,13 @@
 	.rmtlBox .rmtlFooter .rmtlPagingBox { display: flex; gap: 5px; justify-content: center; align-items: center; padding: 5px 10px; }
 
 	.statisticsBox { padding: 0 20px; }
-	.statisticsBox .statisticsTable { width: 1500px; }
-	.statisticsBox .statisticsTable :is([data-column='Source Type'], [data-column='Level Type']) { text-align: left; width: 475px; }
-	.statisticsBox .statisticsTable thead tr th { padding: 0 10px; min-width: 50px; text-align: right; }
-	.statisticsBox .statisticsTable tbody tr td { border-top: 1px solid #CCC; text-align: right; padding: 5px; }
-	.statisticsBox .statisticsTable tfoot tr th { border-top: 1px solid #CCC; text-align: right; padding: 5px; }
+	.statisticsBox .statSection { margin-bottom: 50px; }
+	.statisticsBox .statisticsTable { width: 100%; }
+	.statisticsBox .statisticsTable :is([data-column='Source Type'], [data-column='Level Type'], [data-column='Pay Grade Type']) { text-align: left; width: 475px; }
+	.statisticsBox .statisticsTable thead tr th { padding: 5px 10px; min-width: 50px; text-align: right; }
+	.statisticsBox .statisticsTable tbody tr td { border-top: 1px solid #CCC; text-align: right; padding: 5px 10px; }
+	.statisticsBox .statisticsTable tfoot tr th { border-top: 1px solid #CCC; text-align: right; padding: 5px 10px; }
+	.statisticsBox .statisticsTable tbody tr td:first-child { text-align: left; }
 	.statisticsBox .statisticsTable .statBarWrapper { background-color: #DDD; height: 18px; padding: 1px 2px; }
 	.statisticsBox .statisticsTable .statBarWrapper .statBarAll { background-color: #D83; height: 100%; }
 	.statisticsBox .statisticsTable .statBarWrapper .statBarAll .statBarCoverage { background-color: #0C3; height: 100%; }
@@ -1049,6 +1090,7 @@
 						</div>
 						<div class="filterSet checkBoxListFilterSet">
 							<div class="filter" data-filter="ShowHideColumns" data-filtertype="ShowHideColumns" data-label="Show/Hide Columns"></div>
+							<div class="filter" data-filter="UtilityFilters" data-filtertype="CheckBoxListIndividualItems" data-sourceuri="UtilityFilters"></div>
 						</div>
 					</div>
 				</div>
@@ -1069,18 +1111,34 @@
 		</div>
 		<div class="mainTab" data-tab="Summary">
 			<div class="statisticsBox">
-				<h4>Rating Tasks by Source Type for the Current Search Results</h4>
-				<table class="statisticsTable ratingTasksBySourceTypeTable">
-					<thead class="ratingTasksBySourceTypeTableHeader"></thead>
-					<tbody class="ratingTasksBySourceTypeTableBody"></tbody>
-					<tfoot class="ratingTasksBySourceTypeTableFooter"></tfoot>
-				</table>
-				<h4>Rating Tasks by Pay Grade Level for the Current Search Results</h4>
-				<table class="statisticsTable ratingTasksByPayGradeLevelTable">
-					<thead class="ratingTasksByPayGradeLevelTableHeader"></thead>
-					<tbody class="ratingTasksByPayGradeLevelTableBody"></tbody>
-					<tfoot class="ratingTasksByPayGradeLevelTableFooter"></tfoot>
-				</table>
+				<div class="statSection">
+					<h4>Task Summary Tables</h4>
+					<p>The tables below are based on the total counts of Rating-level tasks in the system. <b>The total number of tasks shown below may differ from the total number of search results shown above.</b> This is because the search results are based on individual rows in RMTLs that reference tasks (more than one RMTL may reference the same task), whereas the tables below are based on the tasks themselves.</p>
+				</div>
+				<div class="statSection">
+					<h4>Rating Tasks by Source Type for the Current Search Results</h4>
+					<table class="statisticsTable ratingTasksBySourceTypeTable" data-typeheader="Source Type">
+						<thead class="ratingTasksBySourceTypeTableHeader"></thead>
+						<tbody class="ratingTasksBySourceTypeTableBody"></tbody>
+						<tfoot class="ratingTasksBySourceTypeTableFooter"></tfoot>
+					</table>
+				</div>
+				<div class="statSection">
+					<h4>Rating Tasks by Pay Grade Level for the Current Search Results</h4>
+					<table class="statisticsTable ratingTasksByPayGradeLevelTable" data-typeheader="Level Type">
+						<thead class="ratingTasksByPayGradeLevelTableHeader"></thead>
+						<tbody class="ratingTasksByPayGradeLevelTableBody"></tbody>
+						<tfoot class="ratingTasksByPayGradeLevelTableFooter"></tfoot>
+					</table>
+				</div>
+				<div class="statSection">
+					<h4>Rating Tasks by Pay Grade for the Current Search Results</h4>
+					<table class="statisticsTable ratingTasksByPayGradeTable" data-typeheader="Pay Grade Type">
+						<thead class="ratingTasksByPayGradeTableHeader"></thead>
+						<tbody class="ratingTasksByPayGradeTableBody"></tbody>
+						<tfoot class="ratingTasksByPayGradeTableFooter"></tfoot>
+					</table>
+				</div>
 			</div>
 		</div>
 	</div>

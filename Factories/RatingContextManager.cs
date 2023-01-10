@@ -646,9 +646,43 @@ namespace Factories
 				} );
 
 				//RMTL Search
+				AppendIDsFilterIfPresent( query, "> PayGradeTypeId > Concept.ExclusiveToRatingTask", ids =>
+				{
+					list = list.Where( m =>
+						ids.Contains( m.PayGradeTypeId ) &&
+						context.RatingContext.Where( n => !ids.Contains( n.PayGradeTypeId ) && n.RatingTaskId == m.RatingTaskId ).Count() == 0
+					);
+				} );
+
+				//RMTL Search
+				AppendIDsFilterIfPresent( query, "> PayGradeTypeId > Concept.MultipleForRatingTask", ids =>
+				{
+					list = list.Where( m =>
+						context.RatingContext.Where( n => n.PayGradeTypeId != m.PayGradeTypeId && n.RatingTaskId == m.RatingTaskId ).Count() > 0
+					);
+				} );
+
+				//RMTL Search
 				AppendIDsFilterIfPresent( query, "> PayGradeLevelTypeId > Concept", ids =>
 				{
 					list = list.Where( m => ids.Contains( m.PayGradeLevelTypeId ?? 0 ) );
+				} );
+
+				//RMTL Search
+				AppendIDsFilterIfPresent( query, "> PayGradeLevelTypeId > Concept.ExclusiveToRatingTask", ids =>
+				{
+					list = list.Where( m =>
+						ids.Contains( m.PayGradeLevelTypeId ?? 0 ) &&
+						context.RatingContext.Where( n => !ids.Contains( n.PayGradeLevelTypeId ?? 0 ) && n.RatingTaskId == m.RatingTaskId ).Count() == 0
+					);
+				} );
+
+				//RMTL Search
+				AppendIDsFilterIfPresent( query, "> PayGradeLevelTypeId > Concept.MultipleForRatingTask", ids =>
+				{
+					list = list.Where( m =>
+						context.RatingContext.Where( n => n.PayGradeLevelTypeId != m.PayGradeLevelTypeId && n.RatingTaskId == m.RatingTaskId ).Count() > 0
+					);
 				} );
 
 				//RMTL Search

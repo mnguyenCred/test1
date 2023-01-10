@@ -90,6 +90,19 @@
 					//{ Label: "Development Time", RenderPath: ["HasClusterAnalysis|ClusterAnalysis", "DevelopmentTime|ClusterAnalysis"], AsPlainText: true },
 					//{ Label: "Estimated Instructional Time", RenderPath: ["HasClusterAnalysis|ClusterAnalysis", "EstimatedInstructionalTime|ClusterAnalysis"], AsPlainText: true },
 				]
+			},
+			RatingContexts: {
+				Header: "Rating Contexts",
+				SearchType: "RatingContext",
+				StyleType: "RatingContext",
+				Fields: [
+					{ Label: "Rating", RenderPath: ["HasRating|Rating", "CodedNotation|Rating"] },
+					{ Label: "Pay Grade Level", RenderPath: ["PayGradeLevelType|Concept", "Name|Concept"] },
+					{ Label: "Pay Grade", RenderPath: ["PayGradeType|Concept", "CodedNotation|Concept"] },
+					{ Label: "Applicability Type", RenderPath: ["ApplicabilityType|Concept", "Name|Concept"] },
+					{ Label: "Training Gap Type", RenderPath: ["TrainingGapType|Concept", "Name|Concept"] },
+					{ Label: "Rating Context", RenderPath: ["RowId|RatingContext"] }
+				]
 			}
 		}
 	};
@@ -110,8 +123,10 @@
 	table[data-styletype='ClusterAnalysis'] [data-column='Development Time'] { width: 75px; }
 	table[data-styletype='ClusterAnalysis'] [data-column='Estimated Instructional Time'] { width: 100px; }
 	table[data-styletype='ClusterAnalysis'] a { display: block; }
+	table[data-styletype='RatingContext'] [data-column='Pay Grade Level'] { width: 150px; }
 </style>
 
+<item-list-search name="RatingContexts"></item-list-search>
 <item-list-search name="Ratings"></item-list-search>
 <item-list-search name="BilletTitles"></item-list-search>
 <item-list-search name="WorkRoles"></item-list-search>

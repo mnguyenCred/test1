@@ -567,13 +567,13 @@ namespace Services
 					missingAssessmentMethodTypeList.Count() > 0
 				)
 				{
-					result.Warnings.Add( "One or more pieces of Part II data on this row have values despite the Training Gap Type being \"Yes\". Because the Training Gap Type is \"Yes\", all Part II data for this row will be treated as \"N/A\"." );
+					result.Warnings.Add( "One or more pieces of Part 2 data on this row have values despite the Formal Training Gap being \"Yes\". Because the Training Gap Type is \"Yes\", all Part 2 data for this row will be treated as \"N/A\"." );
 				}
 
 				//Clear the data and errors
 				ClearPart2DataAndErrors();
 			}
-			//Otherwise, handle Part II data being incomplete (if Training Gap Type is any value other than "No")
+			//Otherwise, handle Part II data being incomplete (if Training Gap Type is any value other than "Yes")
 			else if(
 				rowCourseTypeList == null || rowCourseTypeList.Count() == 0 ||
 				rowOrganizationCCA == null ||
@@ -586,7 +586,7 @@ namespace Services
 				missingAssessmentMethodTypeList.Count() > 0
 			)
 			{
-				result.Errors.Add( "One or more required pieces of Part II data is not found in the database, or is missing, empty, or N/A. Processing this row cannot continue." );
+				result.Errors.Add( "One or more required pieces of Part 2 data is not found in the database, or is missing, empty, or N/A. Processing this row cannot continue." );
 				return result;
 			}
 			//If it survived all of the checks, then flag hasPart2Data as true
@@ -882,7 +882,7 @@ namespace Services
 			//Otherwise, throw an error because some of the data is present, but not all of it
 			else
 			{
-				result.Errors.Add( "One or more required pieces of Part III data is missing, empty, or N/A. Processing this row cannot continue." );
+				result.Errors.Add( "One or more required pieces of Part 3 data is missing, empty, or N/A. Processing this row cannot continue." );
 				return result;
 			}
 
