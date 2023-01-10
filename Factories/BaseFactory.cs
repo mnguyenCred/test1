@@ -71,6 +71,17 @@ namespace Factories
 
 		public static void BasicSaveCore<T1, T2>( DataEntities context, T1 entity, DbSet<T2> contextDBEntityList, int userID, Action<T1, T2> UpdateBeforeInitialSaveMethod, Action<T1, T2> UpdateBeforeSecondSaveMethod, string eventAction, Action<string> AddErrorMethod ) where T1 : Models.Schema.BaseObject where T2 : class, DBEntityBaseObject, new()
 		{
+			//Do not allow anything to be saved with a value of "N/A"
+			foreach( var textProperty in typeof( T1 ).GetProperties().Where( m => m.PropertyType == typeof( string ) ) )
+			{
+				if( ( ( string ) textProperty.GetValue( entity ) )?.ToLower() == "n/a" )
+				{
+					AddErrorMethod( "A value of \"N/A\" is not allowed for property: " + textProperty.Name );
+					return;
+				}
+			}
+
+			//Continue
 			var entityType = typeof( T1 );
 			try
 			{
