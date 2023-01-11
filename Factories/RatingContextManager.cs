@@ -488,6 +488,15 @@ namespace Factories
         }
         //
 
+		public static List<int> GetAllPayGradeIDsForRatingTaskByID( int ratingTaskID, int exceptForPayGradeTypeId )
+		{
+			using( var context = new DataEntities() )
+			{
+				return context.RatingContext.Where( m => m.RatingTaskId == ratingTaskID && m.PayGradeTypeId != exceptForPayGradeTypeId ).Select( m => m.PayGradeTypeId ).Distinct().ToList();
+			}
+		}
+		//
+
 		public static AppEntity GetForUploadOrNull(
 			Guid ratingRowID,
 			Guid billetTitleRowID,

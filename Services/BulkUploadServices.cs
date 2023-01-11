@@ -996,6 +996,30 @@ namespace Services
 				return result;
 			}
 
+			//Check to see if the Rating Task is about to be associated with more than one Pay Grade from this upload
+			var otherSummaryPayGradesForRatingTask = summary.GetAll<RatingContext>()
+				.Where( m => m.HasRatingTask == rowRatingTask.RowId && m.PayGradeType != rowPayGrade.RowId )
+				.Select( m => m.PayGradeType ).Distinct()
+				.Select( m => summary.ConceptSchemeMap.PayGradeCategory.Concepts.FirstOrDefault( n => n.RowId == m ) )
+				.Where( m => m != null ).ToList();
+			if( otherSummaryPayGradesForRatingTask.Count() > 0 )
+			{
+				result.Warnings.Add( "This row indicates that the Rating Task has a Pay Grade of " + rowPayGrade.CodedNotation + ". However, this Rating Task is already associated with " + otherSummaryPayGradesForRatingTask.Count() + " other Pay Grade(s) from earlier row(s) this RMTL sheet: " + string.Join( ", ", otherSummaryPayGradesForRatingTask.Select( m => m.CodedNotation ).ToList() ) + "." );
+			}
+
+			//If the Rating Task already exists in the database, check to see if any other Rating Contexts already in the database connect it to a different Pay Grade
+			if( rowRatingTask.Id > 0 )
+			{
+				var otherDBPayGradesForRatingTask = RatingContextManager.GetAllPayGradeIDsForRatingTaskByID( rowRatingTask.Id, ( rowPayGrade ?? new Concept() ).Id )
+					.Where( m => m != rowPayGrade.Id )
+					.Select( m => summary.ConceptSchemeMap.PayGradeCategory.Concepts.FirstOrDefault( n => n.Id == m ) )
+					.Where( m => m != null ).ToList();
+				if( otherDBPayGradesForRatingTask.Count() > 0 )
+				{
+					result.Warnings.Add( "This row indicates that the Rating Task has a Pay Grade of " + rowPayGrade.CodedNotation + ". However, this Rating Task is already associated with " + otherDBPayGradesForRatingTask.Count() + " other Pay Grade(s) that are already in the database: " + string.Join( ", ", otherDBPayGradesForRatingTask.Select( m => m.CodedNotation ).ToList() ) + "." );
+				}
+			}
+
 			#endregion
 
 			#region Update entities with data
