@@ -1004,7 +1004,7 @@ namespace Services
 				.Where( m => m != null ).ToList();
 			if( otherSummaryPayGradesForRatingTask.Count() > 0 )
 			{
-				result.Warnings.Add( "This row indicates that the Rating Task has a Pay Grade of " + rowPayGrade.CodedNotation + ". However, this Rating Task is already associated with " + otherSummaryPayGradesForRatingTask.Count() + " other Pay Grade(s) from earlier row(s) this RMTL sheet: " + string.Join( ", ", otherSummaryPayGradesForRatingTask.Select( m => m.CodedNotation ).ToList() ) + "." );
+				result.Warnings.Add( "This row indicates that the Rating Task has a Pay Grade of " + rowPayGrade.CodedNotation + ". However, this Rating Task is already associated with " + otherSummaryPayGradesForRatingTask.Count() + " other Pay Grade(s) from earlier row(s) in this RMTL sheet: " + string.Join( ", ", otherSummaryPayGradesForRatingTask.Select( m => m.CodedNotation ).ToList() ) + "." );
 			}
 
 			//If the Rating Task already exists in the database, check to see if any other Rating Contexts already in the database connect it to a different Pay Grade
