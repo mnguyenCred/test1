@@ -693,13 +693,17 @@ namespace Services
 			);
 
 			//CFM Placement Type
-			var rowCFMPlacementType = GetDataOrError( summary.ConceptSchemeMap.CFMPlacementCategory.Concepts, ( m ) =>
-				m.Name?.ToLower() == item.Row.CFM_Placement?.ToLower() || 
-				m.CodedNotation?.ToLower() == item.Row.CFM_Placement.ToLower(),
+			var notFoundCFMPlacementTypes = new List<string>();
+			var rowCFMPlacementTypeList = GetDataListOrErrorForEach( 
+				summary.ConceptSchemeMap.CFMPlacementCategory.Concepts,
+				SplitAndTrim( item.Row.CFM_Placement, new List<string>() { "/", ",", "|" } ),
+				( concept, value ) => concept.Name?.ToLower() == value.ToLower() ||
+				concept.CodedNotation?.ToLower() == value.ToLower(),
 				result,
+				item.Row.CFM_Placement,
 				"CFM Placement Type is missing, empty, or N/A.",
-				"CFM Placement Type not found in database: \"" + TextOrNA( item.Row.CFM_Placement ) + "\"",
-				item.Row.CFM_Placement
+				(value) => "CFM Placement Type not found in database: \"" + TextOrNA( value) + "\"",
+				notFoundCFMPlacementTypes
 			);
 
 			//Candidate Platform Type
@@ -716,6 +720,7 @@ namespace Services
 			//Custom handling for Candidate Platform Type because entries are separated by slashes, but may also contain slashes
 			//First get the entries that are present in the list
 			var rowCandidatePlatformTypeList = new List<Concept>();
+			var notFoundCandidatePlatformTypes = new List<string>();
 			var checkString = (item.Row.Candidate_Platform ?? "").ToLower();
 			foreach ( var platform in summary.CandidatePlatformRegexHelpers ) //These concepts are already sorted to include first those with a / in their code, then by those with the longest code
 			{
@@ -740,6 +745,7 @@ namespace Services
 			if ( checkString.Length > 0 )
 			{
 				result.Errors.Add( "Candidate Platform Type contains one or more entries that were not found in the database: \"" + checkString + "\"." );
+				notFoundCandidatePlatformTypes.Add( checkString );
 			}
 			//Check for empty list
 			if( rowCandidatePlatformTypeList.Count() == 0 )
@@ -748,15 +754,9 @@ namespace Services
 			}
 
 			//Numeric fields
-			/*
-			var priorityPlacement = UtilityManager.MapIntegerOrDefault( item.Row.Priority_Placement );
-			var developmentTime = UtilityManager.MapDecimalOrDefault( item.Row.Development_Time );
-			var estimatedInstructionalTime = UtilityManager.MapDecimalOrDefault( item.Row.Estimated_Instructional_Time );
-			*/
-
-			var priorityPlacement = ParseNumberOrError( result, item.Row.Priority_Placement, UtilityManager.MapIntegerOrDefault, 0, ( value ) => value <= 0, "Priority Placement must be an integer greater than 0." );
-			var developmentTime = ParseNumberOrError( result, item.Row.Priority_Placement, UtilityManager.MapDecimalOrDefault, 0.0m, ( value ) => value <= 0, "Development Time must be greater than 0." );
-			var estimatedInstructionalTime = ParseNumberOrError( result, item.Row.Priority_Placement, UtilityManager.MapDecimalOrDefault, 0.0m, ( value ) => value <= 0, "Estimated Instructional Time must be greater than 0." );
+			var priorityPlacement = ParseNumberOrError( result, item.Row.Priority_Placement, UtilityManager.MapIntegerOrDefault, 0, ( value ) => value < 0, "Priority Placement must be an integer greater than or equal to 0." );
+			var developmentTime = ParseNumberOrError( result, item.Row.Development_Time, UtilityManager.MapDecimalOrDefault, 0.0m, ( value ) => value <= 0, "Development Time must be greater than 0." );
+			var estimatedInstructionalTime = ParseNumberOrError( result, item.Row.Estimated_Instructional_Time, UtilityManager.MapDecimalOrDefault, 0.0m, ( value ) => value <= 0, "Estimated Instructional Time must be greater than 0." );
 
 			//Cluster Analysis Title
 			var rowClusterAnalysisTitle = LookupOrGetFromDBOrCreateNew( summary, result,
@@ -809,8 +809,10 @@ namespace Services
 				rowRecommendModalityType == null ||
 				rowDevelopmentSpecificationType == null ||
 				rowDevelopmentRatioType == null ||
-				rowCFMPlacementType == null ||
+				rowCFMPlacementTypeList == null || rowCFMPlacementTypeList.Count() == 0 ||
+				notFoundCFMPlacementTypes.Count() > 0 ||
 				rowCandidatePlatformTypeList == null || rowCandidatePlatformTypeList.Count() == 0 ||
+				notFoundCandidatePlatformTypes.Count() > 0 ||
 				priorityPlacement == 0 ||
 				developmentTime == 0 ||
 				estimatedInstructionalTime == 0 ||
@@ -831,12 +833,14 @@ namespace Services
 				rowRecommendModalityType = null;
 				rowDevelopmentSpecificationType = null;
 				rowDevelopmentRatioType = null;
-				rowCFMPlacementType = null;
+				rowCFMPlacementTypeList = null;
 				rowCandidatePlatformTypeList = null;
 				priorityPlacement = 0;
 				developmentTime = 0.0m;
 				estimatedInstructionalTime = 0.0m;
 				result.Errors = new List<string>();
+				notFoundCFMPlacementTypes = new List<string>();
+				notFoundCandidatePlatformTypes = new List<string>();
 			} );
 
 			//Handle Part III checks being skipped
@@ -853,8 +857,10 @@ namespace Services
 				rowRecommendModalityType != null &&
 				rowDevelopmentSpecificationType != null &&
 				rowDevelopmentRatioType != null &&
-				rowCFMPlacementType != null &&
+				rowCFMPlacementTypeList != null && rowCFMPlacementTypeList.Count() > 0 &&
+				notFoundCFMPlacementTypes.Count() == 0 &&
 				rowCandidatePlatformTypeList != null && rowCandidatePlatformTypeList.Count() > 0 &&
+				notFoundCandidatePlatformTypes.Count() == 0 &&
 				priorityPlacement > 0 &&
 				developmentTime > 0 &&
 				estimatedInstructionalTime > 0
@@ -870,8 +876,10 @@ namespace Services
 				rowRecommendModalityType == null &&
 				rowDevelopmentSpecificationType == null &&
 				rowDevelopmentRatioType == null &&
-				rowCFMPlacementType == null &&
-				(rowCandidatePlatformTypeList == null || rowCandidatePlatformTypeList.Count() == 0) &&
+				( rowCFMPlacementTypeList == null || rowCFMPlacementTypeList.Count() == 0) &&
+				notFoundCFMPlacementTypes.Count() == 0 &&
+				( rowCandidatePlatformTypeList == null || rowCandidatePlatformTypeList.Count() == 0) &&
+				notFoundCandidatePlatformTypes.Count() == 0 &&
 				priorityPlacement == 0 &&
 				developmentTime == 0 &&
 				estimatedInstructionalTime == 0
@@ -885,47 +893,6 @@ namespace Services
 				result.Errors.Add( "One or more required pieces of Part 3 data is missing, empty, or N/A. Processing this row cannot continue." );
 				return result;
 			}
-
-			/*
-			//If errors/warnings should happen due to Cluster Analysis data, do so here
-			//Return here before the row is processed if row processing should not occur
-			if ( item.SkipPart3Checks )
-			{
-				hasClusterAnalysisData = false;
-				rowTrainingSolutionType = null;
-				rowRecommendModalityType = null;
-				rowDevelopmentSpecificationType = null;
-				rowDevelopmentRatioType = null;
-				rowCFMPlacementType = null;
-				rowCandidatePlatformTypeList = new List<Concept>();
-				priorityPlacement = 0;
-				developmentTime = 0;
-				estimatedInstructionalTime = 0;
-				result.Errors = new List<string>();
-			}
-			else if( rowTrainingSolutionType != null || rowRecommendModalityType != null || rowDevelopmentSpecificationType != null || rowDevelopmentRatioType != null || rowCFMPlacementType != null || rowCandidatePlatformTypeList?.Count() > 0 )
-			{
-				hasClusterAnalysisData = true;
-			}
-
-			if ( hasClusterAnalysisData )
-			{
-				if ( priorityPlacement > 9 )
-				{
-					result.Errors.Add( string.Format( "Priority Placement ({0}) is invalid. valid values are 1 through 9.", priorityPlacement ) );
-				}
-
-				if( rowCandidatePlatformTypeList.Count() == 0 )
-				{
-					result.Errors.Add( "Candidate Platform Type has no valid values, or is an empty list." );
-				}
-
-				if( rowTrainingSolutionType == null || rowRecommendModalityType == null || rowDevelopmentSpecificationType == null || rowDevelopmentRatioType == null || rowCFMPlacementType == null || rowCandidatePlatformTypeList == null || rowCandidatePlatformTypeList.Count() == 0 )
-				{
-
-				}
-			}
-			*/
 
 			#endregion
 
@@ -972,7 +939,8 @@ namespace Services
 					PayGradeType = rowPayGrade.RowId,
 					PayGradeLevelType = rowPayGradeLevel.RowId,
 					HasCourseContext = ( rowCourseContext ?? new CourseContext() ).RowId,
-					HasClusterAnalysis = ( rowClusterAnalysis ?? new ClusterAnalysis() ).RowId
+					HasClusterAnalysis = ( rowClusterAnalysis ?? new ClusterAnalysis() ).RowId,
+					Note = item.Row.Note
 					//Other properties are handled in the next section
 				},
 				//Store if newly created
@@ -1076,19 +1044,22 @@ namespace Services
 				HandleValueChange( summary, summary.ItemsToBeCreated.ClusterAnalysis, summary.FinalizedChanges.ClusterAnalysis, result, rowClusterAnalysis, nameof( ClusterAnalysis.TrainingSolutionType ), rowTrainingSolutionType?.RowId );
 				HandleValueChange( summary, summary.ItemsToBeCreated.ClusterAnalysis, summary.FinalizedChanges.ClusterAnalysis, result, rowClusterAnalysis, nameof( ClusterAnalysis.RecommendedModalityType ), rowRecommendModalityType?.RowId );
 				HandleValueChange( summary, summary.ItemsToBeCreated.ClusterAnalysis, summary.FinalizedChanges.ClusterAnalysis, result, rowClusterAnalysis, nameof( ClusterAnalysis.DevelopmentSpecificationType ), rowDevelopmentSpecificationType?.RowId );
-				HandleValueChange( summary, summary.ItemsToBeCreated.ClusterAnalysis, summary.FinalizedChanges.ClusterAnalysis, result, rowClusterAnalysis, nameof( ClusterAnalysis.CFMPlacementType ), rowCFMPlacementType?.RowId );
 				HandleValueChange( summary, summary.ItemsToBeCreated.ClusterAnalysis, summary.FinalizedChanges.ClusterAnalysis, result, rowClusterAnalysis, nameof( ClusterAnalysis.DevelopmentRatioType ), rowDevelopmentRatioType?.RowId );
-				foreach( var candidatePlatformType in rowCandidatePlatformTypeList ) //Values may be appended by later rows
+				foreach ( var candidatePlatformType in rowCandidatePlatformTypeList ) //Values may be appended by later rows
 				{
 					HandleGuidListAddition( summary, summary.ItemsToBeCreated.ClusterAnalysis, summary.FinalizedChanges.ClusterAnalysis, result, rowClusterAnalysis, nameof( ClusterAnalysis.CandidatePlatformType ), candidatePlatformType );
+				}
+				foreach ( var cfmPlacementType in rowCFMPlacementTypeList ) //Values may be appended by later rows
+				{
+					HandleGuidListAddition( summary, summary.ItemsToBeCreated.ClusterAnalysis, summary.FinalizedChanges.ClusterAnalysis, result, rowClusterAnalysis, nameof( ClusterAnalysis.CFMPlacementType ), cfmPlacementType );
 				}
 			}
 
 
-            #endregion
+			#endregion
 
-            //Update the cached summary
-            CacheChangeSummary( summary );
+			//Update the cached summary
+			CacheChangeSummary( summary );
 
 			sectionDuration = DateTime.Now.Subtract( sectionStarted );
 			//summary.Messages.Note.Add( string.Format( "Duration: {0:N2} seconds ", sectionDuration.TotalSeconds ) );

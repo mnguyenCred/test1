@@ -330,6 +330,7 @@
 		"CFM Placement": {
 			Part: 3,
 			Values: @Html.Raw( GetConceptValues( ConceptSchemeMap.CFMPlacementCategory, true, true, false ) ), //Name or CodedNotation
+			SplitOn: [ ",", "/", "|" ],
 			UploadableRowProperty: "@nameof(UploadableRow.CFM_Placement)",
 			ConceptScheme: @Html.Raw( JsonConvert.SerializeObject( SimpleItemHelper.GetSimpleItem( ConceptSchemeMap.CFMPlacementCategory ), Formatting.None ) )
 		},
@@ -900,7 +901,7 @@
 						//If the part 2 data is present, but incomplete....
 						else if (part2ColumnData.EmptyColumnNames.length > 0 && part2ColumnData.AllColumnNames.length != part2ColumnData.EmptyColumnNames.length) {
 							part2ColumnData.EmptyColumnNames.forEach(columnName => {
-								UI.TableBoxes.PreProcessing_Errors.appendRow({ RowNumber: rowNumber, Type: "Empty, Null, or N/A Part 2 Data", Column: columnName, Message: "The value for this column is empty, null, or N/A.", value: row[columnName] });
+								UI.TableBoxes.PreProcessing_Errors.appendRow({ RowNumber: rowNumber, Type: "Empty, Null, or N/A Part 2 Data", Column: columnName, Message: "The value for this column is empty, null, or N/A. All columns for Part 2 Data must either have data, or they must all be \"N/A\".", value: row[columnName] });
 							});
 						}
 					}
@@ -917,7 +918,7 @@
 						//If the part 3 data is present, but incomplete...
 						if (part3ColumnData.EmptyColumnNames.length > 0 && part3ColumnData.AllColumnNames.length != part3ColumnData.EmptyColumnNames.length) {
 							part3ColumnData.EmptyColumnNames.forEach(columnName => {
-								UI.TableBoxes.PreProcessing_Errors.appendRow({ RowNumber: rowNumber, Type: "Empty, Null, or N/A Part 3 Data", Column: columnName, Message: "The value for this column is empty, null, or N/A.", value: row[columnName] });
+								UI.TableBoxes.PreProcessing_Errors.appendRow({ RowNumber: rowNumber, Type: "Empty, Null, or N/A Part 3 Data", Column: columnName, Message: "The value for this column is empty, null, or N/A. All columns for Part 3 Data must either have data, or they must all be \"N/A\".", value: "" });
 							});
 						}
 					}

@@ -60,6 +60,14 @@
 }
 
 <style type="text/css">
+	.section { margin-bottom: 50px; }
+	.section .sectionHeader { margin: 0; padding: 5px 0; }
+	.section table { width: 100%; }
+	.section table thead tr { }
+	.section table thead tr th { padding: 5px; }
+	.section table tbody tr { border-top: 1px solid #CCC; }
+	.section table tbody tr td { padding: 5px; vertical-align: top; }
+
 	.banner { display: flex; align-items: center; gap: 10px; background-color: #EEE; padding: 20px; margin-bottom: 10px; }
 	.banner .bannerText { flex: 1 1 auto; font-size: 12px; }
 	.banner .bannerIdentifiers { flex: 0 0 400px; }
@@ -76,10 +84,12 @@
 	.banner .bannerIdentifiers table tr td:first-child { font-weight: bold; text-align: right; min-width: 100px; }
 	.banner .bannerIdentifiers table tr td:last-child { min-width: 200px; }
 
-	.properties { }
-	.properties .property { margin-bottom: 20px; }
-	.properties .property div { padding: 0 10px; }
-	.properties .property div :is(ul, ol) { padding: 0 15px; }
+	.propertyList {  }
+	.propertyList .property { display: flex; align-items: baseline; gap: 20px; padding: 5px 10px; border-top: 1px solid #CCC; }
+	.propertyList .property:first-child { border-top: none; }
+	.propertyList .property .propertyLabel { text-align: right; width: 225px; font-weight: bold; }
+	.propertyList .property :is(ul, ol) { padding: 0 15px; margin: 0; }
+	.propertyList h4:not(:first-child) { margin-top: 20px; }
 
 	@@media(max-width: 1000px) {
 		.banner { display: block; }
@@ -115,12 +125,24 @@
 	</div>
 
 </div>
-<div class="properties">
-	@foreach( var item in Model.PropertyList.Where( m => !string.IsNullOrWhiteSpace( m.Value ) ).ToList() )
-	{
-		<div class="property">
-			<h4>@Html.Raw( item.Key )</h4>
-			<div>@Html.Raw( item.Value )</div>
-		</div>
-	}
-</div>
+
+@if ( Model.PropertyList.Where( m => !string.IsNullOrWhiteSpace( m.Value ) ).Count() > 0 )
+{
+	<div class="section propertyList">
+		<h3 class="sectionHeader">Properties</h3>
+		@foreach( var item in Model.PropertyList.Where( m => !string.IsNullOrWhiteSpace( m.Value ) ).ToList() )
+		{
+			if ( !string.IsNullOrWhiteSpace( item.HeaderSectionLabel ) )
+			{
+				<h4>@Html.Raw(item.HeaderSectionLabel)</h4>
+			}
+			else
+			{
+				<div class="property">
+					<div class="propertyLabel">@Html.Raw( item.Key )</div>
+					<div class="propertyValue">@Html.Raw( item.Value )</div>
+				</div>
+			}
+		}
+	</div>
+}

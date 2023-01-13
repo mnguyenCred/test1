@@ -56,5 +56,7 @@ namespace Data.Tables
         public virtual DbSet<ConceptScheme> ConceptScheme { get; set; }
         public virtual DbSet<ClusterAnalysis> ClusterAnalysis { get; set; }
         public virtual DbSet<RatingTask> RatingTask { get; set; }
+        public virtual DbSet<ClusterAnalysis_CFMPlacementType> ClusterAnalysis_CFMPlacementType { get; set; }
+        public virtual DbSet<ProtectedSystemEntities> ProtectedSystemEntities { get; set; }
     }
 }

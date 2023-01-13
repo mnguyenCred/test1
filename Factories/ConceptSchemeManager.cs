@@ -23,23 +23,22 @@ namespace Factories
     {
         public static new string thisClassName = "ConceptSchemeManager";
         //
-        public static string ConceptScheme_CommentStatus = "navy:CommentStatus";
-        public static string ConceptScheme_CourseType = "navy:CourseType";
-        public static string ConceptScheme_CurrentAssessmentApproach = "navy:CurrentAssessmentApproach";
-        public static string ConceptScheme_LifeCycleControlDocument = "navy:LifeCycleControlDocument";
-        public static string ConceptScheme_Pay_Grade = "navy:Paygrade";
-        public static string ConceptScheme_ProjectStatus = "navy:ProjectStatus";
-        public static string ConceptScheme_PayGradeLevel = "navy:PayGradeLevel";
-        public static string ConceptScheme_ReferenceResource = "navy:ReferenceResource";
-        public static string ConceptScheme_TaskApplicability = "navy:TaskApplicability";
-        public static string ConceptScheme_TrainingGap = "navy:TrainingGap";
-
-        public static string ConceptScheme_TrainingSolutionType = "navy:TrainingSolutionType";
-        public static string ConceptScheme_RecommendedModality = "navy:RecommendedModality";
-        public static string ConceptScheme_DevelopmentSpecification = "navy:DevelopmentSpecification";
-        public static string ConceptScheme_CFMPlacement = "navy:CFMPlacement";
-		public static string ConceptScheme_CandidatePlatformType = "navy:CandidatePlatformType";
-		public static string ConceptScheme_DevelopmentRatio = "navy:DevelopmentRatio"; //??
+        public static string ConceptScheme_CommentStatusCategory = "navy:CommentStatusCategory";
+        public static string ConceptScheme_CourseCategory = "navy:CourseCategory";
+        public static string ConceptScheme_AssessmentMethodCategory = "navy:AssessmentMethodCategory";
+        public static string ConceptScheme_LifeCycleControlDocumentCategory = "navy:LifeCycleControlDocumentCategory";
+        public static string ConceptScheme_PayGradeCategory = "navy:PayGradeCategory";
+        public static string ConceptScheme_ProjectStatusCategory = "navy:ProjectStatusCategory";
+        public static string ConceptScheme_PayGradeLevelCategory = "navy:PayGradeLevelCategory";
+		public static string ConceptScheme_ReferenceResourceCategory = "navy:ReferenceResourceCategory";
+        public static string ConceptScheme_TaskApplicabilityCategory = "navy:TaskApplicabilityCategory";
+        public static string ConceptScheme_TrainingGapCategory = "navy:TrainingGapCategory";
+        public static string ConceptScheme_TrainingSolutionCategory = "navy:TrainingSolutionCategory";
+        public static string ConceptScheme_RecommendedModalityCategory = "navy:RecommendedModalityCategory";
+        public static string ConceptScheme_DevelopmentSpecificationCategory = "navy:DevelopmentSpecificationCategory";
+        public static string ConceptScheme_CFMPlacementCategory = "navy:CFMPlacementCategory";
+		public static string ConceptScheme_CandidatePlatformTypeCategory = "navy:CandidatePlatformCategory";
+		public static string ConceptScheme_DevelopmentRatioCategory = "navy:DevelopmentRatioCategory";
 
 
 		#region ConceptScheme
@@ -232,22 +231,22 @@ namespace Factories
 			var result = new Models.Schema.ConceptSchemeMap()
 			{
 				AllConceptSchemes = schemes,
-				CommentStatusCategory = schemes.FirstOrDefault( scheme => scheme.SchemaUri == ConceptScheme_CommentStatus ),
-				CourseCategory = schemes.FirstOrDefault( scheme => scheme.SchemaUri == ConceptScheme_CourseType ),
-				AssessmentMethodCategory = schemes.FirstOrDefault( scheme => scheme.SchemaUri == ConceptScheme_CurrentAssessmentApproach ),
-				LifeCycleControlDocumentCategory = schemes.FirstOrDefault( scheme => scheme.SchemaUri == ConceptScheme_LifeCycleControlDocument ),
-				PayGradeCategory = schemes.FirstOrDefault( scheme => scheme.SchemaUri == ConceptScheme_Pay_Grade ),
-				ProjectStatusCategory = schemes.FirstOrDefault( scheme => scheme.SchemaUri == ConceptScheme_ProjectStatus ),
-				PayGradeLevelCategory = schemes.FirstOrDefault( scheme => scheme.SchemaUri == ConceptScheme_PayGradeLevel ),
-				ReferenceResourceCategory = schemes.FirstOrDefault( scheme => scheme.SchemaUri == ConceptScheme_ReferenceResource ),
-				TaskApplicabilityCategory = schemes.FirstOrDefault( scheme => scheme.SchemaUri == ConceptScheme_TaskApplicability ),
-				TrainingGapCategory = schemes.FirstOrDefault( scheme => scheme.SchemaUri == ConceptScheme_TrainingGap ),
-				TrainingSolutionCategory = schemes.FirstOrDefault( scheme => scheme.SchemaUri == ConceptScheme_TrainingSolutionType ),
-				RecommendedModalityCategory = schemes.FirstOrDefault( scheme => scheme.SchemaUri == ConceptScheme_RecommendedModality ),
-				DevelopmentSpecificationCategory = schemes.FirstOrDefault( scheme => scheme.SchemaUri == ConceptScheme_DevelopmentSpecification ),
-				CandidatePlatformCategory = schemes.FirstOrDefault( scheme => scheme.SchemaUri == ConceptScheme_CandidatePlatformType ),
-				DevelopmentRatioCategory = schemes.FirstOrDefault( scheme => scheme.SchemaUri == ConceptScheme_DevelopmentRatio ),
-				CFMPlacementCategory = schemes.FirstOrDefault( scheme => scheme.SchemaUri == ConceptScheme_CFMPlacement )
+				CommentStatusCategory = schemes.FirstOrDefault( scheme => scheme.SchemaUri == ConceptScheme_CommentStatusCategory ),
+				CourseCategory = schemes.FirstOrDefault( scheme => scheme.SchemaUri == ConceptScheme_CourseCategory ),
+				AssessmentMethodCategory = schemes.FirstOrDefault( scheme => scheme.SchemaUri == ConceptScheme_AssessmentMethodCategory ),
+				LifeCycleControlDocumentCategory = schemes.FirstOrDefault( scheme => scheme.SchemaUri == ConceptScheme_LifeCycleControlDocumentCategory ),
+				PayGradeCategory = schemes.FirstOrDefault( scheme => scheme.SchemaUri == ConceptScheme_PayGradeCategory ),
+				ProjectStatusCategory = schemes.FirstOrDefault( scheme => scheme.SchemaUri == ConceptScheme_ProjectStatusCategory ),
+				PayGradeLevelCategory = schemes.FirstOrDefault( scheme => scheme.SchemaUri == ConceptScheme_PayGradeLevelCategory ),
+				ReferenceResourceCategory = schemes.FirstOrDefault( scheme => scheme.SchemaUri == ConceptScheme_ReferenceResourceCategory ),
+				TaskApplicabilityCategory = schemes.FirstOrDefault( scheme => scheme.SchemaUri == ConceptScheme_TaskApplicabilityCategory ),
+				TrainingGapCategory = schemes.FirstOrDefault( scheme => scheme.SchemaUri == ConceptScheme_TrainingGapCategory ),
+				TrainingSolutionCategory = schemes.FirstOrDefault( scheme => scheme.SchemaUri == ConceptScheme_TrainingSolutionCategory ),
+				RecommendedModalityCategory = schemes.FirstOrDefault( scheme => scheme.SchemaUri == ConceptScheme_RecommendedModalityCategory ),
+				DevelopmentSpecificationCategory = schemes.FirstOrDefault( scheme => scheme.SchemaUri == ConceptScheme_DevelopmentSpecificationCategory ),
+				CandidatePlatformCategory = schemes.FirstOrDefault( scheme => scheme.SchemaUri == ConceptScheme_CandidatePlatformTypeCategory ),
+				DevelopmentRatioCategory = schemes.FirstOrDefault( scheme => scheme.SchemaUri == ConceptScheme_DevelopmentRatioCategory ),
+				CFMPlacementCategory = schemes.FirstOrDefault( scheme => scheme.SchemaUri == ConceptScheme_CFMPlacementCategory )
 			};
 
 			return result;

@@ -19,6 +19,7 @@ namespace Data.Tables
         {
             this.ClusterAnalysis_HasCandidatePlatform = new HashSet<ClusterAnalysis_HasCandidatePlatform>();
             this.RatingContext = new HashSet<RatingContext>();
+            this.ClusterAnalysis_CFMPlacementType = new HashSet<ClusterAnalysis_CFMPlacementType>();
         }
     
         public int Id { get; set; }
@@ -27,7 +28,6 @@ namespace Data.Tables
         public Nullable<int> HasClusterAnalysisTitleId { get; set; }
         public Nullable<int> RecommendedModalityTypeId { get; set; }
         public Nullable<int> DevelopmentSpecificationTypeId { get; set; }
-        public Nullable<int> CFMPlacementTypeId { get; set; }
         public Nullable<int> PriorityPlacement { get; set; }
         public Nullable<decimal> EstimatedInstructionalTime { get; set; }
         public Nullable<decimal> DevelopmentTime { get; set; }
@@ -43,7 +43,6 @@ namespace Data.Tables
         public Nullable<int> BilletTitleId { get; set; }
         public Nullable<int> WorkRoleId { get; set; }
     
-        public virtual ConceptScheme_Concept ConceptScheme_Concept_CFMPlacementType { get; set; }
         public virtual ClusterAnalysisTitle ClusterAnalysisTitle { get; set; }
         public virtual ConceptScheme_Concept ConceptScheme_Concept_DevelopmentRatioType { get; set; }
         public virtual ConceptScheme_Concept ConceptScheme_Concept_DevelopmentSpecificationType { get; set; }
@@ -57,5 +56,7 @@ namespace Data.Tables
         public virtual ICollection<ClusterAnalysis_HasCandidatePlatform> ClusterAnalysis_HasCandidatePlatform { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<RatingContext> RatingContext { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<ClusterAnalysis_CFMPlacementType> ClusterAnalysis_CFMPlacementType { get; set; }
     }
 }

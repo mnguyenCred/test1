@@ -108,8 +108,8 @@
 			{ Label: "Cluster Analysis Title", Path: "> HasClusterAnalysis > ClusterAnalysis > HasClusterAnalysisTitle > ClusterAnalysisTitle > Name", Part: "PART III", MinWidth: 300 },
 			{ Label: "Recommended Modality", Path: "> HasClusterAnalysis > ClusterAnalysis > RecommendedModalityType > Concept > Name", Part: "PART III", MinWidth: 100 },
 			{ Label: "Development Specification", Path: "> HasClusterAnalysis > ClusterAnalysis > DevelopmentSpecificationType > Concept > Name", Part: "PART III", MinWidth: 150 },
-			{ Label: "Candidate Platform", Path: "> HasClusterAnalysis > ClusterAnalysis > CandidatePlatformType > Concept > CodedNotation", Part: "PART III", MinWidth: 200 },
-			{ Label: "CFM Placement", Path: "> HasClusterAnalysis > ClusterAnalysis > CFMPlacementType > Concept > Name", Part: "PART III", MinWidth: 150 },
+			{ Label: "Candidate Platform", Path: "> HasClusterAnalysis > ClusterAnalysis > CandidatePlatformType > Concept > CodedNotation", Part: "PART III", MinWidth: 200, Separator: "/" },
+			{ Label: "CFM Placement", Path: "> HasClusterAnalysis > ClusterAnalysis > CFMPlacementType > Concept > Name", Part: "PART III", MinWidth: 150, Separator: "/" },
 			{ Label: "Priority Placement", Path: "> HasClusterAnalysis > ClusterAnalysis > PriorityPlacement", Part: "PART III", MinWidth: 100 },
 			{ Label: "Development Ratio", Path: "> HasClusterAnalysis > ClusterAnalysis > DevelopmentRatioType > Concept > Name", Part: "PART III", MinWidth: 100 },
 			{ Label: "Estimated Instructional Time", Path: "> HasClusterAnalysis > ClusterAnalysis > EstimatedInstructionalTime", Part: "PART III", MinWidth: 100 },
@@ -719,7 +719,6 @@
 	function setupFilter_Suggestion(Filter) {
 		setupFilter_Suggestion_Core(Filter);
 		Filter.Timeout = 0;
-		Filter.Timeout = 0;
 		Filter.SuggestionFilterExtras = [];
 		Filter.HasDataHelper = Filter.Box.attr("data-hasdatahelper");
 
@@ -742,6 +741,26 @@
 					Filter.renderSuggestions();
 				});
 			}, 500);
+		});
+
+		Filter.read = function () {
+			var ids = Filter.SelectedItems.map(SelectedItem => SelectedItem.Data.Id);
+			return ids.length == 0 ? null : { Name: Filter.Name, ItemIds: ids };
+		}
+	}
+	//
+
+	//Setup Local Suggestion Filter
+	function setupFilter_SuggestionLocalConcept(Filter) {
+		setupFilter_Suggestion_Core(Filter);
+		Filter.Options = [...Filter.Source.Items];
+
+		Filter.Input.on("focus keyup", function () {
+			setTimeout(function () {
+				var text = Filter.Input.val().trim().toLowerCase();
+				Filter.Suggestions = Filter.Options.filter(Option => !Filter.SelectedItems.map(SelectedItem => SelectedItem.Data).includes(Option) && Option.Label.toLowerCase().includes(text));
+				Filter.renderSuggestions();
+			}, 0);
 		});
 
 		Filter.read = function () {
@@ -1039,11 +1058,11 @@
 							<div class="filter" data-filter="> RatingTaskId > RatingTask.TextFields" data-filtertype="Text" data-label="Rating Task"></div>
 						</div>
 						<div class="filterSet checkBoxListFilterSet">
-							<div class="filter" data-filter="> RatingTaskId > RatingTask > ReferenceResourceTypeId > Concept" data-filtertype="CheckBoxList" data-sourceuri="@Factories.ConceptSchemeManager.ConceptScheme_ReferenceResource"></div>
-							<div class="filter" data-filter="> PayGradeTypeId > Concept" data-filtertype="CheckBoxList" data-sourceuri="@Factories.ConceptSchemeManager.ConceptScheme_Pay_Grade"></div>
-							<div class="filter" data-filter="> PayGradeLevelTypeId > Concept" data-filtertype="CheckBoxList" data-sourceuri="@Factories.ConceptSchemeManager.ConceptScheme_PayGradeLevel"></div>
-							<div class="filter" data-filter="> FormalTrainingGapId > Concept" data-filtertype="CheckBoxList" data-sourceuri="@Factories.ConceptSchemeManager.ConceptScheme_TrainingGap"></div>
-							<div class="filter" data-filter="> TaskApplicabilityId > Concept" data-filtertype="CheckBoxList" data-sourceuri="@Factories.ConceptSchemeManager.ConceptScheme_TaskApplicability"></div>
+							<div class="filter" data-filter="> RatingTaskId > RatingTask > ReferenceResourceTypeId > Concept" data-filtertype="CheckBoxList" data-sourceuri="@Factories.ConceptSchemeManager.ConceptScheme_ReferenceResourceCategory"></div>
+							<div class="filter" data-filter="> PayGradeTypeId > Concept" data-filtertype="CheckBoxList" data-sourceuri="@Factories.ConceptSchemeManager.ConceptScheme_PayGradeCategory"></div>
+							<div class="filter" data-filter="> PayGradeLevelTypeId > Concept" data-filtertype="CheckBoxList" data-sourceuri="@Factories.ConceptSchemeManager.ConceptScheme_PayGradeLevelCategory"></div>
+							<div class="filter" data-filter="> FormalTrainingGapId > Concept" data-filtertype="CheckBoxList" data-sourceuri="@Factories.ConceptSchemeManager.ConceptScheme_TrainingGapCategory"></div>
+							<div class="filter" data-filter="> TaskApplicabilityId > Concept" data-filtertype="CheckBoxList" data-sourceuri="@Factories.ConceptSchemeManager.ConceptScheme_TaskApplicabilityCategory"></div>
 						</div>
 					</div>
 				</div>
@@ -1056,9 +1075,9 @@
 							<div class="filter" data-filter="> CourseContextId > CourseContext > HasCourseId > Course > CurriculumControlAuthorityId > Organization" data-filtertype="Suggestion" data-searchtype="Organization" data-label="Curriculum Control Authority" data-hasdatahelper="< CurriculumControlAuthorityId < Course < HasCourseId < CourseContext < CourseContextId < RatingContext:NotNull"></div>
 						</div>
 						<div class="filterSet checkBoxListFilterSet">
-							<div class="filter" data-filter="> CourseContextId > CourseContext > AssessmentMethodConceptId > Concept" data-filtertype="CheckBoxList" data-sourceuri="@Factories.ConceptSchemeManager.ConceptScheme_CurrentAssessmentApproach"></div>
-							<div class="filter" data-filter="> CourseContextId > CourseContext > HasCourseId > Course > CourseTypeConceptId > Concept" data-filtertype="CheckBoxList" data-sourceuri="@Factories.ConceptSchemeManager.ConceptScheme_CourseType"></div>
-							<div class="filter" data-filter="> CourseContextId > CourseContext > HasCourseId > Course > LifeCycleControlDocumentTypeId > Concept" data-filtertype="CheckBoxList" data-sourceuri="@Factories.ConceptSchemeManager.ConceptScheme_LifeCycleControlDocument"></div>
+							<div class="filter" data-filter="> CourseContextId > CourseContext > AssessmentMethodConceptId > Concept" data-filtertype="CheckBoxList" data-sourceuri="@Factories.ConceptSchemeManager.ConceptScheme_AssessmentMethodCategory"></div>
+							<div class="filter" data-filter="> CourseContextId > CourseContext > HasCourseId > Course > CourseTypeConceptId > Concept" data-filtertype="CheckBoxList" data-sourceuri="@Factories.ConceptSchemeManager.ConceptScheme_CourseCategory"></div>
+							<div class="filter" data-filter="> CourseContextId > CourseContext > HasCourseId > Course > LifeCycleControlDocumentTypeId > Concept" data-filtertype="CheckBoxList" data-sourceuri="@Factories.ConceptSchemeManager.ConceptScheme_LifeCycleControlDocumentCategory"></div>
 						</div>
 					</div>
 				</div>
@@ -1067,17 +1086,19 @@
 					<div class="filterGroupContent">
 						<div class="filterSet textFilterSet">
 							<div class="filter" data-filter="> ClusterAnalysisId > ClusterAnalysis > HasClusterAnalysisTitleId > ClusterAnalysisTitle" data-filtertype="Suggestion" data-searchtype="ClusterAnalysisTitle" data-label="Cluster Analysis Title"></div>
+							<div class="filter" data-filter="> ClusterAnalysisId > ClusterAnalysis > CandidatePlatformConceptId > Concept" data-filtertype="SuggestionLocalConcept" data-sourceuri="@Factories.ConceptSchemeManager.ConceptScheme_CandidatePlatformTypeCategory"></div>
+							<div class="filter" data-filter="> ClusterAnalysisId > ClusterAnalysis > CFMPlacementTypeId > Concept" data-filtertype="SuggestionLocalConcept" data-sourceuri="@Factories.ConceptSchemeManager.ConceptScheme_CFMPlacementCategory"></div>
 							<div class="filter" data-filter="> ClusterAnalysisId > ClusterAnalysis.PriorityPlacement" data-filtertype="Text" data-label="Priority Placement"></div>
 							<div class="filter" data-filter="> ClusterAnalysisId > ClusterAnalysis.EstimatedInstructionalTime" data-filtertype="Text" data-label="Estimated Instructional Time"></div>
 							<div class="filter" data-filter="> ClusterAnalysisId > ClusterAnalysis.DevelopmentTime" data-filtertype="Text" data-label="Development Time"></div>
 						</div>
 						<div class="filterSet checkBoxListFilterSet">
-							<div class="filter" data-filter="> ClusterAnalysisId > ClusterAnalysis > TrainingSolutionTypeId > Concept" data-filtertype="CheckBoxList" data-sourceuri="@Factories.ConceptSchemeManager.ConceptScheme_TrainingSolutionType"></div>
-							<div class="filter" data-filter="> ClusterAnalysisId > ClusterAnalysis > RecommendedModalityTypeId > Concept" data-filtertype="CheckBoxList" data-sourceuri="@Factories.ConceptSchemeManager.ConceptScheme_RecommendedModality"></div>
-							<div class="filter" data-filter="> ClusterAnalysisId > ClusterAnalysis > DevelopmentSpecificationTypeId > Concept" data-filtertype="CheckBoxList" data-sourceuri="@Factories.ConceptSchemeManager.ConceptScheme_DevelopmentSpecification"></div>
-							<div class="filter" data-filter="> ClusterAnalysisId > ClusterAnalysis > CandidatePlatformConceptId > Concept" data-filtertype="CheckBoxList" data-sourceuri="@Factories.ConceptSchemeManager.ConceptScheme_CandidatePlatformType"></div>
-							<div class="filter" data-filter="> ClusterAnalysisId > ClusterAnalysis > DevelopmentRatioTypeId > Concept" data-filtertype="CheckBoxList" data-sourceuri="@Factories.ConceptSchemeManager.ConceptScheme_DevelopmentRatio"></div>
-							<div class="filter" data-filter="> ClusterAnalysisId > ClusterAnalysis > CFMPlacementTypeId > Concept" data-filtertype="CheckBoxList" data-sourceuri="@Factories.ConceptSchemeManager.ConceptScheme_CFMPlacement"></div>
+							<div class="filter" data-filter="> ClusterAnalysisId > ClusterAnalysis > TrainingSolutionTypeId > Concept" data-filtertype="CheckBoxList" data-sourceuri="@Factories.ConceptSchemeManager.ConceptScheme_TrainingSolutionCategory"></div>
+							<div class="filter" data-filter="> ClusterAnalysisId > ClusterAnalysis > RecommendedModalityTypeId > Concept" data-filtertype="CheckBoxList" data-sourceuri="@Factories.ConceptSchemeManager.ConceptScheme_RecommendedModalityCategory"></div>
+							<div class="filter" data-filter="> ClusterAnalysisId > ClusterAnalysis > DevelopmentSpecificationTypeId > Concept" data-filtertype="CheckBoxList" data-sourceuri="@Factories.ConceptSchemeManager.ConceptScheme_DevelopmentSpecificationCategory"></div>
+							<div class="filter" data-filter="> ClusterAnalysisId > ClusterAnalysis > DevelopmentRatioTypeId > Concept" data-filtertype="CheckBoxList" data-sourceuri="@Factories.ConceptSchemeManager.ConceptScheme_DevelopmentRatioCategory"></div>
+							@*<div class="filter" data-filter="> ClusterAnalysisId > ClusterAnalysis > CandidatePlatformConceptId > Concept" data-filtertype="CheckBoxList" data-sourceuri="@Factories.ConceptSchemeManager.ConceptScheme_CandidatePlatformType"></div>
+							<div class="filter" data-filter="> ClusterAnalysisId > ClusterAnalysis > CFMPlacementTypeId > Concept" data-filtertype="CheckBoxList" data-sourceuri="@Factories.ConceptSchemeManager.ConceptScheme_CFMPlacement"></div>*@
 						</div>
 					</div>
 				</div>

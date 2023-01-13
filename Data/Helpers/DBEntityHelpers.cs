@@ -47,6 +47,7 @@ namespace Data.Tables
 
 	//Multi-value item tables that implement the above interface
 	public partial class ClusterAnalysis_HasCandidatePlatform : DBEntityJoinTableItem { }
+	public partial class ClusterAnalysis_CFMPlacementType : DBEntityJoinTableItem { }
 	public partial class CourseContext_AssessmentType : DBEntityJoinTableItem { }
 	public partial class ReferenceResource_ReferenceType : DBEntityJoinTableItem { }
 	public partial class Course_CourseType : DBEntityJoinTableItem { }

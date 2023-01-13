@@ -111,6 +111,9 @@
     <Compile Include="Tables\ClusterAnalysisTitle.cs">
       <DependentUpon>NavyRRLTables.tt</DependentUpon>
     </Compile>
+    <Compile Include="Tables\ClusterAnalysis_CFMPlacementType.cs">
+      <DependentUpon>NavyRRLTables.tt</DependentUpon>
+    </Compile>
     <Compile Include="Tables\ClusterAnalysis_HasCandidatePlatform.cs">
       <DependentUpon>NavyRRLTables.tt</DependentUpon>
     </Compile>
@@ -157,6 +160,9 @@
       <DependentUpon>NavyRRLTables.edmx</DependentUpon>
     </Compile>
     <Compile Include="Tables\Organization.cs">
+      <DependentUpon>NavyRRLTables.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Tables\ProtectedSystemEntities.cs">
       <DependentUpon>NavyRRLTables.tt</DependentUpon>
     </Compile>
     <Compile Include="Tables\Rating.cs">

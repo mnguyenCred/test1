@@ -10,7 +10,6 @@
 	var methods = Factories.ConceptManager.GetMultiple( Model.AssessmentMethodType );
 }
 
-@Html.Partial( "~/Views/Shared/_DetailShared.cshtml" )
 @Html.Partial( "~/Views/Shared/_DetailBasicInfo.cshtml", new DetailBasicInfoHelper( Model )
 {
 	TypeLabel = "Training Task",

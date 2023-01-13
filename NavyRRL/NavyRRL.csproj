@@ -581,7 +581,6 @@
     <Content Include="Views\Home\PageNotFound.cshtml" />
     <Content Include="Views\Upload\ImportSummary.cshtml" />
     <Content Include="Views\Shared\_ConsoleMessage.cshtml" />
-    <Content Include="Views\Upload\PreProcess.cshtml" />
     <Content Include="Views\Account\RegisterConfirmation.cshtml" />
     <Content Include="Views\Account\AddUser.cshtml" />
     <Content Include="Views\RMTL\Catalog.cshtml" />
@@ -590,7 +589,6 @@
     <Content Include="Views\Admin\Accounts.cshtml" />
     <Content Include="Views\Admin\AddUser.cshtml" />
     <Content Include="Views\Admin\EditAccount.cshtml" />
-    <Content Include="Views\RMTL\Index.cshtml" />
     <Content Include="Views\Event\Index.cshtml" />
     <Content Include="Views\Event\NotAuthorized.cshtml" />
     <Content Include="Views\Event\NotAuthenticated.cshtml" />
@@ -599,7 +597,6 @@
     <Content Include="Views\Data\ManageCCA.cshtml" />
     <Content Include="Views\Data\ManageCourses.cshtml" />
     <Content Include="Views\Data\ManageConceptSchemes.cshtml" />
-    <Content Include="Views\RMTL\FunctionalArea.cshtml" />
     <Content Include="Views\Data\ManageFunctionalArea.cshtml" />
     <Content Include="Views\Shared\_FormHelperV1.cshtml" />
     <Content Include="Views\Admin\FormHelperV1Demo.cshtml" />
@@ -637,7 +634,6 @@
     <Content Include="Views\Help\_GeneralSearch.cshtml" />
     <Content Include="Views\Help\_UploadV3.cshtml" />
     <Content Include="Views\RDF\Terms.cshtml" />
-    <Content Include="Views\Shared\_DetailShared.cshtml" />
     <Content Include="Views\Search\_ItemListSearch.cshtml" />
     <Content Include="Views\RatingContext\Detail.cshtml" />
     <Content Include="Views\RatingContext\Edit.cshtml" />

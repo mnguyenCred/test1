@@ -12,6 +12,8 @@ namespace Models.Schema
 		{
 			CandidatePlatformType = new List<Guid>();
 			CandidatePlatformTypeId = new List<int>();
+			CFMPlacementType = new List<Guid>();
+			CFMPlacementTypeId = new List<int>();
 		}
 
 		/// <summary>
@@ -100,12 +102,12 @@ namespace Models.Schema
 		/// <summary>
 		/// GUID reference to a CFM Placement Type Concept
 		/// </summary>
-		public Guid CFMPlacementType { get; set; }
+		public List<Guid> CFMPlacementType { get; set; }
 
 		/// <summary>
 		/// Id reference to a CFM Placement Type Concept
 		/// </summary>
-		public int CFMPlacementTypeId { get; set; }
+		public List<int> CFMPlacementTypeId { get; set; }
 
 		/// <summary>
 		/// RowID for the Rating Task this Cluster Analysis relates to.<br />

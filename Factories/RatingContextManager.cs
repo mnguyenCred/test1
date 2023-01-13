@@ -764,7 +764,7 @@ namespace Factories
 
 				//RMTL Search
 				AppendIDsFilterIfPresent( query, "> ClusterAnalysisId > ClusterAnalysis > CFMPlacementTypeId > Concept", ids => {
-					list = list.Where( m => ids.Contains( m.ClusterAnalysis.CFMPlacementTypeId ?? 0 ) );
+					list = list.Where( m => m.ClusterAnalysis.ClusterAnalysis_CFMPlacementType.Select( n => n.CFMPlacementConceptId ).Intersect( ids ).Count() > 0 );
 				} );
 
 				//Concept Detail Page
@@ -784,7 +784,7 @@ namespace Factories
 						ids.Contains( m.ClusterAnalysis.DevelopmentSpecificationTypeId ?? 0 ) ||
 						m.ClusterAnalysis.ClusterAnalysis_HasCandidatePlatform.Select( n => n.CandidatePlatformConceptId ).Intersect( ids ).Count() > 0 ||
 						ids.Contains( m.ClusterAnalysis.DevelopmentRatioTypeId ?? 0 ) ||
-						ids.Contains( m.ClusterAnalysis.CFMPlacementTypeId ?? 0 )
+						m.ClusterAnalysis.ClusterAnalysis_CFMPlacementType.Select( n => n.CFMPlacementConceptId ).Intersect( ids ).Count() > 0
 					);
 				} );
 
@@ -805,7 +805,7 @@ namespace Factories
 						conceptIDs.Contains( m.ClusterAnalysis.DevelopmentSpecificationTypeId ?? 0 ) ||
 						m.ClusterAnalysis.ClusterAnalysis_HasCandidatePlatform.Select( n => n.CandidatePlatformConceptId ).Intersect( conceptIDs ).Count() > 0 ||
 						conceptIDs.Contains( m.ClusterAnalysis.DevelopmentRatioTypeId ?? 0 ) ||
-						conceptIDs.Contains( m.ClusterAnalysis.CFMPlacementTypeId ?? 0 )
+						m.ClusterAnalysis.ClusterAnalysis_CFMPlacementType.Select( n => n.CFMPlacementConceptId ).Intersect( conceptIDs ).Count() > 0
 					);
 				} );
 
@@ -858,7 +858,11 @@ namespace Factories
 									SortAscOrDesc( sorted, sortItem, m => m.ClusterAnalysis.ClusterAnalysis_HasCandidatePlatform.Select( n => n.ConceptScheme_Concept.CodedNotation ).OrderBy( n => n ).FirstOrDefault() ) :
 									SortAscOrDesc( sorted, sortItem, m => m.ClusterAnalysis.ClusterAnalysis_HasCandidatePlatform.Select( n => n.ConceptScheme_Concept.CodedNotation ).OrderByDescending( n => n ).FirstOrDefault() );
 								break;
-							case "> HasClusterAnalysis > ClusterAnalysis > CFMPlacementType > Concept > Name": sorted = SortAscOrDesc( sorted, sortItem, m => m.ClusterAnalysis.ConceptScheme_Concept_CFMPlacementType.Name ); break;
+							case "> HasClusterAnalysis > ClusterAnalysis > CFMPlacementType > Concept > Name":
+								sorted = sortItem.Ascending ?
+									SortAscOrDesc( sorted, sortItem, m => m.ClusterAnalysis.ClusterAnalysis_CFMPlacementType.Select( n => n.ConceptScheme_Concept.CodedNotation ).OrderBy( n => n ).FirstOrDefault() ) :
+									SortAscOrDesc( sorted, sortItem, m => m.ClusterAnalysis.ClusterAnalysis_CFMPlacementType.Select( n => n.ConceptScheme_Concept.CodedNotation ).OrderByDescending( n => n ).FirstOrDefault() );
+								break;
 							case "> HasClusterAnalysis > ClusterAnalysis > PriorityPlacement": sorted = SortAscOrDesc( sorted, sortItem, m => m.ClusterAnalysis.PriorityPlacement ); break;
 							case "> HasClusterAnalysis > ClusterAnalysis > DevelopmentRatioType > Concept > Name": sorted = SortAscOrDesc( sorted, sortItem, m => m.ClusterAnalysis.ConceptScheme_Concept_DevelopmentRatioType.Name ); break;
 							case "> HasClusterAnalysis > ClusterAnalysis > EstimatedInstructionalTime": sorted = SortAscOrDesc( sorted, sortItem, m => m.ClusterAnalysis.EstimatedInstructionalTime ); break;

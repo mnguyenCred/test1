@@ -6,7 +6,6 @@
 	ViewBag.Title = "Rating Task: " + Model.Description;
 }
 
-@Html.Partial( "~/Views/Shared/_DetailShared.cshtml" )
 @Html.Partial( "~/Views/Shared/_DetailBasicInfo.cshtml", new DetailBasicInfoHelper( Model )
 {
 	TypeLabel = "Rating Task",
@@ -14,7 +13,7 @@
 	PropertyList = new List<NamedString>()
 	{
 		new NamedString( "Description", Model.Description ),
-		new NamedString( "Source", LinkHelper.GetDetailPageLink( Factories.ReferenceResourceManager.GetByRowId(Model.HasReferenceResource), Url.Content, m => m.Name + " (" + m.PublicationDate + ")" ) ),
+		new NamedString( "Source", LinkHelper.GetDetailPageLink( Factories.ReferenceResourceManager.GetByRowId( Model.HasReferenceResource ), Url.Content, m => m.Name + " (" + m.PublicationDate + ")" ) ),
 		new NamedString("Reference Type", LinkHelper.GetDetailPageLink( Factories.ConceptManager.GetByRowId( Model.ReferenceType ), Url.Content, m => m.Name ) )
 	}
 } )
@@ -101,7 +100,7 @@
 					{ Label: "Pay Grade", RenderPath: ["PayGradeType|Concept", "CodedNotation|Concept"] },
 					{ Label: "Applicability Type", RenderPath: ["ApplicabilityType|Concept", "Name|Concept"] },
 					{ Label: "Training Gap Type", RenderPath: ["TrainingGapType|Concept", "Name|Concept"] },
-					{ Label: "Rating Context", RenderPath: ["RowId|RatingContext"] }
+					{ Label: "Rating Context", RenderPath: ["RowId|RatingContext"], OverrideText: "Rating Context Details" }
 				]
 			}
 		}

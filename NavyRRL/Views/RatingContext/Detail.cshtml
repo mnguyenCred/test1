@@ -22,13 +22,13 @@
 	}
 }
 
-@Html.Partial( "~/Views/Shared/_DetailShared.cshtml" )
 @Html.Partial( "~/Views/Shared/_DetailBasicInfo.cshtml", new DetailBasicInfoHelper( Model )
 {
 	TypeLabel = "Rating Context",
 	Name = "Rating Context",
 	PropertyList = new List<NamedString>()
 	{
+		new NamedString( "", "value" ){ HeaderSectionLabel = "Part I Data" },
 		new NamedString( "Note", Model.Note ),
 		new NamedString( "Code", Model.CodedNotation ),
 		new NamedString( "Rating", LinkHelper.GetDetailPageLink( Factories.RatingManager.GetByRowId( Model.HasRating ), Url.Content, m => m.Name + " (" + m.CodedNotation + ")" ) ),
@@ -37,18 +37,22 @@
 		new NamedString( "Rating Task", ratingTaskData == null ? null : LinkHelper.GetDetailPageLink( ratingTaskData, Url.Content, m => m.Description ) ),
 		new NamedString( "Source", ratingTaskData == null ? null : LinkHelper.GetDetailPageLink( Factories.ReferenceResourceManager.GetByRowId( ratingTaskData.HasReferenceResource ), Url.Content, m => m.Name + " (" + m.PublicationDate + ")" ) ),
 		new NamedString( "Applicability Type", GetConceptLink( Model.ApplicabilityType ) ),
-		new NamedString( "Training Gap Type", GetConceptLink( Model.TrainingGapType ) ),
 		new NamedString( "Pay Grade Type", GetConceptLink( Model.PayGradeType ) ),
+		new NamedString( "Training Gap Type", GetConceptLink( Model.TrainingGapType ) ),
+		new NamedString( "", courseContextData == null ? null : "value" ){ HeaderSectionLabel = "Part II Data" },
+		new NamedString( "Course Context Details", courseContextData == null ? null : LinkHelper.GetDetailPageLink( courseContextData, Url.Content, m => m.RowId.ToString() ) ),
 		new NamedString( "Course", courseContextData == null ? null : LinkHelper.GetDetailPageLink( courseData, Url.Content, m => m.Name + " (" + m.CodedNotation + ")" ) ),
 		new NamedString( "Curriculum Control Authority", courseData == null ? null : LinkHelper.GetDetailPageLink( Factories.OrganizationManager.GetByRowId( courseData.CurriculumControlAuthority ), Url.Content, m => m.Name ) ),
 		new NamedString( "Training Task", courseContextData == null ? null : LinkHelper.GetDetailPageLink( Factories.TrainingTaskManager.GetByRowId( courseContextData.HasTrainingTask, true ), Url.Content, m => m.Description ) ),
 		new NamedString( "Assessment Method Type(s)", courseContextData == null ? null : GetConceptLinkList( courseContextData.AssessmentMethodType ) ),
 		new NamedString( "Cluster Analysis Title", clusterAnalysisData == null ? null : LinkHelper.GetDetailPageLink( Factories.ClusterAnalysisTitleManager.GetByRowId( clusterAnalysisData.HasClusterAnalysisTitle ), Url.Content, m => m.Name ) ),
+		new NamedString( "", clusterAnalysisData == null ? null : "value" ){ HeaderSectionLabel = "Part III Data" },
+		new NamedString( "Cluster Analysis Details", clusterAnalysisData == null ? null : LinkHelper.GetDetailPageLink( clusterAnalysisData, Url.Content, m => m.RowId.ToString() ) ),
 		new NamedString( "Training Solution Type", clusterAnalysisData == null ? null : GetConceptLink( clusterAnalysisData.TrainingSolutionType ) ),
 		new NamedString( "Recommended Modality Type", clusterAnalysisData == null ? null : GetConceptLink( clusterAnalysisData.RecommendedModalityType ) ),
 		new NamedString( "Development Specification Type", clusterAnalysisData == null ? null : GetConceptLink( clusterAnalysisData.DevelopmentSpecificationType ) ),
 		new NamedString( "Candidate Platform Type(s)", clusterAnalysisData == null ? null : GetConceptLinkList( clusterAnalysisData.CandidatePlatformType ) ),
-		new NamedString( "CFM Placement Type", clusterAnalysisData == null ? null : GetConceptLink( clusterAnalysisData.CFMPlacementType ) ),
+		new NamedString( "CFM Placement Type", clusterAnalysisData == null ? null : GetConceptLinkList( clusterAnalysisData.CFMPlacementType ) ),
 		new NamedString( "Development Ratio", clusterAnalysisData == null ? null : clusterAnalysisData.DevelopmentRatio ),
 		new NamedString( "Estimated Instructional Time", clusterAnalysisData == null ? null : clusterAnalysisData.EstimatedInstructionalTime.ToString() ),
 		new NamedString( "Development Time", clusterAnalysisData == null ? null : clusterAnalysisData.DevelopmentTime.ToString() ),

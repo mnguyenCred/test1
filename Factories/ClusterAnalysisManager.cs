@@ -50,10 +50,10 @@ namespace Factories
 					dbEnt.RecommendedModalityTypeId = context.ConceptScheme_Concept.FirstOrDefault( m => m.RowId == ent.RecommendedModalityType )?.Id ?? 0;
 					dbEnt.DevelopmentSpecificationTypeId = context.ConceptScheme_Concept.FirstOrDefault( m => m.RowId == ent.DevelopmentSpecificationType )?.Id ?? 0;
 					dbEnt.DevelopmentRatioTypeId = context.ConceptScheme_Concept.FirstOrDefault( m => m.RowId == ent.DevelopmentRatioType )?.Id ?? 0;
-					dbEnt.CFMPlacementTypeId = context.ConceptScheme_Concept.FirstOrDefault( m => m.RowId == ent.CFMPlacementType )?.Id ?? 0;
 				}, ( ent, dbEnt ) =>
 				{
 					HandleMultiValueUpdate( context, userID, ent.CandidatePlatformType, dbEnt, dbEnt.ClusterAnalysis_HasCandidatePlatform, context.ConceptScheme_Concept, nameof( ClusterAnalysis_HasCandidatePlatform.ClusterAnalysisId ), nameof( ClusterAnalysis_HasCandidatePlatform.CandidatePlatformConceptId ) );
+					HandleMultiValueUpdate( context, userID, ent.CFMPlacementType, dbEnt, dbEnt.ClusterAnalysis_CFMPlacementType, context.ConceptScheme_Concept, nameof( ClusterAnalysis_CFMPlacementType.ClusterAnalysisId ), nameof( ClusterAnalysis_CFMPlacementType.CFMPlacementConceptId ) );
 				}, saveType, AddErrorMethod );
 			}
 		}
@@ -291,7 +291,7 @@ namespace Factories
 
             else if ( !string.IsNullOrWhiteSpace( input.TrainingSolution ) )
             {
-                output.TrainingSolutionTypeId = ( int ) ConceptManager.GetConceptFromScheme( ConceptSchemeManager.ConceptScheme_TrainingSolutionType, input.TrainingSolution )?.Id;
+                output.TrainingSolutionTypeId = ( int ) ConceptManager.GetConceptFromScheme( ConceptSchemeManager.ConceptScheme_TrainingSolutionCategory, input.TrainingSolution )?.Id;
             }
             else
                 output.TrainingSolutionTypeId = null;
@@ -302,7 +302,7 @@ namespace Factories
             else if ( !string.IsNullOrWhiteSpace( input.RecommendedModality ) )
             {
                 //
-                output.RecommendedModalityTypeId = ( int ) ConceptManager.GetConceptFromScheme( ConceptSchemeManager.ConceptScheme_RecommendedModality, input.RecommendedModality )?.Id;
+                output.RecommendedModalityTypeId = ( int ) ConceptManager.GetConceptFromScheme( ConceptSchemeManager.ConceptScheme_RecommendedModalityCategory, input.RecommendedModality )?.Id;
             }
             else
                 output.RecommendedModalityTypeId = null;
@@ -312,7 +312,7 @@ namespace Factories
 
             else if ( !string.IsNullOrWhiteSpace( input.DevelopmentSpecification ) )
             {
-                output.DevelopmentSpecificationTypeId = ( int ) ConceptManager.GetConceptFromScheme( ConceptSchemeManager.ConceptScheme_DevelopmentSpecification, input.DevelopmentSpecification )?.Id;
+                output.DevelopmentSpecificationTypeId = ( int ) ConceptManager.GetConceptFromScheme( ConceptSchemeManager.ConceptScheme_DevelopmentSpecificationCategory, input.DevelopmentSpecification )?.Id;
             }
             //if ( !string.IsNullOrWhiteSpace( input.CFMPlacement ) )
             //{
@@ -411,8 +411,8 @@ namespace Factories
 			output.RecommendedModalityType = input.ConceptScheme_Concept_RecommendedModalityType?.RowId ?? Guid.Empty;
 			output.DevelopmentSpecificationType = input.ConceptScheme_Concept_DevelopmentSpecificationType?.RowId ?? Guid.Empty;
 			output.DevelopmentRatioType = input.ConceptScheme_Concept_DevelopmentRatioType?.RowId ?? Guid.Empty;
-			output.CFMPlacementType = input.ConceptScheme_Concept_CFMPlacementType?.RowId ?? Guid.Empty;
 			output.CandidatePlatformType = input.ClusterAnalysis_HasCandidatePlatform?.Select( m => m.ConceptScheme_Concept ).Select( m => m.RowId ).ToList() ?? new List<Guid>();
+			output.CFMPlacementType = input.ClusterAnalysis_CFMPlacementType?.Select( m => m.ConceptScheme_Concept ).Select( m => m.RowId ).ToList() ?? new List<Guid>();
 
 			return output;
 		}

@@ -292,7 +292,7 @@ namespace Factories
 				}
 
 				//Ensure it is not a protected entity
-				if( toBeDeleted.CreatedById == -999 )
+				if( toBeDeleted.CreatedById == -999 || context.ProtectedSystemEntities.FirstOrDefault( m => m.EntityRowId == toBeDeleted.RowId ) != null )
 				{
 					return new DeleteResult( false, "The target " + entityTypeLabel + " is part of the system and cannot be deleted." );
 				}

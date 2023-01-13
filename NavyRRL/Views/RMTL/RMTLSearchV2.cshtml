@@ -42,21 +42,21 @@
 		Items = courses.Select( m => { return new SimpleFilterItem() { Label = m.Name, Id = m.Id }; } ).ToList()
 	};
 
-	var trainingSolutionTypes = Factories.ConceptSchemeManager.GetbyShortUri( Factories.ConceptSchemeManager.ConceptScheme_TrainingSolutionType).Concepts.Select( m => SimpleItemHelper.GetSimpleItem( m ) ).ToList();
+	var trainingSolutionTypes = Factories.ConceptSchemeManager.GetbyShortUri( Factories.ConceptSchemeManager.ConceptScheme_TrainingSolutionCategory).Concepts.Select( m => SimpleItemHelper.GetSimpleItem( m ) ).ToList();
 	var trainingSolutionTypesFilter = new SimpleFilter()
 	{
 		Name = "navy:TrainingSolutionType",
 		Items = trainingSolutionTypes.Select( m => { return new SimpleFilterItem() { Label = m.Name, Id = m.Id }; } ).ToList()
 	};
 
-	var levels = SchemeToFilter( Factories.ConceptSchemeManager.ConceptScheme_PayGradeLevel );
-	var payGradeTypeFilter = SchemeToFilter( Factories.ConceptSchemeManager.ConceptScheme_Pay_Grade );
-	var trainingGapTypeFilter = SchemeToFilter( Factories.ConceptSchemeManager.ConceptScheme_TrainingGap );
-	var applicabilityTypeFilter = SchemeToFilter( Factories.ConceptSchemeManager.ConceptScheme_TaskApplicability );
-	var referenceTypeFilter = SchemeToFilter( Factories.ConceptSchemeManager.ConceptScheme_ReferenceResource );
-	var courseTypeFilter = SchemeToFilter( Factories.ConceptSchemeManager.ConceptScheme_CourseType );
-	var assessmentMethodTypeFilter = SchemeToFilter( Factories.ConceptSchemeManager.ConceptScheme_CurrentAssessmentApproach );
-	var trainingSolutionsTypeFilter = SchemeToFilter( Factories.ConceptSchemeManager.ConceptScheme_TrainingSolutionType );
+	var levels = SchemeToFilter( Factories.ConceptSchemeManager.ConceptScheme_PayGradeLevelCategory );
+	var payGradeTypeFilter = SchemeToFilter( Factories.ConceptSchemeManager.ConceptScheme_PayGradeCategory );
+	var trainingGapTypeFilter = SchemeToFilter( Factories.ConceptSchemeManager.ConceptScheme_TrainingGapCategory );
+	var applicabilityTypeFilter = SchemeToFilter( Factories.ConceptSchemeManager.ConceptScheme_TaskApplicabilityCategory );
+	var referenceTypeFilter = SchemeToFilter( Factories.ConceptSchemeManager.ConceptScheme_ReferenceResourceCategory );
+	var courseTypeFilter = SchemeToFilter( Factories.ConceptSchemeManager.ConceptScheme_CourseCategory );
+	var assessmentMethodTypeFilter = SchemeToFilter( Factories.ConceptSchemeManager.ConceptScheme_AssessmentMethodCategory );
+	var trainingSolutionsTypeFilter = SchemeToFilter( Factories.ConceptSchemeManager.ConceptScheme_TrainingSolutionCategory );
 }
 @functions {
 	public class SimpleFilter

@@ -61,13 +61,13 @@ namespace Services
 			var propertiesData = RDF.StaticData.GetProperties();
 			var allConceptSchemes = Factories.ConceptSchemeManager.GetAll();
 
-			AddTargetScheme( propertiesData, "ceterms:assessmentMethodType", allConceptSchemes, Factories.ConceptSchemeManager.ConceptScheme_CurrentAssessmentApproach );
-			AddTargetScheme( propertiesData, "navy:courseType", allConceptSchemes, Factories.ConceptSchemeManager.ConceptScheme_CourseType );
-			AddTargetScheme( propertiesData, "navy:lifeCycleControlDocumentType", allConceptSchemes, Factories.ConceptSchemeManager.ConceptScheme_LifeCycleControlDocument );
-			AddTargetScheme( propertiesData, "navy:payGradeType", allConceptSchemes, Factories.ConceptSchemeManager.ConceptScheme_Pay_Grade );
-			AddTargetScheme( propertiesData, "navy:referenceType", allConceptSchemes, Factories.ConceptSchemeManager.ConceptScheme_ReferenceResource );
-			AddTargetScheme( propertiesData, "navy:applicabilityType", allConceptSchemes, Factories.ConceptSchemeManager.ConceptScheme_TaskApplicability );
-			AddTargetScheme( propertiesData, "navy:trainingGapType", allConceptSchemes, Factories.ConceptSchemeManager.ConceptScheme_TrainingGap );
+			AddTargetScheme( propertiesData, "ceterms:assessmentMethodType", allConceptSchemes, Factories.ConceptSchemeManager.ConceptScheme_AssessmentMethodCategory );
+			AddTargetScheme( propertiesData, "navy:courseType", allConceptSchemes, Factories.ConceptSchemeManager.ConceptScheme_CourseCategory );
+			AddTargetScheme( propertiesData, "navy:lifeCycleControlDocumentType", allConceptSchemes, Factories.ConceptSchemeManager.ConceptScheme_LifeCycleControlDocumentCategory );
+			AddTargetScheme( propertiesData, "navy:payGradeType", allConceptSchemes, Factories.ConceptSchemeManager.ConceptScheme_PayGradeCategory );
+			AddTargetScheme( propertiesData, "navy:referenceType", allConceptSchemes, Factories.ConceptSchemeManager.ConceptScheme_ReferenceResourceCategory );
+			AddTargetScheme( propertiesData, "navy:applicabilityType", allConceptSchemes, Factories.ConceptSchemeManager.ConceptScheme_TaskApplicabilityCategory );
+			AddTargetScheme( propertiesData, "navy:trainingGapType", allConceptSchemes, Factories.ConceptSchemeManager.ConceptScheme_TrainingGapCategory );
 
 			return propertiesData;
 		}
@@ -390,7 +390,7 @@ namespace Services
 			AppendLookupValue( result, "navy:developmentSpecificationType", source.DevelopmentSpecificationType, Factories.ConceptManager.GetByRowId );
 			AppendLookupValue( result, "navy:candidatePlatformType", source.CandidatePlatformType, Factories.ConceptManager.GetMultiple );
 			AppendLookupValue( result, "navy:developmentRatioType", source.DevelopmentRatioType, Factories.ConceptManager.GetByRowId );
-			AppendLookupValue( result, "navy:cfmPlacementType", source.CFMPlacementType, Factories.ConceptManager.GetByRowId );
+			AppendLookupValue( result, "navy:cfmPlacementType", source.CFMPlacementType, Factories.ConceptManager.GetMultiple );
 
 			return result;
 		}

@@ -10,8 +10,8 @@
 
 @Html.Partial( "~/Views/Shared/_AJAXTools.cshtml" )
 @Html.Partial( "~/Views/Shared/_FormHelperV2.cshtml", new EditFormHelperV2( Model, new JObject() {
-	{ Factories.ConceptSchemeManager.ConceptScheme_CourseType, JArray.FromObject( Factories.ConceptManager.GetAllConceptsForScheme( Factories.ConceptSchemeManager.ConceptScheme_CourseType ).Select( m => SimpleItemHelper.GetSimpleItem( m ) ).OrderBy( m => m.Name ).ToList() ) },
-	{ Factories.ConceptSchemeManager.ConceptScheme_LifeCycleControlDocument, JArray.FromObject( Factories.ConceptManager.GetAllConceptsForScheme( Factories.ConceptSchemeManager.ConceptScheme_LifeCycleControlDocument ).Select( m => SimpleItemHelper.GetSimpleItem( m ) ).OrderBy( m => m.Name ).ToList() ) }
+	{ Factories.ConceptSchemeManager.ConceptScheme_CourseCategory, JArray.FromObject( Factories.ConceptManager.GetAllConceptsForScheme( Factories.ConceptSchemeManager.ConceptScheme_CourseCategory ).Select( m => SimpleItemHelper.GetSimpleItem( m ) ).OrderBy( m => m.Name ).ToList() ) },
+	{ Factories.ConceptSchemeManager.ConceptScheme_LifeCycleControlDocumentCategory, JArray.FromObject( Factories.ConceptManager.GetAllConceptsForScheme( Factories.ConceptSchemeManager.ConceptScheme_LifeCycleControlDocumentCategory ).Select( m => SimpleItemHelper.GetSimpleItem( m ) ).OrderBy( m => m.Name ).ToList() ) }
 } ) )
 
 <h2>@title</h2>
@@ -20,7 +20,7 @@
 <div class="field" data-fieldtype="SystemIdentifiers"></div>
 <div class="field" data-fieldtype="Text" data-property="Name" data-label="Name"></div>
 <div class="field" data-fieldtype="Text" data-property="CodedNotation" data-label="Course Code"></div>
-<div class="field" data-fieldtype="Select" data-property="LifeCycleControlDocumentType" data-label="Life Cycle Control Document Type" data-sourceuri="@Factories.ConceptSchemeManager.ConceptScheme_LifeCycleControlDocument"></div>
+<div class="field" data-fieldtype="Select" data-property="LifeCycleControlDocumentType" data-label="Life Cycle Control Document Type" data-sourceuri="@Factories.ConceptSchemeManager.ConceptScheme_LifeCycleControlDocumentCategory"></div>
 <div class="field" data-fieldtype="SuggestionSingle" data-property="CurriculumControlAuthority" data-label="Curriculum Control Authority" data-searchtype="@nameof(Organization)"></div>
-<div class="field" data-fieldtype="CheckBoxList" data-property="CourseType" data-label="Course Type" data-sourceuri="@Factories.ConceptSchemeManager.ConceptScheme_CourseType"></div>
+<div class="field" data-fieldtype="CheckBoxList" data-property="CourseType" data-label="Course Type" data-sourceuri="@Factories.ConceptSchemeManager.ConceptScheme_CourseCategory"></div>
 <div class="field" data-fieldtype="SaveButton"></div>

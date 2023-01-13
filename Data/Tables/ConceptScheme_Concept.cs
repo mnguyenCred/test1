@@ -26,12 +26,12 @@ namespace Data.Tables
             this.RatingContext2 = new HashSet<RatingContext>();
             this.ReferenceResource_ReferenceType = new HashSet<ReferenceResource_ReferenceType>();
             this.RatingContext11 = new HashSet<RatingContext>();
-            this.ClusterAnalysis = new HashSet<ClusterAnalysis>();
             this.ClusterAnalysis1 = new HashSet<ClusterAnalysis>();
             this.ClusterAnalysis2 = new HashSet<ClusterAnalysis>();
             this.ClusterAnalysis3 = new HashSet<ClusterAnalysis>();
             this.ClusterAnalysis4 = new HashSet<ClusterAnalysis>();
             this.RatingTask = new HashSet<RatingTask>();
+            this.ClusterAnalysis_CFMPlacementType = new HashSet<ClusterAnalysis_CFMPlacementType>();
         }
     
         public int Id { get; set; }
@@ -71,8 +71,6 @@ namespace Data.Tables
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<RatingContext> RatingContext11 { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<ClusterAnalysis> ClusterAnalysis { get; set; }
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<ClusterAnalysis> ClusterAnalysis1 { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<ClusterAnalysis> ClusterAnalysis2 { get; set; }
@@ -82,5 +80,7 @@ namespace Data.Tables
         public virtual ICollection<ClusterAnalysis> ClusterAnalysis4 { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<RatingTask> RatingTask { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<ClusterAnalysis_CFMPlacementType> ClusterAnalysis_CFMPlacementType { get; set; }
     }
 }

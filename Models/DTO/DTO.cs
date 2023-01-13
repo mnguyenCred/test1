@@ -94,6 +94,8 @@ namespace Models.DTO
 	public class NamedString : Utilities.NamedValue<string, string>
 	{
 		public NamedString( string key, string value ) : base( key, value ) { }
+
+		public string HeaderSectionLabel { get; set; }
 	}
 	//
 

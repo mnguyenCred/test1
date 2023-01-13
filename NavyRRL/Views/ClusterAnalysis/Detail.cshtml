@@ -17,7 +17,6 @@
 	}
 }
 
-@Html.Partial( "~/Views/Shared/_DetailShared.cshtml" )
 @Html.Partial( "~/Views/Shared/_DetailBasicInfo.cshtml", new DetailBasicInfoHelper( Model )
 {
 	TypeLabel = "Cluster Analysis",
@@ -34,7 +33,7 @@
 		new NamedString( "Recommended Modality Type", GetConceptLink( Model.RecommendedModalityType ) ),
 		new NamedString( "Development Specification Type", GetConceptLink( Model.DevelopmentSpecificationType ) ),
 		new NamedString( "Candidate Platform Type(s)", GetConceptLinkList( Model.CandidatePlatformType ) ),
-		new NamedString( "CFM Placement Type", GetConceptLink( Model.CFMPlacementType ) ),
+		new NamedString( "CFM Placement Type", GetConceptLinkList( Model.CFMPlacementType ) ),
 		new NamedString( "Development Ratio", Model.DevelopmentRatio ),
 		new NamedString( "Estimated Instructional Time", Model.EstimatedInstructionalTime.ToString() ),
 		new NamedString( "Development Time", Model.DevelopmentTime.ToString() ),
