@@ -37,6 +37,11 @@
 	public string GetBroadMatchSets( ConceptScheme itemScheme, ConceptScheme broadMatchScheme, Func<Concept, List<string>> GetItemValues, Func<Concept, List<string>> GetBroadMatchValues )
 	{
 		var results = new List<BroadMatchItem>();
+		if( itemScheme == null )
+		{
+			return "[]";
+		}
+
 		foreach( var concept in itemScheme.Concepts )
 		{
 			var broadMatch = broadMatchScheme.Concepts.FirstOrDefault( m => m.RowId == concept.BroadMatch );
