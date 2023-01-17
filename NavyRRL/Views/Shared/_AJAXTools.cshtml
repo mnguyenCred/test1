@@ -27,33 +27,48 @@
 		//Enable queueing requests so as not to overload the server
 		var Request = {};
 		Request.Status = "waiting";
+		Request.URL = url;
 		Request.run = function () {
-			fetch(url, options).then(response => {
-				response.text().then(value => {
+			fetch(url, options)
+				.then(response => {
 					if (response.ok) {
-						try {
-							onSuccess(JSON.parse(value));
-						}
-						catch (e) {
-							onError?.(buildError("JSON Parse Error", "Error parsing JSON", value, onSuccess, e));
-						}
+						return response.text();
 					}
 					else {
-						onError?.(buildError("Fetch Error", "Error Code " + response.status + (response.statusText ? ": " + response.statusText : ""), value, onSuccess, null));
+						handleError(Request, onError, "Fetch Response Error", url, "Response Error Type 1. Error Code " + response.status + (response.statusText ? ": " + response.statusText : ""), response, onSuccess, null);
+						processRequestQueue(Request);
 					}
+				}, responseError => {
+					handleError(Request, onError, "Fetch Response Error", url, "Response Error Type 2. Error Code " + response.status + (response.statusText ? ": " + response.statusText : ""), responseError, onSuccess, null);
+					processRequestQueue(Request);
+				})
+				.then(text => {
+					try {
+						onSuccess(JSON.parse(text));
+						processRequestQueue(Request);
+					}
+					catch (e) {
+						handleError(Request, onError, "JSON Parsing Error", url, "Error parsing JSON", value, onSuccess, e);
+						processRequestQueue(Request);
+					}
+				}, textError => {
+					handleError(Request, onError, "Fetch Parsing Error", url, "Error paring response text. Error Code " + response.status + (response.statusText ? ": " + response.statusText : ""), textError, onSuccess, null);
+					processRequestQueue(Request);
+				})
+				.catch(networkError => {
+					handleError(Request, onError, "Network Error", url, "Failed while calling resource: " + url, null, onSuccess, networkError);
 					processRequestQueue(Request);
 				});
-			}).catch(networkError => {
-				onError?.(buildError("Network Error", "Failed to call resource: " + url, null, onSuccess, networkError));
-				processRequestQueue();
-			});
 		};
 		AJAX.RequestQueue.push(Request);
 		processRequestQueue();
 
 		//Helper function
-		function buildError(type, message, rawData, successFunction, jsError) {
-			return { Type: type, Message: message, RawData: rawData, SuccessFunction: successFunction, JSError: jsError };
+		function handleError(Request, onError, type, url, message, rawData, successFunction, jsError) {
+			var error = { Request: Request, Type: type, URL: url, Message: message, RawData: rawData, SuccessFunction: successFunction, JSError: jsError };
+			console.log("AJAX Error", error);
+			onError?.(error);
+			return error;
 		}
 
 		//Helper function
@@ -70,6 +85,15 @@
 				}
 			}, 0);
 		}
+	}
+	//
+
+	AJAX.cancelWaitingRequests = function () {
+		AJAX.RequestQueue.filter(Request => Request.Status == "waiting").forEach(Request => {
+			console.log("Cancelling Request", Request);
+			AJAX.Cache = AJAX.Cache.filter(item => item.URL != Request.URL);
+			AJAX.RequestQueue = AJAX.RequestQueue.filter(OtherRequest => OtherRequest != Request);
+		});
 	}
 	//
 
@@ -98,8 +122,8 @@
 			AJAX.doGETRequest(url, response => {
 				Request.Data = response.Data;
 				processHandlers(Request, Request.Data, Request.SuccessHandlers);
-			}, Error => {
-				Request.Error = Error;
+			}, error => {
+				Request.Error = error;
 				processHandlers(Request, Request.Error, Request.ErrorHandlers);
 			});
 		}
