@@ -153,42 +153,5 @@ namespace Models.Schema
 		/// </summary>
 		public int WorkRoleId { get; set; }
 
-		//Obsolete properties
-		//or for display purposes
-
-		/// <summary>
-		/// Obsolete: Use Cluster Analysis Title (the class) to provide this<br />
-		/// MP - still need something to reference for messages/issues other than a Guid
-		/// </summary>
-		[Obsolete]
-        public string ClusterAnalysisTitle { get; set; }
-
-		/// <summary>
-		/// Used from view<br />
-		/// Obsolete: Use TrainingSolutionType/TrainingSolutionTypeId instead
-		/// </summary>
-		[Obsolete]
-        public string TrainingSolution { get; set; }
-
-        /// <summary>
-        /// Used from view<br />
-		/// Obsolete: Use RecommendedModalityType/RecommendedModalityTypeId instead
-        /// </summary>
-		[Obsolete]
-        public string RecommendedModality { get; set; }
-
-		/// <summary>
-		/// Used from view<br />
-		/// Obsolete: Use DevelopmentSpecificationType/DevelopmentSpecificationTypeId instead
-		/// </summary>
-		[Obsolete]
-		public string DevelopmentSpecification { get; set; }
-
-		/// <summary>
-		/// Obsolete: Use DevelopmentRatioType/DevelopmentRatioTypeId instead
-		/// </summary>
-		[Obsolete]
-		public string DevelopmentRatio { get; set; }
-
 	}
 }

@@ -30,7 +30,7 @@ namespace Models.Schema
 		/// <summary>
 		/// List of GUIDs for the Organiation(s) that are Curriculum Control Authorities for this Course<br />
 		/// From Column: Curriculum Control Authority (CCA)
-		/// 22-01-24 Navy has confirmed that this should be single. We are leaving as a list for current processing, but will be saved as a single. 
+		/// 22-01-24 Navy has confirmed that this should be single.
 		/// </summary>
 		public Guid CurriculumControlAuthority { get; set; }
 		public int CurriculumControlAuthorityId { get; set; }
@@ -53,21 +53,6 @@ namespace Models.Schema
 		/// From Column: Course Type (A/C/G/F/T)
 		/// </summary>
 		public List<int> CourseTypeId { get; set; }
-
-		/// <summary>
-		/// List of GUIDs for the Training Tasks for this Course<br />
-		/// From Column: CTTL/PPP/TCCD Statement<br />
-		/// Obsolete: Use CourseContext.HasTrainingTask instead
-		/// </summary>
-		[Obsolete]
-		public List<Guid> HasTrainingTask { get; set; }
-
-		/// <summary>
-		/// Embedded Training Task data for this Course<br />
-		/// Obsolete: Use CourseContext.HasTrainingTask instead
-		/// </summary>
-		[Obsolete]
-		public List<TrainingTask> TrainingTasks { get; set; } = new List<TrainingTask>();
 
 	}
 	//

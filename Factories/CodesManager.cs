@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 
 namespace Factories
 {
+	//Should probably use web.config instead?
     public class CodesManager
     {
 

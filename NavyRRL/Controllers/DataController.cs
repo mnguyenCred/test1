@@ -80,56 +80,5 @@ namespace NavyRRL.Controllers
         }
 
 
-        #region  Functional Area
-        [CustomAttributes.NavyAuthorize( "ManageFunctionalArea", Roles = "Administrator, Site Staff" )]
-        public ActionResult ManageFunctionalArea()
-        {
-            List<WorkRole> input = RatingTaskServices.GetAllFunctionalAreas();
-            return View( input );
-        }
-
-        
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public JsonResult SaveFunctionalArea( int recordId, string name )
-        {
-            //long _id = 0;
-            //if ( !string.IsNullOrEmpty( recordId ) && !string.IsNullOrEmpty( name ) )
-            //{
-            //    long.TryParse( custId, out _CustId );
-            //}
-            ChangeSummary status = new ChangeSummary();
-            WorkRole workRole = new WorkRole()
-            {
-                Id = recordId,
-                Name = name
-            };
-            var result = new RatingTaskServices().SaveFunctionalArea( workRole, ref status );
-
-            return Json( new { status = "Success" } );
-            //versus
-            //return JsonHelper.GetJsonWithWrapper( data, valid, status, null );
-        }
-        [HttpPost]
-        public ActionResult SaveFunctionalArea2( WorkRole input )
-        {
-            bool valid = true;
-            string returnStatus = "";
-            ChangeSummary status = new ChangeSummary();
-            var result = new RatingTaskServices().SaveFunctionalArea( input, ref status );
-            if (status.HasAnyErrors )
-            {
-                returnStatus = String.Join( "; ", status.Messages.Error.ToArray() );
-            }
-            return JsonResponse( null, valid, new List<string>() { returnStatus }, null );
-        }
-        public ActionResult DeleteFunctionalArea( string recordId )
-        {
-            List<WorkRole> input = RatingTaskServices.GetAllFunctionalAreas();
-            return View( input );
-        }
-
-
-        #endregion
     }
 }

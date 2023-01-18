@@ -53,7 +53,7 @@
 		new NamedString( "Development Specification Type", clusterAnalysisData == null ? null : GetConceptLink( clusterAnalysisData.DevelopmentSpecificationType ) ),
 		new NamedString( "Candidate Platform Type(s)", clusterAnalysisData == null ? null : GetConceptLinkList( clusterAnalysisData.CandidatePlatformType ) ),
 		new NamedString( "CFM Placement Type", clusterAnalysisData == null ? null : GetConceptLinkList( clusterAnalysisData.CFMPlacementType ) ),
-		new NamedString( "Development Ratio", clusterAnalysisData == null ? null : clusterAnalysisData.DevelopmentRatio ),
+		new NamedString( "Development Ratio", clusterAnalysisData == null ? null : GetConceptLink( clusterAnalysisData.DevelopmentRatioType ) ),
 		new NamedString( "Estimated Instructional Time", clusterAnalysisData == null ? null : clusterAnalysisData.EstimatedInstructionalTime.ToString() ),
 		new NamedString( "Development Time", clusterAnalysisData == null ? null : clusterAnalysisData.DevelopmentTime.ToString() ),
 		new NamedString( "Priority Placement", clusterAnalysisData == null ? null : clusterAnalysisData.PriorityPlacement.ToString() )

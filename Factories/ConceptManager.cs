@@ -42,247 +42,8 @@ namespace Factories
 		}
 		//
 
-		/*
-		//need alternate to handle workElementType
-		public int Save( int conceptSchemeId, string conceptName, ref ChangeSummary status )
-		{
-			//check if exists
-			var concept = GetConceptFromScheme( conceptSchemeId, conceptName );
-			if ( concept?.Id > 0 )
-				return concept.Id;
-			//
-			concept = new AppEntity()
-			{
-				ConceptSchemeId = conceptSchemeId,
-				Name = conceptName,
-				CodedNotation = conceptName
-			};
-			if ( Save( concept, ref status ) )
-			{
-				return concept.Id;
-			}
-			else
-			{
-				//caller needs to handle errors
-				return 0;
-			}
-
-		}
-		public bool Save( AppEntity entity, ref ChangeSummary status )
-		{
-			//must include conceptSchemeId
-			//check inscheme
-			if ( IsValidGuid( entity.InScheme ) ) //Editor uses GUID field, so check this first
-			{
-				var cs = GetByRowId( entity.InScheme );
-				entity.ConceptSchemeId = cs.Id;
-			}
-			else if ( entity.ConceptSchemeId > 0 )
-			{
-				//Do nothing
-			}
-			else
-			{
-				status.AddError( "Error - A concept scheme Id or InScheme GUID must be provided with the Concept, and is missing. Please select an entry from the 'Belongs To Concept Scheme ' dropdown list." );
-				return false;
-			}
-
-			bool isValid = true;
-			int count = 0;
-			//check if exists
-			var concept = GetConceptFromScheme( entity.ConceptSchemeId, entity.Name );
-			if ( concept?.Id > 0 )
-			{
-				//or set and fall thru - not clear if any updates at this time! Might depend on type
-				entity.Id = concept.Id;
-				//return true;    
-			}
-
-			try
-			{
-				using ( var context = new DataEntities() )
-				{
-					//look up if no id
-					if ( entity.Id == 0 )
-					{
-						//add
-						int newId = AddConcept( entity, ref status );
-						if ( newId == 0 || status.HasSectionErrors )
-							isValid = false;
-						else
-							entity.Id = newId;
-						return isValid;
-
-					}
-					//update
-					//TODO - consider if necessary, or interferes with anything
-					//      - don't really want to include all training tasks
-					context.Configuration.LazyLoadingEnabled = false;
-					var efEntity = context.ConceptScheme_Concept
-							.SingleOrDefault( s => s.Id == entity.Id );
-
-					if ( efEntity != null && efEntity.Id > 0 )
-					{
-						//fill in fields that may not be in entity
-						entity.RowId = efEntity.RowId;
-						entity.Created = efEntity.Created;
-						entity.CreatedById = ( efEntity.CreatedById ?? 0 );
-						entity.Id = efEntity.Id;
-
-						MapToDB( entity, efEntity );
-
-						if ( HasStateChanged( context ) )
-						{
-							efEntity.LastUpdated = DateTime.Now;
-							efEntity.LastUpdatedById = entity.LastUpdatedById;
-							count = context.SaveChanges();
-							//can be zero if no data changed
-							if ( count >= 0 )
-							{
-								entity.LastUpdated = ( DateTime ) efEntity.LastUpdated;
-								isValid = true;
-								SiteActivity sa = new SiteActivity()
-								{
-									ActivityType = "ConceptScheme",
-									Activity = status.Action,
-									Event = "Update",
-									Comment = string.Format( "ConceptScheme was updated. Name: {0}", entity.Name ),
-									ActionByUserId = entity.LastUpdatedById,
-									ActivityObjectId = entity.Id
-								};
-								new ActivityManager().SiteActivityAdd( sa );
-							}
-							else
-							{
-								//?no info on error
-
-								isValid = false;
-								string message = string.Format( thisClassName + ".Save Failed", "Attempted to update a Course. The process appeared to not work, but was not an exception, so we have no message, or no clue. Course: {0}, Id: {1}", entity.Name, entity.Id );
-								status.AddError( "Error - the update was not successful. " + message );
-								EmailManager.NotifyAdmin( thisClassName + ".Save Failed Failed", message );
-							}
-
-						}
-
-
-					}
-					else
-					{
-						status.AddError( "Error - update failed, as record was not found." );
-					}
-
-
-				}
-			}
-			catch ( System.Data.Entity.Validation.DbEntityValidationException dbex )
-			{
-				string message = HandleDBValidationError( dbex, thisClassName + string.Format( ".Save. id: {0}, Name: {1}", entity.Id, entity.Name ), "Course" );
-				status.AddError( thisClassName + ".Save(). Error - the save was not successful. " + message );
-			}
-			catch ( Exception ex )
-			{
-				string message = FormatExceptions( ex );
-				LoggingHelper.LogError( ex, thisClassName + string.Format( ".Save. id: {0}, Name: {1}", entity.Id, entity.Name ), true );
-				status.AddError( thisClassName + ".Save(). Error - the save was not successful. " + message );
-				isValid = false;
-			}
-
-
-			return isValid;
-		}
-		private int AddConcept( AppEntity entity, ref ChangeSummary status )
-		{
-			var efEntity = new Data.Tables.ConceptScheme_Concept();
-			status.HasSectionErrors = false;
-			int conceptId = 0;
-			//assume lookup has been done
-			using ( var context = new DataEntities() )
-			{
-				try
-				{
-					if ( entity.ConceptSchemeId == 0 )
-					{
-						status.AddError( "Error - A concept scheme Id must be provided with the Concept. Please select an entry from the 'Belongs To Concept Scheme ' dropdown list. " );
-						return 0;
-					}
-					efEntity.ConceptSchemeId = entity.ConceptSchemeId;
-					//require caller to set the codedNotation as needed
-					MapToDB( entity, efEntity );
-					efEntity.RowId = Guid.NewGuid();
-					efEntity.CTID = "ce-" + efEntity.RowId.ToString().ToLower();
-					efEntity.Created = efEntity.LastUpdated = DateTime.Now;
-					efEntity.CreatedById = efEntity.LastUpdatedById = entity.LastUpdatedById;
-
-					context.ConceptScheme_Concept.Add( efEntity );
-
-					// submit the change to database
-					int count = context.SaveChanges();
-					if ( count > 0 )
-					{
-						//
-						//add log entry
-						SiteActivity sa = new SiteActivity()
-						{
-							ActivityType = "ConceptScheme",
-							Activity = status.Action,
-							Event = "Add Concept",
-							Comment = string.Format( "Concept was added. Name: {0}", entity.Name ),
-							ActionByUserId = entity.LastUpdatedById,
-							ActivityObjectId = entity.Id
-						};
-						new ActivityManager().SiteActivityAdd( sa );
-
-
-						return efEntity.Id;
-					}
-					else
-					{
-						//?no info on error
-
-						string message = thisClassName + string.Format( ". Add Failed", "Attempted to add a Course. The process appeared to not work, but was not an exception, so we have no message, or no clue. Course: {0}, ctid: {1}", entity.Name, entity.CTID );
-						status.AddError( thisClassName + ". Error - the add was not successful. " + message );
-						EmailManager.NotifyAdmin( thisClassName + ". Add Failed", message );
-					}
-				}
-				catch ( System.Data.Entity.Validation.DbEntityValidationException dbex )
-				{
-					string message = HandleDBValidationError( dbex, thisClassName + ".Add() ", "Course" );
-					status.AddError( thisClassName + ".Add(). Error - the save was not successful. " + message );
-
-					LoggingHelper.LogError( message, true );
-				}
-				catch ( Exception ex )
-				{
-					string message = FormatExceptions( ex );
-					LoggingHelper.LogError( ex, thisClassName + string.Format( ".Add(), Name: {0}, CTID: {1}", efEntity.Name, efEntity.CTID ) );
-					status.AddError( thisClassName + ".Add(). Error - the save was not successful. \r\n" + message );
-				}
-			}
-			return 0;
-		}
-		//
-		*/
-
-		public static void MapToDB( AppEntity input, ConceptScheme_Concept output )
-		{
-			//watch for missing properties like rowId
-			List<string> errors = new List<string>();
-			BaseFactory.AutoMap( input, output, errors );
-			//
-		}
-		//
-
 		public static DeleteResult DeleteById( int id )
 		{
-			/*
-			//Check for references from rating context objects
-			var thingsUsingThisConcept = RatingContextManager.Search( new SearchQuery() { Skip = 0, Take = 0, Filters = new List<SearchFilter>() { new SearchFilter() { Name = "search:AllConceptPaths", ItemIds = new List<int>() { id } } } } );
-			if( thingsUsingThisConcept.TotalResults > 0 )
-			{
-				return new DeleteResult( false, "This Concept is in use by " + thingsUsingThisConcept.TotalResults + " Rating Context objects, so it cannot be deleted." );
-			}
-			*/
-
 			return BasicDeleteCore( "Concept", context => context.ConceptScheme_Concept, id, "search:AllConceptPaths", ( context, list, target ) =>
 			{
 				//Check for references from other concepts
@@ -302,48 +63,13 @@ namespace Factories
 		#region Retrieval
 		public static List<AppEntity> GetAll( bool onlyActiveConcepts = true )
 		{
-			var result = new List<AppEntity>();
-
-			using ( var context = new DataEntities() )
-			{
-				var matches = context.ConceptScheme_Concept.AsQueryable();
-
-				if ( onlyActiveConcepts )
-				{
-					matches = matches.Where( m => m.IsActive );
-				}
-
-				foreach ( var match in matches.ToList() )
-				{
-					result.Add( MapFromDB( match, context ) );
-				}
-			}
-
-			return result;
+			return GetItemList( context => context.ConceptScheme_Concept.Where( m => m.IsActive || !onlyActiveConcepts ).OrderBy( m => m.Name ), MapFromDB, false );
 		}
 		//
 
 		public static List<AppEntity> GetAllConceptsForScheme( string schemaURI, bool onlyActiveConcepts = true )
 		{
-			var result = new List<AppEntity>();
-
-			using ( var context = new DataEntities() )
-			{
-				var matches = context.ConceptScheme_Concept.Where( m => m.ConceptScheme.SchemaUri == schemaURI );
-
-				if ( onlyActiveConcepts )
-				{
-					matches = matches.Where( m => m.IsActive );
-				}
-				var dbConcepts = matches.ToList();
-
-				foreach ( var dbConcept in dbConcepts )
-				{
-					result.Add( MapFromDB( dbConcept, context ) );
-				}
-			}
-
-			return result;
+			return GetMultipleByFilter( context => context.ConceptScheme_Concept, m => ( m.ConceptScheme.SchemaUri == schemaURI) && ( m.IsActive || !onlyActiveConcepts ), m => m.CodedNotation, false, MapFromDB, false );
 		}
 		//
 
@@ -430,6 +156,8 @@ namespace Factories
 			//Return sorted results
 			return sorted;
 		}
+		//
+
 		private static IOrderedEnumerable<DBEntity> SortConceptsByScheme( IOrderedEnumerable<DBEntity> sorted, List<SortOrderItem> sortOrder, Type columnType, Func<DBEntity, object> ColumnTraversalMethod, Func<DBEntity, object> DefaultAlphaSortTraversalMethod, Func<DBEntity, object> IdTraversalMethod )
 		{
 			//For each SortItem...
@@ -467,43 +195,7 @@ namespace Factories
 
 		public static List<AppEntity> GetMultiple( List<Guid> guids )
 		{
-			return GetMultipleByFilter<DBEntity, AppEntity, string>( context => context.ConceptScheme_Concept, m => guids.Contains( m.RowId ), m => m.Description, false, MapFromDB, false );
-		}
-		//
-
-		/// <summary>
-		/// Get a concept using the ConceptSchemaURI and concept Name or concept coded notation
-		/// </summary>
-		/// <param name="conceptSchemeUri"></param>
-		/// <param name="concept"></param>
-		/// <returns></returns>
-		public static AppEntity GetConceptFromScheme( string conceptSchemeUri, string concept, bool returnNullIfNotFound = false )
-		{
-			return GetSingleByFilter( m =>
-				m.ConceptScheme.SchemaUri.ToLower() == conceptSchemeUri.ToLower() &&
-				(
-					m.Name.ToLower() == concept.ToLower() ||
-					m.CodedNotation.ToLower() == concept.ToLower()
-				), returnNullIfNotFound
-			);
-		}
-		//
-
-		/// <summary>
-		/// Get a concept using the ConceptScheme Id and concept Name or concept coded notation
-		/// </summary>
-		/// <param name="conceptSchemeId"></param>
-		/// <param name="concept"></param>
-		/// <returns></returns>
-		public static AppEntity GetConceptFromScheme( int conceptSchemeId, string concept, bool returnNullIfNotFound = false )
-		{
-			return GetSingleByFilter( m => 
-				m.ConceptScheme.Id == conceptSchemeId &&
-				(
-					m.Name.ToLower() == concept.ToLower() ||
-					m.CodedNotation.ToLower() == concept.ToLower()
-				), returnNullIfNotFound 
-			);
+			return GetMultipleByFilter( context => context.ConceptScheme_Concept, m => guids.Contains( m.RowId ), m => m.Description, false, MapFromDB, false );
 		}
 		//
 

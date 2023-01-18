@@ -58,119 +58,7 @@ namespace Factories
 		}
 		//
 
-
-		//unlikely
-		public bool Save( AppEntity entity, ref ChangeSummary status )
-        {
-            bool isValid = true;
-            int count = 0;
-
-            try
-            {
-                using ( var context = new DataEntities() )
-                {
-                    //look up if no id
-                    if ( entity.Id == 0 )
-                    {
-                        //add
-                        int newId = Add( entity, ref status );
-                        if ( newId == 0 || status.HasSectionErrors )
-                            isValid = false;
-
-                        return isValid;
-
-                    }
-                    //update
-                    //TODO - consider if necessary, or interferes with anything
-                    //      - don't really want to include all training tasks
-                    context.Configuration.LazyLoadingEnabled = false;
-                    var efEntity = context.ConceptScheme
-                            .SingleOrDefault( s => s.Id == entity.Id );
-
-                    if ( efEntity != null && efEntity.Id > 0 )
-                    {
-                        //fill in fields that may not be in entity
-                        entity.RowId = efEntity.RowId;
-                        entity.Created = efEntity.Created;
-                        entity.CreatedById = efEntity.CreatedById ?? 0;
-                        entity.Id = efEntity.Id;
-
-                        MapToDB( entity, efEntity );
-
-                        if ( HasStateChanged( context ) )
-                        {
-                            efEntity.LastUpdated = DateTime.Now;
-                            efEntity.LastUpdatedById = entity.LastUpdatedById;
-                            count = context.SaveChanges();
-                            //can be zero if no data changed
-                            if ( count >= 0 )
-                            {
-                                entity.LastUpdated = ( DateTime ) efEntity.LastUpdated;
-                                isValid = true;
-                                SiteActivity sa = new SiteActivity()
-                                {
-                                    ActivityType = "ConceptScheme",
-                                    Activity = status.Action,
-                                    Event = "Update",
-                                    Comment = string.Format( "ConceptScheme was updated. Name: {0}", entity.Name ),
-                                    ActionByUserId = entity.LastUpdatedById,
-                                    ActivityObjectId = entity.Id
-                                };
-                                new ActivityManager().SiteActivityAdd( sa );
-                            }
-                            else
-                            {
-                                //?no info on error
-
-                                isValid = false;
-                                string message = string.Format( thisClassName + ".Save Failed", "Attempted to update a Course. The process appeared to not work, but was not an exception, so we have no message, or no clue. Course: {0}, Id: {1}", entity.Name, entity.Id );
-                                status.AddError( "Error - the update was not successful. " + message );
-                                EmailManager.NotifyAdmin( thisClassName + ".Save Failed Failed", message );
-                            }
-
-                        }
-
-            
-                    }
-                    else
-                    {
-                        status.AddError( "Error - update failed, as record was not found." );
-                    }
-
-
-                }
-            }
-            catch ( Exception ex )
-            {
-                string message = FormatExceptions( ex );
-                LoggingHelper.LogError( ex, thisClassName + string.Format( ".Save. id: {0}, Name: {1}", entity.Id, entity.Name ), true );
-                status.AddError( thisClassName + ".Save(). Error - the save was not successful. " + message );
-                isValid = false;
-            }
-
-
-            return isValid;
-        }
-        //placeholder, as can't (yet) add a new concept scheme
-        private int Add( AppEntity entity, ref ChangeSummary status )
-        {
-            var efEntity = new Data.Tables.ConceptScheme_Concept();
-           
-            return 0;
-        }
         #endregion
-
-
-		public static AppEntity GetByIdentifier( string identifier, bool returnNullIfEmpty = false )
-		{
-			return GetByIdentifier<DBEntity, AppEntity>( identifier, context => context.ConceptScheme, list => { 
-				return list.FirstOrDefault( 
-					item => item.Name.ToLower() == identifier.ToLower() || 
-					item.SchemaUri.ToLower() == identifier.ToLower() 
-				); 
-			}, MapFromDB, returnNullIfEmpty );
-		}
-		//
 
 		public static AppEntity GetSingleByFilter( Func<DBEntity, bool> FilterMethod, bool returnNullIfNotFound = false )
 		{
@@ -215,7 +103,13 @@ namespace Factories
 
 		public static List<AppEntity> GetAll( bool includeConcepts = true )
 		{
-			return GetItemList<DBEntity, AppEntity>( m => m.ConceptScheme.Where( n => n.SchemaUri != null ), MapFromDB );
+			return GetItemList( m => m.ConceptScheme.Where( n => n.SchemaUri != null ), MapFromDB );
+		}
+		//
+
+		public static List<AppEntity> GetMultiple( List<Guid> guids )
+		{
+			return GetMultipleByFilter( context => context.ConceptScheme, m => guids.Contains( m.RowId ), m => m.Name, false, MapFromDB, false );
 		}
 		//
 
@@ -250,27 +144,6 @@ namespace Factories
 			};
 
 			return result;
-		}
-		//
-
-		public static List<AppEntity> GetMultiple( List<Guid> guids )
-		{
-			var results = new List<AppEntity>();
-
-			using ( var context = new DataEntities() )
-			{
-				var items = context.ConceptScheme
-					.Where( m => guids.Contains( m.RowId ) )
-					.OrderBy( m => m.Description )
-					.ToList();
-
-				foreach ( var item in items )
-				{
-					results.Add( MapFromDB( item, context ) );
-				}
-			}
-
-			return results;
 		}
 		//
 
@@ -311,15 +184,6 @@ namespace Factories
 			}
 
 			return output;
-        }
-		//
-
-        public static void MapToDB( AppEntity input, DBEntity output )
-        {
-            //watch for missing properties like rowId
-            List<string> errors = new List<string>();
-            BaseFactory.AutoMap( input, output, errors );
-            //
         }
 		//
 

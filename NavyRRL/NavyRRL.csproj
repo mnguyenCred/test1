@@ -577,13 +577,11 @@
     <Content Include="Scripts\popper.js.map" />
     <Content Include="Scripts\popper-utils.min.js.map" />
     <Content Include="Scripts\popper-utils.js.map" />
-    <Content Include="Views\RMTL\ImportSummary.cshtml" />
     <Content Include="Views\Home\PageNotFound.cshtml" />
     <Content Include="Views\Upload\ImportSummary.cshtml" />
     <Content Include="Views\Shared\_ConsoleMessage.cshtml" />
     <Content Include="Views\Account\RegisterConfirmation.cshtml" />
     <Content Include="Views\Account\AddUser.cshtml" />
-    <Content Include="Views\RMTL\Catalog.cshtml" />
     <Content Include="Views\Admin\Activity.cshtml" />
     <Content Include="Views\Admin\Index.cshtml" />
     <Content Include="Views\Admin\Accounts.cshtml" />
@@ -597,14 +595,12 @@
     <Content Include="Views\Data\ManageCCA.cshtml" />
     <Content Include="Views\Data\ManageCourses.cshtml" />
     <Content Include="Views\Data\ManageConceptSchemes.cshtml" />
-    <Content Include="Views\Data\ManageFunctionalArea.cshtml" />
     <Content Include="Views\Shared\_FormHelperV1.cshtml" />
     <Content Include="Views\Admin\FormHelperV1Demo.cshtml" />
     <Content Include="Views\Rating\Detail.cshtml" />
     <Content Include="Views\Rating\Edit.cshtml" />
     <Content Include="Views\RatingTask\Detail.cshtml" />
     <Content Include="Views\RatingTask\Edit.cshtml" />
-    <Content Include="Views\RMTL\RMTLSearchV2.cshtml" />
     <Content Include="Views\Search\GeneralSearchV1.cshtml" />
     <Content Include="Views\Search\_SearchCoreV1.cshtml" />
     <Content Include="Views\BilletTitle\Detail.cshtml" />
@@ -625,7 +621,6 @@
     <Content Include="Views\ConceptScheme\Detail.cshtml" />
     <Content Include="Views\ConceptScheme\Edit.cshtml" />
     <Content Include="Views\Shared\_DetailBasicInfo.cshtml" />
-    <Content Include="Views\Upload\UploadV3.cshtml" />
     <Content Include="Views\ClusterAnalysis\Detail.cshtml" />
     <Content Include="Views\ClusterAnalysis\Edit.cshtml" />
     <Content Include="Views\Shared\_RatingTaskCountBySourceTypeTable.cshtml" />

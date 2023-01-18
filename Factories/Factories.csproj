@@ -80,7 +80,6 @@
     <Compile Include="RatingContextManager.cs" />
     <Compile Include="RMTLProjectManager.cs" />
     <Compile Include="WorkRoleManager.cs" />
-    <Compile Include="ImportManager.cs" />
     <Compile Include="OrganizationManager.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RatingManager.cs" />

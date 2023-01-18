@@ -1,11 +1,12 @@
 ﻿@using Services;
+@using Factories;
 @using Newtonsoft.Json;
 @using Models.Schema;
 @using Models.Curation;
 @using Models.DTO;
 @{
 	ViewBag.Title = "Upload V4";
-	var allRatings = RatingServices.GetAll().OrderByDescending( m => m.CodedNotation.ToLower() == "all" ).ToList();
+	var allRatings = RatingManager.GetAll().OrderByDescending( m => m.CodedNotation.ToLower() == "all" ).ToList();
 	ConceptSchemeMap = Factories.ConceptSchemeManager.GetConceptSchemeMap( true );
 	var allOrganizations = Factories.OrganizationManager.GetAll();
 	var allValidOrganizationValues = allOrganizations.Select( org => org.Name ) //Look for name

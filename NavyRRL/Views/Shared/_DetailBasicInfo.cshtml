@@ -87,7 +87,7 @@
 	.propertyList {  }
 	.propertyList .property { display: flex; align-items: baseline; gap: 20px; padding: 5px 10px; border-top: 1px solid #CCC; }
 	.propertyList .property:first-child { border-top: none; }
-	.propertyList .property .propertyLabel { text-align: right; width: 225px; font-weight: bold; }
+	.propertyList .property .propertyLabel { text-align: right; width: 250px; font-weight: bold; }
 	.propertyList .property :is(ul, ol) { padding: 0 15px; margin: 0; }
 	.propertyList h4:not(:first-child) { margin-top: 20px; }
 
@@ -117,6 +117,7 @@
 		<table>
 			<tbody>
 				@RenderRow( "System ID", Model.Id.ToString() )
+				@RenderRow( "System GUID", Model.RowId.ToString() )
 				@RenderRow( "CTID", Model.CTID )
 				@RenderRow( "Record Created", Model.Created )
 				@RenderRow( "Record Updated", Model.LastUpdated )

@@ -3,8 +3,8 @@
 @using Models.DTO;
 @model ClusterAnalysis
 @{
-	ViewBag.Title = "Cluster Analysis: " + Model.ClusterAnalysisTitle;
-	//var ratingTask = Factories.RatingTaskManager.GetByRowId( Model.HasRatingTask, false );
+	var clusterAnalysisTitle = Factories.ClusterAnalysisTitleManager.GetByRowId( Model.HasClusterAnalysisTitle, true );
+	ViewBag.Title = "Cluster Analysis: " + ( clusterAnalysisTitle?.Name ?? "Unknown Title" );
 }
 @functions {
 	string GetConceptLink( Guid conceptRowID )
@@ -23,9 +23,8 @@
 	Name = "Cluster Analysis",
 	PropertyList = new List<NamedString>()
 	{
-		new NamedString( "Cluster Analysis Title", LinkHelper.GetDetailPageLink( Factories.ClusterAnalysisTitleManager.GetByRowId(Model.HasClusterAnalysisTitle), Url.Content, m => m.Name ) ),
+		new NamedString( "Cluster Analysis Title", clusterAnalysisTitle == null ? null : LinkHelper.GetDetailPageLink( clusterAnalysisTitle, Url.Content, m => m.Name ) ),
 		new NamedString( "Rating", LinkHelper.GetDetailPageLink( Factories.RatingManager.GetByRowId( Model.HasRating ), Url.Content, m => m.Name + " (" + m.CodedNotation + ")" ) ),
-		//new NamedString( "Rating Task", ratingTask.Description + " " + LinkHelper.GetDetailPageLink( ratingTask, Url.Content, m => "(Details)" ) ),
 		new NamedString( "Rating Task", LinkHelper.GetDetailPageLink( Factories.RatingTaskManager.GetByRowId( Model.HasRatingTask, false ), Url.Content, m => m.Description ) ),
 		new NamedString( "Billet Title", LinkHelper.GetDetailPageLink( Factories.JobManager.GetByRowId( Model.HasBilletTitle, false ), Url.Content, m => m.Name ) ),
 		new NamedString( "Work Role", LinkHelper.GetDetailPageLink( Factories.WorkRoleManager.GetByRowId( Model.HasWorkRole, false ), Url.Content, m => m.Name ) ),
@@ -34,7 +33,7 @@
 		new NamedString( "Development Specification Type", GetConceptLink( Model.DevelopmentSpecificationType ) ),
 		new NamedString( "Candidate Platform Type(s)", GetConceptLinkList( Model.CandidatePlatformType ) ),
 		new NamedString( "CFM Placement Type", GetConceptLinkList( Model.CFMPlacementType ) ),
-		new NamedString( "Development Ratio", Model.DevelopmentRatio ),
+		new NamedString( "Development Ratio", GetConceptLink( Model.DevelopmentRatioType ) ),
 		new NamedString( "Estimated Instructional Time", Model.EstimatedInstructionalTime.ToString() ),
 		new NamedString( "Development Time", Model.DevelopmentTime.ToString() ),
 		new NamedString( "Priority Placement", Model.PriorityPlacement.ToString() ),

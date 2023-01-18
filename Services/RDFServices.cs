@@ -214,7 +214,6 @@ namespace Services
 			AppendLookupValue( result, "navy:lifeCycleControlDocumentType", source.LifeCycleControlDocumentType, Factories.ConceptManager.GetByRowId );
 			AppendLookupValue( result, "navy:courseType", source.CourseType, Factories.ConceptManager.GetMultiple );
 			AppendLookupValue( result, "ceterms:ownedBy", source.CurriculumControlAuthority, Factories.OrganizationManager.GetByRowId );
-			AppendLookupValue( result, "navy:hasTrainingTask", source.HasTrainingTask, Factories.TrainingTaskManager.GetMultiple );
 
 			//In the Registry, ceterms:ownedBy is multi-value
 			if ( result[ "ceterms:ownedBy" ] != null && result[ "ceterms:ownedBy" ].Type != JTokenType.Array )
@@ -319,8 +318,7 @@ namespace Services
 			var result = GetStarterResult( "navy:TrainingTask", source );
 
 			AppendValue( result, "ceterms:description", source.Description, true );
-			AppendLookupValue( result, "ceterms:assessmentMethodType", source.AssessmentMethodType, Factories.ConceptManager.GetMultiple );
-			AppendLookupValue( result, "ceterms:hasOccupation", source.HasRating, Factories.RatingManager.GetMultiple );
+			AppendLookupValue( result, "navy:hasReferenceResource", source.HasReferenceResource, Factories.ReferenceResourceManager.GetByRowId );
 
 			return result;
 		}

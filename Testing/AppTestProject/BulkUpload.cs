@@ -255,13 +255,13 @@ namespace AppTestProject
 							{
 								case "rating":
 									//will need to add an externalId property
-									entity.Note = csv[i];
+									//entity.Note = csv[i];
 									break;
 								case "unique_identifier":
-									entity.CodedNotation = csv[i];
+									//entity.CodedNotation = csv[i];
 									break;
 								case "rank":
-									entity.Identifier = csv[i];
+									//entity.Identifier = csv[i];
 									break;
 
 								case "Work_Element_Task":

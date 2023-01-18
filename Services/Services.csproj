@@ -69,10 +69,7 @@
     <Compile Include="ActivityServices.cs" />
     <Compile Include="BulkUploadServices.cs" />
     <Compile Include="EmailServices.cs" />
-    <Compile Include="ImportServices.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="RatingServices.cs" />
-    <Compile Include="RatingTaskServices.cs" />
     <Compile Include="RDFServices.cs" />
     <Compile Include="SearchServices.cs" />
     <Compile Include="ServiceHelper.cs" />

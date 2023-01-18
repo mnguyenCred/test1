@@ -66,31 +66,6 @@ namespace AppTestProject
 
 
         }
-        [TestMethod]
-        public void RatingTaskSearch()
-        {
-            var recordId = 1;
-            try
-            {
-                string filter = "";
-                string orderBy = "";
-                int pageNumber = 1;
-                int pageSize = 50;
-                int userId = 0;
-                int pTotalRows = 0;
-
-                filter = "base.id in (select a.[RatingTaskId] from [RatingTask.HasRating] a inner join Rating b on a.ratingId = b.Id where b.CodedNotation = 'qm' )";
-               var results = RatingTaskManager.RMTLSearch( filter, orderBy, pageNumber, pageSize, userId, ref pTotalRows );
-                if (results?.Count > 0)
-                {
-
-                }
-            }
-            catch ( Exception ex )
-            {
-                Assert.Fail( ex.Message );
-            }
-        }
         #endregion
 
         #region Rating
