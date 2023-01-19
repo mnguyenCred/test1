@@ -3,21 +3,12 @@ go
 
 
 /*
-SELECT 
-IndexIdentifier, COUNT(*) as ttl
-from [QM_RMTL_11232021]
-group by IndexIdentifier having count(*) > 1
-go
 
-SELECT 
-Unique_Identifier, COUNT(*) as ttl
-from [QM_RMTL_11232021]
-group by Unique_Identifier having count(*) > 1
-go
 USE [Navy_RRL_V2]
 GO
 
-SELECT [Id]
+SELECT top(1000)
+		[Id]
       ,[CTID]
       ,[RowId]
       ,[RatingName]
@@ -75,8 +66,7 @@ SELECT [Id]
       ,[DevelopmentSpecificationTypeId]
       ,[DevelopmentSpecification]
       ,[CandidatePlatform]
-      ,[CFMPlacementTypeId]
-      ,[CFMPlacement]
+      ,CFMPlacementType
       ,[PriorityPlacement]
       ,[DevelopmentRatioTypeId]
       ,[DevelopmentRatio]
@@ -247,9 +237,9 @@ SELECT
 
 	,cas.[CandidatePlatform]
 
-	,cas.CFMPlacementTypeId
-	,cas.[CFMPlacement]
-
+	--,cas.CFMPlacementTypeId
+	--,cas.[CFMPlacement]
+	  ,cas.CFMPlacementType
 	,cas.[PriorityPlacement]
 
 	,cas.DevelopmentRatioTypeId

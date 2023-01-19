@@ -18,6 +18,7 @@ SELECT [Id]
       ,[CreatedById]
       ,[LastUpdated]
       ,[LastUpdatedById]
+--	select count(*)
   FROM [dbo].[RatingTaskSummary]
 
 GO
@@ -34,7 +35,7 @@ Modifications
 Alter  VIEW [dbo].RatingTaskSummary
 AS
 
-SELECT TOP (1000) 
+SELECT 
 		rt.[Id]
       ,rt.[RowId]
 	  ,rt.[Description] as RatingTask

@@ -10,12 +10,6 @@ go
 /*
 
 
-IF  EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[EnlistedClassification]') AND type in (N'U'))
-DROP TABLE [dbo].[EnlistedClassification]
-GO
-
-DROP TABLE [dbo].ImportHistory
-
 
 */
 ----==============================================
@@ -44,6 +38,8 @@ DELETE FROM Navy_RRL_V2.dbo.ImportRMTL
 DELETE FROM Navy_RRL_V2.dbo.RatingContext
 --do this after RatingContext
 DELETE FROM Navy_RRL_V2.dbo.ClusterAnalysis
+--not necessary with RI
+truncate table Navy_RRL_V2.dbo.[ClusterAnalysis.HasCandidatePlatform] 
 truncate table Navy_RRL_V2.dbo.[ClusterAnalysis.HasCandidatePlatform] 
 DELETE FROM Navy_RRL_V2.dbo.ClusterAnalysisTitle 
 
@@ -61,7 +57,8 @@ DELETE FROM Navy_RRL_V2.[dbo].[System.ProxyCodes]
 --must be done after RatingTask
 --may not want to always do this?
 DELETE FROM Navy_RRL_V2.dbo.Job
-
+--not sure what this is?
+DELETE FROM [ProtectedSystemEntities]
 --
 --must be done after RatingTask
 --NO LONGER CLEAR HAS HAVE ADDED ADDITIONAL DATA
@@ -85,6 +82,7 @@ DBCC CHECKIDENT ('[ActivityLog]', RESEED, 0);
 DBCC CHECKIDENT ('[ClusterAnalysis]', RESEED, 0);
 DBCC CHECKIDENT ('[ClusterAnalysisTitle]', RESEED, 0);
 
+DBCC CHECKIDENT ('[ClusterAnalysis.CFMPlacementType]', RESEED, 0);
 DBCC CHECKIDENT ('[ClusterAnalysis.HasCandidatePlatform]', RESEED, 0);
 --DBCC CHECKIDENT ('[ClusterAnalysisTitle]', RESEED, 0);
 DBCC CHECKIDENT ('[Comment]', RESEED, 0);
@@ -106,6 +104,7 @@ DBCC CHECKIDENT ('[Import.RMTLStaging]', RESEED, 0);
 DBCC CHECKIDENT ('[ImportRMTL]', RESEED, 0);
 --
 DBCC CHECKIDENT ('[Job]', RESEED, 0);
+DBCC CHECKIDENT ('[ProtectedSystemEntities]', RESEED, 0);
 --
 --DBCC CHECKIDENT ('[Organization]', RESEED, 0);
 --DBCC CHECKIDENT ('[Rating]', RESEED, 0);

@@ -26,8 +26,9 @@ SELECT [Id]
       ,[DevelopmentSpecificationTypeId]
       ,[DevelopmentSpecification]
       ,[CandidatePlatform]
-      ,[CFMPlacementTypeId]
-      ,[CFMPlacement]
+      --,[CFMPlacementTypeId]
+      --,[CFMPlacement]
+	  ,CFMPlacementType
       ,[PriorityPlacement]
       ,[DevelopmentRatioTypeId]
       ,[DevelopmentRatio]
@@ -78,8 +79,13 @@ SELECT  base.[Id]
 		ELSE left(CandidatePlatformTypes,len(CandidatePlatformTypes)-1)
 		END AS CandidatePlatform
 
-      ,base.CFMPlacementTypeId
-	  ,cfmSpc.Name as[CFMPlacement]
+   --   ,base.CFMPlacementTypeId
+	  --,cfmSpc.Name as[CFMPlacement]
+	 ,CASE
+		WHEN CFMPlacementTypes IS NULL THEN ''
+		WHEN len(CFMPlacementTypes) = 0 THEN ''
+		ELSE left(CFMPlacementTypes,len(CFMPlacementTypes)-1)
+		END AS CFMPlacementType
 
 	  ,base.[PriorityPlacement]
 
@@ -101,12 +107,12 @@ SELECT  base.[Id]
 Left join [ConceptScheme.Concept] tst on base.[TrainingSolutionTypeId] = tst.Id
 Left join [ConceptScheme.Concept] rm on base.RecommendedModalityTypeId = rm.Id
 Left join [ConceptScheme.Concept] devSpc on base.DevelopmentSpecificationTypeId = devSpc.Id
-Left join [ConceptScheme.Concept] cfmSpc on base.CFMPlacementTypeId = cfmSpc.Id
+--Left join [ConceptScheme.Concept] cfmSpc on base.CFMPlacementTypeId = cfmSpc.Id
 Left join [ConceptScheme.Concept] devRatio on base.DevelopmentRatioTypeId = devRatio.Id
 
 
-    CROSS APPLY (
-    SELECT distinct d.Name + '/'
+CROSS APPLY (
+    SELECT distinct d.Name + ' / '
     FROM dbo.[ClusterAnalysis]  a
 		Inner join [ClusterAnalysis.HasCandidatePlatform]	c on a.Id = c.ClusterAnalysisId
 		inner join [ConceptScheme.Concept] d on c.CandidatePlatformConceptId = d.Id 
@@ -114,6 +120,15 @@ Left join [ConceptScheme.Concept] devRatio on base.DevelopmentRatioTypeId = devR
     FOR XML Path('') 
 ) CPT (CandidatePlatformTypes)
 
+
+CROSS APPLY (
+    SELECT distinct d.Name + ' / '
+    FROM dbo.[ClusterAnalysis]  a
+		Inner join [ClusterAnalysis.CFMPlacementType]	c on a.Id = c.ClusterAnalysisId
+		inner join [ConceptScheme.Concept] d on c.CFMPlacementConceptId = d.Id 
+    WHERE  base.Id = a.Id
+    FOR XML Path('') 
+) CFMP (CFMPlacementTypes)
 GO
 grant select on [ClusterAnalysisSummary] to public
 go
