@@ -6,7 +6,6 @@
 	ViewBag.Title = "Concept: " + Model.Name;
 }
 
-@Html.Partial( "~/Views/Shared/_DetailShared.cshtml" )
 @Html.Partial( "~/Views/Shared/_DetailBasicInfo.cshtml", new DetailBasicInfoHelper( Model )
 {
 	Name = Model.Name,
@@ -15,7 +14,9 @@
 		new NamedString( "In Scheme", LinkHelper.GetDetailPageLink( Factories.ConceptSchemeManager.GetByRowId( Model.InScheme ), Url.Content, m => m.Name ) ),
 		new NamedString( "Description", Model.Description ),
 		new NamedString( "Work Element Type", Model.WorkElementType ),
-		new NamedString( "Code", Model.CodedNotation )
+		new NamedString( "Code", Model.CodedNotation ),
+		new NamedString( "Broader Concept Connection", LinkHelper.GetDetailPageLink( Factories.ConceptManager.GetByRowId( Model.BroadMatch, true ), Url.Content, m => m.Name ) ),
+		new NamedString( "Narrower Concept Connections", LinkHelper.GetDetailPageLinkList( Factories.ConceptManager.GetNarrowerConceptsForConcept( Model.Id ), Url.Content, m => m.Name, "<ul><li>", "</li><li>", "</li></ul>" ) )
 	}
 } )
 

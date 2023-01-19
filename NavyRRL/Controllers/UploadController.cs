@@ -172,6 +172,10 @@ namespace NavyRRL.Controllers
 			//Otherwise, process the summary
 			try
             {
+				//Clear messages so they don't show in the status client-side
+				summary.Messages = new Messages();
+
+				//Apply the changes
 				Services.BulkUploadServices.ApplyChangeSummaryV2( summary );
 			} 
 			catch ( Exception ex )

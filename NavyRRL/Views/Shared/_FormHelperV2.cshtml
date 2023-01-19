@@ -219,9 +219,26 @@
 	}
 	//
 
+	function setupField_SuggestionMulti_FromValues(Field) {
+		setupField_SuggestionMulti(Field);
+		Field.Options = (Form.Values[Field.SourceURI] || []).sort((a, b) => { return Field.getOptionLabel(a) > Field.getOptionLabel(b) ? 1 : -1 });
+
+		Field.doQuery = function () {
+			setTimeout(function () {
+				var keywords = Field.Input.val().trim().toLowerCase();
+				Field.Suggestions = Field.Options.filter(Option =>
+					Field.SelectedItems.find(SelectedItem => SelectedItem.Data.RowId != Option.RowId) &&
+					Option.Name?.toLowerCase().includes(keywords) || Option.CodedNotation?.toLowerCase().includes(keywords) || Option.WorkElementType?.toLowerCase().includes(keywords));
+				Field.renderSuggestions();
+			}, 0);
+		}
+	}
+	//
+
 	function setupField_SuggestionMulti(Field) {
 		Field.Suggestions = [];
 		Field.SelectedItems = [];
+		Field.ExtraFilters = [];
 		Field.Timeout = 0;
 		Field.IsMultiValue = true;
 
@@ -256,11 +273,15 @@
 			if (Field.Suggestions.length > 0) {
 				var cancelButton = $("<button class=\"cancelButton\">Cancel</button>").appendTo(Field.SuggestionsBox);
 				cancelButton.on("click", function () {
-					Field.Suggestions = [];
-					Field.Input.val("");
-					Field.renderSuggestions();
+					Field.cancelSuggestions();
 				});
 			}
+		}
+
+		Field.cancelSuggestions = function () {
+			Field.Suggestions = [];
+			Field.Input.val("");
+			Field.renderSuggestions();
 		}
 
 		Field.renderSelectedItems = function () {
@@ -273,12 +294,16 @@
 					Field.removeSelectedItem(SelectedItem);
 				});
 
-				AJAX.getResource("@Url.Content("~/")" + Field.SearchType + "/GetByRowId/" + SelectedItem.Data.RowId, success => {
-					SelectedItem.Data = success;
-					SelectedItem.Label.html(Field.getOptionLabel(SelectedItem.Data));
-				}, error => {
-					SelectedItem.Label.html("Error loading data for Resource: " + SelectedItem.Data.RowId);
-				});
+				Field.renderSelectedItemContent(SelectedItem);
+			});
+		}
+
+		Field.renderSelectedItemContent = function (SelectedItem) {
+			AJAX.getResource("@Url.Content("~/")" + Field.SearchType + "/GetByRowId/" + SelectedItem.Data.RowId, success => {
+				SelectedItem.Data = success;
+				SelectedItem.Label.html(Field.getOptionLabel(SelectedItem.Data));
+			}, error => {
+				SelectedItem.Label.html("Error loading data for Resource: " + SelectedItem.Data.RowId);
 			});
 		}
 
@@ -303,20 +328,24 @@
 			Field.onSelectedItemsChange?.();
 		}
 
-		Field.Input.on("keyup", function () {
+		Field.doQuery = function () {
 			clearTimeout(Field.Timeout);
 			Field.Timeout = setTimeout(function () {
 				AJAX.doPOSTRequest("@Url.Content("~/")" + Field.SearchType + "/DoSearch", {
 					Filters: [
 						{ Name: "search:Keyword", Text: Field.Input.val().trim() },
 						{ Name: "search:Exclude", ItemIds: Field.SelectedItems.map(SelectedItem => SelectedItem.Data.Id) }
-					],
+					].concat(Field.ExtraFilters),
 					Take: 20
 				}, success => {
 					Field.Suggestions = success.Data.Results;
 					Field.renderSuggestions();
 				}, error => { });
 			}, 500);
+		}
+
+		Field.Input.on("keyup", function (e) {
+			e.keyCode == 27 ? Field.cancelSuggestions() : Field.doQuery();
 		});
 
 		Field.getOptionLabel = function (Option) {

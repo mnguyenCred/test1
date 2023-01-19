@@ -71,6 +71,17 @@ namespace Factories
 
 		public static void BasicSaveCore<T1, T2>( DataEntities context, T1 entity, DbSet<T2> contextDBEntityList, int userID, Action<T1, T2> UpdateBeforeInitialSaveMethod, Action<T1, T2> UpdateBeforeSecondSaveMethod, string eventAction, Action<string> AddErrorMethod ) where T1 : Models.Schema.BaseObject where T2 : class, DBEntityBaseObject, new()
 		{
+			//Do not allow anything to be saved with a value of "N/A"
+			foreach( var textProperty in typeof( T1 ).GetProperties().Where( m => m.PropertyType == typeof( string ) ) )
+			{
+				if( ( ( string ) textProperty.GetValue( entity ) )?.ToLower() == "n/a" )
+				{
+					AddErrorMethod( "A value of \"N/A\" is not allowed for property: " + textProperty.Name );
+					return;
+				}
+			}
+
+			//Continue
 			var entityType = typeof( T1 );
 			try
 			{
@@ -230,24 +241,65 @@ namespace Factories
 		}
 		//
 
-		/*
-		public static List<Guid> GetRowIDListFromIntIDList<T1, T2>(
-			ICollection<T1> joinTableRowsForDBEntity,
-			DbSet<T2> destinationTable,
-			string joinTablePropertyNameForDestination
-		) where T1 : DBEntityJoinTableItem where T2 : class, DBEntityBaseObject
+		public static DeleteResult BasicDeleteCore<T1>( 
+			string entityTypeLabel, 
+			Func<DataEntities, DbSet<T1>> GetDBEntityListMethod, 
+			int entityID, 
+			string searchFilterNameOrNull, 
+			Func<DataEntities, DbSet<T1>, T1, DeleteResult> ReturnDeleteResultOrNullBeforeDeleteIsAttemptedMethod 
+		) where T1: class, DBEntityBaseObject
 		{
-			//Get the property that is unique to this join table (e.g., SomethingConceptId)
-			var joinTableProperty = typeof( T1 ).GetProperty( joinTablePropertyNameForDestination );
+			//If applicable, do a search to see whether other things reference this entity
+			if( !string.IsNullOrWhiteSpace( searchFilterNameOrNull ) )
+			{
+				var totalResults = RatingContextManager.Search( new SearchQuery() { Skip = 0, Take = 0, Filters = new List<SearchFilter>() { new SearchFilter() { Name = searchFilterNameOrNull, ItemIds = new List<int>() { entityID } } } } ).TotalResults;
+				if( totalResults > 0 )
+				{
+					return new DeleteResult( false, "The target " + entityTypeLabel + " is referenced by " + totalResults + " Rating Context objects and cannot be deleted." );
+				}
+			}
 
-			//Extract the int ID values for those items (e.g. the concept IDs)
-			var intIDValues = joinTableRowsForDBEntity.Select( m => ( int ) joinTableProperty.GetValue( m ) ).ToList();
+			//Otherwise, Continue
+			using( var context = new DataEntities() )
+			{
+				//Get the list
+				var list = GetDBEntityListMethod( context );
 
-			//Lookup the items and extract their RowIDs, then return them
-			return destinationTable.Where( m => intIDValues.Contains( m.Id ) ).Select( m => m.RowId ).ToList();
+				//Ensure the target exists
+				var toBeDeleted = list.FirstOrDefault( m => m.Id == entityID );
+				if ( toBeDeleted == null )
+				{
+					return new DeleteResult( false, "The target " + entityTypeLabel + " does not exist." );
+				}
+
+				//Ensure it is not a protected entity
+				if( toBeDeleted.CreatedById == -999 || context.ProtectedSystemEntities.FirstOrDefault( m => m.EntityRowId == toBeDeleted.RowId ) != null )
+				{
+					return new DeleteResult( false, "The target " + entityTypeLabel + " is part of the system and cannot be deleted." );
+				}
+
+				//Run any pre-delete checks that are specific to the caller of this method
+				var preemptiveReturn = ReturnDeleteResultOrNullBeforeDeleteIsAttemptedMethod == null ? null : ReturnDeleteResultOrNullBeforeDeleteIsAttemptedMethod( context, list, toBeDeleted );
+				if( preemptiveReturn != null )
+				{
+					return preemptiveReturn;
+				}
+
+				//Try to delete it
+				try
+				{
+					list.Remove( toBeDeleted );
+					context.SaveChanges();
+
+					return new DeleteResult( true, "The target " + entityTypeLabel + " was successfully deleted." );
+				}
+				catch ( Exception ex )
+				{
+					return new DeleteResult( false, "Error deleting the target " + entityTypeLabel + ": " + ex.Message + ( !string.IsNullOrWhiteSpace( ex.InnerException?.Message ) ? "; " + ex.InnerException.Message : "" ), JObject.FromObject( ex ) );
+				}
+			}
 		}
 		//
-		*/
 
 		public static SearchResultSet<T2> HandleSearch<T1, T2>(
 			SearchQuery query,
@@ -434,19 +486,12 @@ namespace Factories
 		public static void AppendIDsFilterIfPresent( SearchQuery query, string filterName, Action<List<int>> AppendFilterMethod )
 		{
 			//Need to do it this way to handle the edge case on the RMTL search where the summary looks for one source type but the user's query has another. This should result in a logical AND-ing of the two filters.
-			foreach( var filter in query.Filters.Where(m => m.Name.ToLower() == filterName.ToLower() ) )
+			foreach( var filter in query.Filters.Where( m => m.Name.ToLower() == filterName.ToLower() ) )
 			{
 				if ( filter.ItemIds.Count() > 0 ) {
 					AppendFilterMethod( filter.ItemIds );
 				}
 			}
-			/*
-			var ids = query.GetFilterIDsByName( filterName );
-			if ( ids?.Count() > 0 )
-			{
-				AppendFilterMethod( ids );
-			}
-			*/
 		}
 		//
 
@@ -516,6 +561,7 @@ namespace Factories
 		//
 
 		#endregion
+
 		#region Database connections
 		/// <summary>
 		/// Get the read only connection string for the main database
@@ -535,370 +581,6 @@ namespace Factories
         }
         #endregion
 
-        #region BulkCopy
-        public void BulkLoadRMTL( string rating, string rawInput )
-        {
-            //need a means to skip if using a smaller test file?
-            List<string> messages = new List<string>();
-            int cntr = 0;
-            var output = new List<RatingTask>();
-            var connectionString = BaseFactory.MainConnection();
-            SqlConnection con = new SqlConnection( connectionString );
-            LoggingHelper.DoTrace( 6, string.Format( thisClassName + ".BulkLoadRMTL. Starting bulk load for rating: {0}", rating ) );
-
-            
-            DataTable dt = new DataTable();
-            DataRow row;
-            DateTime saveStarted = DateTime.Now;
-            bool completedRead = true;
-            try
-            {
-                //check if includes part III
-                bool hasPart3 = false;
-                if (rawInput.IndexOf( "Cluster Analysis Title" ) > 0 )
-                {
-                    hasPart3 = true;
-                }
-                //using ( CsvReader csv = new CsvReader( new StreamReader( filepath2, System.Text.Encoding.UTF7 ), true ) )
-                using ( CsvReader csv = new CsvReader( new StringReader( rawInput ), true ) )
-                {
-                    int fieldCount = csv.FieldCount;
-                    //need to skip the first row
-                    //csv.ReadNextRecord();
-                    ////doesn't work to get second header row
-                    //csv.ReadNextRecord();
-                    //need a means to skip the first row
-                    string[] headers = csv.GetFieldHeaders();
-                    //check if headers[?] contain column?
-                    var headings = GetHeadings( hasPart3 );
-                    foreach ( var item in headings )
-                    {
-                        dt.Columns.Add( new DataColumn( item ) );
-                    }
-                    //validate headers
-                    while ( csv.ReadNextRecord() )
-                    {
-                        var skipRow = false;
-                        cntr++;
-                        if ( cntr == 6 )
-                        {
-                            //skip
-                            //continue;
-                        }
-                        //check for two header lines
-                        if ( cntr == 958 )
-                        {
-                            //break;
-                        }
-
-                        row = dt.NewRow();
-                        //set/reset destination
-                        var dest = new string[dt.Columns.Count];
-                        for ( int i = dest.GetLowerBound( 0 ); i <= dest.GetUpperBound( 0 ); i++ )
-                            dest.SetValue( "", i );
-                        var entity = new UploadableRow();
-                        try
-                        {
-                            //use header columns rather than hard-code index numbers to enable flexibility
-                            for ( int i = 0; i < fieldCount; i++ )
-                            {
-                                if ( i >= dest.Length )
-                                {
-                                    break;
-                                }
-                                LoggingHelper.DoTrace( 7, string.Format( "Reading: {0} = {1};", headings[i], csv[i] ) );
-
-                                if ( i == 8 )
-                                {
-                                    //skip
-                                    //continue;
-                                }
-                                //also check for blank rows somehow
-                                if ( cntr < 5 && ( csv[i] == "Index #" || csv[i] == "Unique Identifier" ) )
-                                {
-                                    skipRow = true;
-                                    break;
-                                }
-                                dest[i] = csv[i];
-
-
-                                //may want to make case insensitive!
-                                //OR
-                                var header = headings[i].ToLower();
-                                /*
-                                switch ( header )
-                                {
-                                    case "rating":
-                                        entity.Rating_CodedNotation = csv[i];
-                                        break;
-                                    case "unique_identifier":
-                                        entity.Row_CodedNotation = csv[i];
-                                        break;
-                                    case "rank":
-                                        entity.PayGradeType_CodedNotation = csv[i];
-                                        break;
-                                    case "level":
-                                        entity.Level_Name = csv[i];
-                                        break;
-                                    case "Work_Element_Task":
-                                        entity.RatingTask_Description = csv[i];
-                                        break;
-
-
-                                    default:
-                                        //action?
-                                        LoggingHelper.DoTrace( 1, string.Format( thisClassName + ".BulkLoadRMTL. Unknown header {0}", headers[i] ) );
-                                        break;
-                                }
-                                */
-                            }
-                            if ( !skipRow )
-                            {
-                                row.ItemArray = dest;
-                                dt.Rows.Add( row );
-                            }
-                            //
-                            //output.Add( entity );
-                        }
-                        catch
-                        {
-                            //no action
-                        }
-                        
-
-                    }
-                }
-
-            }
-            catch ( Exception ex )
-            {
-                completedRead = false;
-                LoggingHelper.DoTrace( 1, string.Format( thisClassName + ".BulkLoadRMTL. {0}", ex.Message ) );
-                LoggingHelper.LogError( ex, thisClassName + ".BulkUploadRmtl" );
-                //should have a note where the upload may not be complete, or should we stop?
-                //could be a rational for not doing a delete if an error was encountered? 
-                //or get a database count and compare to the upload count
-                //continue if there is a significant amt
-                if ( dt.Rows?.Count < 200 )
-                    return;
-
-            } finally
-            {
-                
-            }
-            
-            //truncate the destination
-            //may want to do this by rating? for concurrent use
-            var query1 = "truncate table [Import.RMTLStaging]";
-            var query2 = string.Format( "DELETE FROM [dbo].[Import.RMTLStaging] WHERE [Rating]='{0}'", rating );
-            try
-            {
-                using ( SqlConnection connection = new SqlConnection( connectionString ) )
-                {
-                    SqlCommand command = new SqlCommand( query2, connection );
-                    command.Connection.Open();
-                    command.ExecuteNonQuery();
-                }
-            }
-            catch ( Exception ex )
-            {
-                var msg = FormatExceptions( ex );
-                LoggingHelper.DoTrace( 5, string.Format( thisClassName + ".BulkLoadRMTL. Error on database clear. " + msg ) );
-            }
-            try
-            {
-                if ( dt.Rows?.Count > 0 )
-                {
-                    SqlBulkCopy bc = new SqlBulkCopy( con.ConnectionString, SqlBulkCopyOptions.TableLock );
-                    bc.DestinationTableName = "[Import.RMTLStaging]";
-                    bc.BatchSize = dt.Rows.Count;
-                    con.Open();
-                    bc.WriteToServer( dt );
-                    bc.Close();
-                    con.Close();
-                }
-            }
-            catch ( Exception ex )
-            {
-                LoggingHelper.DoTrace( 1, string.Format( thisClassName + ".BulkLoadRMTL-SqlBulkCopy Rating: {0}, Message: {1}", rating, ex.Message ) );
-
-            }
-            var saveDuration = DateTime.Now.Subtract( saveStarted );
-            LoggingHelper.DoTrace( 1, string.Format( thisClassName + ".BulkLoadRMTL.Duration (assuming successful). Rating:{0}, Duration: {1}", rating, saveDuration ) );
-
-        }
-        public List<string> GetHeadings()
-        {
-            /*
-	
-
-			*/
-            var heading = new List<string>()
-            {
-              "Unique_Identifier",
-              "Rating",
-                "Rank",
-                "Level_A_J_M" ,
-                "Billet_Title",
-                "Functional_Area",
-                "Source",
-                "Date_of_Source",
-                "Work_Element_Type",
-                "Work_Element_Task",
-                "Task_Applicability",
-                "Formal_Training_Gap",
-                "CIN",
-                "Course_Name",
-                "Course_Type_A_C_G_F_T",
-                "Curriculum_Control_Authority_CCA",
-                "Life_Cycle_Control_Document",
-                "CTTL_PPP_TCCD_Statement",
-                "Current_Assessment_Approach",
-            };
-            return heading;
-        }
-        public List<string> GetHeadings( bool hasPart3 )
-        {
-            /*
-	
-
-			*/
-            var heading = new List<string>()
-            {
-              "Unique_Identifier",
-              "Rating",
-                "Rank",
-                "Level_A_J_M" ,
-                "Billet_Title",
-                "Functional_Area",
-                "Source",
-                "Date_of_Source",
-                "Work_Element_Type",
-                "Work_Element_Task",
-                "Task_Applicability",
-                "Formal_Training_Gap",
-                "CIN",
-                "Course_Name",
-                "Course_Type_A_C_G_F_T",
-                "Curriculum_Control_Authority_CCA",
-                "Life_Cycle_Control_Document",
-                "CTTL_PPP_TCCD_Statement",
-                "Current_Assessment_Approach",
-                "Part2Notes",
-                "Training_Solution_Type"
-                  ,"Cluster_Analysis_Title"
-                  ,"Recommended_Modality"
-                  ,"Development_Specification"
-                  ,"Candidate_Platform"
-                  ,"CFM_Placement"
-                  ,"Priority_Placement"
-                  ,"Development_Ratio"
-                  ,"EstimatedInstructionalTime" //may not be present?
-                  ,"Development_Time"
-                  ,"Part3Notes"
-            };
-            return heading;
-        }
-
-        public void BCPTesting( string rating, string rawInput )
-        {
-            //call a data manager method for this
-            var tableName = "Import_" + rating;
-      
-			string connectionString = MainConnection();
-		      /*	
-			string query = "CREATE TABLE [dbo].[" + tableName + "](" + "ID int IDENTITY (1,1) PRIMARY KEY," + "[Code] [varchar] (13) NOT NULL," +
-		   "[Description] [varchar] (50) NOT NULL," + "[NDC] [varchar] (50) NULL," +
-			"[Supplier Code] [varchar] (38) NULL," + "[UOM] [varchar] (8) NULL," + "[Size] [varchar] (8) NULL,)";
-
-
-			using ( SqlConnection connection = new SqlConnection( connectionString ) )
-			{
-				SqlCommand command = new SqlCommand( query, connection );
-				command.Connection.Open();
-				command.ExecuteNonQuery();
-			}
-	*/
-            SqlConnection con = new SqlConnection( connectionString );
-            //OR
-            using ( var stream = new StreamReader( new FileStream( rawInput, FileMode.Open ) ) )
-            //
-            //using ( var stream = GenerateStreamFromString( rawInput ) )
-            {
-                // ... Do stuff to stream
-                //may need to skip one line
-                string skipline = stream.ReadLine();
-                string line = stream.ReadLine();
-
-                string[] value = line.Split( ',' );
-                DataTable dt = new DataTable();
-                DataRow row;
-                foreach ( string dc in value )
-                {
-                    //will need to normalize the column header
-                    //probably better to hardcode this
-                    var header = dc.Replace( " ", "_" ).Replace( "/", "-" ).Replace( "(", "" ).Replace( ")", "" );
-                    dt.Columns.Add( new DataColumn( dc ) );
-                }
-
-                while ( !stream.EndOfStream )
-                {
-                    value = stream.ReadLine().Split( ',' );
-                    if ( value.Length == dt.Columns.Count )
-                    {
-                        row = dt.NewRow();
-                        row.ItemArray = value;
-                        dt.Rows.Add( row );
-                    }
-                }
-                SqlBulkCopy bc = new SqlBulkCopy( con.ConnectionString, SqlBulkCopyOptions.TableLock );
-                bc.DestinationTableName = tableName;
-                bc.BatchSize = dt.Rows.Count;
-                con.Open();
-                bc.WriteToServer( dt );
-                bc.Close();
-                con.Close();
-            }
-            /*
-			string line = sr.ReadLine();
-			string[] value = line.Split( ',' );
-			DataTable dt = new DataTable();
-			DataRow row;
-			foreach ( string dc in value )
-			{
-				dt.Columns.Add( new DataColumn( dc ) );
-			}
-
-			while ( !sr.EndOfStream )
-			{
-				value = sr.ReadLine().Split( ',' );
-				if ( value.Length == dt.Columns.Count )
-				{
-					row = dt.NewRow();
-					row.ItemArray = value;
-					dt.Rows.Add( row );
-				}
-			}
-			SqlBulkCopy bc = new SqlBulkCopy( con.ConnectionString, SqlBulkCopyOptions.TableLock );
-			bc.DestinationTableName = textBox1.Text;
-			bc.BatchSize = dt.Rows.Count;
-			con.Open();
-			bc.WriteToServer( dt );
-			bc.Close();
-			con.Close();
-			*/
-        }
-        public static Stream GenerateStreamFromString( string s )
-        {
-            var stream = new MemoryStream();
-            var writer = new StreamWriter( stream );
-            writer.Write( s );
-            writer.Flush();
-            stream.Position = 0;
-            return stream;
-        }
-
-        #endregion
         //Automatic mapping based on property name + type
         public static T2 AutoMap<T1, T2> ( T1 source, T2 destination, List<string> errors = null, List<string> skipProperties = null, int maxDepth = 10 ) where T2: class
 		{
@@ -1022,105 +704,6 @@ namespace Factories
             else
                 return new Guid();
         }
-		//
-
-        /// <summary>
-        /// Get guids for a list of ratings
-        /// Using a cache as needed
-        /// </summary>
-        /// <param name="property"></param>
-        /// <returns></returns>
-        public static List<Guid> GetRatingGuids( string property )
-        {
-            if ( string.IsNullOrEmpty( property ) )
-                return null;
-            var output = new List<Guid>();
-            string[] parts = property.Split( '|' );
-            foreach(var item in parts)
-            {
-                var rating = GetRatingFromCache( item );
-                if ( rating?.Id > 0 )
-                    output.Add( rating.RowId );
-                       
-            }
-
-            return output;
-        }
-		//
-
-        public static MSc.Rating GetRatingFromCache( string rating )
-        {
-            var cache = new CachedRatings();  
-            var output = new MSc.Rating();
-            var ratings = new List<MSc.Rating>();
-            string key = "RatingsCache";
-            int cacheHours = 8;
-            DateTime maxTime = DateTime.Now.AddHours( cacheHours * -1 );
-            if ( MemoryCache.Default.Get( key ) != null && cacheHours > 0 )
-            {
-                //may want to use application cache
-                cache = ( CachedRatings ) MemoryCache.Default.Get( key );
-                try
-                {
-                    if ( cache.LastUpdated > maxTime )
-                    {
-                        LoggingHelper.DoTrace( 7, string.Format( thisClassName + ".GetRatingFromCache. Using cached version of Ratings" ) );
-
-                        ratings = cache.Ratings;
-                        output = ratings.FirstOrDefault( s => s.CodedNotation == rating );
-                        return output;
-                    }
-                }
-                catch ( Exception ex )
-                {
-                    LoggingHelper.DoTrace( 5, thisClassName + ".GetRatingFromCache === exception " + ex.Message );
-                    //just fall thru and retrieve
-                }
-            } 
-
-            //otherwise get all ratings
-            ratings = RatingManager.GetAll();
-            
-            output = ratings.FirstOrDefault( s => s.CodedNotation == rating );
-            //
-            //add to cache
-            if ( key.Length > 0 && cacheHours > 0 )
-            {
-                var newCache = new CachedRatings()
-                {
-                    Ratings = ratings,
-                    LastUpdated = DateTime.Now
-                };
-                if ( MemoryCache.Default.Get( key ) != null )
-                {
-                    MemoryCache.Default.Remove( key );
-                }
-
-                //
-                MemoryCache.Default.Add( key, newCache, new DateTimeOffset( DateTime.Now.AddHours( cacheHours ) ) );
-            }
-            //
-            //
-            return output;
-        }
-        //
-
-        public static List<Guid> GetBilletTitleGuids( string property )
-        {
-            if ( string.IsNullOrEmpty( property ) )
-                return null;
-            var output = new List<Guid>();
-            string[] parts = property.Split( '|' );
-            foreach ( var item in parts )
-            {
-                //var billet = GetBilletTitleFromCache( item );
-                var billet = JobManager.GetByName( item ); ;
-                if ( billet?.Id > 0 )
-                    output.Add( billet.RowId );
-            }
-
-            return output;
-        } 
 		//
 
         public static string GetRowColumn( DataRow row, string column, string defaultValue = "" )
@@ -1376,15 +959,7 @@ namespace Factories
             return string.Join( "<br/>", messages.ToArray() );
 
         }
-        //protected static List<string> GetArray( string messages )
-        //{
-        //	List<string> list = new List<string>();
-        //	if ( string.IsNullOrWhiteSpace( messages) )
-        //		return list;
-        //	string[] array = messages.Split( ',' );
 
-        //	return list;
-        //}
         /// <summary>
         /// Split a comma separated list into a list of strings
         /// </summary>
@@ -1404,6 +979,7 @@ namespace Factories
                 return new List<string>();
             }
         }
+
         /// <summary>
         /// Get the current url for reporting purposes
         /// </summary>
@@ -1422,7 +998,6 @@ namespace Factories
             }
             return queryString;
         }
-
 
         #endregion
         #region Dynamic Sql
@@ -1528,6 +1103,7 @@ namespace Factories
             tbl.Rows.InsertAt( r, 0 );
 
         }
+
         /// <summary>
         /// Add an entry to the beginning of a Data Table. Uses the provided key name and display column
         /// </summary>
@@ -1544,6 +1120,7 @@ namespace Factories
             tbl.Rows.InsertAt( r, 0 );
 
         }
+
         /// Check is dataset is valid and has at least one table with at least one row
         /// </summary>
         /// <param name="ds"></param>
@@ -1591,6 +1168,7 @@ namespace Factories
 
             return isValid;
         }
+
         public static string HandleApostrophes( string strValue )
         {
             if ( string.IsNullOrWhiteSpace( strValue ) )
@@ -1608,6 +1186,7 @@ namespace Factories
 
             return strValue;
         }
+
         public static bool IsValidDate( DateTime date )
         {
             if ( date != null && date > new DateTime( 1492, 1, 1 ) )
@@ -1623,6 +1202,7 @@ namespace Factories
             else
                 return false;
         }
+
         public static bool IsValidDate( string date )
         {
             DateTime validDate;
@@ -1638,6 +1218,7 @@ namespace Factories
             else
                 return false;
         }
+
         public static bool IsInteger( string nbr )
         {
             int validNbr = 0;
@@ -1646,6 +1227,7 @@ namespace Factories
             else
                 return false;
         }
+
         public static bool IsDecimal( string nbr, ref decimal validNbr )
         {
             validNbr = 0;
@@ -1654,6 +1236,7 @@ namespace Factories
             else
                 return false;
         }
+
         public static bool IsValid( string nbr )
         {
             int validNbr = 0;
@@ -1715,6 +1298,7 @@ namespace Factories
             else
                 return true;
         }
+
         protected bool IsValidGuid( Guid? field )
         {
             if ( ( field == null || field.ToString() == Guid.Empty.ToString() ) )
@@ -1722,6 +1306,7 @@ namespace Factories
             else
                 return true;
         }
+
         public static bool IsValidGuid( string field )
         {
             if ( string.IsNullOrWhiteSpace( field )
@@ -1732,6 +1317,7 @@ namespace Factories
             else
                 return true;
         }
+
         public static bool IsGuidValid( Guid field )
         {
             if ( ( field == null || field.ToString() == Guid.Empty.ToString() ) )
@@ -1747,6 +1333,7 @@ namespace Factories
             else
                 return true;
         }
+
         public static string AssignWithoutOverwriting( string input, string currentValue, bool doesEntityExist )
         {
             string value = "";
@@ -1762,6 +1349,7 @@ namespace Factories
             }
             return value;
         }
+
         public static bool? AssignWithoutOverwriting( bool input, bool? currentValue, bool doesEntityExist )
         {
             bool? value = false;
@@ -1788,6 +1376,7 @@ namespace Factories
             else
                 return defaultValue;
         }
+
         public static int? SetData( int value, int minValue )
         {
             if ( value >= minValue )
@@ -1795,6 +1384,7 @@ namespace Factories
             else
                 return null;
         }
+
         public static decimal? SetData( decimal value, decimal minValue )
         {
             if ( value >= minValue )
@@ -1802,6 +1392,7 @@ namespace Factories
             else
                 return null;
         }
+
         public static DateTime? SetDate( string value )
         {
             DateTime output;
@@ -2556,27 +2147,7 @@ namespace Factories
 
             return message;
         }
-        //public static string FormatExceptions( System.Data.Entity.Validation.DbEntityValidationException ex )
-        //{
-        //    string message = ex.Message;
 
-        //    if ( ex.InnerException != null )
-        //    {
-        //        message += FormatExceptions( ex.InnerException );
-        //    }
-        //    if ( ex.EntityValidationErrors != null && ex.EntityValidationErrors.Count() > 0 )
-        //    {
-        //        foreach ( var item in ex.EntityValidationErrors )
-        //        {
-        //            foreach ( var ve in item.ValidationErrors )
-        //            {
-        //                message += ve.ErrorMessage;
-        //            }
-        //        }
-
-        //    }
-        //    return message;
-        //}
         /// <summary>
         /// Strip off text that is randomly added that starts with jquery
         /// Will need additional check for numbers - determine actual format
@@ -2606,6 +2177,7 @@ namespace Factories
             return settings;
         }
     }
+
     public class EmailValidationResult
     {
         [JsonProperty( "address" )]
@@ -2617,52 +2189,4 @@ namespace Factories
     }
     //
 
-    //
-    [Serializable]
-    public class CachedRatings
-    {
-        public CachedRatings()
-        {
-            LastUpdated = DateTime.Now;
-        }
-        public DateTime LastUpdated { get; set; }
-        public List<MSc.Rating> Ratings { get; set; }
-
-    }
-    //
-    [Serializable]
-    public class CachedBillets
-    {
-        public CachedBillets()
-        {
-            LastUpdated = DateTime.Now;
-        }
-        public DateTime LastUpdated { get; set; }
-        public List<MSc.BilletTitle> Billets { get; set; }
-
-    }
-    //
-    [Serializable]
-    public class CachedClusterAnalysisTitles
-    {
-        public CachedClusterAnalysisTitles()
-        {
-            LastUpdated = DateTime.Now;
-        }
-        public DateTime LastUpdated { get; set; }
-        public List<MSc.ClusterAnalysisTitle> Titles { get; set; }
-
-    }
-
-    [Serializable]
-    public class CachedRatingContext
-    {
-        public CachedRatingContext()
-        {
-            LastUpdated = DateTime.Now;
-        }
-        public DateTime LastUpdated { get; set; }
-        public List<MSc.RatingContext> Objects { get; set; }
-
-    }
 }

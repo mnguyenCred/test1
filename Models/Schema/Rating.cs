@@ -24,6 +24,5 @@ namespace Models.Schema
 		/// </summary>
 		public string CodedNotation { get; set; }
 
-		public int HasRatingTasks { get; set; }
 	}
 }

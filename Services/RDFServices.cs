@@ -61,13 +61,13 @@ namespace Services
 			var propertiesData = RDF.StaticData.GetProperties();
 			var allConceptSchemes = Factories.ConceptSchemeManager.GetAll();
 
-			AddTargetScheme( propertiesData, "ceterms:assessmentMethodType", allConceptSchemes, Factories.ConceptSchemeManager.ConceptScheme_CurrentAssessmentApproach );
-			AddTargetScheme( propertiesData, "navy:courseType", allConceptSchemes, Factories.ConceptSchemeManager.ConceptScheme_CourseType );
-			AddTargetScheme( propertiesData, "navy:lifeCycleControlDocumentType", allConceptSchemes, Factories.ConceptSchemeManager.ConceptScheme_LifeCycleControlDocument );
-			AddTargetScheme( propertiesData, "navy:payGradeType", allConceptSchemes, Factories.ConceptSchemeManager.ConceptScheme_Pay_Grade );
-			AddTargetScheme( propertiesData, "navy:referenceType", allConceptSchemes, Factories.ConceptSchemeManager.ConceptScheme_ReferenceResource );
-			AddTargetScheme( propertiesData, "navy:applicabilityType", allConceptSchemes, Factories.ConceptSchemeManager.ConceptScheme_TaskApplicability );
-			AddTargetScheme( propertiesData, "navy:trainingGapType", allConceptSchemes, Factories.ConceptSchemeManager.ConceptScheme_TrainingGap );
+			AddTargetScheme( propertiesData, "ceterms:assessmentMethodType", allConceptSchemes, Factories.ConceptSchemeManager.ConceptScheme_AssessmentMethodCategory );
+			AddTargetScheme( propertiesData, "navy:courseType", allConceptSchemes, Factories.ConceptSchemeManager.ConceptScheme_CourseCategory );
+			AddTargetScheme( propertiesData, "navy:lifeCycleControlDocumentType", allConceptSchemes, Factories.ConceptSchemeManager.ConceptScheme_LifeCycleControlDocumentCategory );
+			AddTargetScheme( propertiesData, "navy:payGradeType", allConceptSchemes, Factories.ConceptSchemeManager.ConceptScheme_PayGradeCategory );
+			AddTargetScheme( propertiesData, "navy:referenceType", allConceptSchemes, Factories.ConceptSchemeManager.ConceptScheme_ReferenceResourceCategory );
+			AddTargetScheme( propertiesData, "navy:applicabilityType", allConceptSchemes, Factories.ConceptSchemeManager.ConceptScheme_TaskApplicabilityCategory );
+			AddTargetScheme( propertiesData, "navy:trainingGapType", allConceptSchemes, Factories.ConceptSchemeManager.ConceptScheme_TrainingGapCategory );
 
 			return propertiesData;
 		}
@@ -214,7 +214,6 @@ namespace Services
 			AppendLookupValue( result, "navy:lifeCycleControlDocumentType", source.LifeCycleControlDocumentType, Factories.ConceptManager.GetByRowId );
 			AppendLookupValue( result, "navy:courseType", source.CourseType, Factories.ConceptManager.GetMultiple );
 			AppendLookupValue( result, "ceterms:ownedBy", source.CurriculumControlAuthority, Factories.OrganizationManager.GetByRowId );
-			AppendLookupValue( result, "navy:hasTrainingTask", source.HasTrainingTask, Factories.TrainingTaskManager.GetMultiple );
 
 			//In the Registry, ceterms:ownedBy is multi-value
 			if ( result[ "ceterms:ownedBy" ] != null && result[ "ceterms:ownedBy" ].Type != JTokenType.Array )
@@ -319,8 +318,7 @@ namespace Services
 			var result = GetStarterResult( "navy:TrainingTask", source );
 
 			AppendValue( result, "ceterms:description", source.Description, true );
-			AppendLookupValue( result, "ceterms:assessmentMethodType", source.AssessmentMethodType, Factories.ConceptManager.GetMultiple );
-			AppendLookupValue( result, "ceterms:hasOccupation", source.HasRating, Factories.RatingManager.GetMultiple );
+			AppendLookupValue( result, "navy:hasReferenceResource", source.HasReferenceResource, Factories.ReferenceResourceManager.GetByRowId );
 
 			return result;
 		}
@@ -390,7 +388,7 @@ namespace Services
 			AppendLookupValue( result, "navy:developmentSpecificationType", source.DevelopmentSpecificationType, Factories.ConceptManager.GetByRowId );
 			AppendLookupValue( result, "navy:candidatePlatformType", source.CandidatePlatformType, Factories.ConceptManager.GetMultiple );
 			AppendLookupValue( result, "navy:developmentRatioType", source.DevelopmentRatioType, Factories.ConceptManager.GetByRowId );
-			AppendLookupValue( result, "navy:cfmPlacementType", source.CFMPlacementType, Factories.ConceptManager.GetByRowId );
+			AppendLookupValue( result, "navy:cfmPlacementType", source.CFMPlacementType, Factories.ConceptManager.GetMultiple );
 
 			return result;
 		}

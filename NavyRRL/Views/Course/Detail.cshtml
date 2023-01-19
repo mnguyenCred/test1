@@ -6,7 +6,6 @@
 	ViewBag.Title = "Course: " + Model.Name;
 }
 
-@Html.Partial( "~/Views/Shared/_DetailShared.cshtml" )
 @Html.Partial( "~/Views/Shared/_DetailBasicInfo.cshtml", new DetailBasicInfoHelper( Model )
 {
 	Name = Model.Name,
@@ -15,7 +14,7 @@
 		new NamedString( "Description", Model.Description ),
 		new NamedString( "Course Identification Number", Model.CodedNotation ),
 		new NamedString( "Curriculum Control Authority", LinkHelper.GetDetailPageLink( Factories.OrganizationManager.GetByRowId( Model.CurriculumControlAuthority ), Url.Content, m => m.Name ) ),
-		new NamedString( "Life Cycle Control Document Type", LinkHelper.GetDetailPageLink( Factories.ConceptManager.GetByRowId( Model.LifeCycleControlDocumentType ), Url.Content, m=> m.Name ) ),
+		new NamedString( "Life Cycle Control Document Type", LinkHelper.GetDetailPageLink( Factories.ConceptManager.GetByRowId( Model.LifeCycleControlDocumentType ), Url.Content, m => m.Name ) ),
 		new NamedString( "Course Type(s)", LinkHelper.GetDetailPageLinkList( Factories.ConceptManager.GetMultiple( Model.CourseType ), Url.Content, m => m.Name, "<ul><li>", "</li><li>", "</li></ul>" ) ),
 	}
 } )

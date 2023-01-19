@@ -18,10 +18,5 @@ namespace Models.Schema
 		/// </summary>
 		public string Description { get; set; }
 
-		/// <summary>
-		/// Coded notation (future)
-		/// </summary>
-		public string CodedNotation { get; set; }
-
 	}
 }

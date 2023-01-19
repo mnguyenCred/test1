@@ -74,7 +74,6 @@
         <AssociationConnector Association="NavyRRLModel.FK_RatingContext_RankLevel" />
         <EntityTypeShape EntityType="NavyRRLModel.ClusterAnalysis" Width="1.5" PointX="21.5" PointY="17.625" />
         <EntityTypeShape EntityType="NavyRRLModel.RatingTask" Width="1.5" PointX="21.25" PointY="9.625" />
-        <AssociationConnector Association="NavyRRLModel.FK_ClusterAnalysis_CFMPlacement_Concept" />
         <AssociationConnector Association="NavyRRLModel.FK_ClusterAnalysis_ClusterAnalysisTitle" />
         <AssociationConnector Association="NavyRRLModel.FK_ClusterAnalysis_DevelopmentRatio_Concept" />
         <AssociationConnector Association="NavyRRLModel.FK_ClusterAnalysis_DevSpecificationConcept" />
@@ -89,6 +88,10 @@
         <AssociationConnector Association="NavyRRLModel.FK_RatingTask_ReferenceType" />
         <AssociationConnector Association="NavyRRLModel.FK_RatingContext_RatingTask" />
         <AssociationConnector Association="NavyRRLModel.FK_RatingTask_to_ReferenceResource" />
+        <EntityTypeShape EntityType="NavyRRLModel.ClusterAnalysis_CFMPlacementType" Width="1.5" PointX="23.75" PointY="19.375" />
+        <AssociationConnector Association="NavyRRLModel.FK_ClusterAnalysis_CFMPlacementType_ClusterAnalysis" />
+        <AssociationConnector Association="NavyRRLModel.FK_ClusterAnalysis_CFMPlacementType_ConceptScheme_Concept" />
+        <EntityTypeShape EntityType="NavyRRLModel.ProtectedSystemEntities" Width="1.5" PointX="0.75" PointY="4.75" />
         </Diagram>
     </edmx:Diagrams>
   </edmx:Designer>

@@ -10,9 +10,10 @@
 
 @Html.Partial( "~/Views/Shared/_AJAXTools.cshtml" )
 @Html.Partial( "~/Views/Shared/_FormHelperV2.cshtml", new EditFormHelperV2( Model, new JObject() {
-	{ Factories.ConceptSchemeManager.ConceptScheme_Pay_Grade, JArray.FromObject( Factories.ConceptManager.GetAllConceptsForScheme( Factories.ConceptSchemeManager.ConceptScheme_Pay_Grade ).Select( m => SimpleItemHelper.GetSimpleItem( m ) ).ToList() ) },
-	{ Factories.ConceptSchemeManager.ConceptScheme_TaskApplicability, JArray.FromObject( Factories.ConceptManager.GetAllConceptsForScheme( Factories.ConceptSchemeManager.ConceptScheme_TaskApplicability ).Select( m => SimpleItemHelper.GetSimpleItem( m ) ).ToList() ) },
-	{ Factories.ConceptSchemeManager.ConceptScheme_TrainingGap, JArray.FromObject( Factories.ConceptManager.GetAllConceptsForScheme( Factories.ConceptSchemeManager.ConceptScheme_TrainingGap ).Select( m => SimpleItemHelper.GetSimpleItem( m ) ).ToList() ) }
+	{ Factories.ConceptSchemeManager.ConceptScheme_PayGradeCategory, JArray.FromObject( Factories.ConceptManager.GetAllConceptsForScheme( Factories.ConceptSchemeManager.ConceptScheme_PayGradeCategory ).Select( m => SimpleItemHelper.GetSimpleItem( m ) ).ToList() ) },
+	{ Factories.ConceptSchemeManager.ConceptScheme_PayGradeLevelCategory, JArray.FromObject( Factories.ConceptManager.GetAllConceptsForScheme( Factories.ConceptSchemeManager.ConceptScheme_PayGradeLevelCategory ).Select( m => SimpleItemHelper.GetSimpleItem( m ) ).ToList() ) },
+	{ Factories.ConceptSchemeManager.ConceptScheme_TaskApplicabilityCategory, JArray.FromObject( Factories.ConceptManager.GetAllConceptsForScheme( Factories.ConceptSchemeManager.ConceptScheme_TaskApplicabilityCategory ).Select( m => SimpleItemHelper.GetSimpleItem( m ) ).ToList() ) },
+	{ Factories.ConceptSchemeManager.ConceptScheme_TrainingGapCategory, JArray.FromObject( Factories.ConceptManager.GetAllConceptsForScheme( Factories.ConceptSchemeManager.ConceptScheme_TrainingGapCategory ).Select( m => SimpleItemHelper.GetSimpleItem( m ) ).ToList() ) }
 } ) )
 
 <h2>@title</h2>
@@ -20,9 +21,10 @@
 <h3>Basic Info</h3>
 <div class="field" data-fieldtype="SystemIdentifiers"></div>
 <div class="field" data-fieldtype="Text" data-property="Note" data-label="Note"></div>
-<div class="field" data-fieldtype="Select" data-property="PayGradeType" data-label="Rank (Pay Grade)" data-sourceuri="@Factories.ConceptSchemeManager.ConceptScheme_Pay_Grade"></div>
-<div class="field" data-fieldtype="Select" data-property="ApplicabilityType" data-label="Task Applicability Type" data-sourceuri="@Factories.ConceptSchemeManager.ConceptScheme_TaskApplicability"></div>
-<div class="field" data-fieldtype="Select" data-property="TrainingGapType" data-label="Training Gap Type" data-sourceuri="@Factories.ConceptSchemeManager.ConceptScheme_TrainingGap"></div>
+<div class="field" data-fieldtype="Select" data-property="PayGradeType" data-label="Rank (Pay Grade)" data-sourceuri="@Factories.ConceptSchemeManager.ConceptScheme_PayGradeCategory"></div>
+<div class="field" data-fieldtype="Select" data-property="PayGradeLevelType" data-label="Level (A/J/M)" data-sourceuri="@Factories.ConceptSchemeManager.ConceptScheme_PayGradeLevelCategory"></div>
+<div class="field" data-fieldtype="Select" data-property="ApplicabilityType" data-label="Task Applicability Type" data-sourceuri="@Factories.ConceptSchemeManager.ConceptScheme_TaskApplicabilityCategory"></div>
+<div class="field" data-fieldtype="Select" data-property="TrainingGapType" data-label="Training Gap Type" data-sourceuri="@Factories.ConceptSchemeManager.ConceptScheme_TrainingGapCategory"></div>
 <div class="field" data-fieldtype="SuggestionSingle" data-property="HasRating" data-label="Related Rating" data-searchtype="@nameof(Rating)"></div>
 <div class="field" data-fieldtype="SuggestionSingle" data-property="HasBilletTitle" data-label="Related Billet Title" data-searchtype="@nameof(BilletTitle)"></div>
 <div class="field" data-fieldtype="SuggestionSingle" data-property="HasWorkRole" data-label="Related Functional Area" data-searchtype="@nameof(WorkRole)"></div>

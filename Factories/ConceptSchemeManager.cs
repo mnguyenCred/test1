@@ -23,23 +23,22 @@ namespace Factories
     {
         public static new string thisClassName = "ConceptSchemeManager";
         //
-        public static string ConceptScheme_CommentStatus = "navy:CommentStatus";
-        public static string ConceptScheme_CourseType = "navy:CourseType";
-        public static string ConceptScheme_CurrentAssessmentApproach = "navy:CurrentAssessmentApproach";
-        public static string ConceptScheme_LifeCycleControlDocument = "navy:LifeCycleControlDocument";
-        public static string ConceptScheme_Pay_Grade = "navy:Paygrade";
-        public static string ConceptScheme_ProjectStatus = "navy:ProjectStatus";
-        public static string ConceptScheme_PayGradeLevel = "navy:PayGradeLevel";
-        public static string ConceptScheme_ReferenceResource = "navy:ReferenceResource";
-        public static string ConceptScheme_TaskApplicability = "navy:TaskApplicability";
-        public static string ConceptScheme_TrainingGap = "navy:TrainingGap";
-
-        public static string ConceptScheme_TrainingSolutionType = "navy:TrainingSolutionType";
-        public static string ConceptScheme_RecommendedModality = "navy:RecommendedModality";
-        public static string ConceptScheme_DevelopmentSpecification = "navy:DevelopmentSpecification";
-        public static string ConceptScheme_CFMPlacement = "navy:CFMPlacement";
-		public static string ConceptScheme_CandidatePlatformType = "navy:CandidatePlatformType";
-		public static string ConceptScheme_DevelopmentRatio = "navy:DevelopmentRatio"; //??
+        public static string ConceptScheme_CommentStatusCategory = "navy:CommentStatusCategory";
+        public static string ConceptScheme_CourseCategory = "navy:CourseCategory";
+        public static string ConceptScheme_AssessmentMethodCategory = "navy:AssessmentMethodCategory";
+        public static string ConceptScheme_LifeCycleControlDocumentCategory = "navy:LifeCycleControlDocumentCategory";
+        public static string ConceptScheme_PayGradeCategory = "navy:PayGradeCategory";
+        public static string ConceptScheme_ProjectStatusCategory = "navy:ProjectStatusCategory";
+        public static string ConceptScheme_PayGradeLevelCategory = "navy:PayGradeLevelCategory";
+		public static string ConceptScheme_ReferenceResourceCategory = "navy:ReferenceResourceCategory";
+        public static string ConceptScheme_TaskApplicabilityCategory = "navy:TaskApplicabilityCategory";
+        public static string ConceptScheme_TrainingGapCategory = "navy:TrainingGapCategory";
+        public static string ConceptScheme_TrainingSolutionCategory = "navy:TrainingSolutionCategory";
+        public static string ConceptScheme_RecommendedModalityCategory = "navy:RecommendedModalityCategory";
+        public static string ConceptScheme_DevelopmentSpecificationCategory = "navy:DevelopmentSpecificationCategory";
+        public static string ConceptScheme_CFMPlacementCategory = "navy:CFMPlacementCategory";
+		public static string ConceptScheme_CandidatePlatformTypeCategory = "navy:CandidatePlatformCategory";
+		public static string ConceptScheme_DevelopmentRatioCategory = "navy:DevelopmentRatioCategory";
 
 
 		#region ConceptScheme
@@ -59,119 +58,7 @@ namespace Factories
 		}
 		//
 
-
-		//unlikely
-		public bool Save( AppEntity entity, ref ChangeSummary status )
-        {
-            bool isValid = true;
-            int count = 0;
-
-            try
-            {
-                using ( var context = new DataEntities() )
-                {
-                    //look up if no id
-                    if ( entity.Id == 0 )
-                    {
-                        //add
-                        int newId = Add( entity, ref status );
-                        if ( newId == 0 || status.HasSectionErrors )
-                            isValid = false;
-
-                        return isValid;
-
-                    }
-                    //update
-                    //TODO - consider if necessary, or interferes with anything
-                    //      - don't really want to include all training tasks
-                    context.Configuration.LazyLoadingEnabled = false;
-                    var efEntity = context.ConceptScheme
-                            .SingleOrDefault( s => s.Id == entity.Id );
-
-                    if ( efEntity != null && efEntity.Id > 0 )
-                    {
-                        //fill in fields that may not be in entity
-                        entity.RowId = efEntity.RowId;
-                        entity.Created = efEntity.Created;
-                        entity.CreatedById = efEntity.CreatedById ?? 0;
-                        entity.Id = efEntity.Id;
-
-                        MapToDB( entity, efEntity );
-
-                        if ( HasStateChanged( context ) )
-                        {
-                            efEntity.LastUpdated = DateTime.Now;
-                            efEntity.LastUpdatedById = entity.LastUpdatedById;
-                            count = context.SaveChanges();
-                            //can be zero if no data changed
-                            if ( count >= 0 )
-                            {
-                                entity.LastUpdated = ( DateTime ) efEntity.LastUpdated;
-                                isValid = true;
-                                SiteActivity sa = new SiteActivity()
-                                {
-                                    ActivityType = "ConceptScheme",
-                                    Activity = status.Action,
-                                    Event = "Update",
-                                    Comment = string.Format( "ConceptScheme was updated. Name: {0}", entity.Name ),
-                                    ActionByUserId = entity.LastUpdatedById,
-                                    ActivityObjectId = entity.Id
-                                };
-                                new ActivityManager().SiteActivityAdd( sa );
-                            }
-                            else
-                            {
-                                //?no info on error
-
-                                isValid = false;
-                                string message = string.Format( thisClassName + ".Save Failed", "Attempted to update a Course. The process appeared to not work, but was not an exception, so we have no message, or no clue. Course: {0}, Id: {1}", entity.Name, entity.Id );
-                                status.AddError( "Error - the update was not successful. " + message );
-                                EmailManager.NotifyAdmin( thisClassName + ".Save Failed Failed", message );
-                            }
-
-                        }
-
-            
-                    }
-                    else
-                    {
-                        status.AddError( "Error - update failed, as record was not found." );
-                    }
-
-
-                }
-            }
-            catch ( Exception ex )
-            {
-                string message = FormatExceptions( ex );
-                LoggingHelper.LogError( ex, thisClassName + string.Format( ".Save. id: {0}, Name: {1}", entity.Id, entity.Name ), true );
-                status.AddError( thisClassName + ".Save(). Error - the save was not successful. " + message );
-                isValid = false;
-            }
-
-
-            return isValid;
-        }
-        //placeholder, as can't (yet) add a new concept scheme
-        private int Add( AppEntity entity, ref ChangeSummary status )
-        {
-            var efEntity = new Data.Tables.ConceptScheme_Concept();
-           
-            return 0;
-        }
         #endregion
-
-
-		public static AppEntity GetByIdentifier( string identifier, bool returnNullIfEmpty = false )
-		{
-			return GetByIdentifier<DBEntity, AppEntity>( identifier, context => context.ConceptScheme, list => { 
-				return list.FirstOrDefault( 
-					item => item.Name.ToLower() == identifier.ToLower() || 
-					item.SchemaUri.ToLower() == identifier.ToLower() 
-				); 
-			}, MapFromDB, returnNullIfEmpty );
-		}
-		//
 
 		public static AppEntity GetSingleByFilter( Func<DBEntity, bool> FilterMethod, bool returnNullIfNotFound = false )
 		{
@@ -216,7 +103,13 @@ namespace Factories
 
 		public static List<AppEntity> GetAll( bool includeConcepts = true )
 		{
-			return GetItemList<DBEntity, AppEntity>( m => m.ConceptScheme.Where( n => n.SchemaUri != null ), MapFromDB );
+			return GetItemList( m => m.ConceptScheme.Where( n => n.SchemaUri != null ), MapFromDB );
+		}
+		//
+
+		public static List<AppEntity> GetMultiple( List<Guid> guids )
+		{
+			return GetMultipleByFilter( context => context.ConceptScheme, m => guids.Contains( m.RowId ), m => m.Name, false, MapFromDB, false );
 		}
 		//
 
@@ -232,46 +125,25 @@ namespace Factories
 			var result = new Models.Schema.ConceptSchemeMap()
 			{
 				AllConceptSchemes = schemes,
-				CommentStatusCategory = schemes.FirstOrDefault( scheme => scheme.SchemaUri == ConceptScheme_CommentStatus ),
-				CourseCategory = schemes.FirstOrDefault( scheme => scheme.SchemaUri == ConceptScheme_CourseType ),
-				AssessmentMethodCategory = schemes.FirstOrDefault( scheme => scheme.SchemaUri == ConceptScheme_CurrentAssessmentApproach ),
-				LifeCycleControlDocumentCategory = schemes.FirstOrDefault( scheme => scheme.SchemaUri == ConceptScheme_LifeCycleControlDocument ),
-				PayGradeCategory = schemes.FirstOrDefault( scheme => scheme.SchemaUri == ConceptScheme_Pay_Grade ),
-				ProjectStatusCategory = schemes.FirstOrDefault( scheme => scheme.SchemaUri == ConceptScheme_ProjectStatus ),
-				PayGradeLevelCategory = schemes.FirstOrDefault( scheme => scheme.SchemaUri == ConceptScheme_PayGradeLevel ),
-				ReferenceResourceCategory = schemes.FirstOrDefault( scheme => scheme.SchemaUri == ConceptScheme_ReferenceResource ),
-				TaskApplicabilityCategory = schemes.FirstOrDefault( scheme => scheme.SchemaUri == ConceptScheme_TaskApplicability ),
-				TrainingGapCategory = schemes.FirstOrDefault( scheme => scheme.SchemaUri == ConceptScheme_TrainingGap ),
-				TrainingSolutionCategory = schemes.FirstOrDefault( scheme => scheme.SchemaUri == ConceptScheme_TrainingSolutionType ),
-				RecommendedModalityCategory = schemes.FirstOrDefault( scheme => scheme.SchemaUri == ConceptScheme_RecommendedModality ),
-				DevelopmentSpecificationCategory = schemes.FirstOrDefault( scheme => scheme.SchemaUri == ConceptScheme_DevelopmentSpecification ),
-				CandidatePlatformCategory = schemes.FirstOrDefault( scheme => scheme.SchemaUri == ConceptScheme_CandidatePlatformType ),
-				DevelopmentRatioCategory = schemes.FirstOrDefault( scheme => scheme.SchemaUri == ConceptScheme_DevelopmentRatio ),
-				CFMPlacementCategory = schemes.FirstOrDefault( scheme => scheme.SchemaUri == ConceptScheme_CFMPlacement )
+				CommentStatusCategory = schemes.FirstOrDefault( scheme => scheme.SchemaUri == ConceptScheme_CommentStatusCategory ),
+				CourseCategory = schemes.FirstOrDefault( scheme => scheme.SchemaUri == ConceptScheme_CourseCategory ),
+				AssessmentMethodCategory = schemes.FirstOrDefault( scheme => scheme.SchemaUri == ConceptScheme_AssessmentMethodCategory ),
+				LifeCycleControlDocumentCategory = schemes.FirstOrDefault( scheme => scheme.SchemaUri == ConceptScheme_LifeCycleControlDocumentCategory ),
+				PayGradeCategory = schemes.FirstOrDefault( scheme => scheme.SchemaUri == ConceptScheme_PayGradeCategory ),
+				ProjectStatusCategory = schemes.FirstOrDefault( scheme => scheme.SchemaUri == ConceptScheme_ProjectStatusCategory ),
+				PayGradeLevelCategory = schemes.FirstOrDefault( scheme => scheme.SchemaUri == ConceptScheme_PayGradeLevelCategory ),
+				ReferenceResourceCategory = schemes.FirstOrDefault( scheme => scheme.SchemaUri == ConceptScheme_ReferenceResourceCategory ),
+				TaskApplicabilityCategory = schemes.FirstOrDefault( scheme => scheme.SchemaUri == ConceptScheme_TaskApplicabilityCategory ),
+				TrainingGapCategory = schemes.FirstOrDefault( scheme => scheme.SchemaUri == ConceptScheme_TrainingGapCategory ),
+				TrainingSolutionCategory = schemes.FirstOrDefault( scheme => scheme.SchemaUri == ConceptScheme_TrainingSolutionCategory ),
+				RecommendedModalityCategory = schemes.FirstOrDefault( scheme => scheme.SchemaUri == ConceptScheme_RecommendedModalityCategory ),
+				DevelopmentSpecificationCategory = schemes.FirstOrDefault( scheme => scheme.SchemaUri == ConceptScheme_DevelopmentSpecificationCategory ),
+				CandidatePlatformCategory = schemes.FirstOrDefault( scheme => scheme.SchemaUri == ConceptScheme_CandidatePlatformTypeCategory ),
+				DevelopmentRatioCategory = schemes.FirstOrDefault( scheme => scheme.SchemaUri == ConceptScheme_DevelopmentRatioCategory ),
+				CFMPlacementCategory = schemes.FirstOrDefault( scheme => scheme.SchemaUri == ConceptScheme_CFMPlacementCategory )
 			};
 
 			return result;
-		}
-		//
-
-		public static List<AppEntity> GetMultiple( List<Guid> guids )
-		{
-			var results = new List<AppEntity>();
-
-			using ( var context = new DataEntities() )
-			{
-				var items = context.ConceptScheme
-					.Where( m => guids.Contains( m.RowId ) )
-					.OrderBy( m => m.Description )
-					.ToList();
-
-				foreach ( var item in items )
-				{
-					results.Add( MapFromDB( item, context ) );
-				}
-			}
-
-			return results;
 		}
 		//
 
@@ -312,15 +184,6 @@ namespace Factories
 			}
 
 			return output;
-        }
-		//
-
-        public static void MapToDB( AppEntity input, DBEntity output )
-        {
-            //watch for missing properties like rowId
-            List<string> errors = new List<string>();
-            BaseFactory.AutoMap( input, output, errors );
-            //
         }
 		//
 

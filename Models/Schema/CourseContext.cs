@@ -25,17 +25,4 @@ namespace Models.Schema
 
 	}
 	//
-
-	public class PopulatedCourseContext : CourseContext
-	{
-		public PopulatedCourseContext()
-		{
-			AssessmentMethodTypeData = new List<Concept>();
-		}
-
-		public TrainingTask HasTrainingTaskData { get; set; }
-		public Course HasCourseData { get; set; }
-		public List<Concept> AssessmentMethodTypeData { get; set; }
-	}
-	//
 }

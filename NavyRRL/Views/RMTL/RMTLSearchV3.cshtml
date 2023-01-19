@@ -21,6 +21,27 @@
 		} ).ToList()
 	} ).ToList();
 
+	allConceptSchemes.Add( new SimpleFilter()
+	{
+		URI = "UtilityFilters",
+		Name = "Utility Filters",
+		Items = new List<SimpleFilterItem>()
+		{
+			new SimpleFilterItem()
+			{
+				Label = "Limit results to Rating-level Tasks associated with more than one Pay Grade Level (A/J/M)",
+				Name = "> PayGradeLevelTypeId > Concept.MultipleForRatingTask",
+				Id = 0
+			},
+			new SimpleFilterItem()
+			{
+				Label = "Limit results to Rating-level Tasks associated with more than one Rank (Pay Grade)",
+				Name = "> PayGradeTypeId > Concept.MultipleForRatingTask",
+				Id = 0
+			}
+		}
+	} );
+
 	var preselectedRating = new Rating();
 	if ( !string.IsNullOrWhiteSpace( Request.Params[ "RatingRowID" ] ) )
 	{
@@ -87,8 +108,8 @@
 			{ Label: "Cluster Analysis Title", Path: "> HasClusterAnalysis > ClusterAnalysis > HasClusterAnalysisTitle > ClusterAnalysisTitle > Name", Part: "PART III", MinWidth: 300 },
 			{ Label: "Recommended Modality", Path: "> HasClusterAnalysis > ClusterAnalysis > RecommendedModalityType > Concept > Name", Part: "PART III", MinWidth: 100 },
 			{ Label: "Development Specification", Path: "> HasClusterAnalysis > ClusterAnalysis > DevelopmentSpecificationType > Concept > Name", Part: "PART III", MinWidth: 150 },
-			{ Label: "Candidate Platform", Path: "> HasClusterAnalysis > ClusterAnalysis > CandidatePlatformType > Concept > CodedNotation", Part: "PART III", MinWidth: 200 },
-			{ Label: "CFM Placement", Path: "> HasClusterAnalysis > ClusterAnalysis > CFMPlacementType > Concept > Name", Part: "PART III", MinWidth: 150 },
+			{ Label: "Candidate Platform", Path: "> HasClusterAnalysis > ClusterAnalysis > CandidatePlatformType > Concept > CodedNotation", Part: "PART III", MinWidth: 200, Separator: "/" },
+			{ Label: "CFM Placement", Path: "> HasClusterAnalysis > ClusterAnalysis > CFMPlacementType > Concept > Name", Part: "PART III", MinWidth: 150, Separator: "/" },
 			{ Label: "Priority Placement", Path: "> HasClusterAnalysis > ClusterAnalysis > PriorityPlacement", Part: "PART III", MinWidth: 100 },
 			{ Label: "Development Ratio", Path: "> HasClusterAnalysis > ClusterAnalysis > DevelopmentRatioType > Concept > Name", Part: "PART III", MinWidth: 100 },
 			{ Label: "Estimated Instructional Time", Path: "> HasClusterAnalysis > ClusterAnalysis > EstimatedInstructionalTime", Part: "PART III", MinWidth: 100 },
@@ -100,8 +121,10 @@
 		AllTasksTotal: 0,
 		ReferenceResourceConcepts: @Html.Raw( JsonConvert.SerializeObject( conceptSchemeMap.ReferenceResourceCategory.Concepts.Select( m => SimpleItemHelper.GetSimpleItem( m ) ).ToList() ) ),
 		TrainingGapConcepts: @Html.Raw( JsonConvert.SerializeObject( conceptSchemeMap.TrainingGapCategory.Concepts.Select( m => SimpleItemHelper.GetSimpleItem( m ) ).ToList() ) ),
-		BySourceColumns: [
-			{ Label: "Source Type" },
+		PayGradeLevelConcepts: @Html.Raw( JsonConvert.SerializeObject( conceptSchemeMap.PayGradeLevelCategory.Concepts.Select( m => SimpleItemHelper.GetSimpleItem( m ) ).ToList() ) ),
+		PayGradeConcepts: @Html.Raw( JsonConvert.SerializeObject( conceptSchemeMap.PayGradeCategory.Concepts.Select( m => SimpleItemHelper.GetSimpleItem( m ) ).ToList() ) ),
+		StatColumns: [
+			{ getLabel: (table) => table.attr("data-typeheader") },
 			{ Label: "Tasks" },
 			{ Label: "Gaps" },
 			{ Label: "Coverage %" },
@@ -172,7 +195,15 @@
 			BySourceTable: $(".ratingTasksBySourceTypeTable"),
 			BySourceTableHeader: $(".ratingTasksBySourceTypeTableHeader"),
 			BySourceTableBody: $(".ratingTasksBySourceTypeTableBody"),
-			BySourceTableFooter: $(".ratingTasksBySourceTypeTableFooter")
+			BySourceTableFooter: $(".ratingTasksBySourceTypeTableFooter"),
+			ByLevelTable: $(".ratingTasksByPayGradeLevelTable"),
+			ByLevelTableHeader: $(".ratingTasksByPayGradeLevelTableHeader"),
+			ByLevelTableBody: $(".ratingTasksByPayGradeLevelTableBody"),
+			ByLevelTableFooter: $(".ratingTasksByPayGradeLevelTableFooter"),
+			ByPayGradeTable: $(".ratingTasksByPayGradeTable"),
+			ByPayGradeTableHeader: $(".ratingTasksByPayGradeTableHeader"),
+			ByPayGradeTableBody: $(".ratingTasksByPayGradeTableBody"),
+			ByPayGradeTableFooter: $(".ratingTasksByPayGradeTableFooter")
 		};
 
 		//Buttons
@@ -190,10 +221,18 @@
 
 		UI.ExportResultsProgressBarBox.hide();
 
-		var sourceTableHeaderTR = $("<tr></tr>").appendTo(UI.Statistics.BySourceTableHeader);
-		Statistics.BySourceColumns.forEach(Column => {
-			Column.TableHeader = $("<th data-column=\"" + Column.Label + "\">" + Column.Label + "</th>").appendTo(sourceTableHeaderTR);
-		});
+		buildStatTable(UI.Statistics.BySourceTable, UI.Statistics.BySourceTableHeader);
+		buildStatTable(UI.Statistics.ByLevelTable, UI.Statistics.ByLevelTableHeader);
+		buildStatTable(UI.Statistics.ByPayGradeTable, UI.Statistics.ByPayGradeTableHeader);
+
+		//Helper function
+		function buildStatTable(Table, TableHeader) {
+			var tableHeaderTR = $("<tr></tr>").appendTo(TableHeader);
+			Statistics.StatColumns.forEach(Column => {
+				var label = Column.Label || Column.getLabel(Table);
+				$("<th data-column=\"" + label + "\">" + label + "</th>").appendTo(tableHeaderTR);
+			});
+		}
 	}
 	//
 
@@ -264,7 +303,7 @@
 
 		//Override the appropriate functions
 		MainSearch.getFilters = function () {
-			return MainSearch.Filters.List.filter(Filter => !Filter.IsMetaFilter).map(Filter => Filter.read()).filter(value => value);
+			return MainSearch.Filters.List.filter(Filter => !Filter.IsMetaFilter).map(Filter => Filter.read()).flatMap(filterData => filterData).filter(value => value);
 		};
 
 		MainSearch.getSortOrder = function () {
@@ -554,22 +593,30 @@
 	//Statistics functions
 	function getAndRenderStatistics() {
 		MainSearch.doPOSTRequest(MainSearch.SearchURL, { ...MainSearch.Query, Filters: [], Skip: 0, Take: 0, SortOrder: [{ Column: "sortOrder:Unsorted" }] }, success => {
-			Statistics.AllTasksTotal = success.Data.TotalResults;
-			getAndRenderStatisticsBySourceTable();
+			Statistics.AllTasksTotal = success.Data.ExtraData.RatingTaskCount;
+			getAndRenderStatisticsTable(Statistics.ReferenceResourceConcepts, Statistics.StatColumns, UI.Statistics.BySourceTableBody, UI.Statistics.BySourceTableFooter, "> RatingTaskId > RatingTask > ReferenceResourceTypeId > Concept", "Total from All Sources", (a, b) => { return a.ResultsTotal > b.ResultsTotal ? -1 : 1 });
+			getAndRenderStatisticsTable([
+				...Statistics.PayGradeLevelConcepts,
+				{ Name: "Tasks Associated with Multiple Levels", Id: 0, OverrideFilterName: "> PayGradeLevelTypeId > Concept.MultipleForRatingTask" },
+			], Statistics.StatColumns, UI.Statistics.ByLevelTableBody, UI.Statistics.ByLevelTableFooter, "> PayGradeLevelTypeId > Concept.ExclusiveToRatingTask", "Total from All Levels");
+			getAndRenderStatisticsTable([
+				...Statistics.PayGradeConcepts.map(m => { m.Label = m.CodedNotation + " - " + m.Name; return m; }),
+				{ Name: "Tasks Associated with Multiple Pay Grades", Id: 0, OverrideFilterName: "> PayGradeTypeId > Concept.MultipleForRatingTask" },
+			], Statistics.StatColumns, UI.Statistics.ByPayGradeTableBody, UI.Statistics.ByPayGradeTableFooter, "> PayGradeTypeId > Concept.ExclusiveToRatingTask", "Total from All Pay Grades");
 		}, error => {
 			console.log("Error getting Grand Total", error);
 		});
 	}
 	//
 
-	function getAndRenderStatisticsBySourceTable() {
-		UI.Statistics.BySourceTableBody.html("<tr><td colspan=\"" + Statistics.BySourceColumns.length + "\"><div class=\"spinner\"></div></td></tr>");
-		UI.Statistics.BySourceTableFooter.html("");
-		var CalculatedStats = Statistics.ReferenceResourceConcepts.map(Source => { return { Source: Source, ResultsTotal: 0, GapTotal: 0, Error: "", Finished: false } });
+	function getAndRenderStatisticsTable(Concepts, Columns, TableBody, TableFooter, nameFilterPath, totalFromAllText, sortFunction) {
+		TableBody.html("<tr><td colspan=\"" + Columns.length + "\"><div class=\"spinner\"></div></td></tr>");
+		TableFooter.html("");
+		var CalculatedStats = Concepts.map(Concept => { return { Concept: Concept, ResultsTotal: 0, GapTotal: 0, Error: "", Finished: false } });
 		CalculatedStats.forEach(Stat => {
 			var alteredQuery = {
 				...MainSearch.Query,
-				Filters: [...MainSearch.Query.Filters, { Name: "> RatingTaskId > RatingTask > ReferenceResourceTypeId > Concept", ItemIds: [Stat.Source.Id] }],
+				Filters: [...MainSearch.Query.Filters, { Name: Stat.Concept.OverrideFilterName || nameFilterPath, ItemIds: [Stat.Concept.Id] }],
 				Skip: 0,
 				Take: 0,
 				SortOrder: [{ Column: "sortOrder:Unsorted" }]
@@ -600,8 +647,8 @@
 		function handleFinished(Stat) {
 			Stat.Finished = true;
 			if (CalculatedStats.every(OtherStat => OtherStat.Finished)) {
-				CalculatedStats = CalculatedStats.sort((a, b) => { return a.ResultsTotal > b.ResultsTotal ? -1 : 1 });
-				UI.Statistics.BySourceTableBody.html("");
+				sortFunction && (CalculatedStats = CalculatedStats.sort(sortFunction));
+				TableBody.html("");
 				var resultsTotal = CalculatedStats.reduce((total, Stat) => { return total + Stat.ResultsTotal; }, 0);
 				var resultsAllTasksPercent = getPercent(resultsTotal, Statistics.AllTasksTotal);
 				var gapTotal = CalculatedStats.reduce((total, Stat) => { return total + Stat.GapTotal }, 0);
@@ -612,8 +659,8 @@
 					var statCoveragePercent = Math.round(100 * (100 - statGapPercent)) / 100; //Prevents weird javascript floating point errors like 100 - 19.54 resulting in 80.46000000000001
 					var statResultsTaskPercent = getPercent(Stat.ResultsTotal, resultsTotal);
 					var statAllTasksTaskPercent = getPercent(Stat.ResultsTotal, Statistics.AllTasksTotal);
-					UI.Statistics.BySourceTableBody.append("<tr>" + [
-						"<a href=\"@Url.Content("~/Concept/Detail/")" + Stat.Source.Id + "\" target=\"_blank\">" + Stat.Source.Name + "</a>",
+					TableBody.append("<tr>" + [
+						Stat.Concept.Id == 0 ? Stat.Concept.Name : "<a href=\"@Url.Content("~/Concept/Detail/")" + Stat.Concept.Id + "\" target=\"_blank\">" + (Stat.Concept.Label || Stat.Concept.Name) + "</a>",
 						Stat.ResultsTotal == -99 ? Stat.Error : Stat.ResultsTotal,
 						Stat.GapTotal == -99 ? Stat.Error : Stat.GapTotal,
 						statCoveragePercent + "%",
@@ -622,11 +669,11 @@
 						renderStatBarWrapper(statResultsTaskPercent, statCoveragePercent),
 						statAllTasksTaskPercent + "%",
 						renderStatBarWrapper(statAllTasksTaskPercent, statCoveragePercent)
-					].map((m, i) => "<td data-column=\"" + Statistics.BySourceColumns[i].Label + "\">" + m + "</td>").join("") + "</tr>");
+					].map((m, i) => "<td data-column=\"" + Columns[i].Label + "\">" + m + "</td>").join("") + "</tr>");
 				});
-				UI.Statistics.BySourceTableFooter.html("<tr>" +
-					["Total from All Sources", resultsTotal, gapTotal, coveragePercent + "%", gapPercent + "%", "100%", renderStatBarWrapper(100, coveragePercent), resultsAllTasksPercent + "%", renderStatBarWrapper(resultsAllTasksPercent, coveragePercent)]
-					.map((m, i) => "<th data-column=\"" + Statistics.BySourceColumns[i].Label + "\">" + m + "</th>").join("") +
+				TableFooter.html("<tr>" +
+					[totalFromAllText, resultsTotal, gapTotal, coveragePercent + "%", gapPercent + "%", "100%", renderStatBarWrapper(100, coveragePercent), resultsAllTasksPercent + "%", renderStatBarWrapper(resultsAllTasksPercent, coveragePercent)]
+					.map((m, i) => "<th data-column=\"" + Columns[i].Label + "\">" + m + "</th>").join("") +
 				"</tr>");
 			}
 		}
@@ -672,6 +719,12 @@
 	function setupFilter_Suggestion(Filter) {
 		setupFilter_Suggestion_Core(Filter);
 		Filter.Timeout = 0;
+		Filter.SuggestionFilterExtras = [];
+		Filter.HasDataHelper = Filter.Box.attr("data-hasdatahelper");
+
+		if (Filter.HasDataHelper) {
+			Filter.SuggestionFilterExtras.push({ Name: Filter.HasDataHelper });
+		}
 
 		Filter.Input.on("focus keyup", function () {
 			clearTimeout(Filter.Timeout);
@@ -679,7 +732,8 @@
 				MainSearch.doPOSTRequest("@Url.Content("~/")" + Filter.SearchType + "/DoSearch", {
 					Filters: [
 						{ Name: "search:Keyword", Text: Filter.Input.val().trim() },
-						{ Name: "search:Exclude", ItemIds: Filter.SelectedItems.map(SelectedItem => SelectedItem.Data.Id) }
+						{ Name: "search:Exclude", ItemIds: Filter.SelectedItems.map(SelectedItem => SelectedItem.Data.Id) },
+						...Filter.SuggestionFilterExtras
 					],
 					Take: 20
 				}, (success) => {
@@ -687,6 +741,26 @@
 					Filter.renderSuggestions();
 				});
 			}, 500);
+		});
+
+		Filter.read = function () {
+			var ids = Filter.SelectedItems.map(SelectedItem => SelectedItem.Data.Id);
+			return ids.length == 0 ? null : { Name: Filter.Name, ItemIds: ids };
+		}
+	}
+	//
+
+	//Setup Local Suggestion Filter
+	function setupFilter_SuggestionLocalConcept(Filter) {
+		setupFilter_Suggestion_Core(Filter);
+		Filter.Options = [...Filter.Source.Items];
+
+		Filter.Input.on("focus keyup", function () {
+			setTimeout(function () {
+				var text = Filter.Input.val().trim().toLowerCase();
+				Filter.Suggestions = Filter.Options.filter(Option => !Filter.SelectedItems.map(SelectedItem => SelectedItem.Data).includes(Option) && Option.Label.toLowerCase().includes(text));
+				Filter.renderSuggestions();
+			}, 0);
 		});
 
 		Filter.read = function () {
@@ -842,6 +916,20 @@
 	}
 	//
 
+	//Checkbox List Individual Items Filter
+	function setupFilter_CheckBoxListIndividualItems(Filter) {
+		setupFilter_CheckBoxList_Core(Filter, Filter.Source.Items, "Toggle All", function () {
+			delayThenTriggerSearchIfAvailable(true);
+		});
+
+		Filter.read = function () {
+			return Filter.CheckBoxes.filter(CheckBox => CheckBox.Input.prop("checked")).map(CheckBox => {
+				return { Name: CheckBox.Data.Name, ItemIds: [CheckBox.Data.Id] }; //Must have an ID (an ID of 0 is fine) or the search process will ignore the filter
+			});
+		}
+	}
+	//
+
 	//Core Checkbox Filter
 	function setupFilter_CheckBoxList_Core(Filter, ItemList, toggleAllButtonLabel, onUpdate) {
 		Filter.CheckBoxes = [];
@@ -874,9 +962,7 @@
 	.navbar { position: static; margin: 0 0 0 0; }
 	.navbar .container { width: 1170px; }
 	.container { width: 100%; }
-/*TBD: not sure if need to comment this
-	.body-content { padding: 0 0 0 0; margin: 0 0 0 0; }
-	.container .body-content{padding-top: 40px;}*/
+	.body-content { padding: 0; margin: 0; }
 
 	.mainWrapper { display: flex; flex-direction: column; position: relative; }
 	.mainWrapper .mainHeader { display: flex; gap: 10px; align-items: center; position: sticky; top: 0; z-index: 100; background-color: #EEE; padding: 5px 10px; }
@@ -889,7 +975,7 @@
 	.mainWrapper .mainHeader .exportBox .exportProgressBarBox { background-color: #555; padding: 1px; height: 26px; width: 200px; border-radius: 3px; }
 	.mainWrapper .mainHeader .exportBox .exportProgressBarBox .exportProgressBar { background-color: #3A3; color: #FFF; padding: 2px; transition: width 0.2s; height: 100%; width: 0%; text-align: right; white-space: nowrap; }
 	.mainWrapper .mainTabsBox {  }
-	.mainWrapper .mainTabsBox .mainTab { display: flex; flex-direction: column; height: calc(100vh - 51px - 42px); }
+	.mainWrapper .mainTabsBox .mainTab { display: flex; flex-direction: column; height: calc(100vh - 25px - 51px - 42px); /* 100vh - CUI banner - site header - main tab set header */ }
 	.mainWrapper .mainTabsBox .mainTab:not(.selected) { display: none; }
 	
 	.mainSearchFiltersBox { padding: 0 20px; overflow-y: auto; }
@@ -932,14 +1018,16 @@
 	.rmtlBox .rmtlFooter .rmtlPagingBox { display: flex; gap: 5px; justify-content: center; align-items: center; padding: 5px 10px; }
 
 	.statisticsBox { padding: 0 20px; }
-	.statisticsBox .ratingTasksBySourceTypeTable { width: 1500px; }
-	.statisticsBox .ratingTasksBySourceTypeTable [data-column='Source Type'] { text-align: left; }
-	.statisticsBox .ratingTasksBySourceTypeTable thead tr th { padding: 0 10px; min-width: 50px; text-align: right; }
-	.statisticsBox .ratingTasksBySourceTypeTable tbody tr td { border-top: 1px solid #CCC; text-align: right; padding: 5px; }
-	.statisticsBox .ratingTasksBySourceTypeTable tfoot tr th { border-top: 1px solid #CCC; text-align: right; padding: 5px; }
-	.statisticsBox .ratingTasksBySourceTypeTable .statBarWrapper { background-color: #DDD; height: 18px; padding: 1px 2px; }
-	.statisticsBox .ratingTasksBySourceTypeTable .statBarWrapper .statBarAll { background-color: #D83; height: 100%; }
-	.statisticsBox .ratingTasksBySourceTypeTable .statBarWrapper .statBarAll .statBarCoverage { background-color: #0C3; height: 100%; }
+	.statisticsBox .statSection { margin-bottom: 50px; }
+	.statisticsBox .statisticsTable { width: 100%; }
+	.statisticsBox .statisticsTable :is([data-column='Source Type'], [data-column='Level Type'], [data-column='Pay Grade Type']) { text-align: left; width: 475px; }
+	.statisticsBox .statisticsTable thead tr th { padding: 5px 10px; min-width: 50px; text-align: right; }
+	.statisticsBox .statisticsTable tbody tr td { border-top: 1px solid #CCC; text-align: right; padding: 5px 10px; }
+	.statisticsBox .statisticsTable tfoot tr th { border-top: 1px solid #CCC; text-align: right; padding: 5px 10px; }
+	.statisticsBox .statisticsTable tbody tr td:first-child { text-align: left; }
+	.statisticsBox .statisticsTable .statBarWrapper { background-color: #DDD; height: 18px; padding: 1px 2px; }
+	.statisticsBox .statisticsTable .statBarWrapper .statBarAll { background-color: #D83; height: 100%; }
+	.statisticsBox .statisticsTable .statBarWrapper .statBarAll .statBarCoverage { background-color: #0C3; height: 100%; }
 </style>
 <style type="text/css" class="rmtlStyleBox"></style>
 
@@ -963,18 +1051,18 @@
 					<h4 class="filterGroupHeader">Part I Filters</h4>
 					<div class="filterGroupContent">
 						<div class="filterSet textFilterSet">
-							<div class="filter" data-filter="> RatingId > Rating" data-filtertype="Suggestion" data-searchtype="Rating" data-label="Rating"></div>
+							<div class="filter" data-filter="> RatingId > Rating" data-filtertype="Suggestion" data-searchtype="Rating" data-label="Rating" data-hasdatahelper="< RatingId < RatingContext:NotNull"></div>
 							<div class="filter" data-filter="> BilletTitleId > Job" data-filtertype="Suggestion" data-searchtype="BilletTitle" data-label="Billet Title"></div>
 							<div class="filter" data-filter="> WorkRoleId > WorkRole" data-filtertype="Suggestion" data-searchtype="WorkRole" data-label="Functional Area"></div>
 							<div class="filter" data-filter="> RatingTaskId > RatingTask > ReferenceResourceId > ReferenceResource" data-filtertype="Suggestion" data-searchtype="ReferenceResource" data-label="Source"></div>
 							<div class="filter" data-filter="> RatingTaskId > RatingTask.TextFields" data-filtertype="Text" data-label="Rating Task"></div>
 						</div>
 						<div class="filterSet checkBoxListFilterSet">
-							<div class="filter" data-filter="> RatingTaskId > RatingTask > ReferenceResourceTypeId > Concept" data-filtertype="CheckBoxList" data-sourceuri="@Factories.ConceptSchemeManager.ConceptScheme_ReferenceResource"></div>
-							<div class="filter" data-filter="> PayGradeTypeId > Concept" data-filtertype="CheckBoxList" data-sourceuri="@Factories.ConceptSchemeManager.ConceptScheme_Pay_Grade"></div>
-							<div class="filter" data-filter="> PayGradeLevelTypeId > Concept" data-filtertype="CheckBoxList" data-sourceuri="@Factories.ConceptSchemeManager.ConceptScheme_PayGradeLevel"></div>
-							<div class="filter" data-filter="> FormalTrainingGapId > Concept" data-filtertype="CheckBoxList" data-sourceuri="@Factories.ConceptSchemeManager.ConceptScheme_TrainingGap"></div>
-							<div class="filter" data-filter="> TaskApplicabilityId > Concept" data-filtertype="CheckBoxList" data-sourceuri="@Factories.ConceptSchemeManager.ConceptScheme_TaskApplicability"></div>
+							<div class="filter" data-filter="> RatingTaskId > RatingTask > ReferenceResourceTypeId > Concept" data-filtertype="CheckBoxList" data-sourceuri="@Factories.ConceptSchemeManager.ConceptScheme_ReferenceResourceCategory"></div>
+							<div class="filter" data-filter="> PayGradeTypeId > Concept" data-filtertype="CheckBoxList" data-sourceuri="@Factories.ConceptSchemeManager.ConceptScheme_PayGradeCategory"></div>
+							<div class="filter" data-filter="> PayGradeLevelTypeId > Concept" data-filtertype="CheckBoxList" data-sourceuri="@Factories.ConceptSchemeManager.ConceptScheme_PayGradeLevelCategory"></div>
+							<div class="filter" data-filter="> FormalTrainingGapId > Concept" data-filtertype="CheckBoxList" data-sourceuri="@Factories.ConceptSchemeManager.ConceptScheme_TrainingGapCategory"></div>
+							<div class="filter" data-filter="> TaskApplicabilityId > Concept" data-filtertype="CheckBoxList" data-sourceuri="@Factories.ConceptSchemeManager.ConceptScheme_TaskApplicabilityCategory"></div>
 						</div>
 					</div>
 				</div>
@@ -984,12 +1072,12 @@
 						<div class="filterSet textFilterSet">
 							<div class="filter" data-filter="> CourseContextId > CourseContext > HasCourseId > Course" data-filtertype="Suggestion" data-searchtype="Course" data-label="Course"></div>
 							<div class="filter" data-filter="> CourseContextId > CourseContext > HasTrainingTaskId > TrainingTask.TextFields" data-filtertype="Text" data-label="Training Task"></div>
-							<div class="filter" data-filter="> CourseContextId > CourseContext > HasCourseId > Course > CurriculumControlAuthorityId > Organization" data-filtertype="Suggestion" data-searchtype="Organization" data-label="Curriculum Control Authority"></div>
+							<div class="filter" data-filter="> CourseContextId > CourseContext > HasCourseId > Course > CurriculumControlAuthorityId > Organization" data-filtertype="Suggestion" data-searchtype="Organization" data-label="Curriculum Control Authority" data-hasdatahelper="< CurriculumControlAuthorityId < Course < HasCourseId < CourseContext < CourseContextId < RatingContext:NotNull"></div>
 						</div>
 						<div class="filterSet checkBoxListFilterSet">
-							<div class="filter" data-filter="> CourseContextId > CourseContext > AssessmentMethodConceptId > Concept" data-filtertype="CheckBoxList" data-sourceuri="@Factories.ConceptSchemeManager.ConceptScheme_CurrentAssessmentApproach"></div>
-							<div class="filter" data-filter="> CourseContextId > CourseContext > HasCourseId > Course > CourseTypeConceptId > Concept" data-filtertype="CheckBoxList" data-sourceuri="@Factories.ConceptSchemeManager.ConceptScheme_CourseType"></div>
-							<div class="filter" data-filter="> CourseContextId > CourseContext > HasCourseId > Course > LifeCycleControlDocumentTypeId > Concept" data-filtertype="CheckBoxList" data-sourceuri="@Factories.ConceptSchemeManager.ConceptScheme_LifeCycleControlDocument"></div>
+							<div class="filter" data-filter="> CourseContextId > CourseContext > AssessmentMethodConceptId > Concept" data-filtertype="CheckBoxList" data-sourceuri="@Factories.ConceptSchemeManager.ConceptScheme_AssessmentMethodCategory"></div>
+							<div class="filter" data-filter="> CourseContextId > CourseContext > HasCourseId > Course > CourseTypeConceptId > Concept" data-filtertype="CheckBoxList" data-sourceuri="@Factories.ConceptSchemeManager.ConceptScheme_CourseCategory"></div>
+							<div class="filter" data-filter="> CourseContextId > CourseContext > HasCourseId > Course > LifeCycleControlDocumentTypeId > Concept" data-filtertype="CheckBoxList" data-sourceuri="@Factories.ConceptSchemeManager.ConceptScheme_LifeCycleControlDocumentCategory"></div>
 						</div>
 					</div>
 				</div>
@@ -998,17 +1086,19 @@
 					<div class="filterGroupContent">
 						<div class="filterSet textFilterSet">
 							<div class="filter" data-filter="> ClusterAnalysisId > ClusterAnalysis > HasClusterAnalysisTitleId > ClusterAnalysisTitle" data-filtertype="Suggestion" data-searchtype="ClusterAnalysisTitle" data-label="Cluster Analysis Title"></div>
+							<div class="filter" data-filter="> ClusterAnalysisId > ClusterAnalysis > CandidatePlatformConceptId > Concept" data-filtertype="SuggestionLocalConcept" data-sourceuri="@Factories.ConceptSchemeManager.ConceptScheme_CandidatePlatformTypeCategory"></div>
+							<div class="filter" data-filter="> ClusterAnalysisId > ClusterAnalysis > CFMPlacementTypeId > Concept" data-filtertype="SuggestionLocalConcept" data-sourceuri="@Factories.ConceptSchemeManager.ConceptScheme_CFMPlacementCategory"></div>
 							<div class="filter" data-filter="> ClusterAnalysisId > ClusterAnalysis.PriorityPlacement" data-filtertype="Text" data-label="Priority Placement"></div>
 							<div class="filter" data-filter="> ClusterAnalysisId > ClusterAnalysis.EstimatedInstructionalTime" data-filtertype="Text" data-label="Estimated Instructional Time"></div>
 							<div class="filter" data-filter="> ClusterAnalysisId > ClusterAnalysis.DevelopmentTime" data-filtertype="Text" data-label="Development Time"></div>
 						</div>
 						<div class="filterSet checkBoxListFilterSet">
-							<div class="filter" data-filter="> ClusterAnalysisId > ClusterAnalysis > TrainingSolutionTypeId > Concept" data-filtertype="CheckBoxList" data-sourceuri="@Factories.ConceptSchemeManager.ConceptScheme_TrainingSolutionType"></div>
-							<div class="filter" data-filter="> ClusterAnalysisId > ClusterAnalysis > RecommendedModalityTypeId > Concept" data-filtertype="CheckBoxList" data-sourceuri="@Factories.ConceptSchemeManager.ConceptScheme_RecommendedModality"></div>
-							<div class="filter" data-filter="> ClusterAnalysisId > ClusterAnalysis > DevelopmentSpecificationTypeId > Concept" data-filtertype="CheckBoxList" data-sourceuri="@Factories.ConceptSchemeManager.ConceptScheme_DevelopmentSpecification"></div>
-							<div class="filter" data-filter="> ClusterAnalysisId > ClusterAnalysis > CandidatePlatformConceptId > Concept" data-filtertype="CheckBoxList" data-sourceuri="@Factories.ConceptSchemeManager.ConceptScheme_CandidatePlatformType"></div>
-							<div class="filter" data-filter="> ClusterAnalysisId > ClusterAnalysis > DevelopmentRatioTypeId > Concept" data-filtertype="CheckBoxList" data-sourceuri="@Factories.ConceptSchemeManager.ConceptScheme_DevelopmentRatio"></div>
-							<div class="filter" data-filter="> ClusterAnalysisId > ClusterAnalysis > CFMPlacementTypeId > Concept" data-filtertype="CheckBoxList" data-sourceuri="@Factories.ConceptSchemeManager.ConceptScheme_CFMPlacement"></div>
+							<div class="filter" data-filter="> ClusterAnalysisId > ClusterAnalysis > TrainingSolutionTypeId > Concept" data-filtertype="CheckBoxList" data-sourceuri="@Factories.ConceptSchemeManager.ConceptScheme_TrainingSolutionCategory"></div>
+							<div class="filter" data-filter="> ClusterAnalysisId > ClusterAnalysis > RecommendedModalityTypeId > Concept" data-filtertype="CheckBoxList" data-sourceuri="@Factories.ConceptSchemeManager.ConceptScheme_RecommendedModalityCategory"></div>
+							<div class="filter" data-filter="> ClusterAnalysisId > ClusterAnalysis > DevelopmentSpecificationTypeId > Concept" data-filtertype="CheckBoxList" data-sourceuri="@Factories.ConceptSchemeManager.ConceptScheme_DevelopmentSpecificationCategory"></div>
+							<div class="filter" data-filter="> ClusterAnalysisId > ClusterAnalysis > DevelopmentRatioTypeId > Concept" data-filtertype="CheckBoxList" data-sourceuri="@Factories.ConceptSchemeManager.ConceptScheme_DevelopmentRatioCategory"></div>
+							@*<div class="filter" data-filter="> ClusterAnalysisId > ClusterAnalysis > CandidatePlatformConceptId > Concept" data-filtertype="CheckBoxList" data-sourceuri="@Factories.ConceptSchemeManager.ConceptScheme_CandidatePlatformType"></div>
+							<div class="filter" data-filter="> ClusterAnalysisId > ClusterAnalysis > CFMPlacementTypeId > Concept" data-filtertype="CheckBoxList" data-sourceuri="@Factories.ConceptSchemeManager.ConceptScheme_CFMPlacement"></div>*@
 						</div>
 					</div>
 				</div>
@@ -1021,6 +1111,7 @@
 						</div>
 						<div class="filterSet checkBoxListFilterSet">
 							<div class="filter" data-filter="ShowHideColumns" data-filtertype="ShowHideColumns" data-label="Show/Hide Columns"></div>
+							<div class="filter" data-filter="UtilityFilters" data-filtertype="CheckBoxListIndividualItems" data-sourceuri="UtilityFilters"></div>
 						</div>
 					</div>
 				</div>
@@ -1041,12 +1132,34 @@
 		</div>
 		<div class="mainTab" data-tab="Summary">
 			<div class="statisticsBox">
-				<h4>Rating Tasks by Source Type for the Current Search Results</h4>
-				<table class="ratingTasksBySourceTypeTable">
-					<thead class="ratingTasksBySourceTypeTableHeader"></thead>
-					<tbody class="ratingTasksBySourceTypeTableBody"></tbody>
-					<tfoot class="ratingTasksBySourceTypeTableFooter"></tfoot>
-				</table>
+				<div class="statSection">
+					<h4>Task Summary Tables</h4>
+					<p>The tables below are based on the total counts of Rating-level tasks in the system. <b>The total number of tasks shown below may differ from the total number of search results shown above.</b> This is because the search results are based on individual rows in RMTLs that reference tasks (more than one RMTL may reference the same task), whereas the tables below are based on the tasks themselves.</p>
+				</div>
+				<div class="statSection">
+					<h4>Rating Tasks by Source Type for the Current Search Results</h4>
+					<table class="statisticsTable ratingTasksBySourceTypeTable" data-typeheader="Source Type">
+						<thead class="ratingTasksBySourceTypeTableHeader"></thead>
+						<tbody class="ratingTasksBySourceTypeTableBody"></tbody>
+						<tfoot class="ratingTasksBySourceTypeTableFooter"></tfoot>
+					</table>
+				</div>
+				<div class="statSection">
+					<h4>Rating Tasks by Pay Grade Level for the Current Search Results</h4>
+					<table class="statisticsTable ratingTasksByPayGradeLevelTable" data-typeheader="Level Type">
+						<thead class="ratingTasksByPayGradeLevelTableHeader"></thead>
+						<tbody class="ratingTasksByPayGradeLevelTableBody"></tbody>
+						<tfoot class="ratingTasksByPayGradeLevelTableFooter"></tfoot>
+					</table>
+				</div>
+				<div class="statSection">
+					<h4>Rating Tasks by Pay Grade for the Current Search Results</h4>
+					<table class="statisticsTable ratingTasksByPayGradeTable" data-typeheader="Pay Grade Type">
+						<thead class="ratingTasksByPayGradeTableHeader"></thead>
+						<tbody class="ratingTasksByPayGradeTableBody"></tbody>
+						<tfoot class="ratingTasksByPayGradeTableFooter"></tfoot>
+					</table>
+				</div>
 			</div>
 		</div>
 	</div>

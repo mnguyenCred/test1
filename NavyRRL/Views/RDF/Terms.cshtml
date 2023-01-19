@@ -8,7 +8,7 @@
 	AllClasses = RDFServices.GetAllClasses().OrderBy( m => m.Label ).ToList();
 	AllProperties = RDFServices.GetAllProperties().OrderBy( m => m.Label ).ToList();
 	AllConceptSchemes = Factories.ConceptSchemeManager.GetAll().OrderBy( m => m.Name ).ToList();
-	AllConcepts = isUserAuthenticated ? Factories.ConceptSchemeManager.GetAllConcepts( true ).OrderBy( m => m.Name ).ToList() : new List<Concept>();
+	AllConcepts = isUserAuthenticated ? Factories.ConceptManager.GetAll( true ).OrderBy( m => m.Name ).ToList() : new List<Concept>();
 }
 @functions {
 	public List<RDF.RDFContext> AllContextItems { get; set; }

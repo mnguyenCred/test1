@@ -10,7 +10,7 @@
 
 @Html.Partial( "~/Views/Shared/_AJAXTools.cshtml" )
 @Html.Partial( "~/Views/Shared/_FormHelperV2.cshtml", new EditFormHelperV2( Model, new JObject() {
-	{ Factories.ConceptSchemeManager.ConceptScheme_ReferenceResource, JArray.FromObject( Factories.ConceptManager.GetAllConceptsForScheme( Factories.ConceptSchemeManager.ConceptScheme_ReferenceResource ).Select(m => SimpleItemHelper.GetSimpleItem( m ) ).ToList() ) }
+	{ Factories.ConceptSchemeManager.ConceptScheme_ReferenceResourceCategory, JArray.FromObject( Factories.ConceptManager.GetAllConceptsForScheme( Factories.ConceptSchemeManager.ConceptScheme_ReferenceResourceCategory ).Select(m => SimpleItemHelper.GetSimpleItem( m ) ).ToList() ) }
 } ) )
 
 <h2>@title</h2>
@@ -19,7 +19,6 @@
 <div class="field" data-fieldtype="SystemIdentifiers"></div>
 <div class="field" data-fieldtype="Text" data-property="Name" data-label="Name"></div>
 <div class="field" data-fieldtype="Text" data-property="PublicationDate" data-label="Publication Date"></div>
-<div class="field" data-fieldtype="Text" data-property="CodedNotation" data-label="Code"></div>
 <div class="field" data-fieldtype="TextArea" data-property="Description" data-label="Description"></div>
-<div class="field" data-fieldtype="CheckBoxList" data-property="ReferenceType" data-label="Reference Type" data-sourceuri="@Factories.ConceptSchemeManager.ConceptScheme_ReferenceResource"></div>
+<div class="field" data-fieldtype="CheckBoxList" data-property="ReferenceType" data-label="Reference Type" data-sourceuri="@Factories.ConceptSchemeManager.ConceptScheme_ReferenceResourceCategory"></div>
 <div class="field" data-fieldtype="SaveButton"></div>

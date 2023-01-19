@@ -16,13 +16,65 @@
 	<tr><td>@label</td><td>@( value != null && value > DateTime.MinValue ? value.ToString( "yyyy-MM-dd" ) : "Unknown" )</td></tr>
 }
 
+@if ( isAdmin )
+{
+<script type="text/javascript">
+	$(document).ready(function () {
+		setupDeleteButton();
+	});
+	//
+
+	function setupDeleteButton() {
+		$(".deleteButton").on("click", function () {
+			if (!confirm("Are you sure you want to delete this data? This change cannot be undone!")) {
+				return;
+			}
+
+			fetch("@Url.Content("~/" + Model.TypeURL + "/delete/" + Model.Id)")
+				.then(response => {
+					if (response.ok) {
+						return response.text();
+					}
+					else {
+						throw response;
+					}
+				})
+				.then(text => {
+					var parsed = JSON.parse(text);
+					if (parsed.Valid) {
+						alert("Data deleted. Redirecting...");
+						window.location.href = "@Url.Content("~/" + Model.TypeURL + "/search")";
+					}
+					else {
+						alert("One or more errors occurred when trying to delete this data:\n" + parsed.Status.join("\n"));
+					}
+				})
+				.catch(error => {
+					console.log("Error deleting data", error);
+					alert("Error deleting data", error);
+				});
+		});
+	}
+	//
+</script>
+}
+
 <style type="text/css">
+	.section { margin-bottom: 50px; }
+	.section .sectionHeader { margin: 0; padding: 5px 0; }
+	.section table { width: 100%; }
+	.section table thead tr { }
+	.section table thead tr th { padding: 5px; }
+	.section table tbody tr { border-top: 1px solid #CCC; }
+	.section table tbody tr td { padding: 5px; vertical-align: top; }
+
 	.banner { display: flex; align-items: center; gap: 10px; background-color: #EEE; padding: 20px; margin-bottom: 10px; }
 	.banner .bannerText { flex: 1 1 auto; font-size: 12px; }
 	.banner .bannerIdentifiers { flex: 0 0 400px; }
 	.banner .bannerText .subtitle { display: flex; align-items: baseline; }
 	.banner .bannerText .subtitle > * { padding: 0 10px; border-right: 1px solid #555; }
 	.banner .bannerText .subtitle > *:last-child { border: none; }
+	.banner .bannerText .deleteButton { color: #337ab7; }
 	
 	.banner .bannerIdentifiers { padding-left: 10px; border-left: 1px solid #CCC; font-size: 12px; }
 	.banner .bannerIdentifiers table { width: 100%; }
@@ -32,10 +84,12 @@
 	.banner .bannerIdentifiers table tr td:first-child { font-weight: bold; text-align: right; min-width: 100px; }
 	.banner .bannerIdentifiers table tr td:last-child { min-width: 200px; }
 
-	.properties { }
-	.properties .property { margin-bottom: 20px; }
-	.properties .property div { padding: 0 10px; }
-	.properties .property div :is(ul, ol) { padding: 0 15px; }
+	.propertyList {  }
+	.propertyList .property { display: flex; align-items: baseline; gap: 20px; padding: 5px 10px; border-top: 1px solid #CCC; }
+	.propertyList .property:first-child { border-top: none; }
+	.propertyList .property .propertyLabel { text-align: right; width: 250px; font-weight: bold; }
+	.propertyList .property :is(ul, ol) { padding: 0 15px; margin: 0; }
+	.propertyList h4:not(:first-child) { margin-top: 20px; }
 
 	@@media(max-width: 1000px) {
 		.banner { display: block; }
@@ -55,6 +109,7 @@
 			@if ( isAdmin )
 			{
 				<a class="editLink" href="@Url.Content( "~/" + Model.TypeURL + "/edit/" + Model.Id )">Edit Data</a>
+				<button class="linkButton deleteButton">Delete Data</button>
 			}
 		</div>
 	</div>
@@ -62,6 +117,7 @@
 		<table>
 			<tbody>
 				@RenderRow( "System ID", Model.Id.ToString() )
+				@RenderRow( "System GUID", Model.RowId.ToString() )
 				@RenderRow( "CTID", Model.CTID )
 				@RenderRow( "Record Created", Model.Created )
 				@RenderRow( "Record Updated", Model.LastUpdated )
@@ -70,12 +126,24 @@
 	</div>
 
 </div>
-<div class="properties">
-	@foreach( var item in Model.PropertyList.Where( m => !string.IsNullOrWhiteSpace( m.Value ) ).ToList() )
-	{
-		<div class="property">
-			<h4>@Html.Raw( item.Key )</h4>
-			<div>@Html.Raw( item.Value )</div>
-		</div>
-	}
-</div>
+
+@if ( Model.PropertyList.Where( m => !string.IsNullOrWhiteSpace( m.Value ) ).Count() > 0 )
+{
+	<div class="section propertyList">
+		<h3 class="sectionHeader">Properties</h3>
+		@foreach( var item in Model.PropertyList.Where( m => !string.IsNullOrWhiteSpace( m.Value ) ).ToList() )
+		{
+			if ( !string.IsNullOrWhiteSpace( item.HeaderSectionLabel ) )
+			{
+				<h4>@Html.Raw(item.HeaderSectionLabel)</h4>
+			}
+			else
+			{
+				<div class="property">
+					<div class="propertyLabel">@Html.Raw( item.Key )</div>
+					<div class="propertyValue">@Html.Raw( item.Value )</div>
+				</div>
+			}
+		}
+	</div>
+}

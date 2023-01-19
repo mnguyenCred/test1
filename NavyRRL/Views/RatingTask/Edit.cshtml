@@ -10,7 +10,7 @@
 
 @Html.Partial( "~/Views/Shared/_AJAXTools.cshtml" )
 @Html.Partial( "~/Views/Shared/_FormHelperV2.cshtml", new EditFormHelperV2( Model, new JObject() {
-	{ Factories.ConceptSchemeManager.ConceptScheme_ReferenceResource, JArray.FromObject( Factories.ConceptSchemeManager.GetbyShortUri( Factories.ConceptSchemeManager.ConceptScheme_ReferenceResource ).Concepts.Select( m => SimpleItemHelper.GetSimpleItem( m ) ).ToList() ) }
+	{ Factories.ConceptSchemeManager.ConceptScheme_ReferenceResourceCategory, JArray.FromObject( Factories.ConceptSchemeManager.GetbyShortUri( Factories.ConceptSchemeManager.ConceptScheme_ReferenceResourceCategory ).Concepts.Select( m => SimpleItemHelper.GetSimpleItem( m ) ).ToList() ) }
 } ) )
 
 <h2>@title</h2>
@@ -19,5 +19,5 @@
 <div class="field" data-fieldtype="SystemIdentifiers"></div>
 <div class="field" data-fieldtype="TextArea" data-property="Description" data-label="Description"></div>
 <div class="field" data-fieldtype="SuggestionSingle" data-property="HasReferenceResource" data-label="Task Source" data-searchtype="@nameof(ReferenceResource)"></div>
-<div class="field" data-fieldtype="Select" data-property="ReferenceType" data-label="Reference Resource Type" data-sourceuri="@Factories.ConceptSchemeManager.ConceptScheme_ReferenceResource"></div>
+<div class="field" data-fieldtype="Select" data-property="ReferenceType" data-label="Reference Resource Type" data-sourceuri="@Factories.ConceptSchemeManager.ConceptScheme_ReferenceResourceCategory"></div>
 <div class="field" data-fieldtype="SaveButton"></div>

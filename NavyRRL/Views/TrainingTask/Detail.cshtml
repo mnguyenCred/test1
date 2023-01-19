@@ -4,13 +4,8 @@
 @model TrainingTask
 @{
 	ViewBag.Title = "Training Task: " + Model.Description;
-	var courseUrl = "~/Course/Detail/" + Model.CourseCodedNotation;
-	var courseTitle = "Course: " + Model.CourseCodedNotation;
-	var course = Model.CourseId;
-	var methods = Factories.ConceptManager.GetMultiple( Model.AssessmentMethodType );
 }
 
-@Html.Partial( "~/Views/Shared/_DetailShared.cshtml" )
 @Html.Partial( "~/Views/Shared/_DetailBasicInfo.cshtml", new DetailBasicInfoHelper( Model )
 {
 	TypeLabel = "Training Task",

@@ -12,6 +12,8 @@ namespace Models.Schema
 		{
 			CandidatePlatformType = new List<Guid>();
 			CandidatePlatformTypeId = new List<int>();
+			CFMPlacementType = new List<Guid>();
+			CFMPlacementTypeId = new List<int>();
 		}
 
 		/// <summary>
@@ -100,12 +102,12 @@ namespace Models.Schema
 		/// <summary>
 		/// GUID reference to a CFM Placement Type Concept
 		/// </summary>
-		public Guid CFMPlacementType { get; set; }
+		public List<Guid> CFMPlacementType { get; set; }
 
 		/// <summary>
 		/// Id reference to a CFM Placement Type Concept
 		/// </summary>
-		public int CFMPlacementTypeId { get; set; }
+		public List<int> CFMPlacementTypeId { get; set; }
 
 		/// <summary>
 		/// RowID for the Rating Task this Cluster Analysis relates to.<br />
@@ -150,43 +152,6 @@ namespace Models.Schema
 		/// Integer ID for the Work Role this Cluster Analysis relates to.
 		/// </summary>
 		public int WorkRoleId { get; set; }
-
-		//Obsolete properties
-		//or for display purposes
-
-		/// <summary>
-		/// Obsolete: Use Cluster Analysis Title (the class) to provide this<br />
-		/// MP - still need something to reference for messages/issues other than a Guid
-		/// </summary>
-		[Obsolete]
-        public string ClusterAnalysisTitle { get; set; }
-
-		/// <summary>
-		/// Used from view<br />
-		/// Obsolete: Use TrainingSolutionType/TrainingSolutionTypeId instead
-		/// </summary>
-		[Obsolete]
-        public string TrainingSolution { get; set; }
-
-        /// <summary>
-        /// Used from view<br />
-		/// Obsolete: Use RecommendedModalityType/RecommendedModalityTypeId instead
-        /// </summary>
-		[Obsolete]
-        public string RecommendedModality { get; set; }
-
-		/// <summary>
-		/// Used from view<br />
-		/// Obsolete: Use DevelopmentSpecificationType/DevelopmentSpecificationTypeId instead
-		/// </summary>
-		[Obsolete]
-		public string DevelopmentSpecification { get; set; }
-
-		/// <summary>
-		/// Obsolete: Use DevelopmentRatioType/DevelopmentRatioTypeId instead
-		/// </summary>
-		[Obsolete]
-		public string DevelopmentRatio { get; set; }
 
 	}
 }

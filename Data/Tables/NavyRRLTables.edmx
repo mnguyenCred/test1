@@ -131,7 +131,6 @@
           <Property Name="HasClusterAnalysisTitleId" Type="int" />
           <Property Name="RecommendedModalityTypeId" Type="int" />
           <Property Name="DevelopmentSpecificationTypeId" Type="int" />
-          <Property Name="CFMPlacementTypeId" Type="int" />
           <Property Name="PriorityPlacement" Type="int" />
           <Property Name="EstimatedInstructionalTime" Type="decimal" Precision="9" Scale="2" />
           <Property Name="DevelopmentTime" Type="decimal" Precision="9" Scale="2" />
@@ -146,6 +145,17 @@
           <Property Name="DevelopmentRatioTypeId" Type="int" />
           <Property Name="BilletTitleId" Type="int" />
           <Property Name="WorkRoleId" Type="int" />
+        </EntityType>
+        <EntityType Name="ClusterAnalysis_CFMPlacementType">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="RowId" Type="uniqueidentifier" Nullable="false" />
+          <Property Name="ClusterAnalysisId" Type="int" Nullable="false" />
+          <Property Name="CFMPlacementConceptId" Type="int" Nullable="false" />
+          <Property Name="Created" Type="datetime" Nullable="false" />
+          <Property Name="CreatedById" Type="int" />
         </EntityType>
         <EntityType Name="ClusterAnalysis_HasCandidatePlatform">
           <Key>
@@ -367,6 +377,16 @@
           <Property Name="LastUpdated" Type="datetime" Nullable="false" />
           <Property Name="LastUpdatedById" Type="int" />
         </EntityType>
+        <EntityType Name="ProtectedSystemEntities">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="RowId" Type="uniqueidentifier" Nullable="false" />
+          <Property Name="EntityRowId" Type="uniqueidentifier" Nullable="false" />
+          <Property Name="Note" Type="varchar" MaxLength="100" />
+          <Property Name="Created" Type="datetime" />
+        </EntityType>
         <EntityType Name="Rating">
           <Key>
             <PropertyRef Name="Id" />
@@ -393,24 +413,24 @@
           </Key>
           <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
           <Property Name="RowId" Type="uniqueidentifier" Nullable="false" />
+          <Property Name="CodedNotation" Type="varchar" MaxLength="100" />
           <Property Name="RatingId" Type="int" Nullable="false" />
           <Property Name="RatingTaskId" Type="int" Nullable="false" />
           <Property Name="BilletTitleId" Type="int" />
           <Property Name="PayGradeTypeId" Type="int" Nullable="false" />
+          <Property Name="PayGradeLevelTypeId" Type="int" />
+          <Property Name="WorkRoleId" Type="int" />
           <Property Name="TaskApplicabilityId" Type="int" />
           <Property Name="FormalTrainingGapId" Type="int" />
+          <Property Name="CourseContextId" Type="int" />
           <Property Name="ClusterAnalysisId" Type="int" />
           <Property Name="TaskStatusId" Type="int" />
-          <Property Name="CodedNotation" Type="varchar" MaxLength="100" />
           <Property Name="Notes" Type="nvarchar(max)" />
           <Property Name="CTID" Type="varchar" MaxLength="50" />
           <Property Name="Created" Type="datetime" Nullable="false" />
           <Property Name="CreatedById" Type="int" />
           <Property Name="LastUpdated" Type="datetime" Nullable="false" />
           <Property Name="LastUpdatedById" Type="int" />
-          <Property Name="WorkRoleId" Type="int" />
-          <Property Name="CourseContextId" Type="int" />
-          <Property Name="PayGradeLevelTypeId" Type="int" />
         </EntityType>
         <EntityType Name="RatingTask">
           <Key>
@@ -633,15 +653,29 @@
             </Dependent>
           </ReferentialConstraint>
         </Association>
-        <Association Name="FK_ClusterAnalysis_CFMPlacement_Concept">
-          <End Role="ConceptScheme_Concept" Type="Self.ConceptScheme_Concept" Multiplicity="0..1" />
-          <End Role="ClusterAnalysis" Type="Self.ClusterAnalysis" Multiplicity="*" />
+        <Association Name="FK_ClusterAnalysis_CFMPlacementType_ClusterAnalysis">
+          <End Role="ClusterAnalysis" Type="Self.ClusterAnalysis" Multiplicity="1">
+            <OnDelete Action="Cascade" />
+          </End>
+          <End Role="ClusterAnalysis_CFMPlacementType" Type="Self.ClusterAnalysis_CFMPlacementType" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="ClusterAnalysis">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="ClusterAnalysis_CFMPlacementType">
+              <PropertyRef Name="ClusterAnalysisId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_ClusterAnalysis_CFMPlacementType_ConceptScheme_Concept">
+          <End Role="ConceptScheme_Concept" Type="Self.ConceptScheme_Concept" Multiplicity="1" />
+          <End Role="ClusterAnalysis_CFMPlacementType" Type="Self.ClusterAnalysis_CFMPlacementType" Multiplicity="*" />
           <ReferentialConstraint>
             <Principal Role="ConceptScheme_Concept">
               <PropertyRef Name="Id" />
             </Principal>
-            <Dependent Role="ClusterAnalysis">
-              <PropertyRef Name="CFMPlacementTypeId" />
+            <Dependent Role="ClusterAnalysis_CFMPlacementType">
+              <PropertyRef Name="CFMPlacementConceptId" />
             </Dependent>
           </ReferentialConstraint>
         </Association>
@@ -1136,6 +1170,7 @@
           <EntitySet Name="AspNetUserRoles" EntityType="Self.AspNetUserRoles" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="AspNetUsers" EntityType="Self.AspNetUsers" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="ClusterAnalysis" EntityType="Self.ClusterAnalysis" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="ClusterAnalysis_CFMPlacementType" EntityType="Self.ClusterAnalysis_CFMPlacementType" Schema="dbo" Table="ClusterAnalysis.CFMPlacementType" store:Type="Tables" />
           <EntitySet Name="ClusterAnalysis_HasCandidatePlatform" EntityType="Self.ClusterAnalysis_HasCandidatePlatform" Schema="dbo" Table="ClusterAnalysis.HasCandidatePlatform" store:Type="Tables" />
           <EntitySet Name="ClusterAnalysisTitle" EntityType="Self.ClusterAnalysisTitle" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="Comment" EntityType="Self.Comment" Schema="dbo" store:Type="Tables" />
@@ -1148,6 +1183,7 @@
           <EntitySet Name="ImportRMTL" EntityType="Self.ImportRMTL" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="Job" EntityType="Self.Job" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="Organization" EntityType="Self.Organization" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="ProtectedSystemEntities" EntityType="Self.ProtectedSystemEntities" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="Rating" EntityType="Self.Rating" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="RatingContext" EntityType="Self.RatingContext" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="RatingTask" EntityType="Self.RatingTask" Schema="dbo" store:Type="Tables" />
@@ -1189,9 +1225,13 @@
             <End Role="AspNetUsers" EntitySet="AspNetUsers" />
             <End Role="AspNetUsers1" EntitySet="AspNetUsers" />
           </AssociationSet>
-          <AssociationSet Name="FK_ClusterAnalysis_CFMPlacement_Concept" Association="Self.FK_ClusterAnalysis_CFMPlacement_Concept">
-            <End Role="ConceptScheme_Concept" EntitySet="ConceptScheme_Concept" />
+          <AssociationSet Name="FK_ClusterAnalysis_CFMPlacementType_ClusterAnalysis" Association="Self.FK_ClusterAnalysis_CFMPlacementType_ClusterAnalysis">
             <End Role="ClusterAnalysis" EntitySet="ClusterAnalysis" />
+            <End Role="ClusterAnalysis_CFMPlacementType" EntitySet="ClusterAnalysis_CFMPlacementType" />
+          </AssociationSet>
+          <AssociationSet Name="FK_ClusterAnalysis_CFMPlacementType_ConceptScheme_Concept" Association="Self.FK_ClusterAnalysis_CFMPlacementType_ConceptScheme_Concept">
+            <End Role="ConceptScheme_Concept" EntitySet="ConceptScheme_Concept" />
+            <End Role="ClusterAnalysis_CFMPlacementType" EntitySet="ClusterAnalysis_CFMPlacementType" />
           </AssociationSet>
           <AssociationSet Name="FK_ClusterAnalysis_ClusterAnalysisTitle" Association="Self.FK_ClusterAnalysis_ClusterAnalysisTitle">
             <End Role="ClusterAnalysisTitle" EntitySet="ClusterAnalysisTitle" />
@@ -1522,10 +1562,6 @@
           </AssociationSet>
           <EntitySet Name="ClusterAnalysis" EntityType="NavyRRLModel.ClusterAnalysis" />
           <EntitySet Name="RatingTask" EntityType="NavyRRLModel.RatingTask" />
-          <AssociationSet Name="FK_ClusterAnalysis_CFMPlacement_Concept" Association="NavyRRLModel.FK_ClusterAnalysis_CFMPlacement_Concept">
-            <End Role="ConceptScheme_Concept" EntitySet="ConceptScheme_Concept" />
-            <End Role="ClusterAnalysis" EntitySet="ClusterAnalysis" />
-          </AssociationSet>
           <AssociationSet Name="FK_ClusterAnalysis_ClusterAnalysisTitle" Association="NavyRRLModel.FK_ClusterAnalysis_ClusterAnalysisTitle">
             <End Role="ClusterAnalysisTitle" EntitySet="ClusterAnalysisTitle" />
             <End Role="ClusterAnalysis" EntitySet="ClusterAnalysis" />
@@ -1582,6 +1618,16 @@
             <End Role="ReferenceResource" EntitySet="ReferenceResource" />
             <End Role="RatingTask" EntitySet="RatingTask" />
           </AssociationSet>
+          <EntitySet Name="ClusterAnalysis_CFMPlacementType" EntityType="NavyRRLModel.ClusterAnalysis_CFMPlacementType" />
+          <AssociationSet Name="FK_ClusterAnalysis_CFMPlacementType_ClusterAnalysis" Association="NavyRRLModel.FK_ClusterAnalysis_CFMPlacementType_ClusterAnalysis">
+            <End Role="ClusterAnalysis" EntitySet="ClusterAnalysis" />
+            <End Role="ClusterAnalysis_CFMPlacementType" EntitySet="ClusterAnalysis_CFMPlacementType" />
+          </AssociationSet>
+          <AssociationSet Name="FK_ClusterAnalysis_CFMPlacementType_ConceptScheme_Concept" Association="NavyRRLModel.FK_ClusterAnalysis_CFMPlacementType_ConceptScheme_Concept">
+            <End Role="ConceptScheme_Concept" EntitySet="ConceptScheme_Concept" />
+            <End Role="ClusterAnalysis_CFMPlacementType" EntitySet="ClusterAnalysis_CFMPlacementType" />
+          </AssociationSet>
+          <EntitySet Name="ProtectedSystemEntities" EntityType="NavyRRLModel.ProtectedSystemEntities" />
           </EntityContainer>
         <EntityType Name="ClusterAnalysis_HasCandidatePlatform">
           <Key>
@@ -1754,12 +1800,12 @@
           <NavigationProperty Name="ConceptScheme" Relationship="NavyRRLModel.FK_ConceptScheme_Concept_ConceptScheme" FromRole="ConceptScheme_Concept" ToRole="ConceptScheme" />
           <Property Name="BroadMatchId" Type="Int32" />
           <NavigationProperty Name="RatingContext11" Relationship="NavyRRLModel.FK_RatingContext_RankLevel" FromRole="ConceptScheme_Concept" ToRole="RatingContext" />
-          <NavigationProperty Name="ClusterAnalysis" Relationship="NavyRRLModel.FK_ClusterAnalysis_CFMPlacement_Concept" FromRole="ConceptScheme_Concept" ToRole="ClusterAnalysis" />
           <NavigationProperty Name="ClusterAnalysis1" Relationship="NavyRRLModel.FK_ClusterAnalysis_DevelopmentRatio_Concept" FromRole="ConceptScheme_Concept" ToRole="ClusterAnalysis" />
           <NavigationProperty Name="ClusterAnalysis2" Relationship="NavyRRLModel.FK_ClusterAnalysis_DevSpecificationConcept" FromRole="ConceptScheme_Concept" ToRole="ClusterAnalysis" />
           <NavigationProperty Name="ClusterAnalysis3" Relationship="NavyRRLModel.FK_ClusterAnalysis_RecommendedModality_Concept" FromRole="ConceptScheme_Concept" ToRole="ClusterAnalysis" />
           <NavigationProperty Name="ClusterAnalysis4" Relationship="NavyRRLModel.FK_ClusterAnalysis_TrainingSolution_Concept" FromRole="ConceptScheme_Concept" ToRole="ClusterAnalysis" />
           <NavigationProperty Name="RatingTask" Relationship="NavyRRLModel.FK_RatingTask_ReferenceType" FromRole="ConceptScheme_Concept" ToRole="RatingTask" />
+          <NavigationProperty Name="ClusterAnalysis_CFMPlacementType" Relationship="NavyRRLModel.FK_ClusterAnalysis_CFMPlacementType_ConceptScheme_Concept" FromRole="ConceptScheme_Concept" ToRole="ClusterAnalysis_CFMPlacementType" />
           </EntityType>
         <Association Name="FK_AppFunctionPermission_ApplicationFunction">
           <End Type="NavyRRLModel.ApplicationFunction" Role="ApplicationFunction" Multiplicity="1">
@@ -2590,7 +2636,6 @@
           <Property Name="HasClusterAnalysisTitleId" Type="Int32" />
           <Property Name="RecommendedModalityTypeId" Type="Int32" />
           <Property Name="DevelopmentSpecificationTypeId" Type="Int32" />
-          <Property Name="CFMPlacementTypeId" Type="Int32" />
           <Property Name="PriorityPlacement" Type="Int32" />
           <Property Name="EstimatedInstructionalTime" Type="Decimal" Precision="9" Scale="2" />
           <Property Name="DevelopmentTime" Type="Decimal" Precision="9" Scale="2" />
@@ -2605,7 +2650,6 @@
           <Property Name="DevelopmentRatioTypeId" Type="Int32" />
           <Property Name="BilletTitleId" Type="Int32" />
           <Property Name="WorkRoleId" Type="Int32" />
-          <NavigationProperty Name="ConceptScheme_Concept_CFMPlacementType" Relationship="NavyRRLModel.FK_ClusterAnalysis_CFMPlacement_Concept" FromRole="ClusterAnalysis" ToRole="ConceptScheme_Concept" />
           <NavigationProperty Name="ClusterAnalysisTitle" Relationship="NavyRRLModel.FK_ClusterAnalysis_ClusterAnalysisTitle" FromRole="ClusterAnalysis" ToRole="ClusterAnalysisTitle" />
           <NavigationProperty Name="ConceptScheme_Concept_DevelopmentRatioType" Relationship="NavyRRLModel.FK_ClusterAnalysis_DevelopmentRatio_Concept" FromRole="ClusterAnalysis" ToRole="ConceptScheme_Concept" />
           <NavigationProperty Name="ConceptScheme_Concept_DevelopmentSpecificationType" Relationship="NavyRRLModel.FK_ClusterAnalysis_DevSpecificationConcept" FromRole="ClusterAnalysis" ToRole="ConceptScheme_Concept" />
@@ -2617,6 +2661,7 @@
           <NavigationProperty Name="WorkRole" Relationship="NavyRRLModel.FK_ClusterAnalysis_WorkRole" FromRole="ClusterAnalysis" ToRole="WorkRole" />
           <NavigationProperty Name="ClusterAnalysis_HasCandidatePlatform" Relationship="NavyRRLModel.FK_HasCandidatePlatform_ClusterAnalysis" FromRole="ClusterAnalysis" ToRole="ClusterAnalysis_HasCandidatePlatform" />
           <NavigationProperty Name="RatingContext" Relationship="NavyRRLModel.FK_RatingContext_ClusterAnalysis" FromRole="ClusterAnalysis" ToRole="RatingContext" />
+          <NavigationProperty Name="ClusterAnalysis_CFMPlacementType" Relationship="NavyRRLModel.FK_ClusterAnalysis_CFMPlacementType_ClusterAnalysis" FromRole="ClusterAnalysis" ToRole="ClusterAnalysis_CFMPlacementType" />
         </EntityType>
         <EntityType Name="RatingTask">
           <Key>
@@ -2637,18 +2682,6 @@
           <NavigationProperty Name="RatingContext" Relationship="NavyRRLModel.FK_RatingContext_RatingTask" FromRole="RatingTask" ToRole="RatingContext" />
           <NavigationProperty Name="ReferenceResource" Relationship="NavyRRLModel.FK_RatingTask_to_ReferenceResource" FromRole="RatingTask" ToRole="ReferenceResource" />
         </EntityType>
-        <Association Name="FK_ClusterAnalysis_CFMPlacement_Concept">
-          <End Type="NavyRRLModel.ConceptScheme_Concept" Role="ConceptScheme_Concept" Multiplicity="0..1" />
-          <End Type="NavyRRLModel.ClusterAnalysis" Role="ClusterAnalysis" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="ConceptScheme_Concept">
-              <PropertyRef Name="Id" />
-            </Principal>
-            <Dependent Role="ClusterAnalysis">
-              <PropertyRef Name="CFMPlacementTypeId" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
         <Association Name="FK_ClusterAnalysis_ClusterAnalysisTitle">
           <End Type="NavyRRLModel.ClusterAnalysisTitle" Role="ClusterAnalysisTitle" Multiplicity="0..1" />
           <End Type="NavyRRLModel.ClusterAnalysis" Role="ClusterAnalysis" Multiplicity="*" />
@@ -2819,6 +2852,55 @@
             </Dependent>
           </ReferentialConstraint>
         </Association>
+        <EntityType Name="ClusterAnalysis_CFMPlacementType">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="RowId" Type="Guid" Nullable="false" />
+          <Property Name="ClusterAnalysisId" Type="Int32" Nullable="false" />
+          <Property Name="CFMPlacementConceptId" Type="Int32" Nullable="false" />
+          <Property Name="Created" Type="DateTime" Nullable="false" Precision="3" />
+          <Property Name="CreatedById" Type="Int32" />
+          <NavigationProperty Name="ClusterAnalysis" Relationship="NavyRRLModel.FK_ClusterAnalysis_CFMPlacementType_ClusterAnalysis" FromRole="ClusterAnalysis_CFMPlacementType" ToRole="ClusterAnalysis" />
+          <NavigationProperty Name="ConceptScheme_Concept" Relationship="NavyRRLModel.FK_ClusterAnalysis_CFMPlacementType_ConceptScheme_Concept" FromRole="ClusterAnalysis_CFMPlacementType" ToRole="ConceptScheme_Concept" />
+        </EntityType>
+        <Association Name="FK_ClusterAnalysis_CFMPlacementType_ClusterAnalysis">
+          <End Type="NavyRRLModel.ClusterAnalysis" Role="ClusterAnalysis" Multiplicity="1">
+            <OnDelete Action="Cascade" />
+          </End>
+          <End Type="NavyRRLModel.ClusterAnalysis_CFMPlacementType" Role="ClusterAnalysis_CFMPlacementType" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="ClusterAnalysis">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="ClusterAnalysis_CFMPlacementType">
+              <PropertyRef Name="ClusterAnalysisId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_ClusterAnalysis_CFMPlacementType_ConceptScheme_Concept">
+          <End Type="NavyRRLModel.ConceptScheme_Concept" Role="ConceptScheme_Concept" Multiplicity="1" />
+          <End Type="NavyRRLModel.ClusterAnalysis_CFMPlacementType" Role="ClusterAnalysis_CFMPlacementType" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="ConceptScheme_Concept">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="ClusterAnalysis_CFMPlacementType">
+              <PropertyRef Name="CFMPlacementConceptId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <EntityType Name="ProtectedSystemEntities">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="RowId" Type="Guid" Nullable="false" />
+          <Property Name="Note" Type="String" MaxLength="100" FixedLength="false" Unicode="false" />
+          <Property Name="Created" Type="DateTime" Precision="3" />
+          <Property Name="EntityRowId" Type="Guid" Nullable="false" />
+        </EntityType>
         </Schema>
     </edmx:ConceptualModels>
     <!-- C-S mapping content -->
@@ -3347,7 +3429,6 @@
                 <ScalarProperty Name="DevelopmentTime" ColumnName="DevelopmentTime" />
                 <ScalarProperty Name="EstimatedInstructionalTime" ColumnName="EstimatedInstructionalTime" />
                 <ScalarProperty Name="PriorityPlacement" ColumnName="PriorityPlacement" />
-                <ScalarProperty Name="CFMPlacementTypeId" ColumnName="CFMPlacementTypeId" />
                 <ScalarProperty Name="DevelopmentSpecificationTypeId" ColumnName="DevelopmentSpecificationTypeId" />
                 <ScalarProperty Name="RecommendedModalityTypeId" ColumnName="RecommendedModalityTypeId" />
                 <ScalarProperty Name="HasClusterAnalysisTitleId" ColumnName="HasClusterAnalysisTitleId" />
@@ -3368,6 +3449,29 @@
                 <ScalarProperty Name="CTID" ColumnName="CTID" />
                 <ScalarProperty Name="Description" ColumnName="Description" />
                 <ScalarProperty Name="ReferenceResourceId" ColumnName="ReferenceResourceId" />
+                <ScalarProperty Name="RowId" ColumnName="RowId" />
+                <ScalarProperty Name="Id" ColumnName="Id" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="ClusterAnalysis_CFMPlacementType">
+            <EntityTypeMapping TypeName="NavyRRLModel.ClusterAnalysis_CFMPlacementType">
+              <MappingFragment StoreEntitySet="ClusterAnalysis_CFMPlacementType">
+                <ScalarProperty Name="CreatedById" ColumnName="CreatedById" />
+                <ScalarProperty Name="Created" ColumnName="Created" />
+                <ScalarProperty Name="CFMPlacementConceptId" ColumnName="CFMPlacementConceptId" />
+                <ScalarProperty Name="ClusterAnalysisId" ColumnName="ClusterAnalysisId" />
+                <ScalarProperty Name="RowId" ColumnName="RowId" />
+                <ScalarProperty Name="Id" ColumnName="Id" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="ProtectedSystemEntities">
+            <EntityTypeMapping TypeName="NavyRRLModel.ProtectedSystemEntities">
+              <MappingFragment StoreEntitySet="ProtectedSystemEntities">
+                <ScalarProperty Name="EntityRowId" ColumnName="EntityRowId" />
+                <ScalarProperty Name="Created" ColumnName="Created" />
+                <ScalarProperty Name="Note" ColumnName="Note" />
                 <ScalarProperty Name="RowId" ColumnName="RowId" />
                 <ScalarProperty Name="Id" ColumnName="Id" />
               </MappingFragment>

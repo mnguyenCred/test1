@@ -57,6 +57,7 @@ namespace Models.DTO
 		{
 			PropertyList = new List<NamedString>();
 			Id = source.Id;
+			RowId = source.RowId;
 			CTID = source.CTID;
 			Created = source.Created;
 			LastUpdated = source.LastUpdated;
@@ -65,6 +66,7 @@ namespace Models.DTO
 		}
 
 		public int Id { get; set; }
+		public Guid RowId { get; set; }
 		public string CTID { get; set; }
 		public string Name { get; set; }
 		public DateTime Created { get; set; }
@@ -94,6 +96,8 @@ namespace Models.DTO
 	public class NamedString : Utilities.NamedValue<string, string>
 	{
 		public NamedString( string key, string value ) : base( key, value ) { }
+
+		public string HeaderSectionLabel { get; set; }
 	}
 	//
 

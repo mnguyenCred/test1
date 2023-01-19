@@ -35,7 +35,7 @@
 
 		Search.prepareToSearch = function (resetPaging, clearRequestQueue) {
 			Search.PageNumber = resetPaging ? 1 : Search.PageNumber;
-			clearRequestQueue && (AJAX.RequestQueue = []);
+			clearRequestQueue && AJAX.cancelWaitingRequests();
 			Search.Query = {
 				SearchType: Search.SearchType,
 				Filters: Search.getFilters(),
@@ -100,11 +100,6 @@
 
 		Search.addResourceToCache = function (url, data) {
 			AJAX.appendToCache(url, data);
-			@*
-			var Resource = { URL: url, Data: data, SuccessHandlers: [], ErrorHandlers: [] };
-			ResourceCache.push(Resource);
-			return Resource;
-			*@
 		}
 		//
 
@@ -126,115 +121,21 @@
 
 		Search.getResource = function (url, handleSuccess, handleError) {
 			AJAX.getResource(url, handleSuccess, handleError);
-			@*
-			//If the Resource was already queued or loaded, just process it (force asynchronous handling to ensure all of them work the same way)
-			var Resource = ResourceCache.find(item => item.URL == url);
-			if (Resource && Resource.Data) {
-				setTimeout(() => { handleSuccess?.(Resource.Data); }, 0);
-			}
-			else if (Resource && Resource.Error) {
-				setTimeout(() => { handleError?.(Resource.Error); }, 0);
-			}
-			else if (Resource) {
-				Resource.SuccessHandlers.push(handleSuccess);
-				Resource.ErrorHandlers.push(handleError);
-			}
-			//Otherwise, fetch the resource
-			else {
-				var Resource = Search.addResourceToCache(url);
-				Resource.SuccessHandlers.push(handleSuccess);
-				Resource.ErrorHandlers.push(handleError);
-
-				Search.doGETRequest(url, (response) => {
-					Resource.Data = response.Data;
-					processHandlers(Resource);
-				}, (error) => {
-					Resource.Error = error;
-					processHandlers(Resource);
-				});
-			}
-
-			//Helper function
-			function processHandlers(Resource) {
-				if (Resource.Data) {
-					Resource.SuccessHandlers.forEach(handler => {
-						handler?.(Resource.Data);
-					});
-				}
-				else if (Resource.Error) {
-					Resource.ErrorHandlers.forEach(handler => {
-						handler?.(Resource.Error);
-					});
-				}
-				Resource.SuccessHandlers = [];
-				Resource.ErrorHandlers = [];
-			}
-			*@
 		}
 		//
 
 		Search.doGETRequest = function (url, handleSuccess, handleError) {
 			AJAX.doGETRequest(url, handleSuccess, handleError);
-			@*Search.doAJAX(url, handleSuccess, handleError);*@
 		}
 		//
 
 		Search.doPOSTRequest = function (url, data, handleSuccess, handleError) {
 			AJAX.doPOSTRequest(url, data, handleSuccess, handleError);
-			@*
-			Search.doAJAX(url, handleSuccess, handleError, {
-				method: "POST",
-				headers: { 'Accept': 'application/json', 'Content-Type': 'application/json' },
-				body: JSON.stringify(data)
-			});
-			*@
 		};
 		//
 
 		Search.doAJAX = function (url, handleSuccess, handleError, params) {
 			AJAX.doFetch(url, handleSuccess, handleError, params);
-			@*
-			var Request = {};
-			Request.Status = "waiting";
-			Request.run = function () {
-				fetch(url, params)
-					.then(response => {
-						if (response.ok) {
-							return response.text();
-						}
-						else {
-							throw response;
-						}
-					})
-					.then(text => {
-						var response = JSON.parse(text);
-						handleSuccess?.(response);
-						processRequestQueue(Request);
-					})
-					.catch(error => {
-						console.log("Error", error);
-						handleError?.(error);
-						processRequestQueue(Request);
-					});
-			};
-			RequestQueue.push(Request);
-			processRequestQueue();
-
-			//Helper function
-			function processRequestQueue(Request) {
-				setTimeout(function () {
-					if (Request) {
-						RequestQueue = RequestQueue.filter(OtherRequest => OtherRequest != Request);
-					}
-					for (var i = 0; i < 50; i++) {
-						if (RequestQueue[i]?.Status == "waiting") {
-							RequestQueue[i].Status = "running";
-							RequestQueue[i].run();
-						}
-					}
-				}, 0);
-			}
-			*@
 		};
 		//
 
