@@ -1,4 +1,4 @@
-USE [NavyRRL]
+USE [Navy_RRL_V2]
 GO
 
 /*

@@ -1,8 +1,8 @@
-
+USE [Navy_RRL_V2]
+GO
 /*
 
-USE [NavyRRL]
-GO
+
 
 SELECT [Id]
       ,[Name]
@@ -35,7 +35,7 @@ SELECT  a.[Id]
 
   FROM [dbo].[Rating] a 
   left join ( 
-	Select b.RatingId, count(*) as total from [RatingTask.HasRating] b
+	Select b.RatingId, count(*) as total from RatingContext b
 	group by b.RatingId
   ) hasRatingTasks on a.Id = hasRatingTasks.RatingId
  go

@@ -1,4 +1,4 @@
-use NavyRRL
+use [Navy_RRL_V2]
 go
 
 Alter View WorkRoleSummary 
@@ -18,9 +18,14 @@ SELECT TOP (1000) a.[Id]
   FROM [dbo].[WorkRole] a
   left join ( 
 	Select WorkRoleId, count(*) as HasRatingTasks 
-	from [RatingTask.WorkRole] 
+	from RatingContext 
 	group by WorkRoleId 
 	) b on a.id =  b.WorkRoleId
+ -- left join ( 
+	--Select WorkRoleId, count(*) as HasRatingTasks 
+	--from [RatingTask.WorkRole] 
+	--group by WorkRoleId 
+	--) b on a.id =  b.WorkRoleId
 
 go
 grant select on WorkRoleSummary to public

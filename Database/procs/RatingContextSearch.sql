@@ -26,7 +26,7 @@ set @SortOrder = 'CodedNotation ' + @SortDir
 
 set @SortOrder = 'base.[Ratings], base.[Rank] DESC, base.[FunctionalArea] desc, base.[ReferenceResource]'
 set @SortOrder = 'Ratings, Rank, BilletTitles, FunctionalArea'
-set @SortOrder = 'base.[WorkElementType] desc'
+--set @SortOrder = 'base.[WorkElementType] desc'
 --set @CurrentUserId = 108
 
 
@@ -40,7 +40,7 @@ set @Filter = ' base.LevelId in (89) AND FunctionalAreaId in(2,5)'
 set @Filter = ' base.id in (select a.[RatingTaskId] from [RatingTask.HasRating] a inner join Rating b on a.ratingId = b.Id where b.Id in (77,78 ))	'
 set @Filter = ' ( base.WorkElementTypeId in ( 1120 ) )  '
  set @Filter = '  Ratings = ''ps'' '
- set @Filter = '  trainingSolutionType = ''Block Zero Addition'' '
+ --set @Filter = '  trainingSolutionType = ''Block Zero Addition'' '
 --set @Filter = ''
 
 set @StartPageIndex = 1
@@ -75,7 +75,7 @@ Modifications
 22-10-02 mparsons - Changed to use ApplicationRoleSummary
 */
 
-Create PROCEDURE [dbo].[RatingContextSearch]
+Alter PROCEDURE [dbo].[RatingContextSearch]
 		@Filter           varchar(5000)
 		,@SortOrder         varchar(500)
 		,@StartPageIndex  int
@@ -182,7 +182,7 @@ PRINT '@StartPageIndex = ' + convert(varchar,@StartPageIndex) +  ' @lastRow = ' 
 -- =================================
 
 CREATE TABLE #tempWorkTable(
-	RowNumber         int PRIMARY KEY IDENTITY(1,1) NOT NULL
+	RowNumber         int PRIMARY KEY  NOT NULL
 	,Id					int
 	,Task		varchar(MAX)
 )
@@ -198,15 +198,15 @@ CREATE TABLE #tempWorkTable(
 
   print '@Filter len: '  +  convert(varchar,len(@Filter))
 
-  set @SQL = 'SELECT Id, RatingTask  FROM [dbo].[RatingContextSummary] base '
-		+ @Filter
+--  set @SQL = 'SELECT Id, RatingTask  FROM [dbo].[RatingContextSummary] base '
+--		+ @Filter
 
 
-if charindex( 'order by', lower(@Filter) ) = 0
-    set @SQL = @SQL + ' ' + @OrderBy
+--if charindex( 'order by', lower(@Filter) ) = 0
+--    set @SQL = @SQL + ' ' + @OrderBy
 
-  print '@SQL len: '  +  convert(varchar,len(@SQL))
-  print @SQL
+--  print '@SQL len: '  +  convert(varchar,len(@SQL))
+--  print @SQL
 -- ================================= 
 set @SQL = '   SELECT count(*) as TotalRows  FROM [dbo].RatingContextSummary base  '  + @Filter 
 INSERT INTO #tempQueryTotalTable (TotalRows)
@@ -216,7 +216,7 @@ select top 1  @TotalRows= TotalRows from #tempQueryTotalTable
 -- ================================= 
 
   set @SQL = ' 
-  SELECT        
+  SELECT     distinct   
 		DerivedTable.RowNumber, base.Id, base.[RatingTask]
 From 
    (
@@ -224,10 +224,12 @@ SELECT
          ROW_NUMBER() OVER(' + @OrderBy + ') as RowNumber,
           base.Id, base.RatingTask
 		from [RatingContextSummary] base  ' 
-        + @Filter + ' 
+        + @Filter +  ' 
    ) as DerivedTable
        Inner join [dbo].[RatingContextSummary] base on DerivedTable.Id = base.Id
 WHERE RowNumber BETWEEN ' + convert(varchar,@StartPageIndex) + ' AND ' + convert(varchar,@lastRow) + ' '  
+
+
 
   print '@SQL len: '  +  convert(varchar,len(@SQL))
   print @SQL
@@ -293,17 +295,17 @@ SELECT
       ,b.[FormalTrainingGap]
       ,b.[TrainingGapType]
 	  --
-	  ,b.CourseId
+	  ,b.HasCourseId
       ,b.[CIN]
-      ,b.[CourseName]
+      ,b.Course
       ,b.[CourseTypes]
-      ,b.[TrainingTaskId]
+      ,b.HasTrainingTaskId
       ,TrainingTask
-      ,b.[HasTrainingTask]
+      ,b.TrainingTask
 	        ,b.[LifeCycleControlDocument]
 	  --multiple
       ,b.AssessmentMethodTypes
-	  ,b.CurrentAssessmentApproach
+	 -- ,b.CurrentAssessmentApproach
 	  --back to single
       ,b.[CurriculumControlAuthority]
 	  ,b.[CurriculumControlAuthorityId]
@@ -317,15 +319,15 @@ SELECT
       
 	,b.[ClusterAnalysisTitle]
 
-	,b.[RecommendedModalityId]
+	,b.RecommendedModalityTypeId
 	,b.RecommendedModality as RecommendedModality
 	,b.RecommentedModalityCodedNotation
       
-	,b.[DevelopmentSpecificationId]
+	,b.DevelopmentSpecificationTypeId
 	,b.DevelopmentSpecification
 
 	,b.[CandidatePlatform]
-	,b.[CFMPlacement]
+	,b.CFMPlacementType
 	,b.[PriorityPlacement]
 	,b.[DevelopmentRatio]
 	,b.[EstimatedInstructionalTime]
@@ -340,7 +342,7 @@ SELECT
 	  ,ClusterAnalysisLastUpdated
 From #tempWorkTable a
 Inner Join RatingContextSummary b on a.Id = b.Id
-WHERE RowNumber > @first_id
+
 order by RowNumber 
 
 go
