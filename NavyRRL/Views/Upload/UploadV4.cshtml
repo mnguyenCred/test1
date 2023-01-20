@@ -994,8 +994,8 @@
 					//Handle Excel's broken formatting of CSV files for the ratio field
 					if (Manager.Config.FixExcelRatio && row["Development Ratio"]?.trim() && row["Development Ratio"]?.trim() != "N/A") {
 						var ratio = row["Development Ratio"]?.trim();
-						if (ratio && ratio.match("(:01:00$)|(:01$)")) {
-							row["Development Ratio"] = ratio.replace(/(:01:00$)|(:01$)/, ":1");
+						if (ratio && ratio.match("(:01:00$)|(:01$)|(:00:00$)|(:00$)")) {
+							row["Development Ratio"] = ratio.replace(/(:01:00$)|(:01$)/, ":1").replace(/(:00:00$)|(:00$)/, ":0");
 							UI.TableBoxes.PreProcessing_AutoCorrections.appendRow({ RowNumber: rowNumber, Type: "Unintended Formatting", Column: "Development Ratio", Message: "The incorrectly formatted ratio will be corrected.", FoundValue: ratio, CorrectValue: row["Development Ratio"] });
 						}
 					}
