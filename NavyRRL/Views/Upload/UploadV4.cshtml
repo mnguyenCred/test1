@@ -1083,7 +1083,7 @@
 					//Custom Handling for the Candidate Platform Type column, because its values may contain slashes, but are also separated by slashes
 					{
 						var candidatePlatformTypes = [];
-						var checkString = (row["Candidate Platform"] || "").replace(/N\/A/gi, "");
+						var checkString = (row["Candidate Platform"] || "").replace(/^N\/A$/gi, "");
 						if (checkString.length > 0) {
 							for (var platformText of ColumnData["Candidate Platform"].ConceptValues) {
 								//Skip the rest if there's nothing left that could match
