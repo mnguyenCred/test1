@@ -28,7 +28,7 @@ namespace NavyRRL.Controllers
         //public const string Admin_SiteManager = "Administrator, Site Manager";
         // GET: Admin
         //NOTE: Authorize kicks user back to login page. Need a custom option where already logged in 
-        //[CustomAttributes.NavyAuthorize( "Admin Home", Roles = Admin_SiteManager )]
+        ////[CustomAttributes.NavyAuthorize( "Admin Home", Roles = Admin_SiteManager )]
         public ActionResult Index()
         {
             if (AccountServices.IsUserAnAdmin())
@@ -125,11 +125,16 @@ namespace NavyRRL.Controllers
 
         #region  Activity
         // GET: Admin/Activity
-        [CustomAttributes.NavyAuthorize( "Admin Home", Roles = Admin_SiteManager_SiteStaff )]
+        ////[CustomAttributes.NavyAuthorize( "Admin Home", Roles = Admin_SiteManager_SiteStaff )]
         public ActionResult Activity()
         {
-            return View();
-            //return Search();
+            if ( AccountServices.IsUserSiteStaff() )
+                return View();
+            else
+            {
+                return new RedirectResult( "~/event/Notauthorized" );
+            }
+          
         }
         /// <summary>
         /// Current Activity Search
@@ -247,12 +252,12 @@ namespace NavyRRL.Controllers
 
 
         #region Users 
-        [CustomAttributes.NavyAuthorize( "Admin Accounts", Roles = Admin_SiteManager )]
+        ////[CustomAttributes.NavyAuthorize( "Admin Accounts", Roles = Admin_SiteManager )]
         public ActionResult Accounts()
         {
             if ( !AccountServices.IsUserAnAdmin() )
             {
-
+                return new RedirectResult( "~/event/Notauthorized" );
             }
             return View();
         }
@@ -342,9 +347,13 @@ namespace NavyRRL.Controllers
             return result;
         }
 
-        [CustomAttributes.NavyAuthorize( "Admin Edit Account", Roles = Admin_SiteManager )]
+       // //[CustomAttributes.NavyAuthorize( "Admin Edit Account", Roles = Admin_SiteManager )]
         public ActionResult EditAccount( int id )
         {
+            if ( !AccountServices.IsUserAnAdmin() )
+            {
+                return new RedirectResult( "~/event/Notauthorized" );
+            }
             var account = AccountServices.GetAccount( id );
             if ( account != null )
             {
@@ -416,7 +425,7 @@ namespace NavyRRL.Controllers
             return PartialView( model );
         }
 
-        [CustomAttributes.NavyAuthorize( "Admin Delete Account", Roles = Admin_SiteManager )]
+        ////[CustomAttributes.NavyAuthorize( "Admin Delete Account", Roles = Admin_SiteManager )]
         public void DeleteAccount( int id )
         {
             if ( !AccountServices.IsUserAuthenticated() )
@@ -427,6 +436,11 @@ namespace NavyRRL.Controllers
             }
             else
             {
+                if ( !AccountServices.IsUserAnAdmin() )
+                {
+                    ConsoleMessageHelper.SetConsoleErrorMessage( AccountServices.NOT_AUTHORIZED );
+                    return;
+                }
                 var deletedBy = AccountServices.GetCurrentUser();
                 //Update Account IsActive
                 var message = string.Empty;
@@ -450,7 +464,7 @@ namespace NavyRRL.Controllers
 
 
         #region Role testing
-        [CustomAttributes.NavyAuthorize( "Admin RmtlDeveloperOnly", Roles = "RMTL Developer" )]
+        ////[CustomAttributes.NavyAuthorize( "Admin RmtlDeveloperOnly", Roles = "RMTL Developer" )]
         public ActionResult RmtlDeveloperOnly()
         {
             //should not get here with out this role, but just in case
@@ -477,13 +491,13 @@ namespace NavyRRL.Controllers
           
         }
 
-        [CustomAttributes.NavyAuthorize( "Admin RatingContinuumManagerOnly Home", Roles = "Rating Continuum Manager" )]
+        ////[CustomAttributes.NavyAuthorize( "Admin RatingContinuumManagerOnly Home", Roles = "Rating Continuum Manager" )]
         public ActionResult RatingContinuumManagerOnly()
         {
             return RedirectToAction( "index", "event" );
         }
 
-        [CustomAttributes.NavyAuthorize( "Admin RCDAnalystOnly", Roles = "Rating Continuum Development Analyst" )]
+       // //[CustomAttributes.NavyAuthorize( "Admin RCDAnalystOnly", Roles = "Rating Continuum Development Analyst" )]
         public ActionResult RCDAnalystOnly()
         {
             return RedirectToAction( "index", "event" );

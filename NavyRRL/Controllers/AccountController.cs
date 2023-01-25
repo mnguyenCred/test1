@@ -61,7 +61,7 @@ namespace NavyRRL.Controllers
             }
         }
         #region Add User
-        [Authorize( Roles = "Administrator, Site Manager" )]
+       // [Authorize( Roles = "Administrator, Site Manager" )]
         public ActionResult AddUser()
         {
             var model = new RegisterViewModel();

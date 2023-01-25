@@ -29,7 +29,7 @@ namespace NavyRRL.Controllers
 		}
 		//
 
-		[CustomAttributes.NavyAuthorize( "Cluster Analysis View", Roles = SiteReader )]
+		////[CustomAttributes.NavyAuthorize( "Cluster Analysis View", Roles = SiteReader )]
 		public ActionResult Detail( int id )
 		{
 			AuthenticateOrRedirect( "You must be authenticated and authorized to view Cluster Analysis data." );
@@ -55,7 +55,7 @@ namespace NavyRRL.Controllers
 		}
 		//
 
-		[CustomAttributes.NavyAuthorize( "Cluster Analyst Edit", Roles = Admin_SiteManager )]
+		////[CustomAttributes.NavyAuthorize( "Cluster Analyst Edit", Roles = Admin_SiteManager )]
 
 		public ActionResult Edit( int id )
 		{

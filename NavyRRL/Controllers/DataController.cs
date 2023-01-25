@@ -73,7 +73,7 @@ namespace NavyRRL.Controllers
             return View();
         }
 
-        [CustomAttributes.NavyAuthorize( "ManageConceptSchemes", Roles = "Administrator, Site Staff" )]
+        //[CustomAttributes.NavyAuthorize( "ManageConceptSchemes", Roles = "Administrator, Site Staff" )]
         public ActionResult ManageConceptSchemes()
         {
             return View();

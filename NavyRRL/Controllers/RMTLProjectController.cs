@@ -14,7 +14,7 @@ using Services;
 namespace NavyRRL.Controllers
 {
 	[SessionState( System.Web.SessionState.SessionStateBehavior.ReadOnly )]
-	[CustomAttributes.NavyAuthorize( "Edit", Roles = "Administrator, RMTL Developer, Site Staff" )]
+	//[CustomAttributes.NavyAuthorize( "Edit", Roles = "Administrator, RMTL Developer, Site Staff" )]
 	public class RMTLProjectController : BaseController
     {
 		public ActionResult Search()
@@ -40,7 +40,7 @@ namespace NavyRRL.Controllers
 		}
 		//
 
-		[CustomAttributes.NavyAuthorize( "RMTL Project View", Roles = SiteReader )]
+		//[CustomAttributes.NavyAuthorize( "RMTL Project View", Roles = SiteReader )]
 		public ActionResult GetByRowId( Guid id )
 		{
 			AuthenticateOrRedirect( "You must be authenticated and authorized to edit RMTL Project data." );
@@ -49,7 +49,7 @@ namespace NavyRRL.Controllers
 		}
 		//
 
-		[CustomAttributes.NavyAuthorize( "RMTL Project Edit", Roles = Admin_SiteManager_RMTLDeveloper )]
+		//[CustomAttributes.NavyAuthorize( "RMTL Project Edit", Roles = Admin_SiteManager_RMTLDeveloper )]
 		public ActionResult Edit( int id )
 		{
 			AuthenticateOrRedirect( "You must be authenticated and authorized to edit RMTL Project data." );

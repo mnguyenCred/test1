@@ -24,7 +24,7 @@ namespace NavyRRL.Controllers
     {
 		public static string FunctionCode = "rmtl.create";
 		// GET: Upload
-		//[CustomAttributes.NavyAuthorize( "Upload", Roles = Admin_SiteManager_RMTLDeveloper )]
+		////[CustomAttributes.NavyAuthorize( "Upload", Roles = Admin_SiteManager_RMTLDeveloper )]
 		public ActionResult Index()
         {
 			AuthenticateOrRedirect( "You must be authenticated and authorized to use this feature.", FunctionCode );
@@ -150,7 +150,7 @@ namespace NavyRRL.Controllers
 		}
 		//
 
-		//[CustomAttributes.NavyAuthorize( "Upload", Roles = Admin_SiteManager_RMTLDeveloper )]
+		////[CustomAttributes.NavyAuthorize( "Upload", Roles = Admin_SiteManager_RMTLDeveloper )]
 		public ActionResult ConfirmChangesV3( Guid transactionGUID )
 		{
             //Authenticate

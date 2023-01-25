@@ -54,7 +54,7 @@ namespace NavyRRL.Controllers
 		//
 		*/
 
-		[CustomAttributes.NavyAuthorize( "Work Role View", Roles = SiteReader )]
+		//[CustomAttributes.NavyAuthorize( "Work Role View", Roles = SiteReader )]
 		public ActionResult Detail( int id )
 		{
 			AuthenticateOrRedirect( "You must be authenticated and authorized to view Functional Area data." );
@@ -80,7 +80,7 @@ namespace NavyRRL.Controllers
 		}
 		//
 
-		[CustomAttributes.NavyAuthorize( "Work Role Edit", Roles = Admin_SiteManager )]
+		//[CustomAttributes.NavyAuthorize( "Work Role Edit", Roles = Admin_SiteManager )]
 		public ActionResult Edit( int id )
 		{
 			AuthenticateOrRedirect( "You must be authenticated and authorized to edit Functional Area data." );

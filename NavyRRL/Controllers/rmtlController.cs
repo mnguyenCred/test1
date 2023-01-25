@@ -16,15 +16,17 @@ namespace NavyRRL.Controllers
 	[SessionState( System.Web.SessionState.SessionStateBehavior.ReadOnly )]
 	public class RMTLController : BaseController
     {
+		public static string FunctionCode = "rmtl.search";
 		/// <summary>
 		/// Anyone can search?
 		/// But shouldn't see non published stuff
 		/// </summary>
 		/// <returns></returns>
-		[CustomAttributes.NavyAuthorize( "RMTL Search", Roles = SiteReader )]
+		////[CustomAttributes.NavyAuthorize( "RMTL Search", Roles = SiteReader )]
 		public ActionResult Search()
 		{
-			AuthenticateOrRedirect( "You must be authenticated and authorized to use the RMTL Search." );
+			//actually anyone can use it. But test with reader 
+			AuthenticateOrRedirect( "You must be authenticated and authorized to use the RMTL Search.", FunctionCode );
 			return View( "~/Views/RMTL/RMTLSearchV3.cshtml" );
 		}
 		//

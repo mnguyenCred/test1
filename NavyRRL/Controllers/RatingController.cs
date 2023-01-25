@@ -29,7 +29,7 @@ namespace NavyRRL.Controllers
 		}
 		//
 
-		[CustomAttributes.NavyAuthorize( "Rating Detail", Roles = SiteReader )]
+		////[CustomAttributes.NavyAuthorize( "Rating Detail", Roles = SiteReader )]
 		public ActionResult Detail( int id )
 		{
 			AuthenticateOrRedirect( "You must be authenticated and authorized to view Rating data." );
@@ -38,7 +38,7 @@ namespace NavyRRL.Controllers
 		}
 		//
 
-		[CustomAttributes.NavyAuthorize( "Rating View", Roles = SiteReader )]
+		////[CustomAttributes.NavyAuthorize( "Rating View", Roles = SiteReader )]
 		public ActionResult GetByRowID( Guid id )
 		{
 			AuthenticateOrRedirect( "You must be authenticated and authorized to view Rating Data." );
@@ -56,7 +56,7 @@ namespace NavyRRL.Controllers
 		}
 		//
 
-		[CustomAttributes.NavyAuthorize( "Rating Edit", Roles = Admin_SiteManager )]
+		////[CustomAttributes.NavyAuthorize( "Rating Edit", Roles = Admin_SiteManager )]
 		public ActionResult Edit( int id )
 		{
 			AuthenticateOrRedirect( "You must be authenticated and authorized to edit Rating data." );

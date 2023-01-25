@@ -30,7 +30,7 @@ namespace NavyRRL.Controllers
 		//
 
 		//SiteReader should just be everyone, so do we need this?
-		[CustomAttributes.NavyAuthorize( "Concept Scheme View", Roles = SiteReader )]
+		//[CustomAttributes.NavyAuthorize( "Concept Scheme View", Roles = SiteReader )]
 		public ActionResult Detail( int id )
 		{
 			AuthenticateOrRedirect( "You must be authenticated and authorized to view Concept Scheme data." );
@@ -64,7 +64,7 @@ namespace NavyRRL.Controllers
 		}
 		//
 
-		[CustomAttributes.NavyAuthorize( "Concept Scheme Edit", Roles = Admin_SiteManager )]
+		//[CustomAttributes.NavyAuthorize( "Concept Scheme Edit", Roles = Admin_SiteManager )]
 		public ActionResult Edit( int id )
 		{
 			AuthenticateOrRedirect( "You must be authenticated and authorized to edit Concept Scheme data." );

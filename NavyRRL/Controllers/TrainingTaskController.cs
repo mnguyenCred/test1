@@ -13,7 +13,7 @@ using Models.Curation;
 namespace NavyRRL.Controllers
 {
 	[SessionState( System.Web.SessionState.SessionStateBehavior.ReadOnly )]
-	[CustomAttributes.NavyAuthorize( "Edit", Roles = "Administrator, RMTL Developer, Site Staff" )]
+	//[CustomAttributes.NavyAuthorize( "Edit", Roles = "Administrator, RMTL Developer, Site Staff" )]
 
 	public class TrainingTaskController : BaseController
     {
@@ -31,7 +31,7 @@ namespace NavyRRL.Controllers
 		}
 		//
 
-		[CustomAttributes.NavyAuthorize( "Training Task View", Roles = SiteReader )]
+		//[CustomAttributes.NavyAuthorize( "Training Task View", Roles = SiteReader )]
 		public ActionResult Detail( int id )
 		{
 			AuthenticateOrRedirect( "You must be authenticated and authorized to view Training Task data." );
@@ -57,7 +57,7 @@ namespace NavyRRL.Controllers
 		}
 		//
 
-		[CustomAttributes.NavyAuthorize( "Training Task Edit", Roles = Admin_SiteManager )]
+		//[CustomAttributes.NavyAuthorize( "Training Task Edit", Roles = Admin_SiteManager )]
 		public ActionResult Edit( int id )
 		{
 			AuthenticateOrRedirect( "You must be authenticated and authorized to edit Training Task data." );

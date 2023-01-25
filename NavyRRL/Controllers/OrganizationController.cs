@@ -29,7 +29,7 @@ namespace NavyRRL.Controllers
 		}
 		//
 
-		[CustomAttributes.NavyAuthorize( "Organization View", Roles = SiteReader )]
+		//[CustomAttributes.NavyAuthorize( "Organization View", Roles = SiteReader )]
 		public ActionResult Detail( int id )
 		{
 			AuthenticateOrRedirect( "You must be authenticated and authorized to view Organization data." );
@@ -38,7 +38,7 @@ namespace NavyRRL.Controllers
 		}
 		//
 
-		[CustomAttributes.NavyAuthorize( "Organization View", Roles = SiteReader )]
+		//[CustomAttributes.NavyAuthorize( "Organization View", Roles = SiteReader )]
 		public ActionResult GetByRowId( Guid id )
 		{
 			AuthenticateOrRedirect( "You must be authenticated and authorized to view Organization data." );
@@ -56,7 +56,7 @@ namespace NavyRRL.Controllers
 		}
 		//
 
-		[CustomAttributes.NavyAuthorize( "CCA Edit", Roles = Admin_SiteManager )]
+		//[CustomAttributes.NavyAuthorize( "CCA Edit", Roles = Admin_SiteManager )]
 		public ActionResult Edit( int id )
 		{
 			AuthenticateOrRedirect( "You must be authenticated and authorized to edit Organization data." );

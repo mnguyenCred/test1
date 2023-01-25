@@ -29,7 +29,7 @@ namespace NavyRRL.Controllers
 		}
 		//
 
-		[CustomAttributes.NavyAuthorize( "Concept View", Roles = SiteReader )]
+		//[CustomAttributes.NavyAuthorize( "Concept View", Roles = SiteReader )]
 		public ActionResult Detail( int id )
 		{
 			AuthenticateOrRedirect( "You must be authenticated and authorized to view Concept data." );
@@ -38,7 +38,7 @@ namespace NavyRRL.Controllers
 		}
 		//
 
-		[CustomAttributes.NavyAuthorize( "Concept View", Roles = SiteReader )]
+		//[CustomAttributes.NavyAuthorize( "Concept View", Roles = SiteReader )]
 		public ActionResult GetById( int id )
 		{
 			AuthenticateOrRedirect( "You must be authenticated and authorized to view Concept data." );
@@ -47,7 +47,7 @@ namespace NavyRRL.Controllers
 		}
 		//
 
-		[CustomAttributes.NavyAuthorize( "Concept View", Roles = SiteReader )]
+		//[CustomAttributes.NavyAuthorize( "Concept View", Roles = SiteReader )]
 		public ActionResult GetByRowId( Guid id )
 		{
 			AuthenticateOrRedirect( "You must be authenticated and authorized to view Concept data." );
@@ -65,7 +65,7 @@ namespace NavyRRL.Controllers
 		}
 		//
 
-		[CustomAttributes.NavyAuthorize( "Concept Edit", Roles = Admin_SiteManager )]
+		//[CustomAttributes.NavyAuthorize( "Concept Edit", Roles = Admin_SiteManager )]
 		public ActionResult Edit( int id )
 		{
 			AuthenticateOrRedirect( "You must be authenticated and authorized to edit Concept data." );
