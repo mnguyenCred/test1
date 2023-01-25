@@ -755,8 +755,8 @@ namespace Services
 
 			//Numeric fields
 			var priorityPlacement = ParseNumberOrError( result, item.Row.Priority_Placement, UtilityManager.MapIntegerOrDefault, 0, ( value ) => value < 0, "Priority Placement must be an integer greater than or equal to 0." );
-			var developmentTime = ParseNumberOrError( result, item.Row.Development_Time, UtilityManager.MapDecimalOrDefault, 0.0m, ( value ) => value <= 0, "Development Time must be greater than 0." );
-			var estimatedInstructionalTime = ParseNumberOrError( result, item.Row.Estimated_Instructional_Time, UtilityManager.MapDecimalOrDefault, 0.0m, ( value ) => value <= 0, "Estimated Instructional Time must be greater than 0." );
+			var developmentTime = ParseNumberOrError( result, item.Row.Development_Time, UtilityManager.MapDecimalOrDefault, 0.0m, ( value ) => value < 0, "Development Time must be greater than or equal 0." );
+			var estimatedInstructionalTime = ParseNumberOrError( result, item.Row.Estimated_Instructional_Time, UtilityManager.MapDecimalOrDefault, 0.0m, ( value ) => value < 0, "Estimated Instructional Time must be greater than or equal 0." );
 
 			//Cluster Analysis Title
 			var rowClusterAnalysisTitle = LookupOrGetFromDBOrCreateNew( summary, result,
@@ -813,9 +813,9 @@ namespace Services
 				notFoundCFMPlacementTypes.Count() > 0 ||
 				rowCandidatePlatformTypeList == null || rowCandidatePlatformTypeList.Count() == 0 ||
 				notFoundCandidatePlatformTypes.Count() > 0 ||
-				priorityPlacement == 0 ||
-				developmentTime == 0 ||
-				estimatedInstructionalTime == 0 ||
+				//priorityPlacement == 0 || //Can be 0
+				//developmentTime == 0 || //Can be 0
+				//estimatedInstructionalTime == 0 || //Can be 0
 				rowRating == null ||
 				rowRatingTask == null ||
 				rowBilletTitle == null ||
@@ -860,10 +860,10 @@ namespace Services
 				rowCFMPlacementTypeList != null && rowCFMPlacementTypeList.Count() > 0 &&
 				notFoundCFMPlacementTypes.Count() == 0 &&
 				rowCandidatePlatformTypeList != null && rowCandidatePlatformTypeList.Count() > 0 &&
-				notFoundCandidatePlatformTypes.Count() == 0 &&
-				priorityPlacement > 0 &&
-				developmentTime > 0 &&
-				estimatedInstructionalTime > 0
+				notFoundCandidatePlatformTypes.Count() == 0 //&&
+				//priorityPlacement > 0 &&
+				//developmentTime > 0 &&
+				//estimatedInstructionalTime > 0
 			)
 			{
 				hasPart3Data = true;
@@ -879,10 +879,10 @@ namespace Services
 				( rowCFMPlacementTypeList == null || rowCFMPlacementTypeList.Count() == 0) &&
 				notFoundCFMPlacementTypes.Count() == 0 &&
 				( rowCandidatePlatformTypeList == null || rowCandidatePlatformTypeList.Count() == 0) &&
-				notFoundCandidatePlatformTypes.Count() == 0 &&
-				priorityPlacement == 0 &&
-				developmentTime == 0 &&
-				estimatedInstructionalTime == 0
+				notFoundCandidatePlatformTypes.Count() == 0 //&&
+				//priorityPlacement == 0 &&
+				//developmentTime == 0 &&
+				//estimatedInstructionalTime == 0
 			)
 			{
 				ClearPart3DataAndErrors();

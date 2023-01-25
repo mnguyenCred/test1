@@ -103,11 +103,10 @@
 		<h1>@Model.Name</h1>
 		<div class="subtitle">
 			<div class="typeLabel">@Model.TypeLabel</div>
-			<a class="jsonLink" href="@Url.Content( "~/" + Model.TypeURL + "/json/" + Model.Id )" target="_blank">JSON-LD (ID-Based)</a>
-			<a class="jsonLink" href="@Url.Content( "~/rdf/resources/" + Model.CTID )" target="_blank">JSON-LD (CTID-Based)</a>
-			@*probably others than admin will be able to edit. In some cases it will be rmtl specific *@
 			@if ( isAdmin )
 			{
+				<a class="jsonLink" href="@Url.Content( "~/" + Model.TypeURL + "/json/" + Model.Id )" target="_blank">JSON-LD (ID-Based)</a>
+				<a class="jsonLink" href="@Url.Content( "~/rdf/resources/" + Model.CTID )" target="_blank">JSON-LD (CTID-Based)</a>
 				<a class="editLink" href="@Url.Content( "~/" + Model.TypeURL + "/edit/" + Model.Id )">Edit Data</a>
 				<button class="linkButton deleteButton">Delete Data</button>
 			}
