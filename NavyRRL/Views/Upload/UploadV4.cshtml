@@ -846,7 +846,8 @@
 			scanRow(0, function () {
 				//If there are any errors
 				if (UI.TableBoxes.PreProcessing_Errors.Data.length > 0) {
-					updateStageButtons(false, trueIfAdmin(), false, false);
+					//updateStageButtons(false, trueIfAdmin(), false, false);
+					updateStageButtons(false, false, false, false);
 					UI.StatusBars.PreProcessingProgress.setStatus("Finished with " + UI.TableBoxes.PreProcessing_Errors.Data.length + " Errors.");
 				}
 				//Otherwise
@@ -1183,7 +1184,8 @@
 			AJAX.doPOSTRequest("@Url.Content("~/upload/storerawcsv")", uploadCSVData, function (response) {
 				//If there are any errors...
 				if (UI.TableBoxes.UploadSummaryTable.SpecialRows.SummaryRow.Data.ServerErrors + UI.TableBoxes.UploadSummaryTable.SpecialRows.SummaryRow.Data.ProcessingErrors > 0) {
-					updateStageButtons(false, false, trueIfAdmin(), false);
+					//updateStageButtons(false, false, trueIfAdmin(), false);
+					updateStageButtons(false, false, false, false);
 					UI.StatusBars.UploadProgress.setStatus("One or more errors were found. See below for details.");
 				}
 				//Otherwise...

@@ -113,8 +113,14 @@ namespace Factories
 					list = list.Where( m => context.RatingContext.Where( n => n.Rating == m ).Count() > 0 );
 				} );
 
+				//Exclude items (Used in the RMTL Search Filters)
+				AppendIDsFilterIfPresent( query, "search:Exclude", ( ids ) =>
+				{
+					list = list.Where( m => !ids.Contains( m.Id ) );
+				} );
+
 				//Return ordered list
-				return HandleSort( list, query.SortOrder, m => m.Name, m => m.OrderBy( n => n.Name ) );
+				return HandleSort( list, query.SortOrder, m => m.Name, m => m.OrderBy( n => n.Name ), ( m, keywordParts ) => m.OrderBy( n => RelevanceHelper( n, keywordParts, o => o.CodedNotation ) + RelevanceHelper( n, keywordParts, o => o.Name ) ), keywords );
 
 			}, MapFromDBForSearch );
 		}

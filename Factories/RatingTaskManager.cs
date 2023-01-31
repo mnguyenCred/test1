@@ -142,8 +142,14 @@ namespace Factories
 					list = list.Where( m => context.RatingContext.Where( n => n.RatingTaskId == m.Id && ids.Contains( n.FormalTrainingGapId ?? 0 ) ).Count() > 0 );
 				} );
 
+				//Exclude items
+				AppendIDsFilterIfPresent( query, "search:Exclude", ( ids ) =>
+				{
+					list = list.Where( m => !ids.Contains( m.Id ) );
+				} );
+
 				//Return ordered list
-				return HandleSort( list, query.SortOrder, m => m.Description, m => m.OrderBy( n => n.Description ) );
+				return HandleSort( list, query.SortOrder, m => m.Description, m => m.OrderBy( n => n.Description ), ( m, keywordParts ) => m.OrderBy( n => RelevanceHelper( n, keywordParts, o => o.Description ) ), keywords );
 
 			}, MapFromDBForSearch );
 

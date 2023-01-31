@@ -641,6 +641,7 @@
     <Content Include="Views\CourseContext\Edit.cshtml" />
     <Content Include="Views\RMTL\RMTLSearchV3.cshtml" />
     <Content Include="Views\Shared\_FormHelperV2.cshtml" />
+    <Content Include="Views\RMTL\RMTLEditorV1.cshtml" />
     <None Include="Web.NavyDevSecOps.config">
       <DependentUpon>Web.config</DependentUpon>
     </None>

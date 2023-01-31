@@ -99,8 +99,14 @@ namespace Factories
 					);
 				}
 
+				//Exclude items
+				AppendIDsFilterIfPresent( query, "search:Exclude", ( ids ) =>
+				{
+					list = list.Where( m => !ids.Contains( m.Id ) );
+				} );
+
 				//Return ordered list
-				return HandleSort( list, query.SortOrder, m => m.Course.Name, m => m.OrderBy( n => n.Course.Name ) );
+				return HandleSort( list, query.SortOrder, m => m.Course.Name, m => m.OrderBy( n => n.Course.Name ), ( m, keywordParts ) => m.OrderBy( n => RelevanceHelper( n, keywordParts, o => o.Course.Name ) + RelevanceHelper( n, keywordParts, o => o.Course.CodedNotation ) + RelevanceHelper( n, keywordParts, o => o.TrainingTask.Description ) ), keywords );
 
 			}, MapFromDBForSearch );
 		}

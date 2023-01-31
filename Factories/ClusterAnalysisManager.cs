@@ -119,8 +119,14 @@ namespace Factories
 					list = list.Where( m => m.ClusterAnalysisTitle.Name.Contains( keywords ) );
 				}
 
+				//Exclude items
+				AppendIDsFilterIfPresent( query, "search:Exclude", ( ids ) =>
+				{
+					list = list.Where( m => !ids.Contains( m.Id ) );
+				} );
+
 				//Return ordered list
-				return HandleSort( list, query.SortOrder, m => m.ClusterAnalysisTitle.Name, m => m.OrderBy( n => n.ClusterAnalysisTitle.Name ) );
+				return HandleSort( list, query.SortOrder, m => m.ClusterAnalysisTitle.Name, m => m.OrderBy( n => n.ClusterAnalysisTitle.Name ), ( m, keywordParts ) => m.OrderBy( n => RelevanceHelper( n, keywordParts, o => o.ClusterAnalysisTitle.Name ) ), keywords );
 
 			}, MapFromDBForSearch );
         }

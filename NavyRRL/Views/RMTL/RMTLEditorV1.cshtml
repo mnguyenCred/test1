@@ -1,0 +1,246 @@
+﻿<script type="text/javascript">
+	var RMTL = {
+		Columns: {
+			RatingContext: {
+				Label: "Rating Context",
+				Type: "Custom",
+				onInit: (Cell) => { Cell.Resource = { RowId: crypto.randomUUID() }; }
+			},
+			Rating: {
+				Label: "Rating",
+				Type: "SearchSelectSingle",
+				onEdit: (Cell) => { searchSelectSinglePanel(Cell, "Rating"); }
+			},
+			PayGrade: {
+				Label: "Rank",
+				Type: "Select",
+				onChange: (Cell, Row) => { Row.Cells.PayGradeLevel.setValue(Cell.Value.Broader); }
+			},
+			PayGradeLevel: {
+				Label: "Level (A/J/M)",
+				Type: "Auto"
+			},
+			BilletTitle: {
+				Label: "Billet Title (Job)",
+				Type: "SearchSelectSingle",
+				onEdit: (Cell) => { searchSelectSinglePanel(Cell, "BilletTitle", true); },
+				onCreate: (Cell) => { createBilletTitlePanel(Cell); }
+			},
+			WorkRole: {
+				Label: "Functional Area",
+				Type: "SearchSelectSingle",
+				onEdit: (Cell) => { searchSelectSinglePanel(Cell, "WorkRole", true); },
+				onCreate: (Cell) => { createWorkRolePanel(Cell); }
+			},
+			ReferenceResource_Name: {
+				Label: "Source",
+				Type: "SearchSelectSingle",
+				onEdit: (Cell) => { searchSelectSinglePanel(Cell, "ReferenceResource", true); },
+				onCreate: (Cell) => { createReferenceResourcePanel(Cell); },
+				/*onChange: (Cell, Row) => {
+					Row.Cells.ReferenceResource_PublicationDate.setValue(Cell.Value.PublicationDate);
+					Row.Cells.ReferenceResource_ReferenceType.setValue(Cell.Value.ReferenceType);
+				}*/
+			},
+			ReferenceResource_PublicationDate: {
+				Label: "Date of Source",
+				Type: "Auto"
+			},
+			ReferenceResource_ReferenceType: {
+				Label: "Work Element Type",
+				Type: "Auto"
+			},
+			RatingTask: {
+				Label: "Work Element (Task)",
+				Type: "SearchSelectSingle",
+				onEdit: (Cell) => { searchSelectSinglePanel(Cell, "RatingTask", true); }
+			},
+			ApplicabilityType: {
+				Label: "Task Applicability",
+				Type: "Select"
+			},
+			TrainingGapType: {
+				Label: "Formal Training Gap",
+				Type: "Select"
+			},
+			CourseContext: {
+				Label: "Course Context",
+				Type: "Custom",
+				onInit: (Cell) => { Cell.Resource = { RowId: crypto.randomUUID() }; }
+			},
+			Course_CodedNotation: {
+				Label: "CIN",
+				Type: "Auto"
+			},
+			Course_Name: {
+				Label: "Course",
+				Type: "SearchSelectSingle",
+				onEdit: (Cell) => { searchSelectSinglePanel(Cell, "Course", true); },
+				/*onChange: (Cell, Row) => {
+					Row.Cells.Course_Type.setValue(Cell.Value.CourseType);
+					Row.Cells.Course_CurriculumControlAuthority.setValue(Cell.Value.CurriculumControlAuthority);
+					Row.Cells.Course_LifeCycleControlDocumentType.setValue(Cell.Value.LifeCycleControlDocumentType);
+				},*/
+				onCreate: (Cell) => { createCoursePanel(Cell); }
+			},
+			Course_Type: {
+				Label: "Course Type",
+				Type: "Auto"
+			},
+			Course_CurriculumControlAuthority: {
+				Label: "Curriculum Control Authority (CCA)",
+				Type: "Auto"
+			},
+			Course_LifeCycleControlDocumentType: {
+				Label: "Life-Cycle Control Document",
+				Type: "Auto"
+			},
+			TrainingTask: {
+				Label: "TCCD/CTTL/PPP Statement",
+				Type: "SearchSelectSingle",
+				onEdit: (Cell) => { searchSelectSinglePanel(Cell, "TrainingTask", true); }
+			},
+			AssessmentMethodType: {
+				Label: "Current Assessment Approach",
+				Type: "CheckBoxList",
+				onEdit: (Cell) => { checkBoxListPanel(Cell); }
+			},
+			ClusterAnalysis: {
+				Label: "Cluster Analysis",
+				Type: "Custom",
+				onInit: (Cell) => { Cell.Resource = { RowId: crypto.randomUUID() }; }
+			},
+			TrainingSolutionType: {
+				Label: "Training Solution Type",
+				Type: "Select"
+			},
+			ClusterAnalysisTitle: {
+				Label: "Cluster Analysis Title",
+				Type: "SearchSelectSingle",
+				onEdit: (Cell) => { searchSelectSinglePanel(Cell, "ClusterAnalysisTitle", true); }
+			},
+			RecommendedModalityType: {
+				Label: "Recommended Modality",
+				Type: "Select"
+			},
+			DevelopmentSpecificationType: {
+				Label: "Development Specification",
+				Type: "Select"
+			},
+			CanddiatePlatformType: {
+				Label: "Candidate Platform",
+				Type: "SearchSelectMulti",
+				onEdit: (Cell) => { searchSelectMultiPanel(Cell, "TrainingTask", true); }
+			},
+			CFMPlacementType: {
+				Label: "CFM Placement",
+				Type: "SearchSelectMulti",
+				onEdit: (Cell) => { searchSelectMultiPanel(Cell, "TrainingTask", true); }
+			},
+			PriorityPlacement: {
+				Label: "Priority Placement",
+				Type: "Text",
+				onValidate: (Cell) => { validate(Cell, validateFloat); }
+			},
+			DevelopmentRatioType: {
+				Label: "Development Ratio",
+				Type: "Select"
+			},
+			EstimatedInstructionalTime: {
+				Label: "Estiated Instructional Time",
+				Type: "Text",
+				onValidate: (Cell) => { validate(Cell, validateFloat); }
+			},
+			DevelopmentTime: {
+				Label: "Development Time (duration in hours)",
+				Type: "Text",
+				onValidate: (Cell) => { validate(Cell, validateFloat); }
+			},
+			Notes: {
+				Label: "Notes",
+				Type: "Text",
+				onValidate: (Cell) => { validate(Cell, validateTextOrNA); }
+			}
+		}
+	}
+
+	var EditorTables = {
+		Resources: [],
+		List: [],
+		ByName: {}
+	};
+
+	EditorTables.setupTable = function(name, jTable, Columns) {
+		var Table = {
+			Box: jTable,
+			Columns: Columns,
+			Name: name,
+			Header: jTable.find("thead"),
+			HeaderRow: $("<tr></tr>").appendTo(jTable.find("thead")),
+			Body: jTable.find("tbody"),
+			Footer: jTable.find("tfoot"),
+			Rows: []
+		};
+
+		Table.ManagerColumn = {
+			HeaderBox: $("<th data-name=\"TableManagerColumn\">...</th>").appendTo(Table.HeaderRow)
+		};
+
+		Object.keys(Table.Columns).forEach(key => {
+			Table.Columns[key].HeaderBox = $("<th data-name=\"" + key + "\">" + Table.Columns[key].Label + "</th>").appendTo(Table.HeaderRow);
+		});
+
+		EditorTables.List.push(Table);
+		EditorTables.ByName[name] = Table;
+		return Table;
+	}
+	//
+</script>
+<script type="text/javascript">
+	$(document).ready(function () {
+		EditorTables.setupTable("RMTL", $(".rmtlTable"), RMTL.Columns);
+	});
+
+	function validate(Cell, validationMethod) {
+		var result = validationMethod(Cell);
+		if (result == true) {
+			Cell.Box.removeClass("invalid");
+			Cell.ValidationBox.html("");
+		}
+		else {
+			Cell.Box.addClass("invalid");
+			Cell.ValidationBox.html(result);
+		}
+	}
+
+	function validateTextOrNA(Cell) {
+		if (Cell.getValue().length == 0) {
+			Cell.Input.val("N/A");
+		}
+		return true;
+	}
+
+	function validateFloat(Cell) {
+		var value = Cell.getValue();
+		if (value.length == 0) {
+			Cell.Input.val("N/A");
+			return true;
+		}
+
+		var numeric = parseFloat(value);
+		return (
+			isNaN(numeric) ? "Value must be a number." :
+			numeric < 0 ? "Value must be 0 or greater." :
+			true
+		);
+	}
+</script>
+<style type="text/css">
+
+</style>
+
+<table class="editorTable rmtlTable">
+	<thead></thead>
+	<tbody></tbody>
+	<tfoot></tfoot>
+</table>

@@ -106,8 +106,14 @@ namespace Factories
 					);
 				}
 
+				//Exclude items
+				AppendIDsFilterIfPresent( query, "search:Exclude", ( ids ) =>
+				{
+					list = list.Where( m => !ids.Contains( m.Id ) );
+				} );
+
 				//Return ordered list
-				return HandleSort( list, query.SortOrder, m => m.Name, m => m.OrderBy( n => n.Name ) );
+				return HandleSort( list, query.SortOrder, m => m.Name, m => m.OrderBy( n => n.Name ), ( m, keywordParts ) => m.OrderBy( n => RelevanceHelper( n, keywordParts, o => o.Name ) ), keywords );
 
 			}, MapFromDBForSearch );
 		}
