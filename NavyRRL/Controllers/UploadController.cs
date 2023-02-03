@@ -23,8 +23,8 @@ namespace NavyRRL.Controllers
 	public class UploadController : BaseController
     {
 		public static string FunctionCode = "rmtl.create";
-		// GET: Upload
-		//[CustomAttributes.NavyAuthorize( "Upload", Roles = Admin_SiteManager_RMTLDeveloper )]
+
+		[CustomAttributes.NavyAuthorize( "Upload", Roles = Admin_SiteManager_RMTLDeveloper )]
 		public ActionResult Index()
         {
 			AuthenticateOrRedirect( "You must be authenticated and authorized to use this feature.", FunctionCode );
@@ -32,14 +32,6 @@ namespace NavyRRL.Controllers
 
             return View( "~/views/upload/uploadv4.cshtml" );
         }
-		//
-
-		[HttpGet, Route("uploadv3")]
-		public ActionResult IndexV3()
-		{
-            AuthenticateOrRedirect( "You must be authenticated and authorized to use this feature.", FunctionCode );
-            return View( "~/views/upload/uploadv3.cshtml" );
-		}
 		//
 
 		public ActionResult ProcessUploadedItem( UploadableItem item )
@@ -52,6 +44,7 @@ namespace NavyRRL.Controllers
 		}
 		//
 
+		[CustomAttributes.NavyAuthorize( "Upload", Roles = Admin_SiteManager_RMTLDeveloper )]
 		public ActionResult StoreRawCSV()
 		{
 			//Get the raw request JSON
@@ -129,6 +122,7 @@ namespace NavyRRL.Controllers
 		}
 		//
 
+		[CustomAttributes.NavyAuthorize( "Upload", Roles = Admin_SiteManager_RMTLDeveloper )]
 		public ActionResult LookupGraphItem( Guid transactionGUID, Guid itemRowID )
 		{
 			//Find the item (or null)
@@ -150,7 +144,7 @@ namespace NavyRRL.Controllers
 		}
 		//
 
-		//[CustomAttributes.NavyAuthorize( "Upload", Roles = Admin_SiteManager_RMTLDeveloper )]
+		[CustomAttributes.NavyAuthorize( "Upload", Roles = Admin_SiteManager_RMTLDeveloper )]
 		public ActionResult ConfirmChangesV3( Guid transactionGUID )
 		{
             //Authenticate
