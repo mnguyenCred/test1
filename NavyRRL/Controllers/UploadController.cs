@@ -149,7 +149,7 @@ namespace NavyRRL.Controllers
 		}
 		//
 
-		////[CustomAttributes.NavyAuthorize( "Upload", Roles = Admin_SiteManager_RMTLDeveloper )]
+		//[CustomAttributes.NavyAuthorize( "Upload", Roles = Admin_SiteManager_RMTLDeveloper )]
 		public ActionResult ConfirmChangesV3( Guid transactionGUID )
 		{
             //Authenticate
