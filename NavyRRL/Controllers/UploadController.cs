@@ -44,7 +44,7 @@ namespace NavyRRL.Controllers
 		}
 		//
 
-		[CustomAttributes.NavyAuthorize( "Upload", Roles = Admin_SiteManager_RMTLDeveloper )]
+		//[CustomAttributes.NavyAuthorize( "Upload", Roles = Admin_SiteManager_RMTLDeveloper )]
 		public ActionResult StoreRawCSV()
 		{
 			//Get the raw request JSON
@@ -122,7 +122,7 @@ namespace NavyRRL.Controllers
 		}
 		//
 
-		[CustomAttributes.NavyAuthorize( "Upload", Roles = Admin_SiteManager_RMTLDeveloper )]
+		//[CustomAttributes.NavyAuthorize( "Upload", Roles = Admin_SiteManager_RMTLDeveloper )]
 		public ActionResult LookupGraphItem( Guid transactionGUID, Guid itemRowID )
 		{
 			//Find the item (or null)
@@ -144,7 +144,7 @@ namespace NavyRRL.Controllers
 		}
 		//
 
-		////[CustomAttributes.NavyAuthorize( "Upload", Roles = Admin_SiteManager_RMTLDeveloper )]
+		//[CustomAttributes.NavyAuthorize( "Upload", Roles = Admin_SiteManager_RMTLDeveloper )]
 		public ActionResult ConfirmChangesV3( Guid transactionGUID )
 		{
             //Authenticate

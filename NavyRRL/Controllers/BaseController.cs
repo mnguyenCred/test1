@@ -27,6 +27,7 @@ namespace NavyRRL.Controllers
 		public const string Admin_SiteManager_RMTLDeveloper = "Administrator, Site Manager, RMTL Developer";
 		public const string SiteReader = "Administrator, Site Manager, RMTL Developer, Site Reader";
 		//public const string Admin_SiteManager_RMTLDeveloper = "Administrator, Site Manager, Site Staff RMTL Developer";
+
 		//For requests to load pages (redirects allowable)
 		public void AuthenticateOrRedirect( string customMessage = null, bool redirectOnFailure = true, string redirectURL = "~/Event/NotAuthenticated" )
 		{
@@ -42,6 +43,7 @@ namespace NavyRRL.Controllers
 		
         }
         //
+
         public void AuthenticateOrRedirect( string customMessage, string requestedFunction, bool redirectOnFailure = true, string redirectURL = "~/Event/NotAuthenticated" )
         {
             var user = AccountServices.GetCurrentUser();
@@ -64,6 +66,7 @@ namespace NavyRRL.Controllers
                 }
             }
         }
+
         //For requests for AJAX (no redirects)
         public bool AuthenticateOrFail()
 		{
