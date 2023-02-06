@@ -734,7 +734,8 @@ namespace Services
 				if ( Regex.Match( checkString, @" *(?:^|/) *(" + platform.RegexEscapedValue + @") *(?:/|$) *", RegexOptions.IgnoreCase ).Success )
 				{
 					rowCandidatePlatformTypeList.Add( platform.Concept );
-					checkString = checkString.Replace( platform.Value.ToLower(), "" ).Trim(); //Remove the matched term
+					//checkString = checkString.Replace( platform.Value.ToLower(), "" ).Trim(); //Remove the matched term
+					checkString = Regex.Replace( checkString, @" *(?:^|/) *(" + platform.RegexEscapedValue + @") *(?:/|$) *", "/", RegexOptions.IgnoreCase ).Replace( "///", "/" ).Replace( "//", "/" ).Trim();
 				}
 			}
 			//Replace all double (or more) slashes with a single slash
@@ -744,8 +745,8 @@ namespace Services
 			//If there is anything left in the string, then it contains one or more unknown entries that aren't in the database
 			if ( checkString.Length > 0 )
 			{
-				result.Errors.Add( "Candidate Platform Type contains one or more entries that were not found in the database: \"" + checkString + "\"." );
-				notFoundCandidatePlatformTypes.Add( checkString );
+				result.Errors.Add( "Candidate Platform Type contains one or more entries that were not found in the database: \"" + item.Row.Candidate_Platform + "\"." );
+				notFoundCandidatePlatformTypes.Add( item.Row.Candidate_Platform );
 			}
 			//Check for empty list
 			if( rowCandidatePlatformTypeList.Count() == 0 )

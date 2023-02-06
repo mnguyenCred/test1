@@ -333,7 +333,7 @@ namespace Factories
 		}
 		//
 
-		public static IOrderedEnumerable<T> HandleSort<T>( IEnumerable<T> unsortedList, List<SortOrderItem> sortOrder, Func<T, object> GetAlphaPropertyMethod, Func<IEnumerable<T>, IOrderedEnumerable<T>> DefaultSortMethod ) where T : DBEntityBaseObject
+		public static IOrderedEnumerable<T> HandleSort<T>( IEnumerable<T> unsortedList, List<SortOrderItem> sortOrder, Func<T, object> GetAlphaPropertyMethod, Func<IEnumerable<T>, IOrderedEnumerable<T>> DefaultSortMethod, Func<IEnumerable<T>, List<string>, IOrderedEnumerable<T>> RelevanceSortMethod = null, string keywords = null ) where T : DBEntityBaseObject
 		{
 			//If no sort order is specified, use the default handler
 			if ( sortOrder == null || sortOrder.Count() == 0 || sortOrder.FirstOrDefault( m => m.Column == "sortOrder:DefaultMethod" ) != null )
@@ -345,6 +345,19 @@ namespace Factories
 			if ( sortOrder.FirstOrDefault( m => m.Column == "sortOrder:Unsorted" ) != null ) 
 			{
 				return unsortedList.OrderBy( m => m != null );
+			}
+
+			//If doing relevance-based sorting...
+			if( sortOrder.FirstOrDefault( m => m.Column == "sortOrder:Relevance" ) != null )
+			{
+				if( RelevanceSortMethod != null && !string.IsNullOrWhiteSpace( keywords ) )
+				{
+					return RelevanceSortMethod( unsortedList, GetRelevanceTokens( keywords ) );
+				}
+				else
+				{
+					return DefaultSortMethod( unsortedList );
+				}
 			}
 
 			//Otherwise, convert to IOrderedEnumerable
@@ -369,6 +382,30 @@ namespace Factories
 			}
 
 			return sorted;
+		}
+		//
+
+		public static List<string> GetRelevanceTokens( string keywords )
+		{
+			if ( string.IsNullOrWhiteSpace( keywords ) )
+			{
+				return new List<string>();
+			}
+
+			var tokens = new List<string>() { keywords }.Concat( keywords.Split( new string[] { " " }, StringSplitOptions.RemoveEmptyEntries ) ).ToList();
+			while ( keywords.Length > 0 )
+			{
+				tokens.Add( string.Join( "", keywords.Take( 3 ).ToList() ) );
+				keywords = keywords.Substring( keywords.Length >= 3 ? 3 : keywords.Length );
+			}
+
+			return tokens;
+		}
+		//
+
+		public static int RelevanceHelper<T>( T dbEnt, List<string> keywordParts, Func<T, string> GetStringField )
+		{
+			return keywordParts.Select( m => GetStringField( dbEnt ) == null ? - 1 : GetStringField( dbEnt ).IndexOf( m.ToString(), StringComparison.OrdinalIgnoreCase ) ).Where( m => m != -1 ).Sum();
 		}
 		//
 
@@ -498,6 +535,7 @@ namespace Factories
 		public static void AppendTextFilterIfPresent( SearchQuery query, string filterName, Action<string> AppendFilterMethod )
 		{
 			var text = query.GetFilterTextByName( filterName );
+			text = HandleApostrophes( text ).Trim();
 			if ( !string.IsNullOrWhiteSpace( text ) )
 			{
 				AppendFilterMethod( text );

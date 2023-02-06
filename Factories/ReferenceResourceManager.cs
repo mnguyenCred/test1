@@ -116,13 +116,19 @@ namespace Factories
 				{
 					list = list.Where( m =>
 						m.Name.Contains( keywords ) ||
-						m.CodedNotation.Contains( keywords ) ||
+						m.PublicationDate.Contains( keywords ) ||
 						m.Description.Contains( keywords )
 					);
 				}
 
+				//Exclude items
+				AppendIDsFilterIfPresent( query, "search:Exclude", ( ids ) =>
+				{
+					list = list.Where( m => !ids.Contains( m.Id ) );
+				} );
+
 				//Return ordered list
-				return HandleSort( list, query.SortOrder, m => m.Name, m => m.OrderBy( n => n.Name ).ThenBy( n => n.PublicationDate ) );
+				return HandleSort( list, query.SortOrder, m => m.Name, m => m.OrderBy( n => n.Name ).ThenBy( n => n.PublicationDate ), ( m, keywordParts ) => m.OrderBy( n => RelevanceHelper( n, keywordParts, o => o.Name ) + RelevanceHelper( n, keywordParts, o => o.PublicationDate ) ), keywords );
 
 			}, MapFromDBForSearch );
         }

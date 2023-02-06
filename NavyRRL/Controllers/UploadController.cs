@@ -34,14 +34,6 @@ namespace NavyRRL.Controllers
         }
 		//
 
-		[HttpGet, Route("uploadv3")]
-		public ActionResult IndexV3()
-		{
-            AuthenticateOrRedirect( "You must be authenticated and authorized to use this feature.", FunctionCode );
-            return View( "~/views/upload/uploadv3.cshtml" );
-		}
-		//
-
 		public ActionResult ProcessUploadedItem( UploadableItem item )
 		{
 			//Process the current row
@@ -52,6 +44,7 @@ namespace NavyRRL.Controllers
 		}
 		//
 
+		[CustomAttributes.NavyAuthorize( "Upload", Roles = Admin_SiteManager_RMTLDeveloper )]
 		public ActionResult StoreRawCSV()
 		{
 			//Get the raw request JSON
@@ -129,6 +122,7 @@ namespace NavyRRL.Controllers
 		}
 		//
 
+		[CustomAttributes.NavyAuthorize( "Upload", Roles = Admin_SiteManager_RMTLDeveloper )]
 		public ActionResult LookupGraphItem( Guid transactionGUID, Guid itemRowID )
 		{
 			//Find the item (or null)

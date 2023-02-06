@@ -123,14 +123,21 @@ namespace Factories
 					list = list.Where( m =>
 						m.Name.Contains( keywords ) ||
 						m.CodedNotation.Contains( keywords ) ||
-						m.WorkElementType.Contains( keywords ) ||
-						m.ConceptScheme.Name.Contains( keywords )
+						m.WorkElementType.Contains( keywords )
 					);
 				}
 
+				//Exclude items
+				AppendIDsFilterIfPresent( query, "search:Exclude", ( ids ) =>
+				{
+					list = list.Where( m => !ids.Contains( m.Id ) );
+				} );
+
 				//Return ordered list
+				return HandleSort( list, query.SortOrder, m => m.Name, m => m.OrderBy( n => n.ConceptScheme.Name ).ThenBy( n => n.Name ), ( m, keywordParts ) => m.OrderBy( n => RelevanceHelper( n, keywordParts, o => o.Name ) ).ThenBy( o => o.ConceptScheme.Name ), keywords );
+				
 				//Special handling for these because they're sorted first by concept scheme
-				return HandleConceptSortByConceptScheme( list, query.SortOrder );
+				//return HandleConceptSortByConceptScheme( list, query.SortOrder ); //Not needed? TBD!
 
 			}, MapFromDBForSearch );
 		}

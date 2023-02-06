@@ -846,7 +846,8 @@
 			scanRow(0, function () {
 				//If there are any errors
 				if (UI.TableBoxes.PreProcessing_Errors.Data.length > 0) {
-					updateStageButtons(false, trueIfAdmin(), false, false);
+					//updateStageButtons(false, trueIfAdmin(), false, false);
+					updateStageButtons(false, false, false, false);
 					UI.StatusBars.PreProcessingProgress.setStatus("Finished with " + UI.TableBoxes.PreProcessing_Errors.Data.length + " Errors.");
 				}
 				//Otherwise
@@ -1069,7 +1070,8 @@
 									}
 									//Otherwise, flag it as an error and update the controlled value summary table
 									else {
-										updatePreProcessingMissingControlledValuesSummary(key, value);
+										UI.TableBoxes.PreProcessing_Errors.appendRow({ RowNumber: rowNumber, Type: "Invalid Value", Column: key, Message: "This column contains one or more values that were not found in the database.", Value: value });
+										updatePreProcessingMissingControlledValuesSummary(key, value, "", value);
 									}
 								}
 							});
@@ -1094,8 +1096,10 @@
 								//Try to find a match
 								var escaped = platformText.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 								if (checkString.match(new RegExp(" *(?:^|/) *(" + escaped + ") *(?:/|$) *", "i"))) {
+									//TBD - whether it's worth checking for more than one match for a given value
 									candidatePlatformTypes.push(platformText);
-									checkString = checkString.replace(new RegExp(escaped, "gi"), "").trim();
+									//checkString = checkString.replace(new RegExp(escaped, "gi"), "").trim();
+									checkString = checkString.replace(new RegExp(" *(?:^|/) *(" + escaped + ") *(?:/|$) *", "gi"), "/").replace(/\/{2,}/g, "/").trim();
 								}
 							}
 							//Replace all double (or more) slashes with a single slash
@@ -1104,8 +1108,8 @@
 							checkString = checkString.replace(/(?:^\/*)|(?:\/*$)/g, "").trim();
 							//If there is anything left in the string, then it contains one or more unknown entries that aren't in the database
 							if (checkString.length > 0) {
-								UI.TableBoxes.PreProcessing_Errors.appendRow({ RowNumber: rowNumber, Type: "Invalid Value", Column: "Candidate Platform", Message: "This column contains one or more values that were not found in the database.", Value: checkString });
-								updatePreProcessingMissingControlledValuesSummary("Candidate Platform", checkString);
+								UI.TableBoxes.PreProcessing_Errors.appendRow({ RowNumber: rowNumber, Type: "Invalid Value", Column: "Candidate Platform", Message: "This column contains one or more values that were not found in the database.", Value: row["Candidate Platform"] });
+								updatePreProcessingMissingControlledValuesSummary("Candidate Platform", row["Candidate Platform"], candidatePlatformTypes.join(", "), checkString);
 							}
 						}
 					}
@@ -1128,14 +1132,14 @@
 					}, 1);
 
 					//Helper function
-					function updatePreProcessingMissingControlledValuesSummary(columnName, value) {
-						var summaryRow = UI.TableBoxes.PreProcessing_MissingControlledValues_Summary.Data.find(item => item.Column == columnName && item.Value == value);
+					function updatePreProcessingMissingControlledValuesSummary(columnName, rawValue, foundValue, unknownValue) {
+						var summaryRow = UI.TableBoxes.PreProcessing_MissingControlledValues_Summary.Data.find(item => item.Column == columnName && item.RawValue == rawValue);
 						if (summaryRow) {
 							summaryRow.Total++;
 							UI.TableBoxes.PreProcessing_MissingControlledValues_Summary.renderRow(summaryRow, summaryRow.HTML);
 						}
 						else {
-							var addedRow = UI.TableBoxes.PreProcessing_MissingControlledValues_Summary.appendRow({ Total: 1, Column: columnName, Type: ColumnData[columnName].ConceptScheme ? "Concept" : (ColumnData[columnName].ValueType || "Unknown"), ConceptScheme: ColumnData[columnName].ConceptScheme?.Name || "", Value: value });
+							var addedRow = UI.TableBoxes.PreProcessing_MissingControlledValues_Summary.appendRow({ Total: 1, Column: columnName, Type: ColumnData[columnName].ConceptScheme ? "Concept" : (ColumnData[columnName].ValueType || "Unknown"), ConceptScheme: ColumnData[columnName].ConceptScheme?.Name || "", RawValue: rawValue, FoundValue: foundValue, UnknownValue: unknownValue });
 							addedRow.Data.HTML = addedRow.Row;
 						}
 					}
@@ -1183,7 +1187,8 @@
 			AJAX.doPOSTRequest("@Url.Content("~/upload/storerawcsv")", uploadCSVData, function (response) {
 				//If there are any errors...
 				if (UI.TableBoxes.UploadSummaryTable.SpecialRows.SummaryRow.Data.ServerErrors + UI.TableBoxes.UploadSummaryTable.SpecialRows.SummaryRow.Data.ProcessingErrors > 0) {
-					updateStageButtons(false, false, trueIfAdmin(), false);
+					//updateStageButtons(false, false, trueIfAdmin(), false);
+					updateStageButtons(false, false, false, false);
 					UI.StatusBars.UploadProgress.setStatus("One or more errors were found. See below for details.");
 				}
 				//Otherwise...
@@ -1654,7 +1659,7 @@
 	.statusBar .progressBarWrapper { display: flex; gap: 5px; }
 	.statusBar .progressBarWrapper .progressBarOuter { flex: 1 1 auto; background-color: #CCC; padding: 1px; height: 30px; }
 	.statusBar .progressBarWrapper .cancelButton { min-width: 200px; }
-	.statusBar .progressBarWrapper .progressBarOuter .progressBarInner { background-color: #CFC; height: 28px; min-width: 75px; transition: width 0.5s; text-align: center; }
+	.statusBar .progressBarWrapper .progressBarOuter .progressBarInner { background-color: #CFC; height: 28px; min-width: 75px; transition: width 3s; text-align: center; }
 	.statusBar .progressBarWrapper .progressBarOuter .progressBarInner .progressBarLabel { text-align: center; color: #031; padding: 4px 5px; white-space: nowrap; }
 	.statusBar .statusBox { padding: 5px 10px; }
 
@@ -1769,8 +1774,8 @@
 						<h3 class="tabLabel">Pre-Processing Summary</h3>
 						<p>Summary of items encountered while pre-processing the spreadsheet.</p>
 						<div class="tableBox" data-name="PreProcessing_Summary" data-label="Pre-Processing - Summary" data-columnKeys="Total|Errors|Warnings|AutoCorrections" data-columnLabels="Total Rows|Errors|Warnings|Automatic Corrections"></div>
-						<p>The following values (if any) were found in the spreadsheet, but have no matching controlled value in the database. See the Pre-Processing Errors tab above for details.</p>
-						<div class="tableBox" data-name="PreProcessing_MissingControlledValues_Summary" data-label="Pre-Processing - Missing Controlled Values Summary" data-columnKeys="Total|Column|Type|ConceptScheme|Value" data-columnLabels="Total|Column|Type|Concept Scheme|Value"></div>
+						<p>The following values (if any) were found in the spreadsheet, but contain one or more values that were not found in the database. Compare the value(s) to the right against the values in the database and add the missing items as needed. <b>Do not add the entire value as a single item unless the entire value actually represents a single item.</b> See the Pre-Processing Errors tab above for details.</p>
+						<div class="tableBox" data-name="PreProcessing_MissingControlledValues_Summary" data-label="Pre-Processing - Missing Controlled Values Summary" data-columnKeys="Total|Column|Type|ConceptScheme|RawValue|FoundValue|UnknownValue" data-columnLabels="Total|Column|Type|Concept Scheme|Raw Value|Found Value(s)|Unknown Value(s)"></div>
 					</div>
 					<div class="tabPanel" data-name="Errors">
 						<h3 class="tabLabel">Pre-Processing Errors</h3>

@@ -239,8 +239,10 @@ namespace Factories
 				} );
 
 				//RMTL Search
+				var ratingTaskTokens = new List<string>();
 				AppendTextFilterIfPresent( query, "> RatingTaskId > RatingTask.TextFields", text => {
 					list = list.Where( m => m.RatingTask.Description.Contains( text ) );
+					ratingTaskTokens = GetRelevanceTokens( text );
 				} );
 
 				//Reference Resource Detail Page
@@ -260,8 +262,10 @@ namespace Factories
 				} );
 
 				//RMTL Search
+				var trainingTaskTokens = new List<string>();
 				AppendTextFilterIfPresent( query, "> CourseContextId > CourseContext > HasTrainingTaskId > TrainingTask.TextFields", text => {
 					list = list.Where( m => m.CourseContext.TrainingTask.Description.Contains( text ) );
+					trainingTaskTokens = GetRelevanceTokens( text );
 				} );
 
 				//Work Role Detail Page
@@ -389,6 +393,12 @@ namespace Factories
 					list = list.Where( m => m.ClusterAnalysis.ClusterAnalysis_CFMPlacementType.Select( n => n.CFMPlacementConceptId ).Intersect( ids ).Count() > 0 );
 				} );
 
+				//Exclude items
+				AppendIDsFilterIfPresent( query, "search:Exclude", ( ids ) =>
+				{
+					list = list.Where( m => !ids.Contains( m.Id ) );
+				} );
+
 				//Concept Detail Page
 				//ConceptManager.DeleteById
 				AppendIDsFilterIfPresent( query, "search:AllConceptPaths", ids => {
@@ -451,7 +461,20 @@ namespace Factories
 							case "> HasRatingTask > RatingTask > HasReferenceResource > ReferenceResource > Name": sorted = SortAscOrDesc( sorted, sortItem, m => m.RatingTask.ReferenceResource.Name ); break;
 							case "> HasRatingTask > RatingTask > HasReferenceResource > ReferenceResource > PublicationDate": sorted = SortAscOrDesc( sorted, sortItem, m => m.RatingTask.ReferenceResource.PublicationDate ); break;
 							case "> HasRatingTask > RatingTask > ReferenceType > Concept > WorkElementType": sorted = SortAscOrDesc( sorted, sortItem, m => m.RatingTask.ConceptScheme_Concept_ReferenceType.Name ); break;
-							case "> HasRatingTask > RatingTask > Description": sorted = SortAscOrDesc( sorted, sortItem, m => m.RatingTask.Description ); break;
+							case "> HasRatingTask > RatingTask > Description":
+								//For some reason, Entity Framework can't handle using SortAscDesc's object conversion here, but it works elsewhere, so break it out:
+								if( ratingTaskTokens.Count() > 0 )
+								{
+									//For some reason, RelevanceHelper's usage of StringComparison.OrdinalIgnoreCase breaks Entity Framework here, but not elsewhere, so do it this way
+									sorted = sortItem.Ascending ? 
+										sorted.ThenBy( m => ratingTaskTokens.Select( n => m.RatingTask.Description.IndexOf( n.ToLower() ) ).Where( n => n != -1 ).Sum() ) : 
+										sorted.ThenByDescending( m => ratingTaskTokens.Select( n => m.RatingTask.Description.ToLower().IndexOf( n.ToLower() ) ).Where( n => n != -1 ).Sum() );
+								}
+								else
+								{
+									sorted = SortAscOrDesc( sorted, sortItem, m => m.RatingTask.Description );
+								}
+							break;
 							case "> ApplicabilityType > Concept > Name": sorted = SortAscOrDesc( sorted, sortItem, m => m.ConceptScheme_Concept_TaskApplicabilityType.Name ); break;
 							case "> TrainingGapType > Concept > Name": sorted = SortAscOrDesc( sorted, sortItem, m => m.ConceptScheme_Concept_TrainingGapType.Name ); break;
 							case "> HasCourseContext > CourseContext > RowId": sorted = SortAscOrDesc( sorted, sortItem, m => m.CourseContext.Id ); break;
@@ -464,7 +487,20 @@ namespace Factories
 								break;
 							case "> HasCourseContext > CourseContext > HasCourse > Course > CurriculumControlAuthority > Organization > Name": sorted = SortAscOrDesc( sorted, sortItem, m => m.CourseContext.Course.Organization.Name ); break;
 							case "> HasCourseContext > CourseContext > HasCourse > Course > LifeCycleControlDocumentType > Concept > Name": sorted = SortAscOrDesc( sorted, sortItem, m => m.CourseContext.Course.ConceptScheme_Concept.Name ); break;
-							case "> HasCourseContext > CourseContext > HasTrainingTask > TrainingTask > Description": sorted = SortAscOrDesc( sorted, sortItem, m => m.CourseContext.TrainingTask.Description ); break;
+							case "> HasCourseContext > CourseContext > HasTrainingTask > TrainingTask > Description":
+								//For some reason, Entity Framework can't handle using SortAscDesc's object conversion here, but it works elsewhere, so break it out:
+								if( trainingTaskTokens.Count() > 0 )
+								{
+									//For some reason, RelevanceHelper's usage of StringComparison.OrdinalIgnoreCase breaks Entity Framework here, but not elsewhere, so do it this way
+									sorted = sortItem.Ascending ? 
+										sorted.ThenBy( m => trainingTaskTokens.Select( n => m.CourseContext.TrainingTask.Description.IndexOf( n.ToLower() ) ).Where( n => n != -1 ).Sum() ) : 
+										sorted.ThenByDescending( m => trainingTaskTokens.Select( n => m.CourseContext.TrainingTask.Description.ToLower().IndexOf( n.ToLower() ) ).Where( n => n != -1 ).Sum() );
+								}
+								else
+								{
+									sorted = SortAscOrDesc( sorted, sortItem, m => m.CourseContext.TrainingTask.Description );
+								}
+							break;
 							case "> HasCourseContext > CourseContext > AssessmentMethodType > Concept > Name":
 								sorted = sortItem.Ascending ?
 									SortAscOrDesc( sorted, sortItem, m => m.CourseContext.CourseContext_AssessmentType.Select( n => n.ConceptScheme_Concept.Name ).OrderBy( n => n ).FirstOrDefault() ) :
@@ -503,7 +539,7 @@ namespace Factories
 					return HandleSort( list, query.SortOrder, m => m.RatingTask.Description, m => { 
 						var noGapID = context.ConceptScheme_Concept.FirstOrDefault( n => n.Name.ToLower() == "no" )?.Id ?? 0;
 						return m.OrderBy( n => n.FormalTrainingGapId == noGapID ).ThenBy( n => n.Rating.CodedNotation ).ThenBy( n => n.Job.Name ).ThenBy( n => n.WorkRole.Name ).ThenBy( n => n.RatingTask.Description ); 
-					} );
+					}, ( m, keywordParts ) => m.OrderBy( n => RelevanceHelper( n, keywordParts, o => o.RatingTask.Description ) + RelevanceHelper( n, keywordParts, o => o.Rating.CodedNotation ) + RelevanceHelper( n, keywordParts, o => o.Rating.Name ) ), keywords );
 				}
 
 			}, MapFromDBForSearch );

@@ -140,7 +140,13 @@ namespace Factories
 					list = list.Where( m => context.RatingContext.Where( n => n.CourseContext.Course.Organization == m ).Count() > 0 );
 				} );
 
-				return HandleSort( list, query.SortOrder, m => m.Name, m => m.OrderBy( n => n.Name ) );
+				//Exclude items
+				AppendIDsFilterIfPresent( query, "search:Exclude", ( ids ) =>
+				{
+					list = list.Where( m => !ids.Contains( m.Id ) );
+				} );
+
+				return HandleSort( list, query.SortOrder, m => m.Name, m => m.OrderBy( n => n.Name ), ( m, keywordParts ) => m.OrderBy( n => RelevanceHelper( n, keywordParts, o => o.Name ) ), keywords );
 
 			}, MapFromDBForSearch );
         }

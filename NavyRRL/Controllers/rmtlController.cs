@@ -43,5 +43,10 @@ namespace NavyRRL.Controllers
 		}
 		//
 
+		public ActionResult Edit()
+		{
+			return View( "~/Views/RMTL/RMTLEditorV1.cshtml" );
+		}
+		//
 	}
 }
