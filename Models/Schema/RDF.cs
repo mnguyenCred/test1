@@ -154,10 +154,11 @@ namespace Models.Schema
 				return new List<RDFClass>()
 				{
 					new RDFClass( "ceterms:Job", "Billet Title/Job", "A Billet Title or Job.", null, null, new List<string>(){ "ceterms:name", "ceterms:description" } ),
-					new RDFClass( "ceterms:Course", "Course", "A Course.", null, null, new List<string>(){ "ceterms:name", "ceterms:codedNotation", "ceterms:ownedBy", "navy:courseType", "navy:lifeCycleControlDocumentType" } ),
+					new RDFClass( "ceterms:Course", "Course", "A Course.", null, null, new List<string>(){ "ceterms:name", "ceterms:description", "ceterms:codedNotation", "ceterms:ownedBy", "navy:courseType", "navy:lifeCycleControlDocumentType" } ),
+					new RDFClass("ceterms:CourseConetxt", "Course Context", "Class that describes a particular combination of Course, Training Task, and Assessment Method.", null, null, new List<string>(){ "navy:hasCourse", "navy:hasTrainingTask", "ceterms:assessmentMethodType" } ),
 					new RDFClass( "ceterms:Organization", "Organization", "An Organization.", null, null, new List<string>(){ "ceterms:name", "ceterms:alternateName", "ceterms:description" } ),
-					new RDFClass( "ceterms:Occupation", "Rating", "A Rating.", null, null, new List<string>(){ "ceterms:name", "ceterms:codedNotation" } ),
-					new RDFClass( "navy:RatingTask", "Rating Task", "A Rating-Level Task.", null, null, new List<string>(){ "ceterms:description", "navy:hasReferenceResource" }, new List<string>(){ "ceterms:Task" } ),
+					new RDFClass( "ceterms:Occupation", "Rating", "A Rating.", null, null, new List<string>(){ "ceterms:name", "ceterms:codedNotation", "ceterms:description" } ),
+					new RDFClass( "navy:RatingTask", "Rating Task", "A Rating-Level Task.", null, null, new List<string>(){ "ceterms:description", "navy:hasReferenceResource", "navy:referenceType" }, new List<string>(){ "ceterms:Task" } ),
 					new RDFClass( "navy:RatingContext", "Rating Context", "Class that describes a Rating Task within the context of a given Rating.", null, null, new List<string>(){ "ceasn:comment", "ceterms:codedNotation", "ceterms:hasOccupation", "navy:hasRatingTask", "ceterms:hasJob", "ceterms:hasWorkRole", "navy:hasCourseContext", "navy:payGradeType", "navy:applicabilityType" } ),
 					new RDFClass( "navy:TrainingTask", "Training Task", "A Training Task.", null, null, new List<string>(){ "ceterms:description", "ceterms:assessmentMethodType", "ceterms:hasOccupation" }, new List<string>(){ "ceterms:Task" } ),
 					new RDFClass( "navy:ReferenceResource", "Reference Resource", "A Reference Resource.", null, null, new List<string>(){ "ceterms:name", "ceterms:codedNotation", "navy:referenceType" } ),
