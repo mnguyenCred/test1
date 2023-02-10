@@ -47,8 +47,10 @@ namespace NavyRRL.Controllers
 		//[CustomAttributes.NavyAuthorize( "Upload", Roles = Admin_SiteManager_RMTLDeveloper )]
 		public ActionResult StoreRawCSV()
 		{
-			//Get the raw request JSON
-			Request.InputStream.Position = 0;
+            AuthenticateOrRedirect( "You must be authenticated and authorized to use this feature.", FunctionCode );
+
+            //Get the raw request JSON
+            Request.InputStream.Position = 0;
 			var rawJSON = new StreamReader( Request.InputStream ).ReadToEnd();
 
 			//Read it into a JToken
@@ -125,8 +127,11 @@ namespace NavyRRL.Controllers
 		//[CustomAttributes.NavyAuthorize( "Upload", Roles = Admin_SiteManager_RMTLDeveloper )]
 		public ActionResult LookupGraphItem( Guid transactionGUID, Guid itemRowID )
 		{
-			//Find the item (or null)
-			var summary = BulkUploadServices.GetCachedChangeSummary( transactionGUID );
+			//TODO - do we need a custom function for this?
+            AuthenticateOrRedirect( "You must be authenticated and authorized to use this feature.", FunctionCode );
+
+            //Find the item (or null)
+            var summary = BulkUploadServices.GetCachedChangeSummary( transactionGUID );
 			var item = summary?.LookupItem<SM.BaseObject>( itemRowID );
 
 			//Handle the rest

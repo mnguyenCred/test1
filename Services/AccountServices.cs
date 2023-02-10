@@ -514,7 +514,8 @@ namespace Services
 		public bool SetUserEmailConfirmed( string aspNetId )
 		{
 			string statusMessage = "";
-			AppUser user = GetUserByKey( aspNetId );
+			//
+			AppUser user = GetUserByKey( aspNetId, false );
 			if ( user != null && user.Id > 0 )
 			{
 				user.IsActive = true;
@@ -930,11 +931,11 @@ namespace Services
 		/// </summary>
 		/// <param name="aspNetId"></param>
 		/// <returns></returns>
-		public static AppUser GetUserByKey( string aspNetId )
+		public static AppUser GetUserByKey( string aspNetId, bool onFoundAddToSession = true )
 		{
 			AppUser user = AccountManager.AppUser_GetByKey( aspNetId );
-
-			AddUserToSession( HttpContext.Current.Session, user );
+			if ( user != null && user.Id > 0  && onFoundAddToSession )
+				AddUserToSession( HttpContext.Current.Session, user );
 
 			return user;
 		} //
