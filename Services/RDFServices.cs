@@ -138,7 +138,7 @@ namespace Services
 				( object ) Factories.TrainingTaskManager.GetByCTID( ctid, true ) ??
 				( object ) Factories.WorkRoleManager.GetByCTID( ctid, true ) ??
 				( object ) Factories.ConceptSchemeManager.GetByCTID( ctid, true ) ??
-				( object ) Factories.ConceptSchemeManager.GetByCTID( ctid, true ) ??
+				( object ) Factories.ConceptManager.GetByCTID( ctid, true ) ??
 				( object ) Factories.ClusterAnalysisManager.GetByCTID( ctid, true ) ??
 				( object ) Factories.ClusterAnalysisTitleManager.GetByCTID( ctid, true ) ??
 				( object ) Factories.RatingContextManager.GetByCTID( ctid, true ) ??
