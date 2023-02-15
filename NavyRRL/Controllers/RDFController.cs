@@ -17,6 +17,7 @@ namespace NavyRRL.Controllers
 		[Route("rdf/context/json")]
         public ActionResult ContextJSON()
 		{
+			AuthenticateOrRedirect( "You must be authenticated and authorized to view this data.", true, "~/rdf/error/notauthenticated" );
 			return RawJSONResponse( RDFServices.GetRDFContext() );
 		}
 		//
@@ -24,6 +25,7 @@ namespace NavyRRL.Controllers
 		[Route("rdf/terms")]
 		public ActionResult Terms()
 		{
+			AuthenticateOrRedirect( "You must be authenticated and authorized to view this data." );
 			return View( "~/Views/RDF/Terms.cshtml" );
 		}
 		//
@@ -31,6 +33,7 @@ namespace NavyRRL.Controllers
 		[Route("rdf/schema/json")]
 		public ActionResult SchemaJSON()
 		{
+			AuthenticateOrRedirect( "You must be authenticated and authorized to view this data.", true, "~/rdf/error/notauthenticated" );
 			return RawJSONResponse( RDFServices.GetSchema() );
 		}
 		//
@@ -38,6 +41,7 @@ namespace NavyRRL.Controllers
 		[Route("rdf/resources/{ctid}")]
 		public ActionResult Resources( string ctid )
 		{
+			AuthenticateOrRedirect( "You must be authenticated and authorized to view this data.", true, "~/rdf/error/notauthenticated" );
 			var data = RDFServices.GetRDFByCTID( ctid, AccountServices.IsUserAuthenticated(), false );
 			if( data == null )
 			{
@@ -53,6 +57,7 @@ namespace NavyRRL.Controllers
 		[Route( "rdf/graph/{ctid}" )]
 		public ActionResult Graph( string ctid )
 		{
+			AuthenticateOrRedirect( "You must be authenticated and authorized to view this data.", true, "~/rdf/error/notauthenticated" );
 			var data = RDFServices.GetRDFByCTID( ctid, AccountServices.IsUserAuthenticated(), true );
 			if ( data == null )
 			{
@@ -64,6 +69,13 @@ namespace NavyRRL.Controllers
 			return RawJSONResponse( jData );
 		}
 		//
+
+		[Route("rdf/error/notauthenticated")]
+		public ActionResult NotAuthenticated()
+		{
+			Response.StatusCode = 401;
+			return RawJSONResponse( new JObject() { { "error", "You must be authenticated and authorized to view this data." } } );
+		}
 
 	}
 }

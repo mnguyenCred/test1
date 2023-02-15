@@ -10,7 +10,7 @@ namespace Models.Schema
 	{
 		//Properties of the RMTL row itself
 		public string CodedNotation { get; set; }
-		public string Note { get; set; }
+		public string Notes { get; set; }
 
 		//GUIDs referencing other entities
 		public Guid HasRating { get; set; }

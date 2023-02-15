@@ -941,7 +941,7 @@ namespace Services
 					PayGradeLevelType = rowPayGradeLevel.RowId,
 					HasCourseContext = ( rowCourseContext ?? new CourseContext() ).RowId,
 					HasClusterAnalysis = ( rowClusterAnalysis ?? new ClusterAnalysis() ).RowId,
-					Note = item.Row.Note
+					Notes = item.Row.Notes
 					//Other properties are handled in the next section
 				},
 				//Store if newly created
@@ -1013,7 +1013,7 @@ namespace Services
 			HandleGuidListAddition( summary, summary.ItemsToBeCreated.ReferenceResource, summary.FinalizedChanges.ReferenceResource, result, rowRatingTaskSource, nameof( ReferenceResource.ReferenceType ), rowSourceType ); //Values may be appended by later rows
 
 			//Rating Context
-			HandleValueChange( summary, summary.ItemsToBeCreated.RatingContext, summary.FinalizedChanges.RatingContext, result, rowRatingContext, nameof( RatingContext.Note ), item.Row.Note ?? "" ); //The Note may change?
+			HandleValueChange( summary, summary.ItemsToBeCreated.RatingContext, summary.FinalizedChanges.RatingContext, result, rowRatingContext, nameof( RatingContext.Notes ), item.Row.Notes ?? "" ); //The Notes may change?
 
 			//Part 2
 			if ( hasPart2Data && !item.SkipPart2Checks )

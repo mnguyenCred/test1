@@ -338,6 +338,7 @@ namespace Factories
                     {
                         Id = item.Id,
                         Name = item.Name,
+                        CodedNotation = item.Name.Replace( " ", "" ), 
                     };
                     role.HasApplicationFunctionIds = ApplicationManager.GetApplicationFunctionIds( item.Id );
                     output.Add( role );
@@ -547,6 +548,16 @@ namespace Factories
             }
         }
 
+        /// <summary>
+        /// Validate if user has access to a function
+        /// User
+        ///     ApplicationUserRole
+        ///         ApplicationRole
+        ///             AppFunctionPermission
+        /// </summary>
+        /// <param name="userId"></param>
+        /// <param name="functionCode"></param>
+        /// <returns></returns>
         public static bool CanUserAccessFunction( int userId, string functionCode )
         {
             using ( var context = new ViewEntities() )

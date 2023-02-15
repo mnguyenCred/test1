@@ -105,6 +105,7 @@ namespace NavyRRL.Models
 
         [Display( Name = "Default Roles" )]
         public string[] SelectedRoles { get; set; }
+
         public List<System.Web.Mvc.SelectListItem> Roles { get; set; }
 
         [Display( Name = "Notify User on Save?" )]

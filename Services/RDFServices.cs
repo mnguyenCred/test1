@@ -138,7 +138,7 @@ namespace Services
 				( object ) Factories.TrainingTaskManager.GetByCTID( ctid, true ) ??
 				( object ) Factories.WorkRoleManager.GetByCTID( ctid, true ) ??
 				( object ) Factories.ConceptSchemeManager.GetByCTID( ctid, true ) ??
-				( object ) Factories.ConceptSchemeManager.GetByCTID( ctid, true ) ??
+				( object ) Factories.ConceptManager.GetByCTID( ctid, true ) ??
 				( object ) Factories.ClusterAnalysisManager.GetByCTID( ctid, true ) ??
 				( object ) Factories.ClusterAnalysisTitleManager.GetByCTID( ctid, true ) ??
 				( object ) Factories.RatingContextManager.GetByCTID( ctid, true ) ??
@@ -211,6 +211,7 @@ namespace Services
 
 			AppendValue( result, "ceterms:name", source.Name, true );
 			AppendValue( result, "ceterms:codedNotation", source.CodedNotation, false );
+			AppendValue( result, "ceterms:description", source.Description, true );
 			AppendLookupValue( result, "navy:lifeCycleControlDocumentType", source.LifeCycleControlDocumentType, Factories.ConceptManager.GetByRowId );
 			AppendLookupValue( result, "navy:courseType", source.CourseType, Factories.ConceptManager.GetMultiple );
 			AppendLookupValue( result, "ceterms:ownedBy", source.CurriculumControlAuthority, Factories.OrganizationManager.GetByRowId );
@@ -254,6 +255,7 @@ namespace Services
 
 			AppendValue( result, "ceterms:name", source.Name, true );
 			AppendValue( result, "ceterms:codedNotation", source.CodedNotation, false );
+			AppendValue( result, "ceterms:description", source.Description, true );
 
 			return result;
 		}
@@ -265,6 +267,7 @@ namespace Services
 
 			AppendValue( result, "ceterms:description", source.Description, true );
 			AppendLookupValue( result, "navy:hasReferenceResource", source.HasReferenceResource, Factories.ReferenceResourceManager.GetByRowId );
+			AppendLookupValue( result, "navy:referenceType", source.ReferenceType, Factories.ConceptManager.GetByRowId );
 			/*
 			AppendValue( result, "ceterms:codedNotation", source.CodedNotation, false );
 			AppendValue( result, "ceasn:comment", source.Note, true );
@@ -286,7 +289,7 @@ namespace Services
 			var result = GetStarterResult( "navy:RatingContext", source );
 
 			AppendValue( result, "ceterms:codedNotation", source.CodedNotation, true );
-			AppendValue( result, "ceasn:comment", source.Note, true );
+			AppendValue( result, "ceasn:comment", source.Notes, true );
 			AppendLookupValue( result, "navy:payGradeType", source.PayGradeType, Factories.ConceptManager.GetByRowId );
 			AppendLookupValue( result, "navy:applicabilityType", source.ApplicabilityType, Factories.ConceptManager.GetByRowId );
 			AppendLookupValue( result, "navy:trainingGapType", source.TrainingGapType, Factories.ConceptManager.GetByRowId );

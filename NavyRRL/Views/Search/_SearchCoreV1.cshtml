@@ -21,7 +21,8 @@
 			TotalResults: 0,
 			TotalPages: 0,
 			PagingButtonThreshold: 5,
-			AppendResults: false
+			AppendResults: false,
+			Busy: false
 		};
 		//
 
@@ -50,6 +51,7 @@
 		Search.doSearch = function (resetPaging, clearRequestQueue) {
 			Search.prepareToSearch(resetPaging, clearRequestQueue);
 			Search.setStatus("Searching...", true);
+			Search.Busy = true;
 			Search.doPOSTRequest(Search.SearchURL, Search.Query, Search.handleResponse, Search.handleError);
 		};
 		//
@@ -140,6 +142,7 @@
 		//
 
 		Search.handleResponse = function (response) {
+			Search.Busy = false;
 			if (response.Valid) {
 				Search.Results = response.Data.Results || [];
 				Search.TotalResults = response.Data.TotalResults || 0;
@@ -158,6 +161,7 @@
 		//
 
 		Search.handleError = function (error) {
+			Search.Busy = false;
 			console.log("Error", error);
 			Search.setStatus("Error performing search. Check console for details (Status Code " + (error?.status || "Unknown") + ")");
 		};
