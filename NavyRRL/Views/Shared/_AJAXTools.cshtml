@@ -48,7 +48,7 @@
 						processRequestQueue(Request);
 					}
 					catch (e) {
-						handleError(Request, onError, "JSON Parsing Error", url, "Error parsing JSON", value, onSuccess, e);
+						handleError(Request, onError, "JSON Parsing Error", url, "Error parsing JSON", text, onSuccess, e);
 						processRequestQueue(Request);
 					}
 				}, textError => {
@@ -56,6 +56,8 @@
 					processRequestQueue(Request);
 				})
 				.catch(networkError => {
+					console.log("Raw network error", networkError);
+					debugger;
 					handleError(Request, onError, "Network Error", url, "Failed while calling resource: " + url, null, onSuccess, networkError);
 					processRequestQueue(Request);
 				});
@@ -65,6 +67,7 @@
 
 		//Helper function
 		function handleError(Request, onError, type, url, message, rawData, successFunction, jsError) {
+			Request.Status = "error";
 			var error = { Request: Request, Type: type, URL: url, Message: message, RawData: rawData, SuccessFunction: successFunction, JSError: jsError };
 			console.log("AJAX Error", error);
 			onError?.(error);

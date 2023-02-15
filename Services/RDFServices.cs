@@ -289,7 +289,7 @@ namespace Services
 			var result = GetStarterResult( "navy:RatingContext", source );
 
 			AppendValue( result, "ceterms:codedNotation", source.CodedNotation, true );
-			AppendValue( result, "ceasn:comment", source.Note, true );
+			AppendValue( result, "ceasn:comment", source.Notes, true );
 			AppendLookupValue( result, "navy:payGradeType", source.PayGradeType, Factories.ConceptManager.GetByRowId );
 			AppendLookupValue( result, "navy:applicabilityType", source.ApplicabilityType, Factories.ConceptManager.GetByRowId );
 			AppendLookupValue( result, "navy:trainingGapType", source.TrainingGapType, Factories.ConceptManager.GetByRowId );

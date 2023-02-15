@@ -120,7 +120,7 @@ namespace Factories
 				} );
 
 				//Return ordered list
-				return HandleSort( list, query.SortOrder, m => m.Name, m => m.OrderBy( n => n.Name ), ( m, keywordParts ) => m.OrderBy( n => RelevanceHelper( n, keywordParts, o => o.CodedNotation ) + RelevanceHelper( n, keywordParts, o => o.Name ) ), keywords );
+				return HandleSort( list, query.SortOrder, m => m.Name, m => m.OrderBy( n => n.CodedNotation ), ( m, keywordParts ) => m.OrderBy( n => RelevanceHelper( n, keywordParts, o => o.CodedNotation ) + RelevanceHelper( n, keywordParts, o => o.Name ) ), keywords );
 
 			}, MapFromDBForSearch );
 		}

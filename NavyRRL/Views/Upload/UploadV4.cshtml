@@ -186,7 +186,7 @@
 				Label: "Rating Context",
 				TBoxModel: {
 					HasRatingTask_Description: { Label: "Rating Task", LookupProperty: "HasRatingTask", LookupRender: "Description" },
-					Note: { Label: "Note" }
+					Notes: { Label: "Notes" }
 				},
 				display: function (data) {
 					return "Part 1 Data";
@@ -360,7 +360,7 @@
 		},
 		"Notes": {
 			Part: 1,
-			UploadableRowProperty: "@nameof(UploadableRow.Note)"
+			UploadableRowProperty: "@nameof(UploadableRow.Notes)"
 		}
 	}
 
@@ -1526,13 +1526,7 @@
 		//Begin saving process and poll until completion
 		Manager.PollForSavedData = true;
 		AJAX.doGETRequest("@Url.Content("~/upload/confirmchangesv3?transactionGUID=")" + Manager.Config.TransactionGUID, function (response) {
-			//Stop polling for saved data
-			Manager.PollForSavedData = false;
-
-			//Update buttons
-			updateStageButtons(false, false, false, true);
-
-			//Log messages
+			//Log messages - Note this uses a different format from the polling method
 			if (response?.Data?.Messages) {
 				Object.keys(response.Data.Messages).forEach(key => {
 					response.Data.Messages[key].forEach(message => {
@@ -1541,12 +1535,9 @@
 				});
 			}
 
-			//Finish up
-			UI.StatusBars.SaveProgress.setValue(totalItems, totalItems, "items");
-			setTimeout(function () {
-				alert("All items have been processed. Please review the summary for any issues.");
-			}, 100);
+			UI.TableBoxes.SaveReportTable.appendRow({ Type: "Finished Save Process", Message: "All items have finished saving." });
 
+			finishSavingData();
 		}, function (error) {
 			//Stop processing and log errors
 			Manager.PollForSavedData = false;
@@ -1566,13 +1557,19 @@
 
 			AJAX.doGETRequest("@Url.Content("~/upload/getsavingstatus?transactionGUID=")" + Manager.Config.TransactionGUID + "&continueSavingData=" + Manager.ContinueProcessing, function (response) {
 				//Update status bar
-				totalItems = response.Data.TotalItems || totalItems;
+				totalItems = response.Data.TotalItems >= 0 ? response.Data.TotalItems : totalItems;
 				UI.StatusBars.SaveProgress.setValue(response.Data.TotalProcessed || 0, totalItems, "items");
 
-				//Log messages
+				//Log messages - Note this uses a different fromat from the main method
 				(response?.Data?.Messages || []).forEach(messageItem => {
 					UI.TableBoxes.SaveReportTable.appendRow({ Type: messageItem.Type, Message: messageItem.Message });
 				});
+
+				//Fallback handler in case a long-lived save process fails silently
+				if (response.Data.TotalProcessed >= totalItems) {
+					UI.TableBoxes.SaveReportTable.appendRow({ Type: "Error Monitoring Save Process", Message: "All items appear to be finished, but the server has not yet responded to confirm this. This is usually due to a long-running monitoring process timing out. Please double-check the uploaded data to ensure everything was saved properly." });
+					finishSavingData();
+				}
 
 				//Wait and then poll again
 				setTimeout(pollSavingData, 500);
@@ -1582,6 +1579,23 @@
 					UI.TableBoxes.SaveReportTable.appendRow({ Type: "Error Monitoring Save Process", Message: message });
 				});
 			});
+		}
+
+		//Helper function
+		function finishSavingData() {
+			//Stop polling for saved data
+			Manager.PollForSavedData = false;
+
+			//Update buttons
+			updateStageButtons(false, false, false, true);
+
+			//Update status bar
+			UI.StatusBars.SaveProgress.setValue(totalItems, totalItems, "items");
+
+			//Finish up
+			setTimeout(function () {
+				alert("All items have been processed. Please review the summary for any issues.");
+			}, 100);
 		}
 	}
 	//
