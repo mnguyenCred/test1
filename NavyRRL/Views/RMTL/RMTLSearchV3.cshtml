@@ -784,7 +784,7 @@
 		Filter.Timeout = 0;
 		Filter.SuggestionFilterExtras = [];
 		Filter.HasDataHelper = Filter.Box.attr("data-hasdatahelper");
-		Filter.TakeSuggestions = parseInt(Filter.Box.attr("data-takesuggestions") || "20");
+		Filter.TakeSuggestions = parseInt(Filter.Box.attr("data-takesuggestions") || "50");
 
 		if (Filter.HasDataHelper) {
 			Filter.SuggestionFilterExtras.push({ Name: Filter.HasDataHelper });

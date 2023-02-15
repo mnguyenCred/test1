@@ -36,7 +36,7 @@
 
 		Search.prepareToSearch = function (resetPaging, clearRequestQueue) {
 			Search.PageNumber = resetPaging ? 1 : Search.PageNumber;
-			clearRequestQueue && AJAX.cancelWaitingRequests();
+			clearRequestQueue && AJAX.cancelCurrentRequests();
 			Search.Query = {
 				SearchType: Search.SearchType,
 				Filters: Search.getFilters(),

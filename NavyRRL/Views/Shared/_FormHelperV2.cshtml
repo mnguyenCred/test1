@@ -377,20 +377,25 @@
 				if (success.Valid) {
 					Form.MainData = success.Data;
 					Form.setData(Form.MainData);
-					Field.Status.html("Saved successfully. Redirecting...");
+					Field.Status.addClass("success").html("Saved successfully. Redirecting...");
 					setTimeout(function () {
 						window.location.href = "@Url.Content("~/" + Model.DataType + "/Detail/")" + success.Data.Id;
 					}, 3000);
 				}
 				else {
-					Field.Status.html("Error saving data: " + success.Status.join("<br />"));
+					Field.renderErrors(success.Status);
 					Field.Button.prop("disabled", false);
 				}
 			}, error => {
-				Field.Status.html("Error saving data: " + error.Message + "<br />" + error.RawData);
+				Field.renderErrors([error.Message, typeof(error.RawData) == "object" ? JSON.stringify(error.RawData) : error.RawData]);
 				Field.Button.prop("disabled", false);
 			});
 		});
+
+		Field.renderErrors = function (errors) {
+			var errorList = Array.isArray(errors) ? errors : [errors];
+			Field.Status.addClass("error").html("<div class=\"errorHeader\">" + errorList.length + " Error" + (errorList.length == 1 ? "" : "s") + " saving data:</div><div class=\"errorMessageList\">" + errorList.map(m => "<div class=\"errorMessage\">" + m + "</div>").join("") + "</div>");
+		}
 	}
 	//
 </script>
@@ -433,6 +438,12 @@
 
 	.field[data-fieldtype='SaveButton'] { margin-top: 25px; }
 	.field .saveButton { display: block; width: 100%; padding: 5px; }
-	.field .saveStatus { padding: 5px; }
+	.field .saveStatus { padding: 5px; margin: 5px 0; }
 	.field .saveStatus .saveSpinner { display: flex; gap: 10px; align-items: center; }
+	.field .saveStatus.success { background-color: #CFC; }
+	.field .saveStatus.error { display: flex; align-items: baseline; gap: 10px; background-color: #FCC; }
+	.field .saveStatus.error .errorHeader { flex: 1 0 150px; font-weight: bold; text-align: right; }
+	.field .saveStatus.error .errorMessageList { flex: 1 1 100%; }
+	.field .saveStatus.error .errorMessageList .errorMessage:not(:last-child) { margin-bottom: 5px; }
+
 </style>
