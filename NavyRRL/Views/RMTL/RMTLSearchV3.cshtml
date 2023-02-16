@@ -793,7 +793,7 @@
 		Filter.Input.on("focus keyup", function () {
 			clearTimeout(Filter.Timeout);
 			Filter.Timeout = setTimeout(function () {
-				MainSearch.doPOSTRequest("@Url.Content("~/")" + Filter.SearchType + "/DoSearch", {
+				var FilterRequest = MainSearch.doPOSTRequest("@Url.Content("~/")" + Filter.SearchType + "/DoSearch", {
 					Filters: [
 						{ Name: "search:Keyword", Text: Filter.Input.val().trim() },
 						{ Name: "search:Exclude", ItemIds: Filter.SelectedItems.map(SelectedItem => SelectedItem.Data.Id) },
@@ -804,6 +804,7 @@
 					Filter.Suggestions = success.Data.Results;
 					Filter.renderSuggestions();
 				});
+				FilterRequest.Protected = true; //Ensure filter requests don't get canceled by changing search queries
 			}, 500);
 		});
 

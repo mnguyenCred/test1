@@ -122,22 +122,22 @@
 		//
 
 		Search.getResource = function (url, handleSuccess, handleError) {
-			AJAX.getResource(url, handleSuccess, handleError);
+			return AJAX.getResource(url, handleSuccess, handleError);
 		}
 		//
 
 		Search.doGETRequest = function (url, handleSuccess, handleError) {
-			AJAX.doGETRequest(url, handleSuccess, handleError);
+			return AJAX.doGETRequest(url, handleSuccess, handleError);
 		}
 		//
 
 		Search.doPOSTRequest = function (url, data, handleSuccess, handleError) {
-			AJAX.doPOSTRequest(url, data, handleSuccess, handleError);
+			return AJAX.doPOSTRequest(url, data, handleSuccess, handleError);
 		};
 		//
 
 		Search.doAJAX = function (url, handleSuccess, handleError, params) {
-			AJAX.doFetch(url, handleSuccess, handleError, params);
+			return AJAX.doFetch(url, handleSuccess, handleError, params);
 		};
 		//
 
@@ -163,7 +163,7 @@
 		Search.handleError = function (error) {
 			Search.Busy = false;
 			console.log("Error", error);
-			Search.setStatus("Error performing search. Check console for details (Status Code " + (error?.status || "Unknown") + ")");
+			Search.setStatus(error?.Message || "Error performing search. Check console for details.");
 		};
 		//
 
