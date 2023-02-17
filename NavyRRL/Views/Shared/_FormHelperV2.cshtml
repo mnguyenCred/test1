@@ -358,7 +358,7 @@
 	function setupField_SaveButton(Field) {
 		Field.Property = Field.Property || "SaveButton";
 		Field.Button = $("<button class=\"greenButton saveButton\">Save Changes</button>").appendTo(Field.ContentBox);
-		Field.Status = $("<div class=\"saveStatus\"></div>").appendTo(Field.ContentBox);
+		Field.Status = $("<div class=\"saveStatus\" data-mode=\"waiting\"></div>").appendTo(Field.ContentBox);
 		Field.LabelBox.html("");
 		Field.SkipGet = true;
 		Field.SkipSet = true;
@@ -371,13 +371,13 @@
 			var data = Form.getData();
 			console.log("Saving Data", data);
 			Field.Button.prop("disabled", true);
-			Field.Status.html("<div class=\"saveSpinner\">Saving... <div class=\"spinner\"></div></div>");
+			Field.Status.attr("data-mode", "processing").html("<div class=\"saveSpinner\">Saving... <div class=\"spinner\"></div></div>");
 
 			AJAX.doPOSTRequest("@Url.Content( "~/" + Model.DataType + "/Save" )", data, success => {
 				if (success.Valid) {
 					Form.MainData = success.Data;
 					Form.setData(Form.MainData);
-					Field.Status.addClass("success").html("Saved successfully. Redirecting...");
+					Field.Status.attr("data-mode", "success").html("Saved successfully. Redirecting...");
 					setTimeout(function () {
 						window.location.href = "@Url.Content("~/" + Model.DataType + "/Detail/")" + success.Data.Id;
 					}, 3000);
@@ -394,7 +394,7 @@
 
 		Field.renderErrors = function (errors) {
 			var errorList = Array.isArray(errors) ? errors : [errors];
-			Field.Status.addClass("error").html("<div class=\"errorHeader\">" + errorList.length + " Error" + (errorList.length == 1 ? "" : "s") + " saving data:</div><div class=\"errorMessageList\">" + errorList.map(m => "<div class=\"errorMessage\">" + m + "</div>").join("") + "</div>");
+			Field.Status.attr("data-mode", "error").html("<div class=\"errorHeader\">" + errorList.length + " Error" + (errorList.length == 1 ? "" : "s") + " saving data:</div><div class=\"errorMessageList\">" + errorList.map(m => "<div class=\"errorMessage\">" + m + "</div>").join("") + "</div>");
 		}
 	}
 	//
@@ -440,10 +440,11 @@
 	.field .saveButton { display: block; width: 100%; padding: 5px; }
 	.field .saveStatus { padding: 5px; margin: 5px 0; }
 	.field .saveStatus .saveSpinner { display: flex; gap: 10px; align-items: center; }
-	.field .saveStatus.success { background-color: #CFC; }
-	.field .saveStatus.error { display: flex; align-items: baseline; gap: 10px; background-color: #FCC; }
-	.field .saveStatus.error .errorHeader { flex: 1 0 150px; font-weight: bold; text-align: right; }
-	.field .saveStatus.error .errorMessageList { flex: 1 1 100%; }
-	.field .saveStatus.error .errorMessageList .errorMessage:not(:last-child) { margin-bottom: 5px; }
+	.field .saveStatus[data-mode='processing'] {  }
+	.field .saveStatus[data-mode='success'] { background-color: #CFC; }
+	.field .saveStatus[data-mode='error'] { display: flex; align-items: baseline; gap: 10px; background-color: #FCC; }
+	.field .saveStatus[data-mode='error'] .errorHeader { flex: 1 0 150px; font-weight: bold; text-align: right; }
+	.field .saveStatus[data-mode='error'] .errorMessageList { flex: 1 1 100%; }
+	.field .saveStatus[data-mode='error'] .errorMessageList .errorMessage:not(:last-child) { margin-bottom: 5px; }
 
 </style>

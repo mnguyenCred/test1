@@ -11,6 +11,23 @@ namespace Models.Schema
 {
 	public class RDF
 	{
+		public class RDFQuery
+		{
+			public string Type { get; set; }
+			public string Keywords { get; set; }
+			public int Skip { get; set; }
+			public int Take { get; set; }
+		}
+		//
+
+		public class RDFQueryResults
+		{
+			public JArray Results { get; set; }
+			public int TotalResults { get; set; }
+			public JObject Debug { get; set; }
+		}
+		//
+
 		public class URI
 		{
 			public string Prefix { get; set; }

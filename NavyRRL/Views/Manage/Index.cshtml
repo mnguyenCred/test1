@@ -1,7 +1,75 @@
 ﻿@model NavyRRL.Models.IndexViewModel
 @{
-    ViewBag.Title = "Manage";
+	ViewBag.Title = "Manage";
+
+	var userAPIKey = Factories.AccountManager.GetAPIKeyForUser( Services.AccountServices.GetUserFromSession()?.Id ?? 0 ).Data;
 }
+
+@Html.Partial( "~/Views/Shared/_AJAXTools.cshtml" )
+<script type="text/javascript">
+	$(document).ready(function () {
+		setupAPIKeyBox();
+	});
+	//
+
+	function setupAPIKeyBox() {
+		var APIKeyBox = {
+			Key: "@userAPIKey",
+			Box: $(".apiKeyBox"),
+			TextBox: $("[data-property='APIKeyInput']"),
+			ShowHideButton: $("[data-action='ShowHideAPIKey']"),
+			GenerateAPIKeyButton: $("[data-action='RegenerateAPIKey']"),
+			StatusBox: $(".apiKeyStatusBox")
+		};
+
+		APIKeyBox.showKey = function () {
+			APIKeyBox.TextBox.attr("data-mode", "visible");
+			APIKeyBox.TextBox.val(APIKeyBox.Key);
+		}
+
+		APIKeyBox.hideKey = function () {
+			APIKeyBox.TextBox.attr("data-mode", "hidden");
+			APIKeyBox.TextBox.val("@(Guid.Empty.ToString().Replace("0", "*"))");
+		}
+
+		APIKeyBox.TextBox.on("click", function () {
+			APIKeyBox.TextBox.select();
+		});
+
+		APIKeyBox.ShowHideButton.on("click", function () {
+			APIKeyBox.TextBox.attr("data-mode") == "hidden" ? APIKeyBox.showKey() : APIKeyBox.hideKey();
+		});
+
+		APIKeyBox.GenerateAPIKeyButton.on("click", function () {
+			if (confirm("Are you sure you want to generate a new API Key?\n\nYour old key will no longer be usable.\n\nThere is no way to undo this!")) {
+				APIKeyBox.StatusBox.attr("data-status", "processing").html("Generating API Key...");
+				AJAX.doGETRequest("@Url.Content("~/Manage/GenerateNewAPIKey")", response => {
+					if (response.Valid) {
+						APIKeyBox.Key = response.Data;
+						APIKeyBox.TextBox.attr("data-mode") == "visible" && APIKeyBox.showKey(); //Refresh the Key display if the key is already visible
+						APIKeyBox.StatusBox.attr("data-status", "success").html("Successfully generated a new API key.");
+					}
+					else {
+						APIKeyBox.StatusBox.attr("data-status", "error").html("Error generating a new API key: " + response.Status.join("<br />"));
+					}
+				}, error => {
+					APIKeyBox.StatusBox.attr("data-status", "error").html("Error regenerating API Key: " + error.Message);
+				});
+			}
+		});
+	}
+	//
+
+</script>
+<style type="text/css">
+	.apiKeyBox { display: flex; align-items: baseline; gap: 10px; }
+	.apiKeyBox input { flex: 1 1 100%; max-width: none; font-family: Consolas, 'Courier New', monospace; height: 30px; }
+	.apiKeyBox button { flex: 1 1 150px; white-space: nowrap; height: 30px; }
+	.apiKeyStatusBox { padding: 5px; margin: 5px 0; }
+	.apiKeyStatusBox[data-status='processing'] { }
+	.apiKeyStatusBox[data-status='success'] { background-color: #CFC; }
+	.apiKeyStatusBox[data-status='error'] { background-color: #FCC; }
+</style>
 
 <h2>@ViewBag.Title.</h2>
 
@@ -12,7 +80,6 @@
     <dl class="dl-horizontal">
         <dt>Password:</dt>
         <dd>
-            [
             @if (Model.HasPassword)
             {
                 @Html.ActionLink("Change your password", "ChangePassword")
@@ -21,7 +88,6 @@
             {
                 @Html.ActionLink("Create", "SetPassword")
             }
-            ]
         </dd>
         @*<dt>External Logins:</dt>
         <dd>
@@ -84,6 +150,14 @@
                     }
                 }*@
         <!--</dd>-->
-
     </dl>
+	<hr />
+	<h4>Manage your API Key</h4>
+	<p>Include the API Key in your request header using the form <code>Authorization: Bearer abcdefgh-ijkl-mnop...</code></p>
+	<div class="apiKeyBox">
+		<input type="text" readonly="readonly" data-property="APIKeyInput" data-mode="hidden" value="@(Guid.Empty.ToString().Replace("0", "*"))" />
+		<button data-action="ShowHideAPIKey">Show/Hide</button>
+		<button data-action="RegenerateAPIKey">Generate New Key</button>
+	</div>
+	<p class="apiKeyStatusBox"></p>
 </div>

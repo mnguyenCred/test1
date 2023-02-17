@@ -58,5 +58,6 @@ namespace Data.Tables
         public virtual DbSet<RatingTask> RatingTask { get; set; }
         public virtual DbSet<ClusterAnalysis_CFMPlacementType> ClusterAnalysis_CFMPlacementType { get; set; }
         public virtual DbSet<ProtectedSystemEntities> ProtectedSystemEntities { get; set; }
+        public virtual DbSet<APIKey> APIKey { get; set; }
     }
 }

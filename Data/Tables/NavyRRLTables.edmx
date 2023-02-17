@@ -45,6 +45,17 @@
           <Property Name="ActivityObjectParentEntityUid" Type="uniqueidentifier" />
           <Property Name="DataOwnerCTID" Type="varchar" MaxLength="50" />
         </EntityType>
+        <EntityType Name="APIKey">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="RowId" Type="uniqueidentifier" Nullable="false" />
+          <Property Name="UserId" Type="int" Nullable="false" />
+          <Property Name="API_Key" Type="uniqueidentifier" Nullable="false" />
+          <Property Name="Created" Type="datetime" Nullable="false" />
+          <Property Name="LastUpdated" Type="datetime" Nullable="false" />
+        </EntityType>
         <EntityType Name="AppFunctionPermission">
           <Key>
             <PropertyRef Name="ApplicationFunctionId" />
@@ -556,6 +567,18 @@
             </Principal>
             <Dependent Role="Account">
               <PropertyRef Name="AspNetId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_APIKey_Account">
+          <End Role="Account" Type="Self.Account" Multiplicity="1" />
+          <End Role="APIKey" Type="Self.APIKey" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Account">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="APIKey">
+              <PropertyRef Name="UserId" />
             </Dependent>
           </ReferentialConstraint>
         </Association>
@@ -1162,6 +1185,7 @@
         <EntityContainer Name="NavyRRLModelStoreContainer">
           <EntitySet Name="Account" EntityType="Self.Account" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="ActivityLog" EntityType="Self.ActivityLog" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="APIKey" EntityType="Self.APIKey" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="AppFunctionPermission" EntityType="Self.AppFunctionPermission" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="ApplicationFunction" EntityType="Self.ApplicationFunction" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="ApplicationRole" EntityType="Self.ApplicationRole" Schema="dbo" store:Type="Tables" />
@@ -1196,6 +1220,10 @@
           <AssociationSet Name="FK_Account_AspNetUsers" Association="Self.FK_Account_AspNetUsers">
             <End Role="AspNetUsers" EntitySet="AspNetUsers" />
             <End Role="Account" EntitySet="Account" />
+          </AssociationSet>
+          <AssociationSet Name="FK_APIKey_Account" Association="Self.FK_APIKey_Account">
+            <End Role="Account" EntitySet="Account" />
+            <End Role="APIKey" EntitySet="APIKey" />
           </AssociationSet>
           <AssociationSet Name="FK_AppFunctionPermission_ApplicationFunction" Association="Self.FK_AppFunctionPermission_ApplicationFunction">
             <End Role="ApplicationFunction" EntitySet="ApplicationFunction" />
@@ -1628,6 +1656,11 @@
             <End Role="ClusterAnalysis_CFMPlacementType" EntitySet="ClusterAnalysis_CFMPlacementType" />
           </AssociationSet>
           <EntitySet Name="ProtectedSystemEntities" EntityType="NavyRRLModel.ProtectedSystemEntities" />
+          <EntitySet Name="APIKey" EntityType="NavyRRLModel.APIKey" />
+          <AssociationSet Name="FK_APIKey_Account" Association="NavyRRLModel.FK_APIKey_Account">
+            <End Role="Account" EntitySet="Account" />
+            <End Role="APIKey" EntitySet="APIKey" />
+          </AssociationSet>
           </EntityContainer>
         <EntityType Name="ClusterAnalysis_HasCandidatePlatform">
           <Key>
@@ -1921,6 +1954,7 @@
           <NavigationProperty Name="ConceptScheme1" Relationship="NavyRRLModel.FK_ConceptScheme_AccountCreatedBy" FromRole="Account" ToRole="ConceptScheme" />
           <NavigationProperty Name="ConceptScheme2" Relationship="NavyRRLModel.FK_ConceptScheme_AccountLastUpdatedBy" FromRole="Account" ToRole="ConceptScheme" />
           <NavigationProperty Name="ConceptScheme3" Relationship="NavyRRLModel.FK_ConceptScheme_AccountPublishedBy" FromRole="Account" ToRole="ConceptScheme" />
+          <NavigationProperty Name="APIKey" Relationship="NavyRRLModel.FK_APIKey_Account" FromRole="Account" ToRole="APIKey" />
           </EntityType>
         <EntityType Name="Comment">
           <Key>
@@ -2901,6 +2935,30 @@
           <Property Name="Created" Type="DateTime" Precision="3" />
           <Property Name="EntityRowId" Type="Guid" Nullable="false" />
         </EntityType>
+        <EntityType Name="APIKey">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="RowId" Type="Guid" Nullable="false" />
+          <Property Name="UserId" Type="Int32" Nullable="false" />
+          <Property Name="Created" Type="DateTime" Nullable="false" Precision="3" />
+          <Property Name="LastUpdated" Type="DateTime" Nullable="false" Precision="3" />
+          <NavigationProperty Name="Account" Relationship="NavyRRLModel.FK_APIKey_Account" FromRole="APIKey" ToRole="Account" />
+          <Property Name="API_Key" Type="Guid" Nullable="false" />
+        </EntityType>
+        <Association Name="FK_APIKey_Account">
+          <End Type="NavyRRLModel.Account" Role="Account" Multiplicity="1" />
+          <End Type="NavyRRLModel.APIKey" Role="APIKey" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Account">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="APIKey">
+              <PropertyRef Name="UserId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
         </Schema>
     </edmx:ConceptualModels>
     <!-- C-S mapping content -->
@@ -3472,6 +3530,18 @@
                 <ScalarProperty Name="EntityRowId" ColumnName="EntityRowId" />
                 <ScalarProperty Name="Created" ColumnName="Created" />
                 <ScalarProperty Name="Note" ColumnName="Note" />
+                <ScalarProperty Name="RowId" ColumnName="RowId" />
+                <ScalarProperty Name="Id" ColumnName="Id" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="APIKey">
+            <EntityTypeMapping TypeName="NavyRRLModel.APIKey">
+              <MappingFragment StoreEntitySet="APIKey">
+                <ScalarProperty Name="API_Key" ColumnName="API_Key" />
+                <ScalarProperty Name="LastUpdated" ColumnName="LastUpdated" />
+                <ScalarProperty Name="Created" ColumnName="Created" />
+                <ScalarProperty Name="UserId" ColumnName="UserId" />
                 <ScalarProperty Name="RowId" ColumnName="RowId" />
                 <ScalarProperty Name="Id" ColumnName="Id" />
               </MappingFragment>

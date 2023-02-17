@@ -84,6 +84,9 @@
     <Compile Include="Tables\ActivityLog.cs">
       <DependentUpon>NavyRRLTables.tt</DependentUpon>
     </Compile>
+    <Compile Include="Tables\APIKey.cs">
+      <DependentUpon>NavyRRLTables.tt</DependentUpon>
+    </Compile>
     <Compile Include="Tables\AppFunctionPermission.cs">
       <DependentUpon>NavyRRLTables.tt</DependentUpon>
     </Compile>

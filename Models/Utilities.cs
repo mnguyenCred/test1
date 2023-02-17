@@ -18,4 +18,19 @@ namespace Models.Utilities
 		public T2 Value { get; set; }
 	}
 	//
+
+	public class Attempt<T>
+	{
+		public Attempt() { }
+		public Attempt( T data, bool valid, string status = null ) {
+			Data = data;
+			Valid = valid;
+			Status = status;
+		}
+
+		public T Data { get; set; }
+		public bool Valid { get; set; }
+		public string Status { get; set; }
+	}
+	//
 }

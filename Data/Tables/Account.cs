@@ -22,6 +22,7 @@ namespace Data.Tables
             this.ConceptScheme1 = new HashSet<ConceptScheme>();
             this.ConceptScheme2 = new HashSet<ConceptScheme>();
             this.ConceptScheme3 = new HashSet<ConceptScheme>();
+            this.APIKey = new HashSet<APIKey>();
         }
     
         public int Id { get; set; }
@@ -48,5 +49,7 @@ namespace Data.Tables
         public virtual ICollection<ConceptScheme> ConceptScheme2 { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<ConceptScheme> ConceptScheme3 { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<APIKey> APIKey { get; set; }
     }
 }
