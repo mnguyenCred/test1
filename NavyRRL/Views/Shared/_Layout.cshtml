@@ -2,16 +2,37 @@
 @using Services;
 @{
 	var env = UtilityManager.GetAppKeyValue( "environment", "production" );
-	var applicationURL = UtilityManager.GetAppKeyValue( "applicationURL", "https://sandbox.credentialengine.org/NavyRRL/" );
-
-	var user = AccountServices.GetCurrentUser();
-	var url = Request.Url.PathAndQuery.ToLower();
 	var secBannerPhrase = UtilityManager.GetAppKeyValue( "securityBannerPhrase", "" );
 	var RMTLFunctionCode = "rmtl.create";
 	var userCanUploadData = false;
-	if ( AccountServices.CanUserAccessFunction( user.Id, RMTLFunctionCode ) )
+	var applicationURL = UtilityManager.GetAppKeyValue( "applicationURL", "" );
+	var url = Request.Url.PathAndQuery.ToLower();
+	var user = AccountServices.GetCurrentUser();
+	if ( ( user == null || user.Id == 0 ) )
 	{
-		userCanUploadData = true;
+		string message = "";
+		bool isValid = false;
+		//user = new AccountServices().GetUserFromHeader( ref isValid, ref message );
+		//this may chg the URL somehow
+		//user = new NavyRRL.Controllers.AccountController().LoginFromHeader();
+	}
+	//var url2 = Request.Url.PathAndQuery.ToLower();
+	if ( ( user == null || user.Id == 0 ) )
+	{
+		//redirect to home, and make sure not already on home/root 
+		if ( url != "/" &&
+			 !url.ToLower().Contains("/account/login") )
+		{
+			Response.Redirect( @Url.Content( "/" ) );
+		}
+	}
+	else
+	{
+
+		if ( AccountServices.CanUserAccessFunction( user.Id, RMTLFunctionCode ) )
+		{
+			userCanUploadData = true;
+		}
 	}
 }
 <!DOCTYPE html>
