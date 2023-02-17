@@ -57,8 +57,10 @@ DELETE FROM Navy_RRL_V2.[dbo].[System.ProxyCodes]
 --must be done after RatingTask
 --may not want to always do this?
 DELETE FROM Navy_RRL_V2.dbo.Job
---not sure what this is?
-DELETE FROM [ProtectedSystemEntities]
+/*
+--This is used to prevent deletion of the concept schemes that are critical to the system (ie the columns in the RMTL sheet), DO NOT DELETE
+--xxxxxx ProtectedSystemEntities
+*/
 --
 --must be done after RatingTask
 --NO LONGER CLEAR HAS HAVE ADDED ADDITIONAL DATA
