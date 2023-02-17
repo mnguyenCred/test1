@@ -11,6 +11,23 @@ namespace Models.Schema
 {
 	public class RDF
 	{
+		public class RDFQuery
+		{
+			public string Type { get; set; }
+			public string Keywords { get; set; }
+			public int Skip { get; set; }
+			public int Take { get; set; }
+		}
+		//
+
+		public class RDFQueryResults
+		{
+			public JArray Results { get; set; }
+			public int TotalResults { get; set; }
+			public JObject Debug { get; set; }
+		}
+		//
+
 		public class URI
 		{
 			public string Prefix { get; set; }
@@ -154,10 +171,11 @@ namespace Models.Schema
 				return new List<RDFClass>()
 				{
 					new RDFClass( "ceterms:Job", "Billet Title/Job", "A Billet Title or Job.", null, null, new List<string>(){ "ceterms:name", "ceterms:description" } ),
-					new RDFClass( "ceterms:Course", "Course", "A Course.", null, null, new List<string>(){ "ceterms:name", "ceterms:codedNotation", "ceterms:ownedBy", "navy:courseType", "navy:lifeCycleControlDocumentType" } ),
+					new RDFClass( "ceterms:Course", "Course", "A Course.", null, null, new List<string>(){ "ceterms:name", "ceterms:description", "ceterms:codedNotation", "ceterms:ownedBy", "navy:courseType", "navy:lifeCycleControlDocumentType" } ),
+					new RDFClass("ceterms:CourseConetxt", "Course Context", "Class that describes a particular combination of Course, Training Task, and Assessment Method.", null, null, new List<string>(){ "navy:hasCourse", "navy:hasTrainingTask", "ceterms:assessmentMethodType" } ),
 					new RDFClass( "ceterms:Organization", "Organization", "An Organization.", null, null, new List<string>(){ "ceterms:name", "ceterms:alternateName", "ceterms:description" } ),
-					new RDFClass( "ceterms:Occupation", "Rating", "A Rating.", null, null, new List<string>(){ "ceterms:name", "ceterms:codedNotation" } ),
-					new RDFClass( "navy:RatingTask", "Rating Task", "A Rating-Level Task.", null, null, new List<string>(){ "ceterms:description", "navy:hasReferenceResource" }, new List<string>(){ "ceterms:Task" } ),
+					new RDFClass( "ceterms:Occupation", "Rating", "A Rating.", null, null, new List<string>(){ "ceterms:name", "ceterms:codedNotation", "ceterms:description" } ),
+					new RDFClass( "navy:RatingTask", "Rating Task", "A Rating-Level Task.", null, null, new List<string>(){ "ceterms:description", "navy:hasReferenceResource", "navy:referenceType" }, new List<string>(){ "ceterms:Task" } ),
 					new RDFClass( "navy:RatingContext", "Rating Context", "Class that describes a Rating Task within the context of a given Rating.", null, null, new List<string>(){ "ceasn:comment", "ceterms:codedNotation", "ceterms:hasOccupation", "navy:hasRatingTask", "ceterms:hasJob", "ceterms:hasWorkRole", "navy:hasCourseContext", "navy:payGradeType", "navy:applicabilityType" } ),
 					new RDFClass( "navy:TrainingTask", "Training Task", "A Training Task.", null, null, new List<string>(){ "ceterms:description", "ceterms:assessmentMethodType", "ceterms:hasOccupation" }, new List<string>(){ "ceterms:Task" } ),
 					new RDFClass( "navy:ReferenceResource", "Reference Resource", "A Reference Resource.", null, null, new List<string>(){ "ceterms:name", "ceterms:codedNotation", "navy:referenceType" } ),
@@ -191,7 +209,7 @@ namespace Models.Schema
 					new RDFProperty( "navy:hasTrainingTask", "Has Training Task", "Training Task related to the resource.", null, null, new List<string>(){ "navy:TrainingTask" }, null, null, "@id", "@list" ),
 					new RDFProperty( "navy:hasCourseContext", "Has Course Context", "Course Context related to the resource.", null, null, new List<string>(){ "navy:CourseContext" }, null, null, "@id", null ),
 					new RDFProperty( "navy:lifeCycleControlDocumentType", "Life Cycle Control Document Type", "Life Cycle Control Document Type for the resource.", null, null, new List<string>(){ "skos:Concept" }, null, null, "@id", null ),
-					new RDFProperty( "navy:payGradeType", "Pay Grade Type", "Pay Grade related to the resource.", "For Rating Tasks, the Pay Grade Type indicates the earliest Pay Grade (Rank) at which the Rating Task is typically performed.", null, null, new List<string>(){ "skos:Concept" }, null, "@id", null ),
+					new RDFProperty( "navy:payGradeType", "Pay Grade Type", "Pay Grade related to the resource.", "For Rating Tasks, the Pay Grade Type indicates the earliest Pay Grade (Rank) at which the Rating Task is typically performed.", null, new List<string>(){ "skos:Concept" }, null, null, "@id", null ),
 					new RDFProperty( "navy:referenceType", "Reference Type", "Reference Type for the resource.", null, null, new List<string>(){ "skos:Concept" }, null, null, "@id", null ),
 					new RDFProperty( "navy:applicabilityType", "Applicability Type", "Applicability Type for the resource.", null, null, new List<string>(){ "skos:Concept" }, null, null, "@id", null ),
 					new RDFProperty( "navy:trainingGapType", "Training Gap Type", "Training Gap Type related to the resource.", null, null, new List<string>(){ "skos:Concept" }, null, null, "@id", null ),

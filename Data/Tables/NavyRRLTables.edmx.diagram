@@ -92,6 +92,8 @@
         <AssociationConnector Association="NavyRRLModel.FK_ClusterAnalysis_CFMPlacementType_ClusterAnalysis" />
         <AssociationConnector Association="NavyRRLModel.FK_ClusterAnalysis_CFMPlacementType_ConceptScheme_Concept" />
         <EntityTypeShape EntityType="NavyRRLModel.ProtectedSystemEntities" Width="1.5" PointX="0.75" PointY="4.75" />
+        <EntityTypeShape EntityType="NavyRRLModel.APIKey" Width="1.5" PointX="3" PointY="29.25" />
+        <AssociationConnector Association="NavyRRLModel.FK_APIKey_Account" />
         </Diagram>
     </edmx:Diagrams>
   </edmx:Designer>

@@ -29,7 +29,7 @@
 	PropertyList = new List<NamedString>()
 	{
 		new NamedString( "", "value" ){ HeaderSectionLabel = "Part I Data" },
-		new NamedString( "Note", Model.Note ),
+		new NamedString( "Notes", Model.Notes ),
 		new NamedString( "Code", Model.CodedNotation ),
 		new NamedString( "Rating", LinkHelper.GetDetailPageLink( Factories.RatingManager.GetByRowId( Model.HasRating ), Url.Content, m => m.Name + " (" + m.CodedNotation + ")" ) ),
 		new NamedString( "Billet Title", LinkHelper.GetDetailPageLink( Factories.JobManager.GetByRowId( Model.HasBilletTitle ), Url.Content, m => m.Name ) ),

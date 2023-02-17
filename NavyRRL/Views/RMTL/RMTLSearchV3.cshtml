@@ -82,8 +82,7 @@
 	var ConceptSchemes = @Html.Raw( JsonConvert.SerializeObject( allConceptSchemes ) );
 	var RMTL = {
 		Columns: [
-			//{ Label: "Unique Identifier", ResultMap: "Row_CodedNotation", Path: "CodedNotation", Part: "PART I" },
-			{ Label: "Rating Context UUID", Path: "> RowId", Part: "PART I", MinWidth: 100, IsMetaColumn: true },
+			{ Label: "Rating Context UUID", Path: "> RowId", Part: "PART I", MinWidth: 200, IsMetaColumn: true },
 			{ Label: "Rating", Path: "> HasRating > Rating > CodedNotation", Part: "PART I", MinWidth: 100 },
 			{ Label: "Rank", Path: "> PayGradeType > Concept > CodedNotation", Part: "PART I", MinWidth: 100 },
 			{ Label: "Level (A/J/M)", Path: "> PayGradeLevelType > Concept > CodedNotation", Part: "PART I", MinWidth: 100 },
@@ -95,7 +94,7 @@
 			{ Label: "Work Element (Task)", Path: "> HasRatingTask > RatingTask > Description", Part: "PART I", MinWidth: 500 },
 			{ Label: "Task Applicability", Path: "> ApplicabilityType > Concept > Name", Part: "PART I", MinWidth: 150 },
 			{ Label: "Formal Training Gap", Path: "> TrainingGapType > Concept > Name", Part: "PART II", MinWidth: 100 },
-			{ Label: "Course Context UUID", Path: "> HasCourseContext > CourseContext > RowId", Part: "PART II", MinWidth: 100, IsMetaColumn: true },
+			{ Label: "Course Context UUID", Path: "> HasCourseContext > CourseContext > RowId", Part: "PART II", MinWidth: 200, IsMetaColumn: true },
 			{ Label: "CIN", Path: "> HasCourseContext > CourseContext > HasCourse > Course > CodedNotation", AsPlainText: true, Part: "PART II", MinWidth: 100 },
 			{ Label: "Course Name", Path: "> HasCourseContext > CourseContext > HasCourse > Course > Name", Part: "PART II", MinWidth: 300 },
 			{ Label: "Course Type", Path: "> HasCourseContext > CourseContext > HasCourse > Course > CourseType > Concept > Name", Part: "PART II", MinWidth: 200 },
@@ -104,7 +103,7 @@
 			{ Label: "TCCD/CTTL/PPP Statement", Path: "> HasCourseContext > CourseContext > HasTrainingTask > TrainingTask > Description", Part: "PART II", MinWidth: 500 },
 			{ Label: "Current Assessment Approach", Path: "> HasCourseContext > CourseContext > AssessmentMethodType > Concept > Name", Part: "PART II", MinWidth: 300 },
 			{ Label: "Training Solution Type", Path: "> HasClusterAnalysis > ClusterAnalysis > TrainingSolutionType > Concept > Name", Part: "PART III", MinWidth: 100 },
-			{ Label: "Cluster Analysis UUID", Path: "> HasClusterAnalysis > ClusterAnalysis > RowId", Part: "PART III", MinWidth: 100, IsMetaColumn: true },
+			{ Label: "Cluster Analysis UUID", Path: "> HasClusterAnalysis > ClusterAnalysis > RowId", Part: "PART III", MinWidth: 200, IsMetaColumn: true },
 			{ Label: "Cluster Analysis Title", Path: "> HasClusterAnalysis > ClusterAnalysis > HasClusterAnalysisTitle > ClusterAnalysisTitle > Name", Part: "PART III", MinWidth: 300 },
 			{ Label: "Recommended Modality", Path: "> HasClusterAnalysis > ClusterAnalysis > RecommendedModalityType > Concept > Name", Part: "PART III", MinWidth: 100 },
 			{ Label: "Development Specification", Path: "> HasClusterAnalysis > ClusterAnalysis > DevelopmentSpecificationType > Concept > Name", Part: "PART III", MinWidth: 150 },
@@ -208,6 +207,7 @@
 
 		//Buttons
 		UI.ExportResultsButton = $("[data-action='ExportMainSearchResults']");
+		UI.CancelExportMainSearchResultsButton = $("[data-action='CancelExportMainSearchResults']");
 
 		//Initialization
 		UI.MainTabs = setupTabs($(".mainTabButtons"), $(".mainTab"));
@@ -220,6 +220,7 @@
 		});
 
 		UI.ExportResultsProgressBarBox.hide();
+		UI.CancelExportMainSearchResultsButton.hide();
 
 		buildStatTable(UI.Statistics.BySourceTable, UI.Statistics.BySourceTableHeader);
 		buildStatTable(UI.Statistics.ByLevelTable, UI.Statistics.ByLevelTableHeader);
@@ -300,6 +301,21 @@
 		MainSearch = createSearch("RMTL", "@Url.Content("~/RMTL/DoSearch")", UI.Status.StatusBox, UI.Status.Spinner, UI.RMTL.TableBody, UI.RMTL.PagingBox, 250, 1000); //Page size here must not exceed max page size server-side!
 		MainSearch.Filters = setupFilters(UI.MainFilters.Box.find(".filter"));
 		MainSearch.Enabled = true;
+
+		//Inject Enable/Disable functionality to avoid collisions between search and export
+		MainSearch.enable = function () {
+			MainSearch.Enabled = true;
+			MainSearch.Filters.List.forEach(Filter => {
+				Filter.enable();
+			});
+		};
+
+		MainSearch.disable = function () {
+			MainSearch.Enabled = false;
+			MainSearch.Filters.List.forEach(Filter => {
+				Filter.disable();
+			});
+		};
 
 		//Override the appropriate functions
 		MainSearch.getFilters = function () {
@@ -453,22 +469,34 @@
 	//Export handling
 	function setupExport() {
 		UI.ExportResultsButton.on("click", function () {
-			if (MainSearch.TotalPages > 0) {
-				exportResults();
+			if (MainSearch.Busy) {
+				alert("A search is still in progress. Please wait until the total results are available for the current query before exporting the data.");
+				return;
 			}
-			else {
+			if (!MainSearch.TotalPages > 0) {
 				alert("Error: the current query returns 0 results.");
+				return;
 			}
+
+			exportResults();
+		});
+
+		UI.CancelExportMainSearchResultsButton.on("click", function () {
+			finishExport();
 		});
 	}
 	//
 
 	function exportResults() {
-		UI.ExportResultsButton.prop("disabled", true).html("Processing");
-		MainSearch.Enabled = false;
+		UI.ExportEnabled = true;
+		UI.CancelExportMainSearchResultsButton.show();
+		UI.ExportResultsButton.hide();
+		//UI.ExportResultsButton.prop("disabled", true).html("Processing");
+		MainSearch.disable();
 		UI.ExportResultsProgressBarBox.show();
 		UI.ExportResultsProgressBar.html("Processing...");
 		UI.Status.Spinner.show();
+		UI.HasWrittenExport = false;
 		setTimeout(function () {
 			var allResults = [];
 			exportResultsPage(1, allResults, 0);
@@ -477,35 +505,48 @@
 	//
 
 	function exportResultsPage(pageNumber, allResults, totalHandled) {
+		if (!UI.ExportEnabled) {
+			return;
+		}
+
 		//Set the page number and prepare the search
 		MainSearch.PageNumber = pageNumber;
 		MainSearch.prepareToSearch(false, false);
 
 		//Do the search
 		MainSearch.doPOSTRequest(MainSearch.SearchURL, MainSearch.Query, response => {
+			if (!UI.ExportEnabled) {
+				return;
+			}
 			//If valid...
 			if (response.Valid) {
 				//Set the related resources array so that the rendering code will find them
-				MainSearch.RelatedResources = response.Data.RelatedResources || [];
+				MainSearch.RelatedResources = response.Data.RelatedResources || []; //Should this append data instead?
 				//Create an array of flags, one for each Result
 				var resultsFlags = response.Data.Results.map(m => { return false; });
+				var VisibleColumns = RMTL.Columns.filter(Column => Column.Visible);
 				//For each result...
 				response.Data.Results.forEach((Result, resultIndex) => {
-					//Create a work row and an output row. Append the output row immediately to ensure the rows remain in the correct order
-					var workRow = [];
-					var outputRow = [];
-					allResults.push(outputRow);
-					//For each column...
-					RMTL.Columns.filter(Column => Column.Visible).forEach(Column => {
-						//Create a fake table cell to hold the value and reuse the rendering code
-						var item = {
+					//Create a work row and an output row
+					//Populate the work row with all of its cells
+					var workRow = VisibleColumns.map(Column => {
+						return {
 							cell: $("<div></div>"),
 							finished: false
-						};
-						workRow.push(item);
+						}
+					});
+					//Append the output row immediately to ensure the rows remain in the correct order
+					var outputRow = [];
+					allResults.push(outputRow);
+					//Now populate the cells
+					VisibleColumns.forEach((Column, index) => {
+						var item = workRow[index];
 						//Render the data for the fake cell. Include callback that sets the item's value to "finished" when it's done
 						//Column.render(Result, item.cell, function () {
 						renderPathToData(Column, Result, item.cell, function () {
+							if (!UI.ExportEnabled) {
+								return;
+							}
 							item.finished = true;
 							//If all of the items for the current workRow are finished...
 							if (workRow.every(m => m.finished)) {
@@ -549,6 +590,16 @@
 	//
 
 	function writeCSV(allResults, afterWrite) {
+		if (UI.HasWrittenExport) {
+			console.log("Received call to write an export that was already written!");
+			return;
+		}
+		UI.HasWrittenExport = true;
+
+		if (!UI.ExportEnabled) {
+			return;
+		}
+
 		var currentPart = "";
 		var csv = [];
 		var topRow = [];
@@ -566,7 +617,7 @@
 			}).join(","));
 		});
 		var csvText = csv.join("\n");
-		console.log("CSV", csvText);
+		//console.log("CSV", csvText);
 
 		var tempLink = $("<a></a>").appendTo(document.body);
 		tempLink.attr("download", "RMTL Export.csv");
@@ -581,8 +632,12 @@
 	//
 
 	function finishExport() {
-		UI.ExportResultsButton.prop("disabled", false).html("Export Results");
-		MainSearch.Enabled = true;
+		UI.ExportEnabled = false;
+		UI.CancelExportMainSearchResultsButton.hide();
+		UI.ExportResultsButton.show();
+		UI.ExportResultsProgressBar.css("width", "0");
+		//UI.ExportResultsButton.prop("disabled", false).html("Export Results");
+		MainSearch.enable();
 		UI.ExportResultsProgressBarBox.hide();
 		UI.ExportResultsProgressBar.html("");
 		UI.Status.Spinner.hide();
@@ -712,6 +767,14 @@
 			var value = Filter.Input.val().trim();
 			return value ? { Name: Filter.Name, Text: value } : null;
 		}
+
+		Filter.enable = function () {
+			Filter.Input.prop("disabled", false);
+		}
+
+		Filter.disable = function () {
+			Filter.Input.prop("disabled", true);
+		}
 	}
 	//
 
@@ -721,6 +784,7 @@
 		Filter.Timeout = 0;
 		Filter.SuggestionFilterExtras = [];
 		Filter.HasDataHelper = Filter.Box.attr("data-hasdatahelper");
+		Filter.TakeSuggestions = parseInt(Filter.Box.attr("data-takesuggestions") || "50");
 
 		if (Filter.HasDataHelper) {
 			Filter.SuggestionFilterExtras.push({ Name: Filter.HasDataHelper });
@@ -729,17 +793,18 @@
 		Filter.Input.on("focus keyup", function () {
 			clearTimeout(Filter.Timeout);
 			Filter.Timeout = setTimeout(function () {
-				MainSearch.doPOSTRequest("@Url.Content("~/")" + Filter.SearchType + "/DoSearch", {
+				var FilterRequest = MainSearch.doPOSTRequest("@Url.Content("~/")" + Filter.SearchType + "/DoSearch", {
 					Filters: [
 						{ Name: "search:Keyword", Text: Filter.Input.val().trim() },
 						{ Name: "search:Exclude", ItemIds: Filter.SelectedItems.map(SelectedItem => SelectedItem.Data.Id) },
 						...Filter.SuggestionFilterExtras
 					],
-					Take: 20
+					Take: Filter.TakeSuggestions
 				}, (success) => {
 					Filter.Suggestions = success.Data.Results;
 					Filter.renderSuggestions();
 				});
+				FilterRequest.Protected = true; //Ensure filter requests don't get canceled by changing search queries
 			}, 500);
 		});
 
@@ -833,16 +898,24 @@
 
 		Filter.renderSuggestions = function () {
 			Filter.SuggestionsBox.html("");
+			var cancelButton = $("<button class=\"suggestion cancel\">Cancel</button>").appendTo(Filter.SuggestionsBox);
+			cancelButton.on("click", function () {
+				Filter.clearSuggestions();
+			});
 			Filter.Suggestions.forEach(Suggestion => {
 				var button = $("<button class=\"suggestion\">" + Filter.getLabel(Suggestion) + "</div>").appendTo(Filter.SuggestionsBox);
 				button.on("click", function () {
 					Filter.addSelectedItem(Suggestion);
-					Filter.Input.val("");
-					Filter.Suggestions = [];
-					Filter.renderSuggestions();
+					Filter.clearSuggestions();
 				});
 			});
 			Filter.Suggestions.length == 0 ? Filter.SuggestionsBox.hide() : Filter.SuggestionsBox.show();
+		}
+
+		Filter.clearSuggestions = function () {
+			Filter.Input.val("");
+			Filter.Suggestions = [];
+			Filter.renderSuggestions();
 		}
 
 		Filter.getLabel = function (Data) {
@@ -863,6 +936,21 @@
 
 		Filter.onSelectedItemsChange = function () {
 			delayThenTriggerSearchIfAvailable(true);
+		}
+
+		Filter.enable = function () {
+			Filter.Input.prop("disabled", false);
+			Filter.SelectedItems.forEach(SelectedItem => {
+				SelectedItem.RemoveButton.prop("disabled", false);
+			});
+		}
+
+		Filter.disable = function () {
+			Filter.clearSuggestions();
+			Filter.Input.prop("disabled", true);
+			Filter.SelectedItems.forEach(SelectedItem => {
+				SelectedItem.RemoveButton.prop("disabled", true);
+			});
 		}
 
 		Filter.SuggestionsBox.hide();
@@ -954,6 +1042,16 @@
 			Filter.CheckBoxes.forEach(CheckBox => CheckBox.Input.prop("checked", !checked));
 			onUpdate();
 		});
+
+		Filter.enable = function () {
+			Filter.ToggleButton.prop("disabled", false);
+			Filter.CheckBoxes.forEach(CheckBox => CheckBox.Input.prop("disabled", false));
+		}
+
+		Filter.disable = function () {
+			Filter.ToggleButton.prop("disabled", true);
+			Filter.CheckBoxes.forEach(CheckBox => CheckBox.Input.prop("disabled", true));
+		}
 	}
 	//
 </script>
@@ -998,6 +1096,7 @@
 	.mainSearchFiltersBox .filterGroup .filterGroupContent .textFilterSet .filter .filterContent { position: relative; }
 	.mainSearchFiltersBox .filterGroup .filterGroupContent .textFilterSet .filter .filterContent .suggestionBox { position: absolute; top: 30px; margin-bottom: 20px; background-color: #FFF; max-height: 50vh; overflow-y: scroll; border: 1px solid #CCC; width: 100%; z-index: 10; }
 	.mainSearchFiltersBox .filterGroup .filterGroupContent .textFilterSet .filter .filterContent .suggestionBox .suggestion { background-color: #FFF; border: none; padding: 5px; display: block; width: 100%; text-align: left; }
+	.mainSearchFiltersBox .filterGroup .filterGroupContent .textFilterSet .filter .filterContent .suggestionBox .suggestion.cancel { background-color: #DDD; font-style: italic; }
 	.mainSearchFiltersBox .filterGroup .filterGroupContent .textFilterSet .filter .filterContent .suggestionBox .suggestion:is(:hover, :focus) { background-color: #EEE; }
 	.mainSearchFiltersBox .filterGroup .filterGroupContent .textFilterSet .filter .filterContent .selectedItemsBox { }
 	.mainSearchFiltersBox .filterGroup .filterGroupContent .textFilterSet .filter .filterContent .selectedItemsBox .selectedItem { display: flex; align-items: baseline; gap: 10px; padding: 5px; }
@@ -1042,6 +1141,7 @@
 				<div class="exportProgressBar"></div>
 			</div>
 			<button data-action="ExportMainSearchResults">Export Results</button>
+			<button data-action="CancelExportMainSearchResults">Cancel</button>
 		</div>
 	</div>
 	<div class="mainTabsBox">
@@ -1051,7 +1151,7 @@
 					<h4 class="filterGroupHeader">Part I Filters</h4>
 					<div class="filterGroupContent">
 						<div class="filterSet textFilterSet">
-							<div class="filter" data-filter="> RatingId > Rating" data-filtertype="Suggestion" data-searchtype="Rating" data-label="Rating" data-hasdatahelper="< RatingId < RatingContext:NotNull"></div>
+							<div class="filter" data-filter="> RatingId > Rating" data-filtertype="Suggestion" data-searchtype="Rating" data-label="Rating" data-hasdatahelper="< RatingId < RatingContext:NotNull" data-takesuggestions="100"></div>
 							<div class="filter" data-filter="> BilletTitleId > Job" data-filtertype="Suggestion" data-searchtype="BilletTitle" data-label="Billet Title"></div>
 							<div class="filter" data-filter="> WorkRoleId > WorkRole" data-filtertype="Suggestion" data-searchtype="WorkRole" data-label="Functional Area"></div>
 							<div class="filter" data-filter="> RatingTaskId > RatingTask > ReferenceResourceId > ReferenceResource" data-filtertype="Suggestion" data-searchtype="ReferenceResource" data-label="Source"></div>

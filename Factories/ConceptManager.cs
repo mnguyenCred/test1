@@ -26,7 +26,34 @@ namespace Factories
 		#region Persistence
 		public static void SaveFromEditor( AppEntity entity, int userID, List<string> errors )
 		{
-			SaveCore( entity, userID, "Edit", errors.Add );
+
+			using (var context = new DataEntities())
+			{
+				var scheme = context.ConceptScheme.FirstOrDefault(m => m.RowId == entity.InScheme);
+				var conceptsDuplicates = context.ConceptScheme_Concept.Where(m => m.ConceptSchemeId == scheme.Id && m.RowId != entity.RowId);
+
+                if (!String.IsNullOrWhiteSpace(entity.Name) && conceptsDuplicates.Where(m => m.Name.ToLower() == entity.Name.ToLower()).Count() > 0)
+                {
+                    errors.Add("Another Concept in this Concept Scheme has a matching Name");
+                }
+
+                if (!String.IsNullOrWhiteSpace(entity.CodedNotation) && conceptsDuplicates.Where(m => m.CodedNotation.ToLower() == entity.CodedNotation.ToLower()).Count() > 0)
+                {
+                    errors.Add("Another Concept in this Concept Scheme has a matching Coded Notation");
+                }
+
+                if (!String.IsNullOrWhiteSpace(entity.WorkElementType) && conceptsDuplicates.Where(m => m.WorkElementType.ToLower() == entity.WorkElementType.ToLower()).Count() > 0)
+                {
+                    errors.Add("Another Concept in this Concept Scheme has a matching Work Element Type");
+                }
+
+                if (errors.Count() > 0) {
+					return;
+				}
+
+			}
+
+            SaveCore( entity, userID, "Edit", errors.Add );
 		}
 		//
 

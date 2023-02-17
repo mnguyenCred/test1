@@ -8,7 +8,7 @@
 
 	//Do a generic POST Request
 	AJAX.doPOSTRequest = function (url, body, onSuccess, onError) {
-		AJAX.doFetch(url, onSuccess, onError, {
+		return AJAX.doFetch(url, onSuccess, onError, {
 			method: "POST",
 			headers: { "Accept": "application/json", "Content-Type": "application/json" },
 			body: JSON.stringify(body || {})
@@ -18,7 +18,7 @@
 
 	//Do a generic GET Request
 	AJAX.doGETRequest = function (url, onSuccess, onError) {
-		AJAX.doFetch(url, onSuccess, onError);
+		return AJAX.doFetch(url, onSuccess, onError);
 	}
 	//
 
@@ -30,6 +30,7 @@
 		Request.URL = url;
 		Request.run = function () {
 			fetch(url, options)
+				//Initial response check
 				.then(response => {
 					if (response.ok) {
 						return response.text();
@@ -44,11 +45,24 @@
 				})
 				.then(text => {
 					try {
-						onSuccess(JSON.parse(text));
+						//If the running request was canceled, and there is a matching CacheItem that hasn't been populated yet, drop the CacheItem
+						if (Request.Canceled) {
+							var CacheItem = AJAX.Cache.find(item => item.URL == Request.URL);
+							if (CacheItem && !CacheItem.Data && !CacheItem.Error) {
+								AJAX.Cache = AJAX.Cache.filter(item => item != CacheItem);
+							}
+							console.log("Request canceled", Request);
+							//handleError(Request, onError, "Request Canceled", url, "The request was canceled while it was running.", text, onSuccess, null); //Don't do this, as it can still trigger long-running request handlers after short-running request handlers
+						}
+						//Otherwise, process the success handler
+						else {
+							onSuccess(JSON.parse(text));
+						}
+						//Process the queue regardless
 						processRequestQueue(Request);
 					}
 					catch (e) {
-						handleError(Request, onError, "JSON Parsing Error", url, "Error parsing JSON", value, onSuccess, e);
+						handleError(Request, onError, "JSON Parsing Error", url, "Error parsing JSON", text, onSuccess, e);
 						processRequestQueue(Request);
 					}
 				}, textError => {
@@ -63,8 +77,11 @@
 		AJAX.RequestQueue.push(Request);
 		processRequestQueue();
 
+		return Request;
+
 		//Helper function
 		function handleError(Request, onError, type, url, message, rawData, successFunction, jsError) {
+			Request.Status = "error";
 			var error = { Request: Request, Type: type, URL: url, Message: message, RawData: rawData, SuccessFunction: successFunction, JSError: jsError };
 			console.log("AJAX Error", error);
 			onError?.(error);
@@ -88,53 +105,61 @@
 	}
 	//
 
-	AJAX.cancelWaitingRequests = function () {
-		AJAX.RequestQueue.filter(Request => Request.Status == "waiting").forEach(Request => {
-			console.log("Cancelling Request", Request);
+	AJAX.cancelCurrentRequests = function () {
+		AJAX.RequestQueue.filter(Request => !Request.Protected && Request.Status == "waiting").forEach(Request => {
+			console.log("Dropping waiting request", Request);
 			AJAX.Cache = AJAX.Cache.filter(item => item.URL != Request.URL);
 			AJAX.RequestQueue = AJAX.RequestQueue.filter(OtherRequest => OtherRequest != Request);
+		});
+		AJAX.RequestQueue.filter(Request => !Request.Protected && Request.Status == "running").forEach(Request => {
+			Request.Canceled = true;
 		});
 	}
 	//
 
 	//Append the request (and handlers) for a resource to the cache. When the resource loads, run all of its handlers and then reset the handler lists. 
 	AJAX.getResource = function (url, onSuccess, onError) {
-		//Find the request if it already exists
-		var Request = AJAX.Cache.find(item => item.URL == url);
+		//Find the CacheItem if it already exists
+		var CacheItem = AJAX.Cache.find(item => item.URL == url);
 		//If there's data for it already, run the success handler
-		if (Request?.Data) {
-			runHandler(Request.Data, onSuccess);
+		if (CacheItem?.Data) {
+			runHandler(CacheItem.Data, onSuccess);
 		}
 		//If there's an error for it already, run the error handler
-		else if (Request?.Error) {
-			runHandler(Request.Error, onError);
+		else if (CacheItem?.Error) {
+			runHandler(CacheItem.Error, onError);
 		}
-		//If there's a request, but no data and no error, then append the handlers (the request is still being retrieved)
-		else if (Request) {
-			Request.SuccessHandlers.push(onSuccess);
-			Request.ErrorHandlers.push(onError);
+		//If there's a CacheItem, but no data and no error, then append the handlers (the CacheItem is still being retrieved)
+		else if (CacheItem) {
+			var QueuedRequest = AJAX.RequestQueue.find(Queued => Queued.URL == url);
+			if (QueuedRequest?.Canceled) {
+				QueuedRequest.Canceled = false;
+				console.log("Un-canceled queued request", QueuedRequest);
+			}
+			CacheItem.SuccessHandlers.push(onSuccess);
+			CacheItem.ErrorHandlers.push(onError);
 		}
-		//If there's no request at all, create/inject one and do the AJAX request. When the request finishes, run the handlers it has accumulated by that point, and clear them out.
+		//If there's no CacheItem at all, create/inject one and do the AJAX request. When the request finishes, run the handlers it has accumulated by that point, and clear them out.
 		else {
-			Request = AJAX.appendToCache(url);
-			Request.SuccessHandlers.push(onSuccess);
-			Request.ErrorHandlers.push(onError);
+			CacheItem = AJAX.appendToCache(url);
+			CacheItem.SuccessHandlers.push(onSuccess);
+			CacheItem.ErrorHandlers.push(onError);
 			AJAX.doGETRequest(url, response => {
-				Request.Data = response.Data;
-				processHandlers(Request, Request.Data, Request.SuccessHandlers);
+				CacheItem.Data = response.Data;
+				processHandlers(CacheItem, CacheItem.Data, CacheItem.SuccessHandlers);
 			}, error => {
-				Request.Error = error;
-				processHandlers(Request, Request.Error, Request.ErrorHandlers);
+				CacheItem.Error = error;
+				processHandlers(CacheItem, CacheItem.Error, CacheItem.ErrorHandlers);
 			});
 		}
 
 		//Helper function to process handlers
-		function processHandlers(Request, DataOrError, Handlers) {
+		function processHandlers(CacheItem, DataOrError, Handlers) {
 			Handlers.forEach(handler => {
 				handler?.(DataOrError);
 			});
-			Request.SuccessHandlers = [];
-			Request.ErrorHandlers = [];
+			CacheItem.SuccessHandlers = [];
+			CacheItem.ErrorHandlers = [];
 		}
 
 		//Helper function to simulate the async nature of requests, so that they are consistently run asynchronously
@@ -143,24 +168,26 @@
 				handler?.(dataOrError);
 			}, 0);
 		}
+
+		return CacheItem;
 	}
 	//
 
 	//Put a resource request into the cache, and add its data if the data is already loaded
 	AJAX.appendToCache = function (url, data) {
-		var Request = AJAX.Cache.find(item => item.URL == url);
-		if (!Request) {
-			Request = {
+		var CacheItem = AJAX.Cache.find(item => item.URL == url);
+		if (!CacheItem) {
+			CacheItem = {
 				URL: url,
 				SuccessHandlers: [],
 				ErrorHandlers: [],
 				Data: data,
 				Error: null
 			};
-			AJAX.Cache.push(Request);
+			AJAX.Cache.push(CacheItem);
 		}
 
-		return Request;
+		return CacheItem;
 	}
 	//
 </script>

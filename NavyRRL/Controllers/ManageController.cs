@@ -7,6 +7,7 @@ using Microsoft.AspNet.Identity;
 using Microsoft.AspNet.Identity.Owin;
 using Microsoft.Owin.Security;
 using NavyRRL.Models;
+using System.Collections.Generic;
 
 namespace NavyRRL.Controllers
 {
@@ -385,5 +386,19 @@ namespace NavyRRL.Controllers
         }
 
 #endregion
-    }
+
+		[HttpGet]
+		public ActionResult GenerateNewAPIKey()
+		{
+			var user = Services.AccountServices.GetCurrentUser();
+			if( user == null || user.Id == 0 )
+			{
+				return BaseController.JsonResponse( null, false, new List<string>() { "User not found." } );
+			}
+
+			var result = Factories.AccountManager.GenerateNewAPIKeyForUser( user.Id );
+			return BaseController.JsonResponse( result.Data, result.Valid, new List<string>() { result.Status } );
+		}
+
+	}
 }

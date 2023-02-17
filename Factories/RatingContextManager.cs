@@ -170,6 +170,7 @@ namespace Factories
 				if ( !string.IsNullOrWhiteSpace( keywords ) )
 				{
 					list = list.Where( m =>
+						m.Notes.Contains( keywords ) ||
 						m.Rating.Name.Contains( keywords ) ||
 						m.Rating.CodedNotation.Contains( keywords ) ||
 						m.RatingTask.Description.Contains( keywords ) ||
@@ -536,10 +537,21 @@ namespace Factories
 				else
 				{
 					//Return ordered list
-					return HandleSort( list, query.SortOrder, m => m.RatingTask.Description, m => { 
-						var noGapID = context.ConceptScheme_Concept.FirstOrDefault( n => n.Name.ToLower() == "no" )?.Id ?? 0;
-						return m.OrderBy( n => n.FormalTrainingGapId == noGapID ).ThenBy( n => n.Rating.CodedNotation ).ThenBy( n => n.Job.Name ).ThenBy( n => n.WorkRole.Name ).ThenBy( n => n.RatingTask.Description ); 
-					}, ( m, keywordParts ) => m.OrderBy( n => RelevanceHelper( n, keywordParts, o => o.RatingTask.Description ) + RelevanceHelper( n, keywordParts, o => o.Rating.CodedNotation ) + RelevanceHelper( n, keywordParts, o => o.Rating.Name ) ), keywords );
+					return HandleSort( list, query.SortOrder, m => m.RatingTask.Description, 
+						m => { 
+							var noGapID = context.ConceptScheme_Concept.FirstOrDefault( n => n.Name.ToLower() == "no" )?.Id ?? 0;
+							return m.OrderBy( n => n.FormalTrainingGapId == noGapID )
+								.ThenBy( n => n.Rating.CodedNotation )
+								.ThenBy( n => n.Job.Name )
+								.ThenBy( n => n.WorkRole.Name )
+								.ThenBy( n => n.RatingTask.Description ); 
+						}, 
+						( m, keywordParts ) => m.OrderBy( n => 
+							RelevanceHelper( n, keywordParts, o => o.RatingTask.Description ) + 
+							RelevanceHelper( n, keywordParts, o => o.Rating.CodedNotation ) + 
+							RelevanceHelper( n, keywordParts, o => o.Rating.Name ) + 
+							RelevanceHelper( n, keywordParts, o => o.Notes ) 
+						), keywords );
 				}
 
 			}, MapFromDBForSearch );

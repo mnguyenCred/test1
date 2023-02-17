@@ -11,6 +11,8 @@ using EM = Data.Tables;
 using ViewContext = Data.Views.ceNavyViewEntities;
 using Views = Data.Views;
 using Navy.Utilities;
+using Models.Utilities;
+
 namespace Factories
 {
     public class AccountManager : BaseFactory
@@ -259,7 +261,123 @@ namespace Factories
 
 			return isValid;
 		}
+		//
 
+		public static Attempt<AppUser> GetUserFromAPIKey( string apiKey )
+		{
+			try
+			{
+				return GetUserFromAPIKey( Guid.Parse( apiKey ) );
+			}
+			catch
+			{
+				return new Attempt<AppUser>( null, false, "Missing or Invalid API Key." );
+			}
+		}
+		//
+
+		public static Attempt<AppUser> GetUserFromAPIKey( Guid apiKey )
+		{
+			using( var context = new DataEntities() )
+			{
+				var keyHolder = context.APIKey.FirstOrDefault( m => m.API_Key == apiKey );
+				if( keyHolder == null )
+				{
+					return new Attempt<AppUser>( null, false, "Missing or Invalid API Key." );
+				}
+				else
+				{
+					var user = Get( keyHolder.UserId );
+					if( user == null || user.Id == 0 )
+					{
+						return new Attempt<AppUser>( null, false, "API Key was found, but no matching user was found." );
+					}
+					else
+					{
+						return new Attempt<AppUser>( user, true );
+					}
+				}
+			}
+		}
+		//
+
+		public static Attempt<Guid> GetAPIKeyForUser( int userID )
+		{
+			using( var context = new DataEntities() )
+			{
+				var keyHolder = context.APIKey.FirstOrDefault( m => m.UserId == userID );
+				if( keyHolder == null )
+				{
+					return GenerateNewAPIKeyForUser( userID );
+				}
+				else
+				{
+					return new Attempt<Guid>( keyHolder.API_Key, true );
+				}
+			}
+		}
+		//
+
+		public static Attempt<Guid> GenerateNewAPIKeyForUser( int userID )
+		{
+			using ( var context = new DataEntities() )
+			{
+				var keyHolder = context.APIKey.FirstOrDefault( m => m.UserId == userID );
+				if ( keyHolder == null )
+				{
+					keyHolder = new EM.APIKey() { 
+						UserId = userID, 
+						RowId = Guid.NewGuid(),
+						API_Key = Guid.NewGuid(),
+						Created = DateTime.Now,
+						LastUpdated = DateTime.Now
+					};
+					context.APIKey.Add( keyHolder );
+				}
+				else
+				{
+					keyHolder.API_Key = Guid.NewGuid();
+					keyHolder.LastUpdated = DateTime.Now;
+				}
+
+				try
+				{
+					context.SaveChanges();
+					return new Attempt<Guid>( keyHolder.API_Key, true );
+				}
+				catch( Exception ex )
+				{
+					return new Attempt<Guid>( Guid.Empty, false, "Error generating new API Key for user: " + ex.Message );
+				}
+			}
+		}
+		//
+
+		public static Attempt<bool> DeleteAPIKeyForUser( int userID )
+		{
+			using( var context = new DataEntities() )
+			{
+				var keyHolder = context.APIKey.FirstOrDefault( m => m.UserId == userID );
+				if( keyHolder == null )
+				{
+					return new Attempt<bool>( false, true, "No API Key exists for that user." );
+				}
+				else
+				{
+					try
+					{
+						context.APIKey.Remove( keyHolder );
+						context.SaveChanges();
+						return new Attempt<bool>( true, true, "API Key deleted successfully." );
+					}
+					catch( Exception ex )
+					{
+						return new Attempt<bool>( false, false, "Error deleting API Key for user: " + ex.Message );
+					}
+				}
+			}
+		}
+		//
 		#endregion
 
 

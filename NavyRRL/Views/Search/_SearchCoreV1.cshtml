@@ -21,7 +21,8 @@
 			TotalResults: 0,
 			TotalPages: 0,
 			PagingButtonThreshold: 5,
-			AppendResults: false
+			AppendResults: false,
+			Busy: false
 		};
 		//
 
@@ -35,7 +36,7 @@
 
 		Search.prepareToSearch = function (resetPaging, clearRequestQueue) {
 			Search.PageNumber = resetPaging ? 1 : Search.PageNumber;
-			clearRequestQueue && AJAX.cancelWaitingRequests();
+			clearRequestQueue && AJAX.cancelCurrentRequests();
 			Search.Query = {
 				SearchType: Search.SearchType,
 				Filters: Search.getFilters(),
@@ -50,6 +51,7 @@
 		Search.doSearch = function (resetPaging, clearRequestQueue) {
 			Search.prepareToSearch(resetPaging, clearRequestQueue);
 			Search.setStatus("Searching...", true);
+			Search.Busy = true;
 			Search.doPOSTRequest(Search.SearchURL, Search.Query, Search.handleResponse, Search.handleError);
 		};
 		//
@@ -120,26 +122,27 @@
 		//
 
 		Search.getResource = function (url, handleSuccess, handleError) {
-			AJAX.getResource(url, handleSuccess, handleError);
+			return AJAX.getResource(url, handleSuccess, handleError);
 		}
 		//
 
 		Search.doGETRequest = function (url, handleSuccess, handleError) {
-			AJAX.doGETRequest(url, handleSuccess, handleError);
+			return AJAX.doGETRequest(url, handleSuccess, handleError);
 		}
 		//
 
 		Search.doPOSTRequest = function (url, data, handleSuccess, handleError) {
-			AJAX.doPOSTRequest(url, data, handleSuccess, handleError);
+			return AJAX.doPOSTRequest(url, data, handleSuccess, handleError);
 		};
 		//
 
 		Search.doAJAX = function (url, handleSuccess, handleError, params) {
-			AJAX.doFetch(url, handleSuccess, handleError, params);
+			return AJAX.doFetch(url, handleSuccess, handleError, params);
 		};
 		//
 
 		Search.handleResponse = function (response) {
+			Search.Busy = false;
 			if (response.Valid) {
 				Search.Results = response.Data.Results || [];
 				Search.TotalResults = response.Data.TotalResults || 0;
@@ -158,8 +161,9 @@
 		//
 
 		Search.handleError = function (error) {
+			Search.Busy = false;
 			console.log("Error", error);
-			Search.setStatus("Error performing search. Check console for details (Status Code " + (error?.status || "Unknown") + ")");
+			Search.setStatus(error?.Message || "Error performing search. Check console for details.");
 		};
 		//
 

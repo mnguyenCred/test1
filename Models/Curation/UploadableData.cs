@@ -79,7 +79,7 @@ namespace Models.Curation
 		public string Course_CurriculumControlAuthority_Name { get; set; }
 		public string TrainingTask_Description { get; set; }
 		public string Course_AssessmentMethodType_Name { get; set; }
-		public string Note { get; set; }
+		public string Notes { get; set; }
 
 
 		public string Training_Solution_Type { get; set; }
