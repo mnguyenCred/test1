@@ -6,6 +6,9 @@ namespace Models.Schema
 {
 	public class Rating : BaseObject
 	{
+		//Equivalent RDF Type
+		public const string RDFType = "ceterms:Occupation";
+
 		/// <summary>
 		/// Name of this Rating<br />
 		/// From Column: TBD

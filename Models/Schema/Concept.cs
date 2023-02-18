@@ -8,6 +8,9 @@ namespace Models.Schema
 {
 	public class Concept : BaseObject
 	{
+		//Equivalent RDF Type
+		public const string RDFType = "skos:Concept";
+
 		/// <summary>
 		/// Concept Scheme this Concept belongs to
 		/// </summary>

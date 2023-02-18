@@ -8,6 +8,9 @@ namespace Models.Schema
 {
 	public class Course : BaseObject
 	{
+		//Equivalent RDF Type
+		public const string RDFType = "ceterms:Course";
+
 		public Course()
 		{
 			CourseType = new List<Guid>();

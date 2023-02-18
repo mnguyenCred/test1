@@ -25,6 +25,7 @@ namespace NavyRRL.Controllers
 
 		public ActionResult DoSearch( SearchQuery query )
 		{
+			AuthenticateOrRedirect( "You must be authenticated and authorized to view RMTL Project data." );
 			var results = SearchServices.RMTLProjectSearch( query );
 
 			return JsonResponse( results, true );

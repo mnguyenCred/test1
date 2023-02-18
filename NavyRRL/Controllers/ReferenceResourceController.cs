@@ -23,6 +23,7 @@ namespace NavyRRL.Controllers
 
 		public ActionResult DoSearch( SearchQuery query )
 		{
+			AuthenticateOrRedirect( "You must be authenticated and authorized to edit Reference Resource data." );
 			var results = SearchServices.ReferenceResourceSearch( query );
 
 			return JsonResponse( results, true );

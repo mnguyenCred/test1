@@ -23,6 +23,7 @@ namespace NavyRRL.Controllers
 
 		public ActionResult DoSearch( SearchQuery query )
 		{
+			AuthenticateOrRedirect( "You must be authenticated and authorized to view Cluster Analysis data." );
 			var results = SearchServices.ClusterAnalysisSearch( query );
 
 			return JsonResponse( results, true );

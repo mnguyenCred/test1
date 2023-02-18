@@ -23,17 +23,13 @@ namespace NavyRRL.Controllers
 
 		public ActionResult DoSearch( SearchQuery query )
 		{
+			AuthenticateOrRedirect( "You must be authenticated and authorized to view Billet Title data." );
 			var results = SearchServices.BilletTitleSearch( query );
 
 			return JsonResponse( results, true );
 		}
 		//
-		/// <summary>
-		/// Probably anyone can see the detail pages
-		/// </summary>
-		/// <param name="id"></param>
-		/// <returns></returns>
-		////[CustomAttributes.NavyAuthorize( "Billet Title View", Roles = SiteReader )]
+
 		public ActionResult Detail( int id )
 		{
 			AuthenticateOrRedirect( "You must be authenticated and authorized to view Billet Title data." );
@@ -60,7 +56,6 @@ namespace NavyRRL.Controllers
 		}
 		//
 
-		////[CustomAttributes.NavyAuthorize( "Billet Title Edit", Roles = Admin_SiteManager )]
 		public ActionResult Edit( int id )
 		{
 			AuthenticateOrRedirect( "You must be authenticated and authorized to edit Billet Title data." );

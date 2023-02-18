@@ -23,6 +23,7 @@ namespace NavyRRL.Controllers
 
 		public ActionResult DoSearch( SearchQuery query )
 		{
+			AuthenticateOrRedirect( "You must be authenticated and authorized to view Rating Task data." );
 			var results = SearchServices.RatingTaskSearch( query );
 
 			return JsonResponse( results, true );

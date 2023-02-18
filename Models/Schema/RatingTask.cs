@@ -6,6 +6,9 @@ namespace Models.Schema
 {
 	public class RatingTask : BaseObject
 	{
+		//Equivalent RDF Type
+		public const string RDFType = "navy:RatingTask";
+
 		/// <summary>
 		/// Actual text of the Rating Task<br />
 		/// From Column: Work Element (Task)

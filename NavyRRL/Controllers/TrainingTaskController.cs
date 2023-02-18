@@ -25,6 +25,7 @@ namespace NavyRRL.Controllers
 
 		public ActionResult DoSearch( SearchQuery query )
 		{
+			AuthenticateOrRedirect( "You must be authenticated and authorized to view Training Task data." );
 			var results = SearchServices.TrainingTaskSearch( query );
 
 			return JsonResponse( results, true );

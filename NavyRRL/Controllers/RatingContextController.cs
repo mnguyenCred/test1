@@ -23,6 +23,7 @@ namespace NavyRRL.Controllers
 
 		public ActionResult DoSearch( SearchQuery query )
 		{
+			AuthenticateOrRedirect( "You must be authenticated and authorized to edit Rating Context data." );
 			var results = SearchServices.RatingContextSearch( query );
 
 			return JsonResponse( results, true );

@@ -23,6 +23,7 @@ namespace NavyRRL.Controllers
 
 		public ActionResult DoSearch( SearchQuery query )
 		{
+			AuthenticateOrRedirect( "You must be authenticated and authorized to view Course Context data." );
 			var results = SearchServices.CourseContextSearch( query );
 
 			return JsonResponse( results, true );

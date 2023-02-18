@@ -13,22 +13,10 @@ namespace Models.Search
 		public SearchQuery()
 		{
 			Filters = new List<SearchFilter>();
-			SearchType = "ratingtask";
 			Skip = 0;
 			Take = 50;
-			Keywords = "";
 			SortOrder = new List<SortOrderItem>();
 		}
-		/// <summary>
-		/// While starting with RatingTask search, could be other searches in the future
-		/// </summary>
-		public string SearchType { get; set; }
-
-		/// <summary>
-		/// General Keywords
-		/// For the main RatingTask search, there will be different keyword types. Including here for future localized searches (course, or training task, etc.)
-		/// </summary>
-		public string Keywords { get; set; }
 		public int Skip { get; set; }
 		public int Take { get; set; }
 		public List<SortOrderItem> SortOrder { get; set; }

@@ -8,6 +8,9 @@ namespace Models.Schema
 {
 	public class CourseContext : BaseObject
 	{
+		//Equivalent RDF Type
+		public const string RDFType = "navy:CourseContext";
+
 		public CourseContext()
 		{
 			AssessmentMethodType = new List<Guid>();

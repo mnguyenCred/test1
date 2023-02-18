@@ -28,7 +28,7 @@ namespace Services
 			NormalizeQuery( query, searchType );
 
 			//Do the search
-			LoggingHelper.DoTrace( 7, thisClassName + "." + searchType + "Search. Calling: " + query.SearchType );
+			LoggingHelper.DoTrace( 7, thisClassName + "." + searchType + "Search. Calling: " + typeof( T ).Name );
 			var results = searchMethod( query );
 
 			//Return the results
@@ -143,8 +143,7 @@ namespace Services
 
 		private static void NormalizeQuery( SearchQuery query, string searchType, JObject debug = null )
 		{
-			//Sanitize Keywords
-			query.Keywords = SanitizeKeywordString( query.Keywords );
+			//Sanitize Text filters, including Keywords
 			foreach ( var filter in query.Filters.Where( m => !string.IsNullOrWhiteSpace( m.Text ) ).ToList() )
 			{
 				filter.Text = SanitizeKeywordString( filter.Text );
@@ -158,9 +157,6 @@ namespace Services
 
 			//Sanitize Page Size
 			query.Take = query.Take < -1 ? -1 : query.Take > 250 ? 250 : query.Take; //Max page size must not be smaller than the page size the RMTL search is looking for client-side!
-
-			//Override search type
-			query.SearchType = searchType ?? query.SearchType ?? "Unknown";
 
 			//Testing
 			debug?.Add( "Raw Query", JObject.FromObject( query ) );

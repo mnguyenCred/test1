@@ -23,6 +23,7 @@ namespace NavyRRL.Controllers
 
 		public ActionResult DoSearch( SearchQuery query )
 		{
+			AuthenticateOrRedirect( "You must be authenticated and authorized to view Concept Scheme data." );
 			var results = SearchServices.ConceptSchemeSearch( query );
 
 			return JsonResponse( results, true );

@@ -6,6 +6,9 @@ namespace Models.Schema
 {
 	public class ConceptScheme : BaseObject
 	{
+		//Equivalent RDF Type
+		public const string RDFType = "skos:ConceptScheme";
+
 		/// <summary>
 		/// Name of this Concept Scheme
 		/// </summary>

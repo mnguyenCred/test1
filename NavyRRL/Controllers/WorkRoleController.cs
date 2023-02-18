@@ -23,38 +23,13 @@ namespace NavyRRL.Controllers
 
 		public ActionResult DoSearch( SearchQuery query )
 		{
+			AuthenticateOrRedirect( "You must be authenticated and authorized to view Functional Area data." );
 			var results = SearchServices.WorkRoleSearch( query );
 
 			return JsonResponse( results, true );
 		}
 		//
-		/*
-		public SearchResultSet<T> ConvertResults<T>( SearchQuery query, List<WorkRole> results ) where T : WorkRole, new()
-		{
-			var gResults = new List<T>();
 
-			var output = new SearchResultSet<T>();
-			if ( results?.Count == 0 )
-				return output;
-			foreach ( var item in results )
-			{
-				var gResult = new T();
-				gResult.Id = item.Id;
-				gResult.Name = item.Name;
-
-				gResults.Add( gResult );
-			}
-			output.TotalResults = query.TotalResults;
-			output.Results = gResults;
-			output.SearchType = query.SearchType;
-
-			return output;
-		}
-		//
-		//
-		*/
-
-		//[CustomAttributes.NavyAuthorize( "Work Role View", Roles = SiteReader )]
 		public ActionResult Detail( int id )
 		{
 			AuthenticateOrRedirect( "You must be authenticated and authorized to view Functional Area data." );

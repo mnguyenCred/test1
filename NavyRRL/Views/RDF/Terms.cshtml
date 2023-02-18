@@ -9,6 +9,12 @@
 	AllProperties = RDFServices.GetAllProperties().OrderBy( m => m.Label ).ToList();
 	AllConceptSchemes = Factories.ConceptSchemeManager.GetAll().OrderBy( m => m.Name ).ToList();
 	AllConcepts = isUserAuthenticated ? Factories.ConceptManager.GetAll( true ).OrderBy( m => m.Name ).ToList() : new List<Concept>();
+
+	var navyContextItem = AllContextItems.FirstOrDefault( m => m.Compacted == "navy" );
+	if( navyContextItem != null )
+	{
+		navyContextItem.Expanded = RDFServices.GetApplicationURL() + "rdf/terms/json/navy/";
+	}
 }
 @functions {
 	public List<RDF.RDFContext> AllContextItems { get; set; }
@@ -144,7 +150,7 @@
 				@AppendRow( "Type of Term", GetTermLink( GetFullURI( "rdfs:Class" ), "rdfs:Class" ).ToString() )
 				@AppendRow( "Subclass Of", item.SubTermOf )
 				@AppendRow( "Equivalent Class", item.EquivalentTerm )
-				@AppendRow( "Domain For", item.DomainFor )
+				@AppendRow( "Domain For", item.DomainFor.Select( n => n.URI ).ToList() )
 				@AppendRow( "In Range Of", AllProperties.Where( m => m.Range.Contains( item.URI ) ).Select( m => m.URI ).ToList() )
 			</tbody>
 		</table>
@@ -173,7 +179,7 @@
 				@AppendRow( "Type of Term", GetTermLink( GetFullURI( "rdf:Property" ), "rdf:Property" ).ToString() )
 				@AppendRow( "Subproperty Of", item.SubTermOf )
 				@AppendRow( "Equivalent Property", item.EquivalentTerm )
-				@AppendRow( "Domain Includes", AllClasses.Where( m => m.DomainFor.Contains( item.URI ) ).Select( m => m.URI ).ToList() )
+				@AppendRow( "Domain Includes", AllClasses.Where( m => m.DomainFor.Select( n => n.URI ).ToList().Contains( item.URI ) ).Select( m => m.URI ).ToList() )
 				@AppendRow( "Range Includes", item.Range )
 				@if( applicableConceptSchemes.Count() > 0 )
 				{
