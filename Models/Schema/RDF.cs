@@ -337,8 +337,8 @@ namespace Models.Schema
 				public static RDFProperty PrefLabel { get { return new RDFProperty( "skos:prefLabel", "Preferred Label", "Preferred Label for a term in a controlled vocabulary.", Constants.LangString ) { ContextContainer = Constants.LanguageContainer }; } }
 				public static RDFProperty Notation { get { return new RDFProperty( "skos:notation", "Notation", "Notation code for a term in a controlled vocabulary.", Constants.LangString ) { ContextContainer = Constants.LanguageContainer }; } }
 				public static RDFProperty Note { get { return new RDFProperty( "skos:note", "Note", "Additional note for a term in a controlled vocabulary.", Constants.LangString ) { ContextContainer = Constants.LanguageContainer }; } }
-				public static RDFProperty HasTopConcept { get { return new RDFProperty( "skos:hasTopConcept", "Top layer of Concepts in the taxonomy for this vocabulary.", Schema.Concept.RDFType ) { ContextType = Constants.IDType, ContextContainer = Constants.ListContainer }; } }
-				public static RDFProperty InScheme { get { return new RDFProperty( "skos:inScheme", "Concept Scheme to which this term belongs.", Schema.ConceptScheme.RDFType ) { ContextType = Constants.IDType }; } }
+				public static RDFProperty HasTopConcept { get { return new RDFProperty( "skos:hasTopConcept", "Has Top Concept", "Top layer of Concepts in the taxonomy for this vocabulary.", Schema.Concept.RDFType ) { ContextType = Constants.IDType, ContextContainer = Constants.ListContainer }; } }
+				public static RDFProperty InScheme { get { return new RDFProperty( "skos:inScheme", "In Scheme", "Concept Scheme to which this term belongs.", Schema.ConceptScheme.RDFType ) { ContextType = Constants.IDType }; } }
 			}
 
 			public class NAVY : SchemaTerms
