@@ -60,8 +60,14 @@
 	}
 	//
 
+	function writeCodeBlock(content) {
+		document.write("<code class=\"block\">" + JSON.stringify(content, null, "\t") + "</code>");
+	}
+	//
 </script>
 <style type="text/css">
+	h5 { font-weight: bold; }
+
 	.apiKeyBox { display: flex; align-items: baseline; gap: 10px; }
 	.apiKeyBox input { flex: 1 1 100%; max-width: none; font-family: Consolas, 'Courier New', monospace; height: 30px; }
 	.apiKeyBox button { flex: 1 1 150px; white-space: nowrap; height: 30px; }
@@ -69,6 +75,9 @@
 	.apiKeyStatusBox[data-status='processing'] { }
 	.apiKeyStatusBox[data-status='success'] { background-color: #CFC; }
 	.apiKeyStatusBox[data-status='error'] { background-color: #FCC; }
+
+	.apiSection { margin-bottom: 20px; }
+	code.block { display: block; white-space: pre-wrap; margin-bottom: 10px; }
 </style>
 
 <h2>@ViewBag.Title.</h2>
@@ -153,11 +162,37 @@
     </dl>
 	<hr />
 	<h4>Manage your API Key</h4>
-	<p>Include the API Key in your request header using the form <code>Authorization: Bearer abcdefgh-ijkl-mnop...</code></p>
+	<p>Include the API Key in your request header using the form <code>Authorization: Bearer abcdefgh-ijkl-mnop...</code> when getting records or doing searches.</p>
 	<div class="apiKeyBox">
 		<input type="text" readonly="readonly" data-property="APIKeyInput" data-mode="hidden" value="@(Guid.Empty.ToString().Replace("0", "*"))" />
 		<button data-action="ShowHideAPIKey">Show/Hide</button>
 		<button data-action="RegenerateAPIKey">Generate New Key</button>
 	</div>
 	<p class="apiKeyStatusBox"></p>
+	<hr />
+	<h4>API Quick Reference</h4>
+	<div class="apiSection">
+		<h5>General</h5>
+		<p>Use the <a href="@Url.Content("~/rdf/terms")" target="_blank">RDF Terms Page</a> to lookup classes and properties as needed.</p>
+	</div>
+
+	<div class="apiSection">
+		<h5>Get Records</h5>
+		<p>Use the following structure to make HTTP GET requests the <code>/rdf/resources</code> API endpoint with your API key in the header as shown above:</p>
+		<p><code>/rdf/resources/[CTID here]</code></p>
+		<p>For example:</p>
+		<p><code>/rdf/resources/ce-@Guid.NewGuid()</code></p>
+	</div>
+
+	<div class="apiSection">
+		<h5>Search</h5>
+		<p>Use the following structure to make HTTP POST requests the <code>/rdf/search</code> API endpoint with your API key in the header as shown above:</p>
+		<script type="text/javascript">
+			writeCodeBlock({ "Type": "[The RDF class of the object you want to find]", "Keywords": "[Your keywords here]", "Skip": "Number of results to skip", "Take": "Number of results to take" })
+		</script>
+		<p>For example, to find the Ratings (<code>@Models.Schema.Rating.RDFType</code>s) with "OS" in the name or description, skip the first two, and take the next ten:</p>
+		<script type="text/javascript">
+			writeCodeBlock({ "Type": "@Models.Schema.Rating.RDFType", "Keywords": "OS", "Skip": 2, "Take": 10 })
+		</script>
+	</div>
 </div>
