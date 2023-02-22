@@ -50,9 +50,25 @@ namespace Factories
 		}
 		//
 
-        #endregion
+		public static DeleteResult DeleteById( int id )
+		{
+			return BasicDeleteCore( "Course", context => context.Course, id, "> CourseContextId > CourseContext > HasCourseId > Course", ( context, list, target ) =>
+			{
+				//Check for references from Course Contexts
+				var courseContextCount = context.CourseContext.Where( m => m.HasCourseId == id ).Count();
+				if( courseContextCount > 0 )
+				{
+					return new DeleteResult( false, "This Course is referenced by " + courseContextCount + " Course Context objects, so it cannot be deleted." );
+				}
 
-        #region Retrieval
+				return null;
+			} );
+		}
+		//
+
+		#endregion
+
+		#region Retrieval
 		public static AppEntity GetSingleByFilter( Func<DBEntity, bool> FilterMethod, bool returnNullIfNotFound = false )
 		{
 			return GetSingleByFilter<DBEntity, AppEntity>( context => context.Course, FilterMethod, MapFromDB, returnNullIfNotFound );

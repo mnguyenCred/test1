@@ -42,9 +42,24 @@ namespace Factories
 		}
 		//
 
-        #endregion
+		public static DeleteResult DeleteById( int id )
+		{
+			return BasicDeleteCore( "Functional Area", context => context.WorkRole, id, "> WorkRoleId > WorkRole", ( context, list, target ) => {
+				//Check for references from Cluster Analysis objects
+				var clusterAnalysisContextCount = context.ClusterAnalysis.Where( m => m.WorkRoleId == id ).Count();
+				if ( clusterAnalysisContextCount > 0 )
+				{
+					return new DeleteResult( false, "This Functional Area is referenced by " + clusterAnalysisContextCount + " Cluster Analysis objects, so it cannot be deleted." );
+				}
 
-        #region Retrieval
+				return null;
+			} );
+		}
+		//
+
+		#endregion
+
+		#region Retrieval
 		public static AppEntity GetSingleByFilter( Func<DBEntity, bool> FilterMethod, bool returnNullIfNotFound = false )
 		{
 			return GetSingleByFilter<DBEntity, AppEntity>( context => context.WorkRole, FilterMethod, MapFromDB, returnNullIfNotFound );

@@ -46,9 +46,32 @@ namespace Factories
 		}
 		//
 
-        #endregion
+		public static DeleteResult DeleteById( int id )
+		{
+			return BasicDeleteCore( "Reference Resource", context => context.ReferenceResource, id, "> RatingTaskId > RatingTask > ReferenceResourceId > ReferenceResource", ( context, list, target ) =>
+			{
+				//Check for references from Rating Tasks
+				var ratingTaskCount = context.RatingTask.Where( m => m.ReferenceResourceId == id ).Count();
+				if ( ratingTaskCount > 0 )
+				{
+					return new DeleteResult( false, "This Reference Resource is the source for " + ratingTaskCount + " Rating Tasks, so it cannot be deleted." );
+				}
 
-        #region Retrieval
+				//Check for references from Training Tasks
+				var trainingTaskCount = context.TrainingTask.Where( m => m.ReferenceResourceId == id ).Count();
+				if ( trainingTaskCount > 0 )
+				{
+					return new DeleteResult( false, "This Reference Resource is used to derive the uniqueness of " + trainingTaskCount + " Training Tasks, so it cannot be deleted." );
+				}
+
+				return null;
+			} );
+		}
+		//
+
+		#endregion
+
+		#region Retrieval
 		public static AppEntity GetSingleByFilter( Func<DBEntity, bool> FilterMethod, bool returnNullIfNotFound = false )
 		{
 			return GetSingleByFilter<DBEntity, AppEntity>( context => context.ReferenceResource, FilterMethod, MapFromDB, returnNullIfNotFound );

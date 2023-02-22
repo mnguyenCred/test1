@@ -41,6 +41,22 @@ namespace Factories
 		}
 		//
 
+		public static DeleteResult DeleteById( int id )
+		{
+			return BasicDeleteCore( "Billet Title", context => context.Job, id, "> BilletTitleId > Job", ( context, list, target ) => 
+			{
+				//Check for references from Cluster Analysis objects
+				var clusterAnalysisContextCount = context.ClusterAnalysis.Where( m => m.BilletTitleId == id ).Count();
+				if ( clusterAnalysisContextCount > 0 )
+				{
+					return new DeleteResult( false, "This Billet Title is referenced by " + clusterAnalysisContextCount + " Cluster Analysis objects, so it cannot be deleted." );
+				}
+
+				return null;
+			} );
+		}
+		//
+
         #endregion
 
         #region Retrieval

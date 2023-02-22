@@ -44,6 +44,20 @@
 					{ Label: "Description", RenderPath: ["HasRatingTask|RatingTask", "Description|RatingTask"] },
 					{ Label: "Training Gap", RenderPath: ["TrainingGapType|Concept", "Name|Concept"] },
 				]
+			},
+			TrainingTasks: {
+				Header: "Training Tasks",
+				SearchType: "RatingContext",
+				StyleType: "TrainingTask",
+				Filters: [
+					{ Name: "> CourseContextId > CourseContext:NotNull" }
+				],
+				Fields: [
+					{ Label: "Rating", RenderPath: ["HasRating|Rating", "CodedNotation|Rating"] },
+					{ Label: "CTTL/PPP/TCCD Statement", RenderPath: [ "HasCourseContext|CourseContext", "HasTrainingTask|TrainingTask", "Description|TrainingTask" ] },
+					{ Label: "Assessment Approach", RenderPath: ["HasCourseContext|CourseContext", "AssessmentMethodType|Concept", "Name|Concept"] },
+					{ Label: "Course Context", RenderPath: ["HasCourseContext|CourseContext", "Id|CourseContext"] }
+				]
 			}
 		}
 	};
@@ -57,6 +71,10 @@
 <style type="text/css">
 	table[data-styletype='RatingTask'] [data-column='Rating'] { width: 75px; }
 	table[data-styletype='RatingTask'] [data-column='Training Gap'] { width: 100px; margin-left: auto; }
+	table[data-styletype='TrainingTask'] [data-column='Rating'] { width: 75px; }
+	table[data-styletype='TrainingTask'] [data-column='Assessment Approach'] { width: 200px; }
+	table[data-styletype='TrainingTask'] [data-column='Assessment Approach'] a { display: block; }
 </style>
 
 <item-list-search name="RatingTasks"></item-list-search>
+<item-list-search name="TrainingTasks"></item-list-search>

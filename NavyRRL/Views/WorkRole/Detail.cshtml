@@ -52,6 +52,20 @@
 					{ Label: "Description", RenderPath: ["HasRatingTask|RatingTask", "Description|RatingTask"] },
 					{ Label: "Training Gap", RenderPath: ["TrainingGapType|Concept", "Name|Concept"] },
 				]
+			},
+			ClusterAnalysis: {
+				Header: "Cluster Analyses",
+				SearchType: "RatingContext",
+				StyleType: "ClusterAnalysis",
+				Filters: [
+					{ Name: "> ClusterAnalysisId > ClusterAnalysis:NotNull" }
+				],
+				Fields: [
+					{ Label: "Rating", RenderPath: ["HasRating|Rating", "CodedNotation|Rating"] },
+					{ Label: "Cluster Analysis", RenderPath: ["HasClusterAnalysis|ClusterAnalysis", "Id|ClusterAnalysis"] },
+					{ Label: "Cluster Analysis Title", RenderPath: ["HasClusterAnalysis|ClusterAnalysis", "HasClusterAnalysisTitle|ClusterAnalysisTitle", "Name|ClusterAnalysisTitle"] },
+					{ Label: "Rating Task", RenderPath: ["HasRatingTask|RatingTask", "Description|RatingTask"] }
+				]
 			}
 		}
 	};
@@ -65,6 +79,9 @@
 <style type="text/css">
 	table[data-styletype='RatingTask'] [data-column='Rating'] { width: 75px; }
 	table[data-styletype='RatingTask'] [data-column='Training Gap'] { width: 100px; margin-left: auto; }
+	table[data-styletype='ClusterAnalysis'] [data-column='Rating'] { width: 75px; }
+	table[data-styletype='ClusterAnalysis'] [data-column='Cluster Analysis'] { width: 150px; }
 </style>
 
 <item-list-search name="RatingTasks"></item-list-search>
+<item-list-search name="ClusterAnalysis"></item-list-search>

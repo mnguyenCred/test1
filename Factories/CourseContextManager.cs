@@ -48,9 +48,19 @@ namespace Factories
 		}
 		//
 
-        #endregion
+		public static DeleteResult DeleteById( int id )
+		{
+			return BasicDeleteCore( "Course Context", context => context.CourseContext, id, "> CourseContextId > CourseContext", ( context, list, target ) =>
+			{
+				//Nothing else references a Course Context, so just return null
+				return null;
+			} );
+		}
+		//
 
-        #region Retrieval
+		#endregion
+
+		#region Retrieval
 		public static AppEntity GetSingleByFilter( Func<DBEntity, bool> FilterMethod, bool returnNullIfNotFound = false )
 		{
 			return GetSingleByFilter<DBEntity, AppEntity>( context => context.CourseContext, FilterMethod, MapFromDB, returnNullIfNotFound );

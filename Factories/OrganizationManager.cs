@@ -42,8 +42,9 @@ namespace Factories
 
 		public static DeleteResult DeleteById( int id )
 		{
-			return BasicDeleteCore( "Organization", context => context.Organization, id, "> CourseContextId > CourseContext > HasCourseId > Course > CurriculumControlAuthorityId > Organization", ( context, organizations, organization ) => {
-				//Check for references from courses
+			return BasicDeleteCore( "Organization", context => context.Organization, id, "> CourseContextId > CourseContext > HasCourseId > Course > CurriculumControlAuthorityId > Organization", ( context, list, target ) => 
+			{
+				//Check for references from Courses
 				var coursesCount = context.Course.Where( m => m.CurriculumControlAuthorityId == id ).Count();
 				if ( coursesCount > 0 )
 				{

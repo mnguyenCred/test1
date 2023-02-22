@@ -255,7 +255,7 @@ namespace Factories
 				var totalResults = RatingContextManager.Search( new SearchQuery() { Skip = 0, Take = 0, Filters = new List<SearchFilter>() { new SearchFilter() { Name = searchFilterNameOrNull, ItemIds = new List<int>() { entityID } } } } ).TotalResults;
 				if( totalResults > 0 )
 				{
-					return new DeleteResult( false, "The target " + entityTypeLabel + " is referenced by " + totalResults + " Rating Context objects and cannot be deleted." );
+					return new DeleteResult( false, "The target " + entityTypeLabel + " is referenced by " + totalResults + " Rating Context object(s) and cannot be deleted." );
 				}
 			}
 

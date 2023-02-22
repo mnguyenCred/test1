@@ -94,7 +94,8 @@ namespace NavyRRL.Controllers
 				return JsonResponse( null, false, new List<string>() { "Deleting data requires administrator privileges." } );
 			}
 
-			return JsonResponse( null, false, new List<string>() { "This feature is not implemented yet." } );
+			var result = Factories.RatingContextManager.DeleteById( id );
+			return JsonResponse( result, result.Successful, result.Messages );
 		}
 		//
 

@@ -73,7 +73,7 @@ namespace Factories
 		{
 			return BasicDeleteCore( "Concept", context => context.ConceptScheme_Concept, id, "search:AllConceptPaths", ( context, list, target ) =>
 			{
-				//Check for references from other concepts
+				//Check for references from other Concepts
 				var narrowerConceptsCount = context.ConceptScheme_Concept.Where( m => m.BroadMatchId == id ).Count();
 				if ( narrowerConceptsCount > 0 )
 				{

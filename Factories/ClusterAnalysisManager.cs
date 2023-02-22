@@ -56,8 +56,18 @@ namespace Factories
 		}
 		//
 
-        #endregion
-        #region Retrieval
+		public static DeleteResult DeleteById( int id )
+		{
+			return BasicDeleteCore( "Cluster Analysis", context => context.ClusterAnalysis, id, "> ClusterAnalysisId > ClusterAnalysis", ( context, list, target ) => 
+			{
+				//Nothing else references a Cluster Analysis, so just return null
+				return null;
+			} );
+		}
+		//
+
+		#endregion
+		#region Retrieval
 
 		public static AppEntity GetForUploadOrNull( Guid ratingRowID, Guid ratingTaskRowID, Guid billetTitleRowID, Guid workRoleRowID, Guid clusterAnalysisTitleRowID )
 		{

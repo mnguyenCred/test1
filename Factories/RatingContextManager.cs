@@ -60,9 +60,19 @@ namespace Factories
 		}
 		//
 
-        #endregion
+		public static DeleteResult DeleteById( int id )
+		{
+			return BasicDeleteCore( "Rating Context", context => context.RatingContext, id, "", ( context, list, target ) =>
+			{
+				//Nothing else references a Rating Context, so just return null
+				return null;
+			} );
+		}
+		//
 
-        #region Retrieval
+		#endregion
+
+		#region Retrieval
 		public static AppEntity GetSingleByFilter( Func<DBEntity, bool> FilterMethod, bool returnNullIfNotFound = false )
 		{
 			return GetSingleByFilter<DBEntity, AppEntity>( context => context.RatingContext, FilterMethod, MapFromDB, returnNullIfNotFound );

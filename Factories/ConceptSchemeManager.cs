@@ -58,7 +58,23 @@ namespace Factories
 		}
 		//
 
-        #endregion
+		public static DeleteResult DeleteById( int id )
+		{
+			return BasicDeleteCore( "Concept Scheme", context => context.ConceptScheme, id, "search:AllConceptSchemePaths", ( context, list, target ) =>
+			{
+				//Check for references from concepts
+				var narrowerConceptsCount = context.ConceptScheme_Concept.Where( m => m.ConceptSchemeId == id ).Count();
+				if ( narrowerConceptsCount > 0 )
+				{
+					return new DeleteResult( false, "This Concept Scheme contains " + narrowerConceptsCount + " Concepts, so it cannot be deleted." );
+				}
+
+				return null;
+			} );
+		}
+		//
+
+		#endregion
 
 		public static AppEntity GetSingleByFilter( Func<DBEntity, bool> FilterMethod, bool returnNullIfNotFound = false )
 		{
