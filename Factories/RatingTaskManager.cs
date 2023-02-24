@@ -35,6 +35,36 @@ namespace Factories
 
 		public static void SaveFromEditor( AppEntity entity, int userID, List<string> errors )
 		{
+			//Validate required fields
+			AddErrorIf( errors, string.IsNullOrWhiteSpace( entity.Description ), "Description must not be empty." );
+			AddErrorIf( errors, entity.HasReferenceResource == Guid.Empty, "A Reference Resource must be selected." );
+			AddErrorIf( errors, entity.ReferenceType == Guid.Empty, "A Reference Type must be selected." );
+
+			//Return early if any errors to avoid errors in the next section
+			if ( errors.Count() > 0 )
+			{
+				return;
+			}
+
+			//Duplicate checks
+			DuplicateCheck( "Rating Task", context => context.RatingTask.Where( m => m.RowId != entity.RowId ), errors, null, ( haystack, context ) => {
+				//Custom handling because duplicate Rating Tasks are okay as long as they come from different sources
+				if( haystack.Where( m => 
+					m.Description.ToLower() == entity.Description.ToLower() &&
+					m.ReferenceResource.RowId == entity.HasReferenceResource &&
+					m.ConceptScheme_Concept_ReferenceType.RowId == entity.ReferenceType
+				).Count() > 0 )
+				{
+					errors.Add( "An identical Rating Task with the same values for all fields already exists in the system." );
+				}
+			} );
+
+			//Return if any errors
+			if( errors.Count() > 0 )
+			{
+				return;
+			}
+
 			SaveCore( entity, userID, "Edit", errors.Add );
 		}
 		//

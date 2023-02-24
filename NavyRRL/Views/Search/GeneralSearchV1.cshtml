@@ -62,7 +62,10 @@
 				});
 			} },
 			{ Name: "RatingTask", LabelSingle: "Rating Task", LabelMulti: "Rating Tasks" },
-			{ Name: "ReferenceResource", LabelSingle: "Reference Resource", LabelMulti: "Reference Resources" },
+			{ Name: "ReferenceResource", LabelSingle: "Reference Resource", LabelMulti: "Reference Resources", customRenderResult: function (Result, container) { 
+				container.find(".codedNotation").html(Result.PublicationDate || "No Publication Date");
+				container.find(".name").html(Result.Name);
+			} },
 			{ Name: "RMTLProject", LabelSingle: "RMTL Project", LabelMulti: "RMTL Projects" },
 			{ Name: "TrainingTask", LabelSingle: "Training Task", LabelMulti: "Training Tasks" }
 		]

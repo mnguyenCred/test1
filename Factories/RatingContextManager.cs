@@ -26,7 +26,7 @@ namespace Factories
 		public static new string thisClassName = "RatingContextManager";
 		public static string cacheKey = "RatingContextCache";
 
-		#region === persistance ==================
+		#region === Persistence ==================
 		public static void SaveFromUpload( AppEntity entity, int userID, ChangeSummary summary )
 		{
 			SaveCore( entity, userID, "Upload", summary.AddError );
@@ -35,6 +35,25 @@ namespace Factories
 
 		public static void SaveFromEditor( AppEntity entity, int userID, List<string> errors )
 		{
+			//Validate required fields
+			AddErrorIf( errors, entity.HasRating == Guid.Empty, "A Rating must be selected." );
+			AddErrorIf( errors, entity.HasBilletTitle == Guid.Empty, "A Billet Title must be selected." );
+			AddErrorIf( errors, entity.HasWorkRole == Guid.Empty, "A Functional Area must be selected." );
+			AddErrorIf( errors, entity.HasRatingTask == Guid.Empty, "A Rating Task must be selected." );
+			AddErrorIf( errors, entity.ApplicabilityType == Guid.Empty, "An Applicability Type must be selected." );
+			AddErrorIf( errors, entity.TrainingGapType == Guid.Empty, "A Training Gap Type must be selected." );
+			AddErrorIf( errors, entity.PayGradeType == Guid.Empty, "A Pay Grade Type must be selected." );
+			//Fine to not have a Course Context
+			//Fine to not have a Cluster Analysis
+
+			//TBD - Add duplicate check (probably not necessary?)
+
+			//Return if any errors
+			if( errors.Count() > 0 )
+			{
+				return;
+			}
+
 			SaveCore( entity, userID, "Edit", errors.Add );
 		}
 		//

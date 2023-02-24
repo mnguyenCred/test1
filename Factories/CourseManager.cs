@@ -23,7 +23,7 @@ namespace Factories
         public static new string thisClassName = "CourseManager";
 		//public List<MSc.TrainingTask> AllNewtrainingTasks = new List<MSc.TrainingTask>();
 		//public List<MSc.TrainingTask> AllUpdatedtrainingTasks = new List<MSc.TrainingTask>();
-		#region Course - persistance ==================
+		#region Course - Persistence ==================
 		public static void SaveFromUpload( AppEntity entity, int userID, ChangeSummary summary )
 		{
 			SaveCore( entity, userID, "Upload", summary.AddError );
@@ -32,6 +32,24 @@ namespace Factories
 
 		public static void SaveFromEditor( AppEntity entity, int userID, List<string> errors )
 		{
+			//Validate required fields
+			AddErrorIf( errors, string.IsNullOrWhiteSpace( entity.Name ), "Name must not be empty." );
+			AddErrorIf( errors, string.IsNullOrWhiteSpace( entity.CodedNotation ), "Course Code must not be empty." );
+
+			//Duplicate check
+			DuplicateCheck( "Course", context => context.Course.Where( m => m.RowId != entity.RowId ), errors, new List<StringCheckMapping<DBEntity>>()
+			{
+				new StringCheckMapping<DBEntity>( entity.Name, dbEnt => CompareStrings( entity.Name, dbEnt.Name ), "Name", null ),
+				//new StringCheckMapping<DBEntity>( () => entity.Description, dbEnt => dbEnt.Description, "Description", null ), //Probably okay for this to be the same?
+				new StringCheckMapping<DBEntity>( entity.CodedNotation, dbEnt => CompareStrings( entity.CodedNotation, dbEnt.CodedNotation ), "Course Code", null )
+			} ); //Don't need to check the connections to other objects, since those can be the same across many Courses
+
+			//Return if any errors
+			if( errors.Count() > 0 )
+			{
+				return;
+			}
+
 			SaveCore( entity, userID, "Edit", errors.Add );
 		}
 		//

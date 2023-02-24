@@ -20,7 +20,7 @@ namespace Factories
 		public static new string thisClassName = "ClusterAnalysisTitleManager";
 		public static string cacheKey = "ClusterAnalysisTitleCache";
 
-		#region === Persistance ==================
+		#region === Persistence ==================
 
 		public static void SaveFromUpload( AppEntity entity, int userID, ChangeSummary summary )
 		{
@@ -30,6 +30,20 @@ namespace Factories
 
 		public static void SaveFromEditor( AppEntity entity, int userID, List<string> errors )
 		{
+			//Validate required fields
+			AddErrorIf( errors, string.IsNullOrWhiteSpace( entity.Name ), "Name must not be empty." );
+
+			//Duplicate check
+			DuplicateCheck( "Cluster Analysis Title", context => context.ClusterAnalysisTitle.Where( m => m.RowId != entity.RowId ), errors, new List<StringCheckMapping<DBEntity>>() {
+				new StringCheckMapping<DBEntity>( entity.Name, dbEnt => CompareStrings( entity.Name, dbEnt.Name ), "Name", null )
+			} );
+			
+			//Return if any errors
+			if( errors.Count() > 0 )
+			{
+				return;
+			}
+
 			SaveCore( entity, userID, "Edit", errors.Add );
 		}
 		//

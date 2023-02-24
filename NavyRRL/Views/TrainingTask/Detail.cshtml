@@ -12,7 +12,8 @@
 	Name = "Training Task",
 	PropertyList = new List<NamedString>()
 	{
-		new NamedString( "Description", Model.Description )
+		new NamedString( "Description", Model.Description ),
+		new NamedString( "Related Reference Resource", LinkHelper.GetDetailPageLink( Factories.ReferenceResourceManager.GetByRowId( Model.HasReferenceResource ), Url.Content, m => m.Name + " (" + m.PublicationDate + ")" ) ),
 	}
 } )
 

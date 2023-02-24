@@ -42,9 +42,27 @@ namespace Factories
 
 
 		#region ConceptScheme
-		#region ConceptScheme - Persistance
+		#region ConceptScheme - Persistence
 		public static void SaveFromEditor( AppEntity entity, int userID, List<string> errors )
 		{
+			//Validate required fields
+			AddErrorIf( errors, string.IsNullOrWhiteSpace( entity.Name ), "Name must not be empty." );
+			AddErrorIf( errors, string.IsNullOrWhiteSpace( entity.SchemaUri ), "Schema URI must not be empty." );
+
+			//Duplicate check
+			DuplicateCheck( "Concept Scheme", context => context.ConceptScheme.Where( m => m.RowId != entity.RowId ), errors, new List<StringCheckMapping<DBEntity>>()
+			{
+				new StringCheckMapping<DBEntity>( entity.Name, dbEnt => CompareStrings( entity.Name, dbEnt.Name ), "Name", null ),
+				//new StringCheckMapping<DBEntity>( entity.Description, dbEnt => dbEnt.Description, "Description", null ), //Probably okay for this to be the same?
+				new StringCheckMapping<DBEntity>( entity.SchemaUri, dbEnt => CompareStrings( entity.SchemaUri, dbEnt.SchemaUri ), "Schema URI", null )
+			} );
+
+			//Return if any errors
+			if( errors.Count() > 0 )
+			{
+				return;
+			}
+
 			SaveCore( entity, userID, "Edit", errors.Add );
 		}
 		//

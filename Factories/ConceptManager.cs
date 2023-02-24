@@ -26,7 +26,24 @@ namespace Factories
 		#region Persistence
 		public static void SaveFromEditor( AppEntity entity, int userID, List<string> errors )
 		{
+			//Validate required fields
+			AddErrorIf( errors, string.IsNullOrWhiteSpace( entity.Name ), "Name must not be blank." );
 
+			//Duplicate checks
+			DuplicateCheck( "Concept Scheme", context => context.ConceptScheme_Concept.Where( m => m.RowId != entity.RowId && context.ConceptScheme.FirstOrDefault( n => n.RowId == entity.InScheme && n.Id == m.ConceptSchemeId ) != null ), errors, new List<StringCheckMapping<DBEntity>>()
+			{
+				new StringCheckMapping<DBEntity>( entity.Name, dbEnt => CompareStrings( entity.Name, dbEnt.Name ), "Name", "Another Concept in this Concept Scheme has a matching Name." ),
+				new StringCheckMapping<DBEntity>( entity.CodedNotation, dbEnt => CompareStrings( entity.CodedNotation, dbEnt.CodedNotation ), "Coded Notation", "Another Concept in this Concept Scheme has a matching Code." ),
+				new StringCheckMapping<DBEntity>( entity.WorkElementType, dbEnt => CompareStrings( entity.WorkElementType, dbEnt.WorkElementType ), "Work Element Type", "Another Concept in this Concept Scheme has a matching Work Element Type." )
+			} );
+
+			//Return if any errors
+			if( errors.Count() > 0 )
+			{
+				return;
+			}
+
+			/* Referenced this to create the generic version
 			using (var context = new DataEntities())
 			{
 				var scheme = context.ConceptScheme.FirstOrDefault(m => m.RowId == entity.InScheme);
@@ -50,8 +67,8 @@ namespace Factories
                 if (errors.Count() > 0) {
 					return;
 				}
-
 			}
+			*/
 
             SaveCore( entity, userID, "Edit", errors.Add );
 		}
