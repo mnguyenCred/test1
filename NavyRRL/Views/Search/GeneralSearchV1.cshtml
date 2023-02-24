@@ -49,7 +49,10 @@
 				});
 			} },
 			{ Name: "WorkRole", LabelSingle: "Functional Area", LabelMulti: "Functional Areas" },
-			{ Name: "Organization", LabelSingle: "Organization (CCA)", LabelMulti: "Organizations (CCAs)" },
+			{ Name: "Organization", LabelSingle: "Organization (CCA)", LabelMulti: "Organizations (CCAs)", customRenderResult: function (Result, container) {
+				//container.find(".name").html(Result.Name + (Result.AlternateName ? " (" + Result.AlternateName + ")" : ""));
+				container.find(".description").html("");
+			} },
 			{ Name: "Rating", LabelSingle: "Rating", LabelMulti: "Ratings" },
 			{ Name: "RatingContext", LabelSingle: "Rating Context", LabelMulti: "Rating Contexts", customRenderResult: function (Result, container) {
 				container.find(".codedNotation, .name, .description").html("<div class=\"spinner\"></div>");

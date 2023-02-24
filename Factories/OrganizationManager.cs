@@ -149,8 +149,8 @@ namespace Factories
 				{
 					list = list.Where( m =>
 						m.Name.Contains( keywords ) ||
-						m.AlternateName.Contains(keywords) ||
-						m.Description.Contains(keywords)
+						m.AlternateName.Contains(keywords)// ||
+						//m.Description.Contains(keywords)
 					);
 				}
 
