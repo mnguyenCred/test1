@@ -40,6 +40,7 @@
 				SearchType: "RatingContext",
 				StyleType: "RatingTask",
 				Fields: [
+					{ Label: "Rating Context", RenderPath: ["Id|RatingContext"] },
 					{ Label: "Rating", RenderPath: ["HasRating|Rating", "CodedNotation|Rating"] },
 					{ Label: "Description", RenderPath: ["HasRatingTask|RatingTask", "Description|RatingTask"] },
 					{ Label: "Training Gap", RenderPath: ["TrainingGapType|Concept", "Name|Concept"] },
@@ -53,10 +54,11 @@
 					{ Name: "> CourseContextId > CourseContext:NotNull" }
 				],
 				Fields: [
+					{ Label: "Rating Context", RenderPath: ["Id|RatingContext"] },
+					{ Label: "Course Context", RenderPath: ["HasCourseContext|CourseContext", "Id|CourseContext"] },
 					{ Label: "Rating", RenderPath: ["HasRating|Rating", "CodedNotation|Rating"] },
 					{ Label: "CTTL/PPP/TCCD Statement", RenderPath: [ "HasCourseContext|CourseContext", "HasTrainingTask|TrainingTask", "Description|TrainingTask" ] },
-					{ Label: "Assessment Approach", RenderPath: ["HasCourseContext|CourseContext", "AssessmentMethodType|Concept", "Name|Concept"] },
-					{ Label: "Course Context", RenderPath: ["HasCourseContext|CourseContext", "Id|CourseContext"] }
+					{ Label: "Assessment Approach", RenderPath: ["HasCourseContext|CourseContext", "AssessmentMethodType|Concept", "Name|Concept"] }
 				]
 			}
 		}

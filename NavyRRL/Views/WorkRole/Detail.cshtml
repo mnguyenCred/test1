@@ -48,6 +48,7 @@
 				SearchType: "RatingContext",
 				StyleType: "RatingTask",
 				Fields: [
+					{ Label: "Rating Context", RenderPath: ["Id|RatingContext"] },
 					{ Label: "Rating", RenderPath: ["HasRating|Rating", "CodedNotation|Rating"] },
 					{ Label: "Description", RenderPath: ["HasRatingTask|RatingTask", "Description|RatingTask"] },
 					{ Label: "Training Gap", RenderPath: ["TrainingGapType|Concept", "Name|Concept"] },
@@ -61,6 +62,7 @@
 					{ Name: "> ClusterAnalysisId > ClusterAnalysis:NotNull" }
 				],
 				Fields: [
+					{ Label: "Rating Context", RenderPath: ["Id|RatingContext"] },
 					{ Label: "Rating", RenderPath: ["HasRating|Rating", "CodedNotation|Rating"] },
 					{ Label: "Cluster Analysis", RenderPath: ["HasClusterAnalysis|ClusterAnalysis", "Id|ClusterAnalysis"] },
 					{ Label: "Cluster Analysis Title", RenderPath: ["HasClusterAnalysis|ClusterAnalysis", "HasClusterAnalysisTitle|ClusterAnalysisTitle", "Name|ClusterAnalysisTitle"] },

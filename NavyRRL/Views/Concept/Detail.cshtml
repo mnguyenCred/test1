@@ -41,6 +41,7 @@
 				SearchType: "RatingContext",
 				StyleType: "RatingTask",
 				Fields: [
+					{ Label: "Rating Context", RenderPath: ["Id|RatingContext"] },
 					{ Label: "Rating", RenderPath: ["HasRating|Rating", "CodedNotation|Rating"] },
 					{ Label: "Description", RenderPath: ["HasRatingTask|RatingTask", "Description|RatingTask"] },
 					{ Label: "Training Gap", RenderPath: ["TrainingGapType|Concept", "Name|Concept"] },
