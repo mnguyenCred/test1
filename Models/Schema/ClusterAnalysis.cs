@@ -7,7 +7,10 @@ using System.Threading.Tasks;
 namespace Models.Schema
 {
     public class ClusterAnalysis : BaseObject
-    {
+	{
+		//Equivalent RDF Type
+		public const string RDFType = "navy:ClusterAnalysis";
+
 		public ClusterAnalysis()
 		{
 			CandidatePlatformType = new List<Guid>();

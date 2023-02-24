@@ -23,6 +23,7 @@ namespace NavyRRL.Controllers
 
 		public ActionResult DoSearch( SearchQuery query )
 		{
+			AuthenticateOrRedirect( "You must be authenticated and authorized to view Rating Task data." );
 			var results = SearchServices.RatingTaskSearch( query );
 
 			return JsonResponse( results, true );
@@ -90,7 +91,8 @@ namespace NavyRRL.Controllers
 				return JsonResponse( null, false, new List<string>() { "Deleting data requires administrator privileges." } );
 			}
 
-			return JsonResponse( null, false, new List<string>() { "This feature is not implemented yet." } );
+			var result = Factories.RatingTaskManager.DeleteById( id );
+			return JsonResponse( result, result.Successful, result.Messages );
 		}
 		//
 	}

@@ -19,7 +19,7 @@ namespace Factories
         public static new string thisClassName = "JobManager";
         public static string cacheKey = "JobCache";
 
-		#region === persistance ==================
+		#region === Persistence ==================
 		public static void SaveFromUpload( AppEntity entity, int userID, ChangeSummary summary )
 		{
 			SaveCore( entity, userID, "Upload", summary.AddError );
@@ -28,9 +28,32 @@ namespace Factories
 
 		public static void SaveFromEditor( AppEntity entity, int userID, List<string> errors )
 		{
+			//Validate required fields
+			AddErrorIf( errors, string.IsNullOrWhiteSpace( entity.Name ), "Name must not be empty." );
+
+			//Duplicate checks
+			DuplicateCheck( "Billet Title", context => context.Job.Where( m => m.RowId != entity.RowId ), errors, new List<StringCheckMapping<DBEntity>>()
+			{
+				new StringCheckMapping<DBEntity>( entity.Name, dbEnt => CompareStrings( entity.Name, dbEnt.Name ), "Name" )
+			} );
+
+			//Return if any errors
+			if( errors.Count() > 0 )
+			{
+				return;
+			}
+
 			SaveCore( entity, userID, "Edit", errors.Add );
 		}
 		//
+
+		public static void Dupe2( IQueryable<DBEntity> haystack, string entValue, Func<DBEntity, bool> GetDBValue )
+		{
+			if( haystack.Where( GetDBValue ).Count() > 0 )
+			{
+
+			}
+		}
 
 		private static void SaveCore( AppEntity entity, int userID, string saveType, Action<string> AddErrorMethod )
 		{
@@ -38,6 +61,22 @@ namespace Factories
 			{
 				BasicSaveCore( context, entity, context.Job, userID, ( ent, dbEnt ) => { }, ( ent, dbEnt ) => { }, saveType, AddErrorMethod );
 			}
+		}
+		//
+
+		public static DeleteResult DeleteById( int id )
+		{
+			return BasicDeleteCore( "Billet Title", context => context.Job, id, "> BilletTitleId > Job", ( context, list, target ) => 
+			{
+				//Check for references from Cluster Analysis objects
+				var clusterAnalysisContextCount = context.ClusterAnalysis.Where( m => m.BilletTitleId == id ).Count();
+				if ( clusterAnalysisContextCount > 0 )
+				{
+					return new DeleteResult( false, "This Billet Title is referenced by " + clusterAnalysisContextCount + " Cluster Analysis objects, so it cannot be deleted." );
+				}
+
+				return null;
+			} );
 		}
 		//
 

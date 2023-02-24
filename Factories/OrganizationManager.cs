@@ -18,7 +18,7 @@ namespace Factories
     {
         public static new string thisClassName = "OrganizationManager";
         public static string cacheKey = "OrganizationCache";
-        #region Organization - persistance ==================
+        #region Organization - Persistence ==================
 		public static void SaveFromUpload( AppEntity entity, int userID, ChangeSummary summary )
 		{
 			SaveCore( entity, userID, "Upload", summary.AddError );
@@ -27,6 +27,24 @@ namespace Factories
 
 		public static void SaveFromEditor( AppEntity entity, int userID, List<string> errors )
 		{
+			//Validate required fields
+			AddErrorIf( errors, string.IsNullOrWhiteSpace( entity.Name ), "Name must not be blank." );
+			AddErrorIf( errors, string.IsNullOrWhiteSpace( entity.AlternateName ), "Alternate Name must not be blank." );
+
+			//Duplicate checks
+			DuplicateCheck( "Organization", context => context.Organization.Where( m => m.RowId != entity.RowId ), errors, new List<StringCheckMapping<DBEntity>>()
+			{
+				new StringCheckMapping<DBEntity>( entity.Name, dbEnt => CompareStrings( entity.Name, dbEnt.Name ), "Name", null ),
+				//new StringCheckMapping<DBEntity>( entity.Description, dbEnt => dbEnt.Description, "Description", null ), //Probably okay for this to be the same?
+				//new StringCheckMapping<DBEntity>( entity.AlternateName, dbEnt => dbEnt.AlternateName, "Alternate Name", null ) //Allow same until we are told otherwise
+			} );
+
+			//Return if any errors
+			if( errors.Count() > 0 )
+			{
+				return;
+			}
+
 			SaveCore( entity, userID, "Edit", errors.Add );
 		}
 		//
@@ -42,8 +60,9 @@ namespace Factories
 
 		public static DeleteResult DeleteById( int id )
 		{
-			return BasicDeleteCore( "Organization", context => context.Organization, id, "> CourseContextId > CourseContext > HasCourseId > Course > CurriculumControlAuthorityId > Organization", ( context, organizations, organization ) => {
-				//Check for references from courses
+			return BasicDeleteCore( "Organization", context => context.Organization, id, "> CourseContextId > CourseContext > HasCourseId > Course > CurriculumControlAuthorityId > Organization", ( context, list, target ) => 
+			{
+				//Check for references from Courses
 				var coursesCount = context.Course.Where( m => m.CurriculumControlAuthorityId == id ).Count();
 				if ( coursesCount > 0 )
 				{
@@ -130,8 +149,8 @@ namespace Factories
 				{
 					list = list.Where( m =>
 						m.Name.Contains( keywords ) ||
-						m.AlternateName.Contains(keywords) ||
-						m.Description.Contains(keywords)
+						m.AlternateName.Contains(keywords)// ||
+						//m.Description.Contains(keywords)
 					);
 				}
 

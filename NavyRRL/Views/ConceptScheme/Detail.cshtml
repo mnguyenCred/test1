@@ -32,7 +32,7 @@
 			</tr>
 		</thead>
 		<tbody>
-			@foreach ( var item in Model.Concepts?.ToList() ?? new List<Concept>() )
+			@foreach ( var item in (Model.Concepts?.ToList() ?? new List<Concept>()).OrderBy( m => ( m.CodedNotation ?? "" ) ).ThenBy( m => ( m.Name ?? "" ) ).ThenBy( m => ( m.WorkElementType ?? "" ) ).ToList() )
 			{
 				<tr>
 					<td><a href="@Url.Content( "~/Concept/Detail/" + item.Id )">@item.Name</a></td>

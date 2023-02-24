@@ -23,6 +23,7 @@ namespace NavyRRL.Controllers
 
 		public ActionResult DoSearch( SearchQuery query )
 		{
+			AuthenticateOrRedirect( "You must be authenticated and authorized to view Organization data." );
 			var results = SearchServices.OrganizationSearch( query );
 
 			return JsonResponse( results, true );

@@ -9,6 +9,9 @@ namespace Models.Schema
 	/// </summary>
 	public class ReferenceResource : BaseObject
 	{
+		//Equivalent RDF Type
+		public const string RDFType = "navy:ReferenceResource";
+
 		public ReferenceResource()
 		{
 			ReferenceType = new List<Guid>();

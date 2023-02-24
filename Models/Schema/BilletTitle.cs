@@ -8,6 +8,9 @@ namespace Models.Schema
 {
 	public class BilletTitle : BaseObject
 	{
+		//Equivalent RDF Type
+		public const string RDFType = "ceterms:Job";
+
 		/// <summary>
 		/// Name of the Billet Title<br />
 		/// From Column: Billet Title

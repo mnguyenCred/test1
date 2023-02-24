@@ -31,6 +31,37 @@ namespace Factories
 
 		public static void SaveFromEditor( AppEntity entity, int userID, List<string> errors )
 		{
+			//Validate required fields
+			AddErrorIf( errors, string.IsNullOrWhiteSpace( entity.Name ), "Name must not be blank." );
+			AddErrorIf( errors, string.IsNullOrWhiteSpace( entity.PublicationDate ), "Publication Date must not be blank." );
+			AddErrorIf( errors, entity.ReferenceType.Count() == 0, "One or more Reference Types must be selected." );
+
+			//Return early if any errors to avoid errors in the next section
+			if( errors.Count() > 0 )
+			{
+				return;
+			}
+
+			//Duplicate checks
+			DuplicateCheck( "Reference Resource", context => context.ReferenceResource.Where( m => m.RowId != entity.RowId ), errors, null, ( haystack, context ) =>
+			{
+				//Custom handling because multiple Reference Resources can have the same name as long as they have different dates
+				if ( haystack.Where( m =>
+					 m.Name.ToLower() == entity.Name.ToLower() &&
+					 m.PublicationDate.ToLower() == entity.PublicationDate.ToLower() &&
+					 m.ReferenceResource_ReferenceType.Select( n => n.ConceptScheme_Concept_ReferenceType.RowId ).Intersect( entity.ReferenceType ).Count() == entity.ReferenceType.Count()
+				).Count() > 0 )
+				{
+					errors.Add( "Another Reference Resource with the same Name, Publication Date, and Reference Type(s) already exists in the system." );
+				}
+			} );
+
+			//Return if any errors
+			if ( errors.Count() > 0 )
+			{
+				return;
+			}
+
 			SaveCore( entity, userID, "Edit", errors.Add );
 		}
 		//
@@ -46,9 +77,32 @@ namespace Factories
 		}
 		//
 
-        #endregion
+		public static DeleteResult DeleteById( int id )
+		{
+			return BasicDeleteCore( "Reference Resource", context => context.ReferenceResource, id, "> RatingTaskId > RatingTask > ReferenceResourceId > ReferenceResource", ( context, list, target ) =>
+			{
+				//Check for references from Rating Tasks
+				var ratingTaskCount = context.RatingTask.Where( m => m.ReferenceResourceId == id ).Count();
+				if ( ratingTaskCount > 0 )
+				{
+					return new DeleteResult( false, "This Reference Resource is the source for " + ratingTaskCount + " Rating Tasks, so it cannot be deleted." );
+				}
 
-        #region Retrieval
+				//Check for references from Training Tasks
+				var trainingTaskCount = context.TrainingTask.Where( m => m.ReferenceResourceId == id ).Count();
+				if ( trainingTaskCount > 0 )
+				{
+					return new DeleteResult( false, "This Reference Resource is used to derive the uniqueness of " + trainingTaskCount + " Training Tasks, so it cannot be deleted." );
+				}
+
+				return null;
+			} );
+		}
+		//
+
+		#endregion
+
+		#region Retrieval
 		public static AppEntity GetSingleByFilter( Func<DBEntity, bool> FilterMethod, bool returnNullIfNotFound = false )
 		{
 			return GetSingleByFilter<DBEntity, AppEntity>( context => context.ReferenceResource, FilterMethod, MapFromDB, returnNullIfNotFound );

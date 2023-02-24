@@ -6,6 +6,9 @@ namespace Models.Schema
 {
 	public class WorkRole : BaseObject
 	{
+		//Equivalent RDF Type
+		public const string RDFType = "ceterms:WorkRole";
+
 		/// <summary>
 		/// Name of this Work Role<br />
 		/// From Column: Functional Area

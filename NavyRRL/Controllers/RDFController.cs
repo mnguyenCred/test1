@@ -8,6 +8,8 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Services;
 using Models.Schema;
+using Models.Utilities;
+using Models.Search;
 
 namespace NavyRRL.Controllers
 {
@@ -38,6 +40,28 @@ namespace NavyRRL.Controllers
 			return ValidateAPIKeyIfPresent( () => {
 				AuthenticateOrRedirect( "You must be authenticated and authorized to view this data.", true, "~/rdf/error/notauthenticated" );
 				return RawJSONResponse( RDFServices.GetSchema() );
+			} );
+		}
+		//
+
+		[Route("rdf/terms/json/{prefix}/{term}")]
+		public ActionResult GetTerm( string prefix, string term )
+		{
+			return ValidateAPIKeyIfPresent( () => {
+				AuthenticateOrRedirect( "You must be authenticated and authorized to view this data.", true, "~/rdf/error/notauthenticated" );
+				var termURI = prefix + ":" + term;
+				var matchingTerm = RDFServices.GetSchema()[ "@graph" ].FirstOrDefault( m => m[ "@id" ].ToString() == prefix + ":" + term );
+				if( matchingTerm == null )
+				{
+					Response.StatusCode = 404;
+					return RawJSONResponse( new JObject() { { "error", "Term not found" } } );
+				}
+				else
+				{
+					( ( JObject ) matchingTerm ).AddFirst( new JProperty( "@context", RDFServices.GetContextURL() ) );
+				}
+
+				return RawJSONResponse( (JObject) matchingTerm );
 			} );
 		}
 		//
@@ -86,6 +110,19 @@ namespace NavyRRL.Controllers
 		}
 		//
 
+		[Route("rdf/search")]
+		public ActionResult Search( RDF.RDFQuery query )
+		{
+			return ValidateAPIKeyIfPresent( () =>
+			{
+				AuthenticateOrRedirect( "You must be authenticated and authorized to perform a search.", true, "~/rdf/error/notauthenticated" );
+
+				var results = RDFServices.RDFSearch( query );
+				return JsonResponse( results.Data, results.Valid, string.IsNullOrWhiteSpace( results.Status ) ? null : new List<string>() { results.Status } );
+			} );
+		}
+		//
+
 		private ActionResult ValidateAPIKeyIfPresent( Func<ActionResult> Continue )
 		{
 			//Validate API key if present
@@ -101,13 +138,14 @@ namespace NavyRRL.Controllers
 				}
 				else
 				{
-					return JsonResponse( null, false, new List<string>() { result.Status } );
+					return JsonResponse( null, false, string.IsNullOrWhiteSpace( result.Status ) ? null : new List<string>() { result.Status } );
 				}
 			}
 
 			return Continue();
 		}
 		//
+
 
 	}
 }

@@ -69,6 +69,57 @@ namespace Factories
 		}
 		//
 
+		public static void AddErrorIf( List<string> errors, bool condition, string errorMessage )
+		{
+			if ( condition )
+			{
+				errors.Add( errorMessage );
+			}
+		}
+
+		public static bool CompareStrings( string stringOne, string stringTwo )
+		{
+			return string.Equals( stringOne, stringTwo, StringComparison.OrdinalIgnoreCase );
+		}
+		//
+
+		public static void DuplicateCheck<T2>( string typeLabel, Func<DataEntities, IQueryable<T2>> GetHaystackMethod, List<string> errors, List<StringCheckMapping<T2>> checkStrings = null, Action<IQueryable<T2>, DataEntities> ExtraChecksMethod = null ) where T2 : class, DBEntityBaseObject
+		{
+			using ( var context = new DataEntities() )
+			{
+				var haystack = GetHaystackMethod( context );
+
+				foreach ( var item in checkStrings ?? new List<StringCheckMapping<T2>>() )
+				{
+					if ( !string.IsNullOrWhiteSpace( item.SourceValue ) )
+					{
+						if( haystack.Where( item.CompareMethod ).Count() > 0 )
+						{
+							errors.Add( item.CustomErrorMessage ?? "Another " + typeLabel + " has a matching " + item.PropertyLabel + "." );
+						}
+					}
+				}
+
+				ExtraChecksMethod?.Invoke( haystack, context );
+			}
+		}
+		public class StringCheckMapping<T2> where T2 : class, DBEntityBaseObject
+		{
+			public StringCheckMapping( string sourceValue, Func<T2, bool> compareMethod, string propertyLabel, string customErrorMessage = null )
+			{
+				SourceValue = sourceValue;
+				CompareMethod = compareMethod;
+				PropertyLabel = propertyLabel;
+				CustomErrorMessage = customErrorMessage;
+			}
+			public string SourceValue { get; set; }
+			public Func<T2, bool> CompareMethod { get; set; }
+			public string PropertyLabel { get; set; }
+			public string CustomErrorMessage { get; set; }
+		}
+		//
+
+
 		public static void BasicSaveCore<T1, T2>( DataEntities context, T1 entity, DbSet<T2> contextDBEntityList, int userID, Action<T1, T2> UpdateBeforeInitialSaveMethod, Action<T1, T2> UpdateBeforeSecondSaveMethod, string eventAction, Action<string> AddErrorMethod ) where T1 : Models.Schema.BaseObject where T2 : class, DBEntityBaseObject, new()
 		{
 			//Do not allow anything to be saved with a value of "N/A"
@@ -255,7 +306,7 @@ namespace Factories
 				var totalResults = RatingContextManager.Search( new SearchQuery() { Skip = 0, Take = 0, Filters = new List<SearchFilter>() { new SearchFilter() { Name = searchFilterNameOrNull, ItemIds = new List<int>() { entityID } } } } ).TotalResults;
 				if( totalResults > 0 )
 				{
-					return new DeleteResult( false, "The target " + entityTypeLabel + " is referenced by " + totalResults + " Rating Context objects and cannot be deleted." );
+					return new DeleteResult( false, "The target " + entityTypeLabel + " is referenced by " + totalResults + " Rating Context object(s) and cannot be deleted." );
 				}
 			}
 

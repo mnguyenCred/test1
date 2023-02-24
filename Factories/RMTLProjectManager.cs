@@ -39,6 +39,16 @@ namespace Factories
 		}
 		//
 
+		public static DeleteResult DeleteById( int id )
+		{
+			return BasicDeleteCore( "RMTL Project", context => context.RMTLProject, id, "", ( context, list, target ) =>
+			{
+				//TBD
+				return null;
+			} );
+		}
+		//
+
 		#endregion
 
 		#region Retrieval

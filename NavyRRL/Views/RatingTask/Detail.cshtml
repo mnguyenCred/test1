@@ -14,7 +14,7 @@
 	{
 		new NamedString( "Description", Model.Description ),
 		new NamedString( "Source", LinkHelper.GetDetailPageLink( Factories.ReferenceResourceManager.GetByRowId( Model.HasReferenceResource ), Url.Content, m => m.Name + " (" + m.PublicationDate + ")" ) ),
-		new NamedString("Reference Type", LinkHelper.GetDetailPageLink( Factories.ConceptManager.GetByRowId( Model.ReferenceType ), Url.Content, m => m.Name ) )
+		new NamedString( "Reference Type", LinkHelper.GetDetailPageLink( Factories.ConceptManager.GetByRowId( Model.ReferenceType ), Url.Content, m => m.Name ) )
 	}
 } )
 
@@ -30,6 +30,7 @@
 				SearchType: "RatingContext",
 				StyleType: "Rating",
 				Fields: [
+					{ Label: "Rating Context", RenderPath: ["Id|RatingContext"] },
 					{ Label: "Rating", RenderPath: ["HasRating|Rating", "CodedNotation|Rating"] },
 					{ Label: "Rating Name", RenderPath: ["HasRating|Rating", "Name|Rating"], AsPlainText: true },
 					{ Label: "Training Gap", RenderPath: ["TrainingGapType|Concept", "Name|Concept"] }
@@ -40,6 +41,7 @@
 				SearchType: "RatingContext",
 				StyleType: "BilletTitle",
 				Fields: [
+					{ Label: "Rating Context", RenderPath: ["Id|RatingContext"] },
 					{ Label: "Rating", RenderPath: ["HasRating|Rating", "CodedNotation|Rating"] },
 					{ Label: "Billet Title", RenderPath: ["HasBilletTitle|BilletTitle", "Name|BilletTitle"] },
 					{ Label: "Training Gap", RenderPath: ["TrainingGapType|Concept", "Name|Concept"] }
@@ -50,6 +52,7 @@
 				SearchType: "RatingContext",
 				StyleType: "WorkRole",
 				Fields: [
+					{ Label: "Rating Context", RenderPath: ["Id|RatingContext"] },
 					{ Label: "Rating", RenderPath: ["HasRating|Rating", "CodedNotation|Rating"] },
 					{ Label: "Functional Area", RenderPath: ["HasWorkRole|WorkRole", "Name|WorkRole"] },
 					{ Label: "Training Gap", RenderPath: ["TrainingGapType|Concept", "Name|Concept"] }
@@ -63,6 +66,7 @@
 					{ Name: "> CourseContextId > CourseContext:NotNull" }
 				],
 				Fields: [
+					{ Label: "Rating Context", RenderPath: ["Id|RatingContext"] },
 					{ Label: "Rating", RenderPath: ["HasRating|Rating", "CodedNotation|Rating"] },
 					{ Label: "Course Code", RenderPath: ["HasCourseContext|CourseContext", "HasCourse|Course", "CodedNotation|Course"] },
 					{ Label: "Training Task", RenderPath: ["HasCourseContext|CourseContext", "HasTrainingTask|TrainingTask", "Description|TrainingTask"] },
@@ -76,6 +80,7 @@
 					{ Name: "> ClusterAnalysisId > ClusterAnalysis:NotNull" }
 				],
 				Fields: [
+					{ Label: "Rating Context", RenderPath: ["Id|RatingContext"] },
 					{ Label: "Rating", RenderPath: ["HasRating|Rating", "CodedNotation|Rating"] },
 					{ Label: "Cluster Analysis Title", RenderPath: ["HasClusterAnalysis|ClusterAnalysis", "HasClusterAnalysisTitle|ClusterAnalysisTitle", "Name|ClusterAnalysisTitle"] },
 					{ Label: "Cluster Analysis Details", RenderPath: ["HasClusterAnalysis|ClusterAnalysis", "Id|ClusterAnalysis"], OverrideText: "Cluster Analysis Details" },
@@ -95,6 +100,7 @@
 				SearchType: "RatingContext",
 				StyleType: "RatingContext",
 				Fields: [
+					{ Label: "Rating Context", RenderPath: ["Id|RatingContext"] },
 					{ Label: "Rating", RenderPath: ["HasRating|Rating", "CodedNotation|Rating"] },
 					{ Label: "Pay Grade Level", RenderPath: ["PayGradeLevelType|Concept", "Name|Concept"] },
 					{ Label: "Pay Grade", RenderPath: ["PayGradeType|Concept", "CodedNotation|Concept"] },
