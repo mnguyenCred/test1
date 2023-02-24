@@ -30,6 +30,12 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Database", "Database", "{E7
 		Database\Navy_RRL_V2_backup_empty.zip = Database\Navy_RRL_V2_backup_empty.zip
 	EndProjectSection
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "DevSecOpps", "DevSecOpps", "{D9BF4CB1-ECE8-493D-9AF0-41D5B3E30BF4}"
+	ProjectSection(SolutionItems) = preProject
+		DevSecOpps\DevSecOpps deploy notes 23-01-19.txt = DevSecOpps\DevSecOpps deploy notes 23-01-19.txt
+		DevSecOpps\DevSecOpps deploy notes 23-02-06.txt = DevSecOpps\DevSecOpps deploy notes 23-02-06.txt
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
