@@ -25,6 +25,7 @@ namespace NavyRRL.Controllers
 
 		public ActionResult DoSearch( SearchQuery query )
 		{
+			AuthenticateOrRedirect( "You must be authenticated and authorized to view RMTL Project data." );
 			var results = SearchServices.RMTLProjectSearch( query );
 
 			return JsonResponse( results, true );
@@ -84,7 +85,8 @@ namespace NavyRRL.Controllers
 				return JsonResponse( null, false, new List<string>() { "Deleting data requires administrator privileges." } );
 			}
 
-			return JsonResponse( null, false, new List<string>() { "This feature is not implemented yet." } );
+			var result = Factories.RMTLProjectManager.DeleteById( id );
+			return JsonResponse( result, result.Successful, result.Messages );
 		}
 		//
 	}

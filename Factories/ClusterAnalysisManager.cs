@@ -19,7 +19,7 @@ namespace Factories
     {
         public static new string thisClassName = "ClusterAnalysisManager";
 
-		#region ClusterAnalysis - persistance ==================
+		#region ClusterAnalysis - Persistence ==================
 		public static void SaveFromUpload( AppEntity entity, int userID, ChangeSummary summary )
 		{
 			SaveCore( entity, userID, "Upload", summary.AddError );
@@ -28,6 +28,51 @@ namespace Factories
 
 		public static void SaveFromEditor( AppEntity entity, int userID, List<string> errors )
 		{
+			//Validate required fields
+			AddErrorIf( errors, entity.HasRatingTask == Guid.Empty, "A Rating Task must be selected." );
+			AddErrorIf( errors, entity.HasRating == Guid.Empty, "A Rating must be selected." );
+			AddErrorIf( errors, entity.HasBilletTitle == Guid.Empty, "A Billet Title must be selected." );
+			AddErrorIf( errors, entity.HasWorkRole == Guid.Empty, "A Functional Area must be selected." );
+			AddErrorIf( errors, entity.HasClusterAnalysisTitle == Guid.Empty, "A Cluster Analysis Title must be selected." );
+			AddErrorIf( errors, entity.TrainingSolutionType == Guid.Empty, "A Training Solution Type must be selected." );
+			AddErrorIf( errors, entity.RecommendedModalityType == Guid.Empty, "A Recommended Modality Type must be selected." );
+			AddErrorIf( errors, entity.DevelopmentSpecificationType == Guid.Empty, "A Development Specification Type must be selected." );
+			AddErrorIf( errors, entity.DevelopmentRatioType == Guid.Empty, "A Development Ratio Type must be selected." );
+			AddErrorIf( errors, entity.CandidatePlatformType.Count() == 0, "One or more Candidate Platform Types must be selected." );
+			AddErrorIf( errors, entity.CFMPlacementType.Count() == 0, "One or more CFM Placement Types must be selected." );
+
+			//Return early if anything is blank to avoid errors in the next section
+			if ( errors.Count() > 0 )
+			{
+				return;
+			}
+
+			//Duplicate check
+			DuplicateCheck( "Cluster Analysis", context => context.ClusterAnalysis.Where( m => m.RowId != entity.RowId ), errors, null, ( haystack, context ) =>
+			{
+				if ( haystack.Where( m =>
+					m.RatingTask.RowId == entity.HasRatingTask &&
+					m.Rating.RowId == entity.HasRating &&
+					m.Job.RowId == entity.HasBilletTitle &&
+					m.WorkRole.RowId == entity.HasWorkRole &&
+					m.ClusterAnalysisTitle.RowId == entity.HasClusterAnalysisTitle &&
+					m.ConceptScheme_Concept_TrainingSolutionType.RowId == entity.TrainingSolutionType &&
+					m.ConceptScheme_Concept_RecommendedModalityType.RowId == entity.RecommendedModalityType &&
+					m.ConceptScheme_Concept_DevelopmentSpecificationType.RowId == entity.DevelopmentSpecificationType &&
+					m.ConceptScheme_Concept_DevelopmentRatioType.RowId == entity.DevelopmentRatioType &&
+					m.ClusterAnalysis_HasCandidatePlatform.Select( n => n.ConceptScheme_Concept.RowId ).Intersect( entity.CandidatePlatformType ).Count() == entity.CandidatePlatformType.Count() &&
+					m.ClusterAnalysis_CFMPlacementType.Select( n => n.ConceptScheme_Concept.RowId ).Intersect( entity.CFMPlacementType ).Count() == entity.CFMPlacementType.Count()
+				).Count() > 0 )
+				{
+					errors.Add( "Another Cluster Analysis with identical values for all fields already exists in the system." );
+				}
+			} );
+
+			//Return if any errors
+			if ( errors.Count() > 0 ) {
+				return;
+			}
+
 			SaveCore( entity, userID, "Edit", errors.Add );
 		}
 		//
@@ -56,8 +101,18 @@ namespace Factories
 		}
 		//
 
-        #endregion
-        #region Retrieval
+		public static DeleteResult DeleteById( int id )
+		{
+			return BasicDeleteCore( "Cluster Analysis", context => context.ClusterAnalysis, id, "> ClusterAnalysisId > ClusterAnalysis", ( context, list, target ) => 
+			{
+				//Nothing else references a Cluster Analysis, so just return null
+				return null;
+			} );
+		}
+		//
+
+		#endregion
+		#region Retrieval
 
 		public static AppEntity GetForUploadOrNull( Guid ratingRowID, Guid ratingTaskRowID, Guid billetTitleRowID, Guid workRoleRowID, Guid clusterAnalysisTitleRowID )
 		{

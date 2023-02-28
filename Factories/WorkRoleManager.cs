@@ -29,6 +29,21 @@ namespace Factories
 
 		public static void SaveFromEditor( AppEntity entity, int userID, List<string> errors )
 		{
+			//Validate required fields
+			AddErrorIf( errors, string.IsNullOrWhiteSpace( entity.Name ), "Name must not be blank." );
+
+			//Duplicate checks
+			DuplicateCheck( "Functional Area", context => context.WorkRole.Where( m => m.RowId != entity.RowId ), errors, new List<StringCheckMapping<DBEntity>>()
+			{
+				new StringCheckMapping<DBEntity>( entity.Name, dbEnt => CompareStrings( entity.Name, dbEnt.Name ), "Name", null )
+			} );
+
+			//Return if any errors
+			if( errors.Count() > 0 )
+			{
+				return;
+			}
+
 			SaveCore( entity, userID, "Edit", errors.Add );
 		}
 		//
@@ -42,9 +57,24 @@ namespace Factories
 		}
 		//
 
-        #endregion
+		public static DeleteResult DeleteById( int id )
+		{
+			return BasicDeleteCore( "Functional Area", context => context.WorkRole, id, "> WorkRoleId > WorkRole", ( context, list, target ) => {
+				//Check for references from Cluster Analysis objects
+				var clusterAnalysisContextCount = context.ClusterAnalysis.Where( m => m.WorkRoleId == id ).Count();
+				if ( clusterAnalysisContextCount > 0 )
+				{
+					return new DeleteResult( false, "This Functional Area is referenced by " + clusterAnalysisContextCount + " Cluster Analysis objects, so it cannot be deleted." );
+				}
 
-        #region Retrieval
+				return null;
+			} );
+		}
+		//
+
+		#endregion
+
+		#region Retrieval
 		public static AppEntity GetSingleByFilter( Func<DBEntity, bool> FilterMethod, bool returnNullIfNotFound = false )
 		{
 			return GetSingleByFilter<DBEntity, AppEntity>( context => context.WorkRole, FilterMethod, MapFromDB, returnNullIfNotFound );

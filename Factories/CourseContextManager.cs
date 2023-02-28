@@ -21,7 +21,7 @@ namespace Factories
     public class CourseContextManager : BaseFactory
     {
         public static new string thisClassName = "CourseContextManager";
-		#region CourseContext - persistance ==================
+		#region CourseContext - Persistence ==================
 		public static void SaveFromUpload( AppEntity entity, int userID, ChangeSummary summary )
 		{
 			SaveCore( entity, userID, "Upload", summary.AddError );
@@ -30,6 +30,36 @@ namespace Factories
 
 		public static void SaveFromEditor( AppEntity entity, int userID, List<string> errors )
 		{
+			//Validate required fields
+			AddErrorIf( errors, entity.HasCourse == Guid.Empty, "A Course must be selected." );
+			AddErrorIf( errors, entity.HasTrainingTask == Guid.Empty, "A Training Task must be selected." );
+			AddErrorIf( errors, entity.AssessmentMethodType.Count() == 0, "One or more Assessment Methods must be selected." );
+
+			//Return early if anything is blank to avoid errors in the next section
+			if( errors.Count() > 0 )
+			{
+				return;
+			} 
+
+			//Duplicate check
+			DuplicateCheck( "Course Context", context => context.CourseContext.Where( m => m.RowId != entity.RowId ), errors, null, ( haystack, context ) =>
+			{
+				if ( haystack.Where( m =>
+					m.Course.RowId == entity.HasCourse &&
+					m.TrainingTask.RowId == entity.HasTrainingTask &&
+					m.CourseContext_AssessmentType.Select( n => n.ConceptScheme_Concept.RowId ).Intersect( entity.AssessmentMethodType ).Count() == entity.AssessmentMethodType.Count()
+				).Count() > 0 )
+				{
+					errors.Add( "A Course Context with identical values for all fields already exists in the system." );
+				}
+			} );
+
+			//Return if any errors
+			if( errors.Count() > 0 )
+			{
+				return;
+			}
+
 			SaveCore( entity, userID, "Edit", errors.Add );
 		}
 		//
@@ -48,9 +78,19 @@ namespace Factories
 		}
 		//
 
-        #endregion
+		public static DeleteResult DeleteById( int id )
+		{
+			return BasicDeleteCore( "Course Context", context => context.CourseContext, id, "> CourseContextId > CourseContext", ( context, list, target ) =>
+			{
+				//Nothing else references a Course Context, so just return null
+				return null;
+			} );
+		}
+		//
 
-        #region Retrieval
+		#endregion
+
+		#region Retrieval
 		public static AppEntity GetSingleByFilter( Func<DBEntity, bool> FilterMethod, bool returnNullIfNotFound = false )
 		{
 			return GetSingleByFilter<DBEntity, AppEntity>( context => context.CourseContext, FilterMethod, MapFromDB, returnNullIfNotFound );

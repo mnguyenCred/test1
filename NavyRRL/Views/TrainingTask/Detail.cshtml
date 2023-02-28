@@ -12,7 +12,8 @@
 	Name = "Training Task",
 	PropertyList = new List<NamedString>()
 	{
-		new NamedString( "Description", Model.Description )
+		new NamedString( "Description", Model.Description ),
+		new NamedString( "Related Reference Resource", LinkHelper.GetDetailPageLink( Factories.ReferenceResourceManager.GetByRowId( Model.HasReferenceResource ), Url.Content, m => m.Name + " (" + m.PublicationDate + ")" ) ),
 	}
 } )
 
@@ -47,12 +48,13 @@
 				SearchType: "RatingContext",
 				StyleType: "RatingContext",
 				Fields: [
+					{ Label: "Rating Context", RenderPath: ["Id|RatingContext"] },
+					{ Label: "Course Context", RenderPath: ["HasCourseContext|CourseContext", "Id|CourseContext"] },
 					{ Label: "Rating", RenderPath: ["HasRating|Rating", "CodedNotation|Rating"] },
 					{ Label: "Rating Task", RenderPath: ["HasRatingTask|RatingTask", "Description|RatingTask"] },
 					{ Label: "Course Code", RenderPath: [ "HasCourseContext|CourseContext", "HasCourse|Course", "CodedNotation|Course" ] },
 					//{ Label: "Course", RenderPath: [ "HasCourseContext|CourseContext", "HasCourse|Course", "Name|Course" ], AsPlainText: true },
-					{ Label: "Assessment Approach", RenderPath: ["HasCourseContext|CourseContext", "AssessmentMethodType|Concept", "Name|Concept"] },
-					{ Label: "Course Context", RenderPath: ["HasCourseContext|CourseContext", "Id|CourseContext"] }
+					{ Label: "Assessment Approach", RenderPath: ["HasCourseContext|CourseContext", "AssessmentMethodType|Concept", "Name|Concept"] }
 				]
 			}
 		}
@@ -65,6 +67,7 @@
 	//
 </script>
 <style type="text/css">
+	table [data-column='Course Context'] { width: 125px; }
 	table[data-styletype='RatingTask'] [data-column='Rating'] { width: 75px; }
 	table[data-styletype='RatingTask'] [data-column='Training Gap'] { width: 100px; margin-left: auto; }
 	table[data-styletype='RatingContext'] [data-column='Assessment Approach'] a { display: block; }

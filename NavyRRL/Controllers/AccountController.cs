@@ -18,6 +18,9 @@ using System.Collections.Generic;
 using Factories;
 using Models.Schema;
 using Data.Tables;
+using Newtonsoft.Json;
+using System.Web.Security;
+using System.Web.Services.Description;
 
 namespace NavyRRL.Controllers
 {
@@ -98,7 +101,7 @@ namespace NavyRRL.Controllers
                 }
                 //create
                 string statusMessage = "";
-                var user = new ApplicationUser
+                var appUser = new ApplicationUser
                 {
                     UserName = model.Email.Trim(),
                     Email = model.Email.Trim(),
@@ -113,20 +116,18 @@ namespace NavyRRL.Controllers
                         model.Password = System.Web.Security.Membership.GeneratePassword( 12, 3 );
                     //model.Password= Guid.NewGuid().ToString();
                 }
-                var result = await UserManager.CreateAsync( user, model.Password );
+                var result = await UserManager.CreateAsync( appUser, model.Password );
 
                 if ( result.Succeeded )
                 {
-                    int id = new AccountServices().AddAccount( model.Email,
-                        model.FirstName, model.LastName,
-                        model.Email, user.Id,
-                        model.Password, currentUserId, ref statusMessage );
+                    int id = new AccountServices().AddAccount( model.Email, model.FirstName, model.LastName,
+                        model.Email, appUser.Id, model.Password, currentUserId, ref statusMessage );
                     if ( id > 0 )
                     {
                         var account = AccountServices.GetAccount( id );
 
                         string msg = "Successfully created account for {0}. ";
-                        //check for a default role
+                        //check for a default role If none, set to read only
                         if (model.SelectedRoles?.Count() > 0)
                         {
                             //new AccountServices().UpdateRoles( account.AspNetUserId, model.SelectedRoles );
@@ -141,26 +142,26 @@ namespace NavyRRL.Controllers
                             if ( usingForgotPasswordRoute )
                             {
                                 //or maybe we need to use this:
-                                code = await UserManager.GeneratePasswordResetTokenAsync( user.Id );
+                                code = await UserManager.GeneratePasswordResetTokenAsync( appUser.Id );
                                 //and set confirmed 
-                                new AccountServices().SetUserEmailConfirmed( user.Id );
+                                new AccountServices().SetUserEmailConfirmed( appUser.Id );
                             } else
                             {
                                 //would use forgot password, but need custom email, or confirm email
-                                code = await UserManager.GenerateEmailConfirmationTokenAsync( user.Id );
+                                code = await UserManager.GenerateEmailConfirmationTokenAsync( appUser.Id );
                             }                            
                            
                             
                             //22-11-02 This is not actually used by the forgot password process, or more the reset password process
-                            new AccountServices().Proxies_StoreProxyCode( code, user.Email, "ConfirmEmail" );
+                            new AccountServices().Proxies_StoreProxyCode( code, appUser.Email, "ConfirmEmail" );
                             //var callbackUrl = Url.Action( "ConfirmEmail", "Account", new { userId = user.Id, code = code }, protocol: Request.Url.Scheme );
                             //22-11-02 may want to set the account confirmed, and then  use the forgot password method. The latter checks if the user has confirmed. Of course then we lose the purpose of confirm email address. 
-                            var callbackUrl = Url.Action( "ResetPassword", "Account", new { userId = user.Id, code = code }, protocol: Request.Url.Scheme );
+                            var callbackUrl = Url.Action( "ResetPassword", "Account", new { userId = appUser.Id, code = code }, protocol: Request.Url.Scheme );
                             //NEED to be able to set password, so do need forgot password variation
-                            AccountServices.SendEmail_ConfirmAccount( user.Email, callbackUrl );
-                            msg += string.Format(" An email was sent to '{0}' to confirm the email address/account.",user.FirstName);
+                            AccountServices.SendEmail_ConfirmAccount( appUser.Email, callbackUrl );
+                            msg += string.Format(" An email was sent to '{0}' to confirm the email address/account.",appUser.FirstName);
                         }
-                        ConsoleMessageHelper.SetConsoleSuccessMessage( string.Format( msg, user.FirstName ) );
+                        ConsoleMessageHelper.SetConsoleSuccessMessage( string.Format( msg, appUser.FirstName ) );
                         //return View( "ConfirmationRequired" );
                         ModelState.Clear();
                         model.Roles = roles.Select( x => new SelectListItem { Text = x.Name, Value = x.Id.ToString(), Selected = false } ).ToList();
@@ -202,6 +203,10 @@ namespace NavyRRL.Controllers
             var defaultPage = UtilityManager.GetAppKeyValue( "defaultPageOnLogin" );
             returnUrl = string.IsNullOrWhiteSpace( returnUrl ) ? defaultPage : returnUrl;
             ViewBag.ReturnUrl = returnUrl;
+            //string message = "";
+            //bool isValid = true;
+            //var navyUser = new AccountServices().GetNavyUserFromHeader( ref isValid, ref message );
+
             return View();
         }
 
@@ -254,6 +259,145 @@ namespace NavyRRL.Controllers
                     ModelState.AddModelError("", "Invalid login attempt.");
                     return View(model);
             }
+        }
+        //
+        public AppUser LoginFromHeader( )
+        {
+            //not sure
+            string message = "";
+            bool isValid = true;
+            //
+            try
+            {
+                var navyUser = new AccountServices().GetNavyUserFromHeader( ref isValid, ref message );
+                if ( navyUser == null || string.IsNullOrWhiteSpace(navyUser.Email) )
+                {
+                    return null;
+                }
+                {
+                    var user = AccountServices.GetUserByEmail( navyUser.Email );
+                    if ( user != null && user.Id > 0 )
+                    {
+                        return user;
+                    }
+                    //otherwise add the user
+                    //TODO - do away with application user, now that no longer using AspUserRoles
+                    //also may just create a guest?
+                    string statusMessage = "";
+                    var appUser = new ApplicationUser
+                    {
+                        UserName = navyUser.Email.Trim(),
+                        Email = navyUser.Email.Trim(),
+                        FirstName = navyUser.FirstName.Trim(),
+                        LastName = navyUser.LastName.Trim()
+                    };
+                    var password = System.Web.Security.Membership.GeneratePassword( 12, 3 );
+                    var result = UserManager.Create( appUser, password );
+                    if ( result.Succeeded )
+                    {
+                        int id = new AccountServices().AddAccount( navyUser.Email, navyUser.FirstName, navyUser.LastName,
+                            navyUser.Email, appUser.Id, password, 0, ref statusMessage );
+                        if ( id > 0 )
+                        {
+                            var account = AccountServices.GetAccount( id );
+
+                            string msg = $"Successfully created account for {account.FullName()}. ";
+                            //add the default role
+                            var inputRoles = AccountServices.GetDefaultRoles();
+                            new AccountServices().UpdateRolesForUser( account.Id, inputRoles );
+
+                            ConsoleMessageHelper.SetConsoleSuccessMessage( msg );
+
+                        }
+                        else
+                        {
+                            ConsoleMessageHelper.SetConsoleErrorMessage( "Error - " + statusMessage );
+                            return null;
+                        }
+                    }
+                }
+         
+                //var re = Request;
+                //var headers = re.Headers;
+                //string authHeader = headers["Authorization"];
+                //var currentUserId = 0;
+
+                ////HttpContext httpContext = HttpContext.Current;
+                ////string authHeader = httpContext.Request.Headers["Authorization"];
+                ////not sure of content type yet. Check if starts with {
+                //if ( string.IsNullOrWhiteSpace( authHeader ) )
+                //{
+                //    isValid = false;
+                //    return null;
+                //}
+                //LoggingHelper.DoTrace( 7, "$$$$$$$$ Found an authorization header: " + authHeader.Substring( 0, 8 ) + "-..." );
+                //if ( authHeader.StartsWith( "{" ) )
+                //{
+                //    //Extract credentials
+                //    authHeader = authHeader.Trim();
+                //    var navyUser = JsonConvert.DeserializeObject<NavyCredential>( authHeader );
+                //    if ( navyUser != null && !string.IsNullOrWhiteSpace( navyUser.Email ) )
+                //    {
+                //        user = AccountServices.GetUserByEmail( navyUser.Email );
+                //        if ( user != null && user.Id > 0 )
+                //        {
+                //            return user;
+                //        }
+                //        //otherwise add the user
+                //        //TODO - do away with application user, now that no longer using AspUserRoles
+                //        string statusMessage = "";
+                //        var appUser = new ApplicationUser
+                //        {
+                //            UserName = navyUser.Email.Trim(),
+                //            Email = navyUser.Email.Trim(),
+                //            FirstName = navyUser.FirstName.Trim(),
+                //            LastName = navyUser.LastName.Trim()
+                //        };
+                //        var password = System.Web.Security.Membership.GeneratePassword( 12, 3 );
+                //        var result = UserManager.Create( appUser, password );
+                //        if ( result.Succeeded )
+                //        {
+                //            int id = new AccountServices().AddAccount( navyUser.Email, navyUser.FirstName, navyUser.LastName,
+                //                navyUser.Email, appUser.Id, password, currentUserId, ref statusMessage );
+                //            if ( id > 0 )
+                //            {
+                //                var account = AccountServices.GetAccount( id );
+
+                //                string msg = $"Successfully created account for {account.FullName()}. ";
+                //                //add the default role
+                //                var inputRoles = AccountServices.GetDefaultRoles();
+                //                new AccountServices().UpdateRolesForUser( account.Id, inputRoles );
+
+                //                ConsoleMessageHelper.SetConsoleSuccessMessage( msg );
+
+                //            }
+                //            else
+                //            {
+                //                ConsoleMessageHelper.SetConsoleErrorMessage( "Error - " + statusMessage );
+                //                return null;
+                //            }
+                //        }
+                //    }
+                //    else
+                //    {
+                //        //error
+                //    }
+                //}
+                //else if ( authHeader.ToLower().StartsWith( "token " ) && authHeader.Length > 36 )
+                //{
+                //    //this is for the registry
+                //    authHeader = authHeader.ToLower();
+                //    //token = authHeader.Substring( "token ".Length ).Trim();
+                //}
+            }
+            catch ( Exception ex )
+            {
+                LoggingHelper.LogError( ex, "LoginFromHeader. " );
+                message = ex.Message;
+                isValid = false;
+            }
+
+            return null;
         }
 
         //

@@ -6,6 +6,9 @@ namespace Models.Schema
 {
 	public class TrainingTask : BaseObject
 	{
+		//Equivalent RDF Type
+		public const string RDFType = "navy:TrainingTask";
+
 		/// <summary>
 		/// Description for this Training Task<br />
 		/// From Column: CTTL/PPP/TCCD Statement

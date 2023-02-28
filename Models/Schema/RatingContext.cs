@@ -8,6 +8,9 @@ namespace Models.Schema
 {
 	public class RatingContext : BaseObject
 	{
+		//Equivalent RDF Type
+		public const string RDFType = "navy:RatingContext";
+
 		//Properties of the RMTL row itself
 		public string CodedNotation { get; set; }
 		public string Notes { get; set; }
@@ -38,6 +41,7 @@ namespace Models.Schema
 	}
 	//
 
+	/*
 	public class PopulatedRatingContext : RatingContext
 	{
 		//Populated data for other entities
@@ -52,4 +56,5 @@ namespace Models.Schema
 		public ClusterAnalysis HasClusterAnalysisData { get; set; }
 	}
     //
+	*/
 }

@@ -349,7 +349,7 @@
 		});
 
 		Field.getOptionLabel = function (Option) {
-			return (Option.CodedNotation && Option.Name) ? (Option.CodedNotation + " - " + Option.Name) : (Option.Name || Option.CodedNotation || Option.Description || Option.RowId || "");
+			return (Option.CodedNotation && Option.Name) ? (Option.CodedNotation + " - " + Option.Name) : (Option.Name || Option.CodedNotation || Option.Description || Option.RowId || "") + (Option.PublicationDate ? (" - " + Option.PublicationDate) : "");
 		}
 	}
 	//

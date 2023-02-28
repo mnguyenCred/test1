@@ -22,9 +22,28 @@ namespace Factories
     {
         public static new string thisClassName = "RatingManager";
 
-		#region Rating - persistance - NOT Likely? ==================
+		#region Rating - Persistence - NOT Likely? ==================
 		public static void SaveFromEditor( AppEntity entity, int userID, List<string> errors )
 		{
+			//Validate required fields
+			AddErrorIf( errors, string.IsNullOrWhiteSpace( entity.Name ), "Name must not be blank." );
+			AddErrorIf( errors, string.IsNullOrWhiteSpace( entity.CodedNotation ), "Code must not be blank." );
+			AddErrorIf( errors, string.IsNullOrWhiteSpace( entity.Description ), "Description must not be blank." );
+
+			//Duplicate checks
+			DuplicateCheck( "Rating", context => context.Rating.Where( m => m.RowId != entity.RowId ), errors, new List<StringCheckMapping<DBEntity>>()
+			{
+				new StringCheckMapping<DBEntity>( entity.Name, dbEnt => CompareStrings( entity.Name, dbEnt.Name ), "Name", null ),
+				new StringCheckMapping<DBEntity>( entity.CodedNotation, dbEnt => CompareStrings( entity.CodedNotation, dbEnt.CodedNotation ), "Code", null ),
+				new StringCheckMapping<DBEntity>( entity.Description, dbEnt => CompareStrings( entity.Description, dbEnt.Description ), "Description", null )
+			} );
+
+			//Return if any errors
+			if( errors.Count() > 0 )
+			{
+				return;
+			}
+
 			SaveCore( entity, userID, "Edit", errors.Add );
 		}
 		//
@@ -35,6 +54,22 @@ namespace Factories
 			{
 				BasicSaveCore( context, entity, context.Rating, userID, ( ent, dbEnt ) => { }, ( ent, dbEnt ) => { }, saveType, AddErrorMethod );
 			}
+		}
+		//
+
+		public static DeleteResult DeleteById( int id )
+		{
+			return BasicDeleteCore( "Rating", context => context.Rating, id, "> RatingId > Rating", ( context, list, target ) =>
+			{
+				//Check for references from Cluster Analysis objects
+				var clusterAnalysisContextCount = context.ClusterAnalysis.Where( m => m.HasRatingId == id ).Count();
+				if ( clusterAnalysisContextCount > 0 )
+				{
+					return new DeleteResult( false, "This Rating is referenced by " + clusterAnalysisContextCount + " Cluster Analysis objects, so it cannot be deleted." );
+				}
+
+				return null;
+			} );
 		}
 		//
 

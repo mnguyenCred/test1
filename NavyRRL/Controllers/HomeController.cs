@@ -16,6 +16,18 @@ namespace NavyRRL.Controllers
     {
         public ActionResult Index()
         {
+            string message = "";
+            bool isValid = true;
+            //TBD - don't do header check if we have a user
+            if (!AccountServices.IsUserAuthenticated())
+            {
+                var navyUser = new AccountServices().GetNavyUserFromHeader( ref isValid, ref message );
+                if ( navyUser != null || !string.IsNullOrWhiteSpace( navyUser.Email ) )
+                {
+                    AccountServices.SetUserByEmail( navyUser.Email );
+                }
+            }
+
             return View();
         }
 

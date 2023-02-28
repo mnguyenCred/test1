@@ -11,8 +11,8 @@
 	Name = Model.Name,
 	PropertyList = new List<NamedString>()
 	{
-		new NamedString( "Alternate Name", Model.AlternateName ),
-		new NamedString( "Description", Model.Description )
+		new NamedString( "Alternate Name", Model.AlternateName )//,
+		//new NamedString( "Description", Model.Description )
 	}
 } )
 
@@ -41,6 +41,7 @@
 					{ Name: "> CourseContextId > CourseContext > HasCourseId > Course > CurriculumControlAuthorityId > Organization", ItemIds: [ @Model.Id ] }
 				],
 				Fields: [
+					{ Label: "Rating Context", RenderPath: ["Id|RatingContext"] },
 					{ Label: "Rating", RenderPath: ["HasRating|Rating", "CodedNotation|Rating"] },
 					{ Label: "Description", RenderPath: ["HasRatingTask|RatingTask", "Description|RatingTask"] },
 					{ Label: "Training Gap", RenderPath: ["TrainingGapType|Concept", "Name|Concept"] },

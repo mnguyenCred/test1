@@ -6,6 +6,9 @@ namespace Models.Schema
 {
 	public class Organization : BaseObject
 	{
+		//Equivalent RDF Type
+		public const string RDFType = "ceterms:Organization";
+
 		/// <summary>
 		/// Name of this Organization<br />
 		/// From Column: Curriculum Control Authority (CCA)

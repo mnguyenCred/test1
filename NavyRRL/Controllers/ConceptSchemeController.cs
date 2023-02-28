@@ -23,6 +23,7 @@ namespace NavyRRL.Controllers
 
 		public ActionResult DoSearch( SearchQuery query )
 		{
+			AuthenticateOrRedirect( "You must be authenticated and authorized to view Concept Scheme data." );
 			var results = SearchServices.ConceptSchemeSearch( query );
 
 			return JsonResponse( results, true );
@@ -99,7 +100,8 @@ namespace NavyRRL.Controllers
 				return JsonResponse( null, false, new List<string>() { "Deleting data requires administrator privileges." } );
 			}
 
-			return JsonResponse( null, false, new List<string>() { "This feature is not implemented yet." } );
+			var result = Factories.ConceptSchemeManager.DeleteById( id );
+			return JsonResponse( result, result.Successful, result.Messages );
 		}
 		//
 	}

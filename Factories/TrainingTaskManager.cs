@@ -34,6 +34,36 @@ namespace Factories
 
 		public static void SaveFromEditor( AppEntity entity, int userID, List<string> errors )
 		{
+			//Validate required fields
+			AddErrorIf( errors, string.IsNullOrWhiteSpace( entity.Description ), "Description must not be empty." );
+			AddErrorIf( errors, entity.HasReferenceResource == Guid.Empty, "A Reference Resource must be selected." );
+
+			//Return early if any errors to avoid errors in the next section
+			if ( errors.Count() > 0 )
+			{
+				return;
+			}
+
+			//Duplicate check
+			DuplicateCheck( "Training Task", context => context.TrainingTask.Where( m => m.RowId != entity.RowId ), errors, null, ( haystack, context ) =>
+			{
+				//Custom handling because duplicate Training Tasks are okay as long as they come from different sources
+				if ( haystack.Where( m =>
+					 m.Description.ToLower() == entity.Description.ToLower() &&
+					 m.ReferenceResource.RowId == entity.HasReferenceResource
+				).Count() > 0 )
+				{
+					errors.Add( "An identical Training Task with the same values for all fields already exists in the system." );
+				}
+			} );
+
+			//Return if any errors
+			if ( errors.Count() > 0 )
+			{
+				return;
+			}
+
+
 			SaveCore( entity, userID, "Edit", errors.Add );
 		}
 		//
@@ -49,10 +79,26 @@ namespace Factories
 		}
 		//
 
-        #endregion
+		public static DeleteResult DeleteById( int id )
+		{
+			return BasicDeleteCore( "Training Task", context => context.TrainingTask, id, "> CourseContextId > CourseContext > HasTrainingTaskId > TrainingTask", ( context, list, target ) =>
+			{
+				//Check for references from Course Contexts
+				var courseContextCount = context.CourseContext.Where( m => m.HasCourseId == id ).Count();
+				if ( courseContextCount > 0 )
+				{
+					return new DeleteResult( false, "This Training Task is referenced by " + courseContextCount + " Course Context objects, so it cannot be deleted." );
+				}
+
+				return null;
+			} );
+		}
+		//
+
+		#endregion
 
 
-        #region Retrieval
+		#region Retrieval
 		public static AppEntity GetSingleByFilter( Func<DBEntity, bool> FilterMethod, bool returnNullIfNotFound = false )
 		{
 			return GetSingleByFilter<DBEntity, AppEntity>( context => context.TrainingTask, FilterMethod, MapFromDB, returnNullIfNotFound );
