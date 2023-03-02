@@ -436,7 +436,7 @@ namespace Factories
 		}
 		//
 
-		public static List<string> GetRelevanceTokens( string keywords )
+		public static List<string> GetRelevanceTokens( string keywords, bool includePartialTokens = true )
 		{
 			if ( string.IsNullOrWhiteSpace( keywords ) )
 			{
@@ -444,19 +444,44 @@ namespace Factories
 			}
 
 			var tokens = new List<string>() { keywords }.Concat( keywords.Split( new string[] { " " }, StringSplitOptions.RemoveEmptyEntries ) ).ToList();
-			while ( keywords.Length > 0 )
+			if ( includePartialTokens )
 			{
-				tokens.Add( string.Join( "", keywords.Take( 3 ).ToList() ) );
-				keywords = keywords.Substring( keywords.Length >= 3 ? 3 : keywords.Length );
+				while ( keywords.Length > 0 )
+				{
+					tokens.Add( string.Join( "", keywords.Take( 3 ).ToList() ) );
+					keywords = keywords.Substring( keywords.Length >= 3 ? 3 : keywords.Length );
+				}
 			}
 
 			return tokens;
 		}
 		//
 
-		public static int RelevanceHelper<T>( T dbEnt, List<string> keywordParts, Func<T, string> GetStringField )
+		public static int RelevanceHelperOLD<T>( T dbEnt, List<string> keywordParts, Func<T, string> GetStringField )
 		{
-			return keywordParts.Select( m => GetStringField( dbEnt ) == null ? - 1 : GetStringField( dbEnt ).IndexOf( m.ToString(), StringComparison.OrdinalIgnoreCase ) ).Where( m => m != -1 ).Sum();
+			return keywordParts.Select( m =>
+				GetStringField( dbEnt ) == null ? -1 : //If the value is not found, use the placeholder
+				GetStringField( dbEnt ).IndexOf( m.ToString(), StringComparison.OrdinalIgnoreCase ) //Get the index of the first instance where the keyword part appears
+			).Where( m => m != -1 ).Sum(); //Filter out placeholders and non-existent values and add the rest together
+		}
+		//
+
+		public static int RelevanceHelper<T>( T dbEnt, List<string> keywordParts, Func<T, string> GetStringField, List<string> applicableColumns = null, string checkColumn = null, int boost = 0 )
+		{
+			//If we need to check for a column and it's not in the list, then return 0
+			if ( applicableColumns != null && !applicableColumns.Contains( checkColumn ?? "" ) )
+			{
+				return 0;
+			}
+			//Otherwise (if not column checking, or if the column was in the list), perform the check
+			else
+			{
+				return keywordParts.Select( m =>
+					GetStringField( dbEnt ) == null ? -1 : //If the value is not found, use the placeholder
+					GetStringField( dbEnt ).IndexOf( m.ToString(), StringComparison.OrdinalIgnoreCase ) //Get the index of the first instance where the keyword part appears
+				).Where( m => m != -1 ) //Filter out placeholders and non-matches
+				.Select( m => m - boost ).Sum(); //Boost the results (by subtraction since we're using .OrderBy()) and add them together
+			}
 		}
 		//
 
@@ -752,6 +777,18 @@ namespace Factories
 			var keywords = query.GetFilterTextByName( "search:Keyword", "" );
 			return HandleApostrophes( keywords ).Trim();
         } 
+		//
+
+		public static SearchFilter GetSanitizedKeywordFilterOrNull( SearchQuery query )
+		{
+			var filter = query.GetFilterByName( "search:Keyword" );
+			if ( filter != null )
+			{
+				filter.Text = HandleApostrophes( filter.Text ).Trim();
+			}
+
+			return filter;
+		}
 		//
 
         public static List<Guid> GetFunctionalAreas( string property, ref string workRoleList )

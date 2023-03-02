@@ -179,7 +179,7 @@ namespace Factories
         {
             //
             List<string> errors = new List<string>();
-            BaseFactory.AutoMap( input, output, errors );
+            AutoMap( input, output, errors );
             if ( input.RowId != output.RowId )
             {
                 output.RowId = input.RowId;

@@ -262,7 +262,7 @@ namespace Factories
 			output.ConceptSchemeId = input.ConceptScheme?.Id ?? 0;
 			output.InScheme = input.ConceptScheme?.RowId ?? Guid.Empty;
 			output.SchemeUri = input.ConceptScheme?.SchemaUri;
-			output.BroadMatch = ( input.BroadMatchId == 0 || input.BroadMatchId == null ) ? Guid.Empty : context.ConceptScheme_Concept.FirstOrDefault( m => m.Id == input.BroadMatchId )?.RowId ?? Guid.Empty;
+			output.BroadMatch = ( input.BroadMatchId == 0 || input.BroadMatchId == null ) ? Guid.Empty : context.ConceptScheme_Concept.FirstOrDefault( m => m.Id == input.BroadMatchId )?.RowId ?? Guid.Empty; //int ID field automatches
 
 			return output;
 		}

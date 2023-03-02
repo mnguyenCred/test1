@@ -212,7 +212,8 @@ namespace Factories
 		{
 			var output = AutoMap( input, new AppEntity() );
 			output.HasReferenceResource = input.ReferenceResource?.RowId ?? Guid.Empty;
-			output.ReferenceType = input.ConceptScheme_Concept_ReferenceType?.RowId ?? Guid.Empty;
+			output.HasReferenceResourceId = input.ReferenceResourceId ?? 0; //Wish these fields matched
+			output.ReferenceType = input.ConceptScheme_Concept_ReferenceType?.RowId ?? Guid.Empty; //int ID fields automatch
 
 			return output;
 		}

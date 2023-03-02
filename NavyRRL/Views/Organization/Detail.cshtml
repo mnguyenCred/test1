@@ -29,8 +29,8 @@
 					{ Name: "> CurriculumControlAuthorityId > Organization", ItemIds: [ @Model.Id ] }
 				],
 				Fields: [
-					{ Label: "Course Code", RenderPath: ["CodedNotation|Course"], AsPlainText: true },
-					{ Label: "Name", RenderPath: ["Name|Course"] }
+					{ Label: "Course Code", RenderPath: ["CodedNotation|Course"], QueryPath: ".CodedNotation" },
+					{ Label: "Name", RenderPath: ["Name|Course"], QueryPath: ".Name" }
 				]
 			},
 			RatingTasks: {
@@ -41,10 +41,10 @@
 					{ Name: "> CourseContextId > CourseContext > HasCourseId > Course > CurriculumControlAuthorityId > Organization", ItemIds: [ @Model.Id ] }
 				],
 				Fields: [
-					{ Label: "Rating Context", RenderPath: ["Id|RatingContext"] },
-					{ Label: "Rating", RenderPath: ["HasRating|Rating", "CodedNotation|Rating"] },
-					{ Label: "Description", RenderPath: ["HasRatingTask|RatingTask", "Description|RatingTask"] },
-					{ Label: "Training Gap", RenderPath: ["TrainingGapType|Concept", "Name|Concept"] },
+					{ Label: "Rating Context", RenderPath: ["Id|RatingContext"], QueryPath: ".Id", IsNumeric: true },
+					{ Label: "Rating", RenderPath: ["HasRating|Rating", "CodedNotation|Rating"], QueryPath: "> RatingId > Rating.CodedNotation" },
+					{ Label: "Rating Task", RenderPath: ["HasRatingTask|RatingTask", "Description|RatingTask"], QueryPath: "> RatingTaskId > RatingTask.TextFields" },
+					{ Label: "Training Gap", RenderPath: ["TrainingGapType|Concept", "Name|Concept"], QueryPath: "> FormalTrainingGapId > Concept.Name" }
 				]
 			}
 		}

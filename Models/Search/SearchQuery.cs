@@ -98,6 +98,11 @@ namespace Models.Search
 		/// Indicates whether this filter should be treated as a negation filter, e.g. "where NOT ..."
 		/// </summary>
 		public bool IsNegation { get; set; }
+
+		/// <summary>
+		/// Experimental!
+		/// </summary>
+		public List<string> CustomColumns { get; set; }
 	}
 	//
 

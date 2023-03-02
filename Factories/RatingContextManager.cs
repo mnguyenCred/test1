@@ -209,6 +209,11 @@ namespace Factories
 				}
 
 				//Handle Filters
+				//Detail Pages
+				AppendIDsFilterIfPresent( query, ".Id", ids => {
+					list = list.Where( m => ids.Contains( m.Id ) );
+				} );
+
 				//RMTL Search
 				AppendIDsFilterIfPresent( query, "> FormalTrainingGapId > Concept", ids => {
 					list = list.Where( m => ids.Contains( m.FormalTrainingGapId ?? 0 ) );
@@ -225,10 +230,25 @@ namespace Factories
 					list = list.Where( m => ids.Contains( m.RatingId ) );
 				} );
 
+				//Detail Pages
+				AppendTextFilterIfPresent( query, "> RatingId > Rating.CodedNotation", text => {
+					list = list.Where( m => m.Rating.CodedNotation.Contains( text ) );
+				} );
+
+				//Detail Pages
+				AppendTextFilterIfPresent( query, "> RatingId > Rating.Name", text => {
+					list = list.Where( m => m.Rating.Name.Contains( text ) );
+				} );
+
 				//Billet Title Detail Page
 				//RMTL Search
 				AppendIDsFilterIfPresent( query, "> BilletTitleId > Job", ids => {
 					list = list.Where( m => ids.Contains( m.BilletTitleId ?? 0 ) );
+				} );
+
+				//Detail Pages
+				AppendTextFilterIfPresent( query, "> BilletTitleId > Job.Name", text => {
+					list = list.Where( m => m.Job.Name.Contains( text ) );
 				} );
 
 				//Cluster Analysis Detail Page
@@ -247,10 +267,25 @@ namespace Factories
 					list = list.Where( m => ids.Contains( m.ClusterAnalysis.HasClusterAnalysisTitleId ?? 0 ) );
 				} );
 
+				//Detail Pages
+				AppendTextFilterIfPresent( query, "> ClusterAnalysisId > ClusterAnalysis > HasClusterAnalysisTitleId > ClusterAnalysisTitle.Name", text => {
+					list = list.Where( m => m.ClusterAnalysis.ClusterAnalysisTitle.Name.Contains( text ) );
+				} );
+
 				//Course Detail Page
 				//RMTL Search
 				AppendIDsFilterIfPresent( query, "> CourseContextId > CourseContext > HasCourseId > Course", ids => {
 					list = list.Where( m => ids.Contains( m.CourseContext.HasCourseId ) );
+				} );
+
+				//Detail Pages
+				AppendTextFilterIfPresent( query, "> CourseContextId > CourseContext > HasCourseId > Course.Name", text => {
+					list = list.Where( m => m.CourseContext.Course.Name.Contains( text ) );
+				} );
+
+				//Detail Pages
+				AppendTextFilterIfPresent( query, "> CourseContextId > CourseContext > HasCourseId > Course.CodedNotation", text => {
+					list = list.Where( m => m.CourseContext.Course.CodedNotation.Contains( text ) );
 				} );
 
 				//Course Context Detail Page
@@ -304,10 +339,19 @@ namespace Factories
 					list = list.Where( m => ids.Contains( m.WorkRoleId ?? 0 ) );
 				} );
 
+				//Detail Pages
+				AppendTextFilterIfPresent( query, "> WorkRoleId > WorkRole.Name", text => {
+					list = list.Where( m => m.WorkRole.Name.Contains( text ) );
+				} );
+
 				//RMTL Search
-				AppendIDsFilterIfPresent( query, "> PayGradeTypeId > Concept", ids =>
-				{
+				AppendIDsFilterIfPresent( query, "> PayGradeTypeId > Concept", ids => {
 					list = list.Where( m => ids.Contains( m.PayGradeTypeId ) );
+				} );
+
+				//Detail Pages
+				AppendTextFilterIfPresent( query, "> PayGradeTypeId > Concept.TextFields", text => {
+					list = list.Where( m => m.ConceptScheme_Concept_PayGradeType.Name.Contains( text ) || m.ConceptScheme_Concept_PayGradeType.CodedNotation.Contains( text ) );
 				} );
 
 				//RMTL Search
@@ -328,9 +372,13 @@ namespace Factories
 				} );
 
 				//RMTL Search
-				AppendIDsFilterIfPresent( query, "> PayGradeLevelTypeId > Concept", ids =>
-				{
+				AppendIDsFilterIfPresent( query, "> PayGradeLevelTypeId > Concept", ids => {
 					list = list.Where( m => ids.Contains( m.PayGradeLevelTypeId ?? 0 ) );
+				} );
+
+				//Detail Page
+				AppendTextFilterIfPresent( query, "> PayGradeLevelTypeId > Concept.TextFields", text => {
+					list = list.Where( m => m.ConceptScheme_Concept_PayGradeLevelType.Name.Contains( text ) || m.ConceptScheme_Concept_PayGradeLevelType.CodedNotation.Contains( text ) );
 				} );
 
 				//RMTL Search
@@ -356,6 +404,12 @@ namespace Factories
 					list = list.Where( m => ids.Contains( m.FormalTrainingGapId ?? 0 ) );
 				} );
 
+				//Detail Pages
+				AppendTextFilterIfPresent( query, "> FormalTrainingGapId > Concept.Name", text =>
+				{
+					list = list.Where( m => m.ConceptScheme_Concept_TrainingGapType.Name.Contains( text ) );
+				} );
+
 				//RMTL Search
 				AppendIDsFilterIfPresent( query, "> TaskApplicabilityId > Concept", ids =>
 				{
@@ -363,8 +417,19 @@ namespace Factories
 				} );
 
 				//RMTL Search
+				AppendTextFilterIfPresent( query, "> TaskApplicabilityId > Concept.TextFields", text =>
+				{
+					list = list.Where( m => m.ConceptScheme_Concept_TaskApplicabilityType.Name.Contains( text ) || m.ConceptScheme_Concept_TaskApplicabilityType.CodedNotation.Contains( text ) );
+				} );
+
+				//RMTL Search
 				AppendIDsFilterIfPresent( query, "> CourseContextId > CourseContext > AssessmentMethodConceptId > Concept", ids => {
 					list = list.Where( m => m.CourseContext.CourseContext_AssessmentType.Select( n => n.AssessmentMethodConceptId ).Intersect( ids ).Count() > 0 );
+				} );
+
+				//RMTL Search
+				AppendTextFilterIfPresent( query, "> CourseContextId > CourseContext > AssessmentMethodConceptId > Concept.Name", text => {
+					list = list.Where( m => m.CourseContext.CourseContext_AssessmentType.Where( n => n.ConceptScheme_Concept.Name.Contains( text ) ).Count() > 0 );
 				} );
 
 				//RMTL Search
@@ -398,6 +463,11 @@ namespace Factories
 					list = list.Where( m => ids.Contains( m.ClusterAnalysis.TrainingSolutionTypeId ?? 0 ) );
 				} );
 
+				//Detail Pages
+				AppendTextFilterIfPresent( query, "> ClusterAnalysisId > ClusterAnalysis > TrainingSolutionTypeId > Concept.Name", text => {
+					list = list.Where( m => m.ClusterAnalysis.ConceptScheme_Concept_TrainingSolutionType.Name.Contains( text ) );
+				} );
+
 				//RMTL Search
 				AppendIDsFilterIfPresent( query, "> ClusterAnalysisId > ClusterAnalysis > RecommendedModalityTypeId > Concept", ids => {
 					list = list.Where( m => ids.Contains( m.ClusterAnalysis.RecommendedModalityTypeId ?? 0 ) );
@@ -411,6 +481,11 @@ namespace Factories
 				//RMTL Search
 				AppendIDsFilterIfPresent( query, "> ClusterAnalysisId > ClusterAnalysis > CandidatePlatformConceptId > Concept", ids => {
 					list = list.Where( m => m.ClusterAnalysis.ClusterAnalysis_HasCandidatePlatform.Select( n => n.CandidatePlatformConceptId ).Intersect( ids ).Count() > 0 );
+				} );
+
+				//Detail Pages
+				AppendTextFilterIfPresent( query, "> ClusterAnalysisId > ClusterAnalysis > CandidatePlatformConceptId > Concept.TextFields", text => {
+					list = list.Where( m => m.ClusterAnalysis.ClusterAnalysis_HasCandidatePlatform.Where( n => n.ConceptScheme_Concept.Name.Contains( text ) || n.ConceptScheme_Concept.CodedNotation.Contains( text ) ).Count() > 0 );
 				} );
 
 				//RMTL Search
@@ -566,26 +641,25 @@ namespace Factories
 				else
 				{
 					//Return ordered list
+					var noGapID = context.ConceptScheme_Concept.FirstOrDefault( n => n.Name.ToLower() == "no" )?.Id ?? 0;
 					return HandleSort( list, query.SortOrder, m => m.RatingTask.Description, 
-						m => { 
-							var noGapID = context.ConceptScheme_Concept.FirstOrDefault( n => n.Name.ToLower() == "no" )?.Id ?? 0;
-							return m.OrderBy( n => n.FormalTrainingGapId == noGapID )
+						m => m.OrderBy( n => n.FormalTrainingGapId == noGapID )
 								.ThenBy( n => n.Rating.CodedNotation )
 								.ThenBy( n => n.Job.Name )
 								.ThenBy( n => n.WorkRole.Name )
-								.ThenBy( n => n.RatingTask.Description ); 
-						}, 
-						( m, keywordParts ) => m.OrderBy( n => 
-							RelevanceHelper( n, keywordParts, o => o.RatingTask.Description ) + 
-							RelevanceHelper( n, keywordParts, o => o.Rating.CodedNotation ) + 
-							RelevanceHelper( n, keywordParts, o => o.Rating.Name ) + 
-							RelevanceHelper( n, keywordParts, o => o.Notes ) 
+								.ThenBy( n => n.RatingTask.Description ), 
+						( m, keywordParts ) => m.OrderBy( n =>
+							RelevanceHelper( n, keywordParts, o => o.RatingTask.Description ) +
+							RelevanceHelper( n, keywordParts, o => o.Rating.CodedNotation ) +
+							RelevanceHelper( n, keywordParts, o => o.Rating.Name ) +
+							RelevanceHelper( n, keywordParts, o => o.Notes )
 						), keywords );
 				}
 
 			}, MapFromDBForSearch );
 
 			resultSet.ExtraData.Add( "RatingTaskCount", ratingTaskCount );
+
 			return resultSet;
         }
 		private static IOrderedQueryable<DBEntity> SortAscOrDesc( IOrderedQueryable<DBEntity> sorted, SortOrderItem sortItem, Expression<Func<DBEntity, object>> SortBy )
@@ -604,15 +678,23 @@ namespace Factories
 		{
 			var output = AutoMap( input, new AppEntity() );
 			output.HasRating = input.Rating?.RowId ?? Guid.Empty;
+			output.HasRatingId = input.RatingId; //Wish these property names matched
 			output.HasBilletTitle = input.Job?.RowId ?? Guid.Empty;
+			output.HasBilletTitleId = input.BilletTitleId ?? 0; //Wish these property names matched
 			output.HasWorkRole = input.WorkRole?.RowId ?? Guid.Empty;
+			output.HasWorkRoleId = input.WorkRoleId ?? 0; //Wish these property names matched
 			output.HasRatingTask = input.RatingTask?.RowId ?? Guid.Empty;
+			output.HasRatingTaskId = input.RatingTaskId; //Wish these property names matched
 			output.HasCourseContext = input.CourseContext?.RowId ?? Guid.Empty;
+			output.HasCourseContextId = input.CourseContextId ?? 0; //Wish these property names matched
 			output.HasClusterAnalysis = input.ClusterAnalysis?.RowId ?? Guid.Empty;
+			output.HasClusterAnalysisId = input.ClusterAnalysisId ?? 0; //Wish these property names matched
 			output.ApplicabilityType = input.ConceptScheme_Concept_TaskApplicabilityType?.RowId ?? Guid.Empty;
+			output.ApplicabilityTypeId = input.TaskApplicabilityId ?? 0; //Wish these property names matched
 			output.TrainingGapType = input.ConceptScheme_Concept_TrainingGapType?.RowId ?? Guid.Empty;
-			output.PayGradeType = input.ConceptScheme_Concept_PayGradeType?.RowId ?? Guid.Empty;
-			output.PayGradeLevelType = input.ConceptScheme_Concept_PayGradeLevelType?.RowId ?? Guid.Empty;
+			output.TrainingGapTypeId = input.FormalTrainingGapId ?? 0; //Wish these property names matched
+			output.PayGradeType = input.ConceptScheme_Concept_PayGradeType?.RowId ?? Guid.Empty; //int ID field automatches
+			output.PayGradeLevelType = input.ConceptScheme_Concept_PayGradeLevelType?.RowId ?? Guid.Empty; //int ID field automatches
 
 			//If available, also append related resources
 			if ( resultSet != null )
