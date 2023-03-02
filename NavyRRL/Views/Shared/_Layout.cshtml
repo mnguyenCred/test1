@@ -20,10 +20,9 @@
 	if ( ( user == null || user.Id == 0 ) )
 	{
 		//redirect to home, and make sure not already on home/root 
-		if ( url != "/" &&
-			 !url.ToLower().Contains("/account/login") )
+		if ( url.Replace( "/", "" ) != Url.Content( "~/" ).Replace( "/", "" ).ToLower() && !url.ToLower().Contains("/account/login") && !url.ToLower().Contains("/notauthenticated") )
 		{
-			Response.Redirect( @Url.Content( "/" ) );
+			Response.Redirect( Url.Content( "~/" ) );
 		}
 	}
 	else

@@ -22,7 +22,7 @@ namespace NavyRRL.Controllers
             if (!AccountServices.IsUserAuthenticated())
             {
                 var navyUser = new AccountServices().GetNavyUserFromHeader( ref isValid, ref message );
-                if ( navyUser != null || !string.IsNullOrWhiteSpace( navyUser.Email ) )
+                if ( navyUser != null && !string.IsNullOrWhiteSpace( navyUser.Email ) )
                 {
                     AccountServices.SetUserByEmail( navyUser.Email );
                 }
