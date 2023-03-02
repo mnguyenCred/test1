@@ -20,7 +20,7 @@ namespace Factories
 {
 	public class ConceptManager : BaseFactory
 	{
-		public static new string thisClassName = "ConceptScheme";
+		public static new string thisClassName = "ConceptManager";
 		//
 
 		#region Persistence

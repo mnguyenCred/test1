@@ -11,7 +11,9 @@ using Models.Application;
 
 using Navy.Utilities;
 using System.Web.Security;
-
+using Newtonsoft.Json;
+using System.Reflection;
+using System.Linq;
 
 namespace Services
 {
@@ -562,108 +564,125 @@ namespace Services
 		{
             return new ApplicationManager().ApplicationRoleDelete( role, ref statusMessage );
         }
-        public bool DeleteRoleFromUser( int userId,	int roleId, ref string statusMessage )
-		{
-			AppUser user = AccountManager.AppUser_Get( userId );
-			if ( user == null || user.Id < 1 )
-			{
-				statusMessage = "Error - account was not found.";
-				return false;
-			}
+  //      public bool DeleteRoleFromUser( int userId,	int roleId, ref string statusMessage )
+		//{
+		//	AppUser user = AccountManager.AppUser_Get( userId );
+		//	if ( user == null || user.Id < 1 )
+		//	{
+		//		statusMessage = "Error - account was not found.";
+		//		return false;
+		//	}
 
-            //bool isValid = new AccountManager().DeleteRoleFromUserOld( user, roleId, ref statusMessage );
-            bool isValid = new AccountManager().DeleteRoleFromUser( user, roleId, ref statusMessage );
-            //TODO - add logging here or in the services
-            return isValid;
-		}
-        public void UpdateRolesForUserOld( string aspNetUserId, string[] roles )
-        {
-            AppUser user = GetCurrentUser();
-            new AccountManager().UpdateRolesOld( aspNetUserId, roles );
-        }
+  //          //bool isValid = new AccountManager().DeleteRoleFromUserOld( user, roleId, ref statusMessage );
+  //          bool isValid = new AccountManager().DeleteRoleFromUser( user, roleId, ref statusMessage );
+  //          //TODO - add logging here or in the services
+  //          return isValid;
+		//}
+  //      public void UpdateRolesForUserOld( string aspNetUserId, string[] roles )
+  //      {
+  //          AppUser user = GetCurrentUser();
+  //          new AccountManager().UpdateRolesOld( aspNetUserId, roles );
+  //      }
         public void UpdateRolesForUser( int userId, List<int> roles )
 		{
 			AppUser user = GetCurrentUser();
 			new AccountManager().UpdateRolesForUser( userId, roles );
 		}
         #endregion
-        #region importing users
-        //public static List<AppUser> ImportUsers_GetAll( int maxRecords )
-        //{
-        //	List<AppUser> users = AccountManager.ImportUsers_GetAll( maxRecords );
 
-        //	return users;
+        public NavyCredential GetNavyUserFromHeader( ref bool isValid, ref string message )
+        {
+            isValid = true;
+            //
+            try
+            {
+                HttpContext httpContext = HttpContext.Current;
+                string authHeader = httpContext.Request.Headers["Authorization"];
+                //not sure of content type yet. Check if starts with {
+                if ( string.IsNullOrWhiteSpace( authHeader ) )
+                {
+                    isValid = false;
+                    return null;
+                }
+                LoggingHelper.DoTrace( 7, "$$$$$$$$ Found an authorization header: " + authHeader.Substring( 0, 8 ) + "-..." );
+                if ( authHeader.StartsWith( "{" ) )
+                {
+                    //Extract credentials
+                    authHeader = authHeader.Trim();
+                    var navyUser = JsonConvert.DeserializeObject<NavyCredential>( authHeader );
+                    if ( navyUser != null && !string.IsNullOrWhiteSpace( navyUser.Email ) )
+                    {
 
-        //}
-        //public void ImportUsers_SetCompleted( int importId, int userId, string initialPassword )
-        //{
-        //	string statusMessage = "";
-        //	//set complete, including confirming the email address
-        //	bool isOk = new AccountManager().ImportUsers_Update( importId, userId, initialPassword, ref statusMessage );
-        //}
+                        //NavyRRL.Models.app
 
-        ///// <summary>
-        ///// Add account for imported user
-        ///// </summary>
-        ///// <param name="email"></param>
-        ///// <param name="firstName"></param>
-        ///// <param name="lastName"></param>
-        ///// <param name="userName"></param>
-        ///// <param name="userKey"></param>
-        ///// <param name="password"></param>
-        ///// <param name="doingEmailConfirmation"></param>
-        ///// <param name="importedBy"></param>
-        ///// <param name="statusMessage"></param>
-        ///// <returns></returns>
-        //public int Import( string email, string firstName, string lastName, string userName, string userKey, string password,
-        //	bool doingEmailConfirmation, string importedBy,
-        //	ref string statusMessage )
-        //{
-        //	int id = 0;
-        //	statusMessage = "";
-        //	//this password, as stored in the account table, is not actually used
-        //	string encryptedPassword = "";
-        //	if ( !string.IsNullOrWhiteSpace( password ) )
-        //		encryptedPassword = UtilityManager.Encrypt( password );
+                        return navyUser;
+                    }
+                    else
+                    {
+                        //error
+                    }
+                }
+              
+            }
+            catch ( Exception ex )
+            {
+                LoggingHelper.LogError( ex, "Exception encountered attempting to get API key from request header. " );
+                message = "Error encountered validating ApiKey: '" + ex.Message + "'";
+                isValid = false;
+            }
 
-        //	AppUser user = new AppUser()
-        //	{
-        //		Email = email,
-        //		UserName = email,
-        //		FirstName = firstName,
-        //		LastName = lastName,
-        //		IsActive = !doingEmailConfirmation,
-        //		AspNetUserId = userKey,
-        //		Password = encryptedPassword
-        //	};
-        //	id = new AccountManager().Add( user, ref statusMessage );
-        //	if ( id > 0 )
-        //	{
-        //		if ( !doingEmailConfirmation )
-        //		{
-        //			//not necessary will be done as part of ImportUsers_SetCompleted
-        //			//new AccountServices().SetUserEmailConfirmedByEmail( user.Email );
-        //		}
-        //		string envType = UtilityManager.GetAppKeyValue( "environment" );
-        //		ActivityServices.UserRegistration( user, "User Import", "imported by: " + importedBy );
-        //		string template = EmailManager.GetEmailText( "NewAdvisoryBoardMember" );
-        //		string msg2 = string.Format( template, firstName, email,  password, "Import" );
+            return null;
+        }
 
-        //		string msg = string.Format( "New user registration. <br/>Email: {0}, <br/>Name: {1}<br/>PW: {2}<br/>Type: {3}", email, firstName + " " + lastName, password, "Import" );
-        //		string suffix = "";
-        //		if( envType != "production" )
-        //			suffix += string.Format( " ***[{0}]***", envType );
+        public AppUser GetUserFromHeader( ref bool isValid, ref string message )
+        {
+            isValid = true;
+            //
+            try
+            {
+                HttpContext httpContext = HttpContext.Current;
+                string authHeader = httpContext.Request.Headers["Authorization"];
+                //not sure of content type yet. Check if starts with {
+                if ( string.IsNullOrWhiteSpace( authHeader ) )
+                {
+                    isValid=false;
+                    return null;
+				}
+                LoggingHelper.DoTrace( 7, "$$$$$$$$ Found an authorization header: " + authHeader.Substring( 0, 8 ) + "-..." );
+                if ( authHeader.StartsWith( "{" ))
+                {
+                    //Extract credentials
+                    authHeader = authHeader.Trim();
+                    var navyUser = JsonConvert.DeserializeObject<NavyCredential>( authHeader );
+					if ( navyUser != null && !string.IsNullOrWhiteSpace( navyUser.Email))
+					{
+						var user = GetUserByEmail( navyUser.Email );
+						if ( user != null && user.Id > 0 ) 
+						{ 
+							return user;
+						}
+						//otherwise add the user
+					} else
+					{
+						//error
+					}
+                }
+                else if ( authHeader.ToLower().StartsWith( "token " ) && authHeader.Length > 36 )
+                {
+                    //this is for the registry
+                    authHeader = authHeader.ToLower();
+                    //token = authHeader.Substring( "token ".Length ).Trim();
+                }             
+            }
+            catch ( Exception ex )
+            {
+                LoggingHelper.LogError( ex, "Exception encountered attempting to get API key from request header. " );
+                message = "Error encountered validating ApiKey: '" + ex.Message + "'";
+                isValid = false;      
+            }
 
-        //		//if (UtilityManager.GetAppKeyValue( "notifyingUserOnImport", false ))
-        //		//	//EmailServices.SendEmail( email, "New Credential Publisher Registration" + suffix, msg2 );
-        //		//else
-        //		//	EmailServices.SendSiteEmail( "New Credential Publisher Registration via Import" + suffix, msg2 );
-
-        //	}
-
-        //	return id;
-        //} //
-        #endregion
+            return null;
+        }
 
 
         #region Owin email methods
@@ -1018,16 +1037,33 @@ namespace Services
 
 		}
 
-
+		[Obsolete]
 		public static List<DT.AspNetRoles> GetRoles()
 		{
 			return AccountManager.GetRolesOld();
 		}
+		/// <summary>
+		/// Get all active application roles
+		/// </summary>
+		/// <returns></returns>
 		public static List<UserRole> GetAllApplicationRoles()
 		{
 			return ApplicationManager.GetAllApplicationRoles();
 		}
-		public bool SaveApplicationRolePermissions( UserRole role, ref string statusMessage )
+
+        public static List<int> GetDefaultRoles()
+        {
+			var output = new List<int>();
+
+            var defaultRole = UtilityManager.GetAppKeyValue( "defaultRole", "Site Reader" );
+            var list = ApplicationManager.GetAllApplicationRoles();
+            var inputRoles = list.FirstOrDefault( t => t.Name == defaultRole );
+			if (inputRoles != null && inputRoles.Id > 0 )
+				output.Add( inputRoles.Id );
+
+			return output;
+        }
+        public bool SaveApplicationRolePermissions( UserRole role, ref string statusMessage )
 		{
 			//return AccountManager.SaveApplicationRolePermissions( role, ref statusMessage );
             return new ApplicationManager().SaveApplicationRolePermissions( role, ref statusMessage );
@@ -1189,4 +1225,14 @@ namespace Services
 		/*	*/
 		#endregion
 	}
+	public class NavyCredential
+	{
+		public NavyCredential() { }
+        public string Email { get; set; }
+        public string FirstName { get; set; }
+        public string LastName { get; set; }
+        public string Department { get; set; }
+        public string Thing2 { get; set; }
+    }
+
 }
