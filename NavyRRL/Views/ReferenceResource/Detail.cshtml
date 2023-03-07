@@ -19,6 +19,15 @@
 	}
 } )
 
+@Html.Partial( "~/Views/Shared/_TasksBySourceType.cshtml", new TasksBySourceTypeConfig( "which originate from this Source", "for this Source", new List<SearchFilter>() { 
+	new SearchFilter()
+	{
+		Name = "> RatingTaskId > RatingTask > ReferenceResourceId > ReferenceResource",
+		ItemIds = new List<int>(){ Model.Id }
+	}
+} ) )
+
+@*
 @Html.Partial( "~/Views/Shared/_RatingTaskCountBySourceTypeTable.cshtml", new List<SearchFilter>()
 {
 	new SearchFilter()
@@ -27,6 +36,7 @@
 		ItemIds = new List<int>(){ Model.Id }
 	}
 } )
+*@
 
 @Html.Partial( "~/Views/Search/_ItemListSearch.cshtml" )
 <script type="text/javascript">

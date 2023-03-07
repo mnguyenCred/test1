@@ -17,6 +17,15 @@
 	}
 } )
 
+@Html.Partial( "~/Views/Shared/_TasksBySourceType.cshtml", new TasksBySourceTypeConfig( "which are associated with this Training Task", "for this Training Task", new List<SearchFilter>() { 
+	new SearchFilter()
+	{
+		Name = "> CourseContextId > CourseContext > HasTrainingTaskId > TrainingTask",
+		ItemIds = new List<int>(){ Model.Id }
+	}
+} ) )
+
+@*
 @Html.Partial( "~/Views/Shared/_RatingTaskCountBySourceTypeTable.cshtml", new List<SearchFilter>()
 {
 	new SearchFilter()
@@ -25,6 +34,7 @@
 		ItemIds = new List<int>(){ Model.Id }
 	}
 } )
+*@
 
 @Html.Partial( "~/Views/Search/_ItemListSearch.cshtml" )
 <script type="text/javascript">
