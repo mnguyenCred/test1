@@ -395,7 +395,7 @@ namespace Factories
 			//Enable skipping the sorting to avoid a performance hit
 			if ( sortOrder.FirstOrDefault( m => m.Column == "sortOrder:Unsorted" ) != null ) 
 			{
-				return unsortedList.OrderBy( m => m != null );
+				return unsortedList.OrderBy( m => true );
 			}
 
 			//If doing relevance-based sorting...

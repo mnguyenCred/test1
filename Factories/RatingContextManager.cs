@@ -643,13 +643,13 @@ namespace Factories
 					//Return ordered list
 					var noGapID = context.ConceptScheme_Concept.FirstOrDefault( n => n.Name.ToLower() == "no" )?.Id ?? 0;
 					return HandleSort( list, query.SortOrder, m => m.RatingTask.Description, 
-						m => m.OrderBy( n => n.FormalTrainingGapId == noGapID )
+						m => m.OrderByDescending( n => n.FormalTrainingGapId == noGapID )
 								.ThenBy( n => n.Rating.CodedNotation )
-								.ThenBy( n => n.Job.Name )
-								.ThenBy( n => n.WorkRole.Name )
+								//.ThenBy( n => n.Job.Name )
+								//.ThenBy( n => n.WorkRole.Name )
 								.ThenBy( n => n.RatingTask.Description ), 
 						( m, keywordParts ) => m.OrderBy( n =>
-							RelevanceHelper( n, keywordParts, o => o.RatingTask.Description ) +
+							RelevanceHelper( n, keywordParts, o => o.RatingTask.Description, null, null, 25 ) +
 							RelevanceHelper( n, keywordParts, o => o.Rating.CodedNotation ) +
 							RelevanceHelper( n, keywordParts, o => o.Rating.Name ) +
 							RelevanceHelper( n, keywordParts, o => o.Notes )
