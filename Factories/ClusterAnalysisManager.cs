@@ -183,7 +183,7 @@ namespace Factories
 				//Return ordered list
 				//Traversal requires projection to avoid querying every row in the results
 				var projected = list.Select( m => new { Main = m, ClusterAnalysisTitle_Name = m.ClusterAnalysisTitle.Name } );
-				var sorted = HandleSort2( projected, query.SortOrder, m => m.ClusterAnalysisTitle_Name, m => m.Main.Id, m => m.OrderBy( n => n.ClusterAnalysisTitle_Name ), ( m, keywordParts ) => m.OrderBy( n => RelevanceHelper( n, keywordParts, o => o.ClusterAnalysisTitle_Name ) ), keywords );
+				var sorted = HandleSortV2( projected, query.SortOrder, m => m.ClusterAnalysisTitle_Name, m => m.Main.Id, m => m.OrderBy( n => n.ClusterAnalysisTitle_Name ), ( m, keywordParts ) => m.OrderBy( n => RelevanceHelper( n, keywordParts, o => o.ClusterAnalysisTitle_Name ) ), keywords );
 				return sorted.Select( m => m.Main ).OrderBy( m => true );
 
 			}, MapFromDBForSearch );

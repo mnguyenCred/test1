@@ -169,7 +169,7 @@ namespace Factories
 				//Return ordered list
 				//Traversal requires projection to avoid querying every row in the results
 				var projected = list.Select( m => new { Main = m, Course_Name = m.Course.Name, Course_CodedNotation = m.Course.CodedNotation, TrainingTask_Description = m.TrainingTask.Description } );
-				var sorted = HandleSort2( projected, query.SortOrder, m => m.Course_Name, m => m.Main.Id, m => m.OrderBy( n => n.Course_Name ), ( m, keywordParts ) => m.OrderBy( n => RelevanceHelper( n, keywordParts, o => o.Course_Name ) + RelevanceHelper( n, keywordParts, o => o.Course_CodedNotation ) + RelevanceHelper( n, keywordParts, o => o.TrainingTask_Description ) ), keywords );
+				var sorted = HandleSortV2( projected, query.SortOrder, m => m.Course_Name, m => m.Main.Id, m => m.OrderBy( n => n.Course_Name ), ( m, keywordParts ) => m.OrderBy( n => RelevanceHelper( n, keywordParts, o => o.Course_Name ) + RelevanceHelper( n, keywordParts, o => o.Course_CodedNotation ) + RelevanceHelper( n, keywordParts, o => o.TrainingTask_Description ) ), keywords );
 				return sorted.Select( m => m.Main ).OrderBy( m => true );
 
 			}, MapFromDBForSearch );

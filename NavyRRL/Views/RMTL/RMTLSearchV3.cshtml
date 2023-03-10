@@ -29,14 +29,38 @@
 		{
 			new SimpleFilterItem()
 			{
-				Label = "Limit results to Rating-level Tasks associated with more than one Pay Grade Level (A/J/M)",
+				Label = "Rating Tasks associated with more than one Pay Grade Level (A/J/M)",
 				Name = "> PayGradeLevelTypeId > Concept.MultipleForRatingTask",
 				Id = 0
 			},
 			new SimpleFilterItem()
 			{
-				Label = "Limit results to Rating-level Tasks associated with more than one Rank (Pay Grade)",
+				Label = "Rating Tasks associated with more than one Rank (Pay Grade)",
 				Name = "> PayGradeTypeId > Concept.MultipleForRatingTask",
+				Id = 0
+			},
+			new SimpleFilterItem()
+			{
+				Label = "Course/Training Data Exists",
+				Name = "> CourseContextId > CourseContext:NotNull",
+				Id = 0
+			},
+			new SimpleFilterItem()
+			{
+				Label = "Course/Training Data Does Not Exist",
+				Name = "> CourseContextId > CourseContext:IsNull",
+				Id = 0
+			},
+			new SimpleFilterItem()
+			{
+				Label = "Cluster Analysis Data Exists",
+				Name = "> ClusterAnalysisId > ClusterAnalysis:NotNull",
+				Id = 0
+			},
+			new SimpleFilterItem()
+			{
+				Label = "Cluster Analysis Data Does Not Exist",
+				Name = "> ClusterAnalysisId > ClusterAnalysis:IsNull",
 				Id = 0
 			}
 		}

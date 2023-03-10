@@ -144,7 +144,7 @@ namespace Factories
 				}
 
 				//Enable filtering to just Ratings that have data
-				AppendNotNullFilterIfPresent( query, "< RatingId < RatingContext:NotNull", () => {
+				AppendSimpleFilterIfPresent( query, "< RatingId < RatingContext:NotNull", () => {
 					list = list.Where( m => context.RatingContext.Where( n => n.Rating == m ).Count() > 0 );
 				} );
 

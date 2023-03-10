@@ -266,8 +266,14 @@ namespace Factories
 				} );
 
 				//Rating Task Detail Page
-				AppendNotNullFilterIfPresent( query, "> ClusterAnalysisId > ClusterAnalysis:NotNull", () => {
+				//RMTL Search
+				AppendSimpleFilterIfPresent( query, "> ClusterAnalysisId > ClusterAnalysis:NotNull", () => {
 					list = list.Where( m => m.ClusterAnalysisId != null );
+				} );
+
+				//RMTL Search
+				AppendSimpleFilterIfPresent( query, "> ClusterAnalysisId > ClusterAnalysis:IsNull", () => {
+					list = list.Where( m => m.ClusterAnalysisId == 0 || m.ClusterAnalysisId == null );
 				} );
 
 				//Cluster Analysis Title Detail Page
@@ -330,8 +336,14 @@ namespace Factories
 				} );
 
 				//Rating Task Detail Page
-				AppendNotNullFilterIfPresent( query, "> CourseContextId > CourseContext:NotNull", () => {
+				//RMTL Search
+				AppendSimpleFilterIfPresent( query, "> CourseContextId > CourseContext:NotNull", () => {
 					list = list.Where( m => m.CourseContextId != null );
+				} );
+
+				//RMTL Search
+				AppendSimpleFilterIfPresent( query, "> CourseContextId > CourseContext:IsNull", () => {
+					list = list.Where( m => m.CourseContextId == 0 || m.CourseContextId == null );
 				} );
 
 				//RMTL Search
@@ -686,7 +698,7 @@ namespace Factories
 
 					}
 
-					return projected.Select( m => m.Main ).OrderBy( m => true );
+					return projected.Select( m => m.Main ).AsEnumerable<DBEntity>().OrderBy( m => true );
 				}
 				//Or normal sort handling
 				else
@@ -695,7 +707,7 @@ namespace Factories
 					//Traversal requires projection to avoid querying every row in the results
 					var projected = list.Select( m => new { Main = m, Notes = m.Notes ?? "", RatingTask_Description = m.RatingTask.Description, TrainingGapID = m.FormalTrainingGapId ?? 0, Rating_CodedNotation = m.Rating.CodedNotation, Rating_Name = m.Rating.Name } );
 					
-					var sorted = HandleSort2( projected, query.SortOrder, m => m.RatingTask_Description, m => m.Main.Id,
+					var sorted = HandleSortV2( projected, query.SortOrder, m => m.RatingTask_Description, m => m.Main.Id,
 					m => m.OrderByDescending( n => n.TrainingGapID == noGapID )
 							.ThenBy( n => n.Rating_CodedNotation )
 							.ThenBy( n => n.RatingTask_Description ),
