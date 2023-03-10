@@ -197,7 +197,8 @@ namespace Factories
 		public static AppEntity MapFromDBForSearch( DBEntity input, DataEntities context, SearchResultSet<AppEntity> resultSet = null )
 		{
 			var output = AutoMap( input, new AppEntity() );
-			output.ReferenceType = input.ReferenceResource_ReferenceType?.Select( m => m.ConceptScheme_Concept_ReferenceType ).Select( m => m.RowId ).ToList() ?? new List<Guid>();
+			output.ReferenceType = input.ReferenceResource_ReferenceType?.Select( m => m.ConceptScheme_Concept_ReferenceType.RowId ).ToList() ?? new List<Guid>();
+			output.ReferenceTypeId = input.ReferenceResource_ReferenceType?.Select( m => m.ReferenceTypeId ).ToList() ?? new List<int>();
 
 			return output;
 		}

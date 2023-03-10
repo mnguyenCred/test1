@@ -22,32 +22,30 @@
 @Html.Partial( "~/Views/Search/_ItemListSearch.cshtml" )
 <script type="text/javascript">
 	var ItemListConfigs = {
-		CommonFilters: [
-			{ Name: "> CourseContextId > CourseContext > HasCourseId > Course", ItemIds: [ @Model.Id ] }
-		],
+		CommonFilters: [],
 		Searches: {
 			TrainingTasks: {
 				Header: "Training Tasks",
-				SearchType: "RatingContext",
+				SearchType: "CourseContext",
 				StyleType: "TrainingTask",
+				Filters: [ { Name: "> HasCourseId > Course", ItemIds: [ @Model.Id ] } ],
 				Fields: [
-					{ Label: "Rating Context", RenderPath: ["Id|RatingContext"] },
-					{ Label: "Course Context", RenderPath: ["HasCourseContext|CourseContext", "Id|CourseContext"] },
-					{ Label: "Rating", RenderPath: ["HasRating|Rating", "CodedNotation|Rating"] },
-					//{ Label: "Rating Task", RenderPath: ["HasRatingTask|RatingTask", "Description|RatingTask"] },
-					{ Label: "Training Task", RenderPath: [ "HasCourseContext|CourseContext", "HasTrainingTask|TrainingTask", "Description|TrainingTask" ] },
-					{ Label: "Assessment Approach", RenderPath: ["HasCourseContext|CourseContext", "AssessmentMethodType|Concept", "Name|Concept"] }
+					{ Label: "Course Context", RenderPath: ["Id|CourseContext"], QueryPath: ".Id", IsNumeric: true },
+					{ Label: "Training Task", RenderPath: ["HasTrainingTask|TrainingTask", "Description|TrainingTask" ], QueryPath: "> HasTrainingTaskId > TrainingTask.TextFields" },
+					{ Label: "Assessment Approach", RenderPath: ["AssessmentMethodType|Concept", "Name|Concept"], QueryPath: "> AssessmentMethodConceptId > Concept.Name" }
 				]
 			},
 			RatingTasks: {
 				Header: "Rating Tasks",
 				SearchType: "RatingContext",
 				StyleType: "RatingTask",
+				Filters: [ { Name: "> CourseContextId > CourseContext > HasCourseId > Course", ItemIds: [ @Model.Id ] } ],
 				Fields: [
-					{ Label: "Rating Context", RenderPath: ["Id|RatingContext"] },
-					{ Label: "Rating", RenderPath: ["HasRating|Rating", "CodedNotation|Rating"] },
-					{ Label: "Description", RenderPath: ["HasRatingTask|RatingTask", "Description|RatingTask"] },
-					{ Label: "Training Gap", RenderPath: ["TrainingGapType|Concept", "Name|Concept"] },
+					{ Label: "Rating Context", RenderPath: ["Id|RatingContext"], QueryPath: ".Id", IsNumeric: true },
+					{ Label: "Rating", RenderPath: ["HasRating|Rating", "CodedNotation|Rating"], QueryPath: "> RatingId > Rating.CodedNotation" },
+					{ Label: "Rating Task", RenderPath: ["HasRatingTask|RatingTask", "Description|RatingTask"], QueryPath: "> RatingTaskId > RatingTask.TextFields" },
+					{ Label: "Training Task", RenderPath: [ "HasCourseContext|CourseContext", "HasTrainingTask|TrainingTask", "Description|TrainingTask" ], QueryPath: "> CourseContextId > CourseContext > HasTrainingTaskId > TrainingTask.TextFields" },
+					{ Label: "Training Gap", RenderPath: ["TrainingGapType|Concept", "Name|Concept"], QueryPath: "> FormalTrainingGapId > Concept.Name" }
 				]
 			}
 		}
@@ -68,8 +66,15 @@
 	table[data-styletype='RatingTask'] [data-column='Training Gap'] { width: 100px; margin-left: auto; }
 </style>
 
-<item-list-search name="TrainingTasks"></item-list-search>
+@Html.Partial( "~/Views/Shared/_TasksBySourceType.cshtml", new TasksBySourceTypeConfig( "which are associated with Training Tasks which are taught by this Course", "for this Course", new List<SearchFilter>() { 
+	new SearchFilter()
+	{
+		Name = "> CourseContextId > CourseContext > HasCourseId > Course",
+		ItemIds = new List<int>(){ Model.Id }
+	}
+} ) )
 
+@*
 @Html.Partial( "~/Views/Shared/_RatingTaskCountBySourceTypeTable.cshtml", new List<SearchFilter>()
 {
 	new SearchFilter()
@@ -78,5 +83,7 @@
 		ItemIds = new List<int>(){ Model.Id }
 	}
 } )
+*@
 
+<item-list-search name="TrainingTasks"></item-list-search>
 <item-list-search name="RatingTasks"></item-list-search>

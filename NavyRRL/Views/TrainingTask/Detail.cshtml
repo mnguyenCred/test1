@@ -17,6 +17,15 @@
 	}
 } )
 
+@Html.Partial( "~/Views/Shared/_TasksBySourceType.cshtml", new TasksBySourceTypeConfig( "which are associated with this Training Task", "for this Training Task", new List<SearchFilter>() { 
+	new SearchFilter()
+	{
+		Name = "> CourseContextId > CourseContext > HasTrainingTaskId > TrainingTask",
+		ItemIds = new List<int>(){ Model.Id }
+	}
+} ) )
+
+@*
 @Html.Partial( "~/Views/Shared/_RatingTaskCountBySourceTypeTable.cshtml", new List<SearchFilter>()
 {
 	new SearchFilter()
@@ -25,6 +34,7 @@
 		ItemIds = new List<int>(){ Model.Id }
 	}
 } )
+*@
 
 @Html.Partial( "~/Views/Search/_ItemListSearch.cshtml" )
 <script type="text/javascript">
@@ -48,13 +58,13 @@
 				SearchType: "RatingContext",
 				StyleType: "RatingContext",
 				Fields: [
-					{ Label: "Rating Context", RenderPath: ["Id|RatingContext"] },
-					{ Label: "Course Context", RenderPath: ["HasCourseContext|CourseContext", "Id|CourseContext"] },
-					{ Label: "Rating", RenderPath: ["HasRating|Rating", "CodedNotation|Rating"] },
-					{ Label: "Rating Task", RenderPath: ["HasRatingTask|RatingTask", "Description|RatingTask"] },
-					{ Label: "Course Code", RenderPath: [ "HasCourseContext|CourseContext", "HasCourse|Course", "CodedNotation|Course" ] },
-					//{ Label: "Course", RenderPath: [ "HasCourseContext|CourseContext", "HasCourse|Course", "Name|Course" ], AsPlainText: true },
-					{ Label: "Assessment Approach", RenderPath: ["HasCourseContext|CourseContext", "AssessmentMethodType|Concept", "Name|Concept"] }
+					{ Label: "Rating Context", RenderPath: ["Id|RatingContext"], QueryPath: ".Id", IsNumeric: true },
+					{ Label: "Course Context", RenderPath: ["HasCourseContext|CourseContext", "Id|CourseContext"], QueryPath: "> CourseContextId > CourseContext", IsNumeric: true },
+					{ Label: "Rating", RenderPath: ["HasRating|Rating", "CodedNotation|Rating"], QueryPath: "> RatingId > Rating.CodedNotation" },
+					{ Label: "Rating Task", RenderPath: ["HasRatingTask|RatingTask", "Description|RatingTask"], QueryPath: "> RatingTaskId > RatingTask.TextFields" },
+					{ Label: "Course Code", RenderPath: [ "HasCourseContext|CourseContext", "HasCourse|Course", "CodedNotation|Course" ], QueryPath: "> CourseContextId > CourseContext > HasCourseId > Course.CodedNotation" },
+					//{ Label: "Course", RenderPath: [ "HasCourseContext|CourseContext", "HasCourse|Course", "Name|Course" ], QueryPath: "> CourseContextId > CourseContext > HasCourseId > Course.Name" },
+					{ Label: "Assessment Approach", RenderPath: ["HasCourseContext|CourseContext", "AssessmentMethodType|Concept", "Name|Concept"], QueryPath: "> CourseContextId > CourseContext > AssessmentMethodConceptId > Concept.Name" }
 				]
 			}
 		}

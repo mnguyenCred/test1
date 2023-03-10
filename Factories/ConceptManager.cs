@@ -178,71 +178,16 @@ namespace Factories
 				} );
 
 				//Return ordered list
-				return HandleSort( list, query.SortOrder, m => m.Name, m => m.OrderBy( n => n.ConceptScheme.Name ).ThenBy( n => n.Name ), ( m, keywordParts ) => m.OrderBy( n => RelevanceHelper( n, keywordParts, o => o.Name ) ).ThenBy( o => o.ConceptScheme.Name ), keywords );
+				//Traversal requires projection to avoid querying every row in the results
+				var projected = list.Select( m => new { Main = m, ConceptScheme_Name = m.ConceptScheme.Name } );
+				var sorted = HandleSort2( projected, query.SortOrder, m => m.Main.Name, m => m.Main.Id, m => m.OrderBy( n => n.ConceptScheme_Name ).ThenBy( n => n.Main.Name ), ( m, keywordParts ) => m.OrderBy( n => RelevanceHelper( n, keywordParts, o => o.Main.Name ) ).ThenBy( o => o.ConceptScheme_Name ), keywords );
+				return sorted.Select( m => m.Main ).OrderBy( m => true );
 				
-				//Special handling for these because they're sorted first by concept scheme
-				//return HandleConceptSortByConceptScheme( list, query.SortOrder ); //Not needed? TBD!
 
 			}, MapFromDBForSearch );
 		}
 		//
 
-		private static IOrderedEnumerable<DBEntity> HandleConceptSortByConceptScheme( IEnumerable<DBEntity> unsortedList, List<SortOrderItem> sortOrder )
-		{
-			//Default handler if no sort order is specified
-			if( sortOrder == null || sortOrder.Count() == 0 )
-			{
-				return unsortedList.OrderBy( m => m.ConceptScheme.Name ).ThenBy( m => m.Name );
-			}
-
-			//Sort by not null (mostly just to convert the IEnumerable to an IOrderedEnumerable)
-			var sorted = unsortedList.OrderBy( m => m != null );
-
-			//Then by Concept Scheme specified column, or Name, or ID
-			sorted = SortConceptsByScheme( sorted, sortOrder, typeof( ConceptScheme ), m => m.ConceptScheme, m => m.ConceptScheme.Name, m => m.ConceptScheme.Id );
-
-			//Then by Concept specified column, or Name, or ID
-			sorted = SortConceptsByScheme( sorted, sortOrder, typeof( DBEntity ), m => m, m => m.Name, m => m.Id );
-
-			//Return sorted results
-			return sorted;
-		}
-		//
-
-		private static IOrderedEnumerable<DBEntity> SortConceptsByScheme( IOrderedEnumerable<DBEntity> sorted, List<SortOrderItem> sortOrder, Type columnType, Func<DBEntity, object> ColumnTraversalMethod, Func<DBEntity, object> DefaultAlphaSortTraversalMethod, Func<DBEntity, object> IdTraversalMethod )
-		{
-			//For each SortItem...
-			foreach( var sortItem in sortOrder ?? new List<SortOrderItem>() )
-			{
-				//Find the matching column for the type (Concept Scheme or Concept, if it exists
-				var column = columnType.GetProperty( sortItem.Column );
-				
-				//Determine the method that gets the property to sort by for that type
-				Func<DBEntity, object> GetterMethod;
-				if ( column != null )
-				{
-					//If the column exists, return the value for that column from the provided type
-					GetterMethod = ( DBEntity m ) => { return column.GetValue( ColumnTraversalMethod( m ) ); };
-				}
-				else if ( sortItem.Column == "sortOrder:DefaultAlphaSort" )
-				{
-					//If using the default alpha sort, handle that
-					GetterMethod = DefaultAlphaSortTraversalMethod;
-				}
-				else
-				{
-					//Otherwise, fall back to using the ID
-					GetterMethod = IdTraversalMethod;
-				}
-
-				//Do the sorting, Ascending or Descending based on the SortItem.Ascending property
-				sorted = sortItem.Ascending ? sorted.ThenBy( m => GetterMethod( m ) ) : sorted.ThenByDescending( m => GetterMethod( m ) );
-			}
-
-			//Return the sorted list
-			return sorted;
-		}
-		//
 
 		public static List<AppEntity> GetMultiple( List<Guid> guids )
 		{
@@ -262,7 +207,7 @@ namespace Factories
 			output.ConceptSchemeId = input.ConceptScheme?.Id ?? 0;
 			output.InScheme = input.ConceptScheme?.RowId ?? Guid.Empty;
 			output.SchemeUri = input.ConceptScheme?.SchemaUri;
-			output.BroadMatch = ( input.BroadMatchId == 0 || input.BroadMatchId == null ) ? Guid.Empty : context.ConceptScheme_Concept.FirstOrDefault( m => m.Id == input.BroadMatchId )?.RowId ?? Guid.Empty;
+			output.BroadMatch = ( input.BroadMatchId == 0 || input.BroadMatchId == null ) ? Guid.Empty : context.ConceptScheme_Concept.FirstOrDefault( m => m.Id == input.BroadMatchId )?.RowId ?? Guid.Empty; //int ID field automatches
 
 			return output;
 		}

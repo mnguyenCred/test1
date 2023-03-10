@@ -6,6 +6,10 @@ using System.Threading.Tasks;
 
 using Newtonsoft.Json.Linq;
 
+using Models.Search;
+using Models.Schema;
+
+
 namespace Models.DTO
 {
 	public class SimpleItem
@@ -117,4 +121,32 @@ namespace Models.DTO
 
 	}
 	//
+
+	public class TasksBySourceTypeConfig
+	{
+		public TasksBySourceTypeConfig()
+		{
+			MainHeader = "Rating Task Counts";
+			TypeHeaderLabel = "the Current Resource";
+			InResultsHeaderLabel = "in Results";
+			Filters = new List<SearchFilter>();
+		}
+		public TasksBySourceTypeConfig( string typeHeaderLabel, string inResultsHeaderLabel, List<SearchFilter> filters, string mainHeader = "Rating Task Counts", bool autoSearch = true )
+		{
+			MainHeader = mainHeader;
+			TypeHeaderLabel = typeHeaderLabel;
+			InResultsHeaderLabel = inResultsHeaderLabel;
+			Filters = filters ?? new List<SearchFilter>();
+			AutoSearch = autoSearch;
+		}
+
+		public ConceptSchemeMap ConceptSchemeMap { get; set; }
+		public string MainHeader { get; set; }
+		public string TypeHeaderLabel { get; set; }
+		public string InResultsHeaderLabel { get; set; }
+		public List<SearchFilter> Filters { get; set; }
+		public bool AutoSearch { get; set; }
+	}
+	//
+
 }

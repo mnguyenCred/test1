@@ -27,6 +27,15 @@
 	Name = Model.Name
 } )
 
+@Html.Partial( "~/Views/Shared/_TasksBySourceType.cshtml", new TasksBySourceTypeConfig( "for this Functional Area", "for this Functional Area", new List<SearchFilter>() { 
+	new SearchFilter()
+	{
+		Name = "> WorkRoleId > WorkRole",
+		ItemIds = new List<int>(){ Model.Id }
+	}
+} ) )
+
+@*
 @Html.Partial( "~/Views/Shared/_RatingTaskCountBySourceTypeTable.cshtml", new List<SearchFilter>()
 {
 	new SearchFilter()
@@ -35,6 +44,7 @@
 		ItemIds = new List<int>(){ Model.Id }
 	}
 } )
+*@
 
 @Html.Partial( "~/Views/Search/_ItemListSearch.cshtml" )
 <script type="text/javascript">
@@ -48,10 +58,10 @@
 				SearchType: "RatingContext",
 				StyleType: "RatingTask",
 				Fields: [
-					{ Label: "Rating Context", RenderPath: ["Id|RatingContext"] },
-					{ Label: "Rating", RenderPath: ["HasRating|Rating", "CodedNotation|Rating"] },
-					{ Label: "Description", RenderPath: ["HasRatingTask|RatingTask", "Description|RatingTask"] },
-					{ Label: "Training Gap", RenderPath: ["TrainingGapType|Concept", "Name|Concept"] },
+					{ Label: "Rating Context", RenderPath: ["Id|RatingContext"], QueryPath: ".Id", IsNumeric: true },
+					{ Label: "Rating", RenderPath: ["HasRating|Rating", "CodedNotation|Rating"], QueryPath: "> RatingId > Rating.CodedNotation" },
+					{ Label: "Rating Task", RenderPath: ["HasRatingTask|RatingTask", "Description|RatingTask"], QueryPath: "> RatingTaskId > RatingTask.TextFields" },
+					{ Label: "Training Gap", RenderPath: ["TrainingGapType|Concept", "Name|Concept"], QueryPath: "> FormalTrainingGapId > Concept.Name" }
 				]
 			},
 			ClusterAnalysis: {
@@ -62,11 +72,11 @@
 					{ Name: "> ClusterAnalysisId > ClusterAnalysis:NotNull" }
 				],
 				Fields: [
-					{ Label: "Rating Context", RenderPath: ["Id|RatingContext"] },
-					{ Label: "Rating", RenderPath: ["HasRating|Rating", "CodedNotation|Rating"] },
-					{ Label: "Cluster Analysis", RenderPath: ["HasClusterAnalysis|ClusterAnalysis", "Id|ClusterAnalysis"] },
-					{ Label: "Cluster Analysis Title", RenderPath: ["HasClusterAnalysis|ClusterAnalysis", "HasClusterAnalysisTitle|ClusterAnalysisTitle", "Name|ClusterAnalysisTitle"] },
-					{ Label: "Rating Task", RenderPath: ["HasRatingTask|RatingTask", "Description|RatingTask"] }
+					{ Label: "Rating Context", RenderPath: ["Id|RatingContext"], QueryPath: ".Id", IsNumeric: true },
+					{ Label: "Rating", RenderPath: ["HasRating|Rating", "CodedNotation|Rating"], QueryPath: "> RatingId > Rating.CodedNotation" },
+					{ Label: "Cluster Analysis", RenderPath: ["HasClusterAnalysis|ClusterAnalysis", "Id|ClusterAnalysis"], QueryPath: "> ClusterAnalysisId > ClusterAnalysis", IsNumeric: true },
+					{ Label: "Cluster Analysis Title", RenderPath: ["HasClusterAnalysis|ClusterAnalysis", "HasClusterAnalysisTitle|ClusterAnalysisTitle", "Name|ClusterAnalysisTitle"], QueryPath: "> ClusterAnalysisId > ClusterAnalysis > HasClusterAnalysisTitleId > ClusterAnalysisTitle.Name" },
+					{ Label: "Rating Task", RenderPath: ["HasRatingTask|RatingTask", "Description|RatingTask"], QueryPath: "> RatingTaskId > RatingTask.TextFields" }
 				]
 			}
 		}
@@ -82,7 +92,8 @@
 	table[data-styletype='RatingTask'] [data-column='Rating'] { width: 75px; }
 	table[data-styletype='RatingTask'] [data-column='Training Gap'] { width: 100px; margin-left: auto; }
 	table[data-styletype='ClusterAnalysis'] [data-column='Rating'] { width: 75px; }
-	table[data-styletype='ClusterAnalysis'] [data-column='Cluster Analysis'] { width: 150px; }
+	table[data-styletype='ClusterAnalysis'] [data-column='Cluster Analysis'] { width: 125px; }
+	table[data-styletype='ClusterAnalysis'] [data-column='Cluster Analysis title'] { width: 175px; }
 </style>
 
 <item-list-search name="RatingTasks"></item-list-search>
