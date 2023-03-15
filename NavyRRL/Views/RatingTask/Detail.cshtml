@@ -13,7 +13,8 @@
 	PropertyList = new List<NamedString>()
 	{
 		new NamedString( "Description", Model.Description ),
-		new NamedString( "Source", LinkHelper.GetDetailPageLink( Factories.ReferenceResourceManager.GetByRowId( Model.HasReferenceResource ), Url.Content, m => m.Name + " (" + m.PublicationDate + ")" ) ),
+		new NamedString( "Source", LinkHelper.GetDetailPageLink( Factories.ReferenceResourceManager.GetByRowId( Model.HasReferenceResource ), Url.Content, m => m.Name ) ),
+		new NamedString( "Source Date", LinkHelper.GetDetailPageLink( Factories.ReferenceResourceManager.GetByRowId( Model.HasReferenceResource ), Url.Content, m => m.PublicationDate ) ),
 		new NamedString( "Reference Type", LinkHelper.GetDetailPageLink( Factories.ConceptManager.GetByRowId( Model.ReferenceType ), Url.Content, m => m.Name ) )
 	}
 } )
