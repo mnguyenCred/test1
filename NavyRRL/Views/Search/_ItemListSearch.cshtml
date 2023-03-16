@@ -1,7 +1,9 @@
 ﻿@Html.Partial( "~/Views/Shared/_AJAXTools.cshtml" )
 @Html.Partial( "~/Views/Search/_SearchCoreV1.cshtml" )
 <script type="text/javascript">
-	var ItemListSearches = {};
+	var ItemListSearches = {
+		RatingContextLabel: "RMTL Record"
+	};
 	ItemListSearches.setupItemLists = function(ItemListConfigs) {
 		$("item-list-search").each(function () {
 			//Create UI
@@ -10,11 +12,11 @@
 			Config.UI = {};
 			Config.UI.Box = box;
 			Config.UI.Box.addClass("section itemListSearch");
-			Config.UI.Header = $("<h3 class=\"sectionHeader\">" + Config.Header + "</h3>").appendTo(Config.UI.Box);
-			Config.UI.TopWrapper = $("<div class=\"itemListSearchTopWrapper\"></div>").appendTo(Config.UI.Box);
+			Config.UI.Header = $("<h3 class=\"sectionHeader\"><span>" + Config.Header + "</span></h3>").appendTo(Config.UI.Box);
+			Config.UI.DescriptionBox = $("<div class=\"itemListSearchDescription\">" + (Config.Description || "") + "</div>").appendTo(Config.UI.Box);
 			//Config.UI.KeywordsBox = $("<input type=\"text\" class=\"keywordsBox\" placeholder=\"Filter...\" />").appendTo(Config.UI.TopWrapper);
-			Config.UI.StatusBox = $("<div class=\"itemListSearchStatus\"></div>").appendTo(Config.UI.TopWrapper);
-			Config.UI.SpinnerWrapper = $("<div class=\"itemListSearchSpinnerWrapper\"></div>").appendTo(Config.UI.TopWrapper);
+			Config.UI.SpinnerWrapper = $("<div class=\"itemListSearchSpinnerWrapper\"></div>").appendTo(Config.UI.Header);
+			Config.UI.StatusBox = $("<div class=\"itemListSearchStatus\"></div>").appendTo(Config.UI.Header);
 			Config.UI.Spinner = $("<div class=\"spinner itemListSearchSpinner\"></div>").appendTo(Config.UI.SpinnerWrapper);
 			Config.UI.Table = $("<table class=\"itemListSearchResults\" data-searchtype=\"" + Config.SearchType + "\" data-styletype=\"" + Config.StyleType + "\"></table>").appendTo(Config.UI.Box);
 			Config.UI.TableHeader = $("<thead></thead>").appendTo(Config.UI.Table);
@@ -104,7 +106,7 @@
 		var [sourceProperty, referenceToType] = path.shift().split("|");
 		if (path.length == 0) {
 			var text = overrideText || source[sourceProperty];
-			spinner.replaceWith(asPlainText ? text : ItemListSearches.getLink("@Url.Content("~/")" + referenceToType + "/Detail/" + source.Id, text));
+			spinner.replaceWith(asPlainText ? "<div>" + text + "</div>" : ItemListSearches.getLink("@Url.Content("~/")" + referenceToType + "/Detail/" + source.Id, text));
 		}
 		else {
 			var guids = !source[sourceProperty] ? [] : (Array.isArray(source[sourceProperty]) ? source[sourceProperty] : [source[sourceProperty]]);
@@ -126,14 +128,17 @@
 </script>
 <style type="text/css">
 	item-list-search { display: block; }
-	.itemListSearchTopWrapper { display: flex; gap: 10px; padding: 5px; align-items: center; }
-	.itemListSearchTopWrapper .keywordsBox { flex: 1 1 auto; max-width: none; height: 30px; }
-	.itemListSearchTopWrapper .itemListSearchStatus { flex: 0 0 150px; }
-	.itemListSearchTopWrapper .itemListSearchSpinnerWrapper { flex: 0 0 20px; display: flex; align-items: center; margin-left: auto; }
+	.itemListSearch .sectionHeader { display: flex; align-items: center; gap: 10px; }
+	.itemListSearch .sectionHeader span { margin-right: auto; }
+	.itemListSearch .sectionHeader .itemListSearchStatus { font-size: 14px; }
+	.itemListSearch .sectionHeader .itemListSearchSpinnerWrapper {  }
+	.itemListSearch .itemListSearchDescription { margin: 5px; }
+	.itemListSearch .itemListSearchDescription p { margin: 0 0 5px 0; padding: 0; }
 	.itemListSearch .itemListSearchResults .itemListSearchResult .spinner { width: 16px; height: 16px; }
 	.itemListSearchPaging { display: flex; gap: 10px; justify-content: center; padding: 5px; }
 	.itemListSearchResult [data-reference]:not(:last-child) { margin-right: 10px; }
 	.itemListSearch th input { display: block; width: 100%; max-width: none; min-width: none; font-weight: normal; }
 
-	.itemListSearch [data-column='Rating Context'] { width: 125px; }
+	.itemListSearch :is([data-column='Rating Context'], [data-column='RMTL Record']) { width: 125px; }
+	.itemListSearch tbody td > * { display: block; }
 </style>

@@ -23,6 +23,7 @@
 		Searches: {
 			Courses: {
 				Header: "Courses",
+				Description: "<p>Courses for which this Organization acts as a Curriculum Control Authority.</p>",
 				SearchType: "Course",
 				StyleType: "Course",
 				Filters: [
@@ -35,16 +36,17 @@
 			},
 			RatingTasks: {
 				Header: "Rating Tasks",
+				Description: "<p>Rating Tasks which reference Training Tasks which are associated with Courses for which this Organization acts as a Curriculum Control Authority.</p>",
 				SearchType: "RatingContext",
 				StyleType: "RatingTask",
 				Filters:[
 					{ Name: "> CourseContextId > CourseContext > HasCourseId > Course > CurriculumControlAuthorityId > Organization", ItemIds: [ @Model.Id ] }
 				],
 				Fields: [
-					{ Label: "Rating Context", RenderPath: ["Id|RatingContext"], QueryPath: ".Id", IsNumeric: true },
+					{ Label: ItemListSearches.RatingContextLabel, RenderPath: ["Id|RatingContext"], QueryPath: ".Id", IsNumeric: true },
 					{ Label: "Rating", RenderPath: ["HasRating|Rating", "CodedNotation|Rating"], QueryPath: "> RatingId > Rating.CodedNotation" },
 					{ Label: "Rating Task", RenderPath: ["HasRatingTask|RatingTask", "Description|RatingTask"], QueryPath: "> RatingTaskId > RatingTask.TextFields" },
-					{ Label: "Training Gap", RenderPath: ["TrainingGapType|Concept", "Name|Concept"], QueryPath: "> FormalTrainingGapId > Concept.Name" }
+					{ Label: "Training Gap", RenderPath: ["TrainingGapType|Concept", "Name|Concept"], QueryPath: "> FormalTrainingGapId > Concept.Name", AsPlainText: true }
 				]
 			}
 		}

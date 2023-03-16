@@ -44,24 +44,26 @@
 		Searches: {
 			RatingTasks: {
 				Header: "Rating Tasks",
+				Description: "<p>Rating Tasks associated with this Billet Title.</p>",
 				SearchType: "RatingContext",
 				StyleType: "RatingTask",
 				Fields: [
-					{ Label: "Rating Context", RenderPath: ["Id|RatingContext"], QueryPath: ".Id", IsNumeric: true },
+					{ Label: ItemListSearches.RatingContextLabel, RenderPath: ["Id|RatingContext"], QueryPath: ".Id", IsNumeric: true },
 					{ Label: "Rating", RenderPath: ["HasRating|Rating", "CodedNotation|Rating"], QueryPath: "> RatingId > Rating.CodedNotation" },
 					{ Label: "Rating Task", RenderPath: ["HasRatingTask|RatingTask", "Description|RatingTask"], QueryPath: "> RatingTaskId > RatingTask.TextFields" },
-					{ Label: "Training Gap", RenderPath: ["TrainingGapType|Concept", "Name|Concept"], QueryPath: "> FormalTrainingGapId > Concept.Name" }
+					{ Label: "Training Gap", RenderPath: ["TrainingGapType|Concept", "Name|Concept"], QueryPath: "> FormalTrainingGapId > Concept.Name", AsPlainText: true }
 				]
 			},
 			ClusterAnalysis: {
 				Header: "Cluster Analyses",
+				Description: "<p>Cluster Analyses associated with the Rating Tasks which are associated with this Billet Title.</p>",
 				SearchType: "RatingContext",
 				StyleType: "ClusterAnalysis",
 				Filters: [
 					{ Name: "> ClusterAnalysisId > ClusterAnalysis:NotNull" }
 				],
 				Fields: [
-					{ Label: "Rating Context", RenderPath: ["Id|RatingContext"], QueryPath: ".Id", IsNumeric: true },
+					{ Label: ItemListSearches.RatingContextLabel, RenderPath: ["Id|RatingContext"], QueryPath: ".Id", IsNumeric: true },
 					{ Label: "Rating", RenderPath: ["HasRating|Rating", "CodedNotation|Rating"], QueryPath: "> RatingId > Rating.CodedNotation" },
 					{ Label: "Cluster Analysis", RenderPath: ["HasClusterAnalysis|ClusterAnalysis", "Id|ClusterAnalysis"], QueryPath: "> ClusterAnalysisId > ClusterAnalysis", IsNumeric: true },
 					{ Label: "Cluster Analysis Title", RenderPath: ["HasClusterAnalysis|ClusterAnalysis", "HasClusterAnalysisTitle|ClusterAnalysisTitle", "Name|ClusterAnalysisTitle"], QueryPath: "> ClusterAnalysisId > ClusterAnalysis > HasClusterAnalysisTitleId > ClusterAnalysisTitle.Name" },
