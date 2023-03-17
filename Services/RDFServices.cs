@@ -149,6 +149,67 @@ namespace Services
 		}
 		//
 
+		public static JObject GetConceptSchemesAndConcepts()
+		{
+			var terms = new JArray();
+			var schemeMap = Factories.ConceptSchemeManager.GetConceptSchemeMap( true );
+
+			//Concept Schemes
+			foreach( var scheme in schemeMap.AllConceptSchemes )
+			{
+				var json = GetConceptSchemeJSON( scheme, false );
+				terms.Add( json );
+			}
+
+			//Concepts
+			var allConcepts = schemeMap.AllConceptSchemes.SelectMany( m => m.Concepts ).Where( m => m != null && m.IsActive ).ToList();
+			foreach( var scheme in schemeMap.AllConceptSchemes )
+			{
+				foreach( var concept in scheme.Concepts.Where( m => m != null && m.IsActive ).ToList() )
+				{
+					var json = GetConceptJSON( scheme, concept, allConcepts, false );
+					terms.Add( json );
+				}
+			}
+
+			//Wrapper
+			var result = new JObject()
+			{
+				{ "@context", GetContextURL() },
+				{ "@graph", terms }
+			};
+
+			return result;
+
+		}
+		//
+
+		public static JObject GetConceptSchemeJSON( ConceptScheme scheme, bool includeContext )
+		{
+			var schemeJSON = GetStarterResult( RDF.NamespacedTerms.SKOS.ConceptScheme.URI, scheme, includeContext );
+			AppendValue( schemeJSON, RDF.NamespacedTerms.CEASN.Name.URI, scheme.Name, true );
+			AppendValue( schemeJSON, RDF.NamespacedTerms.CEASN.Description.URI, scheme.Name, true );
+			AppendValue( schemeJSON, RDF.NamespacedTerms.SKOS.HasTopConcept.URI, scheme.Concepts.Where( m => m != null && m.IsActive ).Select( m => GetRegistryURL( m.CTID ) ).ToList(), false );
+
+			return schemeJSON;
+		}
+		//
+
+		public static JObject GetConceptJSON( ConceptScheme scheme, Concept concept, List<Concept> allConcepts, bool includeContext )
+		{
+			var conceptJSON = GetStarterResult( RDF.NamespacedTerms.SKOS.Concept.URI, concept, includeContext );
+			AppendValue( conceptJSON, RDF.NamespacedTerms.SKOS.PrefLabel.URI, concept.Name, true );
+			AppendValue( conceptJSON, RDF.NamespacedTerms.SKOS.Definition.URI, concept.Description, true );
+			AppendValue( conceptJSON, RDF.NamespacedTerms.SKOS.Notation.URI, concept.CodedNotation, false );
+			AppendValue( conceptJSON, RDF.NamespacedTerms.SKOS.BroadMatch.URI, allConcepts.Where( m => m.RowId == concept.BroadMatch ).Select( m => GetRegistryURL( m.CTID ) ).Distinct().ToList(), false );
+			AppendValue( conceptJSON, RDF.NamespacedTerms.SKOS.NarrowMatch.URI, allConcepts.Where( m => m.BroadMatch == concept.RowId ).Select( m => GetRegistryURL( m.CTID ) ).Distinct().ToList(), false );
+			AppendValue( conceptJSON, RDF.NamespacedTerms.SKOS.InScheme.URI, new List<string>() { GetRegistryURL( scheme.CTID ) }, false );
+			AppendValue( conceptJSON, RDF.NamespacedTerms.SKOS.TopConceptOf.URI, new List<string>() { GetRegistryURL( scheme.CTID ) }, false );
+
+			return conceptJSON;
+		}
+		//
+
 		public static object GetRawResourceByCTID( string ctid )
 		{
 			//All of these need to return null if not found!
@@ -347,17 +408,6 @@ namespace Services
 			AppendValue( result, RDF.NamespacedTerms.CETERMS.Description.URI, source.Description, true );
 			AppendLookupValue( result, RDF.NamespacedTerms.NAVY.HasReferenceResource.URI, source.HasReferenceResource, Factories.ReferenceResourceManager.GetByRowId );
 			AppendLookupValue( result, RDF.NamespacedTerms.NAVY.ReferenceType.URI, source.ReferenceType, Factories.ConceptManager.GetByRowId );
-			/*
-			AppendValue( result, "ceterms:codedNotation", source.CodedNotation, false );
-			AppendValue( result, "ceasn:comment", source.Note, true );
-			AppendLookupValue( result, "navy:payGradeType", source.PayGradeType, Factories.ConceptSchemeManager.GetConcept );
-			AppendLookupValue( result, "navy:applicabilityType", source.ApplicabilityType, Factories.ConceptSchemeManager.GetConcept );
-			AppendLookupValue( result, "navy:trainingGapType", source.TrainingGapType, Factories.ConceptSchemeManager.GetConcept );
-			AppendLookupValue( result, "ceterms:hasOccupation", source.HasRating, Factories.RatingManager.GetMultiple );
-			AppendLookupValue( result, "ceterms:hasJob", source.HasBilletTitle, Factories.JobManager.GetMultiple );
-			AppendLookupValue( result, "ceterms:hasWorkRole", source.HasWorkRole, Factories.WorkRoleManager.GetMultiple );
-			AppendLookupValue( result, "navy:hasTrainingTask", source.HasTrainingTask, Factories.TrainingTaskManager.GetMultiple );
-			*/
 
 			return result;
 		}
@@ -418,21 +468,21 @@ namespace Services
 
 		public static JObject GetRDF( ConceptScheme source, bool includeSecuredTerms = false, List<JObject> extraGraphObjects = null )
 		{
-			var result = GetStarterResult( ConceptScheme.RDFType, source );
+			var result = GetConceptSchemeJSON( source, true );
 			extraGraphObjects = extraGraphObjects ?? new List<JObject>();
 
-			AppendValue( result, RDF.NamespacedTerms.CEASN.Name.URI, source.Name, true );
-			AppendValue( result, RDF.NamespacedTerms.CEASN.Description.URI, source.Description, true );
 			if ( includeSecuredTerms )
 			{
-				var allConcepts = Factories.ConceptManager.GetAllConceptsForScheme( source.SchemaUri, true );
-				AppendValue( result, RDF.NamespacedTerms.SKOS.HasTopConcept.URI, allConcepts.Select( m => GetRegistryURL( m.CTID ) ).ToList(), false );
-				foreach( var concept in allConcepts )
+				var allConcepts = Factories.ConceptManager.GetAll( true );
+				foreach ( var concept in allConcepts.Where( m => m.InScheme == source.RowId ).ToList() )
 				{
-					var item = GetRDF( concept, includeSecuredTerms );
-					item.Remove( "@context" );
-					extraGraphObjects.Add( item );
+					var conceptJSON = GetConceptJSON( source, concept, allConcepts, false );
+					extraGraphObjects.Add( conceptJSON );
 				}
+			}
+			else
+			{
+				result.Remove( RDF.NamespacedTerms.SKOS.HasTopConcept.URI );
 			}
 
 			return result;
@@ -446,14 +496,9 @@ namespace Services
 				return null;
 			}
 
-			var result = GetStarterResult( Concept.RDFType, source );
-
-			AppendValue( result, RDF.NamespacedTerms.SKOS.PrefLabel.URI, source.Name, true );
-			AppendValue( result, RDF.NamespacedTerms.SKOS.Notation.URI, source.CodedNotation, false );
-			AppendValue( result, RDF.NamespacedTerms.SKOS.Definition.URI, source.Description, true );
-			AppendLookupValue( result, RDF.NamespacedTerms.SKOS.InScheme.URI, source.InScheme, ( rowID ) => { return Factories.ConceptSchemeManager.GetByRowId( rowID ); } );
-
-			return result;
+			var scheme = Factories.ConceptSchemeManager.GetByRowId( source.InScheme );
+			var allConcepts = Factories.ConceptManager.GetAll( true );
+			return GetConceptJSON( scheme, source, allConcepts, true );
 		}
 		//
 
@@ -498,16 +543,20 @@ namespace Services
 		}
 		//
 
-		public static JObject GetStarterResult<T>( string rdfType, T source ) where T : BaseObject
+		public static JObject GetStarterResult<T>( string rdfType, T source, bool includeContext = true ) where T : BaseObject
 		{
-			var applicationURL = GetApplicationURL();
-			return new JObject()
+			var result = new JObject();
+
+			if ( includeContext )
 			{
-				{ "@context", GetContextURL() },
-				{ "@id", GetRegistryURL( source.CTID ) },
-				{ "@type", rdfType },
-				{ RDF.NamespacedTerms.CETERMS.CTID.URI, source.CTID }
-			};
+				result.Add( "@context", GetContextURL() );
+			}
+
+			result.Add( "@id", GetRegistryURL( source.CTID ) );
+			result.Add( "@type", rdfType );
+			result.Add( RDF.NamespacedTerms.CETERMS.CTID.URI, source.CTID );
+
+			return result;
 		}
 		//
 
