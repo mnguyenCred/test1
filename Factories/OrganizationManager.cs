@@ -155,7 +155,7 @@ namespace Factories
 				}
 
 				//Enable filtering to just Organizations that have data
-				AppendNotNullFilterIfPresent( query, "< CurriculumControlAuthorityId < Course < HasCourseId < CourseContext < CourseContextId < RatingContext:NotNull", () => {
+				AppendSimpleFilterIfPresent( query, "< CurriculumControlAuthorityId < Course < HasCourseId < CourseContext < CourseContextId < RatingContext:NotNull", () => {
 					list = list.Where( m => context.RatingContext.Where( n => n.CourseContext.Course.Organization == m ).Count() > 0 );
 				} );
 

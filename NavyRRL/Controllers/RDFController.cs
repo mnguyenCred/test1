@@ -44,6 +44,16 @@ namespace NavyRRL.Controllers
 		}
 		//
 
+		[Route("rdf/vocabs/json")]
+		public ActionResult VocabsJSON()
+		{
+			return ValidateAPIKeyIfPresent( () => {
+				AuthenticateOrRedirect( "You must be authenticated and authorized to view this data.", true, "~/rdf/error/notauthenticated" );
+				return RawJSONResponse( RDFServices.GetConceptSchemesAndConcepts() );
+			} );
+		}
+		//
+
 		[Route("rdf/terms/json/{prefix}/{term}")]
 		public ActionResult GetTerm( string prefix, string term )
 		{

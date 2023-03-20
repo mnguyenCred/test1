@@ -180,7 +180,7 @@ namespace Factories
 				//Return ordered list
 				//Traversal requires projection to avoid querying every row in the results
 				var projected = list.Select( m => new { Main = m, ConceptScheme_Name = m.ConceptScheme.Name } );
-				var sorted = HandleSort2( projected, query.SortOrder, m => m.Main.Name, m => m.Main.Id, m => m.OrderBy( n => n.ConceptScheme_Name ).ThenBy( n => n.Main.Name ), ( m, keywordParts ) => m.OrderBy( n => RelevanceHelper( n, keywordParts, o => o.Main.Name ) ).ThenBy( o => o.ConceptScheme_Name ), keywords );
+				var sorted = HandleSortV2( projected, query.SortOrder, m => m.Main.Name, m => m.Main.Id, m => m.OrderBy( n => n.ConceptScheme_Name ).ThenBy( n => n.Main.Name ), ( m, keywordParts ) => m.OrderBy( n => RelevanceHelper( n, keywordParts, o => o.Main.Name ) ).ThenBy( o => o.ConceptScheme_Name ), keywords );
 				return sorted.Select( m => m.Main ).OrderBy( m => true );
 				
 

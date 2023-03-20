@@ -13,7 +13,8 @@
 	PropertyList = new List<NamedString>()
 	{
 		new NamedString( "Description", Model.Description ),
-		new NamedString( "Source", LinkHelper.GetDetailPageLink( Factories.ReferenceResourceManager.GetByRowId( Model.HasReferenceResource ), Url.Content, m => m.Name + " (" + m.PublicationDate + ")" ) ),
+		new NamedString( "Source", LinkHelper.GetDetailPageLink( Factories.ReferenceResourceManager.GetByRowId( Model.HasReferenceResource ), Url.Content, m => m.Name ) ),
+		new NamedString( "Source Date", LinkHelper.GetDetailPageLink( Factories.ReferenceResourceManager.GetByRowId( Model.HasReferenceResource ), Url.Content, m => m.PublicationDate ) ),
 		new NamedString( "Reference Type", LinkHelper.GetDetailPageLink( Factories.ConceptManager.GetByRowId( Model.ReferenceType ), Url.Content, m => m.Name ) )
 	}
 } )
@@ -27,69 +28,74 @@
 		Searches: {
 			Ratings: {
 				Header: "Ratings",
+				Description: "<p>Ratings which have an RMTL which this Rating Task appears in.</p>",
 				SearchType: "RatingContext",
 				StyleType: "Rating",
 				Fields: [
-					{ Label: "Rating Context", RenderPath: ["Id|RatingContext"], QueryPath: ".Id", IsNumeric: true },
+					{ Label: ItemListSearches.RatingContextLabel, RenderPath: ["Id|RatingContext"], QueryPath: ".Id", IsNumeric: true },
 					{ Label: "Rating", RenderPath: ["HasRating|Rating", "CodedNotation|Rating"], QueryPath: "> RatingId > Rating.CodedNotation" },
 					{ Label: "Rating Name", RenderPath: ["HasRating|Rating", "Name|Rating"], QueryPath: "> RatingId > Rating.Name" },
-					{ Label: "Training Gap", RenderPath: ["TrainingGapType|Concept", "Name|Concept"], QueryPath: "> FormalTrainingGapId > Concept.Name" }
+					{ Label: "Training Gap", RenderPath: ["TrainingGapType|Concept", "Name|Concept"], QueryPath: "> FormalTrainingGapId > Concept.Name", AsPlainText: true }
 				]
 			},
 			BilletTitles: {
 				Header: "Billet Titles",
+				Description: "<p>Billet Titles associated with this Rating Task in the context of a given Rating.</p>",
 				SearchType: "RatingContext",
 				StyleType: "BilletTitle",
 				Fields: [
-					{ Label: "Rating Context", RenderPath: ["Id|RatingContext"], QueryPath: ".Id", IsNumeric: true },
+					{ Label: ItemListSearches.RatingContextLabel, RenderPath: ["Id|RatingContext"], QueryPath: ".Id", IsNumeric: true },
 					{ Label: "Rating", RenderPath: ["HasRating|Rating", "CodedNotation|Rating"], QueryPath: "> RatingId > Rating.CodedNotation" },
 					{ Label: "Billet Title", RenderPath: ["HasBilletTitle|BilletTitle", "Name|BilletTitle"], QueryPath: "> BilletTitleId > Job.Name" },
-					{ Label: "Training Gap", RenderPath: ["TrainingGapType|Concept", "Name|Concept"], QueryPath: "> FormalTrainingGapId > Concept.Name" }
+					{ Label: "Training Gap", RenderPath: ["TrainingGapType|Concept", "Name|Concept"], QueryPath: "> FormalTrainingGapId > Concept.Name", AsPlainText: true }
 				]
 			},
 			WorkRoles: {
 				Header: "Functional Areas",
+				Description: "<p>Functional Areas associated with this Rating Task in the context of a given Rating.</p>",
 				SearchType: "RatingContext",
 				StyleType: "WorkRole",
 				Fields: [
-					{ Label: "Rating Context", RenderPath: ["Id|RatingContext"], QueryPath: ".Id", IsNumeric: true },
+					{ Label: ItemListSearches.RatingContextLabel, RenderPath: ["Id|RatingContext"], QueryPath: ".Id", IsNumeric: true },
 					{ Label: "Rating", RenderPath: ["HasRating|Rating", "CodedNotation|Rating"], QueryPath: "> RatingId > Rating.CodedNotation" },
 					{ Label: "Functional Area", RenderPath: ["HasWorkRole|WorkRole", "Name|WorkRole"], QueryPath: "> WorkRoleId > WorkRole.Name" },
-					{ Label: "Training Gap", RenderPath: ["TrainingGapType|Concept", "Name|Concept"], QueryPath: "> FormalTrainingGapId > Concept.Name" }
+					{ Label: "Training Gap", RenderPath: ["TrainingGapType|Concept", "Name|Concept"], QueryPath: "> FormalTrainingGapId > Concept.Name", AsPlainText: true }
 				]
 			},
 			TrainingTasks: {
 				Header: "Training Tasks",
+				Description: "<p>Training Tasks associated with this Rating Task in the context of a given Rating.</p>",
 				SearchType: "RatingContext",
 				StyleType: "TrainingTask",
 				Filters: [
 					{ Name: "> CourseContextId > CourseContext:NotNull" }
 				],
 				Fields: [
-					{ Label: "Rating Context", RenderPath: ["Id|RatingContext"], QueryPath: ".Id", IsNumeric: true },
+					{ Label: ItemListSearches.RatingContextLabel, RenderPath: ["Id|RatingContext"], QueryPath: ".Id", IsNumeric: true },
 					{ Label: "Course Context", RenderPath: ["HasCourseContext|CourseContext", "Id|CourseContext"], QueryPath: "> CourseContextId > CourseContext", IsNumeric: true },
 					{ Label: "Rating", RenderPath: ["HasRating|Rating", "CodedNotation|Rating"], QueryPath: "> RatingId > Rating.CodedNotation" },
 					{ Label: "Training Task", RenderPath: [ "HasCourseContext|CourseContext", "HasTrainingTask|TrainingTask", "Description|TrainingTask" ], QueryPath: "> CourseContextId > CourseContext > HasTrainingTaskId > TrainingTask.TextFields" },
 					{ Label: "Course Code", RenderPath: [ "HasCourseContext|CourseContext", "HasCourse|Course", "CodedNotation|Course" ], QueryPath: "> CourseContextId > CourseContext > HasCourseId > Course.CodedNotation" },
-					{ Label: "Assessment Approach", RenderPath: ["HasCourseContext|CourseContext", "AssessmentMethodType|Concept", "Name|Concept"], QueryPath: "> CourseContextId > CourseContext > AssessmentMethodConceptId > Concept.Name" }
+					{ Label: "Assessment Approach", RenderPath: ["HasCourseContext|CourseContext", "AssessmentMethodType|Concept", "Name|Concept"], QueryPath: "> CourseContextId > CourseContext > AssessmentMethodConceptId > Concept.Name", AsPlainText: true }
 				]
 			},
 			ClusterAnalyses: {
 				Header: "Cluster Analyses",
+				Description: "<p>Cluster Analyses associated with this Rating Task in the context of a given Rating.</p>",
 				SearchType: "RatingContext",
 				StyleType: "ClusterAnalysis",
 				Filters: [
 					{ Name: "> ClusterAnalysisId > ClusterAnalysis:NotNull" }
 				],
 				Fields: [
-					{ Label: "Rating Context", RenderPath: ["Id|RatingContext"], QueryPath: ".Id", IsNumeric: true },
+					{ Label: ItemListSearches.RatingContextLabel, RenderPath: ["Id|RatingContext"], QueryPath: ".Id", IsNumeric: true },
 					{ Label: "Rating", RenderPath: ["HasRating|Rating", "CodedNotation|Rating"], QueryPath: "> RatingId > Rating.CodedNotation" },
 					{ Label: "Cluster Analysis", RenderPath: ["HasClusterAnalysis|ClusterAnalysis", "Id|ClusterAnalysis"], QueryPath: "> ClusterAnalysisId > ClusterAnalysis", IsNumeric: true },
 					{ Label: "Cluster Analysis Title", RenderPath: ["HasClusterAnalysis|ClusterAnalysis", "HasClusterAnalysisTitle|ClusterAnalysisTitle", "Name|ClusterAnalysisTitle"], QueryPath: "> ClusterAnalysisId > ClusterAnalysis > HasClusterAnalysisTitleId > ClusterAnalysisTitle.Name" },
-					{ Label: "Training Solution Type", RenderPath: ["HasClusterAnalysis|ClusterAnalysis", "TrainingSolutionType|Concept", "Name|Concept"], QueryPath: "> ClusterAnalysisId > ClusterAnalysis > TrainingSolutionTypeId > Concept.Name" },
+					{ Label: "Training Solution Type", RenderPath: ["HasClusterAnalysis|ClusterAnalysis", "TrainingSolutionType|Concept", "Name|Concept"], QueryPath: "> ClusterAnalysisId > ClusterAnalysis > TrainingSolutionTypeId > Concept.Name", AsPlainText: true },
 					//{ Label: "Recommended Modality Type", RenderPath: ["HasClusterAnalysis|ClusterAnalysis", "RecommendedModalityType|Concept", "Name|Concept"] },
 					//{ Label: "Development Specification Type", RenderPath: ["HasClusterAnalysis|ClusterAnalysis", "DevelopmentSpecificationType|Concept", "Name|Concept"] },
-					{ Label: "Candidate Platform Type", RenderPath: ["HasClusterAnalysis|ClusterAnalysis", "CandidatePlatformType|Concept", "Name|Concept"], QueryPath: "> ClusterAnalysisId > ClusterAnalysis > CandidatePlatformConceptId > Concept.TextFields" },
+					{ Label: "Candidate Platform Type", RenderPath: ["HasClusterAnalysis|ClusterAnalysis", "CandidatePlatformType|Concept", "Name|Concept"], QueryPath: "> ClusterAnalysisId > ClusterAnalysis > CandidatePlatformConceptId > Concept.TextFields", AsPlainText: true },
 					//{ Label: "CFM Placement Type", RenderPath: ["HasClusterAnalysis|ClusterAnalysis", "CFMPlacementType|Concept", "Name|Concept"] },
 					//{ Label: "Development Ratio Type", RenderPath: ["HasClusterAnalysis|ClusterAnalysis", "DevelopmentRatioType|Concept", "Name|Concept"] },
 					//{ Label: "Priority Placement", RenderPath: ["HasClusterAnalysis|ClusterAnalysis", "PriorityPlacement|ClusterAnalysis"], AsPlainText: true },
@@ -98,16 +104,17 @@
 				]
 			},
 			RatingContexts: {
-				Header: "Rating Contexts",
+				Header: "Rating Contexts (" + ItemListSearches.RatingContextLabel + ")",
+				Description: "<p>Rating Contexts which reference this Rating Task. A Rating Context object can be thought of as representing an individal row in an individual RMTL spreadsheet, and is used to connect the objects which are referenced by that row.</p>",
 				SearchType: "RatingContext",
 				StyleType: "RatingContext",
 				Fields: [
-					{ Label: "Rating Context", RenderPath: ["Id|RatingContext"], QueryPath: ".Id", IsNumeric: true },
+					{ Label: ItemListSearches.RatingContextLabel, RenderPath: ["Id|RatingContext"], QueryPath: ".Id", IsNumeric: true },
 					{ Label: "Rating", RenderPath: ["HasRating|Rating", "CodedNotation|Rating"], QueryPath: "> RatingId > Rating.CodedNotation" },
-					{ Label: "Pay Grade Level", RenderPath: ["PayGradeLevelType|Concept", "Name|Concept"], QueryPath: "> PayGradeLevelTypeId > Concept.TextFields" },
-					{ Label: "Pay Grade", RenderPath: ["PayGradeType|Concept", "CodedNotation|Concept"], QueryPath: "> PayGradeTypeId > Concept.TextFields" },
-					{ Label: "Applicability Type", RenderPath: ["ApplicabilityType|Concept", "Name|Concept"], QueryPath: "> TaskApplicabilityId > Concept.TextFields" },
-					{ Label: "Training Gap", RenderPath: ["TrainingGapType|Concept", "Name|Concept"], QueryPath: "> FormalTrainingGapId > Concept.Name" }
+					{ Label: "Pay Grade Level", RenderPath: ["PayGradeLevelType|Concept", "Name|Concept"], QueryPath: "> PayGradeLevelTypeId > Concept.TextFields", AsPlainText: true },
+					{ Label: "Pay Grade", RenderPath: ["PayGradeType|Concept", "CodedNotation|Concept"], QueryPath: "> PayGradeTypeId > Concept.TextFields", AsPlainText: true },
+					{ Label: "Applicability Type", RenderPath: ["ApplicabilityType|Concept", "Name|Concept"], QueryPath: "> TaskApplicabilityId > Concept.TextFields", AsPlainText: true },
+					{ Label: "Training Gap", RenderPath: ["TrainingGapType|Concept", "Name|Concept"], QueryPath: "> FormalTrainingGapId > Concept.Name", AsPlainText: true }
 				]
 			}
 		}

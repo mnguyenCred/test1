@@ -2,6 +2,7 @@
 @using Newtonsoft.Json;
 @using Factories;
 @using Models.DTO;
+@using Models.Search;
 @{ 
 	var conceptSchemeMap = Model.ConceptSchemeMap ?? ConceptSchemeManager.GetConceptSchemeMap();
 }
@@ -32,7 +33,7 @@
 	$(document).ready(function () {
 		setupStatistics();
 		if (@(Model.AutoSearch ? "true" : "false")) {
-			getTasksBySourceType({ Filters: @Html.Raw(@JsonConvert.SerializeObject(Model.Filters, Formatting.None)) });
+			getTasksBySourceType({ Filters: @Html.Raw(@JsonConvert.SerializeObject(Model.Filters ?? new List<SearchFilter>(), Formatting.None)) });
 		}
 	});
 	//

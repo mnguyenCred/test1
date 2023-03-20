@@ -158,7 +158,7 @@ namespace Factories
 			var schemes = GetAll( includingConcepts );
 			var result = new Models.Schema.ConceptSchemeMap()
 			{
-				AllConceptSchemes = schemes,
+				AllConceptSchemes = new List<AppEntity>(),
 				CommentStatusCategory = schemes.FirstOrDefault( scheme => scheme.SchemaUri == ConceptScheme_CommentStatusCategory ),
 				CourseCategory = schemes.FirstOrDefault( scheme => scheme.SchemaUri == ConceptScheme_CourseCategory ),
 				AssessmentMethodCategory = schemes.FirstOrDefault( scheme => scheme.SchemaUri == ConceptScheme_AssessmentMethodCategory ),
@@ -176,6 +176,16 @@ namespace Factories
 				DevelopmentRatioCategory = schemes.FirstOrDefault( scheme => scheme.SchemaUri == ConceptScheme_DevelopmentRatioCategory ),
 				CFMPlacementCategory = schemes.FirstOrDefault( scheme => scheme.SchemaUri == ConceptScheme_CFMPlacementCategory )
 			};
+
+			//Add all relevant schemes as a list if they are part of the map and populated
+			foreach( var property in typeof( Models.Schema.ConceptSchemeMap ).GetProperties().Where( m => m.PropertyType == typeof( AppEntity ) ).ToList() )
+			{
+				var value = ( AppEntity ) property.GetValue( result );
+				if( value != null )
+				{
+					result.AllConceptSchemes.Add( value );
+				}
+			}
 
 			return result;
 		}

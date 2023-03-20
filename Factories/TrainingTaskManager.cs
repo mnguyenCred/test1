@@ -178,6 +178,30 @@ namespace Factories
 					);
 				}
 
+				//Training Task Detail Page
+				AppendTextFilterIfPresent( query, ".DescriptionExact", ( text ) =>
+				{
+					list = list.Where( m => m.Description.ToLower() == text.ToLower() );
+				} );
+
+				//Training Task Detail Page
+				AppendTextFilterIfPresent( query, ".TextFields", ( text ) =>
+				{
+					list = list.Where( m => m.Description.Contains( text ) );
+				} );
+
+				//Training Task Detail Page
+				AppendTextFilterIfPresent( query, "> HasReferenceResourceId > ReferenceResource.TextFields", ( text ) =>
+				{
+					list = list.Where( m => m.ReferenceResource.Name.Contains( text ) || m.ReferenceResource.CodedNotation.Contains( text ) || m.ReferenceResource.Description.Contains( text ) );
+				} );
+
+				//Training Task Detail Page
+				AppendTextFilterIfPresent( query, "> HasReferenceResourceId > ReferenceResource.PublicationDate", ( text ) =>
+				{
+					list = list.Where( m => m.ReferenceResource.PublicationDate.Contains( text ) );
+				} );
+
 				//Exclude items
 				AppendIDsFilterIfPresent( query, "search:Exclude", ( ids ) =>
 				{

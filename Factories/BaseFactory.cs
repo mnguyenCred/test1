@@ -354,7 +354,7 @@ namespace Factories
 
 		public static SearchResultSet<T2> HandleSearch<T1, T2>(
 			SearchQuery query,
-			Func<DataEntities, IEnumerable<T1>> SearchMethodWithOrderedResultSet,
+			Func<DataEntities, IOrderedEnumerable<T1>> SearchMethodWithOrderedResultSet,
 			Func<T1, DataEntities, SearchResultSet<T2>, T2> MappingMethod
 		) where T1 : class, DBEntityBaseObject where T2 : Models.Schema.BaseObject, new()
 		{
@@ -384,7 +384,8 @@ namespace Factories
 		}
 		//
 
-		public static IOrderedEnumerable<T> HandleSort2<T>( IEnumerable<T> unsortedList, List<SortOrderItem> sortOrder, Func<T, object> GetAlphaPropertyMethod, Func<T, object> GetFallbackSortMethod, Func<IEnumerable<T>, IOrderedEnumerable<T>> DefaultSortMethod, Func<IEnumerable<T>, List<string>, IOrderedEnumerable<T>> RelevanceSortMethod = null, string keywords = null ) 
+		//TODO: Update other sort calls to use this method instead
+		public static IOrderedEnumerable<T> HandleSortV2<T>( IEnumerable<T> unsortedList, List<SortOrderItem> sortOrder, Func<T, object> GetAlphaPropertyMethod, Func<T, object> GetFallbackSortMethod, Func<IEnumerable<T>, IOrderedEnumerable<T>> DefaultSortMethod, Func<IEnumerable<T>, List<string>, IOrderedEnumerable<T>> RelevanceSortMethod = null, string keywords = null ) 
 		{
 			//If no sort order is specified, use the default handler
 			if ( sortOrder == null || sortOrder.Count() == 0 || sortOrder.FirstOrDefault( m => m.Column == "sortOrder:DefaultMethod" ) != null )
@@ -668,7 +669,7 @@ namespace Factories
 		}
 		//
 
-		public static void AppendNotNullFilterIfPresent( SearchQuery query, string filterName, Action AppendFilterMethod )
+		public static void AppendSimpleFilterIfPresent( SearchQuery query, string filterName, Action AppendFilterMethod )
 		{
 			var filter = query.GetFilterByName( filterName );
 			if( filter != null )
