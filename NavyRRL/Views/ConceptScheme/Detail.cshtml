@@ -4,6 +4,7 @@
 @model ConceptScheme
 @{
 	ViewBag.Title = "Concept Scheme: " + Model.Name;
+	var orderedConcepts = ( Model.Concepts?.ToList() ?? new List<Concept>() ).OrderBy( m => ( m.CodedNotation ?? "" ) ).ThenBy( m => ( m.Name ?? "" ) ).ThenBy( m => ( m.WorkElementType ?? "" ) ).ToList();
 }
 
 @Html.Partial( "~/Views/Shared/_DetailBasicInfo.cshtml", new DetailBasicInfoHelper( Model )
@@ -26,19 +27,21 @@
 		<thead>
 			<tr>
 				<th style="width: 30%">Name</th>
-				<th style="width: 15%">Coded Notation</th>
-				<th style="width: 20%">Work Element Type</th>
+				<th style="width: 150px">Coded Notation</th>
+				<th style="width: 150px">Work Element Type</th>
 				<th>Description</th>
+				@*<th style="width: 75px">Enabled</th>*@
 			</tr>
 		</thead>
 		<tbody>
-			@foreach ( var item in (Model.Concepts?.ToList() ?? new List<Concept>()).OrderBy( m => ( m.CodedNotation ?? "" ) ).ThenBy( m => ( m.Name ?? "" ) ).ThenBy( m => ( m.WorkElementType ?? "" ) ).ToList() )
+			@foreach ( var item in orderedConcepts )
 			{
 				<tr>
 					<td><a href="@Url.Content( "~/Concept/Detail/" + item.Id )">@item.Name</a></td>
 					<td>@item.CodedNotation</td>
 					<td>@item.WorkElementType</td>
 					<td>@item.Description</td>
+					@*<td>@(item.IsActive ? "Yes" : "No")</td>*@
 				</tr>
 			}
 		</tbody>

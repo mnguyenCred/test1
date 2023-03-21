@@ -144,7 +144,7 @@ namespace Factories
 				}
 
 				//Enable filtering to just Ratings that have data
-				AppendNotNullFilterIfPresent( query, "< RatingId < RatingContext:NotNull", () => {
+				AppendSimpleFilterIfPresent( query, "< RatingId < RatingContext:NotNull", () => {
 					list = list.Where( m => context.RatingContext.Where( n => n.Rating == m ).Count() > 0 );
 				} );
 
@@ -179,7 +179,7 @@ namespace Factories
         {
             //
             List<string> errors = new List<string>();
-            BaseFactory.AutoMap( input, output, errors );
+            AutoMap( input, output, errors );
             if ( input.RowId != output.RowId )
             {
                 output.RowId = input.RowId;

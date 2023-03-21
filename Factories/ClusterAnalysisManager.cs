@@ -181,7 +181,10 @@ namespace Factories
 				} );
 
 				//Return ordered list
-				return HandleSort( list, query.SortOrder, m => m.ClusterAnalysisTitle.Name, m => m.OrderBy( n => n.ClusterAnalysisTitle.Name ), ( m, keywordParts ) => m.OrderBy( n => RelevanceHelper( n, keywordParts, o => o.ClusterAnalysisTitle.Name ) ), keywords );
+				//Traversal requires projection to avoid querying every row in the results
+				var projected = list.Select( m => new { Main = m, ClusterAnalysisTitle_Name = m.ClusterAnalysisTitle.Name } );
+				var sorted = HandleSortV2( projected, query.SortOrder, m => m.ClusterAnalysisTitle_Name, m => m.Main.Id, m => m.OrderBy( n => n.ClusterAnalysisTitle_Name ), ( m, keywordParts ) => m.OrderBy( n => RelevanceHelper( n, keywordParts, o => o.ClusterAnalysisTitle_Name ) ), keywords );
+				return sorted.Select( m => m.Main ).OrderBy( m => true );
 
 			}, MapFromDBForSearch );
         }
@@ -196,17 +199,19 @@ namespace Factories
 		public static AppEntity MapFromDBForSearch( DBEntity input, DataEntities context, SearchResultSet<AppEntity> resultSet = null )
 		{
 			var output = AutoMap( input, new AppEntity() );
-			output.HasRating = input.Rating?.RowId ?? Guid.Empty;
-			output.HasRatingTask = input.RatingTask?.RowId ?? Guid.Empty;
-			output.HasBilletTitle = input.Job?.RowId ?? Guid.Empty;
-			output.HasWorkRole = input.WorkRole?.RowId ?? Guid.Empty;
-			output.HasClusterAnalysisTitle = input.ClusterAnalysisTitle?.RowId ?? Guid.Empty;
-			output.TrainingSolutionType = input.ConceptScheme_Concept_TrainingSolutionType?.RowId ?? Guid.Empty;
-			output.RecommendedModalityType = input.ConceptScheme_Concept_RecommendedModalityType?.RowId ?? Guid.Empty;
-			output.DevelopmentSpecificationType = input.ConceptScheme_Concept_DevelopmentSpecificationType?.RowId ?? Guid.Empty;
-			output.DevelopmentRatioType = input.ConceptScheme_Concept_DevelopmentRatioType?.RowId ?? Guid.Empty;
-			output.CandidatePlatformType = input.ClusterAnalysis_HasCandidatePlatform?.Select( m => m.ConceptScheme_Concept ).Select( m => m.RowId ).ToList() ?? new List<Guid>();
-			output.CFMPlacementType = input.ClusterAnalysis_CFMPlacementType?.Select( m => m.ConceptScheme_Concept ).Select( m => m.RowId ).ToList() ?? new List<Guid>();
+			output.HasRating = input.Rating?.RowId ?? Guid.Empty; //int ID field automatches
+			output.HasRatingTask = input.RatingTask?.RowId ?? Guid.Empty; //int ID field automatches
+			output.HasBilletTitle = input.Job?.RowId ?? Guid.Empty; //int ID field automatches
+			output.HasWorkRole = input.WorkRole?.RowId ?? Guid.Empty; //int ID field automatches
+			output.HasClusterAnalysisTitle = input.ClusterAnalysisTitle?.RowId ?? Guid.Empty; //int ID field automatches
+			output.TrainingSolutionType = input.ConceptScheme_Concept_TrainingSolutionType?.RowId ?? Guid.Empty; //int ID field automatches
+			output.RecommendedModalityType = input.ConceptScheme_Concept_RecommendedModalityType?.RowId ?? Guid.Empty; //int ID field automatches
+			output.DevelopmentSpecificationType = input.ConceptScheme_Concept_DevelopmentSpecificationType?.RowId ?? Guid.Empty; //int ID field automatches
+			output.DevelopmentRatioType = input.ConceptScheme_Concept_DevelopmentRatioType?.RowId ?? Guid.Empty; //int ID field automatches
+			output.CandidatePlatformType = input.ClusterAnalysis_HasCandidatePlatform?.Select( m => m.ConceptScheme_Concept.RowId ).ToList() ?? new List<Guid>();
+			output.CandidatePlatformTypeId = input.ClusterAnalysis_HasCandidatePlatform?.Select( m => m.CandidatePlatformConceptId ).ToList() ?? new List<int>();
+			output.CFMPlacementType = input.ClusterAnalysis_CFMPlacementType?.Select( m => m.ConceptScheme_Concept.RowId ).ToList() ?? new List<Guid>();
+			output.CFMPlacementTypeId = input.ClusterAnalysis_CFMPlacementType?.Select( m => m.CFMPlacementConceptId ).ToList() ?? new List<int>();
 
 			return output;
 		}

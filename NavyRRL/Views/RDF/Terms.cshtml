@@ -226,6 +226,8 @@
 	{
 		var fullURI = RDFServices.GetRegistryURL( item.CTID );
 		var applicableConceptSchemes = AllConceptSchemes.Where( m => m.SchemaUri == item.SchemeUri ).ToList();
+		var broaderConcepts = AllConcepts.Where( m => m.RowId == item.BroadMatch ).ToList();
+		var narrowerConcepts = AllConcepts.Where( m => m.BroadMatch == item.RowId ).ToList();
 		<div class="tableWrapper collapseBox collapsed" data-fulluri="@fullURI">
 			<button class="blueButton wrapperButton collapseButton">
 				<span class="name">@item.Name</span>
@@ -236,10 +238,19 @@
 					@AppendRow( "Full URI", GetTermLink( fullURI, fullURI ).ToString() )
 					@AppendRow( "Label", item.Name )
 					@AppendRow( "Definition", item.Description )
+					@AppendRow( "Notation", item.CodedNotation )
 					@AppendRow( "Type of Term", GetTermLink( GetFullURI( "skos:Concept" ), "skos:Concept" ).ToString() )
 					@if( applicableConceptSchemes.Count() > 0 )
 					{
 						@AppendRow( "In Scheme", "<div class=\"itemList\">" + string.Join( "", applicableConceptSchemes.Select( m => GetTermLink( RDFServices.GetRegistryURL( m.CTID ), m.Name ) ).ToList() ) + "</div>" )
+					}
+					@if( broaderConcepts.Count() > 0 )
+					{
+						@AppendRow( "Broad Match", "<div class=\"itemList\">" + string.Join( "", broaderConcepts.Select( m => GetTermLink( RDFServices.GetRegistryURL( m.CTID ), m.Name ) ).ToList() ) + "</div>" )
+					}
+					@if( narrowerConcepts.Count() > 0 )
+					{
+						@AppendRow( "Narrow Match", "<div class=\"itemList\">" + string.Join( "", narrowerConcepts.Select( m => GetTermLink( RDFServices.GetRegistryURL( m.CTID ), m.Name ) ).ToList() ) + "</div>" )
 					}
 				</tbody>
 			</table>

@@ -36,6 +36,7 @@ namespace NavyRRL.Controllers
 		{
 			AuthenticateOrRedirect( "You must be authenticated and authorized to view Concept Scheme data." );
 			var data = Factories.ConceptSchemeManager.GetById( id );
+			//data.Concepts = Factories.ConceptManager.GetAllConceptsForScheme( data.SchemaUri, false ); //Enable seeing disabled concepts on the detail page
 			return View( data );
 		}
 		//

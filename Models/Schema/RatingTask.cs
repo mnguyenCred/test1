@@ -24,6 +24,11 @@ namespace Models.Schema
 		public Guid HasReferenceResource { get; set; }
 
 		/// <summary>
+		/// Intger ID for Reference Resource that this Rating Task came from
+		/// </summary>
+		public int HasReferenceResourceId { get; set; }
+
+		/// <summary>
 		/// GUID for the Concept for the Reference Type for this Rating Task (e.g. a reference to "300 Series PQS Watch Station")<br />
 		/// From Column: Work Element Type<br />
 		/// DB: WorkElementTypeId<br />

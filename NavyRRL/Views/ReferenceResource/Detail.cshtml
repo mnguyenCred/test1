@@ -14,11 +14,20 @@
 	PropertyList = new List<NamedString>()
 	{
 		new NamedString( "Description", Model.Description ),
-		new NamedString( "Date of Source", Model.PublicationDate ),
+		new NamedString( "Source Date", Model.PublicationDate ),
 		new NamedString( "Reference Resource Type",  LinkHelper.GetDetailPageLinkList( Factories.ConceptManager.GetMultiple( Model.ReferenceType ), Url.Content, m => m.Name, "<ul><li>", "</li><li>", "</li></ul>" ) )
 	}
 } )
 
+@Html.Partial( "~/Views/Shared/_TasksBySourceType.cshtml", new TasksBySourceTypeConfig( "which originate from this Source", "for this Source", new List<SearchFilter>() { 
+	new SearchFilter()
+	{
+		Name = "> RatingTaskId > RatingTask > ReferenceResourceId > ReferenceResource",
+		ItemIds = new List<int>(){ Model.Id }
+	}
+} ) )
+
+@*
 @Html.Partial( "~/Views/Shared/_RatingTaskCountBySourceTypeTable.cshtml", new List<SearchFilter>()
 {
 	new SearchFilter()
@@ -27,6 +36,7 @@
 		ItemIds = new List<int>(){ Model.Id }
 	}
 } )
+*@
 
 @Html.Partial( "~/Views/Search/_ItemListSearch.cshtml" )
 <script type="text/javascript">
@@ -37,28 +47,31 @@
 		Searches: {
 			RatingTasks: {
 				Header: "Rating Tasks",
+				Description: "<p>Rating Tasks associated with this version of this Reference Resource.</p>",
 				SearchType: "RatingContext",
 				StyleType: "RatingTask",
 				Fields: [
-					{ Label: "Rating Context", RenderPath: ["Id|RatingContext"] },
-					{ Label: "Rating", RenderPath: ["HasRating|Rating", "CodedNotation|Rating"] },
-					{ Label: "Description", RenderPath: ["HasRatingTask|RatingTask", "Description|RatingTask"] },
-					{ Label: "Training Gap", RenderPath: ["TrainingGapType|Concept", "Name|Concept"] },
+					{ Label: ItemListSearches.RatingContextLabel, RenderPath: ["Id|RatingContext"], QueryPath: ".Id", IsNumeric: true },
+					{ Label: "Rating", RenderPath: ["HasRating|Rating", "CodedNotation|Rating"], QueryPath: "> RatingId > Rating.CodedNotation" },
+					{ Label: "Rating Task", RenderPath: ["HasRatingTask|RatingTask", "Description|RatingTask"], QueryPath: "> RatingTaskId > RatingTask.TextFields" },
+					{ Label: "Training Gap", RenderPath: ["TrainingGapType|Concept", "Name|Concept"], QueryPath: "> FormalTrainingGapId > Concept.Name", AsPlainText: true }
 				]
 			},
 			TrainingTasks: {
 				Header: "Training Tasks",
+				Description: "<p>Training Tasks associated with the Rating Tasks which are associated with this version of this Reference Resource.</p>",
 				SearchType: "RatingContext",
 				StyleType: "TrainingTask",
 				Filters: [
 					{ Name: "> CourseContextId > CourseContext:NotNull" }
 				],
 				Fields: [
-					{ Label: "Rating Context", RenderPath: ["Id|RatingContext"] },
-					{ Label: "Course Context", RenderPath: ["HasCourseContext|CourseContext", "Id|CourseContext"] },
-					{ Label: "Rating", RenderPath: ["HasRating|Rating", "CodedNotation|Rating"] },
-					{ Label: "CTTL/PPP/TCCD Statement", RenderPath: [ "HasCourseContext|CourseContext", "HasTrainingTask|TrainingTask", "Description|TrainingTask" ] },
-					{ Label: "Assessment Approach", RenderPath: ["HasCourseContext|CourseContext", "AssessmentMethodType|Concept", "Name|Concept"] }
+					{ Label: ItemListSearches.RatingContextLabel, RenderPath: ["Id|RatingContext"], QueryPath: ".Id", IsNumeric: true },
+					{ Label: "Course Context", RenderPath: ["HasCourseContext|CourseContext", "Id|CourseContext"], QueryPath: "> CourseContextId > CourseContext", IsNumeric: true },
+					{ Label: "Rating", RenderPath: ["HasRating|Rating", "CodedNotation|Rating"], QueryPath: "> RatingId > Rating.CodedNotation" },
+					{ Label: "Training Task", RenderPath: [ "HasCourseContext|CourseContext", "HasTrainingTask|TrainingTask", "Description|TrainingTask" ], QueryPath: "> CourseContextId > CourseContext > HasTrainingTaskId > TrainingTask.TextFields" },
+					{ Label: "Course Code", RenderPath: [ "HasCourseContext|CourseContext", "HasCourse|Course", "CodedNotation|Course" ], QueryPath: "> CourseContextId > CourseContext > HasCourseId > Course.CodedNotation" },
+					{ Label: "Assessment Approach", RenderPath: ["HasCourseContext|CourseContext", "AssessmentMethodType|Concept", "Name|Concept"], QueryPath: "> CourseContextId > CourseContext > AssessmentMethodConceptId > Concept.Name", AsPlainText: true }
 				]
 			}
 		}
@@ -76,7 +89,6 @@
 	table[data-styletype='RatingTask'] [data-column='Training Gap'] { width: 100px; margin-left: auto; }
 	table[data-styletype='TrainingTask'] [data-column='Rating'] { width: 75px; }
 	table[data-styletype='TrainingTask'] [data-column='Assessment Approach'] { width: 200px; }
-	table[data-styletype='TrainingTask'] [data-column='Assessment Approach'] a { display: block; }
 </style>
 
 <item-list-search name="RatingTasks"></item-list-search>

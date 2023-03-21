@@ -1,0 +1,230 @@
+﻿@model TasksBySourceTypeConfig
+@using Newtonsoft.Json;
+@using Factories;
+@using Models.DTO;
+@using Models.Search;
+@{ 
+	var conceptSchemeMap = Model.ConceptSchemeMap ?? ConceptSchemeManager.GetConceptSchemeMap();
+}
+<script type="text/javascript">
+	var Statistics = {
+		SearchURL: "@Url.Content("~/RMTL/DoSearch")",
+		Query: {},
+		AllTasksTotal: 0,
+		ReferenceResourceConcepts: @Html.Raw( JsonConvert.SerializeObject( conceptSchemeMap.ReferenceResourceCategory.Concepts.Select( m => SimpleItemHelper.GetSimpleItem( m ) ).ToList() ) ),
+		TrainingGapConcepts: @Html.Raw( JsonConvert.SerializeObject( conceptSchemeMap.TrainingGapCategory.Concepts.Select( m => SimpleItemHelper.GetSimpleItem( m ) ).ToList() ) ),
+		PayGradeLevelConcepts: @Html.Raw( JsonConvert.SerializeObject( conceptSchemeMap.PayGradeLevelCategory.Concepts.Select( m => SimpleItemHelper.GetSimpleItem( m ) ).ToList() ) ),
+		PayGradeConcepts: @Html.Raw( JsonConvert.SerializeObject( conceptSchemeMap.PayGradeCategory.Concepts.Select( m => SimpleItemHelper.GetSimpleItem( m ) ).ToList() ) ),
+		StatColumns: [
+			{ getLabel: (table) => table.attr("data-typeheader") },
+			{ Label: "Tasks" },
+			{ Label: "Gaps" },
+			{ Label: "Coverage %" },
+			{ Label: "Gaps %" },
+			{ Label: "% of Tasks @Model.InResultsHeaderLabel" },
+			{ Label: "Coverage @Model.InResultsHeaderLabel" },
+			{ Label: "% of All Tasks" },
+			{ Label: "Coverage Across All Tasks" }
+		],
+		UI: {}
+	};
+	//
+	
+	$(document).ready(function () {
+		setupStatistics();
+		if (@(Model.AutoSearch ? "true" : "false")) {
+			getTasksBySourceType({ Filters: @Html.Raw(@JsonConvert.SerializeObject(Model.Filters ?? new List<SearchFilter>(), Formatting.None)) });
+		}
+	});
+	//
+
+	function setupStatistics() {
+		Statistics.UI = {
+			Box: $(".statisticsBox"),
+			BySourceTable: $(".ratingTasksBySourceTypeTable"),
+			BySourceTableHeader: $(".ratingTasksBySourceTypeTableHeader"),
+			BySourceTableBody: $(".ratingTasksBySourceTypeTableBody"),
+			BySourceTableFooter: $(".ratingTasksBySourceTypeTableFooter"),
+			ByLevelTable: $(".ratingTasksByPayGradeLevelTable"),
+			ByLevelTableHeader: $(".ratingTasksByPayGradeLevelTableHeader"),
+			ByLevelTableBody: $(".ratingTasksByPayGradeLevelTableBody"),
+			ByLevelTableFooter: $(".ratingTasksByPayGradeLevelTableFooter"),
+			ByPayGradeTable: $(".ratingTasksByPayGradeTable"),
+			ByPayGradeTableHeader: $(".ratingTasksByPayGradeTableHeader"),
+			ByPayGradeTableBody: $(".ratingTasksByPayGradeTableBody"),
+			ByPayGradeTableFooter: $(".ratingTasksByPayGradeTableFooter")
+		};
+
+		buildStatTable(Statistics.UI.BySourceTable, Statistics.UI.BySourceTableHeader);
+		buildStatTable(Statistics.UI.ByLevelTable, Statistics.UI.ByLevelTableHeader);
+		buildStatTable(Statistics.UI.ByPayGradeTable, Statistics.UI.ByPayGradeTableHeader);
+
+		//Helper function
+		function buildStatTable(Table, TableHeader) {
+			var tableHeaderTR = $("<tr></tr>").appendTo(TableHeader);
+			Statistics.StatColumns.forEach(Column => {
+				var label = Column.Label || Column.getLabel(Table);
+				$("<th data-column=\"" + label + "\">" + label + "</th>").appendTo(tableHeaderTR);
+			});
+		}
+	}
+	//
+
+	function getTasksBySourceType(query) {
+		//Update the statistics query
+		Statistics.Query = query || { Filters: [] };
+
+		//Do a blind search to get a total count of all tasks in the system
+		AJAX.doPOSTRequest(Statistics.SearchURL, { ...Statistics.Query, Filters: [], Skip: 0, Take: 0, SortOrder: [{ Column: "sortOrder:Unsorted" }] }, success => {
+			//Track the value
+			Statistics.AllTasksTotal = success.Data.ExtraData.RatingTaskCount;
+
+			//Task breakdown by source
+			getAndRenderStatisticsTable(Statistics.ReferenceResourceConcepts, Statistics.StatColumns, Statistics.UI.BySourceTableBody, Statistics.UI.BySourceTableFooter, "> RatingTaskId > RatingTask > ReferenceResourceTypeId > Concept", "Total from All Sources", (a, b) => { return a.ResultsTotal > b.ResultsTotal ? -1 : 1 });
+
+			//Task breakdown by pay grade level
+			getAndRenderStatisticsTable([
+				...Statistics.PayGradeLevelConcepts,
+				{ Name: "Tasks Associated with Multiple Levels", Id: 0, OverrideFilterName: "> PayGradeLevelTypeId > Concept.MultipleForRatingTask" },
+			], Statistics.StatColumns, Statistics.UI.ByLevelTableBody, Statistics.UI.ByLevelTableFooter, "> PayGradeLevelTypeId > Concept.ExclusiveToRatingTask", "Total from All Levels");
+
+			//Task breakdown by pay grade
+			getAndRenderStatisticsTable([
+				...Statistics.PayGradeConcepts.map(m => { m.Label = m.CodedNotation + " - " + m.Name; return m; }),
+				{ Name: "Tasks Associated with Multiple Pay Grades", Id: 0, OverrideFilterName: "> PayGradeTypeId > Concept.MultipleForRatingTask" },
+			], Statistics.StatColumns, Statistics.UI.ByPayGradeTableBody, Statistics.UI.ByPayGradeTableFooter, "> PayGradeTypeId > Concept.ExclusiveToRatingTask", "Total from All Pay Grades");
+
+		}, error => {
+			console.log("Error getting Grand Total", error);
+		});
+	}
+	//
+
+	function getAndRenderStatisticsTable(Concepts, Columns, TableBody, TableFooter, nameFilterPath, totalFromAllText, sortFunction) {
+		//Clear out the table
+		TableBody.html("<tr><td colspan=\"" + Columns.length + "\"><div class=\"spinner\"></div></td></tr>");
+		TableFooter.html("");
+
+		//Calculate stats by concept
+		var CalculatedStats = Concepts.map(Concept => { return { Concept: Concept, ResultsTotal: 0, GapTotal: 0, Error: "", Finished: false } });
+		CalculatedStats.forEach(Stat => {
+			var alteredQuery = {
+				...Statistics.Query,
+				Filters: [...Statistics.Query.Filters, { Name: Stat.Concept.OverrideFilterName || nameFilterPath, ItemIds: [Stat.Concept.Id] }],
+				Skip: 0,
+				Take: 0,
+				SortOrder: [{ Column: "sortOrder:Unsorted" }]
+			};
+			AJAX.doPOSTRequest(Statistics.SearchURL, alteredQuery, resultsSuccess => {
+				Stat.ResultsTotal = resultsSuccess.Data.ExtraData.RatingTaskCount;
+				if (Stat.ResultsTotal > 0) {
+					alteredQuery.Filters.push({ Name: "> FormalTrainingGapId > Concept", ItemIds: Statistics.TrainingGapConcepts.filter(m => m.Name.toLowerCase() != "no").map(m => m.Id) });
+					AJAX.doPOSTRequest(Statistics.SearchURL, alteredQuery, gapSuccess => {
+						Stat.GapTotal = gapSuccess.Data.ExtraData.RatingTaskCount;
+						handleFinished(Stat);
+					}, error => {
+						Stat.GapTotal = -99;
+						Stat.Error = "Error loading gap data";
+						handleFinished(Stat);
+					});
+				}
+				else {
+					handleFinished(Stat);
+				}
+			}, error => {
+				Stat.ResultsTotal = -99;
+				Stat.Error = "Error loading task data";
+				handleFinished(Stat);
+			});
+		});
+
+		function handleFinished(Stat) {
+			Stat.Finished = true;
+			if (CalculatedStats.every(OtherStat => OtherStat.Finished)) {
+				sortFunction && (CalculatedStats = CalculatedStats.sort(sortFunction));
+				TableBody.html("");
+				var resultsTotal = CalculatedStats.reduce((total, Stat) => { return total + Stat.ResultsTotal; }, 0);
+				var resultsAllTasksPercent = getPercent(resultsTotal, Statistics.AllTasksTotal);
+				var gapTotal = CalculatedStats.reduce((total, Stat) => { return total + Stat.GapTotal }, 0);
+				var gapPercent = getPercent(gapTotal, resultsTotal, false);
+				var coveragePercent = resultsTotal <= 0 ? 0 : Math.round(100 * (100 - gapPercent)) / 100;
+				CalculatedStats.forEach(Stat => {
+					var statGapPercent = getPercent(Stat.GapTotal, Stat.ResultsTotal);
+					var statCoveragePercent = Math.round(100 * (100 - statGapPercent)) / 100; //Prevents weird javascript floating point errors like 100 - 19.54 resulting in 80.46000000000001
+					var statResultsTaskPercent = getPercent(Stat.ResultsTotal, resultsTotal);
+					var statAllTasksTaskPercent = getPercent(Stat.ResultsTotal, Statistics.AllTasksTotal);
+					TableBody.append("<tr>" + [
+						Stat.Concept.Id == 0 ? Stat.Concept.Name : "<a href=\"@Url.Content("~/Concept/Detail/")" + Stat.Concept.Id + "\" target=\"_blank\">" + (Stat.Concept.Label || Stat.Concept.Name) + "</a>",
+						Stat.ResultsTotal == -99 ? Stat.Error : Stat.ResultsTotal,
+						Stat.GapTotal == -99 ? Stat.Error : Stat.GapTotal,
+						statCoveragePercent + "%",
+						statGapPercent + "%",
+						statResultsTaskPercent + "%",
+						renderStatBarWrapper(statResultsTaskPercent, statCoveragePercent),
+						statAllTasksTaskPercent + "%",
+						renderStatBarWrapper(statAllTasksTaskPercent, statCoveragePercent)
+					].map((m, i) => "<td data-column=\"" + Columns[i].Label + "\">" + m + "</td>").join("") + "</tr>");
+				});
+				TableFooter.html("<tr>" +
+					[totalFromAllText, resultsTotal, gapTotal, coveragePercent + "%", gapPercent + "%", "100%", renderStatBarWrapper(100, coveragePercent), resultsAllTasksPercent + "%", renderStatBarWrapper(resultsAllTasksPercent, coveragePercent)]
+					.map((m, i) => "<th data-column=\"" + (Columns[i].Label || totalFromAllText) + "\">" + m + "</th>").join("") +
+				"</tr>");
+			}
+		}
+	}
+	//
+
+	function getPercent(x, y, includePercentSign) {
+		return (y == 0 ? 0 : Math.round(10000 * x / y) / 100) + (includePercentSign ? "%" : 0);
+	}
+	//
+
+	function renderStatBarWrapper(mainBarPercent, subBarPercent) {
+		return "<div class=\"statBarWrapper\"><div class=\"statBarAll\" style=\"width:" + mainBarPercent + "%\"><div class=\"statBarCoverage\" style=\"width:" + subBarPercent + "%\"></div></div></div>";
+	}
+	//
+
+</script>
+<style type="text/css">
+	.statisticsBox { }
+	.statisticsBox .statSection { margin-bottom: 50px; }
+	.statisticsBox .statisticsTable { width: 100%; }
+	.statisticsBox .statisticsTable :is([data-column='Source Type'], [data-column='Level Type'], [data-column='Pay Grade Type'], [data-column*='Total from']) { text-align: left; width: 475px; }
+	.statisticsBox .statisticsTable thead tr th { padding: 5px 10px; min-width: 50px; text-align: right; }
+	.statisticsBox .statisticsTable tbody tr td { border-top: 1px solid #CCC; text-align: right; padding: 5px 10px; }
+	.statisticsBox .statisticsTable tfoot tr th { border-top: 1px solid #CCC; text-align: right; padding: 5px 10px; }
+	.statisticsBox .statisticsTable tbody tr td:first-child { text-align: left; }
+	.statisticsBox .statisticsTable .statBarWrapper { background-color: #DDD; height: 18px; padding: 1px 2px; }
+	.statisticsBox .statisticsTable .statBarWrapper .statBarAll { background-color: #D83; height: 100%; }
+	.statisticsBox .statisticsTable .statBarWrapper .statBarAll .statBarCoverage { background-color: #0C3; height: 100%; }
+</style>
+<div class="statisticsBox">
+	@if ( !string.IsNullOrWhiteSpace( Model.MainHeader ) )
+	{
+		<h3>@Html.Raw( Model.MainHeader )</h3>
+	}
+	<div class="statSection">
+		<h4>All Rating Tasks (by Source Type) @Model.TypeHeaderLabel</h4>
+		<table class="statisticsTable ratingTasksBySourceTypeTable" data-typeheader="Source Type">
+			<thead class="ratingTasksBySourceTypeTableHeader"></thead>
+			<tbody class="ratingTasksBySourceTypeTableBody"></tbody>
+			<tfoot class="ratingTasksBySourceTypeTableFooter"></tfoot>
+		</table>
+	</div>
+	<div class="statSection">
+		<h4>All Rating Tasks (by Pay Grade Level) @Model.TypeHeaderLabel</h4>
+		<table class="statisticsTable ratingTasksByPayGradeLevelTable" data-typeheader="Level Type">
+			<thead class="ratingTasksByPayGradeLevelTableHeader"></thead>
+			<tbody class="ratingTasksByPayGradeLevelTableBody"></tbody>
+			<tfoot class="ratingTasksByPayGradeLevelTableFooter"></tfoot>
+		</table>
+	</div>
+	<div class="statSection">
+		<h4>All Rating Tasks (by Pay Grade) @Model.TypeHeaderLabel</h4>
+		<table class="statisticsTable ratingTasksByPayGradeTable" data-typeheader="Pay Grade Type">
+			<thead class="ratingTasksByPayGradeTableHeader"></thead>
+			<tbody class="ratingTasksByPayGradeTableBody"></tbody>
+			<tfoot class="ratingTasksByPayGradeTableFooter"></tfoot>
+		</table>
+	</div>
+</div>

@@ -167,9 +167,21 @@ namespace Factories
 				}
 
 				//Organization Detail Page
-				AppendIDsFilterIfPresent(query, "> CurriculumControlAuthorityId > Organization", ids =>
+				AppendIDsFilterIfPresent( query, "> CurriculumControlAuthorityId > Organization", ids =>
 				{
 					list = list.Where( m => ids.Contains( m.CurriculumControlAuthorityId ?? 0 ) );
+				} );
+
+				//Organization Detail Page
+				AppendTextFilterIfPresent( query, ".Name", text =>
+				{
+					list = list.Where( m => m.Name.Contains( text ) );
+				} );
+
+				//Organization Detail Page
+				AppendTextFilterIfPresent( query, ".CodedNotation", text =>
+				{
+					list = list.Where( m => m.CodedNotation.Contains( text ) );
 				} );
 
 				//Exclude items
@@ -194,9 +206,10 @@ namespace Factories
 		public static AppEntity MapFromDBForSearch( DBEntity input, DataEntities context, SearchResultSet<AppEntity> resultSet = null )
 		{
 			var output = AutoMap( input, new AppEntity() );
-			output.CurriculumControlAuthority = input.Organization?.RowId ?? Guid.Empty;
-			output.LifeCycleControlDocumentType = input.ConceptScheme_Concept?.RowId ?? Guid.Empty;
-			output.CourseType = input.Course_CourseType?.Select( m => m.ConceptScheme_Concept_CourseType ).Select( m => m.RowId ).ToList() ?? new List<Guid>();
+			output.CurriculumControlAuthority = input.Organization?.RowId ?? Guid.Empty; //int ID field automatches
+			output.LifeCycleControlDocumentType = input.ConceptScheme_Concept?.RowId ?? Guid.Empty; //int ID field automatches
+			output.CourseType = input.Course_CourseType?.Select( m => m.ConceptScheme_Concept_CourseType.RowId ).ToList() ?? new List<Guid>();
+			output.CourseTypeId = input.Course_CourseType?.Select( m => m.CourseTypeConceptId ).ToList() ?? new List<int>();
 
 			return output;
 		}

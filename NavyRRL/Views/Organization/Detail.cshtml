@@ -23,28 +23,30 @@
 		Searches: {
 			Courses: {
 				Header: "Courses",
+				Description: "<p>Courses for which this Organization acts as a Curriculum Control Authority.</p>",
 				SearchType: "Course",
 				StyleType: "Course",
 				Filters: [
 					{ Name: "> CurriculumControlAuthorityId > Organization", ItemIds: [ @Model.Id ] }
 				],
 				Fields: [
-					{ Label: "Course Code", RenderPath: ["CodedNotation|Course"], AsPlainText: true },
-					{ Label: "Name", RenderPath: ["Name|Course"] }
+					{ Label: "Course Code", RenderPath: ["CodedNotation|Course"], QueryPath: ".CodedNotation" },
+					{ Label: "Name", RenderPath: ["Name|Course"], QueryPath: ".Name" }
 				]
 			},
 			RatingTasks: {
 				Header: "Rating Tasks",
+				Description: "<p>Rating Tasks which reference Training Tasks which are associated with Courses for which this Organization acts as a Curriculum Control Authority.</p>",
 				SearchType: "RatingContext",
 				StyleType: "RatingTask",
 				Filters:[
 					{ Name: "> CourseContextId > CourseContext > HasCourseId > Course > CurriculumControlAuthorityId > Organization", ItemIds: [ @Model.Id ] }
 				],
 				Fields: [
-					{ Label: "Rating Context", RenderPath: ["Id|RatingContext"] },
-					{ Label: "Rating", RenderPath: ["HasRating|Rating", "CodedNotation|Rating"] },
-					{ Label: "Description", RenderPath: ["HasRatingTask|RatingTask", "Description|RatingTask"] },
-					{ Label: "Training Gap", RenderPath: ["TrainingGapType|Concept", "Name|Concept"] },
+					{ Label: ItemListSearches.RatingContextLabel, RenderPath: ["Id|RatingContext"], QueryPath: ".Id", IsNumeric: true },
+					{ Label: "Rating", RenderPath: ["HasRating|Rating", "CodedNotation|Rating"], QueryPath: "> RatingId > Rating.CodedNotation" },
+					{ Label: "Rating Task", RenderPath: ["HasRatingTask|RatingTask", "Description|RatingTask"], QueryPath: "> RatingTaskId > RatingTask.TextFields" },
+					{ Label: "Training Gap", RenderPath: ["TrainingGapType|Concept", "Name|Concept"], QueryPath: "> FormalTrainingGapId > Concept.Name", AsPlainText: true }
 				]
 			}
 		}
@@ -62,8 +64,15 @@
 	table[data-styletype='RatingTask'] [data-column='Training Gap'] { width: 100px; margin-left: auto; }
 </style>
 
-<item-list-search name="Courses"></item-list-search>
+@Html.Partial( "~/Views/Shared/_TasksBySourceType.cshtml", new TasksBySourceTypeConfig( "which are associated with Training Tasks which are taught by Courses managed by this Organization", "for this Organization", new List<SearchFilter>() { 
+	new SearchFilter()
+	{
+		Name = "> CourseContextId > CourseContext > HasCourseId > Course > CurriculumControlAuthorityId > Organization",
+		ItemIds = new List<int>(){ Model.Id }
+	}
+} ) )
 
+@*
 @Html.Partial( "~/Views/Shared/_RatingTaskCountBySourceTypeTable.cshtml", new List<SearchFilter>()
 {
 	new SearchFilter()
@@ -72,5 +81,7 @@
 		ItemIds = new List<int>(){ Model.Id }
 	}
 } )
+*@
 
+<item-list-search name="Courses"></item-list-search>
 <item-list-search name="RatingTasks"></item-list-search>

@@ -20,10 +20,9 @@
 	if ( ( user == null || user.Id == 0 ) )
 	{
 		//redirect to home, and make sure not already on home/root 
-		if ( url != "/" &&
-			 !url.ToLower().Contains("/account/login") )
+		if ( url.Replace( "/", "" ) != Url.Content( "~/" ).Replace( "/", "" ).ToLower() && !url.ToLower().Contains("/account/login") && !url.ToLower().Contains("/notauthenticated") )
 		{
-			Response.Redirect( @Url.Content( "/" ) );
+			Response.Redirect( Url.Content( "~/" ) );
 		}
 	}
 	else
@@ -50,6 +49,7 @@
 	<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.5.0/css/all.css" integrity="sha384-B4dIYHKNBt8Bc12p+WXckhzcICo0wtJAoU8YZTY5qE0Id1GSseTk6S+L3BlXeVIU" crossorigin="anonymous">
 
 	@Styles.Render( "~/Content/css" )
+	<link rel="stylesheet" type="text/css" href="@Url.Content("~/Content/Site.css?v=2")" /> @* //Bundling doesn't reliably update this so inject it by force *@
 	@Scripts.Render( "~/bundles/modernizr" )
 
 	@Scripts.Render( "~/bundles/jquery" )

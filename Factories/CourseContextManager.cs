@@ -139,6 +139,27 @@ namespace Factories
 					);
 				}
 
+				//Handle Filters
+				//Detail Pages
+				AppendIDsFilterIfPresent( query, ".Id", ids => {
+					list = list.Where( m => ids.Contains( m.Id ) );
+				} );
+
+				//Course Detail Page
+				AppendIDsFilterIfPresent(query, "> HasCourseId > Course", ids => {
+					list = list.Where( m => ids.Contains( m.HasCourseId ) );
+				} );
+
+				//Course Detail Page
+				AppendTextFilterIfPresent( query, "> HasTrainingTaskId > TrainingTask.TextFields", text => {
+					list = list.Where( m => m.TrainingTask.Description.Contains( text ) );
+				} );
+
+				//Course Detail Page
+				AppendTextFilterIfPresent( query, "> AssessmentMethodConceptId > Concept.Name", text => {
+					list = list.Where( m => m.CourseContext_AssessmentType.Where( n => n.ConceptScheme_Concept.Name.Contains( text ) ).Count() > 0 );
+				} );
+
 				//Exclude items
 				AppendIDsFilterIfPresent( query, "search:Exclude", ( ids ) =>
 				{
@@ -146,7 +167,10 @@ namespace Factories
 				} );
 
 				//Return ordered list
-				return HandleSort( list, query.SortOrder, m => m.Course.Name, m => m.OrderBy( n => n.Course.Name ), ( m, keywordParts ) => m.OrderBy( n => RelevanceHelper( n, keywordParts, o => o.Course.Name ) + RelevanceHelper( n, keywordParts, o => o.Course.CodedNotation ) + RelevanceHelper( n, keywordParts, o => o.TrainingTask.Description ) ), keywords );
+				//Traversal requires projection to avoid querying every row in the results
+				var projected = list.Select( m => new { Main = m, Course_Name = m.Course.Name, Course_CodedNotation = m.Course.CodedNotation, TrainingTask_Description = m.TrainingTask.Description } );
+				var sorted = HandleSortV2( projected, query.SortOrder, m => m.Course_Name, m => m.Main.Id, m => m.OrderBy( n => n.Course_Name ), ( m, keywordParts ) => m.OrderBy( n => RelevanceHelper( n, keywordParts, o => o.Course_Name ) + RelevanceHelper( n, keywordParts, o => o.Course_CodedNotation ) + RelevanceHelper( n, keywordParts, o => o.TrainingTask_Description ) ), keywords );
+				return sorted.Select( m => m.Main ).OrderBy( m => true );
 
 			}, MapFromDBForSearch );
 		}
@@ -181,9 +205,10 @@ namespace Factories
 		public static AppEntity MapFromDBForSearch( DBEntity input, DataEntities context, SearchResultSet<AppEntity> resultSet = null )
         {
             var output = AutoMap( input, new AppEntity() );
-			output.HasTrainingTask = input.TrainingTask?.RowId ?? Guid.Empty;
-			output.HasCourse = input.Course?.RowId ?? Guid.Empty;
-			output.AssessmentMethodType = input.CourseContext_AssessmentType?.Select( m => m.ConceptScheme_Concept ).Select( m => m.RowId ).ToList() ?? new List<Guid>();
+			output.HasTrainingTask = input.TrainingTask?.RowId ?? Guid.Empty; //int ID field automatches
+			output.HasCourse = input.Course?.RowId ?? Guid.Empty; //int ID field automatches
+			output.AssessmentMethodType = input.CourseContext_AssessmentType?.Select( m => m.ConceptScheme_Concept.RowId ).ToList() ?? new List<Guid>();
+			output.AssessmentMethodTypeId = input.CourseContext_AssessmentType?.Select( m => m.AssessmentMethodConceptId ).ToList() ?? new List<int>();
 
 			return output;
 		}

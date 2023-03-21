@@ -354,7 +354,7 @@ namespace Factories
 
 		public static SearchResultSet<T2> HandleSearch<T1, T2>(
 			SearchQuery query,
-			Func<DataEntities, IEnumerable<T1>> SearchMethodWithOrderedResultSet,
+			Func<DataEntities, IOrderedEnumerable<T1>> SearchMethodWithOrderedResultSet,
 			Func<T1, DataEntities, SearchResultSet<T2>, T2> MappingMethod
 		) where T1 : class, DBEntityBaseObject where T2 : Models.Schema.BaseObject, new()
 		{
@@ -384,6 +384,59 @@ namespace Factories
 		}
 		//
 
+		//TODO: Update other sort calls to use this method instead
+		public static IOrderedEnumerable<T> HandleSortV2<T>( IEnumerable<T> unsortedList, List<SortOrderItem> sortOrder, Func<T, object> GetAlphaPropertyMethod, Func<T, object> GetFallbackSortMethod, Func<IEnumerable<T>, IOrderedEnumerable<T>> DefaultSortMethod, Func<IEnumerable<T>, List<string>, IOrderedEnumerable<T>> RelevanceSortMethod = null, string keywords = null ) 
+		{
+			//If no sort order is specified, use the default handler
+			if ( sortOrder == null || sortOrder.Count() == 0 || sortOrder.FirstOrDefault( m => m.Column == "sortOrder:DefaultMethod" ) != null )
+			{
+				return DefaultSortMethod( unsortedList );
+			}
+
+			//Enable skipping the sorting to avoid a performance hit
+			if ( sortOrder.FirstOrDefault( m => m.Column == "sortOrder:Unsorted" ) != null )
+			{
+				return unsortedList.OrderBy( m => true );
+			}
+
+			//If doing relevance-based sorting...
+			if ( sortOrder.FirstOrDefault( m => m.Column == "sortOrder:Relevance" ) != null )
+			{
+				if ( RelevanceSortMethod != null && !string.IsNullOrWhiteSpace( keywords ) )
+				{
+					return RelevanceSortMethod( unsortedList, GetRelevanceTokens( keywords ) );
+				}
+				else
+				{
+					return DefaultSortMethod( unsortedList );
+				}
+			}
+
+			//Otherwise, convert to IOrderedEnumerable
+			var sorted = unsortedList.OrderBy( m => m != null );
+
+			//For each SortItem...
+			foreach ( var sortItem in sortOrder )
+			{
+				//Get the column that matches, if available
+				var column = typeof( T ).GetProperty( sortItem.Column );
+				//The GetterMethod will be one of:
+				var GetterMethod =
+					//Getting the property specified by the Column, or
+					column != null ? ( T m ) => column.GetValue( m ) :
+					//Getting the property specified by the GetAlphaPropertyMethod, or
+					sortItem.Column == "sortOrder:DefaultAlphaSort" ? GetAlphaPropertyMethod :
+					//Getting the Id for the object (fallback/default)
+					GetFallbackSortMethod;
+
+				//Apply the sort based on whether or not the SortItem indicates it should be Ascending
+				sorted = sortItem.Ascending ? sorted.ThenBy( m => GetterMethod( m ) ) : sorted.ThenByDescending( m => GetterMethod( m ) );
+			}
+
+			return sorted;
+		}
+		//
+
 		public static IOrderedEnumerable<T> HandleSort<T>( IEnumerable<T> unsortedList, List<SortOrderItem> sortOrder, Func<T, object> GetAlphaPropertyMethod, Func<IEnumerable<T>, IOrderedEnumerable<T>> DefaultSortMethod, Func<IEnumerable<T>, List<string>, IOrderedEnumerable<T>> RelevanceSortMethod = null, string keywords = null ) where T : DBEntityBaseObject
 		{
 			//If no sort order is specified, use the default handler
@@ -395,7 +448,7 @@ namespace Factories
 			//Enable skipping the sorting to avoid a performance hit
 			if ( sortOrder.FirstOrDefault( m => m.Column == "sortOrder:Unsorted" ) != null ) 
 			{
-				return unsortedList.OrderBy( m => m != null );
+				return unsortedList.OrderBy( m => true );
 			}
 
 			//If doing relevance-based sorting...
@@ -436,7 +489,7 @@ namespace Factories
 		}
 		//
 
-		public static List<string> GetRelevanceTokens( string keywords )
+		public static List<string> GetRelevanceTokens( string keywords, bool includePartialTokens = true )
 		{
 			if ( string.IsNullOrWhiteSpace( keywords ) )
 			{
@@ -444,19 +497,41 @@ namespace Factories
 			}
 
 			var tokens = new List<string>() { keywords }.Concat( keywords.Split( new string[] { " " }, StringSplitOptions.RemoveEmptyEntries ) ).ToList();
-			while ( keywords.Length > 0 )
+			if ( includePartialTokens )
 			{
-				tokens.Add( string.Join( "", keywords.Take( 3 ).ToList() ) );
-				keywords = keywords.Substring( keywords.Length >= 3 ? 3 : keywords.Length );
+				while ( keywords.Length > 0 )
+				{
+					tokens.Add( string.Join( "", keywords.Take( 3 ).ToList() ) );
+					keywords = keywords.Substring( keywords.Length >= 3 ? 3 : keywords.Length );
+				}
 			}
 
 			return tokens;
 		}
 		//
 
-		public static int RelevanceHelper<T>( T dbEnt, List<string> keywordParts, Func<T, string> GetStringField )
+		public static int RelevanceHelper<T>( T dbEnt, List<string> keywordParts, Func<T, string> GetStringField, List<string> applicableColumns = null, string checkColumn = null, int boost = 0 )
 		{
-			return keywordParts.Select( m => GetStringField( dbEnt ) == null ? - 1 : GetStringField( dbEnt ).IndexOf( m.ToString(), StringComparison.OrdinalIgnoreCase ) ).Where( m => m != -1 ).Sum();
+			//If we need to check for a column and it's not in the list, then return 0
+			if ( applicableColumns != null && !applicableColumns.Contains( checkColumn ?? "" ) )
+			{
+				return 0;
+			}
+			//Otherwise (if not column checking, or if the column was in the list), perform the check
+			else
+			{
+				return keywordParts.Select( m =>
+					GetStringField( dbEnt ) == null ? -1 : //If the value is not found, use the placeholder
+					GetStringField( dbEnt ).IndexOf( m.ToString(), StringComparison.OrdinalIgnoreCase ) //Get the index of the first instance where the keyword part appears
+				).Where( m => m != -1 ) //Filter out placeholders and non-matches
+				.Select( m => m - boost ).Sum(); //Boost the results (by subtraction since we're using .OrderBy()) and add them together
+			}
+		}
+		//
+
+		public static int RelevanceHelper2<T>(  )
+		{
+			return 0;
 		}
 		//
 
@@ -594,7 +669,7 @@ namespace Factories
 		}
 		//
 
-		public static void AppendNotNullFilterIfPresent( SearchQuery query, string filterName, Action AppendFilterMethod )
+		public static void AppendSimpleFilterIfPresent( SearchQuery query, string filterName, Action AppendFilterMethod )
 		{
 			var filter = query.GetFilterByName( filterName );
 			if( filter != null )
@@ -752,6 +827,18 @@ namespace Factories
 			var keywords = query.GetFilterTextByName( "search:Keyword", "" );
 			return HandleApostrophes( keywords ).Trim();
         } 
+		//
+
+		public static SearchFilter GetSanitizedKeywordFilterOrNull( SearchQuery query )
+		{
+			var filter = query.GetFilterByName( "search:Keyword" );
+			if ( filter != null )
+			{
+				filter.Text = HandleApostrophes( filter.Text ).Trim();
+			}
+
+			return filter;
+		}
 		//
 
         public static List<Guid> GetFunctionalAreas( string property, ref string workRoleList )

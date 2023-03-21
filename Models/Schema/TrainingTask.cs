@@ -22,5 +22,10 @@ namespace Models.Schema
 		/// FK to table ReferenceResource
 		/// </summary>
 		public Guid HasReferenceResource { get; set; }
+
+		/// <summary>
+		/// Integer ID for the Reference Resource that this Training Task (indirectly) came from
+		/// </summary>
+		public int HasReferenceResourceId { get; set; }
 	}
 }

@@ -338,7 +338,10 @@ namespace Models.Schema
 				public static RDFProperty Notation { get { return new RDFProperty( "skos:notation", "Notation", "Notation code for a term in a controlled vocabulary.", Constants.LangString ) { ContextContainer = Constants.LanguageContainer }; } }
 				public static RDFProperty Note { get { return new RDFProperty( "skos:note", "Note", "Additional note for a term in a controlled vocabulary.", Constants.LangString ) { ContextContainer = Constants.LanguageContainer }; } }
 				public static RDFProperty HasTopConcept { get { return new RDFProperty( "skos:hasTopConcept", "Has Top Concept", "Top layer of Concepts in the taxonomy for this vocabulary.", Schema.Concept.RDFType ) { ContextType = Constants.IDType, ContextContainer = Constants.ListContainer }; } }
-				public static RDFProperty InScheme { get { return new RDFProperty( "skos:inScheme", "In Scheme", "Concept Scheme to which this term belongs.", Schema.ConceptScheme.RDFType ) { ContextType = Constants.IDType }; } }
+				public static RDFProperty TopConceptOf { get { return new RDFProperty( "skos:topConceptOf", "Top Concept Of", "Concept Scheme for which this Concept is a top node in a hierarchy of Concepts.", Schema.ConceptScheme.RDFType ) { ContextType = Constants.IDType, ContextContainer = Constants.ListContainer }; } }
+				public static RDFProperty InScheme { get { return new RDFProperty( "skos:inScheme", "In Scheme", "Concept Scheme to which this term belongs.", Schema.ConceptScheme.RDFType ) { ContextType = Constants.IDType, ContextContainer = Constants.ListContainer }; } }
+				public static RDFProperty BroadMatch { get { return new RDFProperty( "skos:broadMatch", "Broad Match", "Concept from another Concept Scheme which covers a broader area of content than this Concept.", Schema.Concept.RDFType ) { ContextType = Constants.IDType, ContextContainer = Constants.ListContainer }; } }
+				public static RDFProperty NarrowMatch { get { return new RDFProperty( "skos:narrowMatch", "Narrow Match", "Concept from another Concept Scheme which covers a narrower area of content than this Concept.", Schema.Concept.RDFType ) { ContextType = Constants.IDType, ContextContainer = Constants.ListContainer }; } }
 			}
 
 			public class NAVY : SchemaTerms

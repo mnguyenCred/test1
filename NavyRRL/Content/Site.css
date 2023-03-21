@@ -1,4 +1,8 @@
-﻿body {
+﻿@media (min-width: 1900px) {
+	.container { width: 1600px; }
+}
+
+body {
     padding-top: 50px;
     padding-bottom: 20px;
 }
