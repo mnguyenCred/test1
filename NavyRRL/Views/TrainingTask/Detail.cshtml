@@ -41,22 +41,9 @@
 <script type="text/javascript">
 	var ItemListConfigs = {
 		Searches: {
-			@*RatingTasks: {
-				Header: "Rating Tasks",
-				SearchType: "RatingContext",
-				StyleType: "RatingTask",
-				Filters: [
-					{ Name: "> CourseContextId > CourseContext > HasTrainingTaskId > TrainingTask", ItemIds: [ @Model.Id ] }
-				]
-				Fields: [
-					{ Label: "Rating", RenderPath: ["HasRating|Rating", "CodedNotation|Rating"] },
-					{ Label: "Description", RenderPath: ["HasRatingTask|RatingTask", "Description|RatingTask"] },
-					{ Label: "Training Gap", RenderPath: ["TrainingGapType|Concept", "Name|Concept"] },
-				]
-			},*@
 			Courses: {
 				Header: "Rating Tasks and Courses",
-				Description: "<p>Rating Tasks related to this Training Task, along with which Course(s) and Assessment Approach(es) are used with that Rating Task, in the context of the listed Rating.</p>",
+				Description: "<p>Rating Tasks related to this Training Task, along with which Course(s) and Assessment Approach(es) are used with that Training Task, in the context of the listed Rating.</p>",
 				SearchType: "RatingContext",
 				StyleType: "RatingContext",
 				Filters: [
@@ -72,9 +59,9 @@
 					{ Label: "Assessment Approach", RenderPath: ["HasCourseContext|CourseContext", "AssessmentMethodType|Concept", "Name|Concept"], QueryPath: "> CourseContextId > CourseContext > AssessmentMethodConceptId > Concept.Name", AsPlainText: true }
 				]
 			},
-			SimilarTrainingTasks: {
+			SimilarTrainingTasksDirect: {
 				Header: "Potentially Related Training Tasks",
-				Description: "<p>Other Training Tasks which have the same description text as this Training Task, but which have been indirectly related to a different Source (or a different version of the same Source), based on which Rating Tasks the respective Training Tasks are associated with in the RMTL data. The Training Tasks below may describe the same underlying information as this Training Task does, or the similarity may be a coincidence.</p>",
+				Description: "<p>Other Training Tasks which have the same description text as this Training Task, but which are associated with Rating Tasks from a different Source (or a different version of the same Source). The Training Tasks below may be intended to be the same as this Training Task, or the similarity may be a coincidence.</p>",
 				SearchType: "TrainingTask",
 				StyleType: "TrainingTask",
 				Filters: [
@@ -82,9 +69,27 @@
 					{ Name: ".DescriptionExact", Text: "@Model.Description" }
 				],
 				Fields: [
-					{ Label: "Indirect Source Date", RenderPath: ["HasReferenceResource|ReferenceResource", "PublicationDate|ReferenceResource"], QueryPath: "> HasReferenceResourceId > ReferenceResource.PublicationDate", AsPlainText: true },
-					{ Label: "Indirect Source", RenderPath: ["HasReferenceResource|ReferenceResource", "Name|ReferenceResource"], QueryPath: "> HasReferenceResourceId > ReferenceResource.TextFields" },
+					{ Label: "Source Date", RenderPath: ["HasReferenceResource|ReferenceResource", "PublicationDate|ReferenceResource"], QueryPath: "> HasReferenceResourceId > ReferenceResource.PublicationDate", AsPlainText: true },
+					{ Label: "Source", RenderPath: ["HasReferenceResource|ReferenceResource", "Name|ReferenceResource"], QueryPath: "> HasReferenceResourceId > ReferenceResource.TextFields" },
 					{ Label: "Training Task Text", RenderPath: ["Description|TrainingTask"], QueryPath: ".TextFields" },
+				]
+			},
+			SimilarTrainingTasksViaRatingContext: {
+				Header: "Potentially Related Training Tasks",
+				Description: "<p>Other Training Tasks which have the same description text as this Training Task, but which are associated with Rating Tasks from a different Source (or a different version of the same Source). The Training Tasks below may be intended to be the same as this Training Task, or the similarity may be a coincidence.</p>",
+				SearchType: "RatingContext",
+				StyleType: "RatingContext",
+				Filters: [
+					{ Name: "> CourseContextId > CourseContext > HasTrainingTaskId > TrainingTask:Exclude", ItemIds: [ @Model.Id ] },
+					{ Name: "> CourseContextId > CourseContext > HasTrainingTaskId > TrainingTask:DescriptionExact", Text: "@Model.Description" }
+				],
+				Fields: [
+					{ Label: ItemListSearches.RatingContextLabel, RenderPath: ["Id|RatingContext"], QueryPath: ".Id", IsNumeric: true },
+					{ Label: "Course Context", RenderPath: ["HasCourseContext|CourseContext", "Id|CourseContext"], QueryPath: "> CourseContextId > CourseContext", IsNumeric: true },
+					{ Label: "Source Date", RenderPath: ["HasRatingTask|RatingTask", "HasReferenceResource|ReferenceResource", "PublicationDate|ReferenceResource"], QueryPath: "> HasReferenceResourceId > ReferenceResource.PublicationDate", AsPlainText: true },
+					{ Label: "Source", RenderPath: ["HasRatingTask|RatingTask", "HasReferenceResource|ReferenceResource", "Name|ReferenceResource"], QueryPath: "> HasReferenceResourceId > ReferenceResource.TextFields" },
+					{ Label: "Rating Task", RenderPath: ["HasRatingTask|RatingTask", "Description|RatingTask"], QueryPath: "> RatingTaskId > RatingTask.TextFields" },
+					{ Label: "Other Training Task", RenderPath: ["HasCourseContext|CourseContext", "HasTrainingTask|TrainingTask", "Description|TrainingTask"], QueryPath: "> CourseContextId > CourseContext > HasTrainingTaskId > TrainingTask.TextFields" },
 				]
 			}
 		}
@@ -104,6 +109,6 @@
 	table [data-column='Indirect Source'] { width: 500px; }
 </style>
 
-@*<item-list-search name="RatingTasks"></item-list-search>*@
 <item-list-search name="Courses"></item-list-search>
-<item-list-search name="SimilarTrainingTasks"></item-list-search>
+@*<item-list-search name="SimilarTrainingTasksDirect"></item-list-search>*@
+<item-list-search name="SimilarTrainingTasksViaRatingContext"></item-list-search>

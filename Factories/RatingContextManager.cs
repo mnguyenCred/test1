@@ -331,8 +331,28 @@ namespace Factories
 				} );
 
 				//Training Task Detail Page
+				AppendTextFilterIfPresent( query, "> RatingTaskId > RatingTask > ReferenceResourceId > ReferenceResource.PublicationDate", text => {
+					list = list.Where( m => m.RatingTask.ReferenceResource.PublicationDate.Contains( text ) );
+				} );
+
+				//Training Task Detail Page
+				AppendTextFilterIfPresent( query, "> RatingTaskId > RatingTask > ReferenceResourceId > ReferenceResource.Name", text => {
+					list = list.Where( m => m.RatingTask.ReferenceResource.Name.Contains( text ) );
+				} );
+
+				//Training Task Detail Page
 				AppendIDsFilterIfPresent( query, "> CourseContextId > CourseContext > HasTrainingTaskId > TrainingTask", ids => {
 					list = list.Where( m => ids.Contains( m.CourseContext.HasTrainingTaskId ) );
+				} );
+
+				//Training Task Detail Page
+				AppendIDsFilterIfPresent( query, "> CourseContextId > CourseContext > HasTrainingTaskId > TrainingTask:Exclude", ids => {
+					list = list.Where( m => !ids.Contains( m.CourseContext.HasTrainingTaskId ) );
+				} );
+
+				//RMTL Search
+				AppendTextFilterIfPresent( query, "> CourseContextId > CourseContext > HasTrainingTaskId > TrainingTask:DescriptionExact", text => {
+					list = list.Where( m => m.CourseContext.TrainingTask.Description.ToLower() == text.ToLower() );
 				} );
 
 				//Rating Task Detail Page
