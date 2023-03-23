@@ -26,6 +26,8 @@ namespace Models.Search
 		/// </summary>
 		public List<SearchFilter> Filters { get; set; }
 
+		public bool IsExportMode { get; set; }
+
 		//Helper methods
 		public SearchFilter GetFilterByName( string name )
 		{

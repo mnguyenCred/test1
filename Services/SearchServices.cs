@@ -156,7 +156,8 @@ namespace Services
 			}
 
 			//Sanitize Page Size
-			query.Take = query.Take < -1 ? -1 : query.Take > 250 ? 250 : query.Take; //Max page size must not be smaller than the page size the RMTL search is looking for client-side!
+			var maxTake = query.IsExportMode ? 10000 : 250;
+			query.Take = query.Take < -1 ? -1 : query.Take > maxTake ? maxTake : query.Take; //Max page size must not be smaller than the page size the RMTL search is looking for client-side!
 
 			//Testing
 			debug?.Add( "Raw Query", JObject.FromObject( query ) );
