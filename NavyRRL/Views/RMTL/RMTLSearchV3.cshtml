@@ -476,6 +476,7 @@
 		UI.ExportResultsButton.hide();
 		//UI.ExportResultsButton.prop("disabled", true).html("Processing");
 		MainSearch.disable();
+		MainSearch.PageSize = 1000;
 		UI.ExportResultsProgressBarBox.show();
 		UI.ExportResultsProgressBar.html("Processing...");
 		UI.Status.Spinner.show();
@@ -497,7 +498,7 @@
 		MainSearch.prepareToSearch(false, false);
 
 		//Do the search
-		MainSearch.doPOSTRequest(MainSearch.SearchURL, MainSearch.Query, response => {
+		MainSearch.doPOSTRequest(MainSearch.SearchURL, { ...MainSearch.Query, IsExportMode: true }, response => {
 			if (!UI.ExportEnabled) {
 				return;
 			}
@@ -505,6 +506,10 @@
 			if (response.Valid) {
 				//Set the related resources array so that the rendering code will find them
 				MainSearch.RelatedResources = response.Data.RelatedResources || []; //Should this append data instead?
+				//Update paging tracking
+				MainSearch.TotalResults = response.Data.TotalResults || 0;
+				MainSearch.RelatedResources = response.Data.RelatedResources || [];
+				MainSearch.TotalPages = Math.ceil(MainSearch.TotalResults / MainSearch.PageSize);
 				//Create an array of flags, one for each Result
 				var resultsFlags = response.Data.Results.map(m => { return false; });
 				var VisibleColumns = RMTL.Columns.filter(Column => Column.Visible);
@@ -621,6 +626,7 @@
 		UI.ExportResultsProgressBar.css("width", "0");
 		//UI.ExportResultsButton.prop("disabled", false).html("Export Results");
 		MainSearch.enable();
+		MainSearch.PageSize = 250;
 		UI.ExportResultsProgressBarBox.hide();
 		UI.ExportResultsProgressBar.html("");
 		UI.Status.Spinner.hide();

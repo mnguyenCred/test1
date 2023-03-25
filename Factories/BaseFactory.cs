@@ -355,7 +355,8 @@ namespace Factories
 		public static SearchResultSet<T2> HandleSearch<T1, T2>(
 			SearchQuery query,
 			Func<DataEntities, IOrderedEnumerable<T1>> SearchMethodWithOrderedResultSet,
-			Func<T1, DataEntities, SearchResultSet<T2>, T2> MappingMethod
+			Func<T1, DataEntities, SearchResultSet<T2>, T2> MappingMethod,
+			Action<DataEntities, List<T1>, SearchResultSet<T2>> BulkPopulateMethod = null
 		) where T1 : class, DBEntityBaseObject where T2 : Models.Schema.BaseObject, new()
 		{
 			var appEntityResults = new SearchResultSet<T2>();
@@ -371,6 +372,11 @@ namespace Factories
 					foreach ( var dbResult in dbPageResults )
 					{
 						appEntityResults.Results.Add( MappingMethod( dbResult, context, appEntityResults ) );
+					}
+
+					if( BulkPopulateMethod != null && appEntityResults != null )
+					{
+						BulkPopulateMethod( context, dbPageResults, appEntityResults );
 					}
 				}
 			}

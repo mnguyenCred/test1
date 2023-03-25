@@ -147,6 +147,7 @@
 				Search.Results = response.Data.Results || [];
 				Search.TotalResults = response.Data.TotalResults || 0;
 				Search.RelatedResources = response.Data.RelatedResources || [];
+				Search.TotalPages = Math.ceil(Search.TotalResults / Search.PageSize);
 				//Search.setStatus("Found " + Search.TotalResults + " Results");
 				Search.renderTotalResultsStatus();
 				Search.beforeRenderAll();
@@ -184,7 +185,6 @@
 
 		Search.renderPaging = function () {
 			Search.PagingBox.html("Page ");
-			Search.TotalPages = Math.ceil(Search.TotalResults / Search.PageSize);
 
 			for (var i = 1; i <= Search.TotalPages; i++) {
 				if (i == 1 || i == Search.TotalPages || ((i - Search.PagingButtonThreshold) <= Search.PageNumber && Search.PageNumber <= (i + Search.PagingButtonThreshold))) {
