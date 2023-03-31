@@ -52,7 +52,7 @@ namespace NavyRRL.Controllers
 		{
 			AuthenticateOrRedirect( "You must be authenticated and authorized to view Reference Resource data." );
 			var data = Factories.ReferenceResourceManager.GetById( id );
-			var converted = RDFServices.GetRDF( data );
+			var converted = RDFServices.GetRDF( data, null );
 			return RawJSONResponse( converted );
 		}
 		//

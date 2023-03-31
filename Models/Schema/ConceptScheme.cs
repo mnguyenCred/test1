@@ -37,9 +37,11 @@ namespace Models.Schema
 	/// Helper class used to make working with Concept Schemes easier.<br />
 	/// Will need to be updated if/when new Concept Schemes are added (but then, so will the rest of the code).
 	/// </summary>
+	[Serializable]
 	public class ConceptSchemeMap
 	{
 		public List<ConceptScheme> AllConceptSchemes { get; set; }
+		public List<Concept> AllConcepts { get; set; }
 		public ConceptScheme CommentStatusCategory { get; set; }
 		public ConceptScheme CourseCategory { get; set; }
 		public ConceptScheme AssessmentMethodCategory { get; set; }

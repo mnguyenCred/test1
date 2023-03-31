@@ -43,7 +43,7 @@ namespace NavyRRL.Controllers
 		{
 			AuthenticateOrRedirect( "You must be authenticated and authorized to view Cluster Analysis Title data." );
 			var data = Factories.ClusterAnalysisTitleManager.GetById( id );
-			var converted = RDFServices.GetRDF( data );
+			var converted = RDFServices.GetRDF( data, null );
 			return RawJSONResponse( converted );
 		}
 		//
