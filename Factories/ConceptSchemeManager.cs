@@ -187,6 +187,9 @@ namespace Factories
 				}
 			}
 
+			//Add all concepts from the relevant concept schemes
+			result.AllConcepts = result.AllConceptSchemes.SelectMany( m => m.Concepts ).ToList();
+
 			return result;
 		}
 		//

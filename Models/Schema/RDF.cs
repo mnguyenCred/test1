@@ -13,10 +13,17 @@ namespace Models.Schema
 	{
 		public class RDFQuery
 		{
+			public RDFQuery()
+			{
+				Filters = new List<Search.SearchFilter>();
+			}
+
 			public string Type { get; set; }
 			public string Keywords { get; set; }
 			public int Skip { get; set; }
 			public int Take { get; set; }
+			public List<Search.SearchFilter> Filters { get; set; }
+
 		}
 		//
 

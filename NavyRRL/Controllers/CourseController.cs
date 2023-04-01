@@ -52,7 +52,7 @@ namespace NavyRRL.Controllers
 		{
 			AuthenticateOrRedirect( "You must be authenticated and authorized to view Course data." );
 			var data = Factories.CourseManager.GetById( id );
-			var converted = RDFServices.GetRDF( data );
+			var converted = RDFServices.GetRDF( data, null );
 			return RawJSONResponse( converted );
 		}
 		//
