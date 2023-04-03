@@ -460,6 +460,7 @@ namespace Services
 			AppendLookupValue( result, RDF.NamespacedTerms.CETERMS.HasJob.URI, source.HasBilletTitle, Factories.JobManager.GetByRowId, relatedResources );
 			AppendLookupValue( result, RDF.NamespacedTerms.CETERMS.HasWorkRole.URI, source.HasWorkRole, Factories.WorkRoleManager.GetByRowId, relatedResources );
 			AppendLookupValue( result, RDF.NamespacedTerms.NAVY.HasCourseContext.URI, source.HasCourseContext, Factories.CourseContextManager.GetByRowId, relatedResources );
+			AppendLookupValue( result, RDF.NamespacedTerms.NAVY.HasClusterAnalysis.URI, source.HasClusterAnalysis, Factories.ClusterAnalysisManager.GetByRowId, relatedResources );
 
 			return result;
 		}
@@ -588,6 +589,7 @@ namespace Services
 			result.Add( "@id", GetRegistryURL( source.CTID ) );
 			result.Add( "@type", rdfType );
 			result.Add( RDF.NamespacedTerms.CETERMS.CTID.URI, source.CTID );
+			result.Add( RDF.NamespacedTerms.NAVY.RMTLDatabaseID.URI, source.Id );
 
 			return result;
 		}
