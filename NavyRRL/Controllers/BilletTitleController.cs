@@ -15,7 +15,9 @@ namespace NavyRRL.Controllers
 	[SessionState( System.Web.SessionState.SessionStateBehavior.ReadOnly )]
 	public class BilletTitleController : BaseController
     {
-		public ActionResult Search()
+        public static string FunctionCode = "rmtl.search";
+
+        public ActionResult Search()
 		{
 			return RedirectToAction( "Index", "Search", new { searchType = "BilletTitle" } );
 		}
@@ -58,10 +60,10 @@ namespace NavyRRL.Controllers
 
 		public ActionResult Edit( int id )
 		{
-			AuthenticateOrRedirect( "You must be authenticated and authorized to edit Billet Title data." );
+			AuthenticateOrRedirect( "You must be authenticated and authorized to edit Billet Title data.", FunctionCode, true, "~/Event/NotAuthorized" );
 			if ( !AccountServices.IsUserSiteStaff() )
             {
-				RedirectToAction( "NotAuthenticated", "Event" );
+				RedirectToAction( "NotAuthorized", "Event" );
 			}
 
 			var data = Factories.JobManager.GetById( id );
