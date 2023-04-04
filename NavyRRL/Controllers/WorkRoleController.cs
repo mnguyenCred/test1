@@ -50,7 +50,7 @@ namespace NavyRRL.Controllers
 		{
 			AuthenticateOrRedirect( "You must be authenticated and authorized to view Functional Area data." );
 			var data = Factories.WorkRoleManager.GetById( id );
-			var converted = RDFServices.GetRDF( data );
+			var converted = RDFServices.GetRDF( data, null );
 			return RawJSONResponse( converted );
 		}
 		//

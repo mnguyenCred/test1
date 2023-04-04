@@ -597,6 +597,7 @@ namespace Services
             try
             {
                 HttpContext httpContext = HttpContext.Current;
+				//confirm that Authorization is what we are looking for
                 string authHeader = httpContext.Request.Headers["Authorization"];
                 //not sure of content type yet. Check if starts with {
                 if ( string.IsNullOrWhiteSpace( authHeader ) )
@@ -604,6 +605,9 @@ namespace Services
                     isValid = false;
                     return null;
                 }
+                //looking for
+				//"F5_USER:C=US, O=U.S. Government, OU=DoD, OU=PKI, OU=USN, CN=INDSETH.MICHAEL.SHAWN.1234567890"
+
                 LoggingHelper.DoTrace( 7, "$$$$$$$$ Found an authorization header: " + authHeader.Substring( 0, 8 ) + "-..." );
                 if ( authHeader.StartsWith( "{" ) )
                 {

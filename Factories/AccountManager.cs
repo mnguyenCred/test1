@@ -225,25 +225,31 @@ namespace Factories
 							.SingleOrDefault( s => s.Id == userId );
 					if ( efEntity != null && efEntity.Id > 0 )
 					{
+						var email = efEntity.Email;
 						efEntity.IsActive = false;
 						efEntity.LastUpdated = System.DateTime.Now;
-						int count = context.SaveChanges();
+						//23-02-24 - NOTE we cannot do a physical delete as userId could be an FK to other tables
+						//context.Account.Remove( efEntity );
+
+                        int count = context.SaveChanges();
 						//add activity log (usually in caller method)
 						if ( count >= 0 )
 						{
 							isValid = true;
 
 							//need to handle AspNetUsers
-							//AspNetUsers_LockOut( efEntity.AspNetId, ref statusMessage );
+							//AspNetUsers_Delete( email, ref statusMessage );
 
-							//new ActivityManager().SiteActivityAdd( new SiteActivity()
-							//{
-							//	ActivityType = "Account",
-							//	Activity = "Management",
-							//	Event = "Delete",
-							//	Comment = string.Format( "{0} set user: '{1}' inactive.", deletedBy.Email, efEntity.Email )
-							//} );
-						}
+                            //AspNetUsers_LockOut( efEntity.AspNetId, ref statusMessage );
+
+                            //new ActivityManager().SiteActivityAdd( new SiteActivity()
+                            //{
+                            //	ActivityType = "Account",
+                            //	Activity = "Management",
+                            //	Event = "Delete",
+                            //	Comment = string.Format( "{0} set user: '{1}' inactive.", deletedBy.Email, efEntity.Email )
+                            //} );
+                        }
 					}
 					else
 					{
@@ -472,8 +478,46 @@ namespace Factories
 
 			return false;
 		}
+        public static bool AspNetUsers_Delete( string email, ref string statusMessage )
+        {
+            using ( var context = new DataEntities() )
+            {
+                try
+                {
+                    EM.AspNetUsers efEntity = context.AspNetUsers
+                            .FirstOrDefault( s => s.Email == email );
 
-		public bool AspNetUsers_UpdateEmailConfirmed( string id, ref string statusMessage )
+                    if ( efEntity != null && efEntity.UserId > 0 )
+                    {
+                        context.AspNetUsers.Remove( efEntity );
+						int count = context.SaveChanges();
+                        if ( count >= 0 )
+                        {
+                            statusMessage = "";
+                            return true;
+                        }
+                        else
+                        {
+                            //?no info on error
+                            statusMessage = "Error - the lockout was not successful. ";
+                            string message = string.Format( thisClassName + ".AspNetUsers_LockOut Failed", "Attempted to update AspNetUsers for lockout. The process appeared to not work, but there was not an exception, so we have no message, or no clue.Email: {0}", efEntity.Email );
+                            EmailManager.NotifyAdmin( thisClassName + "AspNetUsers_LockOut Failed", message );
+                        }
+                     
+
+                    }
+
+                }
+                catch ( Exception ex )
+                {
+                    LoggingHelper.LogError( ex, thisClassName + string.Format( ".AspNetUsers_LockOut(), aspNetUserId: {0}", email ) );
+                }
+            }
+
+            return false;
+        }
+
+        public bool AspNetUsers_UpdateEmailConfirmed( string id, ref string statusMessage )
 		{
 			using ( var context = new DataEntities() )
 			{

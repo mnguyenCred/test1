@@ -109,14 +109,19 @@
 			spinner.replaceWith(asPlainText ? "<div>" + text + "</div>" : ItemListSearches.getLink("@Url.Content("~/")" + referenceToType + "/Detail/" + source.Id, text));
 		}
 		else {
-			var guids = !source[sourceProperty] ? [] : (Array.isArray(source[sourceProperty]) ? source[sourceProperty] : [source[sourceProperty]]);
-			guids.forEach(guid => {
-				var newSpinner = $("<div class=\"spinner\"></div>").insertAfter(spinner);
-				Config.Search.getRelatedResourceOrLookup(guid, "@Url.Content("~/")" + referenceToType + "/GetByRowId/" + guid, result => {
-					ItemListSearches.renderPath(result, newSpinner, Config, [...path], asPlainText, overrideText);
+			var guids = !source[sourceProperty] ? [] : (Array.isArray(source[sourceProperty]) ? source[sourceProperty] : [source[sourceProperty]]).filter(m => m && m != "@Guid.Empty");
+			if (guids.length == 0) {
+				spinner.replaceWith("<div class=\"notApplicable\">N/A</div>");
+			}
+			else {
+				guids.forEach(guid => {
+					var newSpinner = $("<div class=\"spinner\"></div>").insertAfter(spinner);
+					Config.Search.getRelatedResourceOrLookup(guid, "@Url.Content("~/")" + referenceToType + "/GetByRowId/" + guid, result => {
+						ItemListSearches.renderPath(result, newSpinner, Config, [...path], asPlainText, overrideText);
+					});
 				});
-			});
-			spinner.remove();
+				spinner.remove();
+			}
 		}
 	}
 	//

@@ -9,6 +9,8 @@ using System.Threading.Tasks;
 
 using System.Linq.Expressions;
 
+using Newtonsoft.Json.Linq;
+
 using Models.Application;
 using Models.Curation;
 using Models.Search;
@@ -202,7 +204,7 @@ namespace Factories
 
 				//Start Query
 				var list = context.RatingContext.AsQueryable();
-				//var list = context.RatingContext.Include( nameof( DBEntity.Rating ) ).Include( nameof( DBEntity.RatingTask ) ).AsQueryable();
+				//var list = context.RatingContext.Include( "RatingTask" ).Include( "CourseContext" ).Include( "CourseContext.TrainingTask" ).Include( "CourseContext.Course" ).Include( "ClusterAnalysis" ).Include( "Job" ).Include( "WorkRole" ).AsQueryable();
 
 				//Handle Keywords
 				if ( !string.IsNullOrWhiteSpace( keywords ) )
@@ -331,8 +333,28 @@ namespace Factories
 				} );
 
 				//Training Task Detail Page
+				AppendTextFilterIfPresent( query, "> RatingTaskId > RatingTask > ReferenceResourceId > ReferenceResource.PublicationDate", text => {
+					list = list.Where( m => m.RatingTask.ReferenceResource.PublicationDate.Contains( text ) );
+				} );
+
+				//Training Task Detail Page
+				AppendTextFilterIfPresent( query, "> RatingTaskId > RatingTask > ReferenceResourceId > ReferenceResource.Name", text => {
+					list = list.Where( m => m.RatingTask.ReferenceResource.Name.Contains( text ) );
+				} );
+
+				//Training Task Detail Page
 				AppendIDsFilterIfPresent( query, "> CourseContextId > CourseContext > HasTrainingTaskId > TrainingTask", ids => {
 					list = list.Where( m => ids.Contains( m.CourseContext.HasTrainingTaskId ) );
+				} );
+
+				//Training Task Detail Page
+				AppendIDsFilterIfPresent( query, "> CourseContextId > CourseContext > HasTrainingTaskId > TrainingTask:Exclude", ids => {
+					list = list.Where( m => !ids.Contains( m.CourseContext.HasTrainingTaskId ) );
+				} );
+
+				//RMTL Search
+				AppendTextFilterIfPresent( query, "> CourseContextId > CourseContext > HasTrainingTaskId > TrainingTask:DescriptionExact", text => {
+					list = list.Where( m => m.CourseContext.TrainingTask.Description.ToLower() == text.ToLower() );
 				} );
 
 				//Rating Task Detail Page
@@ -722,7 +744,17 @@ namespace Factories
 
 					return sorted.Select( m => m.Main ).OrderBy( m => true );
 				}
-			}, MapFromDBForSearch );
+			}, MapFromDBForSearch, (context, pageResults, resultContainer) => {
+				if ( query.IsExportMode )
+				{
+					resultContainer.RelatedResources.AddRange( pageResults.Select( m => m.Job ).Where( m => m != null ).Distinct().ToList().Select( m => JobManager.MapFromDB( m, context ) ).Select( m => JObject.FromObject( m ) ).ToList() );
+					resultContainer.RelatedResources.AddRange( pageResults.Select( m => m.WorkRole ).Where( m => m != null ).Distinct().ToList().Select( m => WorkRoleManager.MapFromDB( m, context ) ).Select( m => JObject.FromObject( m ) ).ToList() );
+					resultContainer.RelatedResources.AddRange( pageResults.Select( m => m.ClusterAnalysis?.ClusterAnalysisTitle ).Where( m => m != null ).Distinct().ToList().Select( m => ClusterAnalysisTitleManager.MapFromDB( m, context ) ).Select( m => JObject.FromObject( m ) ).ToList() );
+					resultContainer.RelatedResources.AddRange( pageResults.Select( m => m.CourseContext?.Course ).Where( m => m != null ).Distinct().ToList().Select( m => CourseManager.MapFromDB( m, context ) ).Select( m => JObject.FromObject( m ) ).ToList() );
+					resultContainer.RelatedResources.AddRange( pageResults.Select( m => m.RatingTask?.ReferenceResource ).Where( m => m != null ).Distinct().ToList().Select( m => ReferenceResourceManager.MapFromDB( m, context ) ).Select( m => JObject.FromObject( m ) ).ToList() );
+					resultContainer.RelatedResources.AddRange( pageResults.Select( m => m.CourseContext?.Course?.Organization ).Where( m => m != null ).Distinct().ToList().Select( m => OrganizationManager.MapFromDB( m, context ) ).Select( m => JObject.FromObject( m ) ).ToList() );
+				}
+			} );
 
 			resultSet.ExtraData.Add( "RatingTaskCount", ratingTaskCount );
 
@@ -768,6 +800,7 @@ namespace Factories
 				MapAndAppendResourceIfNotNull( input.RatingTask, context, RatingTaskManager.MapFromDB, resultSet );
 				MapAndAppendResourceIfNotNull( input.CourseContext, context, CourseContextManager.MapFromDB, resultSet );
 				MapAndAppendResourceIfNotNull( input.CourseContext?.TrainingTask, context, TrainingTaskManager.MapFromDB, resultSet );
+				MapAndAppendResourceIfNotNull( input.ClusterAnalysis, context, ClusterAnalysisManager.MapFromDB, resultSet );
 			}
 
 

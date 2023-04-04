@@ -13,10 +13,17 @@ namespace Models.Schema
 	{
 		public class RDFQuery
 		{
+			public RDFQuery()
+			{
+				Filters = new List<Search.SearchFilter>();
+			}
+
 			public string Type { get; set; }
 			public string Keywords { get; set; }
 			public int Skip { get; set; }
 			public int Take { get; set; }
+			public List<Search.SearchFilter> Filters { get; set; }
+
 		}
 		//
 
@@ -269,6 +276,7 @@ namespace Models.Schema
 			{
 				public const string LangString = "rdf:langString";
 				public const string XSDString = "xsd:string";
+				public const string XSDInteger = "xsd:integer";
 				public const string LanguageContainer = "@language";
 				public const string ListContainer = "@list";
 				public const string IDType = "@id";
@@ -352,7 +360,7 @@ namespace Models.Schema
 				public static RDFClass ClusterAnalysisTitle { get { return new RDFClass( Schema.ClusterAnalysisTitle.RDFType, "Cluster Analysis Title", "A group of Cluster Analysis instances.", new List<RDFProperty>(){ CETERMS.Name } ); } }
 				public static RDFClass CourseContext { get { return new RDFClass( Schema.CourseContext.RDFType, "Course Context", "Class that describes a particular combination of Course, Training Task, and Assessment Method.", new List<RDFProperty>(){ NAVY.HasCourseContext, NAVY.HasTrainingTask, CETERMS.AssessmentMethodType } ); } }
 				public static RDFClass Rating { get { return new RDFClass( Schema.Rating.RDFType, "Rating", "A Rating.", new List<RDFProperty>(){ CETERMS.Name, CETERMS.CodedNotation, CETERMS.Description } ); } }
-				public static RDFClass RatingContext { get { return new RDFClass( Schema.RatingContext.RDFType, "Rating Context", "Class that describes a Rating Task within the context of a given Rating.", new List<RDFProperty>(){ CEASN.Comment, CETERMS.HasOccupation, NAVY.HasRatingTask, CETERMS.HasJob, CETERMS.HasWorkRole, NAVY.HasCourseContext, NAVY.PayGradeType, NAVY.ApplicabilityType, NAVY.TrainingGapType } ); } }
+				public static RDFClass RatingContext { get { return new RDFClass( Schema.RatingContext.RDFType, "Rating Context", "Class that describes a Rating Task within the context of a given Rating.", new List<RDFProperty>(){ CEASN.Comment, CETERMS.HasOccupation, NAVY.HasRatingTask, CETERMS.HasJob, CETERMS.HasWorkRole, NAVY.HasCourseContext, NAVY.PayGradeType, NAVY.ApplicabilityType, NAVY.TrainingGapType, NAVY.HasClusterAnalysis } ); } }
 				public static RDFClass RatingTask { get { return new RDFClass( Schema.RatingTask.RDFType, "Rating Task", "A Rating-Level Task.", new List<RDFProperty>() { CETERMS.Description, NAVY.HasReferenceResource, NAVY.ReferenceType } ) { SubTermOf = new List<string>() { "ceterms:Task" } }; } }
 				public static RDFClass ReferenceResource { get { return new RDFClass( Schema.ReferenceResource.RDFType, "Reference Resource", "A Reference Resource.", new List<RDFProperty>(){ CETERMS.Name, CETERMS.CodedNotation, NAVY.ReferenceType, NAVY.PublicationDate } ); } }
 				public static RDFClass TrainingTask { get { return new RDFClass( Schema.TrainingTask.RDFType, "Training Task", "A Training Task.", new List<RDFProperty>() { CETERMS.Description, NAVY.HasReferenceResource } ) { SubTermOf = new List<string>() { "ceterms:Task" } }; } }
@@ -363,6 +371,7 @@ namespace Models.Schema
 				public static RDFProperty HasTrainingTask { get { return new RDFProperty( "navy:hasTrainingTask", "Has Training Task", "Training Task related to the resource.", Schema.TrainingTask.RDFType ) { ContextType = Constants.IDType, ContextContainer = Constants.ListContainer }; } }
 				public static RDFProperty HasCourse { get { return new RDFProperty( "navy:hasCourse", "Has Course", "Course related to the resource.", Schema.Course.RDFType ) { ContextType = Constants.IDType }; } }
 				public static RDFProperty HasCourseContext { get { return new RDFProperty( "navy:hasCourseContext", "Has Course Context", "Course Context related to the resource.", Schema.CourseContext.RDFType ) { ContextType = Constants.IDType }; } }
+				public static RDFProperty HasClusterAnalysis { get { return new RDFProperty( "navy:hasClusterAnalysis", "Has Cluster Analysis", "Cluster Analysis related to the resource.", Schema.CourseContext.RDFType ) { ContextType = Constants.IDType }; } }
 				public static RDFProperty LifeCycleControlDocumentType { get { return new RDFProperty( "navy:lifeCycleControlDocumentType", "Life Cycle Control Document Type", "Life Cycle Control Document Type for the resource.", Concept.RDFType ) { ContextType = Constants.IDType }; } }
 				public static RDFProperty PayGradeType { get { return new RDFProperty( "navy:payGradeType", "Pay Grade Type", "Pay Grade related to the resource.", "For Rating Tasks, the Pay Grade Type indicates the earliest Pay Grade (Rank) at which the Rating Task is typically performed.", Schema.Concept.RDFType ) { ContextType = Constants.IDType }; } }
 				public static RDFProperty ReferenceType { get { return new RDFProperty( "navy:referenceType", "Reference Type", "Reference Type for the resource.", Schema.Concept.RDFType ) { ContextType = Constants.IDType }; } }
@@ -379,6 +388,7 @@ namespace Models.Schema
 				public static RDFProperty CandidatePlatformType { get { return new RDFProperty( "navy:candidatePlatformType", "Candidate Platform Type", "Candidate Platform Type within this Cluster Analysis.", Schema.Concept.RDFType ) { ContextType = Constants.IDType, ContextContainer = Constants.ListContainer }; } }
 				public static RDFProperty DevelopmentRatioType { get { return new RDFProperty( "navy:developmentRatioType", "Development Ratio Type", "Development Ratio Type within this Cluster Analysis.", Schema.Concept.RDFType ) { ContextType = Constants.IDType }; } }
 				public static RDFProperty CFMPlacementType { get { return new RDFProperty( "navy:cfmPlacementType", "CFM Placement Type", "Career Flow Map Placement Type within this Cluster Analysis.", Schema.Concept.RDFType ) { ContextType = Constants.IDType }; } }
+				public static RDFProperty RMTLDatabaseID { get { return new RDFProperty( "navy:rmtlDatabaseID", "RMTL Database ID", "ID of the object in the RMTL Database.", Constants.XSDInteger ) { ContextType = Constants.XSDInteger, Comment = "This is a temporary property to facilitate the current search API and will not be part of the Registry implementation." }; } }
 			}
 		}
 		

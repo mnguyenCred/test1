@@ -4,11 +4,14 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
+using System.Runtime.Caching;
+
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
 using Models.Schema;
 using Models.Utilities;
+using Models.Search;
 
 namespace Services
 {
@@ -246,20 +249,20 @@ namespace Services
 			var extraGraphObjects = new List<JObject>();
 			switch ( resource.GetType().Name )
 			{
-				case nameof( BilletTitle ):				primaryResource = GetRDF( ( BilletTitle ) resource ); break;
-				case nameof( Course ):					primaryResource = GetRDF( ( Course ) resource ); break;
-				case nameof( Organization ):			primaryResource = GetRDF( ( Organization ) resource ); break;
-				case nameof( Rating ):					primaryResource = GetRDF( ( Rating ) resource ); break;
-				case nameof( RatingTask ):				primaryResource = GetRDF( ( RatingTask ) resource ); break;
-				case nameof( ReferenceResource ):		primaryResource = GetRDF( ( ReferenceResource ) resource ); break;
-				case nameof( TrainingTask ):			primaryResource = GetRDF( ( TrainingTask ) resource ); break;
-				case nameof( WorkRole ):				primaryResource = GetRDF( ( WorkRole ) resource ); break;
-				case nameof( ConceptScheme ):			primaryResource = GetRDF( ( ConceptScheme ) resource, includeSecuredTerms, extraGraphObjects ); break;
-				case nameof( Concept ):					primaryResource = GetRDF( ( Concept ) resource, includeSecuredTerms ); break;
-				case nameof( RatingContext ):			primaryResource = GetRDF( ( RatingContext ) resource ); break;
-				case nameof( CourseContext ):			primaryResource = GetRDF( ( CourseContext ) resource ); break;
-				case nameof( ClusterAnalysis ):			primaryResource = GetRDF( ( ClusterAnalysis ) resource ); break;
-				case nameof( ClusterAnalysisTitle ):	primaryResource = GetRDF( ( ClusterAnalysisTitle ) resource ); break;
+				case nameof( BilletTitle ):				primaryResource = GetRDF( ( BilletTitle ) resource, null ); break;
+				case nameof( Course ):					primaryResource = GetRDF( ( Course ) resource, null ); break;
+				case nameof( Organization ):			primaryResource = GetRDF( ( Organization ) resource, null ); break;
+				case nameof( Rating ):					primaryResource = GetRDF( ( Rating ) resource, null ); break;
+				case nameof( RatingTask ):				primaryResource = GetRDF( ( RatingTask ) resource, null ); break;
+				case nameof( ReferenceResource ):		primaryResource = GetRDF( ( ReferenceResource ) resource, null ); break;
+				case nameof( TrainingTask ):			primaryResource = GetRDF( ( TrainingTask ) resource, null ); break;
+				case nameof( WorkRole ):				primaryResource = GetRDF( ( WorkRole ) resource, null ); break;
+				case nameof( ConceptScheme ):			primaryResource = GetRDF( ( ConceptScheme ) resource, null, includeSecuredTerms, extraGraphObjects ); break;
+				case nameof( Concept ):					primaryResource = GetRDF( ( Concept ) resource, null, includeSecuredTerms ); break;
+				case nameof( RatingContext ):			primaryResource = GetRDF( ( RatingContext ) resource, null ); break;
+				case nameof( CourseContext ):			primaryResource = GetRDF( ( CourseContext ) resource, null ); break;
+				case nameof( ClusterAnalysis ):			primaryResource = GetRDF( ( ClusterAnalysis ) resource, null ); break;
+				case nameof( ClusterAnalysisTitle ):	primaryResource = GetRDF( ( ClusterAnalysisTitle ) resource, null ); break;
 				default: break;
 			}
 
@@ -289,8 +292,8 @@ namespace Services
 				case BilletTitle.RDFType:			HandleSearch( query, SearchServices.BilletTitleSearch, GetRDF, result ); break;
 				case ClusterAnalysis.RDFType:		HandleSearch( query, SearchServices.ClusterAnalysisSearch, GetRDF, result ); break;
 				case ClusterAnalysisTitle.RDFType:	HandleSearch( query, SearchServices.ClusterAnalysisTitleSearch, GetRDF, result ); break;
-				case Concept.RDFType:				HandleSearch( query, SearchServices.ConceptSearch, ( Concept source ) => GetRDF( source, includeSecuredTerms ), result ); break;
-				case ConceptScheme.RDFType:			HandleSearch( query, SearchServices.ConceptSchemeSearch, ( ConceptScheme source ) => GetRDF( source, includeSecuredTerms ), result ); break;
+				case Concept.RDFType:				HandleSearch( query, SearchServices.ConceptSearch, ( Concept source, List<JObject> relatedResources ) => GetRDF( source, relatedResources, includeSecuredTerms ), result ); break;
+				case ConceptScheme.RDFType:			HandleSearch( query, SearchServices.ConceptSchemeSearch, ( ConceptScheme source, List<JObject> relatedResources ) => GetRDF( source, relatedResources, includeSecuredTerms ), result ); break;
 				case Course.RDFType:				HandleSearch( query, SearchServices.CourseSearch, GetRDF, result ); break;
 				case CourseContext.RDFType:			HandleSearch( query, SearchServices.CourseContextSearch, GetRDF, result ); break;
 				case Organization.RDFType:			HandleSearch( query, SearchServices.OrganizationSearch, GetRDF, result ); break;
@@ -307,26 +310,29 @@ namespace Services
 		}
 		//
 
-		private static void HandleSearch<T>( RDF.RDFQuery query, Func<Models.Search.SearchQuery, JObject, Models.Search.SearchResultSet<T>> SearchMethod, Func<T, JObject> ConvertMethod, Attempt<RDF.RDFQueryResults> result )
+		private static void HandleSearch<T>( RDF.RDFQuery query, Func<Models.Search.SearchQuery, JObject, Models.Search.SearchResultSet<T>> SearchMethod, Func<T, List<JObject>, JObject> ConvertMethod, Attempt<RDF.RDFQueryResults> result )
 		{
 			var debug = new JObject();
-			var searchResults = SearchMethod( new Models.Search.SearchQuery()
+			var combinedFilters = query.Filters ?? new List<SearchFilter>();
+			if( combinedFilters.FirstOrDefault( m => m.Name.ToLower() == "search:keyword" ) == null )
+			{
+				combinedFilters.Add( new SearchFilter()
+				{
+					Name = "search:Keyword",
+					Text = query.Keywords
+				} );
+			}
+
+			var searchResults = SearchMethod( new SearchQuery()
 			{
 				Skip = query.Skip,
 				Take = query.Take,
-				Filters = new List<Models.Search.SearchFilter>()
-				{
-					new Models.Search.SearchFilter()
-					{
-						Name = "search:Keyword",
-						Text = query.Keywords
-					}
-				}
+				Filters = combinedFilters
 			}, debug );
 
 			result.Data = new RDF.RDFQueryResults()
 			{
-				Results = JArray.FromObject( searchResults.Results.Select( m => ConvertMethod( m ) ).ToList() ),
+				Results = JArray.FromObject( searchResults.Results.Select( m => ConvertMethod( m, searchResults.RelatedResources ) ).ToList() ),
 				TotalResults = searchResults.TotalResults,
 				Debug = debug
 			};
@@ -335,7 +341,34 @@ namespace Services
 		}
 		//
 
-		public static JObject GetRDF( BilletTitle source )
+		public static ConceptSchemeMap GetConceptSchemeMapFromCache()
+		{
+			var conceptSchemeMapCacheName = "cache:ConceptSchemeMap";
+			var map = ( ConceptSchemeMap ) MemoryCache.Default.Get( conceptSchemeMapCacheName );
+			if( map == null )
+			{
+				map = Factories.ConceptSchemeManager.GetConceptSchemeMap();
+				MemoryCache.Default.Remove( conceptSchemeMapCacheName );
+				MemoryCache.Default.Add( conceptSchemeMapCacheName, map, new DateTimeOffset( DateTime.Now.AddMinutes( 5 ) ) );
+			}
+
+			return map;
+		}
+		//
+
+		public static List<Concept> GetMultipleConceptsByRowId( List<Guid> rowIDs )
+		{
+			return GetConceptSchemeMapFromCache().AllConcepts.Where( m => rowIDs.Contains( m.RowId ) ).ToList();
+		}
+		//
+
+		public static Concept GetConceptByRowId( Guid rowID )
+		{
+			return GetConceptSchemeMapFromCache().AllConcepts.FirstOrDefault( m => m.RowId == rowID );
+		}
+		//
+
+		public static JObject GetRDF( BilletTitle source, List<JObject> relatedResources )
 		{
 			var result = GetStarterResult( BilletTitle.RDFType, source );
 
@@ -345,16 +378,16 @@ namespace Services
 		}
 		//
 
-		public static JObject GetRDF( Course source )
+		public static JObject GetRDF( Course source, List<JObject> relatedResources )
 		{
 			var result = GetStarterResult( Course.RDFType, source );
 
 			AppendValue( result, RDF.NamespacedTerms.CETERMS.Name.URI, source.Name, true );
 			AppendValue( result, RDF.NamespacedTerms.CETERMS.CodedNotation.URI, source.CodedNotation, false );
 			AppendValue( result, RDF.NamespacedTerms.CETERMS.Description.URI, source.Description, true );
-			AppendLookupValue( result, RDF.NamespacedTerms.NAVY.LifeCycleControlDocumentType.URI, source.LifeCycleControlDocumentType, Factories.ConceptManager.GetByRowId );
-			AppendLookupValue( result, RDF.NamespacedTerms.NAVY.CourseType.URI, source.CourseType, Factories.ConceptManager.GetMultiple );
-			AppendLookupValue( result, RDF.NamespacedTerms.CETERMS.OwnedBy.URI, source.CurriculumControlAuthority, Factories.OrganizationManager.GetByRowId );
+			AppendLookupValue( result, RDF.NamespacedTerms.NAVY.LifeCycleControlDocumentType.URI, source.LifeCycleControlDocumentType, GetConceptByRowId, relatedResources );
+			AppendLookupValue( result, RDF.NamespacedTerms.NAVY.CourseType.URI, source.CourseType, GetMultipleConceptsByRowId, relatedResources );
+			AppendLookupValue( result, RDF.NamespacedTerms.CETERMS.OwnedBy.URI, source.CurriculumControlAuthority, Factories.OrganizationManager.GetByRowId, relatedResources );
 
 			//In the Registry, ceterms:ownedBy is multi-value
 			if ( result[ RDF.NamespacedTerms.CETERMS.OwnedBy.URI ] != null && result[ RDF.NamespacedTerms.CETERMS.OwnedBy.URI ].Type != JTokenType.Array )
@@ -366,19 +399,19 @@ namespace Services
 		}
 		//
 
-		public static JObject GetRDF( CourseContext source )
+		public static JObject GetRDF( CourseContext source, List<JObject> relatedResources )
 		{
 			var result = GetStarterResult( CourseContext.RDFType, source );
 
-			AppendLookupValue( result, RDF.NamespacedTerms.NAVY.HasCourse.URI, source.HasCourse, Factories.CourseManager.GetByRowId );
-			AppendLookupValue( result, RDF.NamespacedTerms.NAVY.HasTrainingTask.URI, source.HasTrainingTask, Factories.TrainingTaskManager.GetByRowId );
-			AppendLookupValue( result, RDF.NamespacedTerms.CETERMS.AssessmentMethodType.URI, source.AssessmentMethodType, Factories.ConceptManager.GetMultiple );
+			AppendLookupValue( result, RDF.NamespacedTerms.NAVY.HasCourse.URI, source.HasCourse, Factories.CourseManager.GetByRowId, relatedResources );
+			AppendLookupValue( result, RDF.NamespacedTerms.NAVY.HasTrainingTask.URI, source.HasTrainingTask, Factories.TrainingTaskManager.GetByRowId, relatedResources );
+			AppendLookupValue( result, RDF.NamespacedTerms.CETERMS.AssessmentMethodType.URI, source.AssessmentMethodType, GetMultipleConceptsByRowId, relatedResources );
 
 			return result;
 		}
 		//
 
-		public static JObject GetRDF( Organization source )
+		public static JObject GetRDF( Organization source, List<JObject> relatedResources )
 		{
 			var result = GetStarterResult( Organization.RDFType, source );
 
@@ -389,7 +422,7 @@ namespace Services
 		}
 		//
 
-		public static JObject GetRDF( Rating source )
+		public static JObject GetRDF( Rating source, List<JObject> relatedResources )
 		{
 			var result = GetStarterResult( Rating.RDFType, source );
 
@@ -401,62 +434,63 @@ namespace Services
 		}
 		//
 
-		public static JObject GetRDF( RatingTask source )
+		public static JObject GetRDF( RatingTask source, List<JObject> relatedResources )
 		{
 			var result = GetStarterResult( RatingTask.RDFType, source );
 
 			AppendValue( result, RDF.NamespacedTerms.CETERMS.Description.URI, source.Description, true );
-			AppendLookupValue( result, RDF.NamespacedTerms.NAVY.HasReferenceResource.URI, source.HasReferenceResource, Factories.ReferenceResourceManager.GetByRowId );
-			AppendLookupValue( result, RDF.NamespacedTerms.NAVY.ReferenceType.URI, source.ReferenceType, Factories.ConceptManager.GetByRowId );
+			AppendLookupValue( result, RDF.NamespacedTerms.NAVY.HasReferenceResource.URI, source.HasReferenceResource, Factories.ReferenceResourceManager.GetByRowId, relatedResources );
+			AppendLookupValue( result, RDF.NamespacedTerms.NAVY.ReferenceType.URI, source.ReferenceType, GetConceptByRowId, relatedResources );
 
 			return result;
 		}
 		//
 
-		public static JObject GetRDF( RatingContext source )
+		public static JObject GetRDF( RatingContext source, List<JObject> relatedResources )
 		{
 			var result = GetStarterResult( RatingContext.RDFType, source );
 
 			AppendValue( result, RDF.NamespacedTerms.CETERMS.CodedNotation.URI, source.CodedNotation, true );
 			AppendValue( result, RDF.NamespacedTerms.CEASN.Comment.URI, source.Notes, true );
-			AppendLookupValue( result, RDF.NamespacedTerms.NAVY.PayGradeType.URI, source.PayGradeType, Factories.ConceptManager.GetByRowId );
-			AppendLookupValue( result, RDF.NamespacedTerms.NAVY.ApplicabilityType.URI, source.ApplicabilityType, Factories.ConceptManager.GetByRowId );
-			AppendLookupValue( result, RDF.NamespacedTerms.NAVY.TrainingGapType.URI, source.TrainingGapType, Factories.ConceptManager.GetByRowId );
-			AppendLookupValue( result, RDF.NamespacedTerms.CETERMS.HasOccupation.URI, source.HasRating, Factories.RatingManager.GetByRowId );
-			AppendLookupValue( result, RDF.NamespacedTerms.NAVY.HasRatingTask.URI, source.HasRatingTask, ( rowID ) => { return Factories.RatingTaskManager.GetByRowId( rowID ); } );
-			AppendLookupValue( result, RDF.NamespacedTerms.CETERMS.HasJob.URI, source.HasBilletTitle, Factories.JobManager.GetByRowId );
-			AppendLookupValue( result, RDF.NamespacedTerms.CETERMS.HasWorkRole.URI, source.HasWorkRole, Factories.WorkRoleManager.GetByRowId );
-			AppendLookupValue( result, RDF.NamespacedTerms.NAVY.HasCourseContext.URI, source.HasCourseContext, Factories.CourseContextManager.GetByRowId );
+			AppendLookupValue( result, RDF.NamespacedTerms.NAVY.PayGradeType.URI, source.PayGradeType, GetConceptByRowId, relatedResources );
+			AppendLookupValue( result, RDF.NamespacedTerms.NAVY.ApplicabilityType.URI, source.ApplicabilityType, GetConceptByRowId, relatedResources );
+			AppendLookupValue( result, RDF.NamespacedTerms.NAVY.TrainingGapType.URI, source.TrainingGapType, GetConceptByRowId, relatedResources );
+			AppendLookupValue( result, RDF.NamespacedTerms.CETERMS.HasOccupation.URI, source.HasRating, Factories.RatingManager.GetByRowId, relatedResources );
+			AppendLookupValue( result, RDF.NamespacedTerms.NAVY.HasRatingTask.URI, source.HasRatingTask, ( rowID ) => { return Factories.RatingTaskManager.GetByRowId( rowID ); }, relatedResources );
+			AppendLookupValue( result, RDF.NamespacedTerms.CETERMS.HasJob.URI, source.HasBilletTitle, Factories.JobManager.GetByRowId, relatedResources );
+			AppendLookupValue( result, RDF.NamespacedTerms.CETERMS.HasWorkRole.URI, source.HasWorkRole, Factories.WorkRoleManager.GetByRowId, relatedResources );
+			AppendLookupValue( result, RDF.NamespacedTerms.NAVY.HasCourseContext.URI, source.HasCourseContext, Factories.CourseContextManager.GetByRowId, relatedResources );
+			AppendLookupValue( result, RDF.NamespacedTerms.NAVY.HasClusterAnalysis.URI, source.HasClusterAnalysis, Factories.ClusterAnalysisManager.GetByRowId, relatedResources );
 
 			return result;
 		}
 		//
 
-		public static JObject GetRDF( ReferenceResource source )
+		public static JObject GetRDF( ReferenceResource source, List<JObject> relatedResources )
 		{
 			var result = GetStarterResult( ReferenceResource.RDFType, source );
 
 			AppendValue( result, RDF.NamespacedTerms.CETERMS.Name.URI, source.Name, true );
 			AppendValue( result, RDF.NamespacedTerms.CETERMS.Description.URI, source.Description, true );
 			AppendValue( result, RDF.NamespacedTerms.CETERMS.CodedNotation.URI, source.PublicationDate, true ); //Should probably just use CodedNotation instead of Publication Date system-wide
-			AppendLookupValue( result, RDF.NamespacedTerms.NAVY.ReferenceType.URI, source.ReferenceType, Factories.ConceptManager.GetMultiple );
+			AppendLookupValue( result, RDF.NamespacedTerms.NAVY.ReferenceType.URI, source.ReferenceType, GetMultipleConceptsByRowId, relatedResources );
 
 			return result;
 		}
 		//
 
-		public static JObject GetRDF( TrainingTask source )
+		public static JObject GetRDF( TrainingTask source, List<JObject> relatedResources )
 		{
 			var result = GetStarterResult( TrainingTask.RDFType, source );
 
 			AppendValue( result, RDF.NamespacedTerms.CETERMS.Description.URI, source.Description, true );
-			AppendLookupValue( result, RDF.NamespacedTerms.NAVY.HasReferenceResource.URI, source.HasReferenceResource, Factories.ReferenceResourceManager.GetByRowId );
+			AppendLookupValue( result, RDF.NamespacedTerms.NAVY.HasReferenceResource.URI, source.HasReferenceResource, Factories.ReferenceResourceManager.GetByRowId, relatedResources );
 
 			return result;
 		}
 		//
 
-		public static JObject GetRDF( WorkRole source )
+		public static JObject GetRDF( WorkRole source, List<JObject> relatedResources )
 		{
 			var result = GetStarterResult( WorkRole.RDFType, source );
 
@@ -466,7 +500,7 @@ namespace Services
 		}
 		//
 
-		public static JObject GetRDF( ConceptScheme source, bool includeSecuredTerms = false, List<JObject> extraGraphObjects = null )
+		public static JObject GetRDF( ConceptScheme source, List<JObject> relatedResources, bool includeSecuredTerms = false, List<JObject> extraGraphObjects = null )
 		{
 			var result = GetConceptSchemeJSON( source, true );
 			extraGraphObjects = extraGraphObjects ?? new List<JObject>();
@@ -489,7 +523,7 @@ namespace Services
 		}
 		//
 
-		public static JObject GetRDF( Concept source, bool includeSecuredTerms = false )
+		public static JObject GetRDF( Concept source, List<JObject> relatedResources, bool includeSecuredTerms = false )
 		{
 			if ( !includeSecuredTerms )
 			{
@@ -502,26 +536,26 @@ namespace Services
 		}
 		//
 
-		public static JObject GetRDF( ClusterAnalysis source )
+		public static JObject GetRDF( ClusterAnalysis source, List<JObject> relatedResources )
 		{
 			var result = GetStarterResult( ClusterAnalysis.RDFType, source );
 
 			AppendValue( result, RDF.NamespacedTerms.NAVY.PriorityPlacement.URI, source.PriorityPlacement.ToString(), false );
 			AppendValue( result, RDF.NamespacedTerms.NAVY.EstimatedInstructionalTime.URI, source.EstimatedInstructionalTime > 0 ? "PT" + (source.EstimatedInstructionalTime.ToString() ?? "0") + "H" : null, false );
 			AppendValue( result, RDF.NamespacedTerms.NAVY.DevelopmentTime.URI, source.DevelopmentTime > 0 ? "PT" + source.DevelopmentTime + "H" : null, false );
-			AppendLookupValue( result, RDF.NamespacedTerms.NAVY.HasClusterAnalysisTitle.URI, source.HasClusterAnalysisTitle, Factories.ClusterAnalysisTitleManager.GetByRowId );
-			AppendLookupValue( result, RDF.NamespacedTerms.NAVY.TrainingSolutionType.URI, source.TrainingSolutionType, Factories.ConceptManager.GetByRowId );
-			AppendLookupValue( result, RDF.NamespacedTerms.NAVY.RecommendedModalityType.URI, source.RecommendedModalityType, Factories.ConceptManager.GetByRowId );
-			AppendLookupValue( result, RDF.NamespacedTerms.NAVY.DevelopmentSpecificationType.URI, source.DevelopmentSpecificationType, Factories.ConceptManager.GetByRowId ); ;
-			AppendLookupValue( result, RDF.NamespacedTerms.NAVY.CandidatePlatformType.URI, source.CandidatePlatformType, Factories.ConceptManager.GetMultiple );
-			AppendLookupValue( result, RDF.NamespacedTerms.NAVY.DevelopmentRatioType.URI, source.DevelopmentRatioType, Factories.ConceptManager.GetByRowId );
-			AppendLookupValue( result, RDF.NamespacedTerms.NAVY.CFMPlacementType.URI, source.CFMPlacementType, Factories.ConceptManager.GetMultiple );
+			AppendLookupValue( result, RDF.NamespacedTerms.NAVY.HasClusterAnalysisTitle.URI, source.HasClusterAnalysisTitle, Factories.ClusterAnalysisTitleManager.GetByRowId, relatedResources );
+			AppendLookupValue( result, RDF.NamespacedTerms.NAVY.TrainingSolutionType.URI, source.TrainingSolutionType, GetConceptByRowId, relatedResources );
+			AppendLookupValue( result, RDF.NamespacedTerms.NAVY.RecommendedModalityType.URI, source.RecommendedModalityType, GetConceptByRowId, relatedResources );
+			AppendLookupValue( result, RDF.NamespacedTerms.NAVY.DevelopmentSpecificationType.URI, source.DevelopmentSpecificationType, GetConceptByRowId, relatedResources ); ;
+			AppendLookupValue( result, RDF.NamespacedTerms.NAVY.CandidatePlatformType.URI, source.CandidatePlatformType, GetMultipleConceptsByRowId, relatedResources );
+			AppendLookupValue( result, RDF.NamespacedTerms.NAVY.DevelopmentRatioType.URI, source.DevelopmentRatioType, GetConceptByRowId, relatedResources );
+			AppendLookupValue( result, RDF.NamespacedTerms.NAVY.CFMPlacementType.URI, source.CFMPlacementType, GetMultipleConceptsByRowId, relatedResources );
 
 			return result;
 		}
 		//
 
-		public static JObject GetRDF( ClusterAnalysisTitle source )
+		public static JObject GetRDF( ClusterAnalysisTitle source, List<JObject> relatedResources )
 		{
 			var result = GetStarterResult( ClusterAnalysisTitle.RDFType, source );
 
@@ -555,6 +589,7 @@ namespace Services
 			result.Add( "@id", GetRegistryURL( source.CTID ) );
 			result.Add( "@type", rdfType );
 			result.Add( RDF.NamespacedTerms.CETERMS.CTID.URI, source.CTID );
+			result.Add( RDF.NamespacedTerms.NAVY.RMTLDatabaseID.URI, source.Id );
 
 			return result;
 		}
@@ -591,22 +626,41 @@ namespace Services
 		}
 		//
 
-		public static void AppendLookupValue<T>( JObject container, string property, Guid value, Func<Guid, T> GetSingleByGUIDMethod ) where T : BaseObject
+		public static void AppendLookupValue<T>( JObject container, string property, Guid value, Func<Guid, T> GetSingleByGUIDMethod, List<JObject> relatedResources ) where T : BaseObject
 		{
 			var applicationURL = GetApplicationURL();
 			if ( value != Guid.Empty )
 			{
+				var ctid = relatedResources?.FirstOrDefault( m => m[ "RowId" ]?.ToString() == value.ToString() )?.SelectToken( "CTID" )?.Value<string>() ??
+					GetSingleByGUIDMethod( value )?.CTID ??
+					"";
+
+				if ( !string.IsNullOrWhiteSpace( ctid ) )
+				{
+					container[ property ] = GetRegistryURL( ctid );
+				}
+
+				/*
+				var jItem = relatedResources?.FirstOrDefault( m => m[ "RowId" ]?.ToString() == value.ToString() );
+				if( jItem != null && jItem["CTID"] != null )
+				{
+					container[ property ] = GetRegistryURL( jItem[ "CTID" ].ToString() );
+				}
+
 				var item = GetSingleByGUIDMethod( value );
 				if ( item != null && item.Id > 0 )
 				{
 					container[ property ] = GetRegistryURL( item.CTID );
 				}
+				*/
 			}
 		}
 		//
 
-		public static void AppendLookupValue<T>( JObject container, string property, Guid value, Func<Guid, bool, T> GetSingleByGUIDMethod ) where T : BaseObject
+		public static void AppendLookupValue<T>( JObject container, string property, Guid value, Func<Guid, bool, T> GetSingleByGUIDMethod, List<JObject> relatedResources ) where T : BaseObject
 		{
+			AppendLookupValue( container, property, value, ( Guid rowID ) => { return GetSingleByGUIDMethod( rowID, true ); }, relatedResources );
+			/*
 			var applicationURL = GetApplicationURL();
 			if ( value != Guid.Empty )
 			{
@@ -616,13 +670,39 @@ namespace Services
 					container[ property ] = GetRegistryURL( item.CTID );
 				}
 			}
+			*/
 		}
 		//
 
-		public static void AppendLookupValue<T>(JObject container, string property, List<Guid> value, Func<List<Guid>, List<T>> GetMultipleByGUIDMethod ) where T : BaseObject
+		public static void AppendLookupValue<T>(JObject container, string property, List<Guid> values, Func<List<Guid>, List<T>> GetMultipleByGUIDMethod, List<JObject> relatedResources ) where T : BaseObject
 		{
 			var applicationURL = GetApplicationURL();
-			var values = ( value ?? new List<Guid>() ).Where( m => m != Guid.Empty ).ToList();
+			var validValues = ( values ?? new List<Guid>() ).Where( m => m != Guid.Empty ).ToList();
+			var matches = new List<Guid>();
+			var result = new List<string>();
+
+			foreach( var value in validValues )
+			{
+				var ctid = relatedResources?.FirstOrDefault( m => m[ "RowId" ]?.ToString() == value.ToString() )?.SelectToken( "CTID" )?.Value<string>();
+				if ( !string.IsNullOrWhiteSpace( ctid ) )
+				{
+					result.Add( GetRegistryURL( ctid ) );
+					matches.Add( value );
+				}
+			}
+
+			var remaining = validValues.Where( m => !matches.Contains( m ) ).ToList();
+			if( remaining.Count() > 0 )
+			{
+				result.AddRange( GetMultipleByGUIDMethod( values ).Where( m => m != null && m.Id > 0 ).Select( item => GetRegistryURL( item.CTID ) ).ToList() );
+			}
+
+			if( result.Count() > 0 )
+			{
+				container[ property ] = JArray.FromObject( result );
+			}
+
+			/*
 			if ( values.Count() > 0 )
 			{
 				var items = GetMultipleByGUIDMethod( values );
@@ -632,6 +712,7 @@ namespace Services
 					container[ property ] = JArray.FromObject( holder );
 				}
 			}
+			*/
 		}
 		//
 

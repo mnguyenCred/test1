@@ -55,7 +55,7 @@
 				]
 			},
 			ClusterAnalysis: {
-				Header: "Cluster Analyses",
+				Header: "Cluster Analyses and Rating Tasks",
 				Description: "<p>Cluster Analyses associated with the Rating Tasks which are associated with this Billet Title.</p>",
 				SearchType: "RatingContext",
 				StyleType: "ClusterAnalysis",
@@ -64,8 +64,8 @@
 				],
 				Fields: [
 					{ Label: ItemListSearches.RatingContextLabel, RenderPath: ["Id|RatingContext"], QueryPath: ".Id", IsNumeric: true },
-					{ Label: "Rating", RenderPath: ["HasRating|Rating", "CodedNotation|Rating"], QueryPath: "> RatingId > Rating.CodedNotation" },
 					{ Label: "Cluster Analysis", RenderPath: ["HasClusterAnalysis|ClusterAnalysis", "Id|ClusterAnalysis"], QueryPath: "> ClusterAnalysisId > ClusterAnalysis", IsNumeric: true },
+					{ Label: "Rating", RenderPath: ["HasRating|Rating", "CodedNotation|Rating"], QueryPath: "> RatingId > Rating.CodedNotation" },
 					{ Label: "Cluster Analysis Title", RenderPath: ["HasClusterAnalysis|ClusterAnalysis", "HasClusterAnalysisTitle|ClusterAnalysisTitle", "Name|ClusterAnalysisTitle"], QueryPath: "> ClusterAnalysisId > ClusterAnalysis > HasClusterAnalysisTitleId > ClusterAnalysisTitle.Name" },
 					{ Label: "Rating Task", RenderPath: ["HasRatingTask|RatingTask", "Description|RatingTask"], QueryPath: "> RatingTaskId > RatingTask.TextFields" }
 				]

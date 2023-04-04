@@ -53,7 +53,7 @@ namespace NavyRRL.Controllers
 		{
 			AuthenticateOrRedirect( "You must be authenticated and authorized to view Rating Context data." );
 			var data = Factories.RatingContextManager.GetById( id );
-			var converted = RDFServices.GetRDF( data );
+			var converted = RDFServices.GetRDF( data, null );
 
 			return RawJSONResponse( converted );
 		}
