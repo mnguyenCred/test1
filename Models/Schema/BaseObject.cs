@@ -6,7 +6,7 @@ namespace Models.Schema
 {
 	public class BaseObject
 	{
-		public string Type { get; set; }
+		public string Type { get { return this.GetType().Name; } }
 		public int Id { get; set; }
 		public Guid RowId { get; set; }
 		public string CTID { get; set; }
