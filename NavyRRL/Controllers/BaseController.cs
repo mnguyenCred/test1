@@ -8,6 +8,7 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System.Text;
 
+using Factories;
 using Services;
 using Navy.Utilities;
 using Models.Application;
@@ -58,7 +59,7 @@ namespace NavyRRL.Controllers
             }
             else
             {                
-                if ( !AccountServices.CanUserAccessFunction( user.Id, requestedFunction ) )
+                if ( !AccountManager.CanUserAccessFunction( user.Id, requestedFunction ) )
                 {
                     ConsoleMessageHelper.SetConsoleErrorMessage( string.IsNullOrWhiteSpace( customMessage ) ? AccountServices.NOT_AUTHORIZED : customMessage );
 

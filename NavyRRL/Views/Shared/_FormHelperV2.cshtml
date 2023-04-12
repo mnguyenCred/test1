@@ -167,7 +167,7 @@
 
 		Field.setData = function (data) {
 			Field.CheckBoxes.forEach(CheckBox => {
-				CheckBox.Input.prop("checked", data.includes(Field.getOptionValue(CheckBox.Option)));
+				CheckBox.Input.prop("checked", !data? false : data.includes(Field.getOptionValue(CheckBox.Option)));
 			});
 		}
 

@@ -86,8 +86,8 @@ namespace Models.DTO
 		public EditFormHelperV2() { }
 		public EditFormHelperV2( object mainData, JObject values = null )
 		{
-			MainData = JObject.FromObject( mainData );
-			DataType = mainData.GetType().Name;
+			MainData = mainData == null ? null : JObject.FromObject( mainData );
+			DataType = mainData == null ? null : mainData.GetType().Name;
 			Values = values;
 		}
 

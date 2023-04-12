@@ -595,8 +595,6 @@
     <Content Include="Views\Data\ManageCCA.cshtml" />
     <Content Include="Views\Data\ManageCourses.cshtml" />
     <Content Include="Views\Data\ManageConceptSchemes.cshtml" />
-    <Content Include="Views\Shared\_FormHelperV1.cshtml" />
-    <Content Include="Views\Admin\FormHelperV1Demo.cshtml" />
     <Content Include="Views\Rating\Detail.cshtml" />
     <Content Include="Views\Rating\Edit.cshtml" />
     <Content Include="Views\RatingTask\Detail.cshtml" />
@@ -634,7 +632,6 @@
     <Content Include="Views\RatingContext\Edit.cshtml" />
     <Content Include="Views\Upload\UploadV4.cshtml" />
     <Content Include="Views\Shared\_AJAXTools.cshtml" />
-    <Content Include="Views\Admin\ManageRolePermissions.cshtml" />
     <Content Include="Views\ClusterAnalysisTitle\Detail.cshtml" />
     <Content Include="Views\ClusterAnalysisTitle\Edit.cshtml" />
     <Content Include="Views\CourseContext\Detail.cshtml" />
@@ -643,6 +640,7 @@
     <Content Include="Views\Shared\_FormHelperV2.cshtml" />
     <Content Include="Views\RMTL\RMTLEditorV1.cshtml" />
     <Content Include="Views\Shared\_TasksBySourceType.cshtml" />
+    <Content Include="Views\Admin\ManageApplicationRoles.cshtml" />
     <None Include="Web.NavyDevSecOps.config">
       <DependentUpon>Web.config</DependentUpon>
     </None>

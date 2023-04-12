@@ -67,7 +67,8 @@
   <ItemGroup>
     <Compile Include="AccountManager.cs" />
     <Compile Include="ActivityManager.cs" />
-    <Compile Include="ApplicationManager.cs" />
+    <Compile Include="ApplicationFunctionManager.cs" />
+    <Compile Include="ApplicationRoleManager.cs" />
     <Compile Include="BaseFactory.cs" />
     <Compile Include="ClusterAnalysisManager.cs" />
     <Compile Include="ClusterAnalysisTitleManager.cs" />
