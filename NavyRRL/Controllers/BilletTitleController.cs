@@ -15,12 +15,6 @@ namespace NavyRRL.Controllers
 	[SessionState( System.Web.SessionState.SessionStateBehavior.ReadOnly )]
 	public class BilletTitleController : BaseController
     {
-		/// <summary>
-		/// Identify the function code for authorization checks.
-		/// Note additional checks will be necessary later to ensure the user can update the resource based on the RMTL rating to which they have access. 
-		/// </summary>
-        public static string FunctionCode = "rmtl.update";
-
         public ActionResult Search()
 		{
 			return RedirectToAction( "Index", "Search", new { searchType = "BilletTitle" } );
@@ -64,7 +58,7 @@ namespace NavyRRL.Controllers
 
 		public ActionResult Edit( int id )
 		{
-			AuthenticateOrRedirect( "You must be authenticated and authorized to edit Billet Title data.", FunctionCode, true, "~/Event/NotAuthorized" );
+			AuthenticateOrRedirect( "You must be authenticated and authorized to edit Billet Title data." );
 			if ( !AccountServices.IsUserSiteStaff() )
             {
 				RedirectToAction( "NotAuthorized", "Event" );
