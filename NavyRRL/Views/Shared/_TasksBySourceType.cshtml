@@ -28,7 +28,9 @@
 		],
 		UI: {},
 		Headers: [],
-		Rows: []
+		SourceTypeRows: [],
+		PayGradeLevelTypeRows: [],
+		PayGradeTypeRows: []
 	};
 	//
 	
@@ -54,10 +56,11 @@
 			ByPayGradeTable: $(".ratingTasksByPayGradeTable"),
 			ByPayGradeTableHeader: $(".ratingTasksByPayGradeTableHeader"),
 			ByPayGradeTableBody: $(".ratingTasksByPayGradeTableBody"),
-			ByPayGradeTableFooter: $(".ratingTasksByPayGradeTableFooter")
+			ByPayGradeTableFooter: $(".ratingTasksByPayGradeTableFooter"),
+			ExportButton: $("[data-action='ExportStatistics']")
 		};
 
-		Statistics.Headers = ["Category", ...Statistics.StatColumns.filter(m => m.Export).map(m => m.Label || "Type")];
+		Statistics.Headers = ["Category Header", "Category", ...Statistics.StatColumns.filter(m => m.Export).map(m => m.Label || "Type")];
 		buildStatTable(Statistics.UI.BySourceTable, Statistics.UI.BySourceTableHeader);
 		buildStatTable(Statistics.UI.ByLevelTable, Statistics.UI.ByLevelTableHeader);
 		buildStatTable(Statistics.UI.ByPayGradeTable, Statistics.UI.ByPayGradeTableHeader);
@@ -70,13 +73,21 @@
 				$("<th data-column=\"" + label + "\">" + label + "</th>").appendTo(tableHeaderTR);
 			});
 		}
+
+		Statistics.UI.ExportButton.on("click", function () {
+			exportStatistics();
+		});
+		Statistics.UI.ExportButton.prop("disabled", true);
 	}
 	//
 
 	function getTasksBySourceType(query) {
 		//Update the statistics query
 		Statistics.Query = query || { Filters: [] };
-		Statistics.Rows = [];
+		Statistics.SourceTypeRows = [];
+		Statistics.PayGradeLevelTypeRows = [];
+		Statistics.PayGradeTypeRows = [];
+		Statistics.UI.ExportButton.prop("disabled", true);
 
 		//Do a blind search to get a total count of all tasks in the system
 		AJAX.doPOSTRequest(Statistics.SearchURL, { ...Statistics.Query, Filters: [], Skip: 0, Take: 0, SortOrder: [{ Column: "sortOrder:Unsorted" }] }, success => {
@@ -84,19 +95,19 @@
 			Statistics.AllTasksTotal = success.Data.ExtraData.RatingTaskCount;
 
 			//Task breakdown by source
-			getAndRenderStatisticsTable(Statistics.ReferenceResourceConcepts, Statistics.StatColumns, Statistics.UI.BySourceTableBody, Statistics.UI.BySourceTableFooter, "> RatingTaskId > RatingTask > ReferenceResourceTypeId > Concept", "Total from All Sources", (a, b) => { return a.ResultsTotal > b.ResultsTotal ? -1 : 1 }, "All Rating Tasks (by Source Type) @Model.TypeHeaderLabel", Statistics.UI.BySourceTable.attr("data-typeheader"));
+			getAndRenderStatisticsTable(Statistics.ReferenceResourceConcepts, Statistics.StatColumns, Statistics.UI.BySourceTableBody, Statistics.UI.BySourceTableFooter, "> RatingTaskId > RatingTask > ReferenceResourceTypeId > Concept", "Total from All Sources", (a, b) => { return a.ResultsTotal > b.ResultsTotal ? -1 : 1 }, "All Rating Tasks (by Source Type) @Model.TypeHeaderLabel", Statistics.UI.BySourceTable.attr("data-typeheader"), Statistics.SourceTypeRows);
 
 			//Task breakdown by pay grade level
 			getAndRenderStatisticsTable([
 				...Statistics.PayGradeLevelConcepts,
 				{ Name: "Tasks Associated with Multiple Levels", Id: 0, OverrideFilterName: "> PayGradeLevelTypeId > Concept.MultipleForRatingTask" },
-			], Statistics.StatColumns, Statistics.UI.ByLevelTableBody, Statistics.UI.ByLevelTableFooter, "> PayGradeLevelTypeId > Concept.ExclusiveToRatingTask", "Total from All Levels", null, "All Rating Tasks (by Pay Grade Level) @Model.TypeHeaderLabel", Statistics.UI.ByLevelTable.attr("data-typeheader"));
+			], Statistics.StatColumns, Statistics.UI.ByLevelTableBody, Statistics.UI.ByLevelTableFooter, "> PayGradeLevelTypeId > Concept.ExclusiveToRatingTask", "Total from All Levels", null, "All Rating Tasks (by Pay Grade Level) @Model.TypeHeaderLabel", Statistics.UI.ByLevelTable.attr("data-typeheader"), Statistics.PayGradeLevelTypeRows);
 
 			//Task breakdown by pay grade
 			getAndRenderStatisticsTable([
 				...Statistics.PayGradeConcepts.map(m => { m.Label = m.CodedNotation + " - " + m.Name; return m; }),
 				{ Name: "Tasks Associated with Multiple Pay Grades", Id: 0, OverrideFilterName: "> PayGradeTypeId > Concept.MultipleForRatingTask" },
-			], Statistics.StatColumns, Statistics.UI.ByPayGradeTableBody, Statistics.UI.ByPayGradeTableFooter, "> PayGradeTypeId > Concept.ExclusiveToRatingTask", "Total from All Pay Grades", null, "All Rating Tasks (by Pay Grade) @Model.TypeHeaderLabel", Statistics.UI.ByPayGradeTable.attr("data-typeheader"));
+			], Statistics.StatColumns, Statistics.UI.ByPayGradeTableBody, Statistics.UI.ByPayGradeTableFooter, "> PayGradeTypeId > Concept.ExclusiveToRatingTask", "Total from All Pay Grades", null, "All Rating Tasks (by Pay Grade) @Model.TypeHeaderLabel", Statistics.UI.ByPayGradeTable.attr("data-typeheader"), Statistics.PayGradeTypeRows);
 
 		}, error => {
 			console.log("Error getting Grand Total", error);
@@ -104,7 +115,7 @@
 	}
 	//
 
-	function getAndRenderStatisticsTable(Concepts, Columns, TableBody, TableFooter, nameFilterPath, totalFromAllText, sortFunction, tableTypeText, itemTypeText) {
+	function getAndRenderStatisticsTable(Concepts, Columns, TableBody, TableFooter, nameFilterPath, totalFromAllText, sortFunction, tableTypeText, itemTypeText, itemRows) {
 		//Clear out the table
 		TableBody.html("<tr><td colspan=\"" + Columns.length + "\"><div class=\"spinner\"></div></td></tr>");
 		TableFooter.html("");
@@ -169,7 +180,7 @@
 						renderStatBarWrapper(statAllTasksTaskPercent, statCoveragePercent)
 					];
 					TableBody.append("<tr>" + tableValues.map((m, i) => "<td data-column=\"" + Columns[i].Label + "\">" + m + "</td>").join("") + "</tr>");
-					Statistics.Rows.push([
+					itemRows.push([
 						tableTypeText, itemTypeText, (Stat.Concept.Label || Stat.Concept.Name), tableValues[1], tableValues[2], tableValues[3], tableValues[4], tableValues[5], renderCSVBar(statResultsTaskPercent, statCoveragePercent), tableValues[7], renderCSVBar(statAllTasksTaskPercent, statCoveragePercent)
 					]);
 				});
@@ -177,6 +188,9 @@
 					[totalFromAllText, resultsTotal, gapTotal, coveragePercent + "%", gapPercent + "%", "100%", renderStatBarWrapper(100, coveragePercent), resultsAllTasksPercent + "%", renderStatBarWrapper(resultsAllTasksPercent, coveragePercent)]
 					.map((m, i) => "<th data-column=\"" + (Columns[i].Label || totalFromAllText) + "\">" + m + "</th>").join("") +
 				"</tr>");
+				if (Statistics.SourceTypeRows.length > 0 && Statistics.PayGradeLevelTypeRows.length > 0 && Statistics.PayGradeTypeRows.length > 0) {
+					Statistics.UI.ExportButton.prop("disabled", false);
+				}
 			}
 		}
 	}
@@ -196,12 +210,28 @@
 		var full = mainBarPercent * subBarPercent * 0.01;
 		var text = "";
 		for (var i = 0; i < 100; i++) {
-			text += full >= i ? "|" : mainBarPercent >= i ? ";" : " ";
+			text += full > i ? "|" : mainBarPercent > i ? ";" : " ";
 		}
 		return text;
 	}
 	//
 
+	function exportStatistics() {
+		var csvText = [[...Statistics.Headers], ...Statistics.SourceTypeRows, ...Statistics.PayGradeLevelTypeRows, ...Statistics.PayGradeTypeRows].map(arr => {
+			return arr.map(m => '"' + m + '"').join(",")
+		}).join("\n");
+		console.log("Exporting CSV", csvText);
+
+		var tempLink = $("<a></a>").appendTo(document.body);
+		tempLink.attr("download", "Summary Export.csv");
+		tempLink.attr("href", URL.createObjectURL(new Blob([csvText], { type: "text/csv" })));
+		tempLink[0].click();
+
+		setTimeout(function () {
+			tempLink.remove();
+		}, 500);
+	}
+	//
 </script>
 <style type="text/css">
 	.statisticsBox { }
@@ -215,11 +245,17 @@
 	.statisticsBox .statisticsTable .statBarWrapper { background-color: #DDD; height: 18px; padding: 1px 2px; }
 	.statisticsBox .statisticsTable .statBarWrapper .statBarAll { background-color: #D83; height: 100%; }
 	.statisticsBox .statisticsTable .statBarWrapper .statBarAll .statBarCoverage { background-color: #0C3; height: 100%; }
+	.exportStatisticsMainHeader { display: flex; align-items: center; gap: 10px; }
+	.exportStatisticsMainHeader span { flex: 1 1 auto; }
+	.exportStatisticsMainHeader button { margin-left: auto; font-size: 14px; padding: 3px 5px; }
 </style>
 <div class="statisticsBox">
 	@if ( !string.IsNullOrWhiteSpace( Model.MainHeader ) )
 	{
-		<h3>@Html.Raw( Model.MainHeader )</h3>
+		<h3 class="exportStatisticsMainHeader">
+			<span>@Html.Raw( Model.MainHeader )</span>
+			<button data-action="ExportStatistics">Export Summary</button>
+		</h3>
 	}
 	<div class="statSection">
 		<h4>All Rating Tasks (by Source Type) @Model.TypeHeaderLabel</h4>
