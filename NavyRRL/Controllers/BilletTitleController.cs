@@ -15,6 +15,14 @@ namespace NavyRRL.Controllers
 	[SessionState( System.Web.SessionState.SessionStateBehavior.ReadOnly )]
 	public class BilletTitleController : BaseController
     {
+		/// <summary>
+		/// Identify the function code for authorization checks.
+		/// Note additional checks will be necessary later to ensure the user can update the resource based on the RMTL rating to which they have access. 
+		/// Update: This will be done in a separate controller - more to come later
+		/// This note can be removed
+		/// </summary>
+        //public static string FunctionCode = "rmtl.update";
+
         public ActionResult Search()
 		{
 			return RedirectToAction( "Index", "Search", new { searchType = "BilletTitle" } );
