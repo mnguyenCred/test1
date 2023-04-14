@@ -327,15 +327,42 @@ namespace Services
 			{
 				Skip = query.Skip,
 				Take = query.Take,
-				Filters = combinedFilters
+				Filters = combinedFilters,
+				IsExportMode = query.IncludeRelatedResources
 			}, debug );
 
 			result.Data = new RDF.RDFQueryResults()
 			{
-				Results = JArray.FromObject( searchResults.Results.Select( m => ConvertMethod( m, searchResults.RelatedResources ) ).ToList() ),
+				Results = searchResults.Results.Select( m => ConvertMethod( m, searchResults.RelatedResources ) ).ToList(),
 				TotalResults = searchResults.TotalResults,
 				Debug = debug
 			};
+
+			if ( query.IncludeRelatedResources )
+			{
+				result.Data.RelatedResources = new List<JObject>();
+				foreach ( var item in searchResults.RelatedResources )
+				{
+					switch ( item[ "Type" ]?.ToString() ?? "" )
+					{
+						case nameof( BilletTitle ): result.Data.RelatedResources.Add( GetRDF( item.ToObject<BilletTitle>(), searchResults.RelatedResources ) ); break;
+						case nameof( Course ): result.Data.RelatedResources.Add( GetRDF( item.ToObject<Course>(), searchResults.RelatedResources ) ); break;
+						case nameof( Organization ): result.Data.RelatedResources.Add( GetRDF( item.ToObject<Organization>(), searchResults.RelatedResources ) ); break;
+						case nameof( Rating ): result.Data.RelatedResources.Add( GetRDF( item.ToObject<Rating>(), searchResults.RelatedResources ) ); break;
+						case nameof( RatingTask ): result.Data.RelatedResources.Add( GetRDF( item.ToObject<RatingTask>(), searchResults.RelatedResources ) ); break;
+						case nameof( ReferenceResource ): result.Data.RelatedResources.Add( GetRDF( item.ToObject<ReferenceResource>(), searchResults.RelatedResources ) ); break;
+						case nameof( TrainingTask ): result.Data.RelatedResources.Add( GetRDF( item.ToObject<TrainingTask>(), searchResults.RelatedResources ) ); break;
+						case nameof( WorkRole ): result.Data.RelatedResources.Add( GetRDF( item.ToObject<WorkRole>(), searchResults.RelatedResources ) ); break;
+						case nameof( ConceptScheme ): result.Data.RelatedResources.Add( GetRDF( item.ToObject<ConceptScheme>(), searchResults.RelatedResources ) ); break;
+						case nameof( Concept ): result.Data.RelatedResources.Add( GetRDF( item.ToObject<Concept>(), searchResults.RelatedResources ) ); break;
+						case nameof( RatingContext ): result.Data.RelatedResources.Add( GetRDF( item.ToObject<RatingContext>(), searchResults.RelatedResources ) ); break;
+						case nameof( CourseContext ): result.Data.RelatedResources.Add( GetRDF( item.ToObject<CourseContext>(), searchResults.RelatedResources ) ); break;
+						case nameof( ClusterAnalysis ): result.Data.RelatedResources.Add( GetRDF( item.ToObject<ClusterAnalysis>(), searchResults.RelatedResources ) ); break;
+						case nameof( ClusterAnalysisTitle ): result.Data.RelatedResources.Add( GetRDF( item.ToObject<ClusterAnalysisTitle>(), searchResults.RelatedResources ) ); break;
+						default: break;
+					}
+				}
+			}
 
 			result.Valid = true;
 		}

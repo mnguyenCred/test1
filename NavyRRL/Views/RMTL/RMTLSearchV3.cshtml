@@ -1177,7 +1177,10 @@ else if ( isFilterAccordionOpenMode || isFilterAccordionClosedMode )
 		</div>
 		<div class="mainTab" data-tab="Summary">
 			<div class="statisticsWrapper">
-				<h4>Task Summary Tables</h4>
+				<h3 class="exportStatisticsMainHeader">
+					<span>Task Summary Tables</span>
+					<button data-action="ExportStatistics">Export Summary</button>
+				</h3>
 				<p>The tables below are based on the total counts of Rating-level tasks in the system. <b>The total number of tasks shown below may differ from the total number of search results shown above.</b> This is because the search results are based on individual rows in RMTLs that reference tasks (more than one RMTL may reference the same task), whereas the tables below are based on the tasks themselves.</p>
 				@Html.Partial( "~/Views/Shared/_TasksBySourceType.cshtml", new TasksBySourceTypeConfig( "for the Current Search Results", "in Results", null, "", false ) )
 			</div>

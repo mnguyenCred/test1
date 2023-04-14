@@ -13,6 +13,7 @@ using Navy.Utilities;
 using Models.Application;
 using Models.Import;
 using Services;
+using Factories;
 
 
 
@@ -31,105 +32,71 @@ namespace NavyRRL.Controllers
         ////[CustomAttributes.NavyAuthorize( "Admin Home", Roles = Admin_SiteManager )]
         public ActionResult Index()
         {
-            if (AccountServices.IsUserAnAdmin())
-                return View();
+            if ( AccountServices.IsUserAnAdmin() )
+			{
+				return View();
+			}
             else
             {
                 return new RedirectResult( "~/event/Notauthorized" );
             }
         }
+		//
 
-		public ActionResult FormHelperV1Demo()
+		#region Manage Application Roles
+		[HttpGet]
+		public ActionResult ManageApplicationRoles()
 		{
-			return View();
+			AuthenticateOrRedirect( "You must be authenticated and authorized to view Role Permissions." );
+			return View( "~/Views/Admin/ManageApplicationRoles.cshtml" );
 		}
+		//
 
 		[HttpGet]
-		public ActionResult ManageRolePermissions()
+		public ActionResult GetAllApplicationRoles()
 		{
-			return View();
-		}
-
-		[HttpGet]
-		public ActionResult GetAllUserRoles()
-		{
-            var output = new List<UserRole>();
+            var output = new List<ApplicationRole>();
             //Temporary/test data to be replaced with database call
-            var roles = AccountServices.GetAllApplicationRoles();
-            //foreach( var item in roles2)
-            //{
-            //    var role = new UserRole()
-            //    {
-            //        Name = item.Name,
-            //    };
-            //    //convert
-            //    role.Id = int.Parse(item.Id);
-            //    if ( item.AppFunctionPermission != null && item.AppFunctionPermission.Count > 0 )
-            //    {
-            //        var HasApplicationFunctionIds = item.AppFunctionPermission.Select( a => a.ApplicationFunctionId ).ToList();
-            //    }
-
-            //    output.Add( role);
-            //}
-
-   //         var roles = new List<UserRole>()
-			//{
-			//	new UserRole()
-			//	{
-			//		Id = 99991,
-			//		Name = "Test Role 1",
-			//		HasApplicationFunctionIds = new List<int>() { 991, 992 }
-			//	},
-			//	new UserRole()
-			//	{
-			//		Id = 99992,
-			//		Name = "Test Role 2",
-			//		HasApplicationFunctionIds = new List<int>() { 993 }
-			//	},
-			//	new UserRole()
-			//	{
-			//		Id = 99993,
-			//		Name = "Test Role 3",
-			//		HasApplicationFunctionIds = new List<int>() { 991, 994 }
-			//	}
-			//};
+            var roles = ApplicationRoleManager.GetAll();
 
 			//Return response
 			return BaseController.JsonResponse( roles, true );
 		}
+		//
 
 		[HttpPost]
-		public ActionResult SaveUserRole( UserRole role )
+		public ActionResult SaveApplicationRole( ApplicationRole role )
         {
-            //Save the user role
-            string statusMessage = "";
-            var isValid = new AccountServices().SaveApplicationRolePermissions( role, ref statusMessage );
-            //Return response
-            return BaseController.JsonResponse( null, isValid );
-		}
+			AuthenticateOrRedirect( "You must be authenticated and authorized to perform that action." );
 
-        /// <summary>
-        /// Called from ManageRolePermissions.cshtml
-        /// </summary>
-        /// <param name="role"></param>
-        /// <returns></returns>
+			var errors = new List<string>();
+			ApplicationRoleManager.SaveFromEditor( role, AccountServices.GetCurrentUser().Id, errors );
+
+            return BaseController.JsonResponse( null, errors.Count() == 0, errors );
+		}
+		//
+
 		[HttpPost]
-		public ActionResult DeleteUserRole( UserRole role )
+		public ActionResult DeleteApplicationRole( ApplicationRole role )
 		{
-            var status = "";
-            //Delete the ApplicationRole (probably should see if anything uses it first)
-            var result = new AccountServices().DeleteApplicationRole( role, ref status );
-			//Return response
-			return BaseController.JsonResponse( null, false, new List<string>() { "Error - That role is still assigned to one or more users." } );
-		}
+			AuthenticateOrRedirect( "You must be authenticated and authorized to perform that action." );
 
-        #region  Activity
-        // GET: Admin/Activity
-        ////[CustomAttributes.NavyAuthorize( "Admin Home", Roles = Admin_SiteManager_SiteStaff )]
-        public ActionResult Activity()
+			var result = ApplicationRoleManager.DeleteById( role.Id );
+
+			return BaseController.JsonResponse( null, result.Successful, result.Messages );
+		}
+		//
+		#endregion
+
+		#region  Activity
+		// GET: Admin/Activity
+		////[CustomAttributes.NavyAuthorize( "Admin Home", Roles = Admin_SiteManager_SiteStaff )]
+		public ActionResult Activity()
         {
             if ( AccountServices.IsUserSiteStaff() )
+			{
                 return View();
+			}
             else
             {
                 return new RedirectResult( "~/event/Notauthorized" );
@@ -381,8 +348,8 @@ namespace NavyRRL.Controllers
                 //model.SelectedRoles = roles.Where( x => account.UserRoles.Contains( x.Name ) ).Select( x => x.Id ).ToArray();
                 //model.Roles = roles.Select( x => new SelectListItem { Text = x.Name, Value = x.Id, Selected = account.UserRoles.Contains( x.Name ) } ).ToList();
 
-                var roles = AccountServices.GetAllApplicationRoles();
-                model.SelectedRoles = roles.Where( x => account.UserRoles.Contains( x.Name ) ).Select( x => x.Id.ToString() ).ToArray();
+                var roles = ApplicationRoleManager.GetAll();
+				model.SelectedRoles = roles.Where( x => account.UserRoles.Contains( x.Name ) ).Select( x => x.Id.ToString() ).ToArray();
                 model.Roles = roles.Select( x => new SelectListItem { Text = x.Name, Value = x.Id.ToString(), Selected = account.UserRoles.Contains( x.Name ) } ).ToList();
 
                 return PartialView( model );
@@ -437,8 +404,8 @@ namespace NavyRRL.Controllers
                 //model.Roles = roles.Select( x => new SelectListItem { Text = x.Name, Value = x.Id, Selected = account.UserRoles.Contains( x.Name ) } ).ToList();
 
                 //new 
-                var roles = AccountServices.GetAllApplicationRoles();
-                model.SelectedRoles = roles.Where( x => account.UserRoles.Contains( x.Name ) ).Select( x => x.Id.ToString() ).ToArray();
+                var roles = ApplicationRoleManager.GetAll();
+				model.SelectedRoles = roles.Where( x => account.UserRoles.Contains( x.Name ) ).Select( x => x.Id.ToString() ).ToArray();
                 model.Roles = roles.Select( x => new SelectListItem { Text = x.Name, Value = x.Id.ToString(), Selected = account.UserRoles.Contains( x.Name ) } ).ToList();
             }
             return PartialView( model );

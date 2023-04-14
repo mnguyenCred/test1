@@ -139,6 +139,13 @@ namespace Models.Search
 	}
 	//
 
+	public class TypedWrapper
+	{
+		public Type Type { get; set; }
+		public object Data { get; set; }
+	}
+	//
+
 	public class ResultWithExtraData<T>
 	{
 		public T Data { get; set; }

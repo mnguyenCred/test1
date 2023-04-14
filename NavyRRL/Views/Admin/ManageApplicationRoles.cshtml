@@ -1,0 +1,219 @@
+﻿@using Models.Schema;
+@using Models.DTO;
+@using Newtonsoft.Json;
+@using Newtonsoft.Json.Linq;
+@using Factories;
+@{
+    ViewBag.Title = "Manage Application Roles";
+}
+
+@Html.Partial( "~/Views/Shared/_AJAXTools.cshtml" )
+@Html.Partial( "~/Views/Shared/_FormHelperV2.cshtml", new EditFormHelperV2( null, new JObject() {
+	{ "ApplicationFunctions", JArray.FromObject( ApplicationFunctionManager.GetAll().Select( m => SimpleItemHelper.GetSimpleItem( m ) ).OrderBy( m => m.Name ).ToList() ) }
+} ) )
+
+<script type="text/javascript">
+	var Manager = {};
+
+	$(document).ready(function () {
+		setupManager();
+	});
+	//
+
+	function setupManager() {
+		Form.FieldsByName.HasApplicationFunctionIds.getOptionLabel = function (Option) {
+			return "<div class=\"functionHeader\"><div class=\"functionName\">" + (Option.Name || "Unnamed Function") + "</div>" +
+				"<div class=\"functionCodedNotation\">" + (Option.CodedNotation || "No Code Provided") + "</div></div>" +
+				"<div class=\"functionDescription\">" + (Option.Description || "No Description") + "</div>";
+		};
+		Form.FieldsByName.HasApplicationFunctionIds.getOptionValue = function (Option) {
+			return Option?.Id;
+		}
+		Form.FieldsByName.HasApplicationFunctionIds.render();
+
+		Manager.CreateButton = $("[data-action='CreateNewRole']");
+		Manager.SaveButton = $("[data-action='SaveRole']");
+		Manager.DeleteButton = $("[data-action='DeleteRole']");
+		Manager.RoleList = $(".roleList");
+		Manager.RoleData = [];
+
+		Manager.CreateButton.on("click", function () {
+			createNewRole();
+		});
+
+		Manager.SaveButton.on("click", function () {
+			saveRole();
+		});
+
+		Manager.DeleteButton.on("click", function () {
+			deleteRole();
+		});
+
+		getAllRoles();
+	}
+	//
+
+	function createNewRole() {
+		var NewRole = Manager.RoleData.find(m => m.Id == 0);
+		if (!NewRole) {
+			NewRole = {
+				Id: 0,
+				Name: "New Role",
+				HasApplicationFunctionIds: []
+			};
+			Manager.RoleData.push(NewRole);
+		}
+
+		renderRoles();
+		setMainFormData(NewRole);
+		selectRoleButton(0);
+	}
+	//
+
+	function saveRole() {
+		var roleData = Form.getData();
+
+		lockButtons();
+		AJAX.doPOSTRequest("@Url.Content("~/admin/SaveApplicationRole")", roleData, (response) => {
+			if (response.Valid) {
+				alert("Role saved successfully");
+				getAllRoles();
+			}
+			else {
+				alert("Error saving role:\n\n" + response.Status.join("\n"));
+			}
+			unlockButtons();
+		}, (error) => {
+			alert("Error saving role: " + error);
+			unlockButtons();
+		});
+	}
+	//
+
+	function deleteRole() {
+		var roleData = Form.getData();
+		if (!confirm("Are you sure you want to delete the role: " + roleData.Name + "? This action cannot be undone!")) {
+			return;
+		}
+
+		lockButtons();
+		AJAX.doPOSTRequest("@Url.Content("~/admin/DeleteApplicationRole")", roleData, (response) => {
+			if (response.Valid) {
+				alert("Role deleted successfully");
+				getAllRoles();
+			}
+			else {
+				alert("Error deleting role:\n\n" + response.Status.join("\n"));
+			}
+			unlockButtons();
+			setMainFormData(null);
+		}, (error) => {
+			alert("Error deleting role: " + error);
+			unlockButtons();
+			setMainFormData(null);
+		});
+	}
+	//
+
+	function getAllRoles() {
+		AJAX.doGETRequest("@Url.Content("~/admin/GetAllApplicationRoles")", (response) => {
+			if (response.Valid) {
+				Manager.RoleData = response.Data;
+				renderRoles();
+			}
+			else {
+				alert("Error loading roles:\n\n" + response.Status.join("\n"));
+			}
+		}, (error) => { alert("Error loading roles: " + error); });
+	}
+	//
+
+	function renderRoles() {
+		Manager.RoleList.html("");
+		Manager.RoleData.forEach(Role => {
+			var button = $("<button data-id=\"" + Role.Id + "\" class=\"roleButton\">" + Role.Name + "</button>").appendTo(Manager.RoleList);
+			button.on("click", function () {
+				setMainFormData(Role);
+				selectRoleButton(Role.Id);
+			});
+		});
+	}
+	//
+
+	function selectRoleButton(id) {
+		Manager.RoleList.find("button").removeClass("selected").filter("[data-id='" + id + "']").addClass("selected");
+	}
+	//
+
+	function lockButtons() {
+		Manager.CreateButton.prop("disabled", true);
+		Manager.SaveButton.prop("disabled", true);
+		Manager.DeleteButton.prop("disabled", true);
+	}
+	//
+
+	function unlockButtons() {
+		Manager.CreateButton.prop("disabled", false);
+		Manager.SaveButton.prop("disabled", false);
+		Manager.DeleteButton.prop("disabled", false);
+	}
+	//
+
+	function setMainFormData(data) {
+		Form.MainData = data;
+		Form.setData(Form.MainData);
+	}
+	//
+</script>
+
+<style type="text/css">
+	.manager { display: flex; gap: 20px; }
+	.manager .field { display: block; margin-bottom: 20px; }
+	.manager .field .fieldLabel { text-align: left; }
+	.manager .roleListBox { flex: 0 0 300px; }
+	.manager .roleListBox .roleList { display: flex; flex-direction: column; gap: 1px; min-height: 300px; max-height: 600px; overflow-y: auto; background-color: #CCC; padding: 1px; }
+	.manager .roleListBox .roleList .roleButton { display: block; width: 100%; border: none; background-color: #FFF; padding: 5px; text-align: left; }
+	.manager .roleListBox .roleList .roleButton:is(:hover, :focus) { cursor: pointer; background-color: #EEE; }
+	.manager .roleListBox .roleList .roleButton.selected { background-color: #555; color: #FFF; }
+	.manager .roleListBox .roleListButtons { padding: 5px 0; }
+	.manager .roleListBox .roleListButtons button { display: block; width: 100%; padding: 5px; }
+	.manager .roleDetailsBox { flex: 1 1 auto; }
+	.manager .roleDetailsBox .roleHeader { display: flex; gap: 10px; align-items: baseline; }
+	.manager .roleDetailsBox .roleHeader [data-property='Id'] { min-width: 75px; }
+	.manager .roleDetailsBox .roleHeader [data-property='Id'] .fieldLabel { flex: 0 0 auto; }
+	.manager .roleDetailsBox .roleHeader [data-property='Id'] .fieldContent { padding: 5px 0; }
+	.manager .roleDetailsBox .roleHeader [data-property='Name'] { flex: 1 1 auto; }
+	.manager .roleDetailsBox [data-property='HasApplicationFunctionIds'] {  }
+	.manager .roleDetailsBox [data-property='HasApplicationFunctionIds'] .fieldLabel { }
+	.manager .roleDetailsBox [data-property='HasApplicationFunctionIds'] .fieldContent { }
+	.manager .roleDetailsBox [data-property='HasApplicationFunctionIds'] .fieldContent label { border-top: 1px solid #CCC; }
+	.manager .roleDetailsBox [data-property='HasApplicationFunctionIds'] .fieldContent label span { display: block; width: 100%; }
+	.manager .roleDetailsBox [data-property='HasApplicationFunctionIds'] .functionHeader { display: flex; gap: 10px; }
+	.manager .roleDetailsBox [data-property='HasApplicationFunctionIds'] .functionHeader .functionName { font-weight: bold; }
+	.manager .roleDetailsBox [data-property='HasApplicationFunctionIds'] .functionHeader .functionCodedNotation { font-style: italic; opacity: 0.7; margin-left: auto; }
+	.manager .roleDetailsBox [data-property='HasApplicationFunctionIds'] .functionDescription { padding: 0 10px; }
+	.manager .roleDetailsBox .roleButtons { display: flex; gap: 10px; justify-content: flex-end }
+	.manager .roleDetailsBox .roleButtons button { min-width: 300px; padding: 5px; }
+</style>
+
+<h1>Manage Application Roles</h1>
+
+<div class="manager">
+	<div class="roleListBox">
+		<div class="roleList"></div>
+		<div class="roleListButtons">
+			<button class="blueButton" data-action="CreateNewRole">Create New Role</button>
+		</div>
+	</div>
+	<div class="roleDetailsBox">
+		<div class="roleHeader">
+			<div class="field" data-fieldtype="Display" data-property="Id" data-label="Role ID"></div>
+			<div class="field" data-fieldtype="Text" data-property="Name" data-label="Role Name"></div>
+		</div>
+		<div class="field" data-fieldtype="CheckBoxList" data-property="HasApplicationFunctionIds" data-label="Functions Available to this Role" data-sourceuri="ApplicationFunctions"></div>
+		<div class="roleButtons">
+			<button class="greenButton" data-action="SaveRole">Save Role</button>
+			<button class="redButton" data-action="DeleteRole">Delete Role</button>
+		</div>
+	</div>
+</div>

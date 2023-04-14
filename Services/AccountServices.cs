@@ -556,14 +556,6 @@ namespace Services
         #endregion
 
         #region Roles
-        public bool AddRole( int userId, int roleId, int createdByUserId, ref string statusMessage )
-		{
-			return new AccountManager().AddRoleOld( userId, roleId, createdByUserId, ref statusMessage );
-		}
-        public bool DeleteApplicationRole( UserRole role, ref string statusMessage )
-		{
-            return new ApplicationManager().ApplicationRoleDelete( role, ref statusMessage );
-        }
   //      public bool DeleteRoleFromUser( int userId,	int roleId, ref string statusMessage )
 		//{
 		//	AppUser user = AccountManager.AppUser_Get( userId );
@@ -868,6 +860,7 @@ namespace Services
 
 			return user;
 		} //
+		/*
 		public static AppUser GetUserByCEAccountId( string accountIdentifier, bool addingToSession = false )
 		{
 			AppUser user = AccountManager.GetUserByCEAccountId( accountIdentifier );
@@ -876,6 +869,7 @@ namespace Services
 
 			return user;
 		} //
+		*/
 		  /// <summary>
 		  /// Get user by email, and add to the session
 		  /// </summary>
@@ -1041,46 +1035,26 @@ namespace Services
 
 		}
 
-		[Obsolete]
-		public static List<DT.AspNetRoles> GetRoles()
-		{
-			return AccountManager.GetRolesOld();
-		}
-		/// <summary>
-		/// Get all active application roles
-		/// </summary>
-		/// <returns></returns>
-		public static List<UserRole> GetAllApplicationRoles()
-		{
-			return ApplicationManager.GetAllApplicationRoles();
-		}
-
         public static List<int> GetDefaultRoles()
         {
 			var output = new List<int>();
 
             var defaultRole = UtilityManager.GetAppKeyValue( "defaultRole", "Site Reader" );
-            var list = ApplicationManager.GetAllApplicationRoles();
+			var list = ApplicationRoleManager.GetAll();
             var inputRoles = list.FirstOrDefault( t => t.Name == defaultRole );
 			if (inputRoles != null && inputRoles.Id > 0 )
 				output.Add( inputRoles.Id );
 
 			return output;
         }
-        public bool SaveApplicationRolePermissions( UserRole role, ref string statusMessage )
+		/*
+        public bool SaveApplicationRolePermissions( ApplicationRole role, ref string statusMessage )
 		{
 			//return AccountManager.SaveApplicationRolePermissions( role, ref statusMessage );
             return new ApplicationManager().SaveApplicationRolePermissions( role, ref statusMessage );
         }
-		public static List<ApplicationFunction> GetApplicationFunctions()
-		{
-			return ApplicationManager.GetApplicationFunctions();
-		}
+		*/
 
-        public static bool CanUserAccessFunction( int userId, string functionCode )
-        {
-			return ApplicationManager.CanUserAccessFunction( userId, functionCode );
-        }
         #endregion
         #region Session methods
         /// <summary>

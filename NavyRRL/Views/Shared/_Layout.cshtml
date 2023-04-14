@@ -1,4 +1,5 @@
 ﻿@using Navy.Utilities;
+@using Factories;
 @using Services;
 @{
 	var env = UtilityManager.GetAppKeyValue( "environment", "production" );
@@ -28,7 +29,7 @@
 	else
 	{
 
-		if ( AccountServices.CanUserAccessFunction( user.Id, RMTLFunctionCode ) )
+		if ( AccountManager.CanUserAccessFunction( user.Id, RMTLFunctionCode ) )
 		{
 			userCanUploadData = true;
 		}
@@ -157,9 +158,8 @@
 								<ul class="dropdown-menu">
 									<li>@Html.ActionLink( "Account Management", "accounts", "admin" )</li>
 									<li>@Html.ActionLink( "Add Account", "AddUser", "Account" )</li>
-									<li>@Html.ActionLink( "Manage Role Permissions", "ManageRolePermissions", "admin" )</li>
+									<li>@Html.ActionLink( "Manage Application Roles", "ManageApplicationRoles", "admin" )</li>
 									<li>@Html.ActionLink( "Activity Log", "Activity", "admin" )</li>
-									<li>@Html.ActionLink( "RMTL Catalog", "catalog", "rmtl" )</li>
 								</ul>
 							</li>
 						</ul>

@@ -692,6 +692,7 @@ namespace Factories
 
 		//    return entity;
 		//}
+		/*
 		public static AppUser GetUserByCEAccountId( string accountIdentifier )
 		{
 			AppUser entity = new AppUser();
@@ -708,6 +709,7 @@ namespace Factories
 
 			return entity;
 		}
+		*/
 		public static AppUser GetUserByUserName( string username )
 		{
 			AppUser entity = new AppUser();
@@ -1120,6 +1122,7 @@ namespace Factories
 
         #region Application Roles
         #region Roles - old
+		/*
         /// <summary>
         /// Add role for a user
         /// </summary>
@@ -1189,7 +1192,9 @@ namespace Factories
 
 			return isValid;
 		}
+		*/
 
+		/*
 		/// <summary>
 		/// Remove a role from a user
 		/// </summary>
@@ -1244,7 +1249,9 @@ namespace Factories
 
 			return isValid;
 		}
+		*/
 
+		/*
         public bool DeleteRoleFromUser( AppUser entity, int roleId, ref string statusMessage )
         {
             bool isValid = true;
@@ -1287,6 +1294,7 @@ namespace Factories
 
             return isValid;
         }
+		*/
 
         public void UpdateRolesForUser( int userId, List<int> roles )
 		{
@@ -1323,6 +1331,8 @@ namespace Factories
 				}
 			}
 		}
+
+		/*
         public void UpdateRolesOld( string aspNetUserId, string[] roles )
         {
             using ( var db = new DataEntities() )
@@ -1358,7 +1368,9 @@ namespace Factories
                 }
             }
         }
+		*/
 
+		/*
         public static List<EM.AspNetRoles> GetRolesOld()
 		{
 			using ( var context = new DataEntities() )
@@ -1366,23 +1378,24 @@ namespace Factories
 				return context.AspNetRoles.Where( s => s.IsActive == true ).ToList();
 			}
 		}
-        #endregion
+		*/
+		#endregion
 
-        #region Roles - New - moved to ApplicationManager
-  //      /// <summary>
-  //      /// Get Application User Roles
-  //      /// 22-09-22 - changed to use ApplicationRole rather than AspNetRoles
-  //      /// </summary>
-  //      /// <returns></returns>
-  //      public static List<UserRole> GetAllApplicationRoles()
+		#region Roles - New - moved to ApplicationManager
+		//      /// <summary>
+		//      /// Get Application User Roles
+		//      /// 22-09-22 - changed to use ApplicationRole rather than AspNetRoles
+		//      /// </summary>
+		//      /// <returns></returns>
+		//      public static List<ApplicationRole> GetAllApplicationRoles()
 		//{
-		//	var output = new List<UserRole>();
+		//	var output = new List<ApplicationRole>();
 		//	using ( var context = new DataEntities() )
 		//	{
 		//		var list = context.ApplicationRole.Where( s => s.IsActive == true ).ToList();
 		//		foreach ( var item in list )
-  //              {
-		//			var role = new UserRole()
+		//              {
+		//			var role = new ApplicationRole()
 		//			{
 		//				Id = item.Id,
 		//				Name = item.Name,
@@ -1394,103 +1407,133 @@ namespace Factories
 		//	}
 		//	return output;
 		//}
-        //public bool SaveApplicationRolePermissions( UserRole input, ref string statusMessage  )
-        //{
-        //	//check for a new user role
-        //	if ( input.Id == 0 )
-        //	{
+		//public bool SaveApplicationRolePermissions( ApplicationRole input, ref string statusMessage  )
+		//{
+		//	//check for a new user role
+		//	if ( input.Id == 0 )
+		//	{
 
-        //	}
+		//	}
 
-        //	using ( var db = new DataEntities() )
-        //	{
-        //		try
-        //		{
-        //			var existRoles = db.AppFunctionPermission.Where( m => m.RoleId == input.Id ).ToList();
-        //			var oldRoles = existRoles.Select( x => x.ApplicationFunctionId).ToArray();
+		//	using ( var db = new DataEntities() )
+		//	{
+		//		try
+		//		{
+		//			var existRoles = db.AppFunctionPermission.Where( m => m.RoleId == input.Id ).ToList();
+		//			var oldRoles = existRoles.Select( x => x.ApplicationFunctionId).ToArray();
 
-        //			if ( input.HasApplicationFunctionIds == null )
-        //				input.HasApplicationFunctionIds = new List<int>();
+		//			if ( input.HasApplicationFunctionIds == null )
+		//				input.HasApplicationFunctionIds = new List<int>();
 
-        //			//Add New Roles Selected
-        //			input.HasApplicationFunctionIds.Except( oldRoles ).ToList().ForEach( x =>
-        //			{
-        //				//TBD - is presence enough, or will we want sublevel (CRUD) options
-        //				var userRole = new EM.AppFunctionPermission { ApplicationFunctionId = x, RoleId = input.Id };
-        //				db.Entry( userRole ).State = System.Data.Entity.EntityState.Added;
-        //			} );
+		//			//Add New Roles Selected
+		//			input.HasApplicationFunctionIds.Except( oldRoles ).ToList().ForEach( x =>
+		//			{
+		//				//TBD - is presence enough, or will we want sublevel (CRUD) options
+		//				var userRole = new EM.AppFunctionPermission { ApplicationFunctionId = x, RoleId = input.Id };
+		//				db.Entry( userRole ).State = System.Data.Entity.EntityState.Added;
+		//			} );
 
-        //			//Delete existing Roles unselected
-        //			existRoles.Where( x => !input.HasApplicationFunctionIds.Contains( x.ApplicationFunctionId ) ).ToList().ForEach( x =>
-        //			{
-        //				db.Entry( x ).State = System.Data.Entity.EntityState.Deleted;
-        //			} );
+		//			//Delete existing Roles unselected
+		//			existRoles.Where( x => !input.HasApplicationFunctionIds.Contains( x.ApplicationFunctionId ) ).ToList().ForEach( x =>
+		//			{
+		//				db.Entry( x ).State = System.Data.Entity.EntityState.Deleted;
+		//			} );
 
-        //			db.SaveChanges();
-        //			return true;
-        //		}
-        //		catch ( Exception ex )
-        //		{
-        //			LoggingHelper.LogError( ex, thisClassName + string.Format( ".SaveApplicationRolePermissions(), UserRole: {0}", input.Name ) );
-        //			statusMessage = ex.Message;
-        //			return false;
-        //		}
-        //	}
-        //}
-        //public static List<int> GetApplicationFunctionIds( int roleId )
-        //{
-        //	using ( var context = new DataEntities() )
-        //	{
-        //		var list = context.AppFunctionPermission.Where( m => m.RoleId == roleId ).ToList();
-        //		return list.Select( m => m.ApplicationFunctionId ).ToList();
-        //	}
-        //}
+		//			db.SaveChanges();
+		//			return true;
+		//		}
+		//		catch ( Exception ex )
+		//		{
+		//			LoggingHelper.LogError( ex, thisClassName + string.Format( ".SaveApplicationRolePermissions(), ApplicationRole: {0}", input.Name ) );
+		//			statusMessage = ex.Message;
+		//			return false;
+		//		}
+		//	}
+		//}
+		//public static List<int> GetApplicationFunctionIds( int roleId )
+		//{
+		//	using ( var context = new DataEntities() )
+		//	{
+		//		var list = context.AppFunctionPermission.Where( m => m.RoleId == roleId ).ToList();
+		//		return list.Select( m => m.ApplicationFunctionId ).ToList();
+		//	}
+		//}
 
-        //public static List<ApplicationFunction> GetApplicationFunctions()
-        //{
-        //	var output = new List<ApplicationFunction>();
-        //	using ( var context = new DataEntities() )
-        //	{
-        //		var list = context.ApplicationFunction.ToList();
-        //		foreach (var item in list)
-        //              {
-        //			output.Add( new ApplicationFunction()
-        //			{
-        //				Id = item.Id,
-        //				Name = item.Name,
-        //				CodedNotation = item.CodedNotation,
-        //				Description = item.Description,
-        //			} );
-        //              }
-        //	}
+		//public static List<ApplicationFunction> GetApplicationFunctions()
+		//{
+		//	var output = new List<ApplicationFunction>();
+		//	using ( var context = new DataEntities() )
+		//	{
+		//		var list = context.ApplicationFunction.ToList();
+		//		foreach (var item in list)
+		//              {
+		//			output.Add( new ApplicationFunction()
+		//			{
+		//				Id = item.Id,
+		//				Name = item.Name,
+		//				CodedNotation = item.CodedNotation,
+		//				Description = item.Description,
+		//			} );
+		//              }
+		//	}
 
-        //	return output;
-        //}
+		//	return output;
+		//}
 
-        //public static List<ApplicationFunctionPermission> GetApplicationFunctionPermissions( int roleId )
-        //{
-        //	var output = new List<ApplicationFunctionPermission>();
-        //	using ( var context = new DataEntities() )
-        //	{
-        //		var list = context.AppFunctionPermission.Where( m => m.RoleId == roleId ).ToList();
-        //		foreach ( var item in list )
-        //		{
-        //			output.Add( new ApplicationFunctionPermission()
-        //			{
-        //				ApplicationFunctionId= item.ApplicationFunctionId,
-        //				RoleId= item.RoleId,
-        //				CanCreate= item.CanCreate,
-        //				CanDelete= item.CanDelete,
-        //				CanRead= item.CanRead,
-        //				CanUpdate= item.CanUpdate,
-        //			} );
-        //		}
-        //	}
+		//public static List<ApplicationFunctionPermission> GetApplicationFunctionPermissions( int roleId )
+		//{
+		//	var output = new List<ApplicationFunctionPermission>();
+		//	using ( var context = new DataEntities() )
+		//	{
+		//		var list = context.AppFunctionPermission.Where( m => m.RoleId == roleId ).ToList();
+		//		foreach ( var item in list )
+		//		{
+		//			output.Add( new ApplicationFunctionPermission()
+		//			{
+		//				ApplicationFunctionId= item.ApplicationFunctionId,
+		//				RoleId= item.RoleId,
+		//				CanCreate= item.CanCreate,
+		//				CanDelete= item.CanDelete,
+		//				CanRead= item.CanRead,
+		//				CanUpdate= item.CanUpdate,
+		//			} );
+		//		}
+		//	}
 
-        //	return output;
-        //}
+		//	return output;
+		//}
 
-        #endregion
-        #endregion
-    }
+		/// <summary>
+		/// Validate if user has access to a function
+		/// User
+		///     ApplicationUserRole
+		///         ApplicationRole
+		///             AppFunctionPermission
+		/// </summary>
+		/// <param name="userId"></param>
+		/// <param name="functionCode"></param>
+		/// <returns></returns>
+		public static bool CanUserAccessFunction( int userId, string functionCode )
+		{
+			using ( var context = new DataEntities() )
+			{
+				var user = context.Account.FirstOrDefault( m => m.Id == userId );
+				if( user == null || string.IsNullOrWhiteSpace( functionCode ) )
+				{
+					return false;
+				}
+
+				//Return true if the
+				return user //User's
+					.ApplicationUserRole //Roles'
+					.SelectMany( m => m.ApplicationRole.AppFunctionPermission ) //Function Connectors'
+					.Select( m => m.ApplicationFunction.CodedNotation?.ToLower() ?? "" ) //Functions' CodedNotations
+					.Contains( functionCode?.ToLower() ); //contain the function code
+			}
+		}
+		//
+
+		#endregion
+		#endregion
+	}
 }

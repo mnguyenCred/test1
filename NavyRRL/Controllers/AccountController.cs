@@ -69,7 +69,7 @@ namespace NavyRRL.Controllers
         {
             var model = new RegisterViewModel();
             //var roles = AccountServices.GetRoles();
-            var roles = AccountServices.GetAllApplicationRoles();
+            var roles = ApplicationRoleManager.GetAll();
             //model.SelectedRoles = new List<string>() { "20" }.ToArray();
             //model.Roles = roles.Select( x => new SelectListItem { Text = x.Name, Value = x.Id, Selected = model.SelectedRoles.Contains( x.Name ) } ).ToList();
             model.Roles = roles.Select( x => new SelectListItem { Text = x.Name, Value = x.Id.ToString(), Selected = false } ).ToList();
@@ -88,8 +88,8 @@ namespace NavyRRL.Controllers
         {
             int currentUserId = AccountServices.GetCurrentUserId();
             //var roles = AccountServices.GetRoles();
-            var roles = AccountServices.GetAllApplicationRoles();
-            if ( ModelState.IsValid )
+            var roles = ApplicationRoleManager.GetAll();
+			if ( ModelState.IsValid )
             {
                 //check if user email aleady exists
                 var exists=AccountServices.GetUserByEmail( model.Email.Trim() );
