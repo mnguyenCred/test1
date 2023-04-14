@@ -23,10 +23,10 @@
 else
 {
 	<ul class="nav navbar-nav navbar-right">
-		@if ( env == "development" )
+		@*@if ( env == "development" )
 		{
 			<li>@Html.ActionLink( "Register", "Register", "Account", routeValues: null, htmlAttributes: new { id = "registerLink" } )</li>
-		}
+		}*@
 		<li>@Html.ActionLink( "Log in", "Login", "Account", routeValues: null, htmlAttributes: new { id = "loginLink" } )</li>
 	</ul>
 }

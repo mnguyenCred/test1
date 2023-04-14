@@ -836,7 +836,8 @@ namespace Factories
 						item.Id = GetRowColumn( dr, "Id", 0 );
 						item.FirstName = GetRowColumn( dr, "FirstName", "missing" );
 						item.LastName = GetRowColumn( dr, "LastName", "" );
-						string rowId = GetRowColumn( dr, "RowId" );
+                        item.IsActive = GetRowColumn( dr, "IsActive", true );
+                        string rowId = GetRowColumn( dr, "RowId" );
 						item.RowId = new Guid( rowId );
 
 						item.Email = GetRowColumn( dr, "Email", "" );

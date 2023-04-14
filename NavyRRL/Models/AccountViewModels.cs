@@ -138,6 +138,10 @@ namespace NavyRRL.Models
         [Display( Name = "Last Name" )]
         public string LastName { get; set; }
 
+        [Required]
+        [Display( Name = "Is Active" )]
+        public bool IsActive { get; set; }
+
         [Display( Name = "Roles" )]
         public string[] SelectedRoles { get; set; }
         public List<System.Web.Mvc.SelectListItem> Roles { get; set; }

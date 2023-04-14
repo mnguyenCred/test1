@@ -308,6 +308,24 @@ namespace NavyRRL.Controllers
                                 columnSearch.Add( string.Format( " (convert(varchar(10),{0},120) = '{1}') ", colName, dt.ToString( "yyyy-MM-dd" ) ) );
                             }
                         }
+                        else if ( colName == "IsActive" )
+                        {
+                            if ( int.TryParse( value, out int isActive ) )
+                            {
+                                if ( isActive == 1 )
+                                    columnSearch.Add( string.Format( " ({0} = {1}) ", colName, isActive.ToString() ) );
+                                else if ( isActive == 0 )
+                                    columnSearch.Add( string.Format( " ({0} = {1}) ", colName, isActive.ToString() ) );
+                            }
+                            else
+                            {
+                                //check first letter
+                                if ( value.Substring( 0, 1 ).ToLower() == "f" )
+                                    columnSearch.Add( string.Format( " ({0} = {1}) ", colName, 0 ) );
+                                else if ( value.Substring( 0, 1 ).ToLower() == "t" )
+                                    columnSearch.Add( string.Format( " ({0} = {1}) ", colName, 1 ) );
+                            }
+                        }
                         else
                             columnSearch.Add( string.Format( "({0} LIKE '%{1}%')", Request.Form[string.Format( "columns[{0}][data]", index )], value ) );
                     }
@@ -357,7 +375,7 @@ namespace NavyRRL.Controllers
             var account = AccountServices.GetAccount( id );
             if ( account != null )
             {
-                var model = new AccountViewModel { UserId = account.Id, Email = account.Email, FirstName = account.FirstName, LastName = account.LastName };
+                var model = new AccountViewModel { UserId = account.Id, Email = account.Email, FirstName = account.FirstName, LastName = account.LastName, IsActive = account.IsActive };
                 //var roles2 = AccountServices.GetRoles();
 
                 //model.SelectedRoles = roles.Where( x => account.UserRoles.Contains( x.Name ) ).Select( x => x.Id ).ToArray();
@@ -385,6 +403,7 @@ namespace NavyRRL.Controllers
                     account.FirstName = model.FirstName;
                     account.LastName = model.LastName;
                     account.Email = model.Email;
+                    account.IsActive = model.IsActive;
 
                     //Update Account and AspNetUser
                     var message = string.Empty;
