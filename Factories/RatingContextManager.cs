@@ -204,7 +204,6 @@ namespace Factories
 
 				//Start Query
 				var list = context.RatingContext.AsQueryable();
-				//var list = context.RatingContext.Include( "RatingTask" ).Include( "CourseContext" ).Include( "CourseContext.TrainingTask" ).Include( "CourseContext.Course" ).Include( "ClusterAnalysis" ).Include( "Job" ).Include( "WorkRole" ).AsQueryable();
 
 				//Handle Keywords
 				if ( !string.IsNullOrWhiteSpace( keywords ) )

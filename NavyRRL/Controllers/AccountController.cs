@@ -73,7 +73,7 @@ namespace NavyRRL.Controllers
         {
             var model = new RegisterViewModel();
             //var roles = AccountServices.GetRoles();
-            var roles = AccountServices.GetAllApplicationRoles();
+            var roles = ApplicationRoleManager.GetAll();
             //model.SelectedRoles = new List<string>() { "20" }.ToArray();
             //model.Roles = roles.Select( x => new SelectListItem { Text = x.Name, Value = x.Id, Selected = model.SelectedRoles.Contains( x.Name ) } ).ToList();
             model.Roles = roles.Select( x => new SelectListItem { Text = x.Name, Value = x.Id.ToString(), Selected = false } ).ToList();
@@ -92,8 +92,8 @@ namespace NavyRRL.Controllers
         {
             int currentUserId = AccountServices.GetCurrentUserId();
             //var roles = AccountServices.GetRoles();
-            var roles = AccountServices.GetAllApplicationRoles();
-            if ( ModelState.IsValid )
+            var roles = ApplicationRoleManager.GetAll();
+			if ( ModelState.IsValid )
             {
                 //check if user email aleady exists
                 var exists=AccountServices.GetUserByEmail( model.Email.Trim() );
@@ -649,15 +649,16 @@ namespace NavyRRL.Controllers
             ViewBag.Header = "Confirm Email";
             if (userId == null || code == null)
             {
+                ViewBag.Header = "Confirmation Failed";
                 ViewBag.Message = "Error: both a user identifier and an access code must be provided.";
-                return View("Error");
+                return View( "ConfirmEmail" );
             }
             //new AccountServices().Proxies_StoreProxyCode( code, "mparsons+220321a@credentialengine.org", "ConfirmEmail" );
             if ( !AccountServices.Proxy_IsCodeActive( code ) )
             {
                 ViewBag.Header = "Invalid Confirmation Code";
                 ViewBag.Message = "Error: The confirmation code is invalid or has expired.";
-                return View( "Error" );
+                return View( "ConfirmEmail" );
             }
             var result = await UserManager.ConfirmEmailAsync(userId, code);
             //return View(result.Succeeded ? "ConfirmEmail" : "Error");
@@ -682,7 +683,7 @@ namespace NavyRRL.Controllers
 
                 ViewBag.Header = "Confirmation Failed";
                 ViewBag.Message = msg;
-                return View( "Error" );
+                return View( "ConfirmEmail" );
             }
         }
 

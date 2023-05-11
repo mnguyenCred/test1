@@ -1,14 +1,16 @@
 ﻿@{
 
-	var pageHeading = "Confirm Email";
+	//var pageHeading = "Confirm Email";
 	var confirmValid = true;
 	var pageMessage = "An unexpected condition has occurred. ";
 
-	ViewBag.Title = "Confirm Email";
+	var pageHeading = (ViewBag.Header ?? "") != "" ? ViewBag.Header : "Confirm Email";
+
 	var message = ViewBag.Message ?? "";
 	if ( !string.IsNullOrWhiteSpace( message ) )
 	{
-		pageHeading = "Email Not Confirmed";
+		pageMessage = message;
+		//pageHeading = "Email Not Confirmed";
 		confirmValid = false;
 	}
 }

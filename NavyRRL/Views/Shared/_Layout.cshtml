@@ -1,4 +1,5 @@
 ﻿@using Navy.Utilities;
+@using Factories;
 @using Services;
 @using Models.Application;
 @using Factories;
@@ -7,6 +8,7 @@
 @{
     var env = UtilityManager.GetAppKeyValue("environment", "production");
     var secBannerPhrase = UtilityManager.GetAppKeyValue("securityBannerPhrase", "");
+    var RMTLFunctionCOde = "rmtl.create";
     var userCanUploadData = false;
     var applicationURL = UtilityManager.GetAppKeyValue("applicationURL", "");
     var url = Request.Url.PathAndQuery.ToLower();
@@ -83,6 +85,11 @@
         }
         else //user is found
         {
+            //check if user can do uploads, if so enable menu
+    if (AccountManager.CanUserAccessFunction (user.Id, RMTLFunctionCode))
+    {
+        userCanUploadData = true;
+    }
             if (string.IsNullOrWhiteSpace(currentUser.Email))
             {
                 if (shouldRedirect)

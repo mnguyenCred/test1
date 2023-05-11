@@ -1,5 +1,4 @@
-Use NavyRRL
-go
+
 
 USE [Navy_RRL_V2]
 GO
@@ -134,9 +133,10 @@ CREATE TABLE #tempWorkTable(
 
   if len(@Filter) > 0 begin
      if charindex( 'where', @Filter ) = 0 OR charindex( 'where',  @Filter ) > 10
-        set @Filter =     ' where ' + @Filter + ' AND IsActive = 1'	
+        set @Filter =     ' where ' + @Filter 
+		--+ ' AND IsActive = 1'	
      end
-	else set @Filter =' WHERE IsActive = 1'
+	--else set @Filter =' WHERE IsActive = 1'
 
   print '@Filter len: '  +  convert(varchar,len(@Filter))
   set @SQL = 'SELECT  base.Id, base.FullName 

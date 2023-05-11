@@ -135,7 +135,7 @@
 			{ Label: "Cluster Analysis Title", Path: "> HasClusterAnalysis > ClusterAnalysis > HasClusterAnalysisTitle > ClusterAnalysisTitle > Name", Part: "PART III", MinWidth: 300 },
 			{ Label: "Recommended Modality", Path: "> HasClusterAnalysis > ClusterAnalysis > RecommendedModalityType > Concept > Name", Part: "PART III", MinWidth: 100 },
 			{ Label: "Development Specification", Path: "> HasClusterAnalysis > ClusterAnalysis > DevelopmentSpecificationType > Concept > Name", Part: "PART III", MinWidth: 150 },
-			{ Label: "Candidate Platform", Path: "> HasClusterAnalysis > ClusterAnalysis > CandidatePlatformType > Concept > CodedNotation", Part: "PART III", MinWidth: 200, Separator: "/" },
+			{ Label: "Candidate Platform", Path: "> HasClusterAnalysis > ClusterAnalysis > CandidatePlatformType > Concept > CodedNotation", Part: "PART III", MinWidth: 200, Separator: "/", FallbackDisplayProperty: "Name" },
 			{ Label: "CFM Placement", Path: "> HasClusterAnalysis > ClusterAnalysis > CFMPlacementType > Concept > Name", Part: "PART III", MinWidth: 150, Separator: "/" },
 			{ Label: "Priority Placement", Path: "> HasClusterAnalysis > ClusterAnalysis > PriorityPlacement", Part: "PART III", MinWidth: 100 },
 			{ Label: "Development Ratio", Path: "> HasClusterAnalysis > ClusterAnalysis > DevelopmentRatioType > Concept > Name", Part: "PART III", MinWidth: 100 },
@@ -432,8 +432,9 @@
 		}
 		//Otherwise, render the value
 		else {
-			if (CurrentData[nextProperty]) {
-				var content = Column.AsPlainText ? CurrentData[nextProperty] : $("<a href=\"@Url.Content("~/")" + (overrideRenderType || currentType) + "/Detail/" + (overrideRenderID || CurrentData.Id) + "\" target=\"_blank\">" + CurrentData[nextProperty] + "</a>");
+			var rawValue = CurrentData[nextProperty] || CurrentData[Column.FallbackDisplayProperty];
+			if (rawValue) {
+				var content = Column.AsPlainText ? rawValue : $("<a href=\"@Url.Content("~/")" + (overrideRenderType || currentType) + "/Detail/" + (overrideRenderID || CurrentData.Id) + "\" target=\"_blank\">" + rawValue + "</a>");
 				writeValue(container, content, replaceContainer, onFinish);
 			}
 			else {
@@ -1177,7 +1178,10 @@ else if ( isFilterAccordionOpenMode || isFilterAccordionClosedMode )
 		</div>
 		<div class="mainTab" data-tab="Summary">
 			<div class="statisticsWrapper">
-				<h4>Task Summary Tables</h4>
+				<h3 class="exportStatisticsMainHeader">
+					<span>Task Summary Tables</span>
+					<button data-action="ExportStatistics">Export Summary</button>
+				</h3>
 				<p>The tables below are based on the total counts of Rating-level tasks in the system. <b>The total number of tasks shown below may differ from the total number of search results shown above.</b> This is because the search results are based on individual rows in RMTLs that reference tasks (more than one RMTL may reference the same task), whereas the tables below are based on the tasks themselves.</p>
 				@Html.Partial( "~/Views/Shared/_TasksBySourceType.cshtml", new TasksBySourceTypeConfig( "for the Current Search Results", "in Results", null, "", false ) )
 			</div>

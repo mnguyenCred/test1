@@ -22,6 +22,7 @@ namespace Models.Schema
 			public string Keywords { get; set; }
 			public int Skip { get; set; }
 			public int Take { get; set; }
+			public bool IncludeRelatedResources { get; set; }
 			public List<Search.SearchFilter> Filters { get; set; }
 
 		}
@@ -29,8 +30,9 @@ namespace Models.Schema
 
 		public class RDFQueryResults
 		{
-			public JArray Results { get; set; }
+			public List<JObject> Results { get; set; }
 			public int TotalResults { get; set; }
+			public List<JObject> RelatedResources { get; set; }
 			public JObject Debug { get; set; }
 		}
 		//

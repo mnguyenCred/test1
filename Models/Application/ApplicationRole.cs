@@ -6,9 +6,9 @@ using System.Threading.Tasks;
 
 namespace Models.Application
 {
-	public class UserRole
+	public class ApplicationRole
 	{
-		public UserRole()
+		public ApplicationRole()
 		{
 			HasApplicationFunctionIds = new List<int>();
 		}
