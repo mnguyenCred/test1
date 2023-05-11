@@ -135,7 +135,7 @@
 			{ Label: "Cluster Analysis Title", Path: "> HasClusterAnalysis > ClusterAnalysis > HasClusterAnalysisTitle > ClusterAnalysisTitle > Name", Part: "PART III", MinWidth: 300 },
 			{ Label: "Recommended Modality", Path: "> HasClusterAnalysis > ClusterAnalysis > RecommendedModalityType > Concept > Name", Part: "PART III", MinWidth: 100 },
 			{ Label: "Development Specification", Path: "> HasClusterAnalysis > ClusterAnalysis > DevelopmentSpecificationType > Concept > Name", Part: "PART III", MinWidth: 150 },
-			{ Label: "Candidate Platform", Path: "> HasClusterAnalysis > ClusterAnalysis > CandidatePlatformType > Concept > CodedNotation", Part: "PART III", MinWidth: 200, Separator: "/" },
+			{ Label: "Candidate Platform", Path: "> HasClusterAnalysis > ClusterAnalysis > CandidatePlatformType > Concept > CodedNotation", Part: "PART III", MinWidth: 200, Separator: "/", FallbackDisplayProperty: "Name" },
 			{ Label: "CFM Placement", Path: "> HasClusterAnalysis > ClusterAnalysis > CFMPlacementType > Concept > Name", Part: "PART III", MinWidth: 150, Separator: "/" },
 			{ Label: "Priority Placement", Path: "> HasClusterAnalysis > ClusterAnalysis > PriorityPlacement", Part: "PART III", MinWidth: 100 },
 			{ Label: "Development Ratio", Path: "> HasClusterAnalysis > ClusterAnalysis > DevelopmentRatioType > Concept > Name", Part: "PART III", MinWidth: 100 },
@@ -432,8 +432,9 @@
 		}
 		//Otherwise, render the value
 		else {
-			if (CurrentData[nextProperty]) {
-				var content = Column.AsPlainText ? CurrentData[nextProperty] : $("<a href=\"@Url.Content("~/")" + (overrideRenderType || currentType) + "/Detail/" + (overrideRenderID || CurrentData.Id) + "\" target=\"_blank\">" + CurrentData[nextProperty] + "</a>");
+			var rawValue = CurrentData[nextProperty] || CurrentData[Column.FallbackDisplayProperty];
+			if (rawValue) {
+				var content = Column.AsPlainText ? rawValue : $("<a href=\"@Url.Content("~/")" + (overrideRenderType || currentType) + "/Detail/" + (overrideRenderID || CurrentData.Id) + "\" target=\"_blank\">" + rawValue + "</a>");
 				writeValue(container, content, replaceContainer, onFinish);
 			}
 			else {
