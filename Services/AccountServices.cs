@@ -14,6 +14,7 @@ using System.Web.Security;
 using Newtonsoft.Json;
 using System.Reflection;
 using System.Linq;
+using System.Security.Policy;
 
 namespace Services
 {
@@ -29,8 +30,8 @@ namespace Services
 		public static string EVENT_AUTHORIZED = "NotAuthorized";
 		public static string EVENT_AUTHENTICATED = "NotAuthenticated";
 
-		#region Authorization methods
-		public static bool IsUserSiteManager()
+        #region Authorization methods
+        public static bool IsUserSiteManager()
 		{
 			AppUser user = GetUserFromSession();
 			if ( user == null || user.Id == 0 )
@@ -419,18 +420,67 @@ namespace Services
 			return id;
 		} //
 
-		/// <summary>
-		/// Account created by a third party, not through registering
-		/// </summary>
-		/// <param name="email"></param>
-		/// <param name="firstName"></param>
-		/// <param name="lastName"></param>
-		/// <param name="userName"></param>
-		/// <param name="userKey"></param>
-		/// <param name="password"></param>
-		/// <param name="statusMessage"></param>
-		/// <returns></returns>
-		public int AddAccount( string email, string firstName, string lastName, string userName, string userKey, string password, int addedByUserId, ref string statusMessage )
+        #region Create/Update
+        /// <summary>
+        /// Create a new account, based on the AspNetUser info!
+        /// </summary>
+        /// <param name="email"></param>
+        /// <param name="firstName"></param>
+        /// <param name="lastName"></param>
+        /// <param name="statusMessage"></param>
+        /// <returns></returns>
+        public int CacCreate(string email, string firstName, string lastName, string userName, string userKey, string password, string externalCEAccountIdentifier,
+                ref string statusMessage,
+                bool doingEmailConfirmation = false,
+                bool isExternalSSO = false)
+        {
+            int id = 0;
+            statusMessage = "";
+
+            //this password, as stored in the account table, is not actually used
+            string encryptedPassword = "";
+            if (!string.IsNullOrWhiteSpace(password))
+                encryptedPassword = UtilityManager.Encrypt(password);
+
+            AppUser user = new AppUser()
+            {
+                Email = email,
+                UserName = email,
+                FirstName = firstName,
+                LastName = lastName,
+                IsActive = !doingEmailConfirmation,
+                AspNetUserId = userKey,
+                Password = encryptedPassword,
+                ExternalAccountIdentifier = externalCEAccountIdentifier
+
+            };
+            id = new AccountManager().Add(user, ref statusMessage);
+            if (id > 0)
+            {
+                //don't want to add to session, user needs to confirm
+                //AddUserToSession( HttpContext.Current.Session, user );
+
+
+                string msg = string.Format("New user registration. <br/>Email: {0}, <br/>Name: {1}<br/>Type: {2}", email, firstName + " " + lastName, (isExternalSSO ? "External SSO" : "Forms"));
+                ActivityServices.UserRegistration(user, "registration", msg);
+                //EmailManager.SendSiteEmail( "New Application account", msg );
+            }
+
+            return id;
+        } //
+        #endregion
+        /// <summary>
+        /// Account created by a third party, not through registering
+        /// </summary>
+        /// <param name="email"></param>
+        /// <param name="firstName"></param>
+        /// <param name="lastName"></param>
+        /// <param name="userName"></param>
+        /// <param name="userKey"></param>
+        /// <param name="password"></param>
+        /// <param name="statusMessage"></param>
+        /// <returns></returns>
+        public int AddAccount( string email, string firstName, string lastName, string userName, string userKey, string password, int addedByUserId, ref string statusMessage )
 		{
 			int id = 0;
 			statusMessage = "";
@@ -542,7 +592,7 @@ namespace Services
 		public bool SetUserEmailConfirmedByEmail( string email )
 		{
 			string statusMessage = "";
-			if ( new AccountManager().AspNetUsers_UpdateEmailConfirmedByEmail( email, ref statusMessage ) )
+			if (  AccountManager.AspNetUsers_UpdateEmailConfirmedByEmail( email, ref statusMessage ,"oldEmail") )
 			{
 				return true;
 			}
@@ -599,34 +649,74 @@ namespace Services
                 HttpContext httpContext = HttpContext.Current;
 				//confirm that Authorization is what we are looking for
                 string authHeader = httpContext.Request.Headers["Authorization"];
+                string f5Header = httpContext.Request.Headers["F5_USER"];
                 //not sure of content type yet. Check if starts with {
-                if ( string.IsNullOrWhiteSpace( authHeader ) )
+
+                if ( string.IsNullOrWhiteSpace( authHeader ) && string.IsNullOrWhiteSpace(f5Header))
                 {
                     isValid = false;
                     return null;
                 }
-                //looking for
-				//"F5_USER:C=US, O=U.S. Government, OU=DoD, OU=PKI, OU=USN, CN=INDSETH.MICHAEL.SHAWN.1234567890"
 
-                LoggingHelper.DoTrace( 7, "$$$$$$$$ Found an authorization header: " + authHeader.Substring( 0, 8 ) + "-..." );
-                if ( authHeader.StartsWith( "{" ) )
-                {
-                    //Extract credentials
-                    authHeader = authHeader.Trim();
-                    var navyUser = JsonConvert.DeserializeObject<NavyCredential>( authHeader );
-                    if ( navyUser != null && !string.IsNullOrWhiteSpace( navyUser.Email ) )
-                    {
+				if (!string.IsNullOrWhiteSpace(authHeader)) {
+					LoggingHelper.DoTrace(7, "$$$$$$$$ Found an authorization header: " + authHeader.Substring(0, 8) + "-...");
 
-                        //NavyRRL.Models.app
 
-                        return navyUser;
-                    }
-                    else
-                    {
-                        //error
-                    }
+					if (authHeader.StartsWith("{"))
+					{
+						//Extract credentials
+						authHeader = authHeader.Trim();
+						var navyUser = JsonConvert.DeserializeObject<NavyCredential>(authHeader);
+						if (navyUser != null && !string.IsNullOrWhiteSpace(navyUser.Email))
+						{
+
+							//NavyRRL.Models.app
+
+							return navyUser;
+						}
+						else
+						{
+							//error
+						}
+					}
                 }
-              
+				if (!string.IsNullOrWhiteSpace(f5Header))
+				{
+				
+					string[] f5HeaderSplit = f5Header.Split(new string[] { "CN=" }, StringSplitOptions.None);
+					if (f5HeaderSplit.Length != 2)
+					{
+						isValid = false;
+						return null;
+					}
+					else
+					{
+						LoggingHelper.DoTrace(7, "$$$$$$$$ Found an F5 header: " + f5Header);
+						string[] cnSplit = f5HeaderSplit[1].Split('.');
+
+						if (cnSplit.Count() == 3 || cnSplit.Count() == 4)
+						{
+							NavyCredential navyUser = new NavyCredential();
+							navyUser.FirstName = cnSplit[1];
+							navyUser.LastName = cnSplit[0];
+							navyUser.Identifier = cnSplit[cnSplit.Length - 1];
+							return navyUser;
+						}
+						else
+						{
+                            isValid = false;
+                            return null;
+
+                        }
+
+
+
+                    }
+                    //looking for
+                    //"F5_USER:C=US, O=U.S. Government, OU=DoD, OU=PKI, OU=USN, CN=INDSETH.MICHAEL.SHAWN.1234567890"
+                }
+
+
             }
             catch ( Exception ex )
             {
@@ -662,8 +752,18 @@ namespace Services
 					{
 						var user = GetUserByEmail( navyUser.Email );
 						if ( user != null && user.Id > 0 ) 
-						{ 
-							return user;
+						{
+							var userConfirmed = CheckIfUserIsConfirmedByEmail(navyUser.Email);
+							if(userConfirmed != null)
+							{
+								return userConfirmed;
+							}
+							else
+							{
+								message = "user has not confirmed email";
+                                isValid = false;
+                            }
+                            //return user;
 						}
 						//otherwise add the user
 					} else
@@ -862,7 +962,23 @@ namespace Services
 
 			return user;
 		} //
-		public static AppUser GetUserByUserName( string username )
+
+        public static AppUser GetUserByIdentifier(string identifier)
+        {
+            AppUser user = AccountManager.AppUser_GetByIdentifier(identifier);
+			AppUser confirmedUser = AccountManager.AppUser_CheckIfUserIsConfirmedByEmail(user.Email);
+
+			if(confirmedUser.Id != 0)
+			{
+                return user;
+            }
+			else 
+			{
+				return null; 
+			}
+
+        } //
+        public static AppUser GetUserByUserName( string username )
 		{
 			AppUser user = AccountManager.GetUserByUserName( username );
 
@@ -875,12 +991,32 @@ namespace Services
 				AddUserToSession(HttpContext.Current.Session, user);
 
 			return user;
-		} //
-		  /// <summary>
-		  /// Get user by email, and add to the session
-		  /// </summary>
-		  /// <param name="email"></param>
-		  /// <returns></returns>
+
+        } //
+
+        public static AppUser CheckIfUserIsConfirmedByEmail(string email)
+        {
+            AppUser user = AccountManager.AppUser_CheckIfUserIsConfirmedByEmail(email);
+
+            return user;
+        } //
+        /// <summary>
+        /// Add User to session
+        /// </summary>
+        /// <param name="user"></param>
+        /// <returns></returns>
+        public static AppUser SetUser(AppUser user)
+        {
+            AddUserToSession(HttpContext.Current.Session, user);
+            return user;
+        } //
+
+
+		/// <summary>
+		/// Get user by email, and add to the session
+		/// </summary>
+		/// <param name="email"></param>
+		/// <returns></returns>
 		public static AppUser SetUserByEmail( string email )
 		{
 			AppUser user = AccountManager.AppUser_GetByEmail( email );
@@ -888,12 +1024,19 @@ namespace Services
 			return user;
 		} //
 
-		/// <summary>
-		/// User is authenticated, either get from session or via the Identity name
-		/// </summary>
-		/// <param name="identityName"></param>
-		/// <returns></returns>
-		public static AppUser GetCurrentUser( string identityName = "", bool doingOrganizationsCheck = false )
+        public static AppUser SetUserByIdentifier(string identifier)
+        {
+            AppUser user = AccountManager.AppUser_GetByIdentifier(identifier);
+            AddUserToSession(HttpContext.Current.Session, user);
+            return user;
+        } //
+
+        /// <summary>
+        /// User is authenticated, either get from session or via the Identity name
+        /// </summary>
+        /// <param name="identityName"></param>
+        /// <returns></returns>
+        public static AppUser GetCurrentUser( string identityName = "", bool doingOrganizationsCheck = false )
 		{
 			AppUser user = AccountServices.GetUserFromSession();
 			if ( ( user == null || user.Id == 0 ) )
@@ -1082,6 +1225,8 @@ namespace Services
 			return ApplicationManager.CanUserAccessFunction( userId, functionCode );
         }
         #endregion
+
+
         #region Session methods
         /// <summary>
         /// Determine if current user is a logged in (authenticated) user 
@@ -1236,7 +1381,7 @@ namespace Services
         public string FirstName { get; set; }
         public string LastName { get; set; }
         public string Department { get; set; }
-        public string Thing2 { get; set; }
+        public string Identifier { get; set; }
     }
 
 }

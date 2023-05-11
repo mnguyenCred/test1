@@ -23,5 +23,20 @@ namespace NavyRRL.Controllers
         {
             return View();
         }
+
+        public ActionResult ConfirmEmailNeeded()
+        {
+            return View();
+        }
+
+        public ActionResult FailedEvent()
+        {
+            return View();
+        }
+        public ActionResult EmailConfirmed()
+        {
+            return View();
+        }
+        
     }
 }

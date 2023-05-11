@@ -12,6 +12,8 @@ using ViewContext = Data.Views.ceNavyViewEntities;
 using Views = Data.Views;
 using Navy.Utilities;
 using Models.Utilities;
+using System.Web;
+
 
 namespace Factories
 {
@@ -44,8 +46,8 @@ namespace Factories
 
 		static string SessionLoginProxy = "Session Login Proxy";
 
-		#region persistance 
-		public int Add( AppUser entity, ref string statusMessage )
+        #region persistance 
+        public int Add( AppUser entity, ref string statusMessage )
 		{
 			EM.Account efEntity = new EM.Account();
 			using ( var context = new DataEntities() )
@@ -59,7 +61,7 @@ namespace Factories
 					efEntity.Created = System.DateTime.Now;
 					efEntity.LastUpdated = System.DateTime.Now;
 
-					context.Account.Add( efEntity );
+                    context.Account.Add( efEntity );
 
 					// submit the change to database
 					int count = context.SaveChanges();
@@ -558,22 +560,31 @@ namespace Factories
 
 			return false;
 		}
-		public bool AspNetUsers_UpdateEmailConfirmedByEmail( string email, ref string statusMessage )
+		public static bool AspNetUsers_UpdateEmailConfirmedByEmail( string email, ref string statusMessage, string oldEMail )
 		{
 			using ( var context = new DataEntities() )
 			{
 				EM.AspNetUsers efEntity = context.AspNetUsers
-							.SingleOrDefault( s => s.Email == email );
-				try
+							.SingleOrDefault( s => s.Email == oldEMail);
+                EM.Account efAccountEntity = context.Account
+                            .SingleOrDefault(s => s.Email == oldEMail);
+                try
 				{
 					if ( efEntity != null && efEntity.UserId > 0 )
 					{
-						efEntity.EmailConfirmed = true;
+                        efEntity.Email = email;
+						efEntity.UserName = email;
+
+                        efAccountEntity.Email = email;
+						efAccountEntity.UserName = email;
+
+                        //efEntity.EmailConfirmed = true;
 
 						if ( HasStateChanged( context ) )
 						{
 							// submit the change to database
 							int count = context.SaveChanges();
+							
 							if ( count > 0 )
 							{
 								statusMessage = "successful";
@@ -676,23 +687,61 @@ namespace Factories
 
 			return entity;
 		}
-		//public static AppUser AppUser_GetSummaryByEmail( string email )
-		//{ 
-		//    AppUser entity = new AppUser();
-		//    using (var context = new ViewContext())
-		//    {
-		//        Views.Account_Summary efEntity = context.Account_Summary
-		//                    .FirstOrDefault( s => s.Email.ToLower() == email.ToLower() );
 
-		//        if (efEntity != null && efEntity.Id > 0)
-		//        {
-		//            MapFromDB( efEntity, entity );
-		//        }
-		//    }
+        public static AppUser AppUser_GetByIdentifier(string identifier)
+        {
+            AppUser entity = new AppUser();
+            identifier = (identifier ?? "").Trim();
 
-		//    return entity;
-		//}
-		public static AppUser GetUserByCEAccountId( string accountIdentifier )
+            using (var context = new DataEntities())
+            {
+                EM.Account efEntity = context.Account
+                            .FirstOrDefault(s => s.ExternalAccountIdentifier.ToLower() == identifier.ToLower());
+
+                if (efEntity != null && efEntity.Id > 0)
+                {
+                    MapFromDB(efEntity, entity);
+                }
+            }
+
+            return entity;
+        }
+
+		public static AppUser AppUser_CheckIfUserIsConfirmedByEmail(string email)
+		{
+            AppUser entity = new AppUser();
+            email = (email ?? "").Trim();
+
+            using (var context = new DataEntities())
+            {
+                EM.AspNetUsers efEntity = context.AspNetUsers.Where( s => s.EmailConfirmed == true)
+                            .FirstOrDefault(s => s.Email.ToLower() == email.ToLower());
+
+                if (efEntity != null && efEntity.Id != null)
+                {
+                    MapFromDB(efEntity, entity);
+                }
+            }
+
+            return entity;
+        }
+            //public static AppUser AppUser_GetSummaryByEmail( string email )
+            //{ 
+            //    AppUser entity = new AppUser();
+            //    using (var context = new ViewContext())
+            //    {
+            //        Views.Account_Summary efEntity = context.Account_Summary
+            //                    .FirstOrDefault( s => s.Email.ToLower() == email.ToLower() );
+
+            //        if (efEntity != null && efEntity.Id > 0)
+            //        {
+            //            MapFromDB( efEntity, entity );
+            //        }
+            //    }
+
+            //    return entity;
+            //}
+            public static AppUser GetUserByCEAccountId( string accountIdentifier )
 		{
 			AppUser entity = new AppUser();
 			using ( var context = new DataEntities() )
@@ -944,17 +993,64 @@ namespace Factories
 
 
 		} //
-		  //NOTE: AspNetRoles is to be a guid, so not likely to use this version
-		  //public void GetAllUsersInRole( int roleId )
-		  //{
-		  //	using ( var context = new DataEntities() )
-		  //	{
-		  //		var customers = context.AspNetUsers
-		  //			  .Where( u => u.AspNetRoles.Any( r => r.Id == roleId ) )
-		  //			  .ToList();
-		  //	}
-		  //}
-		private static void AppUser_MapToDB( AppUser fromEntity, EM.Account to )
+
+        public static void MapFromDB(EM.AspNetUsers input, AppUser output)
+        {
+            output.Id = input.UserId;
+            //output.RowId = input.RowId;
+            output.UserName = input.UserName;
+
+            output.AspNetUserId = input.Id;
+            //to.Password = fromEntity.Password;
+            output.IsActive = (bool)input.EmailConfirmed;
+            output.FirstName = input.FirstName;
+            output.LastName = input.LastName;
+
+            output.Email = input.Email;
+            output.ExternalAccountIdentifier = null;
+
+            if (IsValidDate(input.Created))
+                output.Created = (DateTime)input.Created;
+            if (IsValidDate(input.Created))
+                output.LastUpdated = (DateTime)input.Created;
+			output.LastUpdatedById = 0;
+
+            output.UserRoles = new List<string>();
+            //using applicationRoles
+            //if (UtilityManager.GetAppKeyValue("usingNewApplicationRoles", true))
+            //{
+            //    if (input.ApplicationUserRole != null)
+            //    {
+            //        foreach (var role in input.ApplicationUserRole)
+            //        {
+            //            output.UserRoles.Add(role.ApplicationRole.Name);
+            //        }
+            //    }
+            //}
+            //else
+            //{
+            //    if (input.AspNetUsers != null)
+            //    {
+            //        foreach (EM.AspNetUserRoles role in input.AspNetUsers.AspNetUserRoles)
+            //        {
+            //            output.UserRoles.Add(role.AspNetRoles.Name);
+            //        }
+            //    }
+            //}
+
+
+        } //
+          //NOTE: AspNetRoles is to be a guid, so not likely to use this version
+          //public void GetAllUsersInRole( int roleId )
+          //{
+          //	using ( var context = new DataEntities() )
+          //	{
+          //		var customers = context.AspNetUsers
+          //			  .Where( u => u.AspNetRoles.Any( r => r.Id == roleId ) )
+          //			  .ToList();
+          //	}
+          //}
+        private static void AppUser_MapToDB( AppUser fromEntity, EM.Account to )
 		{
 			to.Id = fromEntity.Id;
 			//to.RowId = fromEntity.RowId;
@@ -974,11 +1070,12 @@ namespace Factories
 			to.LastUpdatedById = fromEntity.LastUpdatedById;
 
 		}
-		#endregion
 
-		#region Proxies
+        #endregion
 
-		public bool Store_ProxyCode( string proxyCode, int userId, string proxyType, int expiryDays, ref string statusMessage )
+        #region Proxies
+
+        public bool Store_ProxyCode( string proxyCode, int userId, string proxyType, int expiryDays, ref string statusMessage )
 		{
 			bool isValid = true;
 			EM.System_ProxyCodes efEntity = new EM.System_ProxyCodes();
@@ -1079,25 +1176,44 @@ namespace Factories
 			}
 		}
 
-		public bool Proxy_IsCodeActive( string proxyCode )
-		{
-			bool isValid = false;
-			using ( var context = new DataEntities() )
-			{
+        public bool Proxy_IsCodeActive(string proxyCode)
+        {
+            bool isValid = false;
+            using (var context = new DataEntities())
+            {
 
-				var proxy = context.System_ProxyCodes.FirstOrDefault( s => s.ProxyCode == proxyCode );
-				if ( proxy != null && proxy.Id > 0 )
-				{
-					if ( proxy.IsActive
-						&& proxy.ExpiryDate > DateTime.Now )
-						isValid = true;
-				}
-			}
+                var proxy = context.System_ProxyCodes.FirstOrDefault(s => s.ProxyCode == proxyCode);
+                if (proxy != null && proxy.Id > 0)
+                {
+                    if (proxy.IsActive
+                        && proxy.ExpiryDate > DateTime.Now)
+                        isValid = true;
+                }
+            }
 
-			return isValid;
+            return isValid;
 
-		}
-		public bool InactivateProxy( string proxyCode, ref string statusMessage )
+        }
+
+        public static string GetProxyCode(AppUser user)
+        {
+            bool isValid = false;
+            using (var context = new DataEntities())
+            {
+
+                var proxy = context.System_ProxyCodes.FirstOrDefault(s => s.UserId == user.Id);
+                if (proxy != null && proxy.Id > 0)
+                {
+					if (proxy.IsActive
+						&& proxy.ExpiryDate > DateTime.Now)
+						return proxy.ProxyCode;
+                }
+            }
+
+            return null;
+
+        }
+        public bool InactivateProxy( string proxyCode, ref string statusMessage )
 		{
 			bool isValid = true;
 			using ( var context = new DataEntities() )

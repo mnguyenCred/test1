@@ -357,7 +357,7 @@ namespace NavyRRL.Controllers
             var account = AccountServices.GetAccount( id );
             if ( account != null )
             {
-                var model = new AccountViewModel { UserId = account.Id, Email = account.Email, FirstName = account.FirstName, LastName = account.LastName };
+                var model = new AccountViewModel { UserId = account.Id, Email = account.Email, FirstName = account.FirstName, LastName = account.LastName, Identifier = account.ExternalAccountIdentifier };
                 //var roles2 = AccountServices.GetRoles();
 
                 //model.SelectedRoles = roles.Where( x => account.UserRoles.Contains( x.Name ) ).Select( x => x.Id ).ToArray();
@@ -385,6 +385,7 @@ namespace NavyRRL.Controllers
                     account.FirstName = model.FirstName;
                     account.LastName = model.LastName;
                     account.Email = model.Email;
+                    account.ExternalAccountIdentifier = model.Identifier;
 
                     //Update Account and AspNetUser
                     var message = string.Empty;

@@ -1,0 +1,87 @@
+﻿@{
+    ViewBag.Title = "Email confirmation needed";
+}
+
+<h2>Email confirmation needed</h2>
+
+@using (Html.BeginForm("ReSendEmailConfirmation", "account", FormMethod.Post, new { id = "ResendEmailConfirmationForm" }))
+{
+    <div class="col-lg-6">
+        <div class="row">
+            <div class="col-lg-3"><label>Email</label></div>
+
+            <div class="col-lg-3">
+                <input name="email" id="idEmail" />
+            </div>
+        </div>
+
+
+        <div class="row">
+            <div class="col-lg-3"><label>Confirm email</label></div>
+
+            <div class="col-lg-3">
+                <input name="emailConfirm" id="idEmailConfirm" />
+            </div>
+        </div>
+        <div class="row">
+            <button onclick="checkIfEmailMatches()" type="button">
+                Click here to send email confirmation
+
+            </button>
+        </div>
+        <div class="row">
+            <label style="color:red" id="checkMatchMessage"></label>
+        </div>
+        <div class="row">
+            <input style="visibility:hidden" name="callbackUrl" id="idcallbackUrl" />
+        </div>
+        <div class="row">
+            <input style="visibility:hidden" name="origionalEmail" id="idorigionalEmail" />
+        </div>
+    </div>
+
+}
+@*<a href="javascript:document.getElementById('ResendEmailConfirmationForm').submit()">
+        <span>Click here to send email confirmation</span>
+    </a>*@
+
+<script>
+    function checkIfEmailMatches() {
+        var email = document.getElementById("idEmail").value;
+        var emailConfirm = document.getElementById("idEmailConfirm").value;
+
+
+        if (email.toLowerCase() === emailConfirm.toLowerCase()) {
+            var validEmailFormat = validateEmail(email.toLowerCase());
+            if (validEmailFormat) {
+                var form = document.getElementById("ResendEmailConfirmationForm");
+
+                //var url = document.URL;
+                var url_string = window.location.href;
+                var url = new URL(url_string);
+                var callbackurlparameter = url.searchParams.get("callbackurlparameter");;
+                document.getElementById("idcallbackUrl").value = callbackurlparameter;
+                var origionalEmail = url.searchParams.get("email");;
+                document.getElementById("idorigionalEmail").value = origionalEmail;
+
+
+            form.submit();
+            }
+
+        }
+        else {
+
+            document.getElementById("checkMatchMessage").innerHTML = "Email does not match";
+        }
+
+    }
+
+    function validateEmail(email) {
+
+        var pattern = /^[^\s@@]+@@[^\s@@]+\.[^\s@@]+$/;
+        var result = email.match(pattern)
+
+        return result;
+    }
+</script>
+

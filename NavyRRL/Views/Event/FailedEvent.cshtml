@@ -1,0 +1,34 @@
+﻿@using Models.Application;
+@{
+    ViewBag.Title = "Failed Event";
+
+    var pageHeading = "Failed Event";
+    var pageMessage = "";
+
+    //may want to have specific message types so don't get a cross over. Maybe use a cache!
+    if (Session["siteMessage"] != null)
+    {
+        //should we assume message will include a title
+        pageMessage = Session["siteMessage"].ToString();
+
+        Session.Remove("siteMessage");
+    }
+    else if (Session["SystemMessage"] != null)
+    {
+        //should we assume message will include a title
+        SiteMessage msg = (SiteMessage)Session["SystemMessage"];
+        pageHeading = msg.Title ?? "Site Message";
+        pageMessage = msg.Message;
+
+        Session.Remove("SystemMessage");
+    }
+    else
+    {
+
+    }
+
+}
+<h2>Transaction failed</h2>
+
+<p>The transaction performed has failed</p>
+<p>@Html.Raw(pageMessage)</p>

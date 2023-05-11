@@ -1,179 +1,314 @@
 ﻿@using Navy.Utilities;
 @using Services;
-@{
-	var env = UtilityManager.GetAppKeyValue( "environment", "production" );
-	var secBannerPhrase = UtilityManager.GetAppKeyValue( "securityBannerPhrase", "" );
-	var RMTLFunctionCode = "rmtl.create";
-	var userCanUploadData = false;
-	var applicationURL = UtilityManager.GetAppKeyValue( "applicationURL", "" );
-	var url = Request.Url.PathAndQuery.ToLower();
-	var user = AccountServices.GetCurrentUser();
-	if ( ( user == null || user.Id == 0 ) )
-	{
-		string message = "";
-		bool isValid = false;
-		//user = new AccountServices().GetUserFromHeader( ref isValid, ref message );
-		//this may chg the URL somehow
-		//user = new NavyRRL.Controllers.AccountController().LoginFromHeader();
-	}
-	//var url2 = Request.Url.PathAndQuery.ToLower();
-	if ( ( user == null || user.Id == 0 ) )
-	{
-		//redirect to home, and make sure not already on home/root 
-		if ( url.Replace( "/", "" ) != Url.Content( "~/" ).Replace( "/", "" ).ToLower() && !url.ToLower().Contains("/account/login") && !url.ToLower().Contains("/notauthenticated") )
-		{
-			Response.Redirect( Url.Content( "~/" ) );
-		}
-	}
-	else
-	{
+@using Models.Application;
+@using Factories;
+@using NavyRRL.Models;
 
-		if ( AccountServices.CanUserAccessFunction( user.Id, RMTLFunctionCode ) )
-		{
-			userCanUploadData = true;
-		}
-	}
+@{
+    var env = UtilityManager.GetAppKeyValue("environment", "production");
+    var secBannerPhrase = UtilityManager.GetAppKeyValue("securityBannerPhrase", "");
+    var userCanUploadData = false;
+    var applicationURL = UtilityManager.GetAppKeyValue("applicationURL", "");
+    var url = Request.Url.PathAndQuery.ToLower();
+
+    var currentUser = AccountServices.GetCurrentUser();
+    string message1 = "";
+    bool isValid1 = true;
+    //figure out weather redirect from curent page, if its whitelisted or not
+    var whiteListedUrls = new List<string>() { "/", "/account/login", "/account/registeraccount" , "/account/register", "/account/registerconfirmation"
+    , "/account/confirmemail", "/account/cacregister", "/event/confirmemailneeded"};
+    var shouldRedirect = (whiteListedUrls.Where(p => Request.Url.PathAndQuery.ToLower().Contains(p)).Count()) == 0;
+
+
+    if (env.ToLower() == "development" || env.ToLower() == "navydevsecops")
+    {
+        if (currentUser == null || currentUser.Id == 0)
+        {
+            //get cac header info
+            var cacHeaderInfo = new AccountServices().GetNavyUserFromHeader(ref isValid1, ref message1);
+            if (cacHeaderInfo == null || isValid1 == false)
+            {
+                ViewBag.registerVisible = false;
+                if (shouldRedirect)
+                {
+                    Context.Response.Redirect("/event/NotAuthenticated", false);
+                }
+                if (url.Contains("/event/notauthenticated"))
+                {
+
+                }
+                else if (url.Contains("/"))
+                {
+                    Context.Response.Redirect("/event/NotAuthenticated", false);
+                }
+
+            }
+            else
+            {
+                var userbyIdentifier = AccountServices.GetUserByIdentifier(cacHeaderInfo.Identifier);
+                if (userbyIdentifier == null || userbyIdentifier.Id == 0)
+                {
+                    if (shouldRedirect)
+                    { }
+                    else if (url.Contains("/account/cacregister"))
+                    { }
+                    else if (url.Contains("/account/registerconfirmation"))
+                    { }
+                    //else if (url.Contains("/"))
+                    //{ }
+                    else
+                    {
+                        ViewBag.registerVisible = true;
+                        Context.Response.Redirect("/account/cacregister", false);
+                    }
+
+                }
+                else
+                {
+                    AccountServices.SetUser(userbyIdentifier);
+
+                    currentUser = AccountServices.GetCurrentUser();
+                    if (string.IsNullOrWhiteSpace(userbyIdentifier.Email))
+                    {
+                        if (shouldRedirect)
+                        {
+                            Context.Response.Redirect("/event/NotAuthenticated", false);
+                        }
+                    }
+
+                }
+
+            }
+
+        }
+        else //user is found
+        {
+            if (string.IsNullOrWhiteSpace(currentUser.Email))
+            {
+                if (shouldRedirect)
+                {
+                    Context.Response.Redirect("/event/NotAuthenticated", false);
+                }
+            }
+        }
+    }
+    else
+    {
+        int userId = AccountServices.GetCurrentUserId();
+        var currentAccount = AccountServices.GetUser(userId);
+
+        AppUser confirmedUser = AccountManager.AppUser_CheckIfUserIsConfirmedByEmail(currentAccount.Email);
+
+        if (confirmedUser.Id == 0)
+        {
+            ViewBag.registerVisible = false;
+        }
+        if (string.IsNullOrWhiteSpace(currentAccount.Email))
+        {
+            AccountServices.SetUserByEmail(currentAccount.Email);
+        }
+
+
+    }
+
+    //var url2 = Request.Url.PathAndQuery.ToLower();
+    //if ((currentUser == null || currentUser.Id == 0))
+    //{
+    //    //redirect to home, and make sure not already on home/root
+    //    if (url.Replace("/", "") != Url.Content("~/").Replace("/", "").ToLower() && !url.ToLower().Contains("/account/login") && !url.ToLower().Contains("/notauthenticated"))
+    //    {
+    //        Response.Redirect(Url.Content("~/"));
+    //    }
+    //}
+
+
+    //AppUser user2 = AccountServices.GetUserFromSession();
+    @*else if (!AccountServices.IsUserAuthenticated())
+        {
+
+                string returnUrl = "~/search";
+                LoggingHelper.DoTrace(7, "HomeController.Index");
+                string adminKey = UtilityManager.GetAppKeyValue("adminKey");
+                returnUrl = returnUrl ?? "";
+
+                var appUser = AccountServices.SetUserByIdentifier(navyUser.Identifier);
+                //log an auto login
+                ActivityServices.AdminLoginAsUserAuthentication(appUser);
+                LoggingHelper.DoTrace(2, "HomeController.Index - ***** admin login as " + appUser.ExternalAccountIdentifier);
+                Context.Response.Redirect(returnUrl);
+            }
+        }*@
+
+
+
 }
 <!DOCTYPE html>
 <html>
 <head>
-	<meta charset="utf-8" />
-	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<meta name="robots" content="noindex">
-	<title>@ViewBag.Title - Navy RCDC RRL</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex">
+    <title>@ViewBag.Title - Navy RCDC RRL</title>
 
-	@*<script src="http://code.jquery.com/jquery-3.6.0.js"></script>*@
+    @*<script src="http://code.jquery.com/jquery-3.6.0.js"></script>*@
 
 
-	<link rel="stylesheet" href="//code.jquery.com/ui/1.12.0/themes/base/jquery-ui.css">
-	<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.5.0/css/all.css" integrity="sha384-B4dIYHKNBt8Bc12p+WXckhzcICo0wtJAoU8YZTY5qE0Id1GSseTk6S+L3BlXeVIU" crossorigin="anonymous">
+    <link rel="stylesheet" href="//code.jquery.com/ui/1.12.0/themes/base/jquery-ui.css">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.5.0/css/all.css" integrity="sha384-B4dIYHKNBt8Bc12p+WXckhzcICo0wtJAoU8YZTY5qE0Id1GSseTk6S+L3BlXeVIU" crossorigin="anonymous">
 
-	@Styles.Render( "~/Content/css" )
-	<link rel="stylesheet" type="text/css" href="@Url.Content("~/Content/Site.css?v=2")" /> @* //Bundling doesn't reliably update this so inject it by force *@
-	@Scripts.Render( "~/bundles/modernizr" )
+    @Styles.Render("~/Content/css")
+    <link rel="stylesheet" type="text/css" href="@Url.Content("~/Content/Site.css?v=2")" /> @* //Bundling doesn't reliably update this so inject it by force *@
+    @Scripts.Render("~/bundles/modernizr")
 
-	@Scripts.Render( "~/bundles/jquery" )
-	@Scripts.Render( "~/bundles/bootstrap" )
-	<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
-	@RenderSection( "css", false )
-	@RenderSection( "scripts", required: false )
-	@*<link rel="stylesheet" type="text/css" href="~/Content/DataTables/DataTables-1.11.3/css/dataTables.bootstrap.min.css" />*@
+    @Scripts.Render("~/bundles/jquery")
+    @Scripts.Render("~/bundles/bootstrap")
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+    @RenderSection("css", false)
+    @RenderSection("scripts", required: false)
+    @*<link rel="stylesheet" type="text/css" href="~/Content/DataTables/DataTables-1.11.3/css/dataTables.bootstrap.min.css" />*@
 
-	<script src="~/Scripts/jquery.timepicker.js"></script>
-	<style>
-		.navbar-brand img { vertical-align: middle; width: 30px; }
-		.navbar-right { float: right !important; margin-right: -5px; }
-		.navbar-inverse .navbar-collapse, .navbar-inverse .navbar-form { border-color: #1120e8; }
-		.navbar-inverse { background-color: #202A44; border-color: #202A44; }
-		.navbar-inverse .navbar-nav > li > a { color: #9d9d9d; }
-		.secBanner { width: 100%; height: 25px; color: white; background-color: green; text-align: center; padding: 2px 10px; }
-	
-		.body-content { padding-top: 25px; }
-	</style>
+    <script src="~/Scripts/jquery.timepicker.js"></script>
+    <style>
+        .navbar-brand img {
+            vertical-align: middle;
+            width: 30px;
+        }
+
+        .navbar-right {
+            float: right !important;
+            margin-right: -5px;
+        }
+
+        .navbar-inverse .navbar-collapse, .navbar-inverse .navbar-form {
+            border-color: #1120e8;
+        }
+
+        .navbar-inverse {
+            background-color: #202A44;
+            border-color: #202A44;
+        }
+
+            .navbar-inverse .navbar-nav > li > a {
+                color: #9d9d9d;
+            }
+
+        .secBanner {
+            width: 100%;
+            height: 25px;
+            color: white;
+            background-color: green;
+            text-align: center;
+            padding: 2px 10px;
+        }
+
+        .body-content {
+            padding-top: 25px;
+        }
+    </style>
 </head>
 <body>
-	<div id="mainSiteDiv" class="defaultTheme">
-		
+    <div id="mainSiteDiv" class="defaultTheme">
 
-		<div class="navbar navbar-inverse navbar-fixed-top">
-			<div class="secBanner">@secBannerPhrase</div>
-			<div class="container">
-				<div class="navbar-header">
-					<button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
-						<span class="icon-bar"></span>
-						<span class="icon-bar"></span>
-						<span class="icon-bar"></span>
-					</button>
 
-					<a class="navbar-brand" href="@applicationURL" title="Navy RCDC RRL (Build Version @(System.Configuration.ConfigurationManager.AppSettings.Get("BuildVersion")))"><img src="~/favicon.png" alt="Navy RCDC RRL" /></a>
-				</div>
-				<div class="navbar-collapse collapse">
-					<ul class="nav navbar-nav">
-						<li>
-							<a href="@Url.Content( "~/" )">Home</a>
-						</li>
-					</ul>
+        <div class="navbar navbar-inverse navbar-fixed-top">
+            <div class="secBanner">@secBannerPhrase</div>
+            <div class="container">
+                <div class="navbar-header">
+                    <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                    </button>
 
-					@if ( ( user != null && user.Id > 0 ) || env == "developmentX" )
-					{
-						<ul class="nav navbar-nav">
-							<li><a href="@Url.Content( "~/rmtl/search" )">Rating Master Task List</a></li>
-						</ul>
-						if ( AccountServices.IsUserSiteStaff() || @userCanUploadData )
-						{
-							<ul class="nav navbar-nav">
-								<li><a href="@Url.Content( "~/upload/index" )">Upload Data</a></li>
-							</ul>
-						}
-						//if ( AccountServices.IsUserSiteStaff() || @userCanUploadData )
-						{
+                    <a class="navbar-brand" href="@applicationURL" title="Navy RCDC RRL (Build Version @(System.Configuration.ConfigurationManager.AppSettings.Get("BuildVersion")))"><img src="~/favicon.png" alt="Navy RCDC RRL" /></a>
+                </div>
+                <div class="navbar-collapse collapse">
+                    <ul class="nav navbar-nav">
+                        <li>
+                            <a href="@Url.Content( "~/" )">Home</a>
+                        </li>
+                    </ul>
 
-							<ul class="nav navbar-nav">
-								<li class="dropdown">
-									<a href="#" class="dropdown-toggle" data-toggle="dropdown">Search by Type<b class="caret"></b></a>
-									<ul class="dropdown-menu">
-										<li><a href="@Url.Content( "~/billettitle/search" )">Billet Titles</a></li>
-										<li><a href="@Url.Content( "~/clusteranalysis/search" )">Cluster Analyses</a></li>
-										<li><a href="@Url.Content( "~/clusteranalysistitle/search" )">Cluster Analysis Titles</a></li>
-										<li><a href="@Url.Content( "~/concept/search" )">Concepts</a></li>
-										<li><a href="@Url.Content( "~/conceptscheme/search" )">Concept Schemes</a></li>
-										<li><a href="@Url.Content( "~/course/search" )">Courses</a></li>
-										<li><a href="@Url.Content( "~/coursecontext/search" )">Course Contexts</a></li>
-										<li><a href="@Url.Content( "~/workrole/search" )">Functional Areas</a></li>
-										<li><a href="@Url.Content( "~/organization/search" )">Organizations (CCAs)</a></li>
-										<li><a href="@Url.Content( "~/trainingtask/search" )">Training Tasks</a></li>
-										<li><a href="@Url.Content( "~/rating/search" )">Ratings</a></li>
-										<li><a href="@Url.Content( "~/ratingcontext/search" )">Rating Contexts</a></li>
-										<li><a href="@Url.Content( "~/ratingtask/search" )">Rating Tasks</a></li>
-										<li><a href="@Url.Content( "~/referenceresource/search" )">Reference Resources</a></li>
-										<li><a href="@Url.Content( "~/rmtlproject/search" )">RMTL Projects</a></li>
-									</ul>
-								</li>
-							</ul>
-						}
+                    @if ((currentUser != null && currentUser.Id > 0) || env == "developmentX")
+                    {
+                        <ul class="nav navbar-nav">
+                            <li><a href="@Url.Content( "~/rmtl/search" )">Rating Master Task List</a></li>
+                        </ul>
+                        if (AccountServices.IsUserSiteStaff() || @userCanUploadData)
+                        {
+                            <ul class="nav navbar-nav">
+                                <li><a href="@Url.Content( "~/upload/index" )">Upload Data</a></li>
+                            </ul>
+                        }
+                        //if ( AccountServices.IsUserSiteStaff() || @userCanUploadData )
+                        {
 
-						@*<ul class="nav navbar-nav">
-				<li><a href="@Url.Content( "~/rmtlproject/search" )">RMTL Projects</a></li>
-			</ul>*@
-						@*<ul class="nav navbar-nav">
-				<li class="dropdown">
-					<a href="#" class="dropdown-toggle" data-toggle="dropdown">Authorization Tests<b class="caret"></b></a>
-					<ul class="dropdown-menu">
-						<li><a href="@Url.Content( "~/admin/RmtlDeveloperOnly" )">Rmtl Developer Only</a></li>
-						<li><a href="@Url.Content( "~/admin/RatingContinuumManagerOnly" )">RatingContinuumManagerOnly</a></li>
-						<li><a href="@Url.Content( "~/admin/RCDAnalystOnly" )">RCDAnalystOnly</a></li>
-						<li><a href="@Url.Content( "~/admin/activity" )">Site Staff</a></li>
-					</ul>
-				</li>
-			</ul>*@
+                            <ul class="nav navbar-nav">
+                                <li class="dropdown">
+                                    <a href="#" class="dropdown-toggle" data-toggle="dropdown">Search by Type<b class="caret"></b></a>
+                                    <ul class="dropdown-menu">
+                                        <li><a href="@Url.Content( "~/billettitle/search" )">Billet Titles</a></li>
+                                        <li><a href="@Url.Content( "~/clusteranalysis/search" )">Cluster Analyses</a></li>
+                                        <li><a href="@Url.Content( "~/clusteranalysistitle/search" )">Cluster Analysis Titles</a></li>
+                                        <li><a href="@Url.Content( "~/concept/search" )">Concepts</a></li>
+                                        <li><a href="@Url.Content( "~/conceptscheme/search" )">Concept Schemes</a></li>
+                                        <li><a href="@Url.Content( "~/course/search" )">Courses</a></li>
+                                        <li><a href="@Url.Content( "~/coursecontext/search" )">Course Contexts</a></li>
+                                        <li><a href="@Url.Content( "~/workrole/search" )">Functional Areas</a></li>
+                                        <li><a href="@Url.Content( "~/organization/search" )">Organizations (CCAs)</a></li>
+                                        <li><a href="@Url.Content( "~/trainingtask/search" )">Training Tasks</a></li>
+                                        <li><a href="@Url.Content( "~/rating/search" )">Ratings</a></li>
+                                        <li><a href="@Url.Content( "~/ratingcontext/search" )">Rating Contexts</a></li>
+                                        <li><a href="@Url.Content( "~/ratingtask/search" )">Rating Tasks</a></li>
+                                        <li><a href="@Url.Content( "~/referenceresource/search" )">Reference Resources</a></li>
+                                        <li><a href="@Url.Content( "~/rmtlproject/search" )">RMTL Projects</a></li>
+                                    </ul>
+                                </li>
+                            </ul>
+                        }
 
-					}
+                        @*<ul class="nav navbar-nav">
+                                <li><a href="@Url.Content( "~/rmtlproject/search" )">RMTL Projects</a></li>
+                            </ul>*@
+                        @*<ul class="nav navbar-nav">
+                                <li class="dropdown">
+                                    <a href="#" class="dropdown-toggle" data-toggle="dropdown">Authorization Tests<b class="caret"></b></a>
+                                    <ul class="dropdown-menu">
+                                        <li><a href="@Url.Content( "~/admin/RmtlDeveloperOnly" )">Rmtl Developer Only</a></li>
+                                        <li><a href="@Url.Content( "~/admin/RatingContinuumManagerOnly" )">RatingContinuumManagerOnly</a></li>
+                                        <li><a href="@Url.Content( "~/admin/RCDAnalystOnly" )">RCDAnalystOnly</a></li>
+                                        <li><a href="@Url.Content( "~/admin/activity" )">Site Staff</a></li>
+                                    </ul>
+                                </li>
+                            </ul>*@
 
-					@if ( AccountServices.IsUserAnAdmin() )
-					{
-						<ul class="nav navbar-nav">
-							<li class="dropdown">
-								<a href="#" class="dropdown-toggle" data-toggle="dropdown">Admin<b class="caret"></b></a>
-								<ul class="dropdown-menu">
-									<li>@Html.ActionLink( "Account Management", "accounts", "admin" )</li>
-									<li>@Html.ActionLink( "Add Account", "AddUser", "Account" )</li>
-									<li>@Html.ActionLink( "Manage Role Permissions", "ManageRolePermissions", "admin" )</li>
-									<li>@Html.ActionLink( "Activity Log", "Activity", "admin" )</li>
-									<li>@Html.ActionLink( "RMTL Catalog", "catalog", "rmtl" )</li>
-								</ul>
-							</li>
-						</ul>
-					}
+                    }
 
-					@Html.Partial( "_LoginPartial" )
-				</div>
-			</div>
-		</div>
-		<div class="container body-content">
-			@RenderBody()
-		</div>
+                    @if (AccountServices.IsUserAnAdmin())
+                    {
+                        <ul class="nav navbar-nav">
+                            <li class="dropdown">
+                                <a href="#" class="dropdown-toggle" data-toggle="dropdown">Admin<b class="caret"></b></a>
+                                <ul class="dropdown-menu">
+                                    <li>@Html.ActionLink("Account Management", "accounts", "admin")</li>
+                                    <li>@Html.ActionLink("Add Account", "AddUser", "Account")</li>
+                                    <li>@Html.ActionLink("Manage Role Permissions", "ManageRolePermissions", "admin")</li>
+                                    <li>@Html.ActionLink("Activity Log", "Activity", "admin")</li>
+                                    <li>@Html.ActionLink("RMTL Catalog", "catalog", "rmtl")</li>
+                                </ul>
+                            </li>
+                        </ul>
+                    }
 
-		@Html.Partial( "~/Views/Shared/_ConsoleMessage.cshtml" )
-	</div>
+                    @Html.Partial("_LoginPartial")
+                </div>
+            </div>
+        </div>
+        <div class="container body-content">
+            @RenderBody()
+        </div>
+
+        @Html.Partial("~/Views/Shared/_ConsoleMessage.cshtml")
+    </div>
 </body>
 </html>

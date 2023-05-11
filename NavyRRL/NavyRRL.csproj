@@ -643,6 +643,10 @@
     <Content Include="Views\Shared\_FormHelperV2.cshtml" />
     <Content Include="Views\RMTL\RMTLEditorV1.cshtml" />
     <Content Include="Views\Shared\_TasksBySourceType.cshtml" />
+    <Content Include="Views\Event\ConfirmEmailNeeded.cshtml" />
+    <Content Include="Views\Event\FailedEvent.cshtml" />
+    <Content Include="Views\Event\EmailConfirmed.cshtml" />
+    <Content Include="Views\Account\CacRegister.cshtml" />
     <None Include="Web.NavyDevSecOps.config">
       <DependentUpon>Web.config</DependentUpon>
     </None>

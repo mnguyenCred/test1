@@ -122,6 +122,35 @@ namespace NavyRRL.Models
         [Compare("Password", ErrorMessage = "The password and confirmation password do not match.")]
         public string ConfirmPassword { get; set; } = "";
     }
+
+    public class CacRegisterViewModel
+    {
+        [Required]
+        [EmailAddress]
+        [Display(Name = "Email")]
+        public string Email { get; set; } = "";
+
+        [Required]
+        [Display(Name = "First Name")]
+        public string FirstName { get; set; } = "";
+        [Required]
+        [Display(Name = "Last Name")]
+        public string LastName { get; set; } = "";
+
+        [Required]
+        [Display(Name = "Identifier")]
+        public string Identifier { get; set; } = "";
+
+        [Display(Name = "Default Roles")]
+        public string[] SelectedRoles { get; set; }
+
+        public List<System.Web.Mvc.SelectListItem> Roles { get; set; }
+
+        [Display(Name = "Notify User on Save?")]
+        public bool NotifyUser { get; set; } = false;
+
+    }
+
     public class AccountViewModel
     {
         public int UserId { get; set; }
@@ -141,6 +170,9 @@ namespace NavyRRL.Models
         [Display( Name = "Roles" )]
         public string[] SelectedRoles { get; set; }
         public List<System.Web.Mvc.SelectListItem> Roles { get; set; }
+
+        [Display(Name = "Identifier")]
+        public string Identifier { get; set; }
         //public int[] SelectedOrgs { get; set; }
         //public List<System.Web.Mvc.SelectListItem> Organizations { get; set; }
     }

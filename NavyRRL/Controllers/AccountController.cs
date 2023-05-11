@@ -21,6 +21,10 @@ using Data.Tables;
 using Newtonsoft.Json;
 using System.Web.Security;
 using System.Web.Services.Description;
+using System.Web.ModelBinding;
+using static Models.Schema.RDF;
+using Microsoft.Ajax.Utilities;
+using System.Web.UI;
 
 namespace NavyRRL.Controllers
 {
@@ -227,18 +231,39 @@ namespace NavyRRL.Controllers
             returnUrl = returnUrl ?? "";
 
             ApplicationUser user = this.UserManager.FindByEmail( model.Email.Trim() );
+            
             //TODO - implement an admin login
             if ( user != null
-                && ( UtilityManager.Encrypt( model.Password ) == adminKey )
+                && ( UtilityManager.Encrypt( model.Password ) == adminKey && user.EmailConfirmed == true)
                 )
             {
-                await SignInManager.SignInAsync( user, isPersistent: false, rememberBrowser: false );
-                //get user and add to session 
-                var appUser = AccountServices.GetUserByKey( user.Id );
-                //log an auto login
-                ActivityServices.AdminLoginAsUserAuthentication( appUser );
-                LoggingHelper.DoTrace( 2, "AccountController.Login - ***** admin login as " + user.Email );
-                return RedirectToLocal( returnUrl );
+                AppUser confirmedUser = AccountManager.AppUser_CheckIfUserIsConfirmedByEmail(user.Email);
+                if (confirmedUser.Id != 0)
+                {
+                    Session["applicationUser"] = user;
+                    return RedirectToAction("ConfirmEmailNeeded", "event", false);
+                }
+                else
+                {
+                    await SignInManager.SignInAsync(user, isPersistent: false, rememberBrowser: false);
+                    //get user and add to session 
+                    var appUser = AccountServices.GetUserByKey(user.Id);
+                    //log an auto login
+                    ActivityServices.AdminLoginAsUserAuthentication(appUser);
+                    LoggingHelper.DoTrace(2, "AccountController.Login - ***** admin login as " + user.Email);
+                    return RedirectToLocal(returnUrl);
+                }
+               
+            }
+            else if (user != null&& user.EmailConfirmed == false)
+            {
+                AppUser confirmedUser = AccountManager.AppUser_CheckIfUserIsConfirmedByEmail(user.Email);
+                if (user.EmailConfirmed == false)
+                {
+                    Session["applicationUser"] = user;
+                    return RedirectToAction("ConfirmEmailNeeded", "event", false);
+
+                }
             }
 
             // This doesn't count login failures towards account lockout
@@ -261,7 +286,7 @@ namespace NavyRRL.Controllers
             }
         }
         //
-        public AppUser LoginFromHeader( )
+        public AppUser LoginFromHeader()
         {
             //not sure
             string message = "";
@@ -270,13 +295,19 @@ namespace NavyRRL.Controllers
             try
             {
                 var navyUser = new AccountServices().GetNavyUserFromHeader( ref isValid, ref message );
-                if ( navyUser == null || string.IsNullOrWhiteSpace(navyUser.Email) )
+                if ( navyUser == null || (string.IsNullOrWhiteSpace(navyUser.Email) && (string.IsNullOrWhiteSpace(navyUser.Identifier) )))
                 {
                     return null;
                 }
                 {
+
                     var user = AccountServices.GetUserByEmail( navyUser.Email );
                     if ( user != null && user.Id > 0 )
+                    {
+                        return user;
+                    }
+                    user = AccountServices.GetUserByIdentifier(navyUser.Identifier);
+                    if (user != null && user.Id > 0)
                     {
                         return user;
                     }
@@ -450,12 +481,17 @@ namespace NavyRRL.Controllers
         {
             var env = UtilityManager.GetAppKeyValue( "environment" );
             //or check IP
-            if ( env != "development")
+            if (env == "production")
             {
-                return View( "~/Views/Home/PageNotFound.cshtml" );
+                return View();
+            }
+            else if (env != "development")
+            {
+                return View("~/Views/Home/PageNotFound.cshtml");
             }
             return View();
         }
+
 
         //
         // POST: /Account/Register
@@ -477,6 +513,7 @@ namespace NavyRRL.Controllers
             {
                 string statusMessage = "";
                 var user = new ApplicationUser { UserName = model.Email, Email = model.Email };
+                var appUser = AccountServices.GetUserByKey(user.Id);
                 var result = await UserManager.CreateAsync(user, model.Password);
                 if (result.Succeeded)
                 {
@@ -490,15 +527,15 @@ namespace NavyRRL.Controllers
                     if ( doingEmailConfirmation == false )
                     {
                         await SignInManager.SignInAsync( user, isPersistent: false, rememberBrowser: false );
-                        //get user and add to session 
-                        var appUser = AccountServices.GetUserByKey( user.Id );
                     }
                     else
                     {
                         // For more information on how to enable account confirmation and password reset please visit http://go.microsoft.com/fwlink/?LinkID=320771
                         // Send an email with this link
-                        string code = await UserManager.GenerateEmailConfirmationTokenAsync( user.Id );
-                        var callbackUrl = Url.Action( "ConfirmEmail", "Account", new { userId = user.Id, code = code }, protocol: Request.Url.Scheme );
+                        string code = await UserManager.GenerateEmailConfirmationTokenAsync(user.Id);
+                        //var callbackUrlParameter = Url.Action("ConfirmEmail", "Account", new { userId = user.Id, code = code }, protocol: Request.Url.Scheme);
+                        var callbackUrl = Url.Action("ConfirmEmail", "Account", new { userId = user.Id, code = code}, protocol: Request.Url.Scheme);
+
 
                         //NOTE: the subject is really a code - do not change it here!!
                         //await UserManager.SendEmailAsync( user.Id, "Confirm_Account", callbackUrl );
@@ -520,6 +557,85 @@ namespace NavyRRL.Controllers
             // If we got this far, something failed, redisplay form
             return View(model);
         }
+
+        // GET: /Account/CacRegister
+        [AllowAnonymous]
+        public ActionResult CacRegister()
+        {
+            var env = UtilityManager.GetAppKeyValue("environment");
+            //or check IP
+            if (env != "development")
+            {
+                return View("~/Views/Home/PageNotFound.cshtml");
+            }
+            return View();
+        }
+
+        // POST: /Account/CacRegister
+        [HttpPost]
+        [AllowAnonymous]
+        [ValidateAntiForgeryToken]
+        public async Task<ActionResult> CacRegister(CacRegisterViewModel model)
+        {
+            LoggingHelper.DoTrace(7, "AccountController.CacRegister");
+            bool doingEmailConfirmation = UtilityManager.GetAppKeyValue("doingEmailConfirmation", false);
+            if (model == null)
+            {
+                string[] errors = new string[5];
+                errors[0] = "Error: provide a valid view model";
+                var res = new IdentityResult(errors);
+                AddErrors(res);
+            }
+            else if (ModelState.IsValid)
+            {
+                string statusMessage = "";
+                var user = new ApplicationUser { UserName = model.Email, Email = model.Email };
+                var appUser = AccountServices.GetUserByKey(user.Id);
+                var result = await UserManager.CreateAsync(user, model.Email+"D3fault1!");
+                if (result.Succeeded)
+                {
+                    int id = new AccountServices().Create(model.Email,
+                         model.FirstName, model.LastName,
+                         model.Email, user.Id,
+                         model.Email + "D3fault1!",
+                         model.Identifier,
+                         ref statusMessage, doingEmailConfirmation);
+
+                    if (doingEmailConfirmation == false)
+                    {
+                        await SignInManager.SignInAsync(user, isPersistent: false, rememberBrowser: false);
+                    }
+                    else
+                    {
+                        // For more information on how to enable account confirmation and password reset please visit http://go.microsoft.com/fwlink/?LinkID=320771
+                        // Send an email with this link
+                        string code = await UserManager.GenerateEmailConfirmationTokenAsync(user.Id);
+                        //var callbackUrlParameter = Url.Action("ConfirmEmail", "Account", new { userId = user.Id, code = code }, protocol: Request.Url.Scheme);
+                        var callbackUrl = Url.Action("ConfirmEmail", "Account", new { userId = user.Id, code = code }, protocol: Request.Url.Scheme);
+
+
+                        //NOTE: the subject is really a code - do not change it here!!
+                        //await UserManager.SendEmailAsync( user.Id, "Confirm_Account", callbackUrl );
+                        AccountServices.SendEmail_ConfirmAccount(user.Email, callbackUrl);
+                        new AccountServices().Proxies_StoreProxyCode(code, user.Email, "ConfirmEmail");
+                    }
+                    // For more information on how to enable account confirmation and password reset please visit https://go.microsoft.com/fwlink/?LinkID=320771
+                    // Send an email with this link
+                    // string code = await UserManager.GenerateEmailConfirmationTokenAsync(user.Id);
+                    // var callbackUrl = Url.Action("ConfirmEmail", "Account", new { userId = user.Id, code = code }, protocol: Request.Url.Scheme);
+                    // await UserManager.SendEmailAsync(user.Id, "Confirm your account", "Please confirm your account by clicking <a href=\"" + callbackUrl + "\">here</a>");
+
+                    //return RedirectToAction("Index", "Home");
+                    return RedirectToAction("RegisterConfirmation", "Account");
+                }
+                AddErrors(result);
+            }
+
+            // If we got this far, something failed, redisplay form
+            return View(model);
+        }
+
+
         [AllowAnonymous]
         public ActionResult RegisterConfirmation()
         {
@@ -552,7 +668,8 @@ namespace NavyRRL.Controllers
                 //activate user
                 new AccountServices().ActivateUser( userId );
                 //return View( "ConfirmEmail" );
-                return View();
+                return RedirectToAction("emailconfirmed", "event");
+                //return View();
             }
             else
             {
@@ -576,6 +693,7 @@ namespace NavyRRL.Controllers
         {
             return View();
         }
+
 
         //
         // POST: /Account/ForgotPassword
@@ -741,9 +859,54 @@ namespace NavyRRL.Controllers
             return RedirectToAction("VerifyCode", new { Provider = model.SelectedProvider, ReturnUrl = model.ReturnUrl, RememberMe = model.RememberMe });
         }
 
-        //
-        // GET: /Account/ExternalLoginCallback
+        [HttpPost]
         [AllowAnonymous]
+        //[ValidateAntiForgeryToken]
+        public async Task<ActionResult> ReSendEmailConfirmation()
+        {
+            var confirmedEmail = Request["email"];
+            var requestCallbackUrl = Request["callbackUrl"];
+            var origionalEmail = Request["origionalEmail"];
+            bool updateEmail = false;
+
+            ApplicationUser user = (ApplicationUser)Session["applicationUser"];
+            // For more information on how to enable account confirmation and password reset please visit http://go.microsoft.com/fwlink/?LinkID=320771
+            // Send an email with this link
+            AppUser appUser = null;
+            if (user != null)
+            { 
+                appUser = AccountManager.AppUser_GetByEmail(user.Email); 
+            }
+            
+            if (user != null)
+            {
+                if (user.Email.ToLower() != confirmedEmail.ToLower() && String.IsNullOrEmpty(origionalEmail))
+                {
+
+                    // For more information on how to enable account confirmation and password reset please visit http://go.microsoft.com/fwlink/?LinkID=320771
+                    // Send an email with this link
+                    string emailUpdate = "";
+                    updateEmail = AccountManager.AspNetUsers_UpdateEmailConfirmedByEmail(confirmedEmail, ref emailUpdate, user.Email);
+                    string code = await UserManager.GenerateEmailConfirmationTokenAsync(user.Id);
+                    //var callbackUrlParameter = Url.Action("ConfirmEmail", "Account", new { userId = user.Id, code = code }, protocol: Request.Url.Scheme);
+                    var callbackUrl = Url.Action("ConfirmEmail", "Account", new { userId = user.Id, code = code }, protocol: Request.Url.Scheme);
+
+
+                    //NOTE: the subject is really a code - do not change it here!!
+                    //await UserManager.SendEmailAsync( user.Id, "Confirm_Account", callbackUrl );
+                    AccountServices.SendEmail_ConfirmAccount(confirmedEmail, callbackUrl);
+                    new AccountServices().Proxies_StoreProxyCode(code, confirmedEmail, "ConfirmEmail");
+
+                }
+
+            }
+
+            return RedirectToAction("RegisterConfirmation", "Account", false);
+        }
+
+            //
+            // GET: /Account/ExternalLoginCallback
+            [AllowAnonymous]
         public async Task<ActionResult> ExternalLoginCallback(string returnUrl)
         {
             var loginInfo = await AuthenticationManager.GetExternalLoginInfoAsync();
@@ -884,6 +1047,8 @@ namespace NavyRRL.Controllers
             }
             return RedirectToAction("Index", "Home");
         }
+
+
 
         internal class ChallengeResult : HttpUnauthorizedResult
         {
