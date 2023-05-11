@@ -757,7 +757,7 @@ namespace Factories
 
 			return entity;
 		}
-		*/
+		
 		public static AppUser GetUserByUserName( string username )
 		{
 			AppUser entity = new AppUser();
