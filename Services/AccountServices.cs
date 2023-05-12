@@ -976,7 +976,7 @@ namespace Services
 
 			return user;
 		} //
-		/*
+		///*
 		public static AppUser GetUserByCEAccountId( string accountIdentifier, bool addingToSession = false )
 		{
 			AppUser user = AccountManager.GetUserByCEAccountId( accountIdentifier );
