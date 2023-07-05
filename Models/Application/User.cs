@@ -33,11 +33,13 @@ namespace Models.Application
 
 		public int DefaultRoleId { get; set; }
 
-		/// <summary>
-		/// Returns full name of user
-		/// </summary>
-		/// <returns></returns>
-		public string FullName()
+        public bool EmailConfirmed { get; set; }
+
+        /// <summary>
+        /// Returns full name of user
+        /// </summary>
+        /// <returns></returns>
+        public string FullName()
 		{
 			if ( string.IsNullOrWhiteSpace( FirstName ) )
 				return "Incomplete - Update Profile";

@@ -32,8 +32,29 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Database", "Database", "{E7
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "DevSecOpps", "DevSecOpps", "{D9BF4CB1-ECE8-493D-9AF0-41D5B3E30BF4}"
 	ProjectSection(SolutionItems) = preProject
-		DevSecOpps\DevSecOpps deploy notes 23-01-19.txt = DevSecOpps\DevSecOpps deploy notes 23-01-19.txt
-		DevSecOpps\DevSecOpps deploy notes 23-02-06.txt = DevSecOpps\DevSecOpps deploy notes 23-02-06.txt
+		DevSecOpps\DevSecOpps deploy steps.txt = DevSecOpps\DevSecOpps deploy steps.txt
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "23-06-30", "23-06-30", "{734D6D2E-0C1B-4394-AC11-F82553A59273}"
+	ProjectSection(SolutionItems) = preProject
+		DevSecOpps\23-06-30\DevSecOpps deploy notes 23-06-30.txt = DevSecOpps\23-06-30\DevSecOpps deploy notes 23-06-30.txt
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Database", "Database", "{F01A61E4-C809-44EE-8730-E99E1A373C93}"
+	ProjectSection(SolutionItems) = preProject
+		DevSecOpps\23-06-30\Database\AccountSearch.sql = DevSecOpps\23-06-30\Database\AccountSearch.sql
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "23-02-24", "23-02-24", "{8B14857C-29FF-43B9-AF91-A1C06E78BE10}"
+	ProjectSection(SolutionItems) = preProject
+		DevSecOpps\23-02-24\APIKey - Add Table and Constraint.sql = DevSecOpps\23-02-24\APIKey - Add Table and Constraint.sql
+		DevSecOpps\23-02-24\DevSecOpps deploy notes 23-02-24.txt = DevSecOpps\23-02-24\DevSecOpps deploy notes 23-02-24.txt
+		DevSecOpps\23-02-24\ProtectedSystemEntities - Remove ICW1 as a protected entity.sql = DevSecOpps\23-02-24\ProtectedSystemEntities - Remove ICW1 as a protected entity.sql
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "23-03-23", "23-03-23", "{BA862FA8-0E45-4EED-853E-0A1C89D11EEC}"
+	ProjectSection(SolutionItems) = preProject
+		DevSecOpps\23-03-23\DevSecOpps deploy notes 23-03-23.txt = DevSecOpps\23-03-23\DevSecOpps deploy notes 23-03-23.txt
 	EndProjectSection
 EndProject
 Global
@@ -124,6 +145,10 @@ Global
 		{3518BD04-FF94-45FE-B025-0A2EC10076D2} = {D70211CA-445D-49CB-BE9B-8271CC450C2C}
 		{40957F65-5629-488F-865E-6C78E78479CC} = {D70211CA-445D-49CB-BE9B-8271CC450C2C}
 		{EB09A977-9D61-4445-8552-EF53962BA2C9} = {B68D89F6-17CB-4076-8609-B878C4630B58}
+		{734D6D2E-0C1B-4394-AC11-F82553A59273} = {D9BF4CB1-ECE8-493D-9AF0-41D5B3E30BF4}
+		{F01A61E4-C809-44EE-8730-E99E1A373C93} = {734D6D2E-0C1B-4394-AC11-F82553A59273}
+		{8B14857C-29FF-43B9-AF91-A1C06E78BE10} = {D9BF4CB1-ECE8-493D-9AF0-41D5B3E30BF4}
+		{BA862FA8-0E45-4EED-853E-0A1C89D11EEC} = {D9BF4CB1-ECE8-493D-9AF0-41D5B3E30BF4}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {F64899F8-591B-4094-936A-36A3B4C6EA13}

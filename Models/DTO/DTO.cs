@@ -149,4 +149,50 @@ namespace Models.DTO
 	}
 	//
 
+	public class MergeSummary
+	{
+		public MergeSummary( Guid rowID ) {
+			RowId = rowID;
+			Incoming = new List<MergeSummaryItem>();
+			Outgoing = new List<MergeSummaryItem>();
+			Messages = new List<string>();
+		}
+
+		public string Label { get; set; }
+		public int Id { get; set; }
+		public Guid RowId { get; set; }
+		public List<MergeSummaryItem> Incoming { get; set; }
+		public List<MergeSummaryItem> Outgoing { get; set; }
+		public bool Valid { get; set; }
+		public List<string> Messages { get; set; }
+	}
+	//
+
+	public class MergeSummaryItem
+	{
+		public MergeSummaryItem() { }
+		public MergeSummaryItem( int count, string type )
+		{
+			Count = count;
+			Type = type;
+		}
+
+		public int Count { get; set; }
+		public string Type { get; set; }
+	}
+	//
+
+	public class MergeAttempt
+	{
+		public MergeAttempt()
+		{
+			Messages = new List<string>();
+		}
+
+		public Guid Source { get; set; }
+		public Guid Destination { get; set; }
+		public bool Valid { get; set; }
+		public List<string> Messages { get; set; }
+	}
+	//
 }

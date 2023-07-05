@@ -958,16 +958,9 @@ namespace Services
         public static AppUser GetUserByIdentifier(string identifier)
         {
             AppUser user = AccountManager.AppUser_GetByIdentifier(identifier);
-			AppUser confirmedUser = AccountManager.AppUser_CheckIfUserIsConfirmedByEmail(user.Email);
 
-			if(confirmedUser.Id != 0)
-			{
-                return user;
-            }
-			else 
-			{
-				return null; 
-			}
+            return user;
+
 
         } //
         public static AppUser GetUserByUserName( string username )

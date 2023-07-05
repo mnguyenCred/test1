@@ -1,0 +1,16 @@
+﻿@{
+    ViewBag.Title = "Merge Organizations";
+}
+
+@Html.Partial( "~/Views/Shared/_AJAXTools.cshtml" )
+@Html.Partial( "~/Views/Shared/_MergeHelper.cshtml" )
+
+<script type="text/javascript">
+	$(document).ready(function () {
+		setupMergeHelper($(".merge"), "Organization", "Organization (CCA)");
+	});
+</script>
+
+<h2>Merge Organizations</h2>
+
+<div class="merge"></div>

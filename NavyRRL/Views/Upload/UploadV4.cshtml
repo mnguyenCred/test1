@@ -594,7 +594,7 @@
 				rowData[key] = rowData[TBox.Model[key].LookupProperty];
 				(Array.isArray(rowData[key]) ? rowData[key] : [rowData[key]]).filter(item => item).forEach(value => {
 					AJAX.getResource(getURLForRowIDLookup(value), success => {
-						var newValue = success[TBox.Model[key].LookupRender];
+						var newValue = success[TBox.Model[key].LookupRender] || success.CodedNotation || success.Name || success.Description || "Error: Unknown Value";
 						Array.isArray(rowData[key]) ?
 							(rowData[key][rowData[key].indexOf(value)] = newValue) :
 							(rowData[key] = newValue);

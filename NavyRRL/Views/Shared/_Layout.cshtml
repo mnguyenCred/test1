@@ -7,6 +7,7 @@
 
 @{
     var env = UtilityManager.GetAppKeyValue("environment", "production");
+    var requireCacCard = UtilityManager.GetAppKeyValue("requireCacCard");
     var secBannerPhrase = UtilityManager.GetAppKeyValue("securityBannerPhrase", "");
     var RMTLFunctionCode = "rmtl.create";
     var userCanUploadData = false;
@@ -17,12 +18,11 @@
     string message1 = "";
     bool isValid1 = true;
     //figure out weather redirect from curent page, if its whitelisted or not
-    var whiteListedUrls = new List<string>() { "/", "/account/login", "/account/registeraccount" , "/account/register", "/account/registerconfirmation"
-    , "/account/confirmemail", "/account/cacregister", "/event/confirmemailneeded"};
+    var whiteListedUrls = new List<string>() { "/", "/account/login", "/account/registeraccount" , "/account/register", "/account/registerconfirmation", "/account/confirmemail", "/account/cacregister", "/event/confirmemailneeded", "search" };
     var shouldRedirect = (whiteListedUrls.Where(p => Request.Url.PathAndQuery.ToLower().Contains(p)).Count()) == 0;
 
 
-    if (env.ToLower() == "development" || env.ToLower() == "navydevsecops")
+    if (requireCacCard.ToLower() == "true")
     {
         if (currentUser == null || currentUser.Id == 0)
         {
@@ -48,16 +48,26 @@
             else
             {
                 var userbyIdentifier = AccountServices.GetUserByIdentifier(cacHeaderInfo.Identifier);
-                if (userbyIdentifier == null || userbyIdentifier.Id == 0)
+                if (userbyIdentifier.EmailConfirmed == false || userbyIdentifier.Id == 0)
                 {
+
                     if (shouldRedirect)
                     { }
                     else if (url.Contains("/account/cacregister"))
                     { }
                     else if (url.Contains("/account/registerconfirmation"))
                     { }
+                    else if (url.Contains("/event/confirmemailneeded"))
+                    { }
                     //else if (url.Contains("/"))
                     //{ }
+                    else if (userbyIdentifier.EmailConfirmed == false && userbyIdentifier.Email != null)
+                    {
+                        Session["appUser"] = userbyIdentifier;
+                        Context.Response.Redirect("/event/ConfirmEmailNeeded", false);
+
+
+                    }
                     else
                     {
                         ViewBag.registerVisible = true;
@@ -69,12 +79,12 @@
                 {
                     AccountServices.SetUser(userbyIdentifier);
 
-                    currentUser = AccountServices.GetCurrentUser();
+                    currentUser = userbyIdentifier;
                     if (string.IsNullOrWhiteSpace(userbyIdentifier.Email))
                     {
                         if (shouldRedirect)
                         {
-                            Context.Response.Redirect("/event/NotAuthenticated", false);
+                            Context.Response.Redirect("/account/cacregister", false);
                         }
                     }
 
@@ -94,27 +104,22 @@
             {
                 if (shouldRedirect)
                 {
-                    Context.Response.Redirect("/event/NotAuthenticated", false);
+                    Context.Response.Redirect("/account/cacregister", false);
                 }
             }
         }
     }
     else
     {
-        int userId = AccountServices.GetCurrentUserId();
-        var currentAccount = AccountServices.GetUser(userId);
 
-        AppUser confirmedUser = AccountManager.AppUser_CheckIfUserIsConfirmedByEmail(currentAccount.Email);
-
-        if (confirmedUser.Id == 0)
+        if (currentUser == null ||currentUser.Id == 0)
         {
             ViewBag.registerVisible = false;
         }
-        if (string.IsNullOrWhiteSpace(currentAccount.Email))
+        else if(currentUser.EmailConfirmed == false)
         {
-            AccountServices.SetUserByEmail(currentAccount.Email);
+            Context.Response.Redirect("/account/confirmemail", false);
         }
-
 
     }
 

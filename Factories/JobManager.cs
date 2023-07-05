@@ -47,14 +47,6 @@ namespace Factories
 		}
 		//
 
-		public static void Dupe2( IQueryable<DBEntity> haystack, string entValue, Func<DBEntity, bool> GetDBValue )
-		{
-			if( haystack.Where( GetDBValue ).Count() > 0 )
-			{
-
-			}
-		}
-
 		private static void SaveCore( AppEntity entity, int userID, string saveType, Action<string> AddErrorMethod )
 		{
 			using ( var context = new DataEntities() )
@@ -80,9 +72,42 @@ namespace Factories
 		}
 		//
 
-        #endregion
+		public static Models.DTO.MergeSummary GetMergeSummary( Guid rowID )
+		{
+			return GetMergeSummary( "Billet Title", rowID, m => m.Job, ( context, match, summary ) =>
+			{
+				//Label
+				summary.Label = match.Name;
 
-        #region Retrieval
+				//Incoming
+				summary.Incoming.Add( new Models.DTO.MergeSummaryItem( context.RatingContext.Where( m => m.Job.RowId == match.RowId ).Count(), "Rating Contexts" ) );
+				summary.Incoming.Add( new Models.DTO.MergeSummaryItem( context.ClusterAnalysis.Where( m => m.Job.RowId == match.RowId ).Count(), "Cluster Analyses" ) );
+			} );
+		}
+		//
+
+		public static void DoMerge( Models.DTO.MergeAttempt attempt )
+		{
+			DoMerge( attempt, m => m.Job, ( context, source, destination ) =>
+			{
+				foreach ( var item in context.RatingContext.Where( m => m.Job.RowId == source.RowId ) )
+				{
+					item.BilletTitleId = destination.Id;
+				}
+
+				foreach ( var item in context.ClusterAnalysis.Where( m => m.Job.RowId == source.RowId ) )
+				{
+					item.BilletTitleId = destination.Id;
+				}
+			} );
+		}
+		//
+
+
+
+		#endregion
+
+		#region Retrieval
 		public static AppEntity GetSingleByFilter( Func<DBEntity, bool> FilterMethod, bool returnNullIfNotFound = false )
 		{
 			return GetSingleByFilter<DBEntity, AppEntity>( context => context.Job, FilterMethod, MapFromDB, returnNullIfNotFound );

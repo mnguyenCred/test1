@@ -168,10 +168,17 @@ namespace Services
 				summary.AllRatings = RatingManager.GetAll();
 				summary.AllOrganizations = OrganizationManager.GetAll();
 
+				//Inject "N/A" into any blank values for Name/CodedNotation, since N/A values coming in from cells will be rejected before being compared, and since we have to accommodate Concepts in any Scheme that may be missing either Name or CodedNotation, and we want to avoid unintended matches on blanks, nulls, etc.
+				foreach( var concept in summary.ConceptSchemeMap.AllConcepts )
+				{
+					concept.Name = string.IsNullOrWhiteSpace( concept.Name ) ? "N/A" : concept.Name;
+					concept.CodedNotation = string.IsNullOrWhiteSpace( concept.Name ) ? "N/A" : concept.CodedNotation;
+				}
+
 				//Sort these concepts for later
 				summary.CandidatePlatformRegexHelpers = summary.ConceptSchemeMap.CandidatePlatformCategory.Concepts
 					.SelectMany( m => new List<ConceptRegexHelper>() { new ConceptRegexHelper() { Value = m.Name, Concept = m }, new ConceptRegexHelper() { Value = m.CodedNotation, Concept = m } } )
-					.Where( m => !string.IsNullOrWhiteSpace( m.Value ) )
+					.Where( m => !string.IsNullOrWhiteSpace( m.Value ) && m.Value.ToLower() != "n/a" )
 					.OrderByDescending( m => m.Value.Contains( "/" ) ).ThenByDescending( m => m.Value.Length ).ToList();
 				summary.CandidatePlatformRegexHelpers.ForEach( m => m.RegexEscapedValue = Regex.Escape( m.Value ) );
 				//summary.ConceptSchemeMap.CandidatePlatformCategory.Concepts = summary.ConceptSchemeMap.CandidatePlatformCategory.Concepts.OrderByDescending( m => m.CodedNotation.Contains( "/" ) ).ThenByDescending( m => m.CodedNotation.Length ).ToList();
@@ -217,7 +224,8 @@ namespace Services
 
 			//Rating for this Row (for comparison)
 			var rowRating = GetDataOrError( summary.AllRatings, ( m ) => 
-				m.CodedNotation?.ToLower() == item.Row.Rating_CodedNotation?.ToLower(), 
+				m.CodedNotation?.ToLower() == item.Row.Rating_CodedNotation?.ToLower() || //Preferred
+				m.Name?.ToLower() == item.Row.Rating_CodedNotation?.ToLower(), //Not preferred
 				result, 
 				"Rating indicated by this row is missing, empty, or N/A.",
 				"Rating indicated by this row was not found in database: \"" + TextOrNA( item.Row.Rating_CodedNotation ) + "\"",
@@ -235,7 +243,8 @@ namespace Services
 
 			//Pay Grade
 			var rowPayGrade = GetDataOrError( summary.ConceptSchemeMap.PayGradeCategory.Concepts, ( m ) => 
-				m.CodedNotation?.ToLower() == item.Row.PayGradeType_CodedNotation?.ToLower(), 
+				m.CodedNotation?.ToLower() == item.Row.PayGradeType_CodedNotation?.ToLower() || //Preferred
+				m.Name?.ToLower() == item.Row.PayGradeType_CodedNotation?.ToLower(), //Not preferred
 				result, 
 				"Rank is missing, empty, or N/A.",
 				"Rank not found in database: \"" + TextOrNA( item.Row.PayGradeType_CodedNotation ) + "\"",
@@ -244,7 +253,8 @@ namespace Services
 
 			//Pay Grade Level (A/J/M)
 			var rowPayGradeLevel = GetDataOrError( summary.ConceptSchemeMap.PayGradeLevelCategory.Concepts, ( m ) =>
-				m.CodedNotation?.ToLower() == item.Row.Level_Name?.ToLower(),
+				m.CodedNotation?.ToLower() == item.Row.Level_Name?.ToLower() || //Preferred
+				m.Name?.ToLower() == item.Row.Level_Name?.ToLower(), //Not preferred
 				result,
 				"Level (A/J/M) is missing, empty, or N/A.",
 				"Level (A/J/M) not found in database: \"" + TextOrNA( item.Row.Level_Name ) + "\"",
@@ -260,8 +270,9 @@ namespace Services
 
 			//Reference Resource Type (via Work Element Type)
 			var rowSourceType = GetDataOrError( summary.ConceptSchemeMap.ReferenceResourceCategory.Concepts, ( m ) => 
-				m.WorkElementType?.ToLower() == item.Row.Shared_ReferenceType?.ToLower() ||
-				m.CodedNotation?.ToLower() == item.Row.Shared_ReferenceType?.ToLower(), 
+				m.WorkElementType?.ToLower() == item.Row.Shared_ReferenceType?.ToLower() || //Preferred
+				m.CodedNotation?.ToLower() == item.Row.Shared_ReferenceType?.ToLower() || //Not preferred
+				m.Name?.ToLower() == item.Row.Shared_ReferenceType?.ToLower(), //Not preferred 
 				result,
 				"Work Element Type is missing, empty, or N/A.",
 				"Work Element Type not found in database: \"" + TextOrNA( item.Row.Shared_ReferenceType ) + "\"",
@@ -270,7 +281,8 @@ namespace Services
 
 			//Task Applicability Type
 			var rowTaskApplicabilityType = GetDataOrError( summary.ConceptSchemeMap.TaskApplicabilityCategory.Concepts, ( m ) => 
-				m.Name?.ToLower() == item.Row.RatingTask_ApplicabilityType_Name?.ToLower(), 
+				m.Name?.ToLower() == item.Row.RatingTask_ApplicabilityType_Name?.ToLower() || //Preferred
+				m.CodedNotation?.ToLower() == item.Row.RatingTask_ApplicabilityType_Name?.ToLower(), //Not preferred 
 				result,
 				"Task Applicability Type is missing, empty, or N/A.",
 				"Task Applicability Type not found in database: \"" + TextOrNA( item.Row.RatingTask_ApplicabilityType_Name ) + "\"",
@@ -279,7 +291,8 @@ namespace Services
 
 			//Training Gap Type
 			var rowTrainingGapType = GetDataOrError( summary.ConceptSchemeMap.TrainingGapCategory.Concepts, ( m ) => 
-				m.Name?.ToLower() == item.Row.RatingTask_TrainingGapType_Name?.ToLower(), 
+				m.Name?.ToLower() == item.Row.RatingTask_TrainingGapType_Name?.ToLower() || //Preferred
+				m.CodedNotation?.ToLower() == item.Row.RatingTask_TrainingGapType_Name?.ToLower(), //Not preferred  
 				result,
 				"Training Gap Type is missing, empty, or N/A.",
 				"Training Gap Type not found in database: \"" + TextOrNA( item.Row.RatingTask_TrainingGapType_Name ) + "\"",
@@ -409,7 +422,8 @@ namespace Services
 			var rowCourseTypeList = GetDataListOrErrorForEach(
 				summary.ConceptSchemeMap.CourseCategory.Concepts,
 				SplitAndTrim( item.Row.Course_CourseType_Name, new List<string>() { ",", ";", "|" } ),
-				( concept, value ) => value?.ToLower() == concept.Name?.ToLower(),
+				( concept, value ) => value?.ToLower() == concept.Name?.ToLower() || //Preferred
+				value?.ToLower() == concept.CodedNotation?.ToLower(), //Not preferred
 				result,
 				item.Row.Course_CourseType_Name,
 				"Course Type is missing, empty, or N/A.",
@@ -445,7 +459,8 @@ namespace Services
 			var rowAssessmentMethodTypeList = GetDataListOrErrorForEach(
 				summary.ConceptSchemeMap.AssessmentMethodCategory.Concepts,
 				SplitAndTrim( item.Row.Course_AssessmentMethodType_Name, new List<string>() { ",", ";", "|" } ),
-				( concept, value ) => value?.ToLower() == concept.Name?.ToLower(),
+				( concept, value ) => value?.ToLower() == concept.Name?.ToLower() || //Preferred
+				value?.ToLower() == concept.CodedNotation?.ToLower(), //Not preferred
 				result,
 				item.Row.Course_AssessmentMethodType_Name,
 				"Assessment Method Type is missing, empty, or N/A.",
@@ -656,8 +671,8 @@ namespace Services
 			#region Part III  - components check
 			//Training Solution Type
 			var rowTrainingSolutionType = GetDataOrError( summary.ConceptSchemeMap.TrainingSolutionCategory.Concepts, ( m ) =>
-				m.Name?.ToLower() == item.Row.Training_Solution_Type?.ToLower() || 
-				m.CodedNotation?.ToLower() == item.Row.Training_Solution_Type?.ToLower(), 
+				m.Name?.ToLower() == item.Row.Training_Solution_Type?.ToLower() || //Preferred
+				m.CodedNotation?.ToLower() == item.Row.Training_Solution_Type?.ToLower(), //Also preferred
 				result,
 				"Training Solution Type is missing, empty, or N/A.",
 				"Training Solution Type not found in database: \"" + TextOrNA( item.Row.Training_Solution_Type ) + "\"", 
@@ -666,8 +681,8 @@ namespace Services
 
 			//Recommended Modality Type
 			var rowRecommendModalityType = GetDataOrError( summary.ConceptSchemeMap.RecommendedModalityCategory.Concepts, ( m ) =>
-				m.Name?.ToLower() == item.Row.Recommended_Modality?.ToLower() || 
-				m.CodedNotation?.ToLower() == item.Row.Recommended_Modality?.ToLower(), 
+				m.Name?.ToLower() == item.Row.Recommended_Modality?.ToLower() || //Preferred
+				m.CodedNotation?.ToLower() == item.Row.Recommended_Modality?.ToLower(), //Also preferred
 				result,
 				"Recommended Modality Type is missing, empty, or N/A.",
 				"Recommended Modality Type not found in database: \"" + TextOrNA( item.Row.Recommended_Modality ) + "\"", 
@@ -676,7 +691,8 @@ namespace Services
 
 			//Development Specification Type
 			var rowDevelopmentSpecificationType = GetDataOrError( summary.ConceptSchemeMap.DevelopmentSpecificationCategory.Concepts, ( m ) => 
-				m.Name?.ToLower() == item.Row.Development_Specification?.ToLower(), 
+				m.Name?.ToLower() == item.Row.Development_Specification?.ToLower() || //Preferred
+				m.CodedNotation?.ToLower() == item.Row.Development_Specification?.ToLower(), //Not preferred
 				result,
 				"Development Specification Type is missing, empty, or N/A.",
 				"Development Specification Type not found in database: \"" + TextOrNA( item.Row.Development_Specification ) + "\"", 
@@ -685,7 +701,8 @@ namespace Services
 
 			//Development Ratio Type
 			var rowDevelopmentRatioType = GetDataOrError( summary.ConceptSchemeMap.DevelopmentRatioCategory.Concepts, ( m ) =>
-				m.Name?.ToLower() == item.Row.Development_Ratio?.ToLower(),
+				m.Name?.ToLower() == item.Row.Development_Ratio?.ToLower() || //Preferred
+				m.CodedNotation?.ToLower() == item.Row.Development_Ratio?.ToLower(), //Not preferred
 				result,
 				"Development Ratio Type is missing, empty, or N/A.",
 				"Development Ratio Type not found in database: \"" + TextOrNA( item.Row.Development_Ratio ) + "\"",
@@ -697,8 +714,8 @@ namespace Services
 			var rowCFMPlacementTypeList = GetDataListOrErrorForEach( 
 				summary.ConceptSchemeMap.CFMPlacementCategory.Concepts,
 				SplitAndTrim( item.Row.CFM_Placement, new List<string>() { "/", ",", "|" } ),
-				( concept, value ) => concept.Name?.ToLower() == value.ToLower() ||
-				concept.CodedNotation?.ToLower() == value.ToLower(),
+				( concept, value ) => concept.Name?.ToLower() == value.ToLower() || //Preferred
+				concept.CodedNotation?.ToLower() == value.ToLower(), //Also preferred
 				result,
 				item.Row.CFM_Placement,
 				"CFM Placement Type is missing, empty, or N/A.",

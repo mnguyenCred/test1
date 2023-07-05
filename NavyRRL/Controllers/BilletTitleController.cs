@@ -9,6 +9,7 @@ using Models.Schema;
 using Services;
 using Navy.Utilities;
 using Models.Curation;
+using Models.DTO;
 
 namespace NavyRRL.Controllers
 {
@@ -100,6 +101,41 @@ namespace NavyRRL.Controllers
 
 			var result = Factories.JobManager.DeleteById( id );
 			return JsonResponse( result, result.Successful, result.Messages );
+		}
+		//
+
+		public ActionResult Merge()
+		{
+			if ( !AccountServices.IsUserAnAdmin() )
+			{
+				return JsonResponse( null, false, new List<string>() { "Merging data requires administrator privileges." } );
+			}
+
+			return View();
+		}
+		//
+
+		public ActionResult GetMergeSummary( Guid id )
+		{
+			if ( !AccountServices.IsUserAnAdmin() )
+			{
+				return JsonResponse( null, false, new List<string>() { "Merging data requires administrator privileges." } );
+			}
+
+			var result = Factories.JobManager.GetMergeSummary( id );
+			return JsonResponse( result, result.Valid, result.Messages );
+		}
+		//
+
+		public ActionResult DoMerge( MergeAttempt attempt )
+		{
+			if ( !AccountServices.IsUserAnAdmin() )
+			{
+				return JsonResponse( null, false, new List<string>() { "Merging data requires administrator privileges." } );
+			}
+
+			Factories.JobManager.DoMerge( attempt );
+			return JsonResponse( attempt, attempt.Valid, attempt.Messages );
 		}
 		//
 	}

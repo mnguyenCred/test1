@@ -9,11 +9,11 @@
 @functions {
 	string GetConceptLink( Guid conceptRowID )
 	{
-		return LinkHelper.GetDetailPageLink( Factories.ConceptManager.GetByRowId( conceptRowID ), Url.Content, concept => concept.Name );
+		return LinkHelper.GetDetailPageLink( Factories.ConceptManager.GetByRowId( conceptRowID ), Url.Content, concept => concept.NameOrCodedNotation() );
 	}
 	string GetConceptLinkList( List<Guid> conceptRowIDs )
 	{
-		return LinkHelper.GetDetailPageLinkList( Factories.ConceptManager.GetMultiple( conceptRowIDs ), Url.Content, concept => concept.Name, "<ul><li>", "</li><li>", "</li></ul>" );
+		return LinkHelper.GetDetailPageLinkList( Factories.ConceptManager.GetMultiple( conceptRowIDs ), Url.Content, concept => concept.NameOrCodedNotation(), "<ul><li>", "</li><li>", "</li></ul>" );
 	}
 }
 
@@ -27,7 +27,7 @@
 		new NamedString( "Rating", LinkHelper.GetDetailPageLink( Factories.RatingManager.GetByRowId( Model.HasRating ), Url.Content, m => m.Name + " (" + m.CodedNotation + ")" ) ),
 		new NamedString( "Rating Task", LinkHelper.GetDetailPageLink( Factories.RatingTaskManager.GetByRowId( Model.HasRatingTask, false ), Url.Content, m => m.Description ) ),
 		new NamedString( "Billet Title", LinkHelper.GetDetailPageLink( Factories.JobManager.GetByRowId( Model.HasBilletTitle, false ), Url.Content, m => m.Name ) ),
-		new NamedString( "Work Role", LinkHelper.GetDetailPageLink( Factories.WorkRoleManager.GetByRowId( Model.HasWorkRole, false ), Url.Content, m => m.Name ) ),
+		new NamedString( "Functional Area", LinkHelper.GetDetailPageLink( Factories.WorkRoleManager.GetByRowId( Model.HasWorkRole, false ), Url.Content, m => m.Name ) ),
 		new NamedString( "Training Solution Type", GetConceptLink( Model.TrainingSolutionType ) ),
 		new NamedString( "Recommended Modality Type", GetConceptLink( Model.RecommendedModalityType ) ),
 		new NamedString( "Development Specification Type", GetConceptLink( Model.DevelopmentSpecificationType ) ),

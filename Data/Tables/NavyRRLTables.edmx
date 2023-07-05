@@ -234,7 +234,7 @@
           <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
           <Property Name="RowId" Type="uniqueidentifier" Nullable="false" />
           <Property Name="ConceptSchemeId" Type="int" Nullable="false" />
-          <Property Name="Name" Type="varchar" MaxLength="1000" Nullable="false" />
+          <Property Name="Name" Type="varchar" MaxLength="1000" />
           <Property Name="WorkElementType" Type="varchar" MaxLength="200" />
           <Property Name="CodedNotation" Type="varchar" MaxLength="50" />
           <Property Name="AlternateLabel" Type="varchar" MaxLength="500" />
@@ -1810,7 +1810,7 @@
           <Property Name="Id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
           <Property Name="RowId" Type="Guid" Nullable="false" />
           <Property Name="ConceptSchemeId" Type="Int32" Nullable="false" />
-          <Property Name="Name" Type="String" Nullable="false" MaxLength="1000" FixedLength="false" Unicode="false" />
+          <Property Name="Name" Type="String" MaxLength="1000" FixedLength="false" Unicode="false" />
           <Property Name="WorkElementType" Type="String" MaxLength="200" FixedLength="false" Unicode="false" />
           <Property Name="CodedNotation" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
           <Property Name="AlternateLabel" Type="String" MaxLength="500" FixedLength="false" Unicode="false" />

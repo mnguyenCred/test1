@@ -105,7 +105,7 @@
 	ItemListSearches.renderPath = function (source, spinner, Config, path, asPlainText, overrideText) {
 		var [sourceProperty, referenceToType] = path.shift().split("|");
 		if (path.length == 0) {
-			var text = overrideText || source[sourceProperty];
+			var text = overrideText || source[sourceProperty] || source.CodedNotation || source.Name || "Unknown Value";
 			spinner.replaceWith(asPlainText ? "<div>" + text + "</div>" : ItemListSearches.getLink("@Url.Content("~/")" + referenceToType + "/Detail/" + source.Id, text));
 		}
 		else {

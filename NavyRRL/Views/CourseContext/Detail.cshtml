@@ -16,7 +16,7 @@
 		new NamedString( "Related Course", LinkHelper.GetDetailPageLink( Factories.CourseManager.GetByRowId( Model.HasCourse ), Url.Content, m => m.Name + " (" + m.CodedNotation + ")" ) ),
 		//new NamedString( "Related Training Task", trainingTaskData.Description + " " + LinkHelper.GetDetailPageLink( Factories.TrainingTaskManager.GetByRowId( Model.HasTrainingTask ), Url.Content, m => "(Details)" ) ),
 		new NamedString( "Related Training Task", LinkHelper.GetDetailPageLink( Factories.TrainingTaskManager.GetByRowId( Model.HasTrainingTask, false ), Url.Content, m => m.Description ) ),
-		new NamedString( "Assessment Method Type(s)", LinkHelper.GetDetailPageLinkList( Factories.ConceptManager.GetMultiple( Model.AssessmentMethodType ), Url.Content, m => m.Name, "<ul><li>", "</li><li>", "</li></ul>" ) )
+		new NamedString( "Assessment Method Type(s)", LinkHelper.GetDetailPageLinkList( Factories.ConceptManager.GetMultiple( Model.AssessmentMethodType ), Url.Content, m => m.NameOrCodedNotation(), "<ul><li>", "</li><li>", "</li></ul>" ) )
 	}
 } )
 

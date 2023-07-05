@@ -71,6 +71,17 @@ namespace Models.Schema
 		/// Reference to Broader Concepts by ID
 		/// </summary>
 		public int BroadMatchId { get; set; }
+
+		/// <summary>
+		/// Helper (Name Preferred)
+		/// </summary>
+		public string NameOrCodedNotation() { return !string.IsNullOrWhiteSpace( Name ) ? Name : !string.IsNullOrWhiteSpace( CodedNotation ) ? CodedNotation : "Unknown Concept"; }
+
+		/// <summary>
+		/// Helper (CodedNotation Preferred)
+		/// </summary>
+		public string CodedNotationOrName() { return !string.IsNullOrWhiteSpace( CodedNotation ) ? CodedNotation : !string.IsNullOrWhiteSpace( Name ) ? Name : "Unknown Concept"; }
+
 	}
 	//
 }

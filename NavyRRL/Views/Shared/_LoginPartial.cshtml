@@ -2,8 +2,9 @@
 @using Navy.Utilities;
 @using Services
 @{
-	var env = UtilityManager.GetAppKeyValue( "environment", "production" );
-	var user = AccountServices.GetCurrentUser();
+    var env = UtilityManager.GetAppKeyValue( "environment", "production" );
+    var requireCacCard = UtilityManager.GetAppKeyValue("requireCacCard");
+    var user = AccountServices.GetCurrentUser();
 
 }
 @if ( Request.IsAuthenticated )
@@ -27,7 +28,7 @@ else
     {
         <li>@Html.ActionLink("Log in", "Login", "Account", routeValues: null, htmlAttributes: new { id = "loginLink" })</li>
     }
-    else if (env == "development")
+    else if (requireCacCard.ToLower() == "true")
     {
         <li>@Html.ActionLink("Register", "CacRegister", "Account", routeValues: null, htmlAttributes: new { id = "registerLink" })</li>
         <li>@Html.ActionLink("Log in", "Login", "Account", routeValues: null, htmlAttributes: new { id = "loginLink" })</li>

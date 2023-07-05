@@ -444,6 +444,7 @@
     <Content Include="fonts\fontawesome-webfont.woff" />
     <Content Include="fonts\fontawesome-webfont.woff2" />
     <Content Include="fonts\FontAwesome.otf" />
+    <None Include="Properties\PublishProfiles\Docker.pubxml" />
     <None Include="Properties\PublishProfiles\Sandbox.pubxml" />
     <None Include="Scripts\jquery-3.6.0.intellisense.js" />
     <Content Include="Scripts\jquery-3.6.0.js" />
@@ -644,6 +645,10 @@
     <Content Include="Views\Event\FailedEvent.cshtml" />
     <Content Include="Views\Event\EmailConfirmed.cshtml" />
     <Content Include="Views\Account\CacRegister.cshtml" />
+    <Content Include="Views\BilletTitle\Merge.cshtml" />
+    <Content Include="Views\Shared\_MergeHelper.cshtml" />
+    <Content Include="Views\WorkRole\Merge.cshtml" />
+    <Content Include="Views\Organization\Merge.cshtml" />
     <None Include="Web.NavyDevSecOps.config">
       <DependentUpon>Web.config</DependentUpon>
     </None>

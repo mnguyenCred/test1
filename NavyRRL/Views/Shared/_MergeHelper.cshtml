@@ -1,0 +1,187 @@
+﻿<script type="text/javascript">
+	//Merge helper
+	function setupMergeHelper(container, searchType, typeLabel) {
+		//Parts
+		var Merger = {};
+		Merger.Box = container;
+		Merger.SearchType = searchType;
+		Merger.TypeLabel = typeLabel;
+		Merger.Columns = $("<div class=\"mergeColumns\"></div>").appendTo(Merger.Box);
+		Merger.Source = setupMergeColumn(Merger, "Remove Connections From " + typeLabel);
+		Merger.Destination = setupMergeColumn(Merger, "Append Connections To " + typeLabel);
+		Merger.SubmitButton = $("<button class=\"greenButton saveButton\">Merge Data</button>").appendTo(Merger.Box);
+		Merger.StatusBox = $("<div class=\"statusBox\"></div>").appendTo(Merger.Box);
+		Merger.MergeStatusBox = $("<div class=\"statusBox\"></div>").appendTo(Merger.Box);
+		Merger.Box.addClass("mergeHelper");
+		Merger.Timeout = 0;
+
+		//Functionality
+		Merger.validateData = function () {
+			Merger.StatusBox.html("");
+
+			if (!Merger.Source || !Merger.Source.Value || !Merger.Source.Ready) {
+				Merger.StatusBox.html("Source Data not ready yet.");
+				return false;
+			}
+
+			if (!Merger.Destination || !Merger.Destination.Value || !Merger.Destination.Ready) {
+				Merger.StatusBox.html("Destination Data not ready yet.");
+				return false;
+			}
+
+			if (Merger.Source.Value.RowId == Merger.Destination.Value.RowId) {
+				Merger.StatusBox.html("Source and Destination are the same.");
+				return false;
+			}
+
+			return true;
+		}
+
+		Merger.validateButton = function () {
+			if (!Merger.SubmitButton) {
+				return;
+			}
+
+			clearTimeout(Merger.Timeout);
+			Merger.SubmitButton.prop("disabled", true);
+			Merger.SubmitButton.html("Waiting...");
+
+			if (Merger.validateData()) {
+				Merger.SubmitButton.show();
+			}
+			else {
+				Merger.SubmitButton.hide();
+			}
+
+			Merger.Timeout = setTimeout(function () {
+				Merger.SubmitButton.prop("disabled", false);
+				Merger.SubmitButton.html("Merge Data");
+			}, 1000);
+		}
+
+		Merger.doMerge = function () {
+			if (!Merger.validateData()) {
+				return;
+			}
+
+			Merger.SubmitButton.prop("disabled", true);
+			Merger.StatusBox.html("Processing...");
+			Merger.MergeStatusBox.html("");
+			AJAX.doPOSTRequest("@Url.Content("~/")" + Merger.SearchType + "/domerge", { Source: Merger.Source.Value.RowId, Destination: Merger.Destination.Value.RowId }, (response) => {
+				Merger.SubmitButton.prop("disabled", false);
+				if (response.Valid) {
+					//Merger.Source.load();
+					Merger.Source.Input.remove();
+					//Merger.Source.Header.html("Connections Removed From " + Merger.TypeLabel);
+					//Merger.Destination.load();
+					Merger.Destination.Input.remove();
+					//Merger.Destination.Header.html("Connections Appended To " + Merger.TypeLabel);
+					Merger.SubmitButton.remove();
+					Merger.StatusBox.html("");
+					Merger.MergeStatusBox.html("Merge complete. Please validate the results. If the item from which data was removed needs to be deleted and everything worked, you may do so now.");
+				}
+				else {
+					Merger.StatusBox.html("<div class=\"error\"><div>Error:</div>" + (response.Messages || response.Status || []).map(m => "<div>" + m + "</div>").join("") + "</div>");
+				}
+			}, (error) => {
+				Merger.SubmitButton.prop("disabled", false);
+				Merger.StatusBox.html("<div class=\"error\"><div>Error:</div>" + (error.Messages || error.Status || []).map(m => "<div>" + m + "</div>").join("") + "</div>");
+			});
+		}
+
+		//Initialization
+		window.name = null;
+		Merger.SubmitButton.hide();
+		Merger.SubmitButton.on("click", function () {
+			if (confirm("Are you sure you want to remove connections from the item on the left and append them to the item on the right? This action cannot be undone!")) {
+				Merger.doMerge();
+			}
+		});
+
+		//Tracking
+		return Merger;
+	}
+	//
+
+	function setupMergeColumn(Merger, headerLabel) {
+		//Parts
+		var Column = {};
+		Column.Box = $("<div class=\"mergeColumn\"></div>").appendTo(Merger.Columns);
+		Column.Header = $("<h3 class=\"header\">" + headerLabel + "</h3>").appendTo(Column.Box);
+		Column.Input = $("<input type=\"text\" class=\"mergeUUIDBox\" placeholder=\"Enter " + Merger.TypeLabel + " System GUID\" />").appendTo(Column.Box);
+		Column.Display = $("<div class=\"mergeDisplay\"></div>").appendTo(Column.Box);
+		Column.Value = null;
+		Column.Ready = false;
+
+		Column.load = function () {
+			Column.Ready = false;
+			var uuid = Column.Input.val().trim();
+			Column.Display.html("");
+			if (uuid) {
+				Column.Display.html("Loading...");
+				AJAX.doGETRequest("@Url.Content("~/")" + Merger.SearchType + "/getmergesummary/" + Column.Input.val().trim(), (response) => {
+					if (response.Valid) {
+						Column.Value = response.Data;
+						displayMergeSummary(Merger, Column, response.Data);
+						Column.Ready = true;
+					}
+					else {
+						Column.Display.html("<div class=\"error\"><div>Error:</div>" + (response.Messages || []).map(m => "<div>" + m + "</div>").join("") + "</div>");
+					}
+
+					Merger.validateButton();
+				}, (error) => {
+					Column.Display.html("<div class=\"error\"><div>Error:</div>" + (error.Messages || error.Status || []).map(m => "<div>" + m + "</div>").join("") + "</div>");
+					Merger.validateButton();
+				});
+			}
+			else {
+				Merger.validateButton();
+			}
+		};
+
+		//Initialization
+		Column.Input.on("change", function () {
+			Column.load();
+		});
+
+		//Tracking
+		return Column;
+	}
+	//
+
+	function displayMergeSummary(Merger, Column) {
+		Column.Display.html("");
+		Column.Display.append("<h4 class=\"summaryHeader\">Details</h4>");
+		Column.Display.append("<div><a href=\"@Url.Content("~/")" + Merger.SearchType.toLowerCase() + "/detail/" + Column.Value.Id + "\" target=\"MergeDetails\">" + "Details for " + Merger.TypeLabel + ": " + Column.Value.Label + "</a></div>");
+		displayMergeCount(Column.Display, "Incoming Connections", Column.Value.Incoming);
+		displayMergeCount(Column.Display, "Outgoing Connections", Column.Value.Outgoing);
+	}
+	//
+
+	function displayMergeCount(container, label, Items) {
+		container.append("<h4 class=\"summaryHeader\">" + label + "</h4>");
+		if (Items?.length > 0) {
+			Items.forEach(Item => {
+				container.append("<div class=\"summaryItem\">" + Item.Count + " " + Item.Type + "</div>");
+			});
+		}
+		else {
+			container.append("No Items.");
+		}
+	}
+	//
+</script>
+<style type="text/css">
+	input { max-width: none; }
+
+	.mergeHelper { }
+	.mergeHelper .mergeColumns { display: flex; gap: 20px; margin-bottom: 50px; }
+	.mergeHelper .mergeColumns .mergeColumn { flex: 1 1 50%; }
+	.mergeHelper .mergeColumns .mergeColumn .header {  }
+	.mergeHelper .mergeColumns .mergeColumn .mergeUUIDBox { display: block; width: 100%; }
+	.mergeHelper .mergeColumns .mergeColumn .mergeDisplay { padding: 10px; }
+	.mergeHelper .mergeColumns .mergeColumn .mergeDisplay .summaryHeader {  }
+	.mergeHelper .saveButton { display: block; padding: 10px; width: 100%; }
+	.mergeHelper .statusBox { padding: 10px; }
+</style>

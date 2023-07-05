@@ -74,6 +74,7 @@ custom pager
   ------------------------------------------------------
 Modifications
 22-01-14 mparsons - new
+23-04-14 mparsons - including inactive accounts in search results
 
 */
 
@@ -195,7 +196,6 @@ SELECT
 		,convert(varchar(10),base.lastLogon,110) as lastLogon
 From #tempWorkTable work
 	Inner join Account_Summary base on work.Id = base.Id 
-	--left join [Organization.Member] ombrs on base.Id = ombrs.ParentOrgId and ombrs.UserId = @CurrentUserId
 
 WHERE RowNumber > @first_id
 order by RowNumber 

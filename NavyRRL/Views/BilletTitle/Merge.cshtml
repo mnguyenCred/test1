@@ -1,0 +1,16 @@
+﻿@{
+    ViewBag.Title = "Merge Billet Titles";
+}
+
+@Html.Partial( "~/Views/Shared/_AJAXTools.cshtml" )
+@Html.Partial( "~/Views/Shared/_MergeHelper.cshtml" )
+
+<script type="text/javascript">
+	$(document).ready(function () {
+		setupMergeHelper($(".merge"), "BilletTitle", "Billet Title");
+	});
+</script>
+
+<h2>Merge Billet Titles</h2>
+
+<div class="merge"></div>

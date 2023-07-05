@@ -27,14 +27,20 @@ namespace Factories
 		public static void SaveFromEditor( AppEntity entity, int userID, List<string> errors )
 		{
 			//Validate required fields
-			AddErrorIf( errors, string.IsNullOrWhiteSpace( entity.Name ), "Name must not be blank." );
+			AddErrorIf( errors, string.IsNullOrWhiteSpace( entity.Name ) && string.IsNullOrWhiteSpace( entity.CodedNotation ), "Either Name or Code is required." );
 
 			//Duplicate checks
 			DuplicateCheck( "Concept Scheme", context => context.ConceptScheme_Concept.Where( m => m.RowId != entity.RowId && context.ConceptScheme.FirstOrDefault( n => n.RowId == entity.InScheme && n.Id == m.ConceptSchemeId ) != null ), errors, new List<StringCheckMapping<DBEntity>>()
 			{
-				new StringCheckMapping<DBEntity>( entity.Name, dbEnt => CompareStrings( entity.Name, dbEnt.Name ), "Name", "Another Concept in this Concept Scheme has a matching Name." ),
-				new StringCheckMapping<DBEntity>( entity.CodedNotation, dbEnt => CompareStrings( entity.CodedNotation, dbEnt.CodedNotation ), "Coded Notation", "Another Concept in this Concept Scheme has a matching Code." ),
-				new StringCheckMapping<DBEntity>( entity.WorkElementType, dbEnt => CompareStrings( entity.WorkElementType, dbEnt.WorkElementType ), "Work Element Type", "Another Concept in this Concept Scheme has a matching Work Element Type." )
+				new StringCheckMapping<DBEntity>( entity.Name, dbEnt => CompareStrings( entity.Name, dbEnt.Name ), "Name", "Another Concept in this Concept Scheme already has that Name." ),
+				new StringCheckMapping<DBEntity>( entity.CodedNotation, dbEnt => CompareStrings( entity.CodedNotation, dbEnt.CodedNotation ), "Coded Notation", "Another Concept in this Concept Scheme already has that Code." ),
+				new StringCheckMapping<DBEntity>( entity.WorkElementType, dbEnt => CompareStrings( entity.WorkElementType, dbEnt.WorkElementType ), "Work Element Type", "Another Concept in this Concept Scheme already has that Work Element Type." ),
+				new StringCheckMapping<DBEntity>( entity.Name, dbEnt => CompareStrings( entity.Name, dbEnt.CodedNotation ), "Name/Coded Notation", "Another Concept in this scheme has the same Code as the Name of this Concept." ),
+				new StringCheckMapping<DBEntity>( entity.Name, dbEnt => CompareStrings( entity.Name, dbEnt.WorkElementType ), "Name/Work Element Type", "Another Concept in this scheme has the same Work Element Type as the Name of this Concept." ),
+				new StringCheckMapping<DBEntity>( entity.CodedNotation, dbEnt => CompareStrings( entity.CodedNotation, dbEnt.Name ), "Coded Notation/Name", "Another Concept in this scheme has the same Name as the Code of this Concept." ),
+				new StringCheckMapping<DBEntity>( entity.CodedNotation, dbEnt => CompareStrings( entity.CodedNotation, dbEnt.WorkElementType ), "Coded Notation/Work Element Type", "Another Concept in this scheme has the same Work Element Type as the Code of this Concept." ),
+				new StringCheckMapping<DBEntity>( entity.WorkElementType, dbEnt => CompareStrings( entity.WorkElementType, dbEnt.Name ), "Work Element Type/Name", "Another Concept in this scheme has the same Name as the Work Element Type of this Concept." ),
+				new StringCheckMapping<DBEntity>( entity.WorkElementType, dbEnt => CompareStrings( entity.WorkElementType, dbEnt.CodedNotation ), "Work Element Type/Coded Notation", "Another Concept in this scheme has the same Code as the Work Element Type of this Concept." )
 			} );
 
 			//Return if any errors

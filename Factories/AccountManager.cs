@@ -960,8 +960,9 @@ namespace Factories
 			output.IsActive = input.IsActive == null ? false : ( bool ) input.IsActive;
 			output.FirstName = input.FirstName;
 			output.LastName = input.LastName;
+            output.EmailConfirmed = input.AspNetUsers.EmailConfirmed;
 
-			output.Email = input.Email;
+            output.Email = input.Email;
 			output.ExternalAccountIdentifier = input.ExternalAccountIdentifier;
 
 			if ( IsValidDate( input.Created ) )
@@ -996,6 +997,8 @@ namespace Factories
 
 		} //
 
+       
+
         public static void MapFromDB(EM.AspNetUsers input, AppUser output)
         {
             output.Id = input.UserId;
@@ -1005,6 +1008,7 @@ namespace Factories
             output.AspNetUserId = input.Id;
             //to.Password = fromEntity.Password;
             output.IsActive = (bool)input.EmailConfirmed;
+            output.EmailConfirmed = (bool)input.EmailConfirmed;
             output.FirstName = input.FirstName;
             output.LastName = input.LastName;
 

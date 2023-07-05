@@ -8,7 +8,7 @@
 
 @Html.Partial( "~/Views/Shared/_DetailBasicInfo.cshtml", new DetailBasicInfoHelper( Model )
 {
-	Name = Model.Name,
+	Name = Model.NameOrCodedNotation(),
 	PropertyList = new List<NamedString>()
 	{
 		new NamedString( "In Scheme", LinkHelper.GetDetailPageLink( Factories.ConceptSchemeManager.GetByRowId( Model.InScheme ), Url.Content, m => m.Name ) ),

@@ -269,11 +269,13 @@ namespace Navy.Utilities
 				SendEmailViaApi( emailMsg );
 			else if ( emailService == "smtp" )
 			{
-				SmtpClient smtp = new SmtpClient( UtilityManager.GetAppKeyValue( "SmtpHost" ) );
-				smtp.UseDefaultCredentials = false;
-				smtp.Credentials = new NetworkCredential( "mparsons", "WhoKnows" );
+				SendEmailViaSMTP( emailMsg );
 
-				smtp.Send( emailMsg );
+    //            SmtpClient smtp = new SmtpClient( UtilityManager.GetAppKeyValue( "SmtpHost" ) );
+				//smtp.UseDefaultCredentials = false;
+				//smtp.Credentials = new NetworkCredential( "mparsons", "WhoKnows" );
+
+				//smtp.Send( emailMsg );
 			}
 			//else if ( emailService == "sendGrid" )
 			//{
@@ -325,6 +327,34 @@ namespace Navy.Utilities
             if (!valid)
             {
                 LoggingHelper.DoTrace( 2, "***** EmailManager.SendEmailViaMailgun - error on send: " + status );
+            }
+        }
+        public static void SendEmailViaSMTP( MailMessage emailMsg )
+        {
+			//may need to make this configurable
+			var port = 25;
+			var usingCredentials = true;
+            try
+			{
+                //SmtpClient smtp = new SmtpClient( UtilityManager.GetAppKeyValue( "SmtpHost" ), port );
+                SmtpClient smtp = new SmtpClient("app.debugmail.io", 25);
+                //??
+                smtp.UseDefaultCredentials = true;
+				//what to use for credentials?
+				if ( usingCredentials )
+				{
+					//would probably get from the config
+					//smtp.Credentials = new NetworkCredential( "mparsons", "WhoKnows" );
+                    smtp.Credentials = new NetworkCredential("bf5a02f7-f3cb-4cdb-9d2a-35933f2d563c", "de8a513e-f24e-475e-a36c-1efabbe48ddf");
+
+                }
+
+                smtp.Send( emailMsg );
+            } catch (Exception ex )
+			{
+				var msg = "";
+                LoggingHelper.DoTrace( 2, "***** EmailManager.SendEmailViaSMTP - error on send: " + ex.Message );
+
             }
         }
         /// <summary>

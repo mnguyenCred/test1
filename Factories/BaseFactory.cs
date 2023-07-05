@@ -352,6 +352,64 @@ namespace Factories
 		}
 		//
 
+		public static Models.DTO.MergeSummary GetMergeSummary<T>( string typeLabel, Guid rowID, Func<DataEntities, DbSet<T>> GetListMethod, Action<DataEntities, T, Models.DTO.MergeSummary> AppendMethod ) where T : class, DBEntityBaseObject
+		{
+			var summary = new Models.DTO.MergeSummary( rowID ) { Valid = true };
+
+			using ( var context = new DataEntities() )
+			{
+				var match = GetListMethod( context ).FirstOrDefault( m => m.RowId == rowID );
+				if ( match == null )
+				{
+					summary.Valid = false;
+					summary.Messages.Add( "No " + typeLabel + " found for RowID: " + rowID );
+					return summary;
+				}
+
+				summary.Id = match.Id;
+				AppendMethod( context, match, summary );
+			}
+
+			return summary;
+		}
+		//
+
+		public static void DoMerge<T>( Models.DTO.MergeAttempt attempt, Func<DataEntities, DbSet<T>> GetListMethod, Action<DataEntities, T, T> MergeMethod ) where T : class, DBEntityBaseObject
+		{
+			using ( var context = new DataEntities() )
+			{
+				var source = GetListMethod( context ).FirstOrDefault( m => m.RowId == attempt.Source );
+				var destination = GetListMethod( context ).FirstOrDefault( m => m.RowId == attempt.Destination );
+				if ( source == null || destination == null )
+				{
+					attempt.Valid = false;
+					attempt.Messages.Add( "Source and/or Destination are null." );
+					return;
+				}
+
+				try
+				{
+					MergeMethod( context, source, destination );
+
+					context.SaveChanges();
+
+					attempt.Valid = true;
+				}
+				catch ( Exception ex )
+				{
+					attempt.Valid = false;
+					attempt.Messages.Add( "Error processing merge: " + ex.Message );
+					if ( !string.IsNullOrWhiteSpace( ex.InnerException?.Message ) )
+					{
+						attempt.Messages.Add( "Inner Exception: " + ex.InnerException.Message );
+					}
+				}
+			}
+		}
+		//
+
+
+
 		public static SearchResultSet<T2> HandleSearch<T1, T2>(
 			SearchQuery query,
 			Func<DataEntities, IOrderedEnumerable<T1>> SearchMethodWithOrderedResultSet,

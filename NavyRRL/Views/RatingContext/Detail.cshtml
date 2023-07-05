@@ -14,11 +14,11 @@
 @functions {
 	string GetConceptLink( Guid conceptRowID )
 	{
-		return LinkHelper.GetDetailPageLink( Factories.ConceptManager.GetByRowId( conceptRowID ), Url.Content, concept => concept.Name );
+		return LinkHelper.GetDetailPageLink( Factories.ConceptManager.GetByRowId( conceptRowID ), Url.Content, concept => concept.NameOrCodedNotation() );
 	}
 	string GetConceptLinkList( List<Guid> conceptRowIDs )
 	{
-		return LinkHelper.GetDetailPageLinkList( Factories.ConceptManager.GetMultiple( conceptRowIDs ), Url.Content, concept => concept.Name, "<ul><li>", "</li><li>", "</li></ul>" );
+		return LinkHelper.GetDetailPageLinkList( Factories.ConceptManager.GetMultiple( conceptRowIDs ), Url.Content, concept => concept.NameOrCodedNotation(), "<ul><li>", "</li><li>", "</li></ul>" );
 	}
 }
 

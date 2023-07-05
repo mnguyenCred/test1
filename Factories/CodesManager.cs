@@ -10,6 +10,6 @@ namespace Factories
     public class CodesManager
     {
 
-        public static string DefaultEmailAddress = "mparsons@credentialengine.org";
+        public static string DefaultEmailAddress = "nargo@credentialengine.org";
     }
 }

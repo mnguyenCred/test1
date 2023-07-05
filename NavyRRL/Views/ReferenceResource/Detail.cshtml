@@ -15,7 +15,7 @@
 	{
 		new NamedString( "Description", Model.Description ),
 		new NamedString( "Source Date", Model.PublicationDate ),
-		new NamedString( "Reference Resource Type",  LinkHelper.GetDetailPageLinkList( Factories.ConceptManager.GetMultiple( Model.ReferenceType ), Url.Content, m => m.Name, "<ul><li>", "</li><li>", "</li></ul>" ) )
+		new NamedString( "Reference Resource Type",  LinkHelper.GetDetailPageLinkList( Factories.ConceptManager.GetMultiple( Model.ReferenceType ), Url.Content, m => m.NameOrCodedNotation(), "<ul><li>", "</li><li>", "</li></ul>" ) )
 	}
 } )
 

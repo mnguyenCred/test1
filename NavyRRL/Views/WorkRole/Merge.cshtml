@@ -1,0 +1,16 @@
+﻿@{
+    ViewBag.Title = "Merge Functional Areas";
+}
+
+@Html.Partial( "~/Views/Shared/_AJAXTools.cshtml" )
+@Html.Partial( "~/Views/Shared/_MergeHelper.cshtml" )
+
+<script type="text/javascript">
+	$(document).ready(function () {
+		setupMergeHelper($(".merge"), "WorkRole", "Functional Area");
+	});
+</script>
+
+<h2>Merge Functional Areas</h2>
+
+<div class="merge"></div>

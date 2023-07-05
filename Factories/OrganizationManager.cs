@@ -74,6 +74,30 @@ namespace Factories
 		}
 		//
 
+		public static Models.DTO.MergeSummary GetMergeSummary( Guid rowID )
+		{
+			return GetMergeSummary( "Organization", rowID, m => m.Organization, ( context, match, summary ) =>
+			{
+				//Label
+				summary.Label = match.Name;
+
+				//Incoming
+				summary.Incoming.Add( new Models.DTO.MergeSummaryItem( context.Course.Where( m => m.Organization.RowId == match.RowId ).Count(), "Courses" ) );
+			} );
+		}
+		//
+
+		public static void DoMerge( Models.DTO.MergeAttempt attempt )
+		{
+			DoMerge( attempt, m => m.Organization, ( context, source, destination ) =>
+			{
+				foreach ( var item in context.Course.Where( m => m.Organization.RowId == source.RowId ) )
+				{
+					item.CurriculumControlAuthorityId = destination.Id;
+				}
+			} );
+		}
+		//
 
 		#endregion
 

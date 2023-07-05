@@ -307,7 +307,7 @@ namespace NavyRRL.Controllers
                         return user;
                     }
                     user = AccountServices.GetUserByIdentifier(navyUser.Identifier);
-                    if (user != null && user.Id > 0)
+                    if (user.EmailConfirmed == true && user.Id > 0)
                     {
                         return user;
                     }
@@ -480,12 +480,13 @@ namespace NavyRRL.Controllers
         public ActionResult Register()
         {
             var env = UtilityManager.GetAppKeyValue( "environment" );
+            var requireCacCard = UtilityManager.GetAppKeyValue("requireCacCard");
             //or check IP
-            if (env == "production")
+            if (requireCacCard.ToLower() == "true")
             {
                 return View();
             }
-            else if (env != "development")
+            else if (requireCacCard.ToLower() != "true")
             {
                 return View("~/Views/Home/PageNotFound.cshtml");
             }
@@ -563,8 +564,9 @@ namespace NavyRRL.Controllers
         public ActionResult CacRegister()
         {
             var env = UtilityManager.GetAppKeyValue("environment");
+            var requireCacCard = UtilityManager.GetAppKeyValue("requireCacCard");
             //or check IP
-            if (env != "development")
+            if (requireCacCard.ToLower() != "true")
             {
                 return View("~/Views/Home/PageNotFound.cshtml");
             }
@@ -594,11 +596,14 @@ namespace NavyRRL.Controllers
                 var result = await UserManager.CreateAsync(user, model.Email+"D3fault1!");
                 if (result.Succeeded)
                 {
+                    string message1 = "";
+                    bool isValid1 = true;
+                    var cacHeaderInfo = new AccountServices().GetNavyUserFromHeader(ref isValid1, ref message1);
                     int id = new AccountServices().Create(model.Email,
                          model.FirstName, model.LastName,
                          model.Email, user.Id,
                          model.Email + "D3fault1!",
-                         model.Identifier,
+                         cacHeaderInfo.Identifier,
                          ref statusMessage, doingEmailConfirmation);
 
                     if (doingEmailConfirmation == false)
@@ -653,7 +658,7 @@ namespace NavyRRL.Controllers
                 ViewBag.Message = "Error: both a user identifier and an access code must be provided.";
                 return View( "ConfirmEmail" );
             }
-            //new AccountServices().Proxies_StoreProxyCode( code, "mparsons+220321a@credentialengine.org", "ConfirmEmail" );
+            //
             if ( !AccountServices.Proxy_IsCodeActive( code ) )
             {
                 ViewBag.Header = "Invalid Confirmation Code";
@@ -871,23 +876,25 @@ namespace NavyRRL.Controllers
             bool updateEmail = false;
 
             ApplicationUser user = (ApplicationUser)Session["applicationUser"];
+            AppUser appUser = (AppUser)Session["appUser"];
+            user = this.UserManager.FindByEmail(appUser.Email.Trim());
             // For more information on how to enable account confirmation and password reset please visit http://go.microsoft.com/fwlink/?LinkID=320771
             // Send an email with this link
-            AppUser appUser = null;
-            if (user != null)
-            { 
-                appUser = AccountManager.AppUser_GetByEmail(user.Email); 
-            }
-            
-            if (user != null)
+            //AppUser appUser = null;
+            //if (user != null)
+            //{ 
+            //    appUser = AccountManager.AppUser_GetByEmail(appUser.Email); 
+            //}
+
+            if (appUser != null)
             {
-                if (user.Email.ToLower() != confirmedEmail.ToLower() && String.IsNullOrEmpty(origionalEmail))
+                if (appUser.Email.ToLower() != confirmedEmail.ToLower() && String.IsNullOrEmpty(origionalEmail))
                 {
 
                     // For more information on how to enable account confirmation and password reset please visit http://go.microsoft.com/fwlink/?LinkID=320771
                     // Send an email with this link
                     string emailUpdate = "";
-                    updateEmail = AccountManager.AspNetUsers_UpdateEmailConfirmedByEmail(confirmedEmail, ref emailUpdate, user.Email);
+                    updateEmail = AccountManager.AspNetUsers_UpdateEmailConfirmedByEmail(confirmedEmail, ref emailUpdate, appUser.Email);
                     string code = await UserManager.GenerateEmailConfirmationTokenAsync(user.Id);
                     //var callbackUrlParameter = Url.Action("ConfirmEmail", "Account", new { userId = user.Id, code = code }, protocol: Request.Url.Scheme);
                     var callbackUrl = Url.Action("ConfirmEmail", "Account", new { userId = user.Id, code = code }, protocol: Request.Url.Scheme);

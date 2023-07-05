@@ -72,6 +72,39 @@ namespace Factories
 		}
 		//
 
+		public static Models.DTO.MergeSummary GetMergeSummary( Guid rowID )
+		{
+			return GetMergeSummary( "Functional Area", rowID, m => m.WorkRole, ( context, match, summary ) =>
+			{
+				//Label
+				summary.Label = match.Name;
+
+				//Incoming
+				summary.Incoming.Add( new Models.DTO.MergeSummaryItem( context.RatingContext.Where( m => m.WorkRole.RowId == match.RowId ).Count(), "Rating Contexts" ) );
+				summary.Incoming.Add( new Models.DTO.MergeSummaryItem( context.ClusterAnalysis.Where( m => m.WorkRole.RowId == match.RowId ).Count(), "Cluster Analyses" ) );
+			} );
+		}
+		//
+
+		public static void DoMerge( Models.DTO.MergeAttempt attempt )
+		{
+			DoMerge( attempt, m => m.WorkRole, ( context, source, destination ) =>
+			{
+				foreach ( var item in context.RatingContext.Where( m => m.WorkRole.RowId == source.RowId ) )
+				{
+					item.BilletTitleId = destination.Id;
+				}
+
+				foreach ( var item in context.ClusterAnalysis.Where( m => m.WorkRole.RowId == source.RowId ) )
+				{
+					item.BilletTitleId = destination.Id;
+				}
+			} );
+		}
+		//
+
+
+
 		#endregion
 
 		#region Retrieval
@@ -148,6 +181,7 @@ namespace Factories
 			}, MapFromDBForSearch );
 		}
 		//
+
 
 		public static AppEntity MapFromDB( DBEntity input, DataEntities context )
 		{
